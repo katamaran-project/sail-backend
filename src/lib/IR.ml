@@ -1,5 +1,4 @@
 
-(******************************************************************************)
 
 
 
@@ -10,11 +9,12 @@ type ty =
   | Int
   | List of ty
   | Bool
+  | Unit
+  | Undecide
   (*
   | String
   | Prod of ty * ty
   | Sum of ty * ty
-  | Unit
   *)
 
 type bind = string * ty
@@ -27,17 +27,18 @@ type funType_t = {
 
 (******************************************************************************)
 
-(*
-type 'a value =
-  | Val_bool of bool constraint 'a = bool
-  | Val_int of int constraint 'a = int 
-  | Val_list of 'b constraint 'a = 'b list
-*)
-
 type value =
   | Val_bool of bool
   | Val_int of int
   | Val_list of value list 
+  | Val_unit
+
+let rec ty_val = function
+  | Val_bool _        -> Bool
+  | Val_int _         -> Int
+  | Val_unit          -> Unit
+  | Val_list []       -> List Undecide
+  | Val_list (h :: _) -> List (ty_val h)
 
 type expression =
   | Exp_var of string

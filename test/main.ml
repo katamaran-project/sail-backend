@@ -13,6 +13,10 @@ let fun_is_empty = Stm_match_list {
   alt_cons = Stm_val (Val_bool false)
 }
 
+(*
+let fun_empty = Stm_exp (Exp_val (Val_list []))
+*)
+
 let testFunDefList = [
   { name = "is_empty";
     funType = {
@@ -21,12 +25,41 @@ let testFunDefList = [
     };
     funBody = fun_is_empty
   };
+  
+  (*
+  { name = "empty";
+    funType = {
+      arg_types = [ ("tt", Unit)];
+      ret_type = List Int
+    };
+    funBody = fun_empty
+  };
+  *)
+
   { name = "very_long_naaaaaaaaaaaaaaaaame";
     funType = {
       arg_types = [ ("l", List Int); ("b", Bool); ("n", Int) ];
       ret_type = List (List (List Bool))
     };
-    funBody = Stm_val (Val_list [Val_list [ Val_list [Val_bool true]]])
+    funBody = Stm_val (
+      Val_list [
+        Val_list [
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true]
+        ];
+        Val_list [
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true]
+        ];
+        Val_list [
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true];
+          Val_list [Val_bool true; Val_bool true; Val_bool true]
+        ]
+      ]
+    )
   }
   
 ]
@@ -40,4 +73,4 @@ let ir_1 = {
 (******************************************************************************)
 (* Main *)
 
-let () = pretty_print 70 Out_channel.stdout (fromIR ir_1)
+let () = pretty_print 60 Out_channel.stdout (fromIR_pp ir_1)
