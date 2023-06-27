@@ -2,23 +2,21 @@
 
 (name sail_katamaran_backend)
 
-(generate_opam_files true)
+(version 0.1)
+
+; (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github mariusgoyet/sail-katamaran-backend))
 
-(authors "Author Name")
+(authors "Marius Goyet")
 
-(maintainers "Maintainer Name")
+(maintainers "Marius Goyet")
 
-(license LICENSE)
-
-(documentation https://url/to/documentation)
-
-(package
- (name sail_katamaran_backend)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune pprint)
- (allow_empty))
+; (package
+;  (name sail_katamaran_backend)
+;  (synopsis "A short synopsis")
+;  (description "A longer description")
+;  (depends ocaml dune pprint)
+;  (allow_empty))
 
