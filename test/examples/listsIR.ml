@@ -17,7 +17,7 @@ let fun_empty = Stm_exp (Exp_val (Val_list []))
 (* Intermediate Representation Lists *)
 
 
-let testFunDefList = [
+let listsFunDefList = [
   { name = "is_empty";
     funType = {
       arg_types = [ ("l", List Int) ];
@@ -36,5 +36,5 @@ let testFunDefList = [
 
 let ir = { 
   program_name = "Lists";
-  funDefList = testFunDefList
+  funDefList = listsFunDefList
 }

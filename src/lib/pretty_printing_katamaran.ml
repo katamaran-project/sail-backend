@@ -5,66 +5,32 @@ open IR
 (******************************************************************************)
 (* Utility definitions *)
 
-let small_indent = nest 2
-let big_indent = nest 4
+let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
 let nyp = string "(* NOT YET PROCESSED *)"
 
-(*  Create a block surrounded by begin_str and end_str with nice alignment
-  for a list of document separated by set_str.
-    with_spc set to true will add a breakable space after begin_str and before 
-  end_str  *)
-let align_block with_spc begin_str end_str sep_str doc_list = 
-  let spc = if with_spc then 1 else 0 in
-  group (align (
-    string begin_str ^^ blank spc ^^ align (
-      separate (string sep_str ^^ break 1) doc_list
-    ) ^^ blank spc ^^ string end_str
-  ))
+let list_pp l = soft_surround 2 1 !^"[" (separate (!^";" ^^ break 1) l) !^"]" 
 
-(*  Create a block surrounded by begin_str and end_str with small indentation
-  for a list of document separated by set_str.
-    with_spc set to true will add a breakable space after begin_str and before 
-  end_str  *)
-let simple_block with_spc begin_str end_str sep_str doc_list =
-  let spc = if with_spc then 1 else 0 in
-    group (small_indent (
-      string begin_str ^^ break spc ^^
-      separate (string sep_str ^^ break 1) doc_list
-      ) ^^ break spc ^^ string end_str
-    )
+let prod_pp v1 v2 = soft_surround 1 0 !^"(" (v1 ^^ !^"," ^^ break 1 ^^ v2) !^")"
 
-let parens_doc doc = simple_block false "(" ")" "" [doc]
-
-let simple_app doc_list =
-  group (small_indent (
-    separate (break 1) doc_list
-  ))
+let simple_app argv = indent (flow (break 1) argv)
 
 (******************************************************************************)
 (* Heading pretty printing *)
 
-let require_import src names = nest 5 (
-  group (
-    string ("From " ^ src ^ " Require Import") ^^
-    break 1 ^^
-    separate_map hardline string names ^^
-    dot
-  )
-)
+let require_import src names = prefix 5 1 
+  (string ("From " ^ src ^ " Require Import"))
+  (separate_map hardline string names)
+  ^^ dot
 
-let import names = nest 7 (
-  group (
-    string "Import " ^^
-    separate_map hardline string names ^^
-    dot
-  )
-)
+let import names = string "Import "
+  ^^ align (separate_map hardline string names) ^^ dot
+
 
 let heading = separate small_step [
-  require_import "Coq" ["Lists.List"; "Strings.String"];
+  require_import "Coq" ["Lists.List"; "Strings.String"; "ZArith.BinInt"];
   require_import "Katamaran" ["Semantics.Registers"; "Program"];
   import ["ctx.notations"; "ctx.resolution"; "ListNotations"];
   string "Local Open Scope string_scope.";
@@ -81,74 +47,72 @@ let defaultBase = string "Import DefaultBase."
 (* FunDeclKit pretty printing *)
 
 let rec ty_pp = function
-  | Int      -> string "ty.int"
-  | List t   -> parens_doc (string "ty.list " ^^ ty_pp t)
-  | Bool     -> string "ty.bool"
-  | Unit     -> string "ty.unit"
-  | Undecide -> nyp
+  | Int           -> string "ty.int"
+  | List t        -> parens (simple_app [!^"ty.list"; ty_pp t])
+  | Bool          -> string "ty.bool"
+  | Unit          -> string "ty.unit"
+  | String        -> string "ty.string"
+  | Prod (t1, t2) -> parens (simple_app [!^"ty.prod"; ty_pp t1; ty_pp t2])
+  (*
+  | Sum (t1, t2) -> parens_app !^"ty.sum" [ty_pp t1; ty_pp t2]
+  *)
+  | Undecide      -> nyp
 
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
 
-let funDecl_pp funDef = group (big_indent (
-  string ("| " ^ funDef.name ^ " :") ^^ break 1 ^^
-  group (
-    string "Fun " ^^ align_block true "[" "]" ";" 
-        (map bind_pp funDef.funType.arg_types)
-    ^^ group (break 1 ^^ ty_pp funDef.funType.ret_type)
-  )
-))
+let funDecl_pp funDef = indent (simple_app [
+  string ("| " ^ funDef.name ^ " : Fun");
+  list_pp (map bind_pp funDef.funType.arg_types);
+  ty_pp funDef.funType.ret_type
+])
 
 let funDeclKit_pp funDefList =
-  small_indent (
-    separate hardline [
-      string "Section FunDeclKit.";
-      string "Inductive Fun : PCtx -> Ty -> Set :=";
-      separate_map hardline funDecl_pp funDefList ^^ dot;
-      empty;
-      utf8string "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
-      utf8string "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
-      utf8string "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set."
+  indent (separate small_step [
+    string "Section FunDeclKit.";
+    string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline
+    ^^ separate_map hardline funDecl_pp funDefList ^^ dot;
+    separate_map hardline utf8string [
+      "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
+      "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
+      "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
     ]
-  ) ^^ hardline ^^ string "End FunDeclKit." 
+  ]) ^^ small_step ^^ string "End FunDeclKit."
 
 (******************************************************************************)
 (* Value pretty printing *)
 
 let rec value_pp = function
-  | Val_bool b -> string (string_of_bool b)
-  | Val_int i  -> string (string_of_int i)
-  | Val_unit   -> string "()"
-  | Val_list l -> align_block false "[" "]" ";" (map value_pp l)
+  | Val_bool b        -> string (string_of_bool b)
+  | Val_int i         -> string (string_of_int i ^ "%Z")
+  | Val_unit          -> string "()"
+  | Val_list l        -> list_pp (map value_pp l)
+  | Val_string s      -> dquotes (string s)
+  | Val_prod (v1, v2) -> prod_pp (value_pp v1) (value_pp v2) 
+  (*
+  | Val_Sum v         -> 
+  *)
 
 (******************************************************************************)
 (* Expression pretty printing *)
 
 let expression_pp = function
-  | Exp_var v -> simple_app [string "exp_var"; dquotes (string v)]
-  | Exp_val v -> simple_app [string "exp_val";
-                             ty_pp (ty_val v);
-                             value_pp v]
+  | Exp_var v -> simple_app [(string "exp_var"); dquotes (string v)]
+  | Exp_val v -> simple_app [(string "exp_val"); ty_pp (ty_val v); value_pp v]
 
 (******************************************************************************)
 (* Statement pretty printing *)
 
 let rec statement_pp = function
-  | Stm_val v -> simple_app [
-      string "stm_val";
-      ty_pp (ty_val v);
-      value_pp v]
-  | Stm_exp e -> simple_app [
-      string "stm_exp";
-      parens_doc (expression_pp e)]
-  | Stm_match_list m -> simple_app [ 
-      string "stm_match_list";
-      parens_doc (statement_pp m.s);
-      parens_doc (statement_pp m.alt_nil);
+  | Stm_val v -> simple_app [(string "stm_val"); ty_pp (ty_val v); value_pp v]
+  | Stm_exp e -> simple_app [(string "stm_exp"); parens (expression_pp e)]
+  | Stm_match_list m -> simple_app [(string "stm_match_list");
+      parens (statement_pp m.s);
+      parens (statement_pp m.alt_nil);
       dquotes (string m.xh);
       dquotes (string m.xt);
-      parens_doc (statement_pp m.alt_cons);
+      parens (statement_pp m.alt_cons);
     ]
 
 (******************************************************************************)
@@ -156,38 +120,31 @@ let rec statement_pp = function
 
 let funDef_pp funDef =
   let body = funDef.funBody in
-  group (big_indent (
-    string ("Definition fun_" ^ funDef.name ^ " :") ^^ break 1 ^^
-    group (
-      string "Stm " ^^ align_block true "[" "]" ";" 
-          (map bind_pp funDef.funType.arg_types)
-      ^^ group (break 1 ^^ ty_pp funDef.funType.ret_type)
-    )
-  )) ^^ string " :=" ^^ small_indent (
-    hardline ^^ statement_pp body ^^ dot
-  )
+  indent (simple_app [
+    string ("Definition fun_" ^ funDef.name ^ " : Stm");
+    list_pp (map bind_pp funDef.funType.arg_types);
+    ty_pp funDef.funType.ret_type
+  ] ^^ !^" :=" ^^ hardline ^^ statement_pp body ^^ dot)
 
 let funDefKit_pp funDefList =
-  let name_binding_pp funDef = group (big_indent (
-    string ("| " ^ funDef.name ^ " =>") ^^ break 1 ^^
-    string ("fun_" ^ funDef.name)
-  )) in
-  small_indent (separate small_step [
-    string "Section FunDefKit.";
+  let name_binding_pp funDef = prefix 4 1 (string ("| " ^ funDef.name ^ " =>"))
+    (string ("fun_" ^ funDef.name)) in
+  indent (separate small_step [
+    string "Section FunDefKit.";  
     separate_map small_step funDef_pp funDefList;
-    small_indent (separate  hardline [
+    indent (separate  hardline [
       utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
       utf8string "match f in Fun Δ τ return Stm Δ τ with";
       separate_map hardline name_binding_pp funDefList;
       string "end."
-    ])
-  ]) ^^ small_step ^^ string "End FunDefKit." 
+    ]);
+  ]) ^^ small_step ^^ string "End FunDefKit."
    
 (******************************************************************************)
 (* FunDefKit pretty printing *)
 
 let foreignKit_pp =
-  small_indent (separate_map hardline string [
+  indent (separate_map hardline string [
     "Section ForeignKit.";
     "Definition Memory : Set := unit.";
     "Definition ForeignCall {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs)";
@@ -201,18 +158,16 @@ let foreignKit_pp =
 (* Program pretty printing *)
 
 let program_module_pp program_name base_name funDefList =
-  small_indent (
-    separate small_step [
-      string ("Module Import " ^ program_name ^
-              "Program <: Program " ^ base_name ^ "Base.");
-      funDeclKit_pp funDefList;
-      string ("Include FunDeclMixin " ^ base_name ^ "Base.");
-      funDefKit_pp funDefList;
-      string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
-      foreignKit_pp;
-      string ("Include ProgramMixin " ^ base_name ^ "Base.");
-    ]
-  ) ^^ small_step ^^ string ("End " ^ program_name ^ "Program.")
+  indent (separate small_step [
+    string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name
+      ^ "Base.");
+    funDeclKit_pp funDefList;
+    string ("Include FunDeclMixin " ^ base_name ^ "Base.");
+    funDefKit_pp funDefList;
+    string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
+    foreignKit_pp;
+    string ("Include ProgramMixin " ^ base_name ^ "Base.");
+  ]) ^^ small_step ^^ string ("End " ^ program_name ^ "Program.")
 
 (******************************************************************************)
 

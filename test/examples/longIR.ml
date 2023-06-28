@@ -27,7 +27,7 @@ let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_val (
 (* Intermediate Representation Lists *)
 
 
-let testFunDefList = [
+let longFunDefList = [
   { name = "very_long_naaaaaaaaaaaaaaaaame";
     funType = {
       arg_types = [ ("l", List Int); ("b", Bool); ("n", Int) ];
@@ -39,5 +39,5 @@ let testFunDefList = [
 
 let ir = { 
   program_name = "Long";
-  funDefList = testFunDefList
+  funDefList = longFunDefList
 }

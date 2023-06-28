@@ -14,5 +14,7 @@ let () =
     in let ir = match Sys.argv.(1) with 
       | "lists" -> ListsIR.ir
       | "long"  -> LongIR.ir
+      | "test"  -> TestIR.ir
+      | "all"   -> AllIR.ir
       | _       -> failwith "Unknown input"
     in pretty_print width Out_channel.stdout (fromIR_pp ir)
