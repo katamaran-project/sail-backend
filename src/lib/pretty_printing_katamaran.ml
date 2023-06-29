@@ -9,11 +9,14 @@ let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
-let nyp = string "(* NOT YET PROCESSED *)"
+(* let nyp = string "(* NOT YET PROCESSED *)" *)
 
-let list_pp l = soft_surround 2 1 !^"[" (separate (!^";" ^^ break 1) l) !^"]" 
+let list_pp l = match l with
+  | [] -> brackets empty
+  | _  -> soft_surround 2 1 lbracket (separate (semi ^^ break 1) l) rbracket
 
-let prod_pp v1 v2 = soft_surround 1 0 !^"(" (v1 ^^ !^"," ^^ break 1 ^^ v2) !^")"
+let prod_pp v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
+  rparen
 
 let simple_app argv = indent (flow (break 1) argv)
 
@@ -56,7 +59,7 @@ let rec ty_pp = function
   (*
   | Sum (t1, t2) -> parens_app !^"ty.sum" [ty_pp t1; ty_pp t2]
   *)
-  | Undecide      -> nyp
+  | Undecide      -> underscore
 
 
 let bind_pp (arg, t) =
@@ -172,7 +175,7 @@ let program_module_pp program_name base_name funDefList =
 (******************************************************************************)
 
 let fromIR_pp ir =
-  let types =
+  let base =
     separate small_step [
       string "(*** TYPES ***)";
       defaultBase
@@ -184,7 +187,7 @@ let fromIR_pp ir =
     ]
   in separate big_step [
     heading;
-    types;
+    base;
     program
   ]
 

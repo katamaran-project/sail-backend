@@ -64,6 +64,9 @@ type statement =
       xt       : string;
       alt_cons : statement
     }
+    (*
+  | Stm_call of string * ??? 
+    *)
 
 
 (******************************************************************************)
@@ -79,6 +82,5 @@ type funDef_t = {
 type ir_t = {
   program_name : string;
   funDefList : funDef_t list
-
 }
 
