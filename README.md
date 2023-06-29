@@ -6,7 +6,7 @@ dune build
 
 Test:
 ```sh
-dune exec test/main.exe <input> [width]
+dune exec test/main.exe <option> <input>
 ```
 \<input\> can be any example name (*test*, *lists*, *long* or *all* for the moment).  
-[width] is an optional integer.
+`--help` to see the list of options

@@ -2,6 +2,8 @@ open List
 open PPrint
 open IR
 
+let list_notations = ref false
+
 (******************************************************************************)
 (* Utility definitions *)
 
@@ -19,6 +21,7 @@ let prod_pp v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
   rparen
 
 let simple_app argv = indent (flow (break 1) argv)
+let parens_app argv = parens (simple_app argv)
 
 (******************************************************************************)
 (* Heading pretty printing *)
@@ -32,10 +35,14 @@ let import names = string "Import "
   ^^ align (separate_map hardline string names) ^^ dot
 
 
-let heading = separate small_step [
-  require_import "Coq" ["Lists.List"; "Strings.String"; "ZArith.BinInt"];
+let heading list_not = separate small_step [
+  require_import "Coq" (if list_not
+    then ["Lists.List"; "Strings.String"; "ZArith.BinInt"]
+    else ["Strings.String"; "ZArith.BinInt"]);
   require_import "Katamaran" ["Semantics.Registers"; "Program"];
-  import ["ctx.notations"; "ctx.resolution"; "ListNotations"];
+  import (if list_not
+    then ["ctx.notations"; "ctx.resolution"; "ListNotations"]
+    else ["ctx.notations"; "ctx.resolution"]);
   string "Local Open Scope string_scope.";
   string "Local Open Scope list_scope.";
 ]
@@ -51,15 +58,15 @@ let defaultBase = string "Import DefaultBase."
 
 let rec ty_pp = function
   | Int           -> string "ty.int"
-  | List t        -> parens (simple_app [!^"ty.list"; ty_pp t])
+  | List t        -> parens_app [!^"ty.list"; ty_pp t]
   | Bool          -> string "ty.bool"
   | Unit          -> string "ty.unit"
   | String        -> string "ty.string"
-  | Prod (t1, t2) -> parens (simple_app [!^"ty.prod"; ty_pp t1; ty_pp t2])
+  | Prod (t1, t2) -> parens_app [!^"ty.prod"; ty_pp t1; ty_pp t2]
   (*
   | Sum (t1, t2) -> parens_app !^"ty.sum" [ty_pp t1; ty_pp t2]
-  *)
   | Undecide      -> underscore
+  *)
 
 
 let bind_pp (arg, t) =
@@ -87,12 +94,17 @@ let funDeclKit_pp funDefList =
 (* Value pretty printing *)
 
 let rec value_pp = function
-  | Val_bool b        -> string (string_of_bool b)
-  | Val_int i         -> string (string_of_int i ^ "%Z")
-  | Val_unit          -> string "()"
-  | Val_list l        -> list_pp (map value_pp l)
-  | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> prod_pp (value_pp v1) (value_pp v2) 
+  | Val_bool b         -> string (string_of_bool b)
+  | Val_int i          -> string (string_of_int i ^ "%Z")
+  | Val_unit           -> string "()"
+  (*
+  | Val_list []        -> string "nil"
+  | Val_list (x :: xs) -> parens_app [string "cons";
+                                              value_pp x;
+                                              value_pp (Val_list xs)]
+  *)
+  | Val_string s       -> dquotes (string s)
+  | Val_prod (v1, v2)  -> prod_pp (value_pp v1) (value_pp v2) 
   (*
   | Val_Sum v         -> 
   *)
@@ -100,9 +112,18 @@ let rec value_pp = function
 (******************************************************************************)
 (* Expression pretty printing *)
 
-let expression_pp = function
-  | Exp_var v -> simple_app [(string "exp_var"); dquotes (string v)]
-  | Exp_val v -> simple_app [(string "exp_val"); ty_pp (ty_val v); value_pp v]
+let rec expression_pp e =
+  let rec exp_list_pp = function
+    | []      -> string "nil"
+    | x :: xs -> parens_app [string "cons"; parens (expression_pp x);
+        exp_list_pp xs]
+  in match e with 
+  | Exp_var v  -> simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_val v  -> simple_app [string "exp_val"; ty_pp (ty_val v); value_pp v]
+  | Exp_list l -> simple_app [string "exp_list"; if !list_notations
+      then list_pp (map expression_pp l)
+      else exp_list_pp l]
+
 
 (******************************************************************************)
 (* Statement pretty printing *)
@@ -186,7 +207,7 @@ let fromIR_pp ir =
       program_module_pp ir.program_name "Default" ir.funDefList
     ]
   in separate big_step [
-    heading;
+    heading !list_notations;
     base;
     program
   ]

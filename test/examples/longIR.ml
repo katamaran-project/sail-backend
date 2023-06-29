@@ -3,22 +3,22 @@ open Lib.IR
 (******************************************************************************)
 (* Functions bodies *)
 
-let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_val (
-  Val_list [
-    Val_list [
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true]
+let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_exp (
+  Exp_list [
+    Exp_list [
+      Exp_list [Exp_val (Val_bool true)];
+      Exp_list [Exp_val (Val_bool false)];
+      Exp_list [Exp_val (Val_bool false)]
     ];
-    Val_list [
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true]
+    Exp_list [
+      Exp_list [Exp_val (Val_bool false)];
+      Exp_list [Exp_val (Val_bool true)];
+      Exp_list [Exp_val (Val_bool false)]
     ];
-    Val_list [
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true];
-      Val_list [Val_bool true; Val_bool true; Val_bool true]
+    Exp_list [
+      Exp_list [Exp_val (Val_bool false)];
+      Exp_list [Exp_val (Val_bool false)];
+      Exp_list [Exp_val (Val_bool true)]
     ]
   ]
 )

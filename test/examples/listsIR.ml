@@ -11,7 +11,11 @@ let fun_is_empty = Stm_match_list {
   alt_cons = Stm_val (Val_bool false)
 }
 
-let fun_empty = Stm_exp (Exp_val (Val_list []))
+let fun_empty = Stm_exp (Exp_list [])
+
+let fun_onetwothree = Stm_exp (Exp_list [Exp_val (Val_int 1);
+                                        Exp_val (Val_int 2);
+                                        Exp_val (Val_int 3);])
 
 (******************************************************************************)
 (* Intermediate Representation Lists *)
@@ -31,6 +35,13 @@ let listsFunDefList = [
       ret_type = List Int
     };
     funBody = fun_empty
+  };
+  { name = "onetwothree";
+    funType = {
+      arg_types = [ ("tt", Unit)];
+      ret_type = List Int
+    };
+    funBody = fun_onetwothree
   };
 ]
 

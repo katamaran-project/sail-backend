@@ -1,20 +1,34 @@
 open Lib.Pretty_printing_katamaran
 open Examples
 
+let usage_msg = "main.exe <options> <input>"
+let width = ref 80
+let input_name = ref "all"
+
+let help options = raise (Arg.Help
+  (Arg.usage_string (Arg.align options) usage_msg))
+
+let rec options = [
+  ("-w", Arg.Set_int width, " Set the width of the generated lines");
+  ("--list-notations", Arg.Set list_notations, " Use list notations");
+  ("-help", Arg.Unit (fun () -> help options), "");
+  ("-h", Arg.Unit (fun () -> help options), "");
+  ("--help", Arg.Unit (fun () -> help options),
+    " Display this list of options. Also available as -h or --help");
+]
+
+let anon_fun input = input_name := input
+
+
 (******************************************************************************)
 (* Main *)
 
-let () = 
-  if Array.length Sys.argv = 1 || Array.length Sys.argv > 3 then
-    print_endline "Usage: main.exe <input> [width]"
-  else
-    let width = if Array.length (Sys.argv) > 2
-      then int_of_string Sys.argv.(2)
-      else 80
-    in let ir = match Sys.argv.(1) with 
+let () =
+  Arg.parse (Arg.align options) anon_fun usage_msg;
+  let ir = match !input_name with 
       | "lists" -> ListsIR.ir
       | "long"  -> LongIR.ir
       | "test"  -> TestIR.ir
       | "all"   -> AllIR.ir
       | _       -> failwith "Unknown input"
-    in pretty_print width Out_channel.stdout (fromIR_pp ir)
+  in pretty_print !width Out_channel.stdout (fromIR_pp ir)
