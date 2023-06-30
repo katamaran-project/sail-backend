@@ -3,7 +3,7 @@ open Lib.IR
 (******************************************************************************)
 (* Functions bodies *)
 
-let fun_test = Stm_val (Val_prod (Val_prod (
+let fun_prod = Stm_val (Val_prod (Val_prod (
   Val_prod (Val_int 1, Val_string "one"),
   Val_prod (Val_int 2, Val_string "two")),
   Val_prod (Val_int 1, Val_string "one")
@@ -14,8 +14,8 @@ let fun_test = Stm_val (Val_prod (Val_prod (
 (* Intermediate Representation Lists *)
 
 
-let testFunDefList = [
-  { name = "test";
+let prodFunDefList = [
+  { name = "ex_prod";
     funType = {
       arg_types = [ ("tt", Unit); ("tt", Unit) ];
       ret_type = Prod (Prod (
@@ -24,11 +24,11 @@ let testFunDefList = [
         Prod (Int, String)
       )
     };
-    funBody = fun_test
+    funBody = fun_prod
   }
 ]
 
 let ir = { 
-  program_name = "Test";
-  funDefList = testFunDefList
+  program_name = "Prod";
+  funDefList = prodFunDefList
 }

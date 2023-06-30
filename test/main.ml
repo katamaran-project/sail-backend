@@ -28,7 +28,8 @@ let () =
   let ir = match !input_name with 
       | "lists" -> ListsIR.ir
       | "long"  -> LongIR.ir
-      | "test"  -> TestIR.ir
+      | "prod"  -> ProdIR.ir
+      | "expr"  -> ExprIR.ir
       | "all"   -> AllIR.ir
       | _       -> failwith "Unknown input"
   in pretty_print !width Out_channel.stdout (fromIR_pp ir)

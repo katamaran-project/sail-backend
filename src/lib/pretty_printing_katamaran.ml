@@ -11,11 +11,12 @@ let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
-(* let nyp = string "(* NOT YET PROCESSED *)" *)
+(* let nyp = string " NOT_YET_PROCESSED " *)
+let ic = string " IMPOSSIBLE_CASE "
 
 let list_pp l = match l with
   | [] -> brackets empty
-  | _  -> soft_surround 2 1 lbracket (separate (semi ^^ break 1) l) rbracket
+  | _  -> soft_surround 2 0 lbracket (separate (semi ^^ break 1) l) rbracket
 
 let prod_pp v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
   rparen
@@ -57,17 +58,12 @@ let defaultBase = string "Import DefaultBase."
 (* FunDeclKit pretty printing *)
 
 let rec ty_pp = function
-  | Int           -> string "ty.int"
-  | List t        -> parens_app [!^"ty.list"; ty_pp t]
-  | Bool          -> string "ty.bool"
   | Unit          -> string "ty.unit"
+  | Bool          -> string "ty.bool"
+  | Int           -> string "ty.int"
   | String        -> string "ty.string"
+  | List t        -> parens_app [!^"ty.list"; ty_pp t]
   | Prod (t1, t2) -> parens_app [!^"ty.prod"; ty_pp t1; ty_pp t2]
-  (*
-  | Sum (t1, t2) -> parens_app !^"ty.sum" [ty_pp t1; ty_pp t2]
-  | Undecide      -> underscore
-  *)
-
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -94,35 +90,66 @@ let funDeclKit_pp funDefList =
 (* Value pretty printing *)
 
 let rec value_pp = function
+  | Val_unit           -> string "()"
   | Val_bool b         -> string (string_of_bool b)
   | Val_int i          -> string (string_of_int i ^ "%Z")
-  | Val_unit           -> string "()"
-  (*
-  | Val_list []        -> string "nil"
-  | Val_list (x :: xs) -> parens_app [string "cons";
-                                              value_pp x;
-                                              value_pp (Val_list xs)]
-  *)
   | Val_string s       -> dquotes (string s)
   | Val_prod (v1, v2)  -> prod_pp (value_pp v1) (value_pp v2) 
-  (*
-  | Val_Sum v         -> 
-  *)
 
 (******************************************************************************)
 (* Expression pretty printing *)
 
+let infix_binOp_pp = function
+  | Plus  -> plus
+  | Times -> star
+  | Minus -> minus
+  | And   -> twice ampersand
+  | Or    -> twice bar
+  | Eq    -> equals
+  | Neq   -> bang ^^ equals
+  | Le    -> langle ^^ equals
+  | Lt    -> langle
+  | Ge    -> rangle ^^ equals
+  | Gt    -> rangle
+
+  | _     -> ic
+
 let rec expression_pp e =
+
   let rec exp_list_pp = function
     | []      -> string "nil"
-    | x :: xs -> parens_app [string "cons"; parens (expression_pp x);
+    | x :: xs -> parens_app [string "cons"; par_expression_pp x;
         exp_list_pp xs]
+
+  in let exp_val_pp = function
+    | Val_bool true  -> string "exp_true"
+    | Val_bool false -> string "exp_false"
+    | Val_int n      -> simple_app (map string ["exp_int"; string_of_int n])
+    | Val_string s   -> simple_app (map string ["exp_string"; s])
+    | v              -> simple_app [string "exp_val"; ty_pp (ty_val v);
+        value_pp v]
+  
+  in let exp_binop_pp bo e1 e2 = match bo with
+    | Pair   -> simple_app [!^"exp_binop"; !^"bop.pair"; par_expression_pp e1;
+        par_expression_pp e2]
+    | Cons   -> simple_app [!^"exp_binop"; !^"bop.cons"; par_expression_pp e1;
+        par_expression_pp e2]
+    | Append -> simple_app [!^"exp_binop"; !^"bop.append"; par_expression_pp e1;
+        par_expression_pp e2]
+    | _      -> infix 2 1 (infix_binOp_pp bo) (par_expression_pp e1)
+        (par_expression_pp e2)
+
   in match e with 
   | Exp_var v  -> simple_app [string "exp_var"; dquotes (string v)]
-  | Exp_val v  -> simple_app [string "exp_val"; ty_pp (ty_val v); value_pp v]
+  | Exp_val v  -> exp_val_pp v
+  | Exp_neg e  -> string "- " ^^ par_expression_pp e
+  | Exp_not e  -> simple_app [string "exp_not"; par_expression_pp e]
   | Exp_list l -> simple_app [string "exp_list"; if !list_notations
       then list_pp (map expression_pp l)
       else exp_list_pp l]
+  | Exp_binop (bo, e1, e2) -> exp_binop_pp bo e1 e2
+
+and par_expression_pp e = parens (expression_pp e)
 
 
 (******************************************************************************)
@@ -130,14 +157,19 @@ let rec expression_pp e =
 
 let rec statement_pp = function
   | Stm_val v -> simple_app [(string "stm_val"); ty_pp (ty_val v); value_pp v]
-  | Stm_exp e -> simple_app [(string "stm_exp"); parens (expression_pp e)]
+  | Stm_exp e -> simple_app [(string "stm_exp"); par_expression_pp e]
   | Stm_match_list m -> simple_app [(string "stm_match_list");
-      parens (statement_pp m.s);
-      parens (statement_pp m.alt_nil);
+      par_statement_pp m.s;
+      par_statement_pp m.alt_nil;
       dquotes (string m.xh);
       dquotes (string m.xt);
-      parens (statement_pp m.alt_cons);
+      par_statement_pp m.alt_cons;
     ]
+  | Stm_call (f, arg_list) -> simple_app
+      (!^"call" :: !^f :: (map par_expression_pp arg_list))
+  | Stm_let (v, s1, s2) -> simple_app [!^("let: \"" ^ v ^ "\" :=");
+      statement_pp s1; !^"in"; statement_pp s2]
+and par_statement_pp s = parens (statement_pp s)
 
 (******************************************************************************)
 (* FunDefKit pretty printing *)
