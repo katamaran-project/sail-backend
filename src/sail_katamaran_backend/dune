@@ -1,0 +1,5 @@
+(executable
+ (name sail_plugin_katamaran)
+ (modes
+  (native plugin))
+ (libraries libsail))
