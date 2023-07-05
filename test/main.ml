@@ -1,4 +1,4 @@
-open Lib.Pretty_printing_katamaran
+open Nanosail.Pretty_printing_katamaran
 open Examples
 
 let usage_msg = "main.exe <options> <input>"

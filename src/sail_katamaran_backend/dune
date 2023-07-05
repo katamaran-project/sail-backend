@@ -1,5 +1,10 @@
+(env
+  (dev
+    (flags (:standard -warn-error -A))))
+
 (executable
- (name sail_plugin_katamaran)
- (modes
-  (native plugin))
- (libraries libsail))
+  (name sail_plugin_katamaran)
+  (modes
+    (native plugin))
+  (libraries libsail nanosail)
+  (embed_in_plugin_libraries nanosail))

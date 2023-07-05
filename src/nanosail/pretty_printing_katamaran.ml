@@ -1,6 +1,6 @@
 open List
 open PPrint
-open IR
+open Ast
 
 let list_notations = ref false
 
