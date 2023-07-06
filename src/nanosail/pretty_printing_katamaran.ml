@@ -2,7 +2,7 @@ open List
 open PPrint
 open Ast
 
-let list_notations = ref false
+let opt_list_notations = ref false
 
 (******************************************************************************)
 (* Utility definitions *)
@@ -11,7 +11,7 @@ let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
-(* let nyp = string " NOT_YET_PROCESSED " *)
+let nyp = string " NOT_YET_PROCESSED "
 let ic = string " IMPOSSIBLE_CASE "
 
 let list_pp l = match l with
@@ -57,13 +57,19 @@ let defaultBase = string "Import DefaultBase."
 (******************************************************************************)
 (* FunDeclKit pretty printing *)
 
+let ty_id_pp = function
+  | Unit   -> string "ty.unit"
+  | Bool   -> string "ty.bool"
+  | Int    -> string "ty.int"
+  | String -> string "ty.string"
+  | List   -> string "ty.list"
+  | Prod   -> string "ty.prod"
+  | Id_nyp -> nyp
+
 let rec ty_pp = function
-  | Unit          -> string "ty.unit"
-  | Bool          -> string "ty.bool"
-  | Int           -> string "ty.int"
-  | String        -> string "ty.string"
-  | List t        -> parens_app [!^"ty.list"; ty_pp t]
-  | Prod (t1, t2) -> parens_app [!^"ty.prod"; ty_pp t1; ty_pp t2]
+  | Ty_id (ty_id)       -> ty_id_pp ty_id
+  | Ty_app (ty_id, tys) -> parens_app ((ty_id_pp ty_id) :: (map ty_pp tys))
+  | Ty_nyp              -> nyp
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -92,9 +98,10 @@ let funDeclKit_pp funDefList =
 let rec value_pp = function
   | Val_unit           -> string "()"
   | Val_bool b         -> string (string_of_bool b)
-  | Val_int i          -> string (string_of_int i ^ "%Z")
+  | Val_int i          -> string (Big_int.to_string i ^ "%Z")
   | Val_string s       -> dquotes (string s)
   | Val_prod (v1, v2)  -> prod_pp (value_pp v1) (value_pp v2) 
+  | Val_nyp            -> nyp
 
 (******************************************************************************)
 (* Expression pretty printing *)
@@ -124,7 +131,7 @@ let rec expression_pp e =
   in let exp_val_pp = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app (map string ["exp_int"; string_of_int n])
+    | Val_int n      -> simple_app (map string ["exp_int"; Big_int.to_string n])
     | Val_string s   -> simple_app (map string ["exp_string"; s])
     | v              -> simple_app [string "exp_val"; ty_pp (ty_val v);
         value_pp v]
@@ -144,10 +151,11 @@ let rec expression_pp e =
   | Exp_val v  -> exp_val_pp v
   | Exp_neg e  -> string "- " ^^ par_expression_pp e
   | Exp_not e  -> simple_app [string "exp_not"; par_expression_pp e]
-  | Exp_list l -> simple_app [string "exp_list"; if !list_notations
+  | Exp_list l -> simple_app [string "exp_list"; if !opt_list_notations
       then list_pp (map expression_pp l)
       else exp_list_pp l]
   | Exp_binop (bo, e1, e2) -> exp_binop_pp bo e1 e2
+  | Exp_nyp -> nyp
 
 and par_expression_pp e = parens (expression_pp e)
 
@@ -169,6 +177,7 @@ let rec statement_pp = function
       (!^"call" :: !^f :: (map par_expression_pp arg_list))
   | Stm_let (v, s1, s2) -> simple_app [!^("let: \"" ^ v ^ "\" :=");
       statement_pp s1; !^"in"; statement_pp s2]
+  | Stm_nyp -> nyp
 and par_statement_pp s = parens (statement_pp s)
 
 (******************************************************************************)
@@ -239,7 +248,7 @@ let fromIR_pp ir =
       program_module_pp ir.program_name "Default" ir.funDefList
     ]
   in separate big_step [
-    heading !list_notations;
+    heading !opt_list_notations;
     base;
     program
   ]

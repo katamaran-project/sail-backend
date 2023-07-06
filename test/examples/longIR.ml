@@ -30,8 +30,10 @@ let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_exp (
 let longFunDefList = [
   { name = "very_long_naaaaaaaaaaaaaaaaame";
     funType = {
-      arg_types = [ ("l", List Int); ("b", Bool); ("n", Int) ];
-      ret_type = List (List (List Bool))
+      arg_types = [("l", Ty_app (List, [Ty_id Int]));
+                   ("b", Ty_id Bool);
+                   ("n", Ty_id Int)];
+      ret_type = Ty_app (List, [Ty_app (List, [Ty_app (List, [Ty_id Bool])])])
     };
     funBody = fun_very_long_naaaaaaaaaaaaaaaaame
   }

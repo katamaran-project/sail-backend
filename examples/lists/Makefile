@@ -6,7 +6,7 @@ help:
 	$(SAIL) -h
 
 ok:
-	$(SAIL) -katamaran_ok
+	$(SAIL) -ok
 
 check: $(_).sail
 	$(SAIL) $(_).sail -just_check
@@ -18,7 +18,10 @@ interpreter: $(_).sail
 	$(SAIL) $(_).sail -i
 
 katamaran: $(_).sail
-	$(SAIL) -katamaran $(_).sail -o katamaran_output
+	$(SAIL) -katamaran $(_).sail -o $(_)
+
+katamaran-list: $(_).sail
+	$(SAIL) -katamaran $(_).sail -list_notations -o $(_)
  
 katamaran-rewrites: $(_).sail 
 	mkdir -p katamaran-rewrites
@@ -29,7 +32,7 @@ katamaran-rewrites-clean: katamaran-rewrites
 	cd katamaran-rewrites && bash ../../clean_rewrites.sh
 
 clean:
-	-rm -f katamaran_output.v
+	-rm -f $(_).v
 	-rm -rf katamaran-rewrites/
 
 # all: c-emulator coq ocaml ast coq-rewrites c-rewrites

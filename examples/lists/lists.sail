@@ -29,6 +29,7 @@ function empty() = [||]
 
 function onetwothree() = [|1, 2, 3|]
 
+/*
 function last(l) = match l {
   [||]   => (0, false),
   h :: t => match t {
@@ -36,10 +37,11 @@ function last(l) = match l {
     h' :: t' => last(t)
   }
 }
+*/
 
 function append(l1, l2) = match l1 {
   [||]   => l2,
-  h :: t => h :: append(t, l2)
+  h :: t => let r = append(t, l2) in h :: r
 }
 
 /*
@@ -58,7 +60,7 @@ function reverse(l) = reverse_aux(l, [||])
 
 function reverse_bis(l) = match l {
   [||]   => [||],
-  h :: t => append(reverse_bis(t), [|h|])
+  h :: t => let r = reverse_bis(t) in append(r, [|h|])
 } 
 
 

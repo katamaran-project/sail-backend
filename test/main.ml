@@ -10,7 +10,7 @@ let help options = raise (Arg.Help
 
 let rec options = [
   ("-w", Arg.Set_int width, " Set the width of the generated lines");
-  ("--list-notations", Arg.Set list_notations, " Use list notations");
+  ("--list-notations", Arg.Set opt_list_notations, " Use list notations");
   ("-help", Arg.Unit (fun () -> help options), "");
   ("-h", Arg.Unit (fun () -> help options), "");
   ("--help", Arg.Unit (fun () -> help options),
