@@ -4,7 +4,7 @@ opam install . --deps-only
 dune build
 ```
 
-Test:
+Test Nanosail:
 ```sh
 dune exec -- test/main.exe <option> <input>
 ```
@@ -14,4 +14,10 @@ dune exec -- test/main.exe <option> <input>
 Plugin:
 ```sh
 sail -plugin _build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs -katamaran
+```
+
+Test Plugin:
+```sh
+cd examples/lists/
+make katamaran # or katamaran-list to enable list notations
 ```
