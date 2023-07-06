@@ -29,7 +29,6 @@ function empty() = [||]
 
 function onetwothree() = [|1, 2, 3|]
 
-/*
 function last(l) = match l {
   [||]   => (0, false),
   h :: t => match t {
@@ -37,7 +36,6 @@ function last(l) = match l {
     h' :: t' => last(t)
   }
 }
-*/
 
 function append(l1, l2) = match l1 {
   [||]   => l2,

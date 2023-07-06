@@ -99,6 +99,10 @@ let rec expression_of_exp (E_aux (aux, _)) =
   | E_lit lit           -> Exp_val (value_of_lit lit)
   | E_list l            -> Exp_list (List.map expression_of_exp l)
   | E_id id             -> Exp_var (string_of_id id)
+  | E_tuple (e :: es)   -> List.fold_left
+      (fun a b -> Exp_binop (Pair, a, expression_of_exp b))
+      (expression_of_exp e)
+      es 
   | E_cons (hexp, texp) ->
       Exp_binop (Cons, expression_of_exp hexp, expression_of_exp texp)
   | _ -> Exp_nyp
@@ -122,6 +126,7 @@ let rec statement_of_exp ((E_aux (aux, _)) as e) =
   | E_list _             -> Stm_exp (expression_of_exp e)
   | E_id _               -> Stm_exp (expression_of_exp e)
   | E_cons _             -> Stm_exp (expression_of_exp e)
+  | E_tuple _            -> Stm_exp (expression_of_exp e)
 
   | _ -> Stm_nyp
 
