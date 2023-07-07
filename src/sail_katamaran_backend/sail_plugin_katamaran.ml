@@ -8,9 +8,6 @@ let katamaran_options = [
 
 let katamaran_rewrites = 
   [
-    ("remove_blocks", []);
-    ("remove_superfluous_letbinds", []);
-    ("remove_superfluous_returns", [])
   ]
 
 let katamaran_target _ _ out_file ast _ _ =
