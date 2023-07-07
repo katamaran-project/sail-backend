@@ -11,7 +11,7 @@ let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
-let nyp = string " NOT_YET_PROCESSED "
+let nys = string " NOT_YET_SUPPORTED "
 let ic = string " IMPOSSIBLE_CASE "
 
 let list_pp l = match l with
@@ -27,7 +27,7 @@ let parens_app argv = parens (simple_app argv)
 (******************************************************************************)
 (* Heading pretty printing *)
 
-let require_import src names = prefix 5 1 
+let require_import src names = prefix 5 1
   (string ("From " ^ src ^ " Require Import"))
   (separate_map hardline string names)
   ^^ dot
@@ -64,12 +64,12 @@ let ty_id_pp = function
   | String -> string "ty.string"
   | List   -> string "ty.list"
   | Prod   -> string "ty.prod"
-  | Id_nyp -> nyp
+  | Id_nys -> nys
 
 let rec ty_pp = function
   | Ty_id (ty_id)       -> ty_id_pp ty_id
   | Ty_app (ty_id, tys) -> parens_app ((ty_id_pp ty_id) :: (map ty_pp tys))
-  | Ty_nyp              -> nyp
+  | Ty_nys              -> nys
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -101,7 +101,7 @@ let rec value_pp = function
   | Val_int i          -> string (Big_int.to_string i ^ "%Z")
   | Val_string s       -> dquotes (string s)
   | Val_prod (v1, v2)  -> prod_pp (value_pp v1) (value_pp v2) 
-  | Val_nyp            -> nyp
+  | Val_nys            -> nys
 
 (******************************************************************************)
 (* Expression pretty printing *)
@@ -155,7 +155,7 @@ let rec expression_pp e =
       then list_pp (map expression_pp l)
       else exp_list_pp l]
   | Exp_binop (bo, e1, e2) -> exp_binop_pp bo e1 e2
-  | Exp_nyp -> nyp
+  | Exp_nys -> nys
 
 and par_expression_pp e = parens (expression_pp e)
 
@@ -177,7 +177,7 @@ let rec statement_pp = function
       (!^"call" :: !^f :: (map par_expression_pp arg_list))
   | Stm_let (v, s1, s2) -> simple_app [!^("let: \"" ^ v ^ "\" :=");
       statement_pp s1; !^"in"; statement_pp s2]
-  | Stm_nyp -> nyp
+  | Stm_nys -> nys
 and par_statement_pp s = parens (statement_pp s)
 
 (******************************************************************************)

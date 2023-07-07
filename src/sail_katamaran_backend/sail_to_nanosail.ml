@@ -1,24 +1,11 @@
 open Option
 open Libsail.Ast
 open Libsail.Ast_defs
+open Libsail.Anf
 open Libsail
 open Nanosail.Ast
 
 module Big_int = Nat_big_num
-
-(******************************************************************************)
-
-(*
-module Fresh :
-	sig
-		val getFresh : unit -> string
-		val reset : unit -> unit
-	end = struct
-		let var = ref 0
-		let getFresh () = let n = !var in var := n + 1; "#" ^ (string_of_int n)
-		let reset () = var := 0
-	end
-*)
 
 (******************************************************************************)
 (* Functions from Libsail.Ast_util *)
@@ -26,21 +13,25 @@ module Fresh :
 let string_of_id (Id_aux (aux, _)) =
   match aux with
   | Id x -> x
-  | Operator x -> "(operator " ^ x ^ ")"
+  | _ -> " NOT YET SUPPORTED "
 
 let string_of_lit (L_aux (lit, _)) =
   match lit with
   | L_unit -> "()"
-  | L_zero -> "bitzero"
-  | L_one -> "bitone"
   | L_true -> "true"
   | L_false -> "false"
   | L_num n -> Big_int.to_string n
+  | L_string str -> "\"" ^ str ^ "\""
+  | _ -> " NOT YET SUPPORTED "
+  (*
+  | L_zero -> "bitzero"
+  | L_one -> "bitone"
   | L_hex n -> "0x" ^ n
   | L_bin n -> "0b" ^ n
   | L_undef -> "undefined"
   | L_real r -> r
   | L_string str -> "\"" ^ str ^ "\""
+  *)
 
 (******************************************************************************)
 
@@ -51,113 +42,115 @@ let ty_id_of_typ_id (Id_aux (aux, _)) =
   | Id "list" -> List
   | Id "prod" -> Prod
   | Id "unit" -> Unit
-  | _ -> Id_nyp
+  | _ -> Id_nys
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
   let ty_of_arg (A_aux (aux, _)) = 
     match aux with
     | A_typ typ -> ty_of_typ typ
-    | _         -> failwith "not yet processed" 
+    | _ -> Ty_nys
   in match typ with
-  | Typ_id id -> Ty_id (ty_id_of_typ_id id)
+  | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
   | Typ_app (id, args) -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
-  | Typ_tuple typs -> Ty_app (Prod, List.map ty_of_typ typs)
-  | _ -> Ty_nyp
+  | Typ_tuple typs     -> Ty_app (Prod, List.map ty_of_typ typs)
+  | _ -> Ty_nys
 
 (******************************************************************************)
 
 let ty_of_pexp (Pat_aux (aux, _)) =
   match aux with
   | Pat_exp (_, exp) -> ty_of_typ (Type_check.typ_of exp)
-  | Pat_when _       -> failwith "`when` not yet processed"
+  | Pat_when _ -> Ty_nys
 
 (******************************************************************************)
 
 let rec binds_of_pat (P_aux (aux, a)) =
   match aux with
-  | P_lit lit -> [(string_of_lit lit, ty_of_typ (Type_check.typ_of_annot a))]
-  | P_id id -> [(string_of_id id, (ty_of_typ (Type_check.typ_of_annot a)) )]
-  | P_tuple pats -> List.concat (List.map binds_of_pat pats)
-  | _ -> []
+  | P_lit lit ->
+      let x = string_of_lit lit in
+      let ty = ty_of_typ (Type_check.typ_of_annot a) in
+      [(x, ty)]
+  | P_id id ->
+      let x = string_of_id id in
+      let ty = ty_of_typ (Type_check.typ_of_annot a) in
+      [(x, ty)]
+  | P_tuple pats ->
+      List.concat (List.map binds_of_pat pats)
+  | _ ->
+      [] (* Not yet supported *)
 
 let binds_of_pexp (Pat_aux (aux, _)) = 
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _       -> failwith "`when` not yet processed"
+  | Pat_when _ -> [] (* Not yet supported *)
 
 (******************************************************************************)
 
 let value_of_lit (L_aux (aux, _)) =
   match aux with
-  | L_true -> Val_bool true
+  | L_true  -> Val_bool true
   | L_false -> Val_bool false
   | L_num n -> Val_int n
-  | _ -> Val_nyp
+  | _ -> Val_nys
 
-let rec expression_of_exp (E_aux (aux, _)) =
+let rec expression_of_aval = function
+  | AV_lit (lit, _) ->
+      Exp_val (value_of_lit lit)
+  | AV_id (id, _) ->
+      Exp_var (string_of_id id)
+  | AV_tuple (h :: t) ->
+      let e_h = expression_of_aval h in
+      let f e1 aval2 =
+        let e2 = expression_of_aval aval2 in
+        Exp_binop (Pair, e1, e2) in
+      List.fold_left f e_h t
+  | AV_list (l, _) ->
+      Exp_list (List.map expression_of_aval l)
+  | _ -> Exp_nys
+
+let rec statement_of_aexp (AE_aux (aux, _, _)) =
   match aux with
-  | E_lit lit           -> Exp_val (value_of_lit lit)
-  | E_list l            -> Exp_list (List.map expression_of_exp l)
-  | E_id id             -> Exp_var (string_of_id id)
-  | E_tuple (e :: es)   -> List.fold_left
-      (fun a b -> Exp_binop (Pair, a, expression_of_exp b))
-      (expression_of_exp e)
-      es 
-  | E_cons (hexp, texp) ->
-      Exp_binop (Cons, expression_of_exp hexp, expression_of_exp texp)
-  | _ -> Exp_nyp
+  | AE_val aval ->
+      Stm_exp (expression_of_aval aval)
+  | AE_app (id, avals, _) -> 
+      let x = string_of_id id in
+      (match avals with
+      | [aval1; aval2] when x = "sail_cons" ->
+          let e1 = expression_of_aval aval1 in
+          let e2 = expression_of_aval aval2 in
+          Stm_exp (Exp_binop (Cons, e1, e2))
+      | _ ->
+          Stm_call (x, List.map expression_of_aval avals))
+  | AE_let (_, id, _, aexp1, aexp2, _) ->
+      let x = string_of_id id in
+      let s1 = statement_of_aexp aexp1 in
+      let s2 = statement_of_aexp aexp2 in
+      Stm_let (x, s1, s2)
+  | AE_match (aval, cases, _) ->
+      statement_of_match aval cases
+  | _ -> Stm_nys
 
-
-(*
-let has_list_typ exp =
-  match Type_check.typ_of exp with
-  | Typ_aux (Typ_app (Id_aux (Id "list", _), _), _) -> true
-  | _ -> false
-*)
-
-let rec statement_of_exp ((E_aux (aux, _)) as e) =
-  match aux with
-  | E_match (exp, pexps) -> statement_of_match exp pexps
-  | E_lit lit            -> Stm_val (value_of_lit lit)
-  | E_app (id, exps)     -> Stm_call (string_of_id id, List.map
-      expression_of_exp exps)
-  | E_let (letbind, exp) -> statement_of_let letbind exp
-  
-  | E_list _             -> Stm_exp (expression_of_exp e)
-  | E_id _               -> Stm_exp (expression_of_exp e)
-  | E_cons _             -> Stm_exp (expression_of_exp e)
-  | E_tuple _            -> Stm_exp (expression_of_exp e)
-
-  | _ -> Stm_nyp
-
-and statement_of_let (LB_aux (LB_val (P_aux (aux, _), exp1), _)) exp2 =
-  match aux with
-  | P_id id -> Stm_let (string_of_id id, statement_of_exp exp1,
-      statement_of_exp exp2)
-  | _ -> failwith "not a single id binding"
-
-and statement_of_match exp pexps =
-  match match_list_opt pexps with
-  | Some (exp1, id_h, id_t, exp2) ->
+and statement_of_match aval cases =
+  let simple_list_cases_opt = function
+    | [(AP_aux (AP_nil _, _, _), _, aexp1); (AP_aux (AP_cons (
+          AP_aux ((AP_id (id_h, _)), _, _),
+          AP_aux ((AP_id (id_t, _)), _, _)
+        ), _, _), _, exp2)] -> Some (aexp1, id_h, id_t, exp2)
+    | _ -> None
+  in match simple_list_cases_opt cases with
+  | Some (aexp1, id_h, id_t, aexp2) ->
       Stm_match_list {
-        s        = statement_of_exp exp;
-        alt_nil  = statement_of_exp exp1;
+        s        =  Stm_exp (expression_of_aval aval);
+        alt_nil  = statement_of_aexp aexp1;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
-        alt_cons = statement_of_exp exp2;
+        alt_cons = statement_of_aexp aexp2;
       }
-  | _ -> Stm_nyp
-
-and match_list_opt = function
-  | [Pat_aux (Pat_exp (P_aux (P_list [], _), exp1), _); Pat_aux (Pat_exp
-        (P_aux (P_cons (P_aux (P_id id_h, _), P_aux (P_id id_t, _)), _),
-        exp2), _)] ->
-      Some (exp1, id_h, id_t, exp2)
-  | _ -> None
+  | _ -> Stm_nys
 
 let body_of_pexp (Pat_aux (aux, _)) =
   match aux with
-  | Pat_exp (_, exp) -> statement_of_exp exp
+  | Pat_exp (_, exp) -> statement_of_aexp (anf exp)
   | Pat_when _       -> failwith "`when` not yet processed"
 
 (******************************************************************************)

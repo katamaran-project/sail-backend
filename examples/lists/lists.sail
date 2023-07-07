@@ -39,7 +39,7 @@ function last(l) = match l {
 
 function append(l1, l2) = match l1 {
   [||]   => l2,
-  h :: t => let r = append(t, l2) in h :: r
+  h :: t => h :: append(t, l2) 
 }
 
 /*
@@ -58,7 +58,7 @@ function reverse(l) = reverse_aux(l, [||])
 
 function reverse_bis(l) = match l {
   [||]   => [||],
-  h :: t => let r = reverse_bis(t) in append(r, [|h|])
+  h :: t => append(reverse_bis(t), [|h|])
 } 
 
 
