@@ -52,7 +52,7 @@ let rec ty_of_typ (Typ_aux (typ, _)) =
   in match typ with
   | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
   | Typ_app (id, args) -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
-  | Typ_tuple typs     -> Ty_app (Prod, List.map ty_of_typ typs)
+  | Typ_tup typs     -> Ty_app (Prod, List.map ty_of_typ typs)
   | _ -> Ty_nys
 
 (******************************************************************************)
@@ -74,7 +74,7 @@ let rec binds_of_pat (P_aux (aux, a)) =
       let x = string_of_id id in
       let ty = ty_of_typ (Type_check.typ_of_annot a) in
       [(x, ty)]
-  | P_tuple pats ->
+  | P_tup pats ->
       List.concat (List.map binds_of_pat pats)
   | _ ->
       [] (* Not yet supported *)
@@ -126,7 +126,7 @@ let rec statement_of_aexp (AE_aux (aux, _, _)) =
       let s1 = statement_of_aexp aexp1 in
       let s2 = statement_of_aexp aexp2 in
       Stm_let (x, s1, s2)
-  | AE_match (aval, cases, _) ->
+  | AE_case (aval, cases, _) ->
       statement_of_match aval cases
   | _ -> Stm_nys
 
@@ -155,7 +155,7 @@ let body_of_pexp (Pat_aux (aux, _)) =
 
 (******************************************************************************)
 
-let ir_funcl (FCL_aux (FCL_funcl (id, pexp), _)) = {
+let ir_funcl (FCL_aux (FCL_Funcl (id, pexp), _)) = {
   name    = string_of_id(id);
   funType = {
     arg_types = binds_of_pexp pexp;
@@ -170,8 +170,7 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | _       -> none
 
 
-let ir_def (DEF_aux (aux, _)) =
-  match aux with
+let ir_def = function
   | DEF_fundef fd -> join (some (ir_fundef fd))
   | _             -> none 
 
