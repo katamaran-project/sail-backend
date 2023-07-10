@@ -8,3 +8,10 @@
     (native plugin))
   (libraries libsail nanosail)
   (embed_in_plugin_libraries nanosail))
+
+(install
+  (section
+    (site
+      (libsail plugins)))
+  (package sail_katamaran_backend)
+  (files sail_plugin_katamaran.cmxs))

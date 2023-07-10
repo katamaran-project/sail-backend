@@ -1,3 +1,5 @@
 (library
  (name nanosail)
- (libraries pprint lem))
+ (public_name nanosail)
+ (libraries libsail pprint lem))
+

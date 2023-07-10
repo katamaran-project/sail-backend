@@ -1,9 +1,9 @@
 open Option
+open Ast
 open Libsail.Ast
 open Libsail.Ast_defs
 open Libsail.Anf
 open Libsail
-open Nanosail.Ast
 
 module Big_int = Nat_big_num
 
