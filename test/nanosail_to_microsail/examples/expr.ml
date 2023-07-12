@@ -41,7 +41,7 @@ let fun_arith_expr = Stm_exp (Exp_binop (Plus,
 (* Intermediate Representation Lists *)
 
 
-let exprFunDefList = [
+let funDefList = [
   { name = "bool_expr";
     funType = {
       arg_types = [ ("tt", Ty_id Unit) ];
@@ -60,5 +60,5 @@ let exprFunDefList = [
 
 let ir = { 
   program_name = "Expr";
-  funDefList = exprFunDefList
+  funDefList = funDefList
 }

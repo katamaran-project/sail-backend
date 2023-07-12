@@ -1,0 +1,76 @@
+From Coq Require Import
+     Strings.String
+     ZArith.BinInt.
+
+From Katamaran Require Import
+     Semantics.Registers
+     Program.
+
+Import ctx.notations
+       ctx.resolution.
+
+Local Open Scope string_scope.
+
+Local Open Scope list_scope.
+
+
+
+(*** TYPES ***)
+
+Import DefaultBase.
+
+
+
+(*** PROGRAM ***)
+
+Module Import ExprProgram <: Program DefaultBase.
+
+  Section FunDeclKit.
+
+    Inductive Fun : PCtx -> Ty -> Set :=
+    | bool_expr : Fun ["tt" ∷ ty.unit] ty.bool
+    | arith_expr : Fun ["tt" ∷ ty.unit] ty.int.
+
+    Definition 𝑭  : PCtx -> Ty -> Set := Fun.
+    Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
+    Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.
+
+  End FunDeclKit.
+
+  Include FunDeclMixin DefaultBase.
+
+  Section FunDefKit.
+
+    Definition fun_bool_expr : Stm ["tt" ∷ ty.unit] ty.bool :=
+      stm_exp
+        ((exp_not (((exp_int 0) = (exp_int 1)) && ((exp_int 2) != (exp_int 3)))) ||
+          ((((exp_int 4) <= (exp_int 5)) || ((exp_int 6) < (exp_int 7))) &&
+            (((exp_int 8) >= (exp_int 9)) || ((exp_int 10) < (exp_int 11))))).
+
+    Definition fun_arith_expr : Stm ["tt" ∷ ty.unit] ty.int :=
+      stm_exp
+        ((((- (exp_int 1)) - (- (exp_int 2))) * (exp_int 3)) + (exp_int 4)).
+
+    Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
+      match f in Fun Δ τ return Stm Δ τ with
+      | bool_expr => fun_bool_expr
+      | arith_expr => fun_arith_expr
+      end.
+
+  End FunDefKit.
+
+  Include DefaultRegStoreKit DefaultBase.
+
+  Section ForeignKit.
+    Definition Memory : Set := unit.
+    Definition ForeignCall {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs)
+      (res : string + Val σ) (γ γ' : RegStore) (μ μ' : Memory) : Prop := False.
+    Lemma ForeignProgress {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs) γ μ :
+      exists γ' μ' res, ForeignCall f args res γ γ' μ μ'.
+    Proof. destruct f. Qed.
+  End ForeignKit.
+
+  Include ProgramMixin DefaultBase.
+
+End ExprProgram.
+

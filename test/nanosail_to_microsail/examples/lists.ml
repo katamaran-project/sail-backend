@@ -74,7 +74,7 @@ let fun_reverse_bis = Stm_match_list {
 (* Intermediate Representation Lists *)
 
 
-let listsFunDefList = [
+let funDefList = [
   { name = "is_empty";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
@@ -144,5 +144,5 @@ let listsFunDefList = [
 
 let ir = { 
   program_name = "Lists";
-  funDefList = listsFunDefList
+  funDefList = funDefList
 }

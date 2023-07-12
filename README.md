@@ -2,8 +2,33 @@ Sail Katamaran Backend
 ================================================================================
 
 
+This project use the opam package manager.
+
+Opam
+--------------------------------------------------------------------------------
+First, your current [opam](https://opam.ocaml.org/doc/Install.html) switch must
+use the **ocaml.5.0.0** compiler. To create a new switch you can run the
+following commands (replace `sail-katamaran` with whatever name you
+want for your switch):
+
+```sh
+opam switch create sail-katamaran ocaml.5.0.0
+```
+
+Later if you want to return to your default switch, run:
+
+```sh
+opam switch set default
+```
+Change `default` with any other switch name to use it.
+
+
 Installation
 --------------------------------------------------------------------------------
+This project use the [dune](https://opam.ocaml.org/packages/dune/),
+[sail](https://opam.ocaml.org/packages/sail/) and
+[pprint](https://opam.ocaml.org/packages/pprint/) packages. To install the
+project with its dependencies, run:
 ```sh
 opam install . --deps-only
 dune build
@@ -34,25 +59,33 @@ Usage
 + `-katamaran` is the sail option to activate the Katamaran target.
 + `-list_notations` allows the µSail generated file to use some more readable
   list notations defined by Katamaran.
++ `-ok` prints "ok.".
 
 
 Test Nanosail
 --------------------------------------------------------------------------------
+### Automatic tests
+```sh
+dune test
+```
+
+### Manual tests
 ```sh
 dune exec -- test/main.exe <option> <input>
 ```
 *\<input>* can be any example name (*lists*, *long*, *prod* or *expr* for the
-moment). Without *\<input>*, every example is loaded.
-`--help` to see the list of options
+moment). Without *\<input>*, every example is loaded.  
+Use `-help` to see the list of options, `-inputs` to see the list of
+available tests.
 
 
 Test Full Backend
 --------------------------------------------------------------------------------
 ```sh
-cd examples/lists/
+cd test/full_backend/
 make katamaran # or katamaran-list to enable list notations
 ```
-lists.v will be generated from lists.sail
+*lists.v* will be generated from *lists.sail*
 
 
 Uninstallation

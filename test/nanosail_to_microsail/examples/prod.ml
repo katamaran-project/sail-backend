@@ -14,7 +14,7 @@ let fun_prod = Stm_val (Val_prod (Val_prod (
 (* Intermediate Representation Lists *)
 
 
-let prodFunDefList = [
+let funDefList = [
   { name = "ex_prod";
     funType = {
       arg_types = [ ("tt", Ty_id Unit); ("tt", Ty_id Unit) ];
@@ -30,5 +30,5 @@ let prodFunDefList = [
 
 let ir = { 
   program_name = "Prod";
-  funDefList = prodFunDefList
+  funDefList = funDefList
 }
