@@ -81,12 +81,23 @@ available tests.
 
 Test Full Backend
 --------------------------------------------------------------------------------
+### Examples
+An example with list functions:
+
 ```sh
-cd test/full_backend/
+cd test/full_backend/examples/lists/
 make katamaran # or katamaran-list to enable list notations
 ```
-*lists.v* will be generated from *lists.sail*
+*lists.v* will be generated from *lists.sail*. It can be compared manually
+with the expected results in `expected/`.
 
+### Feature tests
+```sh
+cd test/full_backend/feature_tests
+make test
+```
+`.v` files will be generated from the `.sail` files and then compared to the
+`.expected` files.
 
 Uninstallation
 ---------------

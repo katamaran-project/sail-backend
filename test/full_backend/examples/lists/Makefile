@@ -1,30 +1,30 @@
 _=lists
-SAIL=sail -plugin ../../../_build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs
+# SAIL=sail -plugin ../../../_build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs
 
 help:
-	$(SAIL) -h
+	sail -h
 
 ok:
-	$(SAIL) -ok
+	sail -ok
 
 check: $(_).sail
-	$(SAIL) $(_).sail -just_check
+	sail $(_).sail -just_check
  
 ast: $(_).sail
-	@$(SAIL) $(_).sail -output_sail 
+	@sail $(_).sail -output_sail 
 
 interpreter: $(_).sail
-	$(SAIL) $(_).sail -i
+	sail $(_).sail -i
 
 katamaran: $(_).sail
-	$(SAIL) -katamaran $(_).sail -o $(_)
+	sail -katamaran $(_).sail -o $(_)
 
 katamaran-list: $(_).sail
-	$(SAIL) -katamaran $(_).sail -list_notations -o $(_)
+	sail -katamaran $(_).sail -list_notations -o $(_)
  
 katamaran-rewrites: $(_).sail 
 	mkdir -p katamaran-rewrites
-	$(SAIL) -katamaran $(_).sail -ddump_rewrite_ast katamaran-rewrites/$(_) -o $(_)
+	sail -katamaran $(_).sail -ddump_rewrite_ast katamaran-rewrites/$(_) -o $(_)
 	cd katamaran-rewrites && bash ../../reorder_rewrites.sh $(_)
 
 katamaran-rewrites-clean: katamaran-rewrites

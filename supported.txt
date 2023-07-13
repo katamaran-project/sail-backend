@@ -1,0 +1,26 @@
+Supported literals:
+- Unit
+- True/False
+- Num (integers)
+- String
+
+Supported types:
+- Concrete types:
+	- bool
+	- int
+	- unit
+	- string
+- Type constructors:
+	- list
+	- tupple (but changed in pairs: (a,b,c,d) -> (((a,b),c),d) )
+
+Supported patterns for match:
+- simple pattern (nil then cons)
+
+Supported patterns for functions:
+- exhaustive pattern in one clause
+
+Not supported:
+- multi-clauses functions
+- guarded patterns 
+

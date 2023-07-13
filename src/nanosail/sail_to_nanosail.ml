@@ -8,40 +8,23 @@ open Libsail
 module Big_int = Nat_big_num
 
 (******************************************************************************)
-(* Functions from Libsail.Ast_util *)
+(* Functions inspired by Libsail.Ast_util *)
 
 let string_of_id (Id_aux (aux, _)) =
   match aux with
   | Id x -> x
   | _ -> " NOT YET SUPPORTED "
 
-let string_of_lit (L_aux (lit, _)) =
-  match lit with
-  | L_unit -> "()"
-  | L_true -> "true"
-  | L_false -> "false"
-  | L_num n -> Big_int.to_string n
-  | L_string str -> "\"" ^ str ^ "\""
-  | _ -> " NOT YET SUPPORTED "
-  (*
-  | L_zero -> "bitzero"
-  | L_one -> "bitone"
-  | L_hex n -> "0x" ^ n
-  | L_bin n -> "0b" ^ n
-  | L_undef -> "undefined"
-  | L_real r -> r
-  | L_string str -> "\"" ^ str ^ "\""
-  *)
-
 (******************************************************************************)
 
 let ty_id_of_typ_id (Id_aux (aux, _)) =
   match aux with
-  | Id "bool" -> Bool
-  | Id "int"  -> Int
-  | Id "list" -> List
-  | Id "prod" -> Prod
-  | Id "unit" -> Unit
+  | Id "bool"   -> Bool
+  | Id "int"    -> Int
+  | Id "list"   -> List
+  | Id "prod"   -> Prod
+  | Id "unit"   -> Unit
+  | Id "string" -> String
   | _ -> Id_nys
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
@@ -51,8 +34,18 @@ let rec ty_of_typ (Typ_aux (typ, _)) =
     | _ -> Ty_nys
   in match typ with
   | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
-  | Typ_app (id, args) -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
-  | Typ_tup typs     -> Ty_app (Prod, List.map ty_of_typ typs)
+  | Typ_app (id, args) -> (
+      match string_of_id id with
+      | "atom"      -> Ty_id Int
+      | "atom_bool" -> Ty_id Bool
+      | _           -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
+    )
+  | Typ_tup (h_typ :: typs) ->
+      let h_ty = ty_of_typ h_typ in
+      let f ty1 typ2 =
+        let ty2 = ty_of_typ typ2 in
+        Ty_app (Prod, [ty1; ty2]) in
+      List.fold_left f h_ty typs
   | _ -> Ty_nys
 
 (******************************************************************************)
@@ -66,10 +59,7 @@ let ty_of_pexp (Pat_aux (aux, _)) =
 
 let rec binds_of_pat (P_aux (aux, a)) =
   match aux with
-  | P_lit lit ->
-      let x = string_of_lit lit in
-      let ty = ty_of_typ (Type_check.typ_of_annot a) in
-      [(x, ty)]
+  | P_lit (L_aux (L_unit, _)) -> [("()", Ty_id Unit)]
   | P_id id ->
       let x = string_of_id id in
       let ty = ty_of_typ (Type_check.typ_of_annot a) in
@@ -77,20 +67,23 @@ let rec binds_of_pat (P_aux (aux, a)) =
   | P_tup pats ->
       List.concat (List.map binds_of_pat pats)
   | _ ->
-      [] (* Not yet supported *)
+      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)] (* Not yet supported *)
 
 let binds_of_pexp (Pat_aux (aux, _)) = 
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _ -> [] (* Not yet supported *)
+  | Pat_when _ ->
+      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)] (* Not yet supported *)
 
 (******************************************************************************)
 
 let value_of_lit (L_aux (aux, _)) =
   match aux with
-  | L_true  -> Val_bool true
-  | L_false -> Val_bool false
-  | L_num n -> Val_int n
+  | L_true     -> Val_bool true
+  | L_false    -> Val_bool false
+  | L_num n    -> Val_int n
+  | L_unit     -> Val_unit
+  | L_string s -> Val_string s
   | _ -> Val_nys
 
 let rec expression_of_aval = function

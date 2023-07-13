@@ -11,7 +11,7 @@ let indent = nest 2
 let small_step = twice hardline
 let big_step = twice small_step
 
-let nys = string " NOT_YET_SUPPORTED "
+let nys = string "NOT_YET_SUPPORTED "
 let ic = string " IMPOSSIBLE_CASE "
 
 let list_pp l = match l with
@@ -64,12 +64,12 @@ let ty_id_pp = function
   | String -> string "ty.string"
   | List   -> string "ty.list"
   | Prod   -> string "ty.prod"
-  | Id_nys -> nys
+  | Id_nys -> !^"TY_ID_" ^^ nys
 
 let rec ty_pp = function
   | Ty_id (ty_id)       -> ty_id_pp ty_id
   | Ty_app (ty_id, tys) -> parens_app ((ty_id_pp ty_id) :: (map ty_pp tys))
-  | Ty_nys              -> nys
+  | Ty_nys              -> !^"TY_" ^^ nys
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -95,13 +95,17 @@ let funDeclKit_pp funDefList =
 (******************************************************************************)
 (* Value pretty printing *)
 
+let int_pp i =
+  let i_pp = string (Big_int.to_string i ^ "%Z") in 
+  if i < Z.zero then parens i_pp else i_pp
+
 let rec value_pp = function
-  | Val_unit           -> string "()"
+  | Val_unit           -> string "tt"
   | Val_bool b         -> string (string_of_bool b)
-  | Val_int i          -> string (Big_int.to_string i ^ "%Z")
+  | Val_int i          -> int_pp i
   | Val_string s       -> dquotes (string s)
   | Val_prod (v1, v2)  -> prod_pp (value_pp v1) (value_pp v2) 
-  | Val_nys            -> nys
+  | Val_nys            -> !^"VAL_" ^^ nys
 
 (******************************************************************************)
 (* Expression pretty printing *)
@@ -131,8 +135,8 @@ let rec expression_pp e =
   in let exp_val_pp = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app (map string ["exp_int"; Big_int.to_string n])
-    | Val_string s   -> simple_app (map string ["exp_string"; s])
+    | Val_int n      -> simple_app [string "exp_int"; int_pp n]
+    | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
     | v              -> simple_app [string "exp_val"; ty_pp (ty_val v);
         value_pp v]
   
@@ -155,7 +159,7 @@ let rec expression_pp e =
       then list_pp (map expression_pp l)
       else exp_list_pp l]
   | Exp_binop (bo, e1, e2) -> exp_binop_pp bo e1 e2
-  | Exp_nys -> nys
+  | Exp_nys -> !^"EXP_" ^^ nys
 
 and par_expression_pp e = parens (expression_pp e)
 
@@ -177,7 +181,7 @@ let rec statement_pp = function
       (!^"call" :: !^f :: (map par_expression_pp arg_list))
   | Stm_let (v, s1, s2) -> simple_app [!^("let: \"" ^ v ^ "\" :=");
       statement_pp s1; !^"in"; statement_pp s2]
-  | Stm_nys -> nys
+  | Stm_nys -> !^"STM_" ^^ nys
 and par_statement_pp s = parens (statement_pp s)
 
 (******************************************************************************)

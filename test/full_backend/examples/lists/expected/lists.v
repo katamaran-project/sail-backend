@@ -1,5 +1,4 @@
 From Coq Require Import
-     Lists.List
      Strings.String
      ZArith.BinInt.
 
@@ -8,8 +7,7 @@ From Katamaran Require Import
      Program.
 
 Import ctx.notations
-       ctx.resolution
-       ListNotations.
+       ctx.resolution.
 
 Local Open Scope string_scope.
 
@@ -31,12 +29,11 @@ Module Import ListsProgram <: Program DefaultBase.
 
     Inductive Fun : PCtx -> Ty -> Set :=
     | is_empty : Fun ["l" ∷ (ty.list ty.int)] ty.bool
-    | empty : Fun ["tt" ∷ ty.unit] (ty.list ty.int)
-    | onetwothree : Fun ["tt" ∷ ty.unit] (ty.list ty.int)
+    | empty : Fun ["()" ∷ ty.unit] (ty.list ty.int)
+    | onetwothree : Fun ["()" ∷ ty.unit] (ty.list ty.int)
     | last : Fun ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool)
     | append : Fun ["l1" ∷ (ty.list ty.int); "l2" ∷ (ty.list ty.int)]
         (ty.list ty.int)
-    | length : Fun ["l" ∷ (ty.list ty.int)] ty.int
     | reverse_aux : Fun ["l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int)]
         (ty.list ty.int)
     | reverse : Fun ["l" ∷ (ty.list ty.int)] (ty.list ty.int)
@@ -53,18 +50,20 @@ Module Import ListsProgram <: Program DefaultBase.
   Section FunDefKit.
 
     Definition fun_is_empty : Stm ["l" ∷ (ty.list ty.int)] ty.bool :=
-      stm_match_list (stm_exp (exp_var "l")) (stm_val ty.bool true) "h" "t"
-        (stm_val ty.bool false).
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "h" "t"
+        (stm_exp (exp_false)).
 
-    Definition fun_empty : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
-      stm_exp (exp_list []).
+    Definition fun_empty : Stm ["()" ∷ ty.unit] (ty.list ty.int) :=
+      stm_exp (exp_list nil).
 
-    Definition fun_onetwothree : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
-      stm_exp (exp_list [exp_int 1; exp_int 2; exp_int 3]).
+    Definition fun_onetwothree : Stm ["()" ∷ ty.unit] (ty.list ty.int) :=
+      stm_exp
+        (exp_list
+          (cons (exp_int 1%Z) (cons (exp_int 2%Z) (cons (exp_int 3%Z) nil)))).
 
     Definition fun_last : Stm ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool) :=
       stm_match_list (stm_exp (exp_var "l"))
-        (stm_val (ty.prod ty.int ty.bool) (0%Z, false)) "h" "t"
+        (stm_exp (exp_binop bop.pair (exp_int 0%Z) (exp_false))) "h" "t"
         (stm_match_list (stm_exp (exp_var "t"))
           (stm_exp (exp_binop bop.pair (exp_var "h") (exp_true))) "h'" "t'"
           (call last (exp_var "t"))).
@@ -72,27 +71,23 @@ Module Import ListsProgram <: Program DefaultBase.
     Definition fun_append : Stm
         ["l1" ∷ (ty.list ty.int); "l2" ∷ (ty.list ty.int)] (ty.list ty.int) :=
       stm_match_list (stm_exp (exp_var "l1")) (stm_exp (exp_var "l2")) "h" "t"
-        (let: "r" := call append (exp_var "t") (exp_var "l2") in
-          stm_exp (exp_binop bop.cons (exp_var "h") (exp_var "r"))).
-
-    Definition fun_length : Stm ["l" ∷ (ty.list ty.int)] ty.int :=
-      stm_match_list (stm_exp (exp_var "l")) (stm_val ty.int 0%Z) "h" "t"
-        (let: "n" := call length (exp_var "t") in
-          stm_exp ((exp_var "n") + (exp_int 1))).
+        (let: "ga#0" := call append (exp_var "t") (exp_var "l2") in
+          stm_exp (exp_binop bop.cons (exp_var "h") (exp_var "ga#0"))).
 
     Definition fun_reverse_aux : Stm
         ["l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int)] (ty.list ty.int) :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_var "acc")) "h" "t"
-        (call reverse_aux (exp_var "t")
-          (exp_binop bop.cons (exp_var "h") (exp_var "acc"))).
+        (let: "ga#1" :=
+          stm_exp (exp_binop bop.cons (exp_var "h") (exp_var "acc")) in
+          call reverse_aux (exp_var "t") (exp_var "ga#1")).
 
     Definition fun_reverse : Stm ["l" ∷ (ty.list ty.int)] (ty.list ty.int) :=
-      call reverse_aux (exp_var "l") (exp_list []).
+      call reverse_aux (exp_var "l") (exp_list nil).
 
     Definition fun_reverse_bis : Stm ["l" ∷ (ty.list ty.int)] (ty.list ty.int) :=
-      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_list [])) "h" "t"
-        (let: "r" := call reverse_bis (exp_var "t") in
-          stm_exp (exp_binop bop.append (exp_var "r") (exp_list [exp_var "h"]))).
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_list nil)) "h" "t"
+        (let: "ga#2" := call reverse_bis (exp_var "t") in
+          call append (exp_var "ga#2") (exp_list (cons (exp_var "h") nil))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
@@ -101,7 +96,6 @@ Module Import ListsProgram <: Program DefaultBase.
       | onetwothree => fun_onetwothree
       | last => fun_last
       | append => fun_append
-      | length => fun_length
       | reverse_aux => fun_reverse_aux
       | reverse => fun_reverse
       | reverse_bis => fun_reverse_bis

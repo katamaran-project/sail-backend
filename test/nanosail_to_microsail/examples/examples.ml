@@ -1,7 +1,5 @@
 open Nanosail.Ast
 
-module M = Map.Make(String)
-
 let all_ir = { 
   program_name = "All";
   funDefList = Lists.funDefList @
@@ -10,15 +8,15 @@ let all_ir = {
                Long.funDefList
 }
 
-let ir_map = M.of_seq (List.to_seq ([
+let ir_assoc_list = [
     ("lists", Lists.ir);
     ("long", Long.ir);
     ("prod", Prod.ir);
     ("expr", Expr.ir);
     ("all", all_ir)
-]))
+]
 
-let find_ir name = M.find name ir_map
-let find_ir_opt name = M.find_opt name ir_map
+let find_ir name = List.assoc name ir_assoc_list
+let find_ir_opt name = List.assoc_opt name ir_assoc_list
 
-let ir_names = List.map fst (M.bindings ir_map)
+let ir_names = List.map fst ir_assoc_list
