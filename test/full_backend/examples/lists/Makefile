@@ -1,6 +1,12 @@
 _=lists
 # SAIL=sail -plugin ../../../_build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs
 
+compare: katamaran
+	diff $(_).v expected/$(_).v
+
+compare-list: katamaran-list
+	diff $(_).v expected/$(_)_with_not.v
+
 help:
 	sail -h
 
@@ -30,24 +36,24 @@ katamaran-rewrites: $(_).sail
 katamaran-rewrites-clean: katamaran-rewrites
 	cd katamaran-rewrites && bash ../../clean_rewrites.sh
 
+coq: $(_).v
+
+$(_).v: $(_).sail
+	sail -coq $(_).sail -o $(_)
+ 
+coq-rewrites: $(_).sail 
+	mkdir -p coq-rewrites
+	sail -coq $(_).sail -ddump_rewrite_ast coq-rewrites/$(_) -o $(_)
+	cd coq-rewrites && bash ../../reorder_rewrites.sh $(_)
+
+coq-rewrites-clean: coq-rewrites
+	cd coq-rewrites && bash ../../clean_rewrites.sh
+
 clean:
 	-rm -f $(_).v
 	-rm -rf katamaran-rewrites/
+	-rm -f $(_).v
+	-rm -f $(_)_types.v
+	-rm -rf coq-rewrites/
 
-# coq: $(_).v
-# 
-# $(_).v: $(_).sail
-# 	sail -coq $(_).sail -o $(_)
-# 
-# coq-rewrites: $(_).sail 
-# 	mkdir -p coq-rewrites
-# 	sail -coq $(_).sail -ddump_rewrite_ast coq-rewrites/$(_) -o $(_)
-# 	cd coq-rewrites && bash ../../reorder_rewrites.sh $(_)
-# 
-# coq-rewrites-clean: coq-rewrites
-# 	cd coq-rewrites && bash ../../clean_rewrites.sh
-
-# 	-rm -f $(_).v
-# 	-rm -f $(_)_types.v
-# 	-rm -rf coq-rewrites/
 

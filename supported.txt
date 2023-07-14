@@ -21,7 +21,7 @@ Supported patterns for match:
 Supported patterns for functions:
 - exhaustive pattern in one clause
 
-Not supported:
+Not well supported:
 - multi-clauses functions
 - guarded patterns 
 

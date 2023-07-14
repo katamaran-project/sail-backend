@@ -89,7 +89,7 @@ cd test/full_backend/examples/lists/
 make katamaran # or katamaran-list to enable list notations
 ```
 *lists.v* will be generated from *lists.sail*. It can be compared manually
-with the expected results in `expected/`.
+with the expected results in `expected/` using `make compare`.
 
 ### Feature tests
 ```sh

@@ -15,3 +15,20 @@ function switch(p) = match p {
   (l, r) => (r, l)
 }
 
+val two_min : list(int) -> bool
+function two_min(l) = match l {
+  [||]   => false,
+  a :: t => match t {
+    [||]   => false,
+    b :: t' => true
+  }
+}
+
+/*
+val two_min' : list(int) -> bool
+function two_min'(l) = match l {
+  [||]        => false,
+  a :: b :: t => true
+}
+*/
+

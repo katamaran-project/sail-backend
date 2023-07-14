@@ -13,6 +13,10 @@ let katamaran_options = [
 
 let katamaran_rewrites = 
   [
+    ("guarded_pats", []);
+    ("make_cases_exhaustive", []);
+    ("merge_function_clauses", []);
+    ("recheck_defs", []);
   ]
 
 let katamaran_target _ out_file ast _ _ =
