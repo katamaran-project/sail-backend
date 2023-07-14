@@ -71,7 +71,7 @@ dune test
 
 ### Manual tests
 ```sh
-dune exec -- test/main.exe <option> <input>
+dune exec -- test/nanosail_to_microsail/main.exe <option> <input>
 ```
 *\<input>* can be any example name (*lists*, *long*, *prod* or *expr* for the
 moment). Without *\<input>*, every example is loaded.  

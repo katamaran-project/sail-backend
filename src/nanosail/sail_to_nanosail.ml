@@ -119,27 +119,55 @@ let rec statement_of_aexp (AE_aux (aux, _, _)) =
       let s1 = statement_of_aexp aexp1 in
       let s2 = statement_of_aexp aexp2 in
       Stm_let (x, s1, s2)
+  | AE_if (aval, aexp1, aexp2, _) ->
+      let s = Stm_exp (expression_of_aval aval) in
+      let s1 = statement_of_aexp aexp1 in
+      let s2 = statement_of_aexp aexp2 in
+      Stm_if (s, s1, s2)
   | AE_case (aval, cases, _) ->
       statement_of_match aval cases
   | _ -> Stm_nys
 
-and statement_of_match aval cases =
-  let simple_list_cases_opt = function
-    | [(AP_aux (AP_nil _, _, _), _, aexp1); (AP_aux (AP_cons (
-          AP_aux ((AP_id (id_h, _)), _, _),
-          AP_aux ((AP_id (id_t, _)), _, _)
-        ), _, _), _, exp2)] -> Some (aexp1, id_h, id_t, exp2)
-    | _ -> None
-  in match simple_list_cases_opt cases with
-  | Some (aexp1, id_h, id_t, aexp2) ->
+and statement_of_match aval = function
+  | [ (AP_aux (AP_nil _, _, _), _, aexp1);
+      (AP_aux (AP_cons (
+        AP_aux ((AP_id (id_h, _)), _, _),
+        AP_aux ((AP_id (id_t, _)), _, _)
+      ), _, _), _, aexp2)
+    ] ->
       Stm_match_list {
-        s        =  Stm_exp (expression_of_aval aval);
+        s        = Stm_exp (expression_of_aval aval);
         alt_nil  = statement_of_aexp aexp1;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
         alt_cons = statement_of_aexp aexp2;
       }
+  | [ (AP_aux (AP_cons (
+        AP_aux ((AP_id (id_h, _)), _, _),
+        AP_aux ((AP_id (id_t, _)), _, _)
+      ), _, _), _, aexp1);
+      (AP_aux (AP_nil _, _, _), _, aexp2)
+    ] ->
+      Stm_match_list {
+        s        = Stm_exp (expression_of_aval aval);
+        alt_nil  = statement_of_aexp aexp2;
+        xh       = string_of_id id_h;
+        xt       = string_of_id id_t;
+        alt_cons = statement_of_aexp aexp1;
+      }
+  | [ (AP_aux (AP_tup [
+        AP_aux ((AP_id (id_l, _)), _, _);
+        AP_aux ((AP_id (id_r, _)), _, _);
+      ], _, _),_ , aexp)
+    ] -> 
+      Stm_match_prod {
+        s   = Stm_exp (expression_of_aval aval);
+        xl  = string_of_id id_l;
+        xr  = string_of_id id_r;
+        rhs = statement_of_aexp aexp;
+      }
   | _ -> Stm_nys
+
 
 let body_of_pexp (Pat_aux (aux, _)) =
   match aux with

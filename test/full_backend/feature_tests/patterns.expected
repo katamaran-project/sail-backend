@@ -29,7 +29,8 @@ Module Import PatternsProgram <: Program DefaultBase.
 
     Inductive Fun : PCtx -> Ty -> Set :=
     | is_empty : Fun ["l" ∷ (ty.list ty.int)] ty.bool
-    | is_empty' : Fun ["l" ∷ (ty.list ty.int)] ty.bool.
+    | is_empty' : Fun ["l" ∷ (ty.list ty.int)] ty.bool
+    | switch : Fun ["p" ∷ (ty.prod ty.int ty.bool)] (ty.prod ty.bool ty.int).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -46,12 +47,19 @@ Module Import PatternsProgram <: Program DefaultBase.
         (stm_exp (exp_false)).
 
     Definition fun_is_empty' : Stm ["l" ∷ (ty.list ty.int)] ty.bool :=
-      STM_NOT_YET_SUPPORTED .
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "h" "t"
+        (stm_exp (exp_false)).
+
+    Definition fun_switch : Stm ["p" ∷ (ty.prod ty.int ty.bool)]
+        (ty.prod ty.bool ty.int) :=
+      stm_match_prod (stm_exp (exp_var "p")) "l" "r"
+        (stm_exp (exp_binop bop.pair (exp_var "r") (exp_var "l"))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
       | is_empty => fun_is_empty
       | is_empty' => fun_is_empty'
+      | switch => fun_switch
       end.
 
   End FunDefKit.

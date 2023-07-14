@@ -60,7 +60,7 @@ Module Import ListsProgram <: Program DefaultBase.
       stm_exp (exp_list []).
 
     Definition fun_onetwothree : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
-      stm_exp (exp_list [exp_int 1; exp_int 2; exp_int 3]).
+      stm_exp (exp_list [exp_int 1%Z; exp_int 2%Z; exp_int 3%Z]).
 
     Definition fun_last : Stm ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool) :=
       stm_match_list (stm_exp (exp_var "l"))
@@ -78,7 +78,7 @@ Module Import ListsProgram <: Program DefaultBase.
     Definition fun_length : Stm ["l" ∷ (ty.list ty.int)] ty.int :=
       stm_match_list (stm_exp (exp_var "l")) (stm_val ty.int 0%Z) "h" "t"
         (let: "n" := call length (exp_var "t") in
-          stm_exp ((exp_var "n") + (exp_int 1))).
+          stm_exp ((exp_var "n") + (exp_int 1%Z))).
 
     Definition fun_reverse_aux : Stm
         ["l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int)] (ty.list ty.int) :=

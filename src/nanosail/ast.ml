@@ -82,10 +82,17 @@ type statement =
       alt_nil  : statement;
       xh       : string;
       xt       : string;
-      alt_cons : statement
+      alt_cons : statement;
+    }
+  | Stm_match_prod of {
+      s   : statement;
+      xl  : string;
+      xr  : string;
+      rhs : statement;
     }
   | Stm_call of string * expression list 
   | Stm_let of string * statement * statement
+  | Stm_if of statement * statement * statement
   | Stm_nys
 
 

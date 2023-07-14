@@ -15,7 +15,8 @@ Supported types:
 	- tupple (but changed in pairs: (a,b,c,d) -> (((a,b),c),d) )
 
 Supported patterns for match:
-- simple pattern (nil then cons)
+- simple list pattern (nil then cons or cons then nil)
+- simple prod pattern 
 
 Supported patterns for functions:
 - exhaustive pattern in one clause
