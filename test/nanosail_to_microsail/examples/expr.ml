@@ -42,14 +42,14 @@ let fun_arith_expr = Stm_exp (Exp_binop (Plus,
 
 
 let funDefList = [
-  { name = "bool_expr";
+  { funName = "bool_expr";
     funType = {
       arg_types = [ ("tt", Ty_id Unit) ];
       ret_type = Ty_id Bool
     };
     funBody = fun_bool_expr
   };
-  { name = "arith_expr";
+  { funName = "arith_expr";
     funType = {
       arg_types = [ ("tt", Ty_id Unit) ];
       ret_type = Ty_id Int

@@ -5,10 +5,10 @@ open Nanosail.Ast
 
 let fun_is_empty = Stm_match_list {
   s        = Stm_exp (Exp_var "l");
-  alt_nil  = Stm_val (Val_bool true);
+  alt_nil  = Stm_exp (Exp_val (Val_bool true));
   xh       = "h";
   xt       = "t";
-  alt_cons = Stm_val (Val_bool false)
+  alt_cons = Stm_exp (Exp_val (Val_bool false))
 }
 
 let fun_empty = Stm_exp (Exp_list [])
@@ -19,7 +19,8 @@ let fun_onetwothree = Stm_exp (Exp_list [Exp_val (Val_int (Big_int.of_int 1));
 
 let fun_last = Stm_match_list {
   s        = Stm_exp (Exp_var "l");
-  alt_nil  = Stm_val (Val_prod (Val_int (Big_int.of_int 0), Val_bool false));
+  alt_nil  = Stm_exp (Exp_val (Val_prod (Val_int (Big_int.of_int 0),
+    Val_bool false)));
   xh       = "h";
   xt       = "t";
   alt_cons = Stm_match_list {
@@ -42,7 +43,7 @@ let fun_append = Stm_match_list {
 
 let fun_length = Stm_match_list {
   s        = Stm_exp (Exp_var "l");
-  alt_nil  = Stm_val (Val_int (Big_int.of_int 0));
+  alt_nil  = Stm_exp (Exp_val (Val_int (Big_int.of_int 0)));
   xh       = "h";
   xt       = "t";
   alt_cons = Stm_let ("n", Stm_call ("length", [Exp_var "t"]), Stm_exp
@@ -75,35 +76,35 @@ let fun_reverse_bis = Stm_match_list {
 
 
 let funDefList = [
-  { name = "is_empty";
+  { funName = "is_empty";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
       ret_type = Ty_id Bool
     };
     funBody = fun_is_empty
   };
-  { name = "empty";
+  { funName = "empty";
     funType = {
       arg_types = [("tt", Ty_id Unit)];
       ret_type = Ty_app (List, [Ty_id Int])
     };
     funBody = fun_empty
   };
-  { name = "onetwothree";
+  { funName = "onetwothree";
     funType = {
       arg_types = [("tt", Ty_id Unit)];
       ret_type = Ty_app (List, [Ty_id Int])
     };
     funBody = fun_onetwothree
   };
-  { name = "last";
+  { funName = "last";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
       ret_type =  Ty_app (Prod, [Ty_id Int; Ty_id Bool])
     };
     funBody = fun_last
   };
-  { name = "append";
+  { funName = "append";
     funType = {
       arg_types = [("l1", Ty_app (List, [Ty_id Int]));
                    ("l2", Ty_app (List, [Ty_id Int]))];
@@ -111,14 +112,14 @@ let funDefList = [
     };
     funBody = fun_append
   };
-  { name = "length";
+  { funName = "length";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
       ret_type = Ty_id Int
     };
     funBody = fun_length
   };
-  { name = "reverse_aux";
+  { funName = "reverse_aux";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]));
                    ("acc", Ty_app (List, [Ty_id Int]))];
@@ -126,14 +127,14 @@ let funDefList = [
     };
     funBody = fun_reverse_aux
   };
-  { name = "reverse";
+  { funName = "reverse";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
       ret_type = Ty_app (List, [Ty_id Int])
     };
     funBody = fun_reverse
   };
-  { name = "reverse_bis";
+  { funName = "reverse_bis";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]))];
       ret_type = Ty_app (List, [Ty_id Int])

@@ -23,5 +23,6 @@ Supported patterns for functions:
 
 Not well supported:
 - multi-clauses functions
-- guarded patterns 
+- guarded patterns
+- negation (for integers and booleans)
 

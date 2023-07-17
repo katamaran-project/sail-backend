@@ -7,13 +7,14 @@ open Libsail
 
 module Big_int = Nat_big_num
 
+
 (******************************************************************************)
-(* Functions inspired by Libsail.Ast_util *)
 
 let string_of_id (Id_aux (aux, _)) =
   match aux with
   | Id x -> x
   | _ -> " NOT YET SUPPORTED "
+
 
 (******************************************************************************)
 
@@ -31,8 +32,8 @@ let rec ty_of_typ (Typ_aux (typ, _)) =
   let ty_of_arg (A_aux (aux, _)) = 
     match aux with
     | A_typ typ -> ty_of_typ typ
-    | _ -> Ty_nys
-  in match typ with
+    | _ -> Ty_nys in
+  match typ with
   | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
   | Typ_app (id, args) -> (
       match string_of_id id with
@@ -48,12 +49,14 @@ let rec ty_of_typ (Typ_aux (typ, _)) =
       List.fold_left f h_ty typs
   | _ -> Ty_nys
 
+
 (******************************************************************************)
 
 let ty_of_pexp (Pat_aux (aux, _)) =
   match aux with
   | Pat_exp (_, exp) -> ty_of_typ (Type_check.typ_of exp)
   | Pat_when _ -> Ty_nys
+
 
 (******************************************************************************)
 
@@ -67,13 +70,14 @@ let rec binds_of_pat (P_aux (aux, a)) =
   | P_tup pats ->
       List.concat (List.map binds_of_pat pats)
   | _ ->
-      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)] (* Not yet supported *)
+      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)]
 
 let binds_of_pexp (Pat_aux (aux, _)) = 
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
   | Pat_when _ ->
-      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)] (* Not yet supported *)
+      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)]
+
 
 (******************************************************************************)
 
@@ -106,14 +110,15 @@ let rec statement_of_aexp (AE_aux (aux, _, _)) =
   | AE_val aval ->
       Stm_exp (expression_of_aval aval)
   | AE_app (id, avals, _) -> 
-      let x = string_of_id id in
-      (match avals with
-      | [aval1; aval2] when x = "sail_cons" ->
-          let e1 = expression_of_aval aval1 in
-          let e2 = expression_of_aval aval2 in
-          Stm_exp (Exp_binop (Cons, e1, e2))
-      | _ ->
-          Stm_call (x, List.map expression_of_aval avals))
+      let x = string_of_id id in (
+        match avals with
+        | [aval1; aval2] when x = "sail_cons" ->
+            let e1 = expression_of_aval aval1 in
+            let e2 = expression_of_aval aval2 in
+            Stm_exp (Exp_binop (Cons, e1, e2))
+        | _ ->
+            Stm_call (x, List.map expression_of_aval avals)
+      )
   | AE_let (_, id, _, aexp1, aexp2, _) ->
       let x = string_of_id id in
       let s1 = statement_of_aexp aexp1 in
@@ -168,16 +173,16 @@ and statement_of_match aval = function
       }
   | _ -> Stm_nys
 
-
 let body_of_pexp (Pat_aux (aux, _)) =
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (anf exp)
-  | Pat_when _       -> failwith "`when` not yet processed"
+  | Pat_when _       -> Stm_nys
+
 
 (******************************************************************************)
 
 let ir_funcl (FCL_aux (FCL_Funcl (id, pexp), _)) = {
-  name    = string_of_id(id);
+  funName = string_of_id(id);
   funType = {
     arg_types = binds_of_pexp pexp;
     ret_type  = ty_of_pexp pexp
@@ -190,12 +195,11 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
-
 let ir_def = function
   | DEF_fundef fd -> join (some (ir_fundef fd))
   | _             -> none 
 
-let ast_to_ir {defs; _} name =  {
+let sail_to_nanosail {defs; _} name =  {
   program_name = name;
   funDefList   = List.filter_map ir_def defs
 }

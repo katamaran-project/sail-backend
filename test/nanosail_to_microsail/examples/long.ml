@@ -28,7 +28,7 @@ let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_exp (
 
 
 let funDefList = [
-  { name = "very_long_naaaaaaaaaaaaaaaaame";
+  { funName = "very_long_naaaaaaaaaaaaaaaaame";
     funType = {
       arg_types = [("l", Ty_app (List, [Ty_id Int]));
                    ("b", Ty_id Bool);
