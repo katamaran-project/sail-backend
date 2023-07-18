@@ -22,15 +22,16 @@ Import DefaultBase.
 
 (*** PROGRAM ***)
 
-Module Import ProdProgram <: Program DefaultBase.
+Module Import ArgumentsProgram <: Program DefaultBase.
 
   Section FunDeclKit.
 
     Inductive Fun : PCtx -> Ty -> Set :=
-    | ex_prod : Fun ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
-        (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-          (ty.prod ty.int ty.string))
-    | switch : Fun ["p" ∷ (ty.prod ty.int ty.bool)] (ty.prod ty.bool ty.int).
+    | int_args : Fun ["n" ∷ ty.int; "m" ∷ ty.int] ty.int
+    | string_args : Fun ["s" ∷ ty.string] ty.unit
+    | bool_args : Fun ["b" ∷ ty.bool] ty.unit
+    | unit_args : Fun ["()" ∷ ty.unit] ty.unit
+    | list_args : Fun ["l" ∷ (ty.list ty.unit)] ty.unit.
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -42,25 +43,28 @@ Module Import ProdProgram <: Program DefaultBase.
 
   Section FunDefKit.
 
-    Definition fun_ex_prod : Stm ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
-        (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-          (ty.prod ty.int ty.string)) :=
-      stm_exp
-        (exp_val
-          (ty.prod
-            (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-            (ty.prod ty.int ty.string))
-          (((1%Z, "one"), (2%Z, "two")), (1%Z, "one"))).
+    Definition fun_int_args : Stm ["n" ∷ ty.int; "m" ∷ ty.int] ty.int :=
+      stm_exp (exp_int 1%Z).
 
-    Definition fun_switch : Stm ["p" ∷ (ty.prod ty.int ty.bool)]
-        (ty.prod ty.bool ty.int) :=
-      stm_match_prod (stm_exp (exp_var "p")) "l" "r"
-        (stm_exp (exp_binop bop.pair (exp_var "r") (exp_var "l"))).
+    Definition fun_string_args : Stm ["s" ∷ ty.string] ty.unit :=
+      stm_exp (exp_val ty.unit tt).
+
+    Definition fun_bool_args : Stm ["b" ∷ ty.bool] ty.unit :=
+      stm_exp (exp_val ty.unit tt).
+
+    Definition fun_unit_args : Stm ["()" ∷ ty.unit] ty.unit :=
+      stm_exp (exp_val ty.unit tt).
+
+    Definition fun_list_args : Stm ["l" ∷ (ty.list ty.unit)] ty.unit :=
+      stm_exp (exp_val ty.unit tt).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | ex_prod => fun_ex_prod
-      | switch => fun_switch
+      | int_args => fun_int_args
+      | string_args => fun_string_args
+      | bool_args => fun_bool_args
+      | unit_args => fun_unit_args
+      | list_args => fun_list_args
       end.
 
   End FunDefKit.
@@ -78,5 +82,5 @@ Module Import ProdProgram <: Program DefaultBase.
 
   Include ProgramMixin DefaultBase.
 
-End ProdProgram.
+End ArgumentsProgram.
 

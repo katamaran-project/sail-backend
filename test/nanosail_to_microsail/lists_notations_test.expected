@@ -12,7 +12,6 @@ Import ctx.notations
        ListNotations.
 
 Local Open Scope string_scope.
-
 Local Open Scope list_scope.
 
 
@@ -53,8 +52,8 @@ Module Import ListsProgram <: Program DefaultBase.
   Section FunDefKit.
 
     Definition fun_is_empty : Stm ["l" ∷ (ty.list ty.int)] ty.bool :=
-      stm_match_list (stm_exp (exp_var "l")) (stm_val ty.bool true) "h" "t"
-        (stm_val ty.bool false).
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "h" "t"
+        (stm_exp (exp_false)).
 
     Definition fun_empty : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
       stm_exp (exp_list []).
@@ -64,7 +63,7 @@ Module Import ListsProgram <: Program DefaultBase.
 
     Definition fun_last : Stm ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool) :=
       stm_match_list (stm_exp (exp_var "l"))
-        (stm_val (ty.prod ty.int ty.bool) (0%Z, false)) "h" "t"
+        (stm_exp (exp_val (ty.prod ty.int ty.bool) (0%Z, false))) "h" "t"
         (stm_match_list (stm_exp (exp_var "t"))
           (stm_exp (exp_binop bop.pair (exp_var "h") (exp_true))) "h'" "t'"
           (call last (exp_var "t"))).
@@ -76,7 +75,7 @@ Module Import ListsProgram <: Program DefaultBase.
           stm_exp (exp_binop bop.cons (exp_var "h") (exp_var "r"))).
 
     Definition fun_length : Stm ["l" ∷ (ty.list ty.int)] ty.int :=
-      stm_match_list (stm_exp (exp_var "l")) (stm_val ty.int 0%Z) "h" "t"
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_int 0%Z)) "h" "t"
         (let: "n" := call length (exp_var "t") in
           stm_exp ((exp_var "n") + (exp_int 1%Z))).
 

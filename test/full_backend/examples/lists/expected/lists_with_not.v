@@ -12,7 +12,6 @@ Import ctx.notations
        ListNotations.
 
 Local Open Scope string_scope.
-
 Local Open Scope list_scope.
 
 

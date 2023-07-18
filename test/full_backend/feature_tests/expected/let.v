@@ -10,7 +10,6 @@ Import ctx.notations
        ctx.resolution.
 
 Local Open Scope string_scope.
-
 Local Open Scope list_scope.
 
 
@@ -23,12 +22,12 @@ Import DefaultBase.
 
 (*** PROGRAM ***)
 
-Module Import IfteProgram <: Program DefaultBase.
+Module Import LetProgram <: Program DefaultBase.
 
   Section FunDeclKit.
 
     Inductive Fun : PCtx -> Ty -> Set :=
-    | not : Fun ["b" ∷ ty.bool] ty.bool.
+    | let_test : Fun ["()" ∷ ty.unit] ty.bool.
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -40,12 +39,16 @@ Module Import IfteProgram <: Program DefaultBase.
 
   Section FunDefKit.
 
-    Definition fun_not : Stm ["b" ∷ ty.bool] ty.bool :=
-      stm_if (stm_exp (exp_var "b")) (stm_exp (exp_false)) (stm_exp (exp_true)).
+    Definition fun_let_test : Stm ["()" ∷ ty.unit] ty.bool :=
+      let: "a" := stm_exp (exp_true) in
+        let: "b" := stm_exp (exp_false) in
+          let: "c" :=
+            stm_if (stm_exp (exp_var "b")) (stm_exp (exp_var "a"))
+              (stm_exp (exp_var "b")) in stm_exp (exp_var "c").
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | not => fun_not
+      | let_test => fun_let_test
       end.
 
   End FunDefKit.
@@ -63,5 +66,5 @@ Module Import IfteProgram <: Program DefaultBase.
 
   Include ProgramMixin DefaultBase.
 
-End IfteProgram.
+End LetProgram.
 

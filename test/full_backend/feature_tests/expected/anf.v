@@ -10,7 +10,6 @@ Import ctx.notations
        ctx.resolution.
 
 Local Open Scope string_scope.
-
 Local Open Scope list_scope.
 
 
@@ -23,16 +22,12 @@ Import DefaultBase.
 
 (*** PROGRAM ***)
 
-Module Import ArgumentsProgram <: Program DefaultBase.
+Module Import AnfProgram <: Program DefaultBase.
 
   Section FunDeclKit.
 
     Inductive Fun : PCtx -> Ty -> Set :=
-    | int_args : Fun ["n" ∷ ty.int; "m" ∷ ty.int] ty.int
-    | string_args : Fun ["s" ∷ ty.string] ty.unit
-    | bool_args : Fun ["b" ∷ ty.bool] ty.unit
-    | unit_args : Fun ["()" ∷ ty.unit] ty.unit
-    | list_args : Fun ["l" ∷ (ty.list ty.unit)] ty.unit.
+    | not_in_anf : Fun ["()" ∷ ty.unit] (ty.list ty.int).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -44,28 +39,15 @@ Module Import ArgumentsProgram <: Program DefaultBase.
 
   Section FunDefKit.
 
-    Definition fun_int_args : Stm ["n" ∷ ty.int; "m" ∷ ty.int] ty.int :=
-      stm_exp (exp_int 1%Z).
-
-    Definition fun_string_args : Stm ["s" ∷ ty.string] ty.unit :=
-      stm_exp (exp_val ty.unit tt).
-
-    Definition fun_bool_args : Stm ["b" ∷ ty.bool] ty.unit :=
-      stm_exp (exp_val ty.unit tt).
-
-    Definition fun_unit_args : Stm ["()" ∷ ty.unit] ty.unit :=
-      stm_exp (exp_val ty.unit tt).
-
-    Definition fun_list_args : Stm ["l" ∷ (ty.list ty.unit)] ty.unit :=
-      stm_exp (exp_val ty.unit tt).
+    Definition fun_not_in_anf : Stm ["()" ∷ ty.unit] (ty.list ty.int) :=
+      let: "ga#0" :=
+        stm_exp
+          (exp_binop bop.cons (exp_int 2%Z) (exp_list (cons (exp_int 3%Z) nil)))
+        in stm_exp (exp_binop bop.cons (exp_int 1%Z) (exp_var "ga#0")).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | int_args => fun_int_args
-      | string_args => fun_string_args
-      | bool_args => fun_bool_args
-      | unit_args => fun_unit_args
-      | list_args => fun_list_args
+      | not_in_anf => fun_not_in_anf
       end.
 
   End FunDefKit.
@@ -83,5 +65,5 @@ Module Import ArgumentsProgram <: Program DefaultBase.
 
   Include ProgramMixin DefaultBase.
 
-End ArgumentsProgram.
+End AnfProgram.
 

@@ -43,7 +43,7 @@ with the `-plugin` option of sail:
 sail -plugin _build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs ...
 ```
 
-Anyway, the `-ok` option of `sail` should print "ok." if the backend is
+Either way, the `-ok` option of `sail` should print "ok." if the backend is
 installed/the plugin loaded.
 
 
@@ -91,13 +91,34 @@ make katamaran # or katamaran-list to enable list notations
 *lists.v* will be generated from *lists.sail*. It can be compared manually
 with the expected results in `expected/` using `make compare`.
 
+
+List of some of the `make` targets:
++ *check* : Sail typechecking.
++ *ast* : Prints the sail ast after getting rid of syntactic sugar.
++ *interpreter* : Loads the sail file in the sail interpreter.
++ *katamaran*, *katamaran-rewrites*, *katamaran-rewrites-clean* : Respectively
+  calls the sail coq target, identical and prints each rewrite step ast in a new
+  directory identical and deletes rewrite step asts when nothing has been
+  changed.
++ *katamaran-list* : Identical to *katamaran* but uses the better list notations
+  for µSail.
++ *compare*, *compare-list* : Compares the output files of respectively
+  *katamaran* and *katamaran-list* with the expected µSail files.
++ *coq*, *coq-rewrites*, *coq-rewrites-clean* : Respectively calls the sail coq
+  target, identical and prints each rewrite step ast in a new directory
+  identical and deletes rewrite step asts when nothing has been changed.
++ *clean* : Cleans the directory of any generated file.
+
 ### Feature tests
+`test/fullbackend/feature_tests/supported.txt` contains a brief description of
+the current supported featured of Sail.
+
 ```sh
 cd test/full_backend/feature_tests
 make test
 ```
 `.v` files will be generated from the `.sail` files and then compared to the
-`.expected` files.
+`expected/` files.
 
 Uninstallation
 ---------------

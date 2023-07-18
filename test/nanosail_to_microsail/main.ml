@@ -1,14 +1,15 @@
 open Nanosail.Pretty_printing_katamaran
 open Examples
 
+
 let usage_msg = "main.exe <options> <input>"
 let width = ref 80
 let input_name = ref ""
 
 
-
 let rec options = [
-  ("-w", Arg.Set_int width, " Set the width of the generated lines");
+  ("-w", Arg.Set_int width,
+    " Set the width of the generated lines (80 by default)");
   ("-list_notations", Arg.Set opt_list_notations, " Use list notations");
   ("-inputs", Arg.Unit inputs, " Print the list of available inputs");
   ("-help", Arg.Unit help,

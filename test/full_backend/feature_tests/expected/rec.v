@@ -22,15 +22,12 @@ Import DefaultBase.
 
 (*** PROGRAM ***)
 
-Module Import ProdProgram <: Program DefaultBase.
+Module Import RecProgram <: Program DefaultBase.
 
   Section FunDeclKit.
 
     Inductive Fun : PCtx -> Ty -> Set :=
-    | ex_prod : Fun ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
-        (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-          (ty.prod ty.int ty.string))
-    | switch : Fun ["p" ∷ (ty.prod ty.int ty.bool)] (ty.prod ty.bool ty.int).
+    | and_list : Fun ["l" ∷ (ty.list ty.bool)] ty.bool.
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -42,25 +39,14 @@ Module Import ProdProgram <: Program DefaultBase.
 
   Section FunDefKit.
 
-    Definition fun_ex_prod : Stm ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
-        (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-          (ty.prod ty.int ty.string)) :=
-      stm_exp
-        (exp_val
-          (ty.prod
-            (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-            (ty.prod ty.int ty.string))
-          (((1%Z, "one"), (2%Z, "two")), (1%Z, "one"))).
-
-    Definition fun_switch : Stm ["p" ∷ (ty.prod ty.int ty.bool)]
-        (ty.prod ty.bool ty.int) :=
-      stm_match_prod (stm_exp (exp_var "p")) "l" "r"
-        (stm_exp (exp_binop bop.pair (exp_var "r") (exp_var "l"))).
+    Definition fun_and_list : Stm ["l" ∷ (ty.list ty.bool)] ty.bool :=
+      stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "t" "q"
+        (stm_if (stm_exp (exp_var "t")) (call and_list (exp_var "q"))
+          (stm_exp (exp_false))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | ex_prod => fun_ex_prod
-      | switch => fun_switch
+      | and_list => fun_and_list
       end.
 
   End FunDefKit.
@@ -78,5 +64,5 @@ Module Import ProdProgram <: Program DefaultBase.
 
   Include ProgramMixin DefaultBase.
 
-End ProdProgram.
+End RecProgram.
 

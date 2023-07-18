@@ -21,8 +21,19 @@ Supported patterns for match:
 Supported patterns for functions:
 - exhaustive pattern in one clause
 
+Supported expressions:
+- if then else
+- some pattern matching (see above)
+- let 
+- function calling
+
+Supported functions:
+- recursive
+- non A-normal-form
+
 Not well supported:
 - multi-clauses functions
 - guarded patterns
 - negation (for integers and booleans)
+- type variable
 
