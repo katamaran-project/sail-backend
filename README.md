@@ -93,7 +93,7 @@ with the expected results in `expected/` using `make compare`.
 
 
 List of some of the `make` targets:
-+ *check* : Sail typechecking.
++ *check* : Sail type checking.
 + *ast* : Prints the sail AST after getting rid of syntactic sugar.
 + *interpreter* : Loads the sail file in the sail interpreter.
 + *katamaran*, *katamaran-rewrites*, *katamaran-rewrites-clean* : Respectively
