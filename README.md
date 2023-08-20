@@ -25,7 +25,7 @@ Change `default` with any other switch name to use it.
 
 Installation
 --------------------------------------------------------------------------------
-This project use the [dune](https://opam.ocaml.org/packages/dune/),
+This project uses the [dune](https://opam.ocaml.org/packages/dune/),
 [sail](https://opam.ocaml.org/packages/sail/) and
 [pprint](https://opam.ocaml.org/packages/pprint/) packages. To install the
 project with its dependencies, run:
@@ -35,7 +35,7 @@ dune build
 dune install
 ```
 
-You can also avoid to install the plugin after building the project, and load
+You can also avoid installing the plugin after building the project, and load
 the plugin on demand each time you want to access the Katamaran backend options
 with the `-plugin` option of sail:
 
@@ -94,19 +94,19 @@ with the expected results in `expected/` using `make compare`.
 
 List of some of the `make` targets:
 + *check* : Sail typechecking.
-+ *ast* : Prints the sail ast after getting rid of syntactic sugar.
++ *ast* : Prints the sail AST after getting rid of syntactic sugar.
 + *interpreter* : Loads the sail file in the sail interpreter.
 + *katamaran*, *katamaran-rewrites*, *katamaran-rewrites-clean* : Respectively
-  calls the sail coq target, identical and prints each rewrite step ast in a new
-  directory identical and deletes rewrite step asts when nothing has been
+  calls the sail coq target, identical and prints each rewrite step AST in a new
+  directory identical and deletes rewrite step ASTs when nothing has been
   changed.
 + *katamaran-list* : Identical to *katamaran* but uses the better list notations
   for µSail.
 + *compare*, *compare-list* : Compares the output files of respectively
   *katamaran* and *katamaran-list* with the expected µSail files.
 + *coq*, *coq-rewrites*, *coq-rewrites-clean* : Respectively calls the sail coq
-  target, identical and prints each rewrite step ast in a new directory
-  identical and deletes rewrite step asts when nothing has been changed.
+  target, identical and prints each rewrite step AST in a new directory
+  identical and deletes rewrite step ASTs when nothing has been changed.
 + *clean* : Cleans the directory of any generated file.
 
 ### Feature tests
