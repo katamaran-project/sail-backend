@@ -97,16 +97,17 @@ List of some of the `make` targets:
 + *ast* : Prints the sail AST after getting rid of syntactic sugar.
 + *interpreter* : Loads the sail file in the sail interpreter.
 + *katamaran*, *katamaran-rewrites*, *katamaran-rewrites-clean* : Respectively
-  calls the sail coq target, identical and prints each rewrite step AST in a new
-  directory identical and deletes rewrite step ASTs when nothing has been
-  changed.
+  calls the sail coq target, same as *katamaran* prints each rewrite step AST in
+  a new directory, same as *katamaran-rewrites* but deletes rewrite step ASTs
+  when nothing has been changed.
 + *katamaran-list* : Identical to *katamaran* but uses the better list notations
   for µSail.
 + *compare*, *compare-list* : Compares the output files of respectively
   *katamaran* and *katamaran-list* with the expected µSail files.
 + *coq*, *coq-rewrites*, *coq-rewrites-clean* : Respectively calls the sail coq
-  target, identical and prints each rewrite step AST in a new directory
-  identical and deletes rewrite step ASTs when nothing has been changed.
+  target, same as *coq* but prints each rewrite step AST in a new directory,
+  same as *coq-rewrites but deletes rewrite step ASTs when nothing has been
+  changed.
 + *clean* : Cleans the directory of any generated file.
 
 ### Feature tests
