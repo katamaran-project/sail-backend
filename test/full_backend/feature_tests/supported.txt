@@ -12,7 +12,7 @@ Supported types:
 	- string
 - Type constructors:
 	- list
-	- tupple (but changed in pairs: (a,b,c,d) -> (((a,b),c),d) )
+	- tupple (but changed to nested pairs: (a,b,c,d) -> (((a,b),c),d) )
 
 Supported patterns for match:
 - simple list pattern (nil then cons or cons then nil)
@@ -31,7 +31,7 @@ Supported functions:
 - recursive
 - non A-normal-form
 
-Not well supported:
+Not well-supported:
 - multi-clauses functions
 - guarded patterns
 - negation (for integers and booleans)
