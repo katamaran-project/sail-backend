@@ -2,6 +2,9 @@ open Libsail
 open Nanosail.Sail_to_nanosail
 open Nanosail.Pretty_printing_katamaran
 
+(** Width of the output (dfault is 80) *)
+let opt_width = ref 80
+
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
@@ -11,6 +14,9 @@ let katamaran_options = [
   ("-list_notations",
     Arg.Set opt_list_notations,
     " use list notations");
+  ("-w",
+    Arg.Set_int opt_width,
+    " set a custom width for the output")
 ]
 
 (** List of rewrites applied to the sail ast after type checking and before
@@ -28,7 +34,7 @@ let katamaran_target _ out_file ast _ _ =
     | Some f -> (true, open_out (f ^ ".v"), String.capitalize_ascii f)
     | None   -> (false, stdout, "NoName")
   in let ir = sail_to_nanosail ast prog_name
-  in pretty_print 80 output_chan
+  in pretty_print !opt_width output_chan
     (fromIR_pp ir);
   if close then close_out output_chan
 
