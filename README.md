@@ -60,6 +60,7 @@ Usage
 + `-list_notations` allows the µSail generated file to use some more readable
   list notations defined by Katamaran.
 + `-ok` prints "ok.".
++ `-w` defines the page width for the µSail generated code. Must be followed by an integer.
 
 
 Test Nanosail
