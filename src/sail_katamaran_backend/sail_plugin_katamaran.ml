@@ -22,10 +22,61 @@ let katamaran_options = [
 (** List of rewrites applied to the sail ast after type checking and before
     any translation to intermediate representation language. *)
 let katamaran_rewrites = [
-  ("guarded_pats", []);
-  ("make_cases_exhaustive", []);
-  ("merge_function_clauses", []);
-  ("recheck_defs", []);
+    ("prover_regstate", [Rewrites.Bool_arg true]);
+    ("instantiate_outcomes", [Rewrites.String_arg "coq"]);
+    ("realize_mappings", []);
+    ("remove_vector_subrange_pats", []);
+    ("remove_duplicate_valspecs", []);
+    ("toplevel_string_append", []);
+    ("pat_string_append", []);
+    ("mapping_patterns", []);
+    ("add_unspecified_rec", []);
+    ("undefined", [Rewrites.Bool_arg true]);
+    ("vector_string_pats_to_bit_list", []);
+    ("remove_not_pats", []);
+    ("remove_impossible_int_cases", []);
+    ("tuple_assignments", []);
+    ("vector_concat_assignments", []);
+    ("simple_assignments", []);
+    ("remove_vector_concat", []);
+    ("remove_bitvector_pats", []);
+    ("remove_numeral_pats", []);
+    ("pattern_literals", [Rewrites.Literal_arg "lem"]);
+    ("guarded_pats", []);
+    (* ("register_ref_writes", rewrite_register_ref_writes); *)
+    ("nexp_ids", []);
+    ("split", [Rewrites.String_arg "execute"]);
+    ("minimise_recursive_functions", []);
+    ("recheck_defs", []);
+    (* ("remove_assert", rewrite_ast_remove_assert); *)
+    ("move_termination_measures", []);
+    ("top_sort_defs", []);
+    ("const_prop_mutrec", [Rewrites.String_arg "coq"]);
+    ("exp_lift_assign", []);
+    ("early_return", []);
+    (* We need to do the exhaustiveness check before merging, because it may
+       introduce new wildcard clauses *)
+    ("recheck_defs", []);
+    ("make_cases_exhaustive", []);
+    (* merge funcls before adding the measure argument so that it doesn't
+       disappear into an internal pattern match *)
+    ("merge_function_clauses", []);
+    ("recheck_defs", []);
+    ("rewrite_explicit_measure", []);
+    ("rewrite_loops_with_escape_effect", []);
+    ("recheck_defs", []);
+    ("remove_blocks", []);
+    ("attach_effects", []);
+    ("letbind_effects", []);
+    ("remove_e_assign", []);
+    ("attach_effects", []);
+    ("internal_lets", []);
+    ("remove_superfluous_letbinds", []);
+    ("remove_superfluous_returns", []);
+    ("bit_lists_to_lits", []);
+    ("toplevel_let_patterns", []);
+    ("recheck_defs", []);
+    ("attach_effects", []);
 ]
 
 (** Katamaran target action. *)
