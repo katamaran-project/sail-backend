@@ -77,17 +77,39 @@ let katamaran_rewrites = [
     ("toplevel_let_patterns", []);
     ("recheck_defs", []);
     ("attach_effects", []);
-]
+  ]
+
+
+let with_open_file filename func =
+  let output_channel = open_out filename in
+  try
+    func output_channel
+  with e -> close_out output_channel; raise e
+
+
+let with_stdout func =
+  func stdout
+
 
 (** Katamaran target action. *)
-let katamaran_target _ _ out_file ast _ _ =
-  let close, output_chan, prog_name = match out_file with
-    | Some f -> (true, open_out (f ^ ".v"), String.capitalize_ascii f)
-    | None   -> (false, stdout, "NoName")
-  in let ir = sail_to_nanosail ast prog_name
-  in pretty_print !opt_width output_chan
-    (fromIR_pp ir);
-  if close then close_out output_chan
+let katamaran_target _ _ filename ast _ _ =
+  let add_extension filename =
+    if Filename.check_suffix filename ".v"
+    then filename
+    else filename ^ ".v"
+  in
+  let program_name_from_filename filename =
+    String.capitalize_ascii filename
+  in
+  let context, program_name =
+    match filename with
+    | Some filename -> (with_open_file (add_extension filename), program_name_from_filename filename)
+    | None          -> (with_stdout, "NoName")
+  in
+  let ir = sail_to_nanosail ast program_name
+  in
+  context (fun output_channel -> pretty_print !opt_width output_channel (fromIR_pp ir))
+
 
 (** Registering of the katamaran target. *)
 let _ = Target.register
