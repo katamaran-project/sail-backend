@@ -115,4 +115,3 @@ type ir_t = {
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }
-

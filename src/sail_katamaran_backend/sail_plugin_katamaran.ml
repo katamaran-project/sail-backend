@@ -29,7 +29,7 @@ let katamaran_rewrites = [
 ]
 
 (** Katamaran target action. *)
-let katamaran_target _ out_file ast _ _ =
+let katamaran_target _ _ out_file ast _ _ =
   let close, output_chan, prog_name = match out_file with
     | Some f -> (true, open_out (f ^ ".v"), String.capitalize_ascii f)
     | None   -> (false, stdout, "NoName")
