@@ -263,6 +263,11 @@ let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_
   | TD_bitfield (_, _, _) ->
      raise (NotYetImplemented (definition_annotation.loc, "TD_bitfield"))
 
+let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (value_specification, _vspec_annotation)) : definition =
+  let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), identifier, _extern) = value_specification
+  in
+  raise (NotYetImplemented (definition_annotation.loc, "top level constant " ^ string_of_id identifier))
+
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
   try
     match def with
@@ -279,8 +284,8 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
        raise (NotYetImplemented (annotation.loc, "DEF_impl"))
     | DEF_let _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_let"))
-    | DEF_val _ ->
-       raise (NotYetImplemented (annotation.loc, "DEF_val"))
+    | DEF_val value_specification ->
+      translate_top_level_constant annotation value_specification
     | DEF_outcome (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_outcome"))
     | DEF_instantiation (_, _) ->
