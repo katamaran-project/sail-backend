@@ -291,8 +291,8 @@ let translate_definition (DEF_aux (def, annotation)) =
       not_yet_supported annotation.loc "DEF_pragma"; none
 
 let sail_to_nanosail ast name =
-  let defs = ast.defs in
+  let sail_definitions = ast.defs in
   {
     program_name = name;
-    funDefList   = List.filter_map translate_definition defs
+    funDefList   = List.filter_map translate_definition sail_definitions
   }
