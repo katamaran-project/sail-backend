@@ -195,13 +195,19 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
+let translate_type_definition type_definition =
+  let TD_aux (_type_definition, _location) = type_definition in
+  print_string "DEF_typ\n";
+  none
+
 let ir_def def =
   let DEF_aux (def, _) = def
   in
   match def with
    | DEF_fundef fd ->
       join (some (ir_fundef fd))
-   | DEF_type _ -> none
+   | DEF_type type_definition  ->
+      translate_type_definition type_definition
    | DEF_mapdef _ -> none
    | DEF_impl _ -> none
    | DEF_let _ -> none
