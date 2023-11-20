@@ -41,5 +41,6 @@ let funDefList = [
 
 let ir = { 
   program_name = "Long";
-  funDefList = funDefList
+  function_definitions = funDefList;
+  untranslated_definitions = []
 }

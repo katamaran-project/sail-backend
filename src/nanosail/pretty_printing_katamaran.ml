@@ -304,7 +304,7 @@ let fromIR_pp ir =
   let program = 
     separate small_step [
       string "(*** PROGRAM ***)";
-      program_module_pp ir.program_name "Default" ir.funDefList
+      program_module_pp ir.program_name "Default" ir.function_definitions
     ] in
   separate big_step [
     heading;

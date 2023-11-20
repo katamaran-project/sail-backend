@@ -145,5 +145,6 @@ let funDefList = [
 
 let ir = { 
   program_name = "Lists";
-  funDefList = funDefList
+  function_definitions = funDefList;
+  untranslated_definitions = []
 }

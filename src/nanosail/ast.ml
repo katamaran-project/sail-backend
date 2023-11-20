@@ -123,7 +123,7 @@ let extract_untranslated_definition = function
 type ir_t = {
   program_name : string;
   function_definitions : funDef_t list;
-  untranslated_definitions: Libsail.Type_check.tannot Libsail.Ast.def
+  untranslated_definitions : Libsail.Type_check.tannot Libsail.Ast.def list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }

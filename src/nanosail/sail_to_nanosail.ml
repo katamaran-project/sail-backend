@@ -305,5 +305,6 @@ let sail_to_nanosail ast name =
   let translated_definitions = List.map translate_definition sail_definitions in
   {
     program_name         = name;
-    function_definitions = List.filter_map extract_function_definition translated_definitions
+    function_definitions = List.filter_map extract_function_definition translated_definitions;
+    untranslated_definitions = []
   }
