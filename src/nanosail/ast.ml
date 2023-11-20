@@ -104,6 +104,13 @@ type funDef_t = {
   funBody : statement;
 }
 
+type definition =
+  | FunctionDefinition of funDef_t
+  | UntranslatedDefinition of Libsail.Type_check.tannot Libsail.Ast.def
+
+let extract_function_definition = function
+  | FunctionDefinition x -> Some x
+  | _                    -> None
 
 (******************************************************************************)
 (* Full intermediate representation *)

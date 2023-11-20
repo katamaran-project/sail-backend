@@ -226,7 +226,9 @@ let translate_type_abbreviation _definition_annotation _type_annotation _identif
          match numeric_expression with
          | Nexp_id _ -> not_yet_supported numexp_location "Nexp_id"; none
          | Nexp_var _ -> not_yet_supported numexp_location "Nexp_var"; none
-         | Nexp_constant _ -> not_yet_supported numexp_location "Nexp_constant"; none
+         | Nexp_constant _constant ->
+            not_yet_supported numexp_location "Nexp_constant";
+            none
          | Nexp_app (_, _) -> not_yet_supported numexp_location "Nexp_app"; none
          | Nexp_times (_, _) -> not_yet_supported numexp_location "Nexp_times"; none
          | Nexp_sum (_, _) -> not_yet_supported numexp_location "Nexp_sum"; none
@@ -253,46 +255,56 @@ let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_
   | TD_bitfield (_, _, _) ->
      not_yet_supported definition_annotation.loc "bitfield"; none
 
-let translate_definition (DEF_aux (def, annotation)) =
+let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
   match def with
-   | DEF_fundef fd ->
-      join (some (ir_fundef fd))
-   | DEF_type type_definition  ->
-      translate_type_definition annotation type_definition
+  | DEF_fundef fd ->
+     (
+       match ir_fundef fd with
+       | Some translation -> FunctionDefinition translation
+       | None             -> UntranslatedDefinition sail_definition
+     )
+  | DEF_type type_definition  ->
+     (
+       match translate_type_definition annotation type_definition with
+       | Some x -> x
+       | None   -> UntranslatedDefinition sail_definition
+     )
    | DEF_mapdef _ ->
-      not_yet_supported annotation.loc "DEF_mapdef"; none
+      not_yet_supported annotation.loc "DEF_mapdef"; UntranslatedDefinition sail_definition
    | DEF_impl _ ->
-      not_yet_supported annotation.loc "DEF_impl"; none
+      not_yet_supported annotation.loc "DEF_impl"; UntranslatedDefinition sail_definition
    | DEF_let _ ->
-      not_yet_supported annotation.loc "DEF_let"; none
+      not_yet_supported annotation.loc "DEF_let"; UntranslatedDefinition sail_definition
    | DEF_val _ ->
-      not_yet_supported annotation.loc "DEF_val"; none
+      not_yet_supported annotation.loc "DEF_val"; UntranslatedDefinition sail_definition
    | DEF_outcome (_, _) ->
-      not_yet_supported annotation.loc "DEF_outcome"; none
+      not_yet_supported annotation.loc "DEF_outcome"; UntranslatedDefinition sail_definition
    | DEF_instantiation (_, _) ->
-      not_yet_supported annotation.loc "DEF_instantiation"; none
+      not_yet_supported annotation.loc "DEF_instantiation"; UntranslatedDefinition sail_definition
    | DEF_fixity (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_fixity"; none
+      not_yet_supported annotation.loc "DEF_fixity"; UntranslatedDefinition sail_definition
    | DEF_overload (_, _) ->
-      not_yet_supported annotation.loc "DEF_overload"; none
+      not_yet_supported annotation.loc "DEF_overload"; UntranslatedDefinition sail_definition
    | DEF_default _ ->
-      not_yet_supported annotation.loc "DEF_default"; none
+      not_yet_supported annotation.loc "DEF_default"; UntranslatedDefinition sail_definition
    | DEF_scattered _ ->
-      not_yet_supported annotation.loc "DEF_scattered"; none
+      not_yet_supported annotation.loc "DEF_scattered"; UntranslatedDefinition sail_definition
    | DEF_measure (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_measure"; none
+      not_yet_supported annotation.loc "DEF_measure"; UntranslatedDefinition sail_definition
    | DEF_loop_measures (_, _) ->
-      not_yet_supported annotation.loc "DEF_loop"; none
+      not_yet_supported annotation.loc "DEF_loop"; UntranslatedDefinition sail_definition
    | DEF_register _ ->
-      not_yet_supported annotation.loc "DEF_register"; none
+      not_yet_supported annotation.loc "DEF_register"; UntranslatedDefinition sail_definition
    | DEF_internal_mutrec _ ->
-      not_yet_supported annotation.loc "DEF_internal"; none
+      not_yet_supported annotation.loc "DEF_internal"; UntranslatedDefinition sail_definition
    | DEF_pragma (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_pragma"; none
+      not_yet_supported annotation.loc "DEF_pragma"; UntranslatedDefinition sail_definition
+
 
 let sail_to_nanosail ast name =
   let sail_definitions = ast.defs in
+  let translated_definitions = List.map translate_definition sail_definitions in
   {
     program_name = name;
-    funDefList   = List.filter_map translate_definition sail_definitions
+    funDefList   = List.filter_map extract_function_definition translated_definitions
   }
