@@ -11,5 +11,5 @@ install:
 test:
 	dune test
 
-example: all
+example: build install
 	make -C working-example
