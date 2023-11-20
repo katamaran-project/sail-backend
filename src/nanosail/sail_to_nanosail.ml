@@ -36,7 +36,7 @@ let rec string_of_location (location : l) =
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
 
 let not_yet_supported (location : l) (message : string) =
-  Printf.printf "Not yet supported: %s\nAt location %s\n" message (string_of_location location)
+  Printf.printf "Not yet supported: %s at location %s\n" message (string_of_location location)
 
 (******************************************************************************)
 
