@@ -1,4 +1,4 @@
-.PHONY: all build install
+.PHONY: all build install test
 
 all: build install
 
@@ -7,3 +7,6 @@ build:
 
 install:
 	dune install
+
+test:
+	dune test
