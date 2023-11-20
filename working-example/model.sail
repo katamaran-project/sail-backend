@@ -1,1 +1,2 @@
-type xlen : Int = 32
+register RAX : bitvector(32)
+register RBX : bitvector(32)
