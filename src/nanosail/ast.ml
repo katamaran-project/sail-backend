@@ -112,6 +112,10 @@ let extract_function_definition = function
   | FunctionDefinition x -> Some x
   | _                    -> None
 
+let extract_untranslated_definition = function
+  | UntranslatedDefinition x -> Some x
+  | _                        -> None
+
 (******************************************************************************)
 (* Full intermediate representation *)
 
@@ -119,6 +123,7 @@ let extract_function_definition = function
 type ir_t = {
   program_name : string;
   funDefList : funDef_t list;
+  untranslated_definitions: Libsail.Type_check.tannot Libsail.Ast.def
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }
