@@ -214,15 +214,26 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
-let translate_type_abbreviation _identifier _quantifier _type_arg =
-  none
+let translate_type_abbreviation _annotation _identifier quantifier type_arg =
+  let TypQ_aux (quantifier, quantifier_location) = quantifier
+  and A_aux (arg, arg_location) = type_arg
+  in
+  match quantifier with
+  | TypQ_tq _ -> not_yet_supported quantifier_location "TypQ_tq"; none
+  | TypQ_no_forall ->
+     (
+       match arg with
+       | A_nexp _ -> not_yet_supported arg_location "A_nexp"; none
+       | A_typ _ -> not_yet_supported arg_location "A_typ"; none
+       | A_bool _ -> not_yet_supported arg_location "A_bool"; none
+     )
 
 let translate_type_definition type_definition =
-  let TD_aux (type_definition, _location) = type_definition
+  let TD_aux (type_definition, annotation) = type_definition
   in
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
-     translate_type_abbreviation identifier quantifier arg
+     translate_type_abbreviation annotation identifier quantifier arg
   | TD_record (_, _, _, _) -> none
   | TD_variant (_, _, _, _) -> none
   | TD_enum (_, _, _) -> none
