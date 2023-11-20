@@ -217,7 +217,7 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
-let translate_type_abbreviation _definition_annotation _type_annotation _identifier quantifier type_arg =
+let translate_type_abbreviation _definition_annotation _type_annotation _identifier quantifier type_arg : definition =
   let TypQ_aux (quantifier, quantifier_location) = quantifier
   and A_aux (arg, arg_location) = type_arg
   in
@@ -240,10 +240,10 @@ let translate_type_abbreviation _definition_annotation _type_annotation _identif
   in
   match arg with
   | A_nexp numeric_expression -> translate_numeric_expression numeric_expression
-  | A_typ _ -> not_yet_supported arg_location "A_typ"; none
-  | A_bool _ -> not_yet_supported arg_location "A_bool"; none
+  | A_typ _ -> raise (NotYetImplemented (arg_location, "A_typ"))
+  | A_bool _ -> raise (NotYetImplemented (arg_location, "A_bool"))
 
-let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) =
+let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
@@ -265,12 +265,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
          | Some translation -> FunctionDefinition translation
          | None             -> UntranslatedDefinition sail_definition
        )
-    | DEF_type type_definition  ->
-       (
-         match translate_type_definition annotation type_definition with
-         | Some x -> x
-         | None   -> UntranslatedDefinition sail_definition
-       )
+    | DEF_type type_definition  -> translate_type_definition annotation type_definition
     | DEF_mapdef _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_mapdef"))
     | DEF_impl _ ->
