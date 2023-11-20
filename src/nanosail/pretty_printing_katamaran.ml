@@ -264,6 +264,19 @@ let program_module_pp program_name base_name funDefList =
 
 
 (******************************************************************************)
+(* Type definition pretty printing *)
+
+let type_definition_pp (type_definition : type_definition) : document =
+  match type_definition with
+  | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
+     string (Printf.sprintf "Definition %s := %s" identifier (Big_int.to_string c))
+
+let type_module_pp type_definitions =
+  let type_definitions_pps = List.map type_definition_pp type_definitions
+  in
+  separate small_step type_definitions_pps
+
+(******************************************************************************)
 (* Full pretty printing *)
 
 let coq_lib_modules = ref [
@@ -301,7 +314,8 @@ let fromIR_pp ir =
   let base =
     separate small_step [
       string "(*** TYPES ***)";
-      defaultBase
+      defaultBase;
+      type_module_pp ir.type_definitions
     ] in
   let program = 
     separate small_step [

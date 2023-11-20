@@ -107,9 +107,14 @@ type funDef_t = {
 (******************************************************************************)
 (* Type definitions *)
 
-type type_definition = {
-  type_name : string;
-}
+type numeric_expression =
+  | Nexp_constant of Z.t
+
+type type_abbreviation =
+  | TA_numeric_expression of numeric_expression
+
+type type_definition =
+  | TD_abbreviation of (string * type_abbreviation)
 
 (******************************************************************************)
 (* Definitions *)
