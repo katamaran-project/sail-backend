@@ -4,7 +4,7 @@ SAIL_SOURCES = model.sail
 
 all: microsail.v
 
-microsail.v:
+microsail.v: $(SAIL_SOURCES)
 	$(SAIL) -katamaran -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o microsail.v
 
 clean:
