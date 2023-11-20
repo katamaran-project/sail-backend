@@ -18,7 +18,7 @@ let string_of_id (Id_aux (aux, _)) =
 let string_of_position (position : Lexing.position) =
   match position with
   | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
-     Printf.sprintf "Position(fname=%s, lnum=%d, bol=%d, cnum=%d" pos_fname pos_lnum pos_bol pos_cnum
+     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
 
 let rec string_of_location (location : l) =
   match location with
