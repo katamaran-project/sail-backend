@@ -104,9 +104,15 @@ type funDef_t = {
   funBody : statement;
 }
 
+(******************************************************************************)
+(* Type definitions *)
+
 type type_definition = {
   type_name : string;
 }
+
+(******************************************************************************)
+(* Definitions *)
 
 type definition =
   | FunctionDefinition of funDef_t
