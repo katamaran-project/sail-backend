@@ -2,14 +2,10 @@ SAIL:=sail
 SAIL_SOURCES = model.sail
 
 
-all: transform intermediate
+all: microsail.v
 
-transform:
-	$(SAIL) -katamaran $(SAIL_SOURCES) -o microsail.v
-
-intermediate:
-	$(SAIL) -ddump_rewrite_ast intermediate $(SAIL_SOURCES)
+microsail.v:
+	$(SAIL) -katamaran -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o microsail.v
 
 clean:
 	rm -f intermediate_* microsail
-
