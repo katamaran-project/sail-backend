@@ -39,7 +39,7 @@ let not_yet_supported (location : l) (message : string) (DEF_aux (_def, _annotat
   Printf.printf "Not yet supported: %s at location %s\n" message (string_of_location location);
   let doc = Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
-  PPrint.ToChannel.pretty 1.0 80 stdout doc;
+  PPrint.ToChannel.pretty 1.0 200 stdout doc;
   print_newline ()
 
 (******************************************************************************)
@@ -272,8 +272,8 @@ let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (va
   in
   raise (NotYetImplemented (definition_annotation.loc, "top level constant " ^ string_of_id identifier))
 
-let translate_register (definition_annotation : def_annot) (DEC_aux (_x, _y)) : definition =
-  raise (NotYetImplemented (definition_annotation.loc, "register"))
+let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, identifier, _expression), _spec_annotation)) : definition =
+  raise (NotYetImplemented (definition_annotation.loc, "register " ^ (string_of_id identifier)))
 
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
   try
