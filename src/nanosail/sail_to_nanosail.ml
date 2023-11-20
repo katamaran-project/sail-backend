@@ -8,6 +8,9 @@ open Libsail
 module Big_int = Nat_big_num
 
 
+exception NotYetImplemented of l * string
+
+
 (******************************************************************************)
 
 let string_of_id (Id_aux (aux, _)) =
@@ -220,21 +223,19 @@ let translate_type_abbreviation _definition_annotation _type_annotation _identif
   in
   let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) =
     match quantifier with
-    | TypQ_tq _ -> not_yet_supported quantifier_location "numeric expression with TypQ_tq"; none
+    | TypQ_tq _ -> raise (NotYetImplemented (quantifier_location, "TypQ_tq"))
     | TypQ_no_forall ->
        (
          match numeric_expression with
-         | Nexp_id _ -> not_yet_supported numexp_location "Nexp_id"; none
-         | Nexp_var _ -> not_yet_supported numexp_location "Nexp_var"; none
-         | Nexp_constant _constant ->
-            not_yet_supported numexp_location "Nexp_constant";
-            none
-         | Nexp_app (_, _) -> not_yet_supported numexp_location "Nexp_app"; none
-         | Nexp_times (_, _) -> not_yet_supported numexp_location "Nexp_times"; none
-         | Nexp_sum (_, _) -> not_yet_supported numexp_location "Nexp_sum"; none
-         | Nexp_minus (_, _) -> not_yet_supported numexp_location "Nexp_minus"; none
-         | Nexp_exp _ -> not_yet_supported numexp_location "Nexp_exp"; none
-         | Nexp_neg _ -> not_yet_supported numexp_location "Nexp_neg"; none
+         | Nexp_id _ -> raise (NotYetImplemented (numexp_location, "Nexp_id"))
+         | Nexp_var _ -> raise (NotYetImplemented (numexp_location, "Nexp_var"))
+         | Nexp_constant _constant -> raise (NotYetImplemented (numexp_location, "Nexp_constant"))
+         | Nexp_app (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_app"))
+         | Nexp_times (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_times"))
+         | Nexp_sum (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_sum"))
+         | Nexp_minus (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_minus"))
+         | Nexp_exp _ -> raise (NotYetImplemented (numexp_location, "Nexp_exp"))
+         | Nexp_neg _ -> raise (NotYetImplemented (numexp_location, "Nexp_neg"))
        )
   in
   match arg with
@@ -247,59 +248,62 @@ let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
   | TD_record (_, _, _, _) ->
-     not_yet_supported definition_annotation.loc "TD_record"; none
+     raise (NotYetImplemented (definition_annotation.loc, "TD_record"))
   | TD_variant (_, _, _, _) ->
-     not_yet_supported definition_annotation.loc "TD_variant"; none
+     raise (NotYetImplemented (definition_annotation.loc, "TD_variant"))
   | TD_enum (_, _, _) ->
-     not_yet_supported definition_annotation.loc "TD_enum"; none
+     raise (NotYetImplemented (definition_annotation.loc, "TD_enum"))
   | TD_bitfield (_, _, _) ->
-     not_yet_supported definition_annotation.loc "bitfield"; none
+     raise (NotYetImplemented (definition_annotation.loc, "TD_bitfield"))
 
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
-  match def with
-  | DEF_fundef fd ->
-     (
-       match ir_fundef fd with
-       | Some translation -> FunctionDefinition translation
-       | None             -> UntranslatedDefinition sail_definition
-     )
-  | DEF_type type_definition  ->
-     (
-       match translate_type_definition annotation type_definition with
-       | Some x -> x
-       | None   -> UntranslatedDefinition sail_definition
-     )
-   | DEF_mapdef _ ->
-      not_yet_supported annotation.loc "DEF_mapdef"; UntranslatedDefinition sail_definition
-   | DEF_impl _ ->
-      not_yet_supported annotation.loc "DEF_impl"; UntranslatedDefinition sail_definition
-   | DEF_let _ ->
-      not_yet_supported annotation.loc "DEF_let"; UntranslatedDefinition sail_definition
-   | DEF_val _ ->
-      not_yet_supported annotation.loc "DEF_val"; UntranslatedDefinition sail_definition
-   | DEF_outcome (_, _) ->
-      not_yet_supported annotation.loc "DEF_outcome"; UntranslatedDefinition sail_definition
-   | DEF_instantiation (_, _) ->
-      not_yet_supported annotation.loc "DEF_instantiation"; UntranslatedDefinition sail_definition
-   | DEF_fixity (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_fixity"; UntranslatedDefinition sail_definition
-   | DEF_overload (_, _) ->
-      not_yet_supported annotation.loc "DEF_overload"; UntranslatedDefinition sail_definition
-   | DEF_default _ ->
-      not_yet_supported annotation.loc "DEF_default"; UntranslatedDefinition sail_definition
-   | DEF_scattered _ ->
-      not_yet_supported annotation.loc "DEF_scattered"; UntranslatedDefinition sail_definition
-   | DEF_measure (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_measure"; UntranslatedDefinition sail_definition
-   | DEF_loop_measures (_, _) ->
-      not_yet_supported annotation.loc "DEF_loop"; UntranslatedDefinition sail_definition
-   | DEF_register _ ->
-      not_yet_supported annotation.loc "DEF_register"; UntranslatedDefinition sail_definition
-   | DEF_internal_mutrec _ ->
-      not_yet_supported annotation.loc "DEF_internal"; UntranslatedDefinition sail_definition
-   | DEF_pragma (_, _, _) ->
-      not_yet_supported annotation.loc "DEF_pragma"; UntranslatedDefinition sail_definition
-
+  try
+    match def with
+    | DEF_fundef fd ->
+       (
+         match ir_fundef fd with
+         | Some translation -> FunctionDefinition translation
+         | None             -> UntranslatedDefinition sail_definition
+       )
+    | DEF_type type_definition  ->
+       (
+         match translate_type_definition annotation type_definition with
+         | Some x -> x
+         | None   -> UntranslatedDefinition sail_definition
+       )
+    | DEF_mapdef _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_mapdef"))
+    | DEF_impl _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_impl"))
+    | DEF_let _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_let"))
+    | DEF_val _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_val"))
+    | DEF_outcome (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_outcome"))
+    | DEF_instantiation (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_instantiation"))
+    | DEF_fixity (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_fixity"))
+    | DEF_overload (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_overload"))
+    | DEF_default _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_default"))
+    | DEF_scattered _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_scattered"))
+    | DEF_measure (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_measure"))
+    | DEF_loop_measures (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_loop"))
+    | DEF_register _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_register"))
+    | DEF_internal_mutrec _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_internal"))
+    | DEF_pragma (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_pragma"))
+  with NotYetImplemented (location, message) ->
+        not_yet_supported location message;
+        UntranslatedDefinition sail_definition
 
 let sail_to_nanosail ast name =
   let sail_definitions = ast.defs in
