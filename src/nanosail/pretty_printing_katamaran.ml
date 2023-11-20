@@ -127,19 +127,21 @@ let rec ty_of_val = function
   | Val_nys           -> Ty_nys   
 
 let rec expression_pp e = 
-
   let rec exp_list_pp = function
     | []      -> string "nil"
-    | x :: xs -> parens_app [!^"cons"; par_expression_pp x; exp_list_pp xs] in
-
+    | x :: xs -> parens_app [!^"cons"; par_expression_pp x; exp_list_pp xs]
+  in
   let exp_val_pp = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
     | Val_int n      -> simple_app [string "exp_int"; int_pp n]
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
-    | v              -> simple_app [string "exp_val"; ty_pp (ty_of_val v);
-        value_pp v] in
-  
+    | v -> simple_app [
+               string "exp_val";
+               ty_pp (ty_of_val v);
+               value_pp v
+             ]
+  in
   let exp_binop_pp bo e1 e2 =
     match bo with
     | Pair   -> simple_app [!^"exp_binop";
@@ -262,6 +264,19 @@ let program_module_pp program_name base_name funDefList =
 
 
 (******************************************************************************)
+(* Type definition pretty printing *)
+
+let type_definition_pp (type_definition : type_definition) : document =
+  match type_definition with
+  | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
+     string (Printf.sprintf "Definition %s := %s" identifier (Big_int.to_string c))
+
+let type_module_pp type_definitions =
+  let type_definitions_pps = List.map type_definition_pp type_definitions
+  in
+  separate small_step type_definitions_pps
+
+(******************************************************************************)
 (* Full pretty printing *)
 
 let coq_lib_modules = ref [
@@ -299,12 +314,13 @@ let fromIR_pp ir =
   let base =
     separate small_step [
       string "(*** TYPES ***)";
-      defaultBase
+      defaultBase;
+      type_module_pp ir.type_definitions
     ] in
   let program = 
     separate small_step [
       string "(*** PROGRAM ***)";
-      program_module_pp ir.program_name "Default" ir.funDefList
+      program_module_pp ir.program_name "Default" ir.function_definitions
     ] in
   separate big_step [
     heading;

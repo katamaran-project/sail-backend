@@ -42,7 +42,9 @@ let funDefList = [
   };
 ]
 
-let ir = { 
+let ir = {
   program_name = "Prod";
-  funDefList = funDefList
+  function_definitions = funDefList;
+  type_definitions = [];
+  untranslated_definitions = []
 }

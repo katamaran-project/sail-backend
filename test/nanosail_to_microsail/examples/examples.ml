@@ -2,10 +2,12 @@ open Nanosail.Ast
 
 let all_ir = { 
   program_name = "All";
-  funDefList = Lists.funDefList @
-               Prod.funDefList @
-               Expr.funDefList @
-               Long.funDefList
+  function_definitions = Lists.funDefList @
+                           Prod.funDefList @
+                             Expr.funDefList @
+                               Long.funDefList;
+  type_definitions = [];
+  untranslated_definitions = []
 }
 
 let ir_assoc_list = [

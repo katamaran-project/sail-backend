@@ -8,6 +8,9 @@ open Libsail
 module Big_int = Nat_big_num
 
 
+exception NotYetImplemented of l * string
+
+
 (******************************************************************************)
 
 let string_of_id (Id_aux (aux, _)) =
@@ -15,6 +18,25 @@ let string_of_id (Id_aux (aux, _)) =
   | Id x -> x
   | _ -> " NOT YET SUPPORTED "
 
+let string_of_position (position : Lexing.position) =
+  match position with
+  | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
+     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
+
+let rec string_of_location (location : l) =
+  match location with
+  | Unknown -> "UnknownLocation"
+  | Unique (k, loc) ->
+     Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)
+  | Generated loc ->
+     Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
+  | Hint (hint, loc1, loc2) ->
+     Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
+  | Range (pos1, pos2) ->
+     Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
+
+let not_yet_supported (location : l) (message : string) =
+  Printf.printf "Not yet supported: %s\nAt location %s\n" message (string_of_location location)
 
 (******************************************************************************)
 
@@ -195,14 +217,102 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
-let ir_def def =
-  match def with
-  | DEF_aux (DEF_fundef fd, _) -> join (some (ir_fundef fd))
-  | _                          -> none
+let translate_type_abbreviation _definition_annotation _type_annotation (Id_aux (identifier, identifier_location)) quantifier type_arg : definition =
+  let TypQ_aux (quantifier, quantifier_location) = quantifier
+  and A_aux (arg, arg_location) = type_arg
+  in
+  let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) =
+    match quantifier with
+    | TypQ_tq _ -> raise (NotYetImplemented (quantifier_location, "TypQ_tq"))
+    | TypQ_no_forall ->
+       (
+         match numeric_expression with
+         | Nexp_id _ -> raise (NotYetImplemented (numexp_location, "Nexp_id"))
+         | Nexp_var _ -> raise (NotYetImplemented (numexp_location, "Nexp_var"))
+         | Nexp_constant constant ->
+            (
+              match identifier with
+              | Id id -> TypeDefinition (TD_abbreviation (id, TA_numeric_expression (Nexp_constant constant)))
+              | Operator _ -> raise (NotYetImplemented (identifier_location, "Operator"))
+            )
+            
+         | Nexp_app (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_app"))
+         | Nexp_times (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_times"))
+         | Nexp_sum (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_sum"))
+         | Nexp_minus (_, _) -> raise (NotYetImplemented (numexp_location, "Nexp_minus"))
+         | Nexp_exp _ -> raise (NotYetImplemented (numexp_location, "Nexp_exp"))
+         | Nexp_neg _ -> raise (NotYetImplemented (numexp_location, "Nexp_neg"))
+       )
+  in
+  match arg with
+  | A_nexp numeric_expression ->
+     translate_numeric_expression numeric_expression
+  | A_typ _ -> raise (NotYetImplemented (arg_location, "A_typ"))
+  | A_bool _ -> raise (NotYetImplemented (arg_location, "A_bool"))
+
+let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
+  match type_definition with
+  | TD_abbrev (identifier, quantifier, arg) ->
+     translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
+  | TD_record (_, _, _, _) ->
+     raise (NotYetImplemented (definition_annotation.loc, "TD_record"))
+  | TD_variant (_, _, _, _) ->
+     raise (NotYetImplemented (definition_annotation.loc, "TD_variant"))
+  | TD_enum (_, _, _) ->
+     raise (NotYetImplemented (definition_annotation.loc, "TD_enum"))
+  | TD_bitfield (_, _, _) ->
+     raise (NotYetImplemented (definition_annotation.loc, "TD_bitfield"))
+
+let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
+  try
+    match def with
+    | DEF_fundef fd ->
+       (
+         match ir_fundef fd with
+         | Some translation -> FunctionDefinition translation
+         | None             -> UntranslatedDefinition sail_definition
+       )
+    | DEF_type type_definition  -> translate_type_definition annotation type_definition
+    | DEF_mapdef _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_mapdef"))
+    | DEF_impl _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_impl"))
+    | DEF_let _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_let"))
+    | DEF_val _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_val"))
+    | DEF_outcome (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_outcome"))
+    | DEF_instantiation (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_instantiation"))
+    | DEF_fixity (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_fixity"))
+    | DEF_overload (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_overload"))
+    | DEF_default _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_default"))
+    | DEF_scattered _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_scattered"))
+    | DEF_measure (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_measure"))
+    | DEF_loop_measures (_, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_loop"))
+    | DEF_register _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_register"))
+    | DEF_internal_mutrec _ ->
+       raise (NotYetImplemented (annotation.loc, "DEF_internal"))
+    | DEF_pragma (_, _, _) ->
+       raise (NotYetImplemented (annotation.loc, "DEF_pragma"))
+  with NotYetImplemented (location, message) ->
+        not_yet_supported location message;
+        UntranslatedDefinition sail_definition
 
 let sail_to_nanosail ast name =
-  let defs = ast.defs in
+  let sail_definitions = ast.defs in
+  let translated_definitions = List.map translate_definition sail_definitions in
   {
-    program_name = name;
-    funDefList   = List.filter_map ir_def defs
+    program_name             = name;
+    function_definitions     = List.filter_map extract_function_definition translated_definitions;
+    type_definitions         = List.filter_map extract_type_definition translated_definitions;
+    untranslated_definitions = []
   }
