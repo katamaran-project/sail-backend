@@ -243,9 +243,7 @@ let translate_type_definition (definition_annotation : def_annot) type_definitio
   | TD_bitfield (_, _, _) ->
      not_yet_supported definition_annotation.loc "bitfield"; none
 
-let translate_definition def =
-  let DEF_aux (def, annotation) = def
-  in
+let translate_definition (DEF_aux (def, annotation)) =
   match def with
    | DEF_fundef fd ->
       join (some (ir_fundef fd))
