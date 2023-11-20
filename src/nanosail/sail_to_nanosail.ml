@@ -35,8 +35,12 @@ let rec string_of_location (location : l) =
   | Range (pos1, pos2) ->
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
 
-let not_yet_supported (location : l) (message : string) =
-  Printf.printf "Not yet supported: %s at location %s\n" message (string_of_location location)
+let not_yet_supported (location : l) (message : string) (DEF_aux (_def, _annotation) as sail_definition) : unit =
+  Printf.printf "Not yet supported: %s at location %s\n" message (string_of_location location);
+  let doc = Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  in
+  PPrint.ToChannel.pretty 1.0 80 stdout doc;
+  print_newline ()
 
 (******************************************************************************)
 
@@ -312,7 +316,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
     | DEF_pragma (_, _, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_pragma"))
   with NotYetImplemented (location, message) ->
-        not_yet_supported location message;
+        not_yet_supported location message sail_definition;
         UntranslatedDefinition sail_definition
 
 let sail_to_nanosail ast name =
