@@ -1,6 +1,6 @@
 .PHONY: all build install test
 
-all: build install
+all: build install test
 
 build:
 	dune build
