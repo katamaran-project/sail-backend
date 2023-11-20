@@ -243,7 +243,7 @@ let translate_type_definition (definition_annotation : def_annot) type_definitio
   | TD_bitfield (_, _, _) ->
      not_yet_supported definition_annotation.loc "bitfield"; none
 
-let ir_def def =
+let translate_definition def =
   let DEF_aux (def, annotation) = def
   in
   match def with
@@ -286,5 +286,5 @@ let sail_to_nanosail ast name =
   let defs = ast.defs in
   {
     program_name = name;
-    funDefList   = List.filter_map ir_def defs
+    funDefList   = List.filter_map translate_definition defs
   }
