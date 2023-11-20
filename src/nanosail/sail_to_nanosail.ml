@@ -251,21 +251,36 @@ let ir_def def =
       join (some (ir_fundef fd))
    | DEF_type type_definition  ->
       translate_type_definition annotation type_definition
-   | DEF_mapdef _ -> none
-   | DEF_impl _ -> none
-   | DEF_let _ -> none
-   | DEF_val _ -> none
-   | DEF_outcome (_, _) -> none
-   | DEF_instantiation (_, _) -> none
-   | DEF_fixity (_, _, _) -> none
-   | DEF_overload (_, _) -> none
-   | DEF_default _ -> none
-   | DEF_scattered _ -> none
-   | DEF_measure (_, _, _) -> none
-   | DEF_loop_measures (_, _) -> none
-   | DEF_register _ -> none
-   | DEF_internal_mutrec _ -> none
-   | DEF_pragma (_, _, _) -> none
+   | DEF_mapdef _ ->
+      not_yet_supported annotation.loc "DEF_mapdef"; none
+   | DEF_impl _ ->
+      not_yet_supported annotation.loc "DEF_impl"; none
+   | DEF_let _ ->
+      not_yet_supported annotation.loc "DEF_let"; none
+   | DEF_val _ ->
+      not_yet_supported annotation.loc "DEF_val"; none
+   | DEF_outcome (_, _) ->
+      not_yet_supported annotation.loc "DEF_outcome"; none
+   | DEF_instantiation (_, _) ->
+      not_yet_supported annotation.loc "DEF_instantiation"; none
+   | DEF_fixity (_, _, _) ->
+      not_yet_supported annotation.loc "DEF_fixity"; none
+   | DEF_overload (_, _) ->
+      not_yet_supported annotation.loc "DEF_overload"; none
+   | DEF_default _ ->
+      not_yet_supported annotation.loc "DEF_default"; none
+   | DEF_scattered _ ->
+      not_yet_supported annotation.loc "DEF_scattered"; none
+   | DEF_measure (_, _, _) ->
+      not_yet_supported annotation.loc "DEF_measure"; none
+   | DEF_loop_measures (_, _) ->
+      not_yet_supported annotation.loc "DEF_loop"; none
+   | DEF_register _ ->
+      not_yet_supported annotation.loc "DEF_register"; none
+   | DEF_internal_mutrec _ ->
+      not_yet_supported annotation.loc "DEF_internal"; none
+   | DEF_pragma (_, _, _) ->
+      not_yet_supported annotation.loc "DEF_pragma"; none
 
 let sail_to_nanosail ast name =
   let defs = ast.defs in
