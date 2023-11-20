@@ -10,3 +10,6 @@ install:
 
 test:
 	dune test
+
+example: all
+	make -C working-example
