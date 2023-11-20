@@ -127,19 +127,21 @@ let rec ty_of_val = function
   | Val_nys           -> Ty_nys   
 
 let rec expression_pp e = 
-
   let rec exp_list_pp = function
     | []      -> string "nil"
-    | x :: xs -> parens_app [!^"cons"; par_expression_pp x; exp_list_pp xs] in
-
+    | x :: xs -> parens_app [!^"cons"; par_expression_pp x; exp_list_pp xs]
+  in
   let exp_val_pp = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
     | Val_int n      -> simple_app [string "exp_int"; int_pp n]
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
-    | v              -> simple_app [string "exp_val"; ty_pp (ty_of_val v);
-        value_pp v] in
-  
+    | v -> simple_app [
+               string "exp_val";
+               ty_pp (ty_of_val v);
+               value_pp v
+             ]
+  in
   let exp_binop_pp bo e1 e2 =
     match bo with
     | Pair   -> simple_app [!^"exp_binop";
