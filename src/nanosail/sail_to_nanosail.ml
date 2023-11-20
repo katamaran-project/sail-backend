@@ -196,9 +196,27 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | _       -> none
 
 let ir_def def =
+  let DEF_aux (def, _) = def
+  in
   match def with
-  | DEF_aux (DEF_fundef fd, _) -> join (some (ir_fundef fd))
-  | _                          -> none
+   | DEF_fundef fd ->
+      join (some (ir_fundef fd))
+   | DEF_type _ -> none
+   | DEF_mapdef _ -> none
+   | DEF_impl _ -> none
+   | DEF_let _ -> none
+   | DEF_val _ -> none
+   | DEF_outcome (_, _) -> none
+   | DEF_instantiation (_, _) -> none
+   | DEF_fixity (_, _, _) -> none
+   | DEF_overload (_, _) -> none
+   | DEF_default _ -> none
+   | DEF_scattered _ -> none
+   | DEF_measure (_, _, _) -> none
+   | DEF_loop_measures (_, _) -> none
+   | DEF_register _ -> none
+   | DEF_internal_mutrec _ -> none
+   | DEF_pragma (_, _, _) -> none
 
 let sail_to_nanosail ast name =
   let defs = ast.defs in
