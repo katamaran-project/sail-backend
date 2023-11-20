@@ -268,6 +268,9 @@ let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (va
   in
   raise (NotYetImplemented (definition_annotation.loc, "top level constant " ^ string_of_id identifier))
 
+let translate_register (definition_annotation : def_annot) (DEC_aux (_x, _y)) : definition =
+  raise (NotYetImplemented (definition_annotation.loc, "register"))
+
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
   try
     match def with
@@ -302,8 +305,8 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
        raise (NotYetImplemented (annotation.loc, "DEF_measure"))
     | DEF_loop_measures (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_loop"))
-    | DEF_register _ ->
-       raise (NotYetImplemented (annotation.loc, "DEF_register"))
+    | DEF_register specification ->
+      translate_register annotation specification
     | DEF_internal_mutrec _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_internal"))
     | DEF_pragma (_, _, _) ->
