@@ -122,7 +122,7 @@ let extract_untranslated_definition = function
 (** The type of the NanoSail intermediate representation. *)
 type ir_t = {
   program_name : string;
-  funDefList : funDef_t list;
+  function_definitions : funDef_t list;
   untranslated_definitions: Libsail.Type_check.tannot Libsail.Ast.def
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
