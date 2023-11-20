@@ -269,7 +269,7 @@ let program_module_pp program_name base_name funDefList =
 let type_definition_pp (type_definition : type_definition) : document =
   match type_definition with
   | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
-     string (Printf.sprintf "Definition %s := %s" identifier (Big_int.to_string c))
+     string (Printf.sprintf "Definition %s := %s." identifier (Big_int.to_string c))
 
 let type_module_pp type_definitions =
   let type_definitions_pps = List.map type_definition_pp type_definitions
