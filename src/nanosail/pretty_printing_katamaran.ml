@@ -272,9 +272,7 @@ let type_definition_pp (type_definition : type_definition) : document =
      string (Printf.sprintf "Definition %s := %s" identifier (Big_int.to_string c))
 
 let type_module_pp type_definitions =
-  let type_definitions_pps = List.map type_definition_pp type_definitions
-  in
-  separate small_step type_definitions_pps
+  List.map type_definition_pp type_definitions
 
 (******************************************************************************)
 (* Full pretty printing *)
@@ -312,11 +310,11 @@ let fromIR_pp ir =
       separate_map hardline open_scope_pp !scopes
     ] in
   let base =
-    separate small_step [
-      string "(*** TYPES ***)";
-      defaultBase;
-      type_module_pp ir.type_definitions
-    ] in
+    separate small_step (List.concat [
+      [ string "(*** TYPES ***)" ];
+      [ defaultBase ];
+      type_module_pp ir.type_definitions;
+    ]) in
   let program = 
     separate small_step [
       string "(*** PROGRAM ***)";
