@@ -8,4 +8,4 @@ microsail.v:
 	$(SAIL) -katamaran -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o microsail.v
 
 clean:
-	rm -f intermediate_* microsail
+	rm -f intermediate_* microsail.v
