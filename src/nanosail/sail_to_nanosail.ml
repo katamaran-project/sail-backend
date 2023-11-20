@@ -214,7 +214,7 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> some (ir_funcl funcl)
   | _       -> none
 
-let translate_type_abbreviation _annotation _identifier quantifier type_arg =
+let translate_type_abbreviation _definition_annotation _type_annotation _identifier quantifier type_arg =
   let TypQ_aux (quantifier, quantifier_location) = quantifier
   and A_aux (arg, arg_location) = type_arg
   in
@@ -228,25 +228,29 @@ let translate_type_abbreviation _annotation _identifier quantifier type_arg =
        | A_bool _ -> not_yet_supported arg_location "A_bool"; none
      )
 
-let translate_type_definition type_definition =
-  let TD_aux (type_definition, annotation) = type_definition
+let translate_type_definition (definition_annotation : def_annot) type_definition =
+  let TD_aux (type_definition, type_annotation) = type_definition
   in
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
-     translate_type_abbreviation annotation identifier quantifier arg
-  | TD_record (_, _, _, _) -> none
-  | TD_variant (_, _, _, _) -> none
-  | TD_enum (_, _, _) -> none
-  | TD_bitfield (_, _, _) -> none
+     translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
+  | TD_record (_, _, _, _) ->
+     not_yet_supported definition_annotation.loc "TD_record"; none
+  | TD_variant (_, _, _, _) ->
+     not_yet_supported definition_annotation.loc "TD_variant"; none
+  | TD_enum (_, _, _) ->
+     not_yet_supported definition_annotation.loc "TD_enum"; none
+  | TD_bitfield (_, _, _) ->
+     not_yet_supported definition_annotation.loc "bitfield"; none
 
 let ir_def def =
-  let DEF_aux (def, _) = def
+  let DEF_aux (def, annotation) = def
   in
   match def with
    | DEF_fundef fd ->
       join (some (ir_fundef fd))
    | DEF_type type_definition  ->
-      translate_type_definition type_definition
+      translate_type_definition annotation type_definition
    | DEF_mapdef _ -> none
    | DEF_impl _ -> none
    | DEF_let _ -> none
