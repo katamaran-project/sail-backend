@@ -196,9 +196,13 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | _       -> none
 
 let translate_type_definition type_definition =
-  let TD_aux (_type_definition, _location) = type_definition in
-  print_string "DEF_typ\n";
-  none
+  let TD_aux (type_definition, _location) = type_definition in
+  match type_definition with
+   | TD_abbrev (_, _, _) -> none
+   | TD_record (_, _, _, _) -> none
+   | TD_variant (_, _, _, _) -> none
+   | TD_enum (_, _, _) -> none
+   | TD_bitfield (_, _, _) -> none
 
 let ir_def def =
   let DEF_aux (def, _) = def
