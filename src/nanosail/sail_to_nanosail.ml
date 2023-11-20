@@ -223,14 +223,13 @@ let translate_type_abbreviation _definition_annotation _type_annotation _identif
   | TypQ_no_forall ->
      (
        match arg with
-       | A_nexp _ -> not_yet_supported arg_location "A_nexp"; none
+       | A_nexp _ ->
+          not_yet_supported arg_location "A_nexp"; none
        | A_typ _ -> not_yet_supported arg_location "A_typ"; none
        | A_bool _ -> not_yet_supported arg_location "A_bool"; none
      )
 
-let translate_type_definition (definition_annotation : def_annot) type_definition =
-  let TD_aux (type_definition, type_annotation) = type_definition
-  in
+let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
