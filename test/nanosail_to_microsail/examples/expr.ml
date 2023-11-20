@@ -61,5 +61,6 @@ let funDefList = [
 let ir = { 
   program_name = "Expr";
   function_definitions = funDefList;
+  type_definitions = [];
   untranslated_definitions = []
 }

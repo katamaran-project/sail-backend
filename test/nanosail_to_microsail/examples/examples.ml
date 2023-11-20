@@ -6,6 +6,7 @@ let all_ir = {
                            Prod.funDefList @
                              Expr.funDefList @
                                Long.funDefList;
+  type_definitions = [];
   untranslated_definitions = []
 }
 
