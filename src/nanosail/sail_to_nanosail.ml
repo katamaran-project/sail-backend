@@ -15,12 +15,10 @@ let string_of_id (Id_aux (aux, _)) =
   | Id x -> x
   | _ -> " NOT YET SUPPORTED "
 
-
 let string_of_position (position : Lexing.position) =
   match position with
   | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
      Printf.sprintf "Position(fname=%s, lnum=%d, bol=%d, cnum=%d" pos_fname pos_lnum pos_bol pos_cnum
-
 
 let rec string_of_location (location : l) =
   match location with
@@ -33,6 +31,9 @@ let rec string_of_location (location : l) =
      Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
   | Range (pos1, pos2) ->
      Printf.sprintf "RangeLocation(%s, %s)" (string_of_position pos1) (string_of_position pos2)
+
+let not_yet_supported (location : l) (message : string) =
+  Printf.printf "Not yet supported: %s\nAt location %s\n" message (string_of_location location)
 
 (******************************************************************************)
 
