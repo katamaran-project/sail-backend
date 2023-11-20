@@ -16,6 +16,24 @@ let string_of_id (Id_aux (aux, _)) =
   | _ -> " NOT YET SUPPORTED "
 
 
+let string_of_position (position : Lexing.position) =
+  match position with
+  | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
+     Printf.sprintf "Position(fname=%s, lnum=%d, bol=%d, cnum=%d" pos_fname pos_lnum pos_bol pos_cnum
+
+
+let rec string_of_location (location : l) =
+  match location with
+  | Unknown -> "UnknownLocation"
+  | Unique (k, loc) ->
+     Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)
+  | Generated loc ->
+     Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
+  | Hint (hint, loc1, loc2) ->
+     Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
+  | Range (pos1, pos2) ->
+     Printf.sprintf "RangeLocation(%s, %s)" (string_of_position pos1) (string_of_position pos2)
+
 (******************************************************************************)
 
 let ty_id_of_typ_id (Id_aux (aux, _)) =
