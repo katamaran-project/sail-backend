@@ -1,4 +1,3 @@
-open Option
 open Ast
 open Libsail.Ast
 open Libsail.Ast_defs
@@ -196,8 +195,8 @@ let ir_funcl (FCL_aux (FCL_funcl (id, pexp), _)) = {
 
 let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   match funcls with
-  | [funcl] -> some (ir_funcl funcl)
-  | _       -> none
+  | [funcl] -> Some (ir_funcl funcl)
+  | _       -> None
 
 let translate_type_abbreviation _definition_annotation _type_annotation (Id_aux (identifier, identifier_location)) quantifier type_arg : definition =
   let TypQ_aux (quantifier, quantifier_location) = quantifier
