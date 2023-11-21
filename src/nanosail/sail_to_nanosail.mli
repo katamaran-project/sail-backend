@@ -6,5 +6,4 @@ val sail_to_nanosail :
   Libsail.Type_check.tannot Libsail.Ast_defs.ast ->
   string -> Ast.ir_t
 
-val string_of_location : Libsail.Parse_ast.l -> string
 

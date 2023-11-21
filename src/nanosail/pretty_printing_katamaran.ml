@@ -31,6 +31,29 @@ let simple_app argv = indent (flow (break 1) argv)
 let parens_app argv = parens (simple_app argv)
 
 
+(* let string_of_source_position (source_position : source_position) = *)
+(*   let (file, line_number, _start_col, _end_col) = source_position *)
+(*   in *)
+(*   Printf.sprintf "%s:%d" file line_number *)
+
+let string_of_position (position : Lexing.position) =
+  match position with
+  | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
+     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
+
+let rec string_of_location (location : Libsail.Parse_ast.l) =
+  match location with
+  | Unknown -> "UnknownLocation"
+  | Unique (k, loc) ->
+     Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)
+  | Generated loc ->
+     Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
+  | Hint (hint, loc1, loc2) ->
+     Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
+  | Range (pos1, pos2) ->
+     Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
+
+
 (******************************************************************************)
 (* Heading pretty printing *)
 
@@ -302,7 +325,7 @@ let untranslated_module_pp untranslated_definitions =
     let { filename; line_number; sail_location } = untranslated_definition
     in
     pp_sail_definition original ^^
-      string (Printf.sprintf "OCaml location: %s line %d" filename line_number) ^^ hardline ^^ string (Sail_to_nanosail.string_of_location sail_location)
+      string (Printf.sprintf "OCaml location: %s line %d" filename line_number) ^^ hardline ^^ string (string_of_location sail_location)
   in
   pp_multiline_comment (separate small_step (List.map (uncurry untranslated_definition_pp) untranslated_definitions))
 

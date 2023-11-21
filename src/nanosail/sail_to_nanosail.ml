@@ -20,35 +20,6 @@ let string_of_id (Id_aux (aux, _)) =
   | Id x -> x
   | _ -> " NOT YET SUPPORTED "
 
-let string_of_position (position : Lexing.position) =
-  match position with
-  | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
-     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
-
-let rec string_of_location (location : l) =
-  match location with
-  | Unknown -> "UnknownLocation"
-  | Unique (k, loc) ->
-     Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)
-  | Generated loc ->
-     Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
-  | Hint (hint, loc1, loc2) ->
-     Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
-  | Range (pos1, pos2) ->
-     Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
-
-let string_of_source_position (source_position : source_position) =
-  let (file, line_number, _start_col, _end_col) = source_position
-  in
-  Printf.sprintf "%s:%d" file line_number
-
-let not_yet_supported (source_position : source_position) (sail_location : l) (message : string) (DEF_aux (_def, _annotation) as sail_definition) : unit =
-  Printf.printf "Not yet supported: %s at location %s\nCode at %s)\n" message (string_of_location sail_location) (string_of_source_position source_position);
-  let doc = Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
-  in
-  PPrint.ToChannel.pretty 1.0 200 stdout doc;
-  print_newline ()
-
 (******************************************************************************)
 
 let ty_id_of_typ_id (Id_aux (aux, _)) =
@@ -322,8 +293,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
        raise (NotYetImplemented (__POS__, annotation.loc, "DEF_internal"))
     | DEF_pragma (_, _, _) ->
        raise (NotYetImplemented (__POS__, annotation.loc, "DEF_pragma"))
-  with NotYetImplemented (source_position, sail_location, message) ->
-    not_yet_supported source_position sail_location message sail_definition;
+  with NotYetImplemented (source_position, sail_location, _message) ->
     let (file, line_number, _, _) = source_position
     in
     (sail_definition, UntranslatedDefinition { filename=file; line_number = line_number; sail_location = sail_location })
