@@ -356,16 +356,17 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       program_module_pp ir.program_name "Default" ir.function_definitions
       ]
   in
-  let untranslated () : document =
-    separate small_step [
-        string "(*** UNTRANSLATED ***)";
-        untranslated_module_pp ir.untranslated_definitions
-      ]
+  let untranslated = lazy (
+                         separate small_step [
+                             string "(*** UNTRANSLATED ***)";
+                             untranslated_module_pp ir.untranslated_definitions
+                           ]
+                       )
   in
   let sections = List.flatten [
                      [ heading; base; program ];
                      if show_untranslated
-                     then [ untranslated () ]
+                     then [ Lazy.force untranslated ]
                      else []
                    ]
   in
