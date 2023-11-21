@@ -315,11 +315,14 @@ let sail_to_nanosail ast name =
     Option.map (fun x -> (original, x)) (f translation)
   in
   let sail_definitions = ast.defs in
-  let definitions = List.map translate_definition sail_definitions in
+  let nano_definitions = List.map translate_definition sail_definitions in
+  let collect f =
+    List.filter_map (lift f) nano_definitions
+  in
   {
     program_name             = name;
-    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) definitions;
-    type_definitions         = List.filter_map (lift extract_type_definition) definitions;
-    register_definitions     = List.filter_map (lift extract_register_definition) definitions;
-    untranslated_definitions = List.filter_map (lift extract_untranslated_definition) definitions
+    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) nano_definitions;
+    type_definitions         = collect extract_type_definition;
+    register_definitions     = collect extract_register_definition;
+    untranslated_definitions = collect extract_untranslated_definition;
   }
