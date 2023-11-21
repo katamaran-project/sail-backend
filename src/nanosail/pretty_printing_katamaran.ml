@@ -394,12 +394,13 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
                            ]
                        )
   in
-  let sections = List.flatten [
-                     [ heading; base; program ];
-                     if show_untranslated
-                     then [ Lazy.force untranslated ]
-                     else []
-                   ]
+  let sections =
+    List.flatten [
+        [ heading; base; program ];
+        if show_untranslated
+        then [ Lazy.force untranslated ]
+        else []
+      ]
   in
   separate big_step sections
 
