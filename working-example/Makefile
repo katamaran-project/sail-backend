@@ -1,8 +1,11 @@
-SAIL := sail
+SAIL:=sail
+SAIL_SOURCES = model.sail
 
 
-build: model.sail
-	$(SAIL) -katamaran -ddump_rewrite_ast intermediate model.sail -o microsail
+all: microsail.v
+
+microsail.v: $(SAIL_SOURCES)
+	$(SAIL) -katamaran -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o microsail.v
 
 clean:
-	rm -f intermediate_* microsail
+	rm -f intermediate_* microsail.v

@@ -35,8 +35,12 @@ let rec string_of_location (location : l) =
   | Range (pos1, pos2) ->
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
 
-let not_yet_supported (location : l) (message : string) =
-  Printf.printf "Not yet supported: %s\nAt location %s\n" message (string_of_location location)
+let not_yet_supported (location : l) (message : string) (DEF_aux (_def, _annotation) as sail_definition) : unit =
+  Printf.printf "Not yet supported: %s at location %s\n" message (string_of_location location);
+  let doc = Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  in
+  PPrint.ToChannel.pretty 1.0 200 stdout doc;
+  print_newline ()
 
 (******************************************************************************)
 
@@ -263,6 +267,14 @@ let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_
   | TD_bitfield (_, _, _) ->
      raise (NotYetImplemented (definition_annotation.loc, "TD_bitfield"))
 
+let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (value_specification, _vspec_annotation)) : definition =
+  let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), identifier, _extern) = value_specification
+  in
+  raise (NotYetImplemented (definition_annotation.loc, "top level constant " ^ string_of_id identifier))
+
+let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, identifier, _expression), _spec_annotation)) : definition =
+  raise (NotYetImplemented (definition_annotation.loc, "register " ^ (string_of_id identifier)))
+
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
   try
     match def with
@@ -279,8 +291,8 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
        raise (NotYetImplemented (annotation.loc, "DEF_impl"))
     | DEF_let _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_let"))
-    | DEF_val _ ->
-       raise (NotYetImplemented (annotation.loc, "DEF_val"))
+    | DEF_val value_specification ->
+      translate_top_level_constant annotation value_specification
     | DEF_outcome (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_outcome"))
     | DEF_instantiation (_, _) ->
@@ -297,14 +309,14 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
        raise (NotYetImplemented (annotation.loc, "DEF_measure"))
     | DEF_loop_measures (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_loop"))
-    | DEF_register _ ->
-       raise (NotYetImplemented (annotation.loc, "DEF_register"))
+    | DEF_register specification ->
+      translate_register annotation specification
     | DEF_internal_mutrec _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_internal"))
     | DEF_pragma (_, _, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_pragma"))
   with NotYetImplemented (location, message) ->
-        not_yet_supported location message;
+        not_yet_supported location message sail_definition;
         UntranslatedDefinition sail_definition
 
 let sail_to_nanosail ast name =

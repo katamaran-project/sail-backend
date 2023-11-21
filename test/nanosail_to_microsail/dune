@@ -5,13 +5,17 @@
 
 (tests
  (names
-  lists_test lists_notations_test
-  long_test long_notations_test
+  lists_test
+  lists_notations_test
+  long_test
+  long_notations_test
   prod_test
   expr_test)
  (modules
-  lists_test lists_notations_test
-  long_test long_notations_test
+  lists_test
+  lists_notations_test
+  long_test
+  long_notations_test
   prod_test
   expr_test)
  (libraries nanosail examples))
