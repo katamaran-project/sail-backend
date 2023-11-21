@@ -29,7 +29,7 @@ let ty_id_of_typ_id (Id_aux (aux, _)) =
   | Id "prod"   -> Prod
   | Id "unit"   -> Unit
   | Id "string" -> String
-  | _ -> Id_nys
+  | _           -> Id_nys
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
   let ty_of_arg (A_aux (aux, _)) =
@@ -249,8 +249,21 @@ let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (va
   in
   raise (NotYetImplemented (__POS__, definition_annotation.loc))
 
-let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, _identifier, _expression), _spec_annotation)) : definition =
-  raise (NotYetImplemented (__POS__, definition_annotation.loc))
+let translate_register (_definition_annotation : def_annot) (DEC_aux (DEC_reg (sail_type, Id_aux (identifier, identifier_location), expression), (_spec_location, _spec_annotation))) : definition =
+  let identifier_string =
+    match identifier with
+    | Id string -> string
+    | Operator _ -> raise (NotYetImplemented (__POS__, identifier_location))
+  in
+  (
+    match expression with
+    | None -> ()
+    | Some (E_aux (_expr, (location, _annotation))) ->
+       raise (NotYetImplemented (__POS__, location))
+  );
+  let nano_type = ty_of_typ sail_type
+  in
+  RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_definition * definition) =
   try

@@ -131,6 +131,7 @@ type untranslated_definition =
 type register_definition =
   {
     identifier: string;
+    typ: ty
   }
 
 type definition =
