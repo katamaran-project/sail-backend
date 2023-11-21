@@ -369,6 +369,9 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
     more_modules := append !more_modules ["ListNotations"]
   );
+  let generate_section segments =
+    [ separate small_step segments ]
+  in
   let heading =
     let segments =
       [
@@ -378,7 +381,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
         separate_map hardline open_scope_pp !scopes
       ]
     in
-    [ separate small_step segments ]
+    generate_section segments
   in
   let base =
     let segments =
@@ -388,7 +391,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
           type_module_pp show_original ir.type_definitions;
         ]
     in
-    [ separate small_step segments ]
+    generate_section segments
   in
   let program =
     let segments =
@@ -397,7 +400,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
         program_module_pp ir.program_name "Default" ir.function_definitions
       ]
     in
-    [ separate small_step segments ]
+    generate_section segments
   in
   let registers : document list =
     if
@@ -411,7 +414,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
           register_module_pp show_original ir.register_definitions
         ]
       in
-      [ separate small_step segments ] 
+      generate_section segments
   in
   let untranslated = lazy (
                          separate small_step [
