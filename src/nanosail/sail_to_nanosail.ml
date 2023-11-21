@@ -289,7 +289,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
        (
          match ir_fundef fd with
          | Some translation -> (sail_definition, FunctionDefinition translation)
-         | None             -> (sail_definition, UntranslatedDefinition)
+         | None             -> raise (NotYetImplemented (__POS__, annotation.loc, "ir_fundef"))
        )
     | DEF_type type_definition  -> (sail_definition, translate_type_definition annotation type_definition)
     | DEF_mapdef _ ->
@@ -323,8 +323,10 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
     | DEF_pragma (_, _, _) ->
        raise (NotYetImplemented (__POS__, annotation.loc, "DEF_pragma"))
   with NotYetImplemented (source_position, sail_location, message) ->
-        not_yet_supported source_position sail_location message sail_definition;
-        (sail_definition, UntranslatedDefinition)
+    not_yet_supported source_position sail_location message sail_definition;
+    let (file, line_number, _, _) = source_position
+    in
+    (sail_definition, UntranslatedDefinition (file, line_number, sail_location))
 
 let sail_to_nanosail ast name =
   let lift f (original, translation) =

@@ -124,7 +124,7 @@ type sail_definition = Libsail.Type_check.tannot Libsail.Ast.def
 type definition =
   | FunctionDefinition of funDef_t
   | TypeDefinition of type_definition
-  | UntranslatedDefinition
+  | UntranslatedDefinition of string * int * Libsail.Parse_ast.l
 
 let extract_function_definition = function
   | FunctionDefinition x -> Some x
@@ -135,8 +135,8 @@ let extract_type_definition = function
   | _                -> None
 
 let extract_untranslated_definition = function
-  | UntranslatedDefinition -> Some ()
-  | _                      -> None
+  | UntranslatedDefinition (file, line_number, sail_loc) -> Some (file, line_number, sail_loc)
+  | _                                                    -> None
 
 (******************************************************************************)
 (* Full intermediate representation *)
