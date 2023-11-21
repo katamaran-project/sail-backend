@@ -10,7 +10,7 @@ module Big_int = Nat_big_num
 
 type source_position = string * int * int * int
 
-exception NotYetImplemented of source_position * l * string
+exception NotYetImplemented of source_position * l
 
 
 (******************************************************************************)
@@ -205,53 +205,53 @@ let translate_type_abbreviation _definition_annotation _type_annotation (Id_aux 
   in
   let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) =
     match quantifier with
-    | TypQ_tq _ -> raise (NotYetImplemented (__POS__, quantifier_location, "TypQ_tq"))
+    | TypQ_tq _ -> raise (NotYetImplemented (__POS__, quantifier_location))
     | TypQ_no_forall ->
        (
          match numeric_expression with
-         | Nexp_id _ -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_id"))
-         | Nexp_var _ -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_var"))
+         | Nexp_id _ -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_var _ -> raise (NotYetImplemented (__POS__, numexp_location))
          | Nexp_constant constant ->
             (
               match identifier with
               | Id id -> TypeDefinition (TD_abbreviation (id, TA_numeric_expression (Nexp_constant constant)))
-              | Operator _ -> raise (NotYetImplemented (__POS__, identifier_location, "Operator"))
+              | Operator _ -> raise (NotYetImplemented (__POS__, identifier_location))
             )
             
-         | Nexp_app (_, _) -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_app"))
-         | Nexp_times (_, _) -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_times"))
-         | Nexp_sum (_, _) -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_sum"))
-         | Nexp_minus (_, _) -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_minus"))
-         | Nexp_exp _ -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_exp"))
-         | Nexp_neg _ -> raise (NotYetImplemented (__POS__, numexp_location, "Nexp_neg"))
+         | Nexp_app (_, _) -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_times (_, _) -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_sum (_, _) -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_minus (_, _) -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_exp _ -> raise (NotYetImplemented (__POS__, numexp_location))
+         | Nexp_neg _ -> raise (NotYetImplemented (__POS__, numexp_location))
        )
   in
   match arg with
   | A_nexp numeric_expression ->
      translate_numeric_expression numeric_expression
-  | A_typ _ -> raise (NotYetImplemented (__POS__, arg_location, "A_typ"))
-  | A_bool _ -> raise (NotYetImplemented (__POS__, arg_location, "A_bool"))
+  | A_typ _ -> raise (NotYetImplemented (__POS__, arg_location))
+  | A_bool _ -> raise (NotYetImplemented (__POS__, arg_location))
 
 let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
   | TD_record (_, _, _, _) ->
-     raise (NotYetImplemented (__POS__, definition_annotation.loc, "TD_record"))
+     raise (NotYetImplemented (__POS__, definition_annotation.loc))
   | TD_variant (_, _, _, _) ->
-     raise (NotYetImplemented (__POS__, definition_annotation.loc, "TD_variant"))
+     raise (NotYetImplemented (__POS__, definition_annotation.loc))
   | TD_enum (_, _, _) ->
-     raise (NotYetImplemented (__POS__, definition_annotation.loc, "TD_enum"))
+     raise (NotYetImplemented (__POS__, definition_annotation.loc))
   | TD_bitfield (_, _, _) ->
-     raise (NotYetImplemented (__POS__, definition_annotation.loc, "TD_bitfield"))
+     raise (NotYetImplemented (__POS__, definition_annotation.loc))
 
 let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (value_specification, _vspec_annotation)) : definition =
-  let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), identifier, _extern) = value_specification
+  let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), _identifier, _extern) = value_specification
   in
-  raise (NotYetImplemented (__POS__, definition_annotation.loc, "top level constant " ^ string_of_id identifier))
+  raise (NotYetImplemented (__POS__, definition_annotation.loc))
 
-let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, identifier, _expression), _spec_annotation)) : definition =
-  raise (NotYetImplemented (__POS__, definition_annotation.loc, "register " ^ (string_of_id identifier)))
+let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, _identifier, _expression), _spec_annotation)) : definition =
+  raise (NotYetImplemented (__POS__, definition_annotation.loc))
 
 let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_definition * definition) =
   try
@@ -260,40 +260,40 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
        (
          match ir_fundef fd with
          | Some translation -> (sail_definition, FunctionDefinition translation)
-         | None             -> raise (NotYetImplemented (__POS__, annotation.loc, "ir_fundef"))
+         | None             -> raise (NotYetImplemented (__POS__, annotation.loc))
        )
     | DEF_type type_definition  -> (sail_definition, translate_type_definition annotation type_definition)
     | DEF_mapdef _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_mapdef"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_impl _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_impl"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_let _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_let"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_val value_specification ->
       (sail_definition, translate_top_level_constant annotation value_specification)
     | DEF_outcome (_, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_outcome"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_instantiation (_, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_instantiation"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_fixity (_, _, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_fixity"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_overload (_, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_overload"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_default _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_default"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_scattered _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_scattered"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_measure (_, _, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_measure"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_loop_measures (_, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_loop"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_register specification ->
       (sail_definition, translate_register annotation specification)
     | DEF_internal_mutrec _ ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_internal"))
+       raise (NotYetImplemented (__POS__, annotation.loc))
     | DEF_pragma (_, _, _) ->
-       raise (NotYetImplemented (__POS__, annotation.loc, "DEF_pragma"))
-  with NotYetImplemented (source_position, sail_location, _message) ->
+       raise (NotYetImplemented (__POS__, annotation.loc))
+  with NotYetImplemented (source_position, sail_location) ->
     let (file, line_number, _, _) = source_position
     in
     (sail_definition, UntranslatedDefinition { filename=file; line_number = line_number; sail_location = sail_location })
