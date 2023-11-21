@@ -13,3 +13,6 @@ test:
 
 example: build install
 	make -C working-example
+
+clean:
+	rm -rf _build
