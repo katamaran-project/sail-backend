@@ -112,9 +112,11 @@ let katamaran_target _ _ filename ast _ _ =
     | Some filename -> (with_open_file (add_extension filename), program_name_from_filename filename)
     | None          -> (with_stdout, "NoName")
   in
-  let ir = sail_to_nanosail ast program_name
+  let nanosail_representation = sail_to_nanosail ast program_name
   in
-  context (fun output_channel -> pretty_print !opt_width output_channel (fromIR_pp ir))
+  let document = fromIR_pp nanosail_representation
+  in
+  context (fun output_channel -> pretty_print !opt_width output_channel document)
 
 
 (** Registering of the katamaran target. *)
