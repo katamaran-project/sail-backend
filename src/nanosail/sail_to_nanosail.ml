@@ -37,12 +37,13 @@ let rec string_of_location (location : l) =
   | Range (pos1, pos2) ->
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
 
-let not_yet_supported (source_position : source_position) (sail_location : l) (message : string) (DEF_aux (_def, _annotation) as sail_definition) : unit =
-  let source_position_string =
-    let (file, line_number, _start_col, _end_col) = source_position in
-    Printf.sprintf "%s:%d" file line_number
+let string_of_source_position (source_position : source_position) =
+  let (file, line_number, _start_col, _end_col) = source_position
   in
-  Printf.printf "Not yet supported: %s at location %s\nCode at %s)\n" message (string_of_location sail_location) source_position_string;
+  Printf.sprintf "%s:%d" file line_number
+
+let not_yet_supported (source_position : source_position) (sail_location : l) (message : string) (DEF_aux (_def, _annotation) as sail_definition) : unit =
+  Printf.printf "Not yet supported: %s at location %s\nCode at %s)\n" message (string_of_location sail_location) (string_of_source_position source_position);
   let doc = Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
   PPrint.ToChannel.pretty 1.0 200 stdout doc;
