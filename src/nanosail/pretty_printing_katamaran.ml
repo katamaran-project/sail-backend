@@ -295,13 +295,16 @@ let type_module_pp show_original type_definitions =
 
 
 (******************************************************************************)
-(* Untrasnslated definition pretty printing *)
+(* Untranslated definition pretty printing *)
 
 let untranslated_module_pp untranslated_definitions =
-  let untranslated_definition_pp (original : sail_definition) (_untranslated_definition : untranslated_definition) =
-    pp_multiline_comment (pp_sail_definition original)
+  let untranslated_definition_pp (original : sail_definition) (untranslated_definition : untranslated_definition) =
+    let { filename; line_number; sail_location } = untranslated_definition
+    in
+    pp_sail_definition original ^^
+      string (Printf.sprintf "OCaml location: %s line %d" filename line_number) ^^ hardline ^^ string (Sail_to_nanosail.string_of_location sail_location)
   in
-  List.map (uncurry untranslated_definition_pp) untranslated_definitions
+  pp_multiline_comment (separate small_step (List.map (uncurry untranslated_definition_pp) untranslated_definitions))
 
 
 (******************************************************************************)
@@ -354,10 +357,10 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       ]
   in
   let untranslated () : document =
-    separate small_step (List.flatten [
-        [ string "(*** UNTRANSLATED ***)" ];
+    separate small_step [
+        string "(*** UNTRANSLATED ***)";
         untranslated_module_pp ir.untranslated_definitions
-      ])
+      ]
   in
   let sections = List.flatten [
                      [ heading; base; program ];
