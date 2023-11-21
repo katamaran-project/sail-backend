@@ -330,6 +330,9 @@ let scopes = ref [
   "list_scope"
 ]
 
+let pp_module_header title =
+  string (Printf.sprintf "(*** %s ***)" title)
+
 let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   if !opt_list_notations then (
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
@@ -345,20 +348,20 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   in
   let base =
     separate small_step (List.concat [
-      [ string "(*** TYPES ***)" ];
+      [ pp_module_header "TYPES" ];
       [ defaultBase ];
       type_module_pp show_original ir.type_definitions;
       ])
   in
   let program = 
     separate small_step [
-      string "(*** PROGRAM ***)";
+      pp_module_header "PROGRAM";
       program_module_pp ir.program_name "Default" ir.function_definitions
       ]
   in
   let untranslated = lazy (
                          separate small_step [
-                             string "(*** UNTRANSLATED ***)";
+                             pp_module_header "UNTRANSLATED";
                              untranslated_module_pp ir.untranslated_definitions
                            ]
                        )
