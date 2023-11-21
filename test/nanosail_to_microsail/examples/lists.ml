@@ -147,5 +147,6 @@ let ir = {
   program_name = "Lists";
   function_definitions = funDefList;
   type_definitions = [];
+  register_definitions = [];
   untranslated_definitions = []
 }

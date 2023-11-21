@@ -43,5 +43,6 @@ let ir = {
   program_name = "Long";
   function_definitions = funDefList;
   type_definitions = [];
+  register_definitions = [];
   untranslated_definitions = []
 }

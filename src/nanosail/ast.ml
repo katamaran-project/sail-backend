@@ -164,6 +164,7 @@ type ir_t = {
   program_name : string;
   function_definitions : funDef_t list;
   type_definitions: (sail_definition * type_definition) list;
+  register_definitions: (sail_definition * register_definition) list;
   untranslated_definitions : (sail_definition * untranslated_definition) list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)

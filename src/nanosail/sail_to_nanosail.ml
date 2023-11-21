@@ -320,5 +320,6 @@ let sail_to_nanosail ast name =
     program_name             = name;
     function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) definitions;
     type_definitions         = List.filter_map (lift extract_type_definition) definitions;
+    register_definitions     = List.filter_map (lift extract_register_definition) definitions;
     untranslated_definitions = List.filter_map (lift extract_untranslated_definition) definitions
   }
