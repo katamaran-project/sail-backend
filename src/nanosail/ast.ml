@@ -128,9 +128,15 @@ type untranslated_definition =
     sail_location: Libsail.Parse_ast.l
   }
 
+type register_definition =
+  {
+    identifier: string;
+  }
+
 type definition =
   | FunctionDefinition of funDef_t
   | TypeDefinition of type_definition
+  | RegisterDefinition of register_definition
   | UntranslatedDefinition of untranslated_definition
 
 let extract_function_definition = function
@@ -140,6 +146,10 @@ let extract_function_definition = function
 let extract_type_definition = function
   | TypeDefinition x -> Some x
   | _                -> None
+
+let extract_register_definition = function
+  | RegisterDefinition x -> Some x
+  | _                    -> None
 
 let extract_untranslated_definition = function
   | UntranslatedDefinition x -> Some x
