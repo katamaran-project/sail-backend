@@ -5,8 +5,8 @@ open Nanosail.Pretty_printing_katamaran
 (** Width of the output (default is 200) *)
 let opt_width = ref 200
 
-(** Add original Sail code in output *)
 let opt_show_original_sail = ref false
+let opt_include_unsupported = ref false
 
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
@@ -22,7 +22,10 @@ let katamaran_options = [
     "set a custom width for the output");
   ("-katamaran_add_original",
    Arg.Set opt_show_original_sail,
-   "show original Sail code in output")
+   "show original Sail code in output");
+  ("-katamaran_include_unsupported",
+   Arg.Set opt_include_unsupported,
+   "include information about unsupported Sail code")
 ]
 
 (** List of rewrites applied to the sail ast after type checking and before
