@@ -8,9 +8,9 @@ let opt_width = ref 200
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
-  ("-ok",
-    Arg.Unit (fun () -> print_endline("ok.")) ,
-    " (debug) print \"ok.\"");
+  ("-katamaran_check",
+    Arg.Unit (fun () -> print_endline("Katamaran plugin is functioning correctly")) ,
+    " (debug) Check if Katamaran plugin is correctly installed");
   ("-list_notations",
     Arg.Set opt_list_notations,
     " use list notations");
