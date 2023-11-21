@@ -370,14 +370,15 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
     more_modules := append !more_modules ["ListNotations"]
   );
   let heading =
-    [
-      separate small_step [
-          require_import_pp "Coq" !coq_lib_modules;
-          require_import_pp "Katamaran" !katamaran_lib_modules;
-          import_pp !more_modules;
-          separate_map hardline open_scope_pp !scopes
-        ]
-    ]
+    let segments =
+      [
+        require_import_pp "Coq" !coq_lib_modules;
+        require_import_pp "Katamaran" !katamaran_lib_modules;
+        import_pp !more_modules;
+        separate_map hardline open_scope_pp !scopes
+      ]
+    in
+    [ separate small_step segments ]
   in
   let base =
     let segments =
@@ -390,12 +391,13 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
     [ separate small_step segments ]
   in
   let program =
-    [
-      separate small_step [
-          pp_module_header "PROGRAM";
-          program_module_pp ir.program_name "Default" ir.function_definitions
-        ]
-    ]
+    let segments =
+      [
+        pp_module_header "PROGRAM";
+        program_module_pp ir.program_name "Default" ir.function_definitions
+      ]
+    in
+    [ separate small_step segments ]
   in
   let registers : document list =
     if
@@ -403,12 +405,13 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
     then
       []
     else
-      [
-        separate small_step [
-            pp_module_header "REGISTERS";
-            register_module_pp show_original ir.register_definitions
-          ]
-      ]
+      let segments =
+        [
+          pp_module_header "REGISTERS";
+          register_module_pp show_original ir.register_definitions
+        ]
+      in
+      [ separate small_step segments ] 
   in
   let untranslated = lazy (
                          separate small_step [
