@@ -293,6 +293,17 @@ let type_module_pp show_original type_definitions =
   in
   List.map (uncurry type_definition_pp) type_definitions
 
+
+(******************************************************************************)
+(* Untrasnslated definition pretty printing *)
+
+let untranslated_module_pp untranslated_definitions =
+  let untranslated_definition_pp (original : sail_definition) (_untranslated_definition : untranslated_definition) =
+    pp_multiline_comment (pp_sail_definition original)
+  in
+  List.map (uncurry untranslated_definition_pp) untranslated_definitions
+
+
 (******************************************************************************)
 (* Full pretty printing *)
 
@@ -316,7 +327,7 @@ let scopes = ref [
   "list_scope"
 ]
 
-let fromIR_pp ?(show_original= false) ir =
+let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   if !opt_list_notations then (
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
     more_modules := append !more_modules ["ListNotations"]
@@ -327,22 +338,34 @@ let fromIR_pp ?(show_original= false) ir =
       require_import_pp "Katamaran" !katamaran_lib_modules;
       import_pp !more_modules;
       separate_map hardline open_scope_pp !scopes
-    ] in
+      ]
+  in
   let base =
     separate small_step (List.concat [
       [ string "(*** TYPES ***)" ];
       [ defaultBase ];
       type_module_pp show_original ir.type_definitions;
-    ]) in
+      ])
+  in
   let program = 
     separate small_step [
       string "(*** PROGRAM ***)";
       program_module_pp ir.program_name "Default" ir.function_definitions
-    ] in
-  separate big_step [
-    heading;
-    base;
-    program;
-  ]
+      ]
+  in
+  let untranslated () : document =
+    separate small_step (List.flatten [
+        [ string "(*** UNTRANSLATED ***)" ];
+        untranslated_module_pp ir.untranslated_definitions
+      ])
+  in
+  let sections = List.flatten [
+                     [ heading; base; program ];
+                     if show_untranslated
+                     then [ untranslated () ]
+                     else []
+                   ]
+  in
+  separate big_step sections
 
 let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)

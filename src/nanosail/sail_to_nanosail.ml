@@ -326,17 +326,17 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
     not_yet_supported source_position sail_location message sail_definition;
     let (file, line_number, _, _) = source_position
     in
-    (sail_definition, UntranslatedDefinition (file, line_number, sail_location))
+    (sail_definition, UntranslatedDefinition { filename=file; line_number = line_number; sail_location = sail_location })
 
 let sail_to_nanosail ast name =
   let lift f (original, translation) =
     Option.map (fun x -> (original, x)) (f translation)
   in
   let sail_definitions = ast.defs in
-  let translated_definitions = List.map translate_definition sail_definitions in
+  let definitions = List.map translate_definition sail_definitions in
   {
     program_name             = name;
-    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) translated_definitions;
-    type_definitions         = List.filter_map (lift extract_type_definition) translated_definitions;
-    untranslated_definitions = []
+    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) definitions;
+    type_definitions         = List.filter_map (lift extract_type_definition) definitions;
+    untranslated_definitions = List.filter_map (lift extract_untranslated_definition) definitions
   }
