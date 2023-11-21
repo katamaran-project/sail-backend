@@ -2,8 +2,8 @@ open Libsail
 open Nanosail.Sail_to_nanosail
 open Nanosail.Pretty_printing_katamaran
 
-(** Width of the output (dfault is 80) *)
-let opt_width = ref 80
+(** Width of the output (default is 80) *)
+let opt_width = ref 200
 
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
