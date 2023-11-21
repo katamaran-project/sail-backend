@@ -10,13 +10,13 @@ let opt_width = ref 200
 let katamaran_options = [
   ("-katamaran_check",
     Arg.Unit (fun () -> print_endline("Katamaran plugin is functioning correctly")) ,
-    " (debug) Check if Katamaran plugin is correctly installed");
-  ("-list_notations",
+    "(debug) check if Katamaran plugin is correctly installed");
+  ("-katamaran_list_notations",
     Arg.Set opt_list_notations,
-    " use list notations");
-  ("-w",
+    "use list notations");
+  ("-katamaran_width",
     Arg.Set_int opt_width,
-    " set a custom width for the output")
+    "set a custom width for the output")
 ]
 
 (** List of rewrites applied to the sail ast after type checking and before

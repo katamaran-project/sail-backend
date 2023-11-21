@@ -43,8 +43,7 @@ with the `-plugin` option of sail:
 sail -plugin _build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs ...
 ```
 
-Either way, the `-ok` option of `sail` should print "ok." if the backend is
-installed/the plugin loaded.
+Either way, the `-katamaran-check` option of `sail` should print "Katamaran plugin is functioning correctly" if the backend is installed/the plugin loaded.
 
 
 Katamaran
@@ -57,10 +56,10 @@ dependencies) is required.
 Usage
 --------------------------------------------------------------------------------
 + `-katamaran` is the sail option to activate the Katamaran target.
-+ `-list_notations` allows the µSail generated file to use some more readable
++ `-katamaran_list_notations` allows the µSail generated file to use some more readable
   list notations defined by Katamaran.
-+ `-ok` prints "ok.".
-+ `-w` defines the page width for the µSail generated code. Must be followed by an integer.
++ `-katamaran_check` prints "Katamaran plugin is functioning correctly".
++ `-katamaran_width` defines the page width for the µSail generated code. Must be followed by an integer.
 
 
 Test Nanosail
