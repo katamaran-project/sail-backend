@@ -318,6 +318,12 @@ let type_module_pp show_original type_definitions =
 
 
 (******************************************************************************)
+(* Type definition pretty printing *)
+
+let register_module_pp _show_original _type_definitions =
+  empty
+
+(******************************************************************************)
 (* Untranslated definition pretty printing *)
 
 let untranslated_module_pp untranslated_definitions =
@@ -387,6 +393,19 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       program_module_pp ir.program_name "Default" ir.function_definitions
     ]
   in
+  let registers : document list =
+    if
+      List.is_empty ir.register_definitions
+    then
+      []
+    else
+      [
+        separate small_step [
+            pp_module_header "REGISTERS";
+            register_module_pp show_original ir.register_definitions
+          ]
+      ]
+  in
   let untranslated = lazy (
                          separate small_step [
                              pp_module_header "UNTRANSLATED";
@@ -397,6 +416,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   let sections =
     List.flatten [
         [ heading; base; program ];
+        registers;
         if show_untranslated
         then [ Lazy.force untranslated ]
         else []
