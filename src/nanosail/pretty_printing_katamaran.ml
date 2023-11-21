@@ -271,11 +271,14 @@ let program_module_pp program_name base_name funDefList =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
+let pp_multiline_comment comment =
+  string "(*" ^^ hardline ^^ hardline ^^ blank 2 ^^ align comment ^^ string "\n*)"
+
 let annotate_with_original_definition show_original original translation =
   if
     show_original
   then
-    string "(*" ^^ hardline ^^ indent (pp_sail_definition original) ^^ hardline ^^ string "*)" ^^ hardline ^^ translation
+    pp_multiline_comment (pp_sail_definition original) ^^ hardline ^^ translation
   else
     translation
 
