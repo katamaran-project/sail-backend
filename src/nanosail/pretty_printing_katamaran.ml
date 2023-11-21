@@ -347,17 +347,20 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       ]
   in
   let base =
-    separate small_step (List.concat [
-      [ pp_module_header "TYPES" ];
-      [ defaultBase ];
-      type_module_pp show_original ir.type_definitions;
-      ])
+    let segments =
+      List.concat [
+          [ pp_module_header "TYPES" ];
+          [ defaultBase ];
+          type_module_pp show_original ir.type_definitions;
+        ]
+    in
+    separate small_step segments
   in
   let program = 
     separate small_step [
       pp_module_header "PROGRAM";
       program_module_pp ir.program_name "Default" ir.function_definitions
-      ]
+    ]
   in
   let untranslated = lazy (
                          separate small_step [
