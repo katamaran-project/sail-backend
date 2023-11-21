@@ -20,7 +20,7 @@ let katamaran_options = [
   ("-katamaran_width",
     Arg.Set_int opt_width,
     "set a custom width for the output");
-  ("-katamaran-add-original",
+  ("-katamaran_add_original",
    Arg.Set opt_show_original_sail,
    "show original Sail code in output")
 ]
