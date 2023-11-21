@@ -42,10 +42,4 @@ let funDefList = [
   };
 ]
 
-let ir = {
-  program_name = "Prod";
-  function_definitions = funDefList;
-  type_definitions = [];
-  register_definitions = [];
-  untranslated_definitions = []
-}
+let ir = make_ir_t ~function_definitions:funDefList "Prod"

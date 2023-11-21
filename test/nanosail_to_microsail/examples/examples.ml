@@ -1,15 +1,14 @@
 open Nanosail.Ast
 
-let all_ir = { 
-  program_name = "All";
-  function_definitions = Lists.funDefList @
-                           Prod.funDefList @
-                             Expr.funDefList @
-                               Long.funDefList;
-  type_definitions = [];
-  register_definitions = [];
-  untranslated_definitions = []
-}
+let all_ir =
+  let function_definitions =
+    Lists.funDefList @ 
+      Prod.funDefList @
+        Expr.funDefList @
+          Long.funDefList
+  and program_name = "All"
+  in
+  make_ir_t ~function_definitions:function_definitions program_name
 
 let ir_assoc_list = [
     ("lists", Lists.ir);
