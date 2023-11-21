@@ -5,6 +5,11 @@ open Ast
 let opt_list_notations = ref false
 
 
+let uncurry f (x, y) = f x y
+
+let pp_sail_definition sail_definition =
+  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+
 (******************************************************************************)
 (* Utility definitions *)
 
@@ -266,13 +271,24 @@ let program_module_pp program_name base_name funDefList =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let type_definition_pp (type_definition : type_definition) : document =
-  match type_definition with
-  | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
-     string (Printf.sprintf "Definition %s := %s." identifier (Big_int.to_string c))
+let annotate_with_original_definition show_original original translation =
+  if
+    show_original
+  then
+    string "(*" ^^ hardline ^^ indent (pp_sail_definition original) ^^ hardline ^^ string "*)" ^^ hardline ^^ translation
+  else
+    translation
 
-let type_module_pp type_definitions =
-  List.map type_definition_pp type_definitions
+let type_module_pp show_original type_definitions =
+  let type_definition_pp (original : sail_definition) (type_definition : type_definition) : document =
+    let document =
+      match type_definition with
+      | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
+         string (Printf.sprintf "Definition %s := %s." identifier (Big_int.to_string c))
+    in
+    annotate_with_original_definition show_original original document
+  in
+  List.map (uncurry type_definition_pp) type_definitions
 
 (******************************************************************************)
 (* Full pretty printing *)
@@ -297,7 +313,7 @@ let scopes = ref [
   "list_scope"
 ]
 
-let fromIR_pp ir =
+let fromIR_pp ?(show_original= false) ir =
   if !opt_list_notations then (
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
     more_modules := append !more_modules ["ListNotations"]
@@ -313,7 +329,7 @@ let fromIR_pp ir =
     separate small_step (List.concat [
       [ string "(*** TYPES ***)" ];
       [ defaultBase ];
-      type_module_pp ir.type_definitions;
+      type_module_pp show_original ir.type_definitions;
     ]) in
   let program = 
     separate small_step [

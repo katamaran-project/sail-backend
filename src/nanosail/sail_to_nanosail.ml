@@ -275,16 +275,16 @@ let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (va
 let translate_register (definition_annotation : def_annot) (DEC_aux (DEC_reg (_typ, identifier, _expression), _spec_annotation)) : definition =
   raise (NotYetImplemented (definition_annotation.loc, "register " ^ (string_of_id identifier)))
 
-let translate_definition (DEF_aux (def, annotation) as sail_definition) : definition =
+let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_definition * definition) =
   try
     match def with
     | DEF_fundef fd ->
        (
          match ir_fundef fd with
-         | Some translation -> FunctionDefinition translation
-         | None             -> UntranslatedDefinition sail_definition
+         | Some translation -> (sail_definition, FunctionDefinition translation)
+         | None             -> (sail_definition, UntranslatedDefinition)
        )
-    | DEF_type type_definition  -> translate_type_definition annotation type_definition
+    | DEF_type type_definition  -> (sail_definition, translate_type_definition annotation type_definition)
     | DEF_mapdef _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_mapdef"))
     | DEF_impl _ ->
@@ -292,7 +292,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
     | DEF_let _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_let"))
     | DEF_val value_specification ->
-      translate_top_level_constant annotation value_specification
+      (sail_definition, translate_top_level_constant annotation value_specification)
     | DEF_outcome (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_outcome"))
     | DEF_instantiation (_, _) ->
@@ -310,21 +310,24 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : defini
     | DEF_loop_measures (_, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_loop"))
     | DEF_register specification ->
-      translate_register annotation specification
+      (sail_definition, translate_register annotation specification)
     | DEF_internal_mutrec _ ->
        raise (NotYetImplemented (annotation.loc, "DEF_internal"))
     | DEF_pragma (_, _, _) ->
        raise (NotYetImplemented (annotation.loc, "DEF_pragma"))
   with NotYetImplemented (location, message) ->
         not_yet_supported location message sail_definition;
-        UntranslatedDefinition sail_definition
+        (sail_definition, UntranslatedDefinition)
 
 let sail_to_nanosail ast name =
+  let lift f (original, translation) =
+    Option.map (fun x -> (original, x)) (f translation)
+  in
   let sail_definitions = ast.defs in
   let translated_definitions = List.map translate_definition sail_definitions in
   {
     program_name             = name;
-    function_definitions     = List.filter_map extract_function_definition translated_definitions;
-    type_definitions         = List.filter_map extract_type_definition translated_definitions;
+    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) translated_definitions;
+    type_definitions         = List.filter_map (lift extract_type_definition) translated_definitions;
     untranslated_definitions = []
   }

@@ -114,7 +114,7 @@ let katamaran_target _ _ filename ast _ _ =
   in
   let nanosail_representation = sail_to_nanosail ast program_name
   in
-  let document = fromIR_pp nanosail_representation
+  let document = fromIR_pp ~show_original:!opt_show_original_sail nanosail_representation
   in
   context (fun output_channel -> pretty_print !opt_width output_channel document)
 

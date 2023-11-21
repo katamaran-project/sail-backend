@@ -119,10 +119,12 @@ type type_definition =
 (******************************************************************************)
 (* Definitions *)
 
+type sail_definition = Libsail.Type_check.tannot Libsail.Ast.def
+
 type definition =
   | FunctionDefinition of funDef_t
   | TypeDefinition of type_definition
-  | UntranslatedDefinition of Libsail.Type_check.tannot Libsail.Ast.def
+  | UntranslatedDefinition
 
 let extract_function_definition = function
   | FunctionDefinition x -> Some x
@@ -133,8 +135,8 @@ let extract_type_definition = function
   | _                -> None
 
 let extract_untranslated_definition = function
-  | UntranslatedDefinition x -> Some x
-  | _                        -> None
+  | UntranslatedDefinition -> Some ()
+  | _                      -> None
 
 (******************************************************************************)
 (* Full intermediate representation *)
@@ -143,8 +145,8 @@ let extract_untranslated_definition = function
 type ir_t = {
   program_name : string;
   function_definitions : funDef_t list;
-  type_definitions: type_definition list;
-  untranslated_definitions : Libsail.Type_check.tannot Libsail.Ast.def list
+  type_definitions: (sail_definition * type_definition) list;
+  untranslated_definitions : sail_definition list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }

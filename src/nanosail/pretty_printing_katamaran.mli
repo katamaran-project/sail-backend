@@ -6,7 +6,7 @@ val opt_list_notations : bool ref
 (******************************************************************************)
 
 (** Takes a nanosail AST and returns the corresponding µSail PPrint.document. *)
-val fromIR_pp : Ast.ir_t -> PPrint.document
+val fromIR_pp : ?show_original:bool -> Ast.ir_t -> PPrint.document
 
 (** Takes an width, an output channel, and a PPrint.document and prints the
     document to the output channel with the given width. *)
