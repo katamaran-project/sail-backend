@@ -370,12 +370,14 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
     more_modules := append !more_modules ["ListNotations"]
   );
   let heading =
-    separate small_step [
-      require_import_pp "Coq" !coq_lib_modules;
-      require_import_pp "Katamaran" !katamaran_lib_modules;
-      import_pp !more_modules;
-      separate_map hardline open_scope_pp !scopes
-      ]
+    [
+      separate small_step [
+          require_import_pp "Coq" !coq_lib_modules;
+          require_import_pp "Katamaran" !katamaran_lib_modules;
+          import_pp !more_modules;
+          separate_map hardline open_scope_pp !scopes
+        ]
+    ]
   in
   let base =
     let segments =
@@ -385,12 +387,14 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
           type_module_pp show_original ir.type_definitions;
         ]
     in
-    separate small_step segments
+    [ separate small_step segments ]
   in
-  let program = 
-    separate small_step [
-      pp_module_header "PROGRAM";
-      program_module_pp ir.program_name "Default" ir.function_definitions
+  let program =
+    [
+      separate small_step [
+          pp_module_header "PROGRAM";
+          program_module_pp ir.program_name "Default" ir.function_definitions
+        ]
     ]
   in
   let registers : document list =
@@ -415,7 +419,9 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   in
   let sections =
     List.flatten [
-        [ heading; base; program ];
+        heading;
+        base;
+        program;
         registers;
         if show_untranslated
         then [ Lazy.force untranslated ]
