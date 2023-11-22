@@ -14,7 +14,7 @@ type ty_id =
   | List
   | Prod
   | Bitvector
-  | Id_nys    (* For typ ids not yet supported *)
+  | Id_nys                      (* For typ ids not yet supported *)
 
 type ty =
   | Ty_id of ty_id              (* For concrete types *)
