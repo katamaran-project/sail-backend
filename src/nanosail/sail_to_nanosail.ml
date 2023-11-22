@@ -73,7 +73,7 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
        | _           -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
      )
 
-  
+
 (******************************************************************************)
 
 let ty_of_pexp (Pat_aux (aux, _)) =
@@ -237,7 +237,7 @@ let translate_type_abbreviation _definition_annotation _type_annotation (Id_aux 
               | Id id -> TypeDefinition (TD_abbreviation (id, TA_numeric_expression (Nexp_constant constant)))
               | Operator _ -> not_yet_implemented __POS__ identifier_location
             )
-            
+
          | Nexp_app (_, _) -> not_yet_implemented __POS__ numexp_location
          | Nexp_times (_, _) -> not_yet_implemented __POS__ numexp_location
          | Nexp_sum (_, _) -> not_yet_implemented __POS__ numexp_location
