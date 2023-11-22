@@ -353,12 +353,22 @@ let register_module_pp _show_original (register_definitions : (sail_definition *
 
 let untranslated_module_pp untranslated_definitions =
   let untranslated_definition_pp (original : sail_definition) (untranslated_definition : untranslated_definition) =
-    let { filename; line_number; sail_location } = untranslated_definition in
+    let { filename; line_number; sail_location; message } = untranslated_definition in
     let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
-    let sail_location_string = Printf.sprintf "Sail location: %s" (string_of_location sail_location)
+    let sail_location_string = Printf.sprintf "Sail location: %s" (string_of_location sail_location) in
+    let message_string =
+      match message with
+      | Some message -> Printf.sprintf "Message: %s" message
+      | None         -> Printf.sprintf "No message"
     in
-    pp_sail_definition original ^^
-      string ocaml_location_string ^^ hardline ^^ string sail_location_string
+    concat [
+        pp_sail_definition original;
+        string ocaml_location_string;
+        hardline;
+        string sail_location_string;
+        hardline;
+        string message_string
+      ]
   in
   pp_multiline_comment (separate small_step (List.map (uncurry untranslated_definition_pp) untranslated_definitions))
 

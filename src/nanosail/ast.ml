@@ -125,7 +125,8 @@ type untranslated_definition =
   {
     filename: string;
     line_number: int;
-    sail_location: Libsail.Parse_ast.l
+    sail_location: Libsail.Parse_ast.l;
+    message: string option
   }
 
 type register_definition =
