@@ -29,11 +29,11 @@ let string_of_id (Id_aux (aux, _)) =
 
 let rec translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) : numeric_expression =
   match numeric_expression with
-  | Nexp_constant constant -> Nexp_constant constant
+  | Nexp_constant constant -> NE_constant constant
   | Nexp_id _              -> not_yet_implemented __POS__ numexp_location
   | Nexp_var _             -> not_yet_implemented __POS__ numexp_location
   | Nexp_app (_, _)        -> not_yet_implemented __POS__ numexp_location
-  | Nexp_times (x, y)      -> Nexp_times' (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_times (x, y)      -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_sum (_, _)        -> not_yet_implemented __POS__ numexp_location
   | Nexp_minus (_, _)      -> not_yet_implemented __POS__ numexp_location
   | Nexp_exp _             -> not_yet_implemented __POS__ numexp_location

@@ -8,8 +8,8 @@ module Big_int = Nat_big_num
 
 
 type numeric_expression =
-  | Nexp_constant of Z.t
-  | Nexp_times' of numeric_expression * numeric_expression
+  | NE_constant of Z.t
+  | NE_times of numeric_expression * numeric_expression
 
 
 

@@ -59,8 +59,8 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
 
 let rec numeric_expression_pp (numeric_expression : numeric_expression) =
   match numeric_expression with
-  | Nexp_constant z    -> string (Big_int.to_string z)
-  | Nexp_times' (x, y) -> concat [ numeric_expression_pp x; space; star; space; numeric_expression_pp y ]
+  | NE_constant z   -> string (Big_int.to_string z)
+  | NE_times (x, y) -> concat [ numeric_expression_pp x; space; star; space; numeric_expression_pp y ]
 
 (******************************************************************************)
 (* Heading pretty printing *)
