@@ -21,7 +21,7 @@ let string_of_id (Id_aux (aux, _)) =
 
 (******************************************************************************)
 
-let ty_id_of_typ_id (Id_aux (aux, _)) =
+let ty_id_of_typ_id (Id_aux (aux, location)) =
   match aux with
   | Id "bool"   -> Bool
   | Id "int"    -> Int
@@ -29,7 +29,9 @@ let ty_id_of_typ_id (Id_aux (aux, _)) =
   | Id "prod"   -> Prod
   | Id "unit"   -> Unit
   | Id "string" -> String
-  | _           -> Id_nys
+  | Id _id      -> raise (NotYetImplemented (__POS__, location))
+  | Operator _  -> raise (NotYetImplemented (__POS__, location))
+
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
   let ty_of_arg (A_aux (aux, _)) =
