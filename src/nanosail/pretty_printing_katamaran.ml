@@ -251,7 +251,7 @@ let funDefKit_pp funDefList =
   indent (separate small_step [
     string "Section FunDefKit.";  
     separate_map small_step funDef_pp funDefList;
-    indent (separate  hardline [
+    indent (separate hardline [
       utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
       utf8string "match f in Fun Δ τ return Stm Δ τ with";
       separate_map hardline name_binding_pp funDefList;
@@ -320,8 +320,33 @@ let type_module_pp show_original type_definitions =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let register_module_pp _show_original _type_definitions : document =
-  empty
+let compose_functions f g x =
+  f (g x)
+
+let register_module_pp _show_original (register_definitions : (sail_definition * register_definition) list) : document =
+  let pp_register_definition ({ identifier; typ } : register_definition) =
+    concat [
+        string "|";
+        space;
+        string identifier;
+        space; colon; space;
+        string "Reg";
+        space;
+        ty_pp typ
+      ]
+  in
+  let register_lines =
+    List.map (compose_functions pp_register_definition snd) register_definitions
+  in
+  let lines = List.flatten
+                [
+                  [ string "Inductive Reg : Ty -> Set :=" ];
+                  register_lines;
+                  [ string "." ]
+                ]
+  in
+  separate hardline lines
+  
 
 (******************************************************************************)
 (* Untranslated definition pretty printing *)
