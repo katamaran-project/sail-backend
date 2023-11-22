@@ -43,9 +43,9 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
 let rec ty_of_typ (Typ_aux (typ, location)) =
   let ty_of_arg (A_aux (aux, arg_location)) =
     match aux with
-    | A_nexp _ -> not_yet_implemented __POS__ arg_location
+    | A_nexp _  -> not_yet_implemented __POS__ arg_location
     | A_typ typ -> ty_of_typ typ
-    | A_bool _ -> not_yet_implemented __POS__ arg_location
+    | A_bool _  -> not_yet_implemented __POS__ arg_location
   in
   match typ with
   | Typ_internal_unknown -> not_yet_implemented __POS__ location
@@ -65,12 +65,13 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
             Ty_app (Prod, [ty1; ty2]) in
           List.fold_left f h_ty typs
      )
-  | Typ_app (id, args) -> (
-      match string_of_id id with
-      | "atom"      -> Ty_id Int
-      | "atom_bool" -> Ty_id Bool
-      | _           -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
-    )
+  | Typ_app (id, args) ->
+     (
+       match string_of_id id with
+       | "atom"      -> Ty_id Int
+       | "atom_bool" -> Ty_id Bool
+       | _           -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
+     )
 
   
 (******************************************************************************)
