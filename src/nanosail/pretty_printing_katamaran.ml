@@ -55,6 +55,13 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
 
 
 (******************************************************************************)
+(* Type definition pretty printing *)
+
+let numeric_expression_pp (numeric_expression : numeric_expression) =
+  match numeric_expression with
+  | Nexp_constant z -> string (Big_int.to_string z)
+
+(******************************************************************************)
 (* Heading pretty printing *)
 
 let require_import_pp src names = prefix 5 1
@@ -88,9 +95,13 @@ let ty_id_pp = function
   | Id_nys    -> string "TY_ID_" ^^ nys
 
 let rec ty_pp = function
-  | Ty_id (ty_id)       -> ty_id_pp ty_id
-  | Ty_app (ty_id, tys) -> parens_app ((ty_id_pp ty_id) :: (map ty_pp tys))
-  | Ty_nys              -> !^"TY_" ^^ nys
+  | Ty_id (ty_id)         -> ty_id_pp ty_id
+  | Ty_app (ty_id, targs) -> parens_app ((ty_id_pp ty_id) :: (map type_argument_pp targs))
+  | Ty_nys                -> !^"TY_" ^^ nys
+and type_argument_pp (type_argument : type_argument) =
+  match type_argument with
+  | TA_type t   -> ty_pp t
+  | TA_numexp e -> numeric_expression_pp e
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -152,7 +163,7 @@ let rec ty_of_val = function
   | Val_bool _        -> Ty_id Bool
   | Val_int _         -> Ty_id Int
   | Val_string _      -> Ty_id String
-  | Val_prod (v1, v2) -> Ty_app (Prod, [ty_of_val v1; ty_of_val v2])
+  | Val_prod (v1, v2) -> Ty_app (Prod, [TA_type (ty_of_val v1); TA_type (ty_of_val v2)])
   | Val_nys           -> Ty_nys   
 
 let rec expression_pp e = 

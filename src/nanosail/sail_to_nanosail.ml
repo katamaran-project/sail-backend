@@ -75,15 +75,22 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
           let h_ty = ty_of_typ h_typ in
           let f ty1 typ2 =
             let ty2 = ty_of_typ typ2 in
-            Ty_app (Prod, [ty1; ty2]) in
+            Ty_app (Prod, [TA_type ty1; TA_type ty2]) in
           List.fold_left f h_ty typs
      )
   | Typ_app (Id_aux (id, id_loc) as sail_id, args) ->
      match id, args with
      | Id "atom", []      -> Ty_id Int
      | Id "atom_bool", [] -> Ty_id Bool
-     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
+     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map (fun t -> TA_type (ty_of_arg t)) args)
      | Operator _, _      -> not_yet_implemented __POS__ id_loc
+
+
+let _translate_type_argument (A_aux (type_argument, location)) : type_argument =
+  match type_argument with
+  | A_nexp e -> TA_numexp (translate_numeric_expression e) 
+  | A_typ t  -> TA_type (ty_of_typ t)
+  | A_bool _ -> not_yet_implemented __POS__ location
 
 
 (******************************************************************************)

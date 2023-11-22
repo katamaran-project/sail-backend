@@ -75,10 +75,16 @@ let fun_reverse_bis = Stm_match_list {
 (* Intermediate Representation Lists *)
 
 
+let list_of t =
+  Ty_app (List, [TA_type (Ty_id t)])
+
+let product_of ts =
+  Ty_app (Prod, List.map (fun t -> TA_type (Ty_id t)) ts)
+
 let funDefList = [
   { funName = "is_empty";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]))];
+      arg_types = [("l", list_of Int)];
       ret_type = Ty_id Bool
     };
     funBody = fun_is_empty
@@ -86,58 +92,58 @@ let funDefList = [
   { funName = "empty";
     funType = {
       arg_types = [("tt", Ty_id Unit)];
-      ret_type = Ty_app (List, [Ty_id Int])
+      ret_type = list_of Int
     };
     funBody = fun_empty
   };
   { funName = "onetwothree";
     funType = {
       arg_types = [("tt", Ty_id Unit)];
-      ret_type = Ty_app (List, [Ty_id Int])
+      ret_type = list_of Int
     };
     funBody = fun_onetwothree
   };
   { funName = "last";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]))];
-      ret_type =  Ty_app (Prod, [Ty_id Int; Ty_id Bool])
+      arg_types = [("l", list_of Int)];
+      ret_type = product_of [Int; Bool]
     };
     funBody = fun_last
   };
   { funName = "append";
     funType = {
-      arg_types = [("l1", Ty_app (List, [Ty_id Int]));
-                   ("l2", Ty_app (List, [Ty_id Int]))];
-      ret_type = Ty_app (List, [Ty_id Int])
+      arg_types = [("l1", list_of Int);
+                   ("l2", list_of Int)];
+      ret_type = list_of Int
     };
     funBody = fun_append
   };
   { funName = "length";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]))];
+      arg_types = [("l", list_of Int)];
       ret_type = Ty_id Int
     };
     funBody = fun_length
   };
   { funName = "reverse_aux";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]));
-                   ("acc", Ty_app (List, [Ty_id Int]))];
-      ret_type = Ty_app (List, [Ty_id Int])
+      arg_types = [("l", list_of Int);
+                   ("acc", list_of Int)];
+      ret_type = list_of Int
     };
     funBody = fun_reverse_aux
   };
   { funName = "reverse";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]))];
-      ret_type = Ty_app (List, [Ty_id Int])
+      arg_types = [("l", list_of Int)];
+      ret_type = list_of Int
     };
     funBody = fun_reverse
   };
   { funName = "reverse_bis";
     funType = {
-      arg_types = [("l", Ty_app (List, [Ty_id Int]))];
-      ret_type = Ty_app (List, [Ty_id Int])
+      arg_types = [("l", list_of Int)];
+      ret_type = list_of Int
     };
     funBody = fun_reverse_bis
   };

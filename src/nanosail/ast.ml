@@ -22,12 +22,15 @@ type ty_id =
   | List
   | Prod
   | Bitvector
-  | Id_nys                      (* For typ ids not yet supported *)
+  | Id_nys                                 (* For typ ids not yet supported      *)
 
 type ty =
-  | Ty_id of ty_id              (* For concrete types *)
-  | Ty_app of ty_id * ty list   (* For type constructors *)
-  | Ty_nys                      (* For typ variants not yet supported *)
+  | Ty_id of ty_id                         (* For concrete types                 *)
+  | Ty_app of ty_id * type_argument list   (* For type constructors              *)
+  | Ty_nys                                 (* For typ variants not yet supported *)
+and type_argument =
+  | TA_type of ty
+  | TA_numexp of numeric_expression
 
 type bind = string * ty
 
@@ -35,6 +38,8 @@ type funType_t = {
   arg_types : bind list;
   ret_type  : ty
 }
+
+
 
 
 (******************************************************************************)
