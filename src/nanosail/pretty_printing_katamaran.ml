@@ -57,9 +57,10 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let numeric_expression_pp (numeric_expression : numeric_expression) =
+let rec numeric_expression_pp (numeric_expression : numeric_expression) =
   match numeric_expression with
-  | Nexp_constant z -> string (Big_int.to_string z)
+  | Nexp_constant z    -> string (Big_int.to_string z)
+  | Nexp_times' (x, y) -> concat [ numeric_expression_pp x; space; star; space; numeric_expression_pp y ]
 
 (******************************************************************************)
 (* Heading pretty printing *)
@@ -321,8 +322,17 @@ let type_module_pp show_original type_definitions =
   let type_definition_pp (original : sail_definition) (type_definition : type_definition) : document =
     let document =
       match type_definition with
-      | TD_abbreviation (identifier, TA_numeric_expression (Nexp_constant c)) ->
-         string (Printf.sprintf "Definition %s := %s." identifier (Big_int.to_string c))
+      | TD_abbreviation (identifier, TA_numeric_expression numexpr) ->
+        concat [
+          string "Definition";
+          space;
+          string identifier;
+          space;
+          string ":=";
+          space;
+          numeric_expression_pp numexpr;
+          string "."
+        ]
     in
     annotate_with_original_definition show_original original document
   in
