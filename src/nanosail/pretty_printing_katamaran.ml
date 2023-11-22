@@ -62,6 +62,7 @@ let rec numeric_expression_pp (numeric_expression : numeric_expression) =
   | NE_constant z   -> string (Big_int.to_string z)
   | NE_times (x, y) -> concat [ numeric_expression_pp x; space; star; space; numeric_expression_pp y ]
   | NE_add (x, y)   -> concat [ numeric_expression_pp x; space; plus; space; numeric_expression_pp y ]
+  | NE_minus (x, y) -> concat [ numeric_expression_pp x; space; minus; space; numeric_expression_pp y ]
 
 (******************************************************************************)
 (* Heading pretty printing *)

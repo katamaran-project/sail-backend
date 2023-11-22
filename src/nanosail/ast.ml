@@ -10,6 +10,7 @@ module Big_int = Nat_big_num
 type numeric_expression =
   | NE_constant of Z.t
   | NE_add of numeric_expression * numeric_expression
+  | NE_minus of numeric_expression * numeric_expression
   | NE_times of numeric_expression * numeric_expression
 
 
