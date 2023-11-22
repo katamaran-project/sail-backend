@@ -218,7 +218,12 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> Some (ir_funcl funcl)
   | _       -> None
 
-let translate_type_abbreviation _definition_annotation _type_annotation (Id_aux (identifier, identifier_location)) (TypQ_aux (quantifier, quantifier_location)) (A_aux (arg, arg_location)) : definition =
+let translate_type_abbreviation
+      _definition_annotation
+      _type_annotation
+      (Id_aux (identifier, identifier_location))
+      (TypQ_aux (quantifier, quantifier_location))
+      (A_aux (arg, arg_location)) : definition =
   let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) =
     match quantifier with
     | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
