@@ -66,11 +66,11 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
           List.fold_left f h_ty typs
      )
   | Typ_app (Id_aux (id, id_loc) as sail_id, args) ->
-     match id with
-     | Id "atom"      -> Ty_id Int
-     | Id "atom_bool" -> Ty_id Bool
-     | Id _           -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
-     | Operator _     -> not_yet_implemented __POS__ id_loc
+     match id, args with
+     | Id "atom", []      -> Ty_id Int
+     | Id "atom_bool", [] -> Ty_id Bool
+     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
+     | Operator _, _      -> not_yet_implemented __POS__ id_loc
 
 
 (******************************************************************************)
