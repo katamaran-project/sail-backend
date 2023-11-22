@@ -54,10 +54,10 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
 
 
 let rec ty_of_typ (Typ_aux (typ, location)) =
-  let ty_of_arg (A_aux (aux, arg_location)) =
+  let ty_of_arg (A_aux (aux, arg_location)) : type_argument =
     match aux with
-    | A_nexp _  -> not_yet_implemented __POS__ arg_location
-    | A_typ typ -> ty_of_typ typ
+    | A_nexp e  -> TA_numexp (translate_numeric_expression e)
+    | A_typ typ -> TA_type (ty_of_typ typ)
     | A_bool _  -> not_yet_implemented __POS__ arg_location
   in
   match typ with
@@ -82,7 +82,7 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
      match id, args with
      | Id "atom", []      -> Ty_id Int
      | Id "atom_bool", [] -> Ty_id Bool
-     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map (fun t -> TA_type (ty_of_arg t)) args)
+     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
      | Operator _, _      -> not_yet_implemented __POS__ id_loc
 
 
