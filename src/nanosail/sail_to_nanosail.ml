@@ -235,21 +235,25 @@ let translate_type_abbreviation
       _definition_annotation
       _type_annotation
       (Id_aux (identifier, identifier_location))
-      (TypQ_aux (_quantifier, _quantifier_location))
+      (TypQ_aux (quantifier, quantifier_location))
       (A_aux (arg, arg_location)) : definition =
-  match identifier with
-  | Id id_string ->
+  match quantifier with
+  | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
+  | TypQ_no_forall ->
      (
-       match arg with
-       | A_nexp numeric_expression ->
-          let nano_numeric_expression = translate_numeric_expression numeric_expression
-          in
-          TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
-       | A_typ _  -> not_yet_implemented __POS__ arg_location
-       | A_bool _ -> not_yet_implemented __POS__ arg_location
+       match identifier with
+       | Id id_string ->
+          (
+            match arg with
+            | A_nexp numeric_expression ->
+               let nano_numeric_expression = translate_numeric_expression numeric_expression
+               in
+               TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
+            | A_typ _  -> not_yet_implemented __POS__ arg_location
+            | A_bool _ -> not_yet_implemented __POS__ arg_location
+          )
+       | Operator _ -> not_yet_implemented __POS__ identifier_location
      )
-  | Operator _ -> not_yet_implemented __POS__ identifier_location
-
   
 let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
   match type_definition with
