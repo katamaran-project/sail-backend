@@ -57,13 +57,24 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let rec numeric_expression_pp (numeric_expression : numeric_expression) =
-  match numeric_expression with
-  | NE_constant z   -> string (Big_int.to_string z)
-  | NE_times (x, y) -> concat [ numeric_expression_pp x; space; star; space; numeric_expression_pp y ]
-  | NE_add (x, y)   -> concat [ numeric_expression_pp x; space; plus; space; numeric_expression_pp y ]
-  | NE_minus (x, y) -> concat [ numeric_expression_pp x; space; minus; space; numeric_expression_pp y ]
-  | NE_neg x        -> concat [ minus; numeric_expression_pp x ]
+let numeric_expression_pp (numeric_expression : numeric_expression) =
+  let protect =
+    enclose lparen rparen
+  in
+  let rec pp level numexp =
+    let protect_if lvl doc =
+      if level <= lvl
+      then doc
+      else protect doc
+    in    
+    match numexp with
+    | NE_constant z   -> string (Big_int.to_string z)
+    | NE_add (x, y)   -> protect_if 0 (concat [ pp 0 x; space; plus; space; pp 0 y ])
+    | NE_minus (x, y) -> protect_if 0 (concat [ pp 0 x; space; minus; space; pp 0 y ])
+    | NE_times (x, y) -> protect_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
+    | NE_neg x        -> protect_if 2 (concat [ minus; pp 3 x ])
+  in
+  pp 0 numeric_expression
 
 (******************************************************************************)
 (* Heading pretty printing *)
