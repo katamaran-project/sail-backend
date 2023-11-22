@@ -39,6 +39,7 @@ let numeric_expression_test_suite =
   and add x y = addloc (S.Ast.Nexp_sum (x, y))
   and sub x y = addloc (S.Ast.Nexp_minus (x, y))
   and mul x y = addloc (S.Ast.Nexp_times (x, y))
+  and neg x = addloc (S.Ast.Nexp_neg x)
   in
   let inputs = [
     (const 5, "5");
@@ -47,6 +48,9 @@ let numeric_expression_test_suite =
     (sub (const 3) (const 1), "3 - 1");
     (mul (const 2) (const 4), "2 * 4");
     (mul (const 2) (add (const 3) (const 4)), "2 * (3 + 4)");
+    (neg (const 1), "-1");
+    (neg (add (const 1) (const 2)), "-(1 + 2)");
+    (neg (mul (const 1) (const 2)), "-(1 * 2)");
   ]
   in
   "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> test_string_of_numeric_expression input expected) inputs
