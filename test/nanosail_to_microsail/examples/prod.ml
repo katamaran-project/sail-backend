@@ -20,26 +20,28 @@ let fun_switch = Stm_match_prod {
 (******************************************************************************)
 (* Intermediate Representation Lists *)
 
-
-let product t1 t2 =
-  Ty_app (Prod, [TA_type t1; TA_type t2])
+let product_of ts =
+  Ty_app (Prod, List.map (fun t -> TA_type t) ts)
 
 
 let funDefList = [
   { funName = "ex_prod";
     funType = {
-      arg_types = [ ("tt", Ty_id Unit); ("tt", Ty_id Unit) ];
-      ret_type = Ty_app (Prod, [TA_type (Ty_app (Prod, [
-                                               TA_type (product (Ty_id Int) (Ty_id String));
-                                               TA_type (product (Ty_id Int) (Ty_id String));
-                                               TA_type (product (Ty_id Int) (Ty_id String))]))])
-      };
+        arg_types = [ ("tt", Ty_id Unit); ("tt", Ty_id Unit) ];
+        ret_type = product_of [
+                       product_of [
+                           product_of [Ty_id Int; Ty_id String];
+                           product_of [Ty_id Int; Ty_id String]
+                         ];
+                         product_of [Ty_id Int; Ty_id String]
+                     ]
+    };
     funBody = fun_ex_prod;
   };
   { funName = "switch";
     funType = {
-      arg_types = [ ("p", product (Ty_id Int) (Ty_id Bool)) ];
-      ret_type =  product (Ty_id Bool) (Ty_id Int);
+      arg_types = [ ("p", product_of [Ty_id Int; Ty_id Bool]) ];
+      ret_type =  product_of [Ty_id Bool; Ty_id Int];
     };
     funBody = fun_switch;
   };
