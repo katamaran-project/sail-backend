@@ -69,31 +69,31 @@ type value =
 type expression =
   | Exp_var of string
   | Exp_val of value
-  | Exp_neg of expression  (* Not yet used by the sail to nanosail translator *)
-  | Exp_not of expression  (* Not yet used by the sail to nanosail translator *)
+  | Exp_neg of expression     (* Not yet used by the sail to nanosail translator *)
+  | Exp_not of expression     (* Not yet used by the sail to nanosail translator *)
   | Exp_list of expression list
   | Exp_binop of binOp * expression * expression
-  | Exp_nys   (* For expression types not yet supported *)
+  | Exp_nys                   (* For expression types not yet supported *)
 
 type statement =
   | Stm_exp of expression
-  | Stm_match_list of {   (* Simple pattern matching on list (2 cases) *)
+  | Stm_match_list of {       (* Simple pattern matching on list (2 cases) *)
       s        : statement;   (* Statement to match *)
       alt_nil  : statement;   (* Nil case statement *)
       xh       : string;      (* Variable name for the head of the list *)
       xt       : string;      (* Variable name for the tail of the list *)
       alt_cons : statement;   (* Cons case statement *)
     } 
-  | Stm_match_prod of {   (* Simple pattern matching on product (1 case) *)
-      s   : statement;    (* Statement to match *)
-      xl  : string;       (* Variable name for the left term of the product *)
-      xr  : string;       (* Variable name for the right tern of the product *)
-      rhs : statement;    (* Resulting statement *)
+  | Stm_match_prod of {       (* Simple pattern matching on product (1 case) *)
+      s   : statement;        (* Statement to match *)
+      xl  : string;           (* Variable name for the left term of the product *)
+      xr  : string;           (* Variable name for the right tern of the product *)
+      rhs : statement;        (* Resulting statement *)
     }
   | Stm_call of string * expression list    (* AST already in A-normal form *)
   | Stm_let of string * statement * statement
   | Stm_if of statement * statement * statement
-  | Stm_nys   (* For statement types not yet supported *)
+  | Stm_nys                                 (* For statement types not yet supported *)
 
 
 (******************************************************************************)
