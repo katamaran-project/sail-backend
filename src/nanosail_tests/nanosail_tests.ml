@@ -18,21 +18,22 @@ let string_of_numeric_expression (numeric_expression : S.Ast.nexp_aux)  =
   string_of_document document
 
 
-let test_process_numeric_expression _context =
-  let nexp = S.Ast.Nexp_constant (Z.of_int 5)
-  and expected = "5"
+
+let numeric_expression_test_suite =
+  let test_string_of_numeric_expression input expected _context =
+    let actual = string_of_numeric_expression input
+    in
+    assert_equal expected actual
   in
-  let actual = string_of_numeric_expression nexp
+  let inputs = [
+    (S.Ast.Nexp_constant (Z.of_int 5), "5")
+  ]
   in
-  assert_equal expected actual
+  "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> "testing string_of_numeric_expression" >:: test_string_of_numeric_expression input expected) inputs
 
 
 let tests =
-  let test = "test pretty printing numeric expression" >:: test_process_numeric_expression
-  in
-  let suite = [ test ]
-  in
-  "suite" >::: suite
+  "all tests" >::: [ numeric_expression_test_suite ]
 
 
 let _ = run_test_tt_main tests
