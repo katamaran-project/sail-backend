@@ -84,7 +84,7 @@ let ty_id_pp = function
   | String -> string "ty.string"
   | List   -> string "ty.list"
   | Prod   -> string "ty.prod"
-  | Id_nys -> !^"TY_ID_" ^^ nys
+  | Id_nys -> string "TY_ID_" ^^ nys
 
 let rec ty_pp = function
   | Ty_id (ty_id)       -> ty_id_pp ty_id
