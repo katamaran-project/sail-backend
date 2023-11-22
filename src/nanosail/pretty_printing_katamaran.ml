@@ -320,7 +320,7 @@ let type_module_pp show_original type_definitions =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let register_module_pp _show_original _type_definitions =
+let register_module_pp _show_original _type_definitions : document =
   empty
 
 (******************************************************************************)
@@ -416,12 +416,19 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       in
       generate_section segments
   in
-  let untranslated = lazy (
-                         separate small_step [
-                             pp_module_header "UNTRANSLATED";
-                             untranslated_module_pp ir.untranslated_definitions
-                           ]
-                       )
+  let untranslated =
+    if
+      show_untranslated
+    then
+      let segments =
+        [
+           pp_module_header "UNTRANSLATED";
+           untranslated_module_pp ir.untranslated_definitions
+        ]
+      in
+      generate_section segments
+    else
+      []
   in
   let sections =
     List.flatten [
@@ -429,9 +436,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
         base;
         program;
         registers;
-        if show_untranslated
-        then [ Lazy.force untranslated ]
-        else []
+        untranslated
       ]
   in
   separate big_step sections
