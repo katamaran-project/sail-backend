@@ -37,7 +37,7 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
   | Id "string"    -> String
   | Id "bitvector" -> Bitvector
   | Id id          -> not_yet_implemented_msg __POS__ location (Printf.sprintf "Missing case Id \"%s\"" id)
-  | Operator _     -> raise (NotYetImplemented (__POS__, location, None))
+  | Operator _     -> not_yet_implemented __POS__ location
 
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
