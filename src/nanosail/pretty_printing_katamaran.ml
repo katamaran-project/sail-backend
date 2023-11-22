@@ -319,7 +319,7 @@ let type_module_pp show_original type_definitions =
 
 
 (******************************************************************************)
-(* Type definition pretty printing *)
+(* Register definition pretty printing *)
 
 let compose_functions f g x =
   f (g x)
