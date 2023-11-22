@@ -273,7 +273,11 @@ let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (va
   in
   not_yet_implemented __POS__ definition_annotation.loc
 
-let translate_register (_definition_annotation : def_annot) (DEC_aux (DEC_reg (sail_type, Id_aux (identifier, identifier_location), expression), (_spec_location, _spec_annotation))) : definition =
+let translate_register
+      (_definition_annotation : def_annot)
+      (DEC_aux
+         (DEC_reg (sail_type, Id_aux (identifier, identifier_location), expression),
+          (_spec_location, _spec_annotation))) : definition =
   let identifier_string =
     match identifier with
     | Id string -> string
