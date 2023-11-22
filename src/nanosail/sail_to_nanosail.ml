@@ -29,14 +29,15 @@ let string_of_id (Id_aux (aux, _)) =
 
 let ty_id_of_typ_id (Id_aux (aux, location)) =
   match aux with
-  | Id "bool"   -> Bool
-  | Id "int"    -> Int
-  | Id "list"   -> List
-  | Id "prod"   -> Prod
-  | Id "unit"   -> Unit
-  | Id "string" -> String
-  | Id id       -> not_yet_implemented_msg __POS__ location (Printf.sprintf "Missing case Id \"%s\"" id)
-  | Operator _  -> raise (NotYetImplemented (__POS__, location, None))
+  | Id "bool"      -> Bool
+  | Id "int"       -> Int
+  | Id "list"      -> List
+  | Id "prod"      -> Prod
+  | Id "unit"      -> Unit
+  | Id "string"    -> String
+  | Id "bitvector" -> Bitvector
+  | Id id          -> not_yet_implemented_msg __POS__ location (Printf.sprintf "Missing case Id \"%s\"" id)
+  | Operator _     -> raise (NotYetImplemented (__POS__, location, None))
 
 
 let rec ty_of_typ (Typ_aux (typ, _)) =

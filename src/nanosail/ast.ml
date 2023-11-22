@@ -13,6 +13,7 @@ type ty_id =
   | String
   | List
   | Prod
+  | Bitvector
   | Id_nys    (* For typ ids not yet supported *)
 
 type ty =

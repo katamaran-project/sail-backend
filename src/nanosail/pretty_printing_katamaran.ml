@@ -78,13 +78,14 @@ let defaultBase = string "Import DefaultBase."
 (* FunDeclKit pretty printing *)
 
 let ty_id_pp = function
-  | Unit   -> string "ty.unit"
-  | Bool   -> string "ty.bool"
-  | Int    -> string "ty.int"
-  | String -> string "ty.string"
-  | List   -> string "ty.list"
-  | Prod   -> string "ty.prod"
-  | Id_nys -> string "TY_ID_" ^^ nys
+  | Unit      -> string "ty.unit"
+  | Bool      -> string "ty.bool"
+  | Int       -> string "ty.int"
+  | String    -> string "ty.string"
+  | List      -> string "ty.list"
+  | Prod      -> string "ty.prod"
+  | Bitvector -> string "ty.bvec" 
+  | Id_nys    -> string "TY_ID_" ^^ nys
 
 let rec ty_pp = function
   | Ty_id (ty_id)       -> ty_id_pp ty_id
