@@ -12,7 +12,7 @@ type numeric_expression =
   | NE_add of numeric_expression * numeric_expression
   | NE_minus of numeric_expression * numeric_expression
   | NE_times of numeric_expression * numeric_expression
-
+  | NE_neg of numeric_expression
 
 
 

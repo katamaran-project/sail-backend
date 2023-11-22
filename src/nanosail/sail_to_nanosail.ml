@@ -37,7 +37,7 @@ let rec translate_numeric_expression (Nexp_aux (numeric_expression, numexp_locat
   | Nexp_sum (x, y)        -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_minus (x, y)      -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_exp _             -> not_yet_implemented __POS__ numexp_location
-  | Nexp_neg _             -> not_yet_implemented __POS__ numexp_location
+  | Nexp_neg x             -> NE_neg (translate_numeric_expression x)
 
 
 let ty_id_of_typ_id (Id_aux (aux, location)) =
