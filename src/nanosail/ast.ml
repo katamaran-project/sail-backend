@@ -4,6 +4,14 @@ module Big_int = Nat_big_num
 
 
 (******************************************************************************)
+(* Numeric expressions *)
+
+
+type numeric_expression =
+  | Nexp_constant of Z.t
+
+
+(******************************************************************************)
 (* Built-in types *)
 
 type ty_id =
@@ -107,9 +115,6 @@ type funDef_t = {
 
 (******************************************************************************)
 (* Type definitions *)
-
-type numeric_expression =
-  | Nexp_constant of Z.t
 
 type type_abbreviation =
   | TA_numeric_expression of numeric_expression
