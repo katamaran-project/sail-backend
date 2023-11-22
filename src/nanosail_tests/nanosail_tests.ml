@@ -46,6 +46,7 @@ let numeric_expression_test_suite =
     (add (const 1) (const 2), "1 + 2");
     (sub (const 3) (const 1), "3 - 1");
     (mul (const 2) (const 4), "2 * 4");
+    (mul (const 2) (add (const 3) (const 4)), "2 * (3 + 4)");
   ]
   in
   "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> test_string_of_numeric_expression input expected) inputs
