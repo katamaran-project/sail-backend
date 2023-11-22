@@ -3,18 +3,26 @@ module S = Libsail
 module N = Nanosail
 
 
-let test_process_numeric_expression _context =
-  let sail = S.Ast.Nexp_aux (S.Ast.Nexp_constant (Z.of_int 5), Unknown)
-  and expected = "5"
-  in
-  let nano = N.Sail_to_nanosail.translate_numeric_expression sail
-  in
-  let document = Nanosail.Pretty_printing_katamaran.numeric_expression_pp nano
-  in
+let string_of_document ?(line_width = 10000) (document : PPrint.document) : string =
   let buffer = Stdlib.Buffer.create 1000
   in
-  PPrint.ToBuffer.pretty 1.0 1000 buffer document;
-  let actual = Stdlib.Buffer.contents buffer
+  PPrint.ToBuffer.pretty 1.0 line_width buffer document;
+  Stdlib.Buffer.contents buffer
+
+
+let string_of_numeric_expression (numeric_expression : S.Ast.nexp_aux)  =
+  let nexp = S.Ast.Nexp_aux (numeric_expression, Unknown) in
+  let nano_nexp = N.Sail_to_nanosail.translate_numeric_expression nexp in
+  let document = Nanosail.Pretty_printing_katamaran.numeric_expression_pp nano_nexp
+  in
+  string_of_document document
+
+
+let test_process_numeric_expression _context =
+  let nexp = S.Ast.Nexp_constant (Z.of_int 5)
+  and expected = "5"
+  in
+  let actual = string_of_numeric_expression nexp
   in
   assert_equal expected actual
 
