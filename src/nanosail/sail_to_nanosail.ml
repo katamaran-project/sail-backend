@@ -34,7 +34,7 @@ let rec translate_numeric_expression (Nexp_aux (numeric_expression, numexp_locat
   | Nexp_var _             -> not_yet_implemented __POS__ numexp_location
   | Nexp_app (_, _)        -> not_yet_implemented __POS__ numexp_location
   | Nexp_times (x, y)      -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_sum (_, _)        -> not_yet_implemented __POS__ numexp_location
+  | Nexp_sum (x, y)        -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_minus (_, _)      -> not_yet_implemented __POS__ numexp_location
   | Nexp_exp _             -> not_yet_implemented __POS__ numexp_location
   | Nexp_neg _             -> not_yet_implemented __POS__ numexp_location
