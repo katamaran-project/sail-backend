@@ -20,16 +20,19 @@ let string_of_numeric_expression (numeric_expression : S.Ast.nexp_aux)  =
 
 
 let numeric_expression_test_suite =
-  let test_string_of_numeric_expression input expected _context =
+  let test_string_of_numeric_expression input expected =
+    let test_name =
+      Printf.sprintf "Expected %s" expected
+    in
     let actual = string_of_numeric_expression input
     in
-    assert_equal expected actual
+    test_name >:: fun _ -> assert_equal expected actual
   in
   let inputs = [
-    (S.Ast.Nexp_constant (Z.of_int 5), "5")
+    (S.Ast.Nexp_constant (Z.of_int 5), "6")
   ]
   in
-  "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> "testing string_of_numeric_expression" >:: test_string_of_numeric_expression input expected) inputs
+  "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> test_string_of_numeric_expression input expected) inputs
 
 
 let tests =
