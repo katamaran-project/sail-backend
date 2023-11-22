@@ -17,9 +17,9 @@ type ty_id =
   | Id_nys    (* For typ ids not yet supported *)
 
 type ty =
-  | Ty_id of ty_id    (* For concrete types *)
+  | Ty_id of ty_id              (* For concrete types *)
   | Ty_app of ty_id * ty list   (* For type constructors *)
-  | Ty_nys    (* For typ variants not yet supported *)
+  | Ty_nys                      (* For typ variants not yet supported *)
 
 type bind = string * ty
 
