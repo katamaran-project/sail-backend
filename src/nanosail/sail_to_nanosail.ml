@@ -40,30 +40,39 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
   | Operator _     -> not_yet_implemented __POS__ location
 
 
-let rec ty_of_typ (Typ_aux (typ, _)) =
-  let ty_of_arg (A_aux (aux, location)) =
+let rec ty_of_typ (Typ_aux (typ, location)) =
+  let ty_of_arg (A_aux (aux, arg_location)) =
     match aux with
-    | A_nexp _ -> not_yet_implemented __POS__ location
+    | A_nexp _ -> not_yet_implemented __POS__ arg_location
     | A_typ typ -> ty_of_typ typ
-    | A_bool _ -> not_yet_implemented __POS__ location
+    | A_bool _ -> not_yet_implemented __POS__ arg_location
   in
   match typ with
-  | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
+  | Typ_internal_unknown -> not_yet_implemented __POS__ location
+  | Typ_var _            -> not_yet_implemented __POS__ location
+  | Typ_fn (_, _)        -> not_yet_implemented __POS__ location
+  | Typ_bidir (_, _)     -> not_yet_implemented __POS__ location
+  | Typ_exist (_, _, _)  -> not_yet_implemented __POS__ location
+  | Typ_id id            -> Ty_id (ty_id_of_typ_id id)
+  | Typ_tuple items ->
+     (
+       match items with
+       | []                -> not_yet_implemented_msg __POS__ location "Should not occur"
+       | h_typ :: typs     ->
+          let h_ty = ty_of_typ h_typ in
+          let f ty1 typ2 =
+            let ty2 = ty_of_typ typ2 in
+            Ty_app (Prod, [ty1; ty2]) in
+          List.fold_left f h_ty typs
+     )
   | Typ_app (id, args) -> (
       match string_of_id id with
       | "atom"      -> Ty_id Int
       | "atom_bool" -> Ty_id Bool
       | _           -> Ty_app (ty_id_of_typ_id id, List.map ty_of_arg args)
     )
-  | Typ_tuple (h_typ :: typs) ->
-      let h_ty = ty_of_typ h_typ in
-      let f ty1 typ2 =
-        let ty2 = ty_of_typ typ2 in
-        Ty_app (Prod, [ty1; ty2]) in
-      List.fold_left f h_ty typs
-  | _ -> Ty_nys
 
-
+  
 (******************************************************************************)
 
 let ty_of_pexp (Pat_aux (aux, _)) =
