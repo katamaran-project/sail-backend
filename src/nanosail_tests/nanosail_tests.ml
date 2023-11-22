@@ -10,8 +10,11 @@ let string_of_document ?(line_width = 10000) (document : PPrint.document) : stri
   Stdlib.Buffer.contents buffer
 
 
-let string_of_numeric_expression (numeric_expression : S.Ast.nexp_aux)  =
-  let nexp = S.Ast.Nexp_aux (numeric_expression, Unknown) in
+let addloc (numexp : S.Ast.nexp_aux) =
+  S.Ast.Nexp_aux (numexp, Unknown)
+
+
+let string_of_numeric_expression (nexp : S.Ast.nexp)  =
   let nano_nexp = N.Sail_to_nanosail.translate_numeric_expression nexp in
   let document = Nanosail.Pretty_printing_katamaran.numeric_expression_pp nano_nexp
   in
@@ -28,8 +31,15 @@ let numeric_expression_test_suite =
     in
     test_name >:: fun _ -> assert_equal expected actual
   in
+  let const c = addloc (S.Ast.Nexp_constant (Z.of_int c))
+  and add x y = addloc (S.Ast.Nexp_sum (x, y))
+  and _sub x y = addloc (S.Ast.Nexp_minus (x, y))
+  and _mul x y = addloc (S.Ast.Nexp_times (x, y))
+  in
   let inputs = [
-    (S.Ast.Nexp_constant (Z.of_int 5), "6")
+    (const 5, "5");
+    (const 10, "10");
+    (add (const 1) (const 2), "1 + 2");
   ]
   in
   "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> test_string_of_numeric_expression input expected) inputs
