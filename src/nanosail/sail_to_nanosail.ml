@@ -27,6 +27,19 @@ let string_of_id (Id_aux (aux, _)) =
 
 (******************************************************************************)
 
+let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) : numeric_expression =
+  match numeric_expression with
+  | Nexp_constant constant -> Nexp_constant constant
+  | Nexp_id _              -> not_yet_implemented __POS__ numexp_location
+  | Nexp_var _             -> not_yet_implemented __POS__ numexp_location
+  | Nexp_app (_, _)        -> not_yet_implemented __POS__ numexp_location
+  | Nexp_times (_, _)      -> not_yet_implemented __POS__ numexp_location
+  | Nexp_sum (_, _)        -> not_yet_implemented __POS__ numexp_location
+  | Nexp_minus (_, _)      -> not_yet_implemented __POS__ numexp_location
+  | Nexp_exp _             -> not_yet_implemented __POS__ numexp_location
+  | Nexp_neg _             -> not_yet_implemented __POS__ numexp_location
+
+
 let ty_id_of_typ_id (Id_aux (aux, location)) =
   match aux with
   | Id "bool"      -> Bool
@@ -222,37 +235,22 @@ let translate_type_abbreviation
       _definition_annotation
       _type_annotation
       (Id_aux (identifier, identifier_location))
-      (TypQ_aux (quantifier, quantifier_location))
+      (TypQ_aux (_quantifier, _quantifier_location))
       (A_aux (arg, arg_location)) : definition =
-  let translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) =
-    match quantifier with
-    | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
-    | TypQ_no_forall ->
-       (
-         match numeric_expression with
-         | Nexp_id _ -> not_yet_implemented __POS__ numexp_location
-         | Nexp_var _ -> not_yet_implemented __POS__ numexp_location
-         | Nexp_constant constant ->
-            (
-              match identifier with
-              | Id id -> TypeDefinition (TD_abbreviation (id, TA_numeric_expression (Nexp_constant constant)))
-              | Operator _ -> not_yet_implemented __POS__ identifier_location
-            )
+  match identifier with
+  | Id id_string ->
+     (
+       match arg with
+       | A_nexp numeric_expression ->
+          let nano_numeric_expression = translate_numeric_expression numeric_expression
+          in
+          TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
+       | A_typ _  -> not_yet_implemented __POS__ arg_location
+       | A_bool _ -> not_yet_implemented __POS__ arg_location
+     )
+  | Operator _ -> not_yet_implemented __POS__ identifier_location
 
-         | Nexp_app (_, _) -> not_yet_implemented __POS__ numexp_location
-         | Nexp_times (_, _) -> not_yet_implemented __POS__ numexp_location
-         | Nexp_sum (_, _) -> not_yet_implemented __POS__ numexp_location
-         | Nexp_minus (_, _) -> not_yet_implemented __POS__ numexp_location
-         | Nexp_exp _ -> not_yet_implemented __POS__ numexp_location
-         | Nexp_neg _ -> not_yet_implemented __POS__ numexp_location
-       )
-  in
-  match arg with
-  | A_nexp numeric_expression ->
-     translate_numeric_expression numeric_expression
-  | A_typ _ -> not_yet_implemented __POS__ arg_location
-  | A_bool _ -> not_yet_implemented __POS__ arg_location
-
+  
 let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
