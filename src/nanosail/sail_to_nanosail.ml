@@ -41,10 +41,12 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
 
 
 let rec ty_of_typ (Typ_aux (typ, _)) =
-  let ty_of_arg (A_aux (aux, _)) =
+  let ty_of_arg (A_aux (aux, location)) =
     match aux with
+    | A_nexp _ -> not_yet_implemented __POS__ location
     | A_typ typ -> ty_of_typ typ
-    | _ -> Ty_nys in
+    | A_bool _ -> not_yet_implemented __POS__ location
+  in
   match typ with
   | Typ_id id          -> Ty_id (ty_id_of_typ_id id)
   | Typ_app (id, args) -> (
