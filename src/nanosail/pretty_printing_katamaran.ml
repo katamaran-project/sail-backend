@@ -21,7 +21,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
       if level <= lvl
       then doc
       else protect doc
-    in    
+    in
     match numexp with
     | NE_constant z   -> string (Big_int.to_string z)
     | NE_add (x, y)   -> protect_if 0 (concat [ pp 0 x; space; plus; space; pp 0 y ])
@@ -67,7 +67,7 @@ let pp_ty_id = function
   | String    -> string "ty.string"
   | List      -> string "ty.list"
   | Prod      -> string "ty.prod"
-  | Bitvector -> string "ty.bvec" 
+  | Bitvector -> string "ty.bvec"
   | Id_nys    -> string "TY_ID_" ^^ nys
 
 let rec pp_ty = function
@@ -84,17 +84,26 @@ let pp_bind (arg, t) =
 
 let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
-    indent (
-        simple_app [
-            string ("| " ^ funDef.funName ^ " : Fun");
-            pp_list (map pp_bind funDef.funType.arg_types);
-            pp_ty funDef.funType.ret_type
-          ]
-      )
+    let name = string funDef.funName
+    and typ =
+      simple_app [
+          string "Fun";
+          pp_list (map pp_bind funDef.funType.arg_types);
+          pp_ty funDef.funType.ret_type
+        ]
+    in
+    (name, typ)
   in
-  let contents = 
+  let inductive_type_declaration =
+    let name = string "Fun"
+    and typ = string "PCtx -> Ty -> Set"
+    and constructors = List.map pp_function_declaration funDefList
+    in
+    pp_inductive_type name typ constructors
+  in
+  let contents =
     separate small_step [
-        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline pp_function_declaration funDefList ^^ pp_eol;
+        inductive_type_declaration;
         separate_map hardline utf8string [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
             "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
@@ -108,7 +117,7 @@ let pp_funDeclKit funDefList =
 (* Value pretty printing *)
 
 let pp_int i =
-  let pp_i = string (Big_int.to_string i ^ "%Z") in 
+  let pp_i = string (Big_int.to_string i ^ "%Z") in
   if i < Z.zero then parens pp_i else pp_i
 
 let rec pp_value = function
@@ -116,7 +125,7 @@ let rec pp_value = function
   | Val_bool b        -> string (string_of_bool b)
   | Val_int i         -> pp_int i
   | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> pp_prod (pp_value v1) (pp_value v2) 
+  | Val_prod (v1, v2) -> pp_prod (pp_value v1) (pp_value v2)
   | Val_nys           -> !^"VAL_" ^^ nys
 
 
@@ -143,9 +152,9 @@ let rec ty_of_val = function
   | Val_int _         -> Ty_id Int
   | Val_string _      -> Ty_id String
   | Val_prod (v1, v2) -> Ty_app (Prod, [TA_type (ty_of_val v1); TA_type (ty_of_val v2)])
-  | Val_nys           -> Ty_nys   
+  | Val_nys           -> Ty_nys
 
-let rec pp_expression e = 
+let rec pp_expression e =
   let rec pp_exp_list = function
     | []      -> string "nil"
     | x :: xs -> parens_app [!^"cons"; pp_par_expression x; pp_exp_list xs]
@@ -187,7 +196,7 @@ let rec pp_expression e =
     | _  ->
        infix 2 1 (pp_infix_binOp bo) (pp_par_expression e1) (pp_par_expression e2)
   in
-  match e with 
+  match e with
   | Exp_var v  -> simple_app [string "exp_var"; dquotes (string v)]
   | Exp_val v  -> pp_exp_val v
   | Exp_neg e  -> string "- " ^^ pp_par_expression e
@@ -366,7 +375,7 @@ let pp_register_module _show_original (register_definitions : (sail_definition *
                 ]
   in
   separate hardline lines
-  
+
 
 (******************************************************************************)
 (* Untranslated definition pretty printing *)
