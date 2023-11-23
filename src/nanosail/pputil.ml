@@ -12,7 +12,14 @@ let ic     = string " IMPOSSIBLE_CASE "
 
 let pp_list = function
   | [] -> brackets empty
-  | l  -> soft_surround 2 0 lbracket (separate (semi ^^ break 1) l) rbracket
+  | items  ->
+    concat [
+      lbracket;
+      align (
+        group (separate (semi ^^ break 1) items)
+      );
+      rbracket
+    ]
 
 let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
   rparen
