@@ -313,13 +313,13 @@ let pp_foreignKit =
 (******************************************************************************)
 (* Program pretty printing *)
 
-let pp_program_module program_name base_name funDefList =
+let pp_program_module program_name base_name function_definitions =
   indent (separate small_step [
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name
       ^ "Base.");
-    pp_funDeclKit funDefList;
+    pp_funDeclKit function_definitions;
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
-    pp_funDefKit funDefList;
+    pp_funDefKit function_definitions;
     string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
     pp_foreignKit;
     string ("Include ProgramMixin " ^ base_name ^ "Base.");
