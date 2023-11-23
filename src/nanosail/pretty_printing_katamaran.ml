@@ -13,21 +13,18 @@ let pp_sail_definition sail_definition =
 (* Type definition pretty printing *)
 
 let pp_numeric_expression (numeric_expression : numeric_expression) =
-  let protect =
-    enclose lparen rparen
-  in
   let rec pp level numexp =
-    let protect_if lvl doc =
+    let parens_if lvl doc =
       if level <= lvl
       then doc
-      else protect doc
+      else parens doc
     in
     match numexp with
     | NE_constant z   -> string (Big_int.to_string z)
-    | NE_add (x, y)   -> protect_if 0 (concat [ pp 0 x; space; plus; space; pp 0 y ])
-    | NE_minus (x, y) -> protect_if 0 (concat [ pp 0 x; space; minus; space; pp 0 y ])
-    | NE_times (x, y) -> protect_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
-    | NE_neg x        -> protect_if 2 (concat [ minus; pp 3 x ])
+    | NE_add (x, y)   -> parens_if 0 (concat [ pp 0 x; space; plus; space; pp 0 y ])
+    | NE_minus (x, y) -> parens_if 0 (concat [ pp 0 x; space; minus; space; pp 0 y ])
+    | NE_times (x, y) -> parens_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
+    | NE_neg x        -> parens_if 2 (concat [ minus; pp 3 x ])
   in
   pp 0 numeric_expression
 
