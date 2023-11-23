@@ -12,7 +12,7 @@ let pp_sail_definition sail_definition =
 (******************************************************************************)
 (* Type definition pretty printing *)
 
-let numeric_expression_pp (numeric_expression : numeric_expression) =
+let pp_numeric_expression (numeric_expression : numeric_expression) =
   let protect =
     enclose lparen rparen
   in
@@ -77,7 +77,7 @@ let rec ty_pp = function
 and type_argument_pp (type_argument : type_argument) =
   match type_argument with
   | TA_type t   -> ty_pp t
-  | TA_numexp e -> numeric_expression_pp e
+  | TA_numexp e -> pp_numeric_expression e
 
 let bind_pp (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ ty_pp t
@@ -317,7 +317,7 @@ let type_module_pp show_original type_definitions =
           space;
           string ":=";
           space;
-          numeric_expression_pp numexpr;
+          pp_numeric_expression numexpr;
           pp_eol
         ]
     in
