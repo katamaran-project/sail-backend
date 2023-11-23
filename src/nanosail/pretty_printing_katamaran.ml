@@ -273,18 +273,18 @@ let pp_function_definition funDef =
     pp_ty funDef.funType.ret_type
   ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ pp_eol)
 
-let pp_funDefKit funDefList =
+let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
     (string ("| " ^ funDef.funName ^ " =>"))
     (string ("fun_" ^ funDef.funName))
   in
   let contents =
     separate small_step [
-        separate_map small_step pp_function_definition funDefList;
+        separate_map small_step pp_function_definition function_definitions;
         indent (separate hardline [
                     utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
                     utf8string "match f in Fun Δ τ return Stm Δ τ with";
-                    separate_map hardline pp_name_binding funDefList;
+                    separate_map hardline pp_name_binding function_definitions;
                     string "end."
           ]);
       ]
