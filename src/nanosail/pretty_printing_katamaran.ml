@@ -390,9 +390,6 @@ let type_module_pp show_original type_definitions =
 (******************************************************************************)
 (* Register definition pretty printing *)
 
-let compose_functions f g x =
-  f (g x)
-
 let register_module_pp _show_original (register_definitions : (sail_definition * register_definition) list) : document =
   let pp_register_definition ({ identifier; typ } : register_definition) =
     concat [
