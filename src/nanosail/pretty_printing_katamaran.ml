@@ -315,8 +315,7 @@ let pp_foreignKit =
 
 let pp_program_module program_name base_name function_definitions =
   indent (separate small_step [
-    string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name
-      ^ "Base.");
+    string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
     pp_funDeclKit function_definitions;
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
     pp_funDefKit function_definitions;
