@@ -128,18 +128,31 @@ let funDecl_pp funDef = indent (simple_app [
   ty_pp funDef.funType.ret_type
 ])
 
-let funDeclKit_pp funDefList =
-  indent (separate small_step [
-    string "Section FunDeclKit.";
-    string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline
-    ^^ separate_map hardline funDecl_pp funDefList ^^ dot;
-    separate_map hardline utf8string [
-      "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
-      "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
-      "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
+let pp_coq_section section_title contents =
+  let first_line =
+    string "Section" ^^ space ^^ string section_title ^^ string "."
+  in
+  let last_line =
+    string "End" ^^ space ^^ string section_title ^^ string "."
+  in
+  concat [
+      first_line ^^ hardline;
+      indent' contents ^^ hardline;
+      last_line;
     ]
-  ]) ^^ small_step ^^ string "End FunDeclKit."
 
+let funDeclKit_pp funDefList =
+  let contents = 
+    separate small_step [
+        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline funDecl_pp funDefList ^^ dot;
+        separate_map hardline utf8string [
+            "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
+            "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
+            "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
+          ]
+      ]
+  in
+  pp_coq_section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
