@@ -82,7 +82,7 @@ and pp_type_argument (type_argument : type_argument) =
 let pp_bind (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ pp_ty t
 
-let pp_funDecl funDef = indent (simple_app [
+let pp_function_declaration funDef = indent (simple_app [
   string ("| " ^ funDef.funName ^ " : Fun");
   pp_list (map pp_bind funDef.funType.arg_types);
   pp_ty funDef.funType.ret_type
@@ -91,7 +91,7 @@ let pp_funDecl funDef = indent (simple_app [
 let pp_funDeclKit funDefList =
   let contents = 
     separate small_step [
-        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline pp_funDecl funDefList ^^ pp_eol;
+        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline pp_function_declaration funDefList ^^ pp_eol;
         separate_map hardline utf8string [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
             "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
