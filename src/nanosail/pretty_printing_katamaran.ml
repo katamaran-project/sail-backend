@@ -1,11 +1,11 @@
 open List
 open PPrint
 open Ast
+open Util
 
 let opt_list_notations = ref false
 
 
-let uncurry f (x, y) = f x y
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
