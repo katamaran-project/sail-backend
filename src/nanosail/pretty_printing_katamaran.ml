@@ -119,7 +119,7 @@ let pp_funDeclKit funDefList =
           ]
       ]
   in
-  pp_coq_section "FunDeclKit" contents
+  pp_section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
@@ -288,7 +288,7 @@ let pp_funDefKit funDefList =
           ]);
       ]
   in
-  pp_coq_section "FunDefKit" contents
+  pp_section "FunDefKit" contents
 
 
 (******************************************************************************)

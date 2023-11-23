@@ -28,7 +28,7 @@ let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
 let simple_app argv = indent (flow (break 1) argv)
 let parens_app argv = parens (simple_app argv)
 
-let pp_coq_section section_title contents =
+let pp_section section_title contents =
   let first_line =
     string "Section" ^^ space ^^ string section_title ^^ pp_eol
   in
