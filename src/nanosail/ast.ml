@@ -117,7 +117,7 @@ type statement =
 (******************************************************************************)
 (* Function definitions *)
 
-type funDef_t = {
+type function_definition = {
   funName : string;
   funType : funType_t;
   funBody : statement;
@@ -152,7 +152,7 @@ type register_definition =
   }
 
 type definition =
-  | FunctionDefinition of funDef_t
+  | FunctionDefinition of function_definition
   | TypeDefinition of type_definition
   | RegisterDefinition of register_definition
   | UntranslatedDefinition of untranslated_definition
@@ -179,7 +179,7 @@ let extract_untranslated_definition = function
 (** The type of the NanoSail intermediate representation. *)
 type ir_t = {
   program_name : string;
-  function_definitions : funDef_t list;
+  function_definitions : function_definition list;
   type_definitions: (sail_definition * type_definition) list;
   register_definitions: (sail_definition * register_definition) list;
   untranslated_definitions : (sail_definition * untranslated_definition) list
@@ -189,7 +189,7 @@ type ir_t = {
 
 
 let make_ir_t
-      ?(function_definitions : funDef_t list = [])
+      ?(function_definitions : function_definition list = [])
       ?(type_definitions : (sail_definition * type_definition) list = [])
       ?(register_definitions : (sail_definition * register_definition) list = [])
       ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
