@@ -37,8 +37,8 @@ let pp_require_import src names =
   in
   pp_hanging_list (string "From") (first :: rest) ^^ pp_eol
 
-let pp_import names = string "Import "
-  ^^ align (separate_map hardline string names) ^^ pp_eol
+let pp_import names =
+  pp_hanging_list (string "Import") (List.map string names) ^^ pp_eol
 
 let pp_open_scope scope =
   concat [
