@@ -10,11 +10,11 @@ let pp_eol = dot
 let nys    = string "NOT_YET_SUPPORTED "
 let ic     = string " IMPOSSIBLE_CASE "
 
-let list_pp = function
+let pp_list = function
   | [] -> brackets empty
   | l  -> soft_surround 2 0 lbracket (separate (semi ^^ break 1) l) rbracket
 
-let prod_pp v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
+let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
   rparen
 
 let simple_app argv = indent (flow (break 1) argv)
