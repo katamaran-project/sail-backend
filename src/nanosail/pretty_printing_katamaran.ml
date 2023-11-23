@@ -160,22 +160,30 @@ let rec pp_expression e =
   in
   let pp_exp_binop bo e1 e2 =
     match bo with
-    | Pair   -> simple_app [!^"exp_binop";
-        !^"bop.pair";
-        pp_par_expression e1;
-        pp_par_expression e2]
-    | Cons   -> simple_app [!^"exp_binop";
-        !^"bop.cons";
-        pp_par_expression e1;
-        pp_par_expression e2]
-    | Append -> simple_app [!^"exp_binop";
-        !^"bop.append";
-        pp_par_expression e1;
-        pp_par_expression e2]
-    | _      -> infix 2 1 (pp_infix_binOp bo)
-        (pp_par_expression e1)
-        (pp_par_expression e2) in
-
+    | Pair ->
+       simple_app [
+           string "exp_binop";
+           string "bop.pair";
+           pp_par_expression e1;
+           pp_par_expression e2
+         ]
+    | Cons ->
+       simple_app [
+           string "exp_binop";
+           string "bop.cons";
+           pp_par_expression e1;
+           pp_par_expression e2
+         ]
+    | Append ->
+       simple_app [
+           string "exp_binop";
+           string "bop.append";
+           pp_par_expression e1;
+           pp_par_expression e2
+         ]
+    | _  ->
+       infix 2 1 (pp_infix_binOp bo) (pp_par_expression e1) (pp_par_expression e2)
+  in
   match e with 
   | Exp_var v  -> simple_app [string "exp_var"; dquotes (string v)]
   | Exp_val v  -> pp_exp_val v
