@@ -14,7 +14,7 @@ let pp_sail_definition sail_definition =
 (* Utility definitions *)
 
 let indent = nest 2
-let indent' doc = blank 2 ^^ align doc
+let indent' ?(level = 2) doc = blank level ^^ align doc
 let small_step = twice hardline
 let big_step = twice small_step
 
