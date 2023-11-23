@@ -237,27 +237,39 @@ and par_expression_pp e = parens (expression_pp e)
 
 let rec statement_pp = function
   | Stm_exp e -> simple_app [(string "stm_exp"); par_expression_pp e]
-  | Stm_match_list m -> simple_app [(string "stm_match_list");
-      par_statement_pp m.s;
-      par_statement_pp m.alt_nil;
-      dquotes (string m.xh);
-      dquotes (string m.xt);
-      par_statement_pp m.alt_cons]
-  | Stm_match_prod m -> simple_app [(string "stm_match_prod");
-      par_statement_pp m.s;
-      dquotes (string m.xl);
-      dquotes (string m.xr);
-      par_statement_pp m.rhs]
-  | Stm_call (f, arg_list) -> simple_app (string "call" :: !^f ::
-      (map par_expression_pp arg_list))
-  | Stm_let (v, s1, s2) -> simple_app [string ("let: \"" ^ v ^ "\" :=");
-      statement_pp s1;
-      string "in";
-      statement_pp s2;]
-  | Stm_if (s, s1, s2) -> simple_app [(string "stm_if");
-      par_statement_pp s;
-      par_statement_pp s1;
-      par_statement_pp s2;]
+  | Stm_match_list m ->
+     simple_app [
+         (string "stm_match_list");
+         par_statement_pp m.s;
+         par_statement_pp m.alt_nil;
+         dquotes (string m.xh);
+         dquotes (string m.xt);
+         par_statement_pp m.alt_cons
+       ]
+  | Stm_match_prod m ->
+     simple_app [
+         (string "stm_match_prod");
+         par_statement_pp m.s;
+         dquotes (string m.xl);
+         dquotes (string m.xr);
+         par_statement_pp m.rhs
+       ]
+  | Stm_call (f, arg_list) ->
+     simple_app (string "call" :: !^f :: (map par_expression_pp arg_list))
+  | Stm_let (v, s1, s2) ->
+     simple_app [
+         string ("let: \"" ^ v ^ "\" :=");
+         statement_pp s1;
+         string "in";
+         statement_pp s2;
+       ]
+  | Stm_if (s, s1, s2) ->
+     simple_app [
+         (string "stm_if");
+         par_statement_pp s;
+         par_statement_pp s1;
+         par_statement_pp s2;
+       ]
   | Stm_nys -> !^"STM_" ^^ nys
 
 and par_statement_pp s = parens (statement_pp s)
