@@ -37,7 +37,6 @@ Module Import ExprProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-
     Definition fun_bool_expr : Stm ["tt" ∷ ty.unit] ty.bool :=
       stm_exp
         ((exp_not
@@ -56,7 +55,6 @@ Module Import ExprProgram <: Program DefaultBase.
       | bool_expr => fun_bool_expr
       | arith_expr => fun_arith_expr
       end.
-
   End FunDefKit.
 
   Include DefaultRegStoreKit DefaultBase.

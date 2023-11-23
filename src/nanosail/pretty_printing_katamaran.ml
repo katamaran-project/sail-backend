@@ -255,17 +255,20 @@ let pp_funDef funDef =
 let pp_funDefKit funDefList =
   let pp_name_binding funDef = prefix 4 1
     (string ("| " ^ funDef.funName ^ " =>"))
-    (string ("fun_" ^ funDef.funName)) in
-  indent (separate small_step [
-    string "Section FunDefKit.";  
-    separate_map small_step pp_funDef funDefList;
-    indent (separate hardline [
-      utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
-      utf8string "match f in Fun Δ τ return Stm Δ τ with";
-      separate_map hardline pp_name_binding funDefList;
-      string "end."
-    ]);
-  ]) ^^ small_step ^^ string "End FunDefKit."
+    (string ("fun_" ^ funDef.funName))
+  in
+  let contents =
+    separate small_step [
+        separate_map small_step pp_funDef funDefList;
+        indent (separate hardline [
+                    utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
+                    utf8string "match f in Fun Δ τ return Stm Δ τ with";
+                    separate_map hardline pp_name_binding funDefList;
+                    string "end."
+          ]);
+      ]
+  in
+  pp_coq_section "FunDefKit" contents
 
 
 (******************************************************************************)

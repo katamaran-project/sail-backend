@@ -40,7 +40,6 @@ Module Import LongProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-
     Definition fun_very_long_naaaaaaaaaaaaaaaaame : Stm
         ["l" ∷ (ty.list ty.int); "b" ∷ ty.bool; "n" ∷ ty.int]
         (ty.list (ty.list (ty.list ty.bool))) :=
@@ -57,7 +56,6 @@ Module Import LongProgram <: Program DefaultBase.
       match f in Fun Δ τ return Stm Δ τ with
       | very_long_naaaaaaaaaaaaaaaaame => fun_very_long_naaaaaaaaaaaaaaaaame
       end.
-
   End FunDefKit.
 
   Include DefaultRegStoreKit DefaultBase.

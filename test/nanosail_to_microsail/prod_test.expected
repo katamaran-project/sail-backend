@@ -39,7 +39,6 @@ Module Import ProdProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-
     Definition fun_ex_prod : Stm ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
         (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
           (ty.prod ty.int ty.string)) :=
@@ -60,7 +59,6 @@ Module Import ProdProgram <: Program DefaultBase.
       | ex_prod => fun_ex_prod
       | switch => fun_switch
       end.
-
   End FunDefKit.
 
   Include DefaultRegStoreKit DefaultBase.

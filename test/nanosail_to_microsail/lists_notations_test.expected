@@ -48,7 +48,6 @@ Module Import ListsProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-
     Definition fun_is_empty : Stm ["l" ∷ (ty.list ty.int)] ty.bool :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "h" "t"
         (stm_exp (exp_false)).
@@ -103,7 +102,6 @@ Module Import ListsProgram <: Program DefaultBase.
       | reverse => fun_reverse
       | reverse_bis => fun_reverse_bis
       end.
-
   End FunDefKit.
 
   Include DefaultRegStoreKit DefaultBase.
