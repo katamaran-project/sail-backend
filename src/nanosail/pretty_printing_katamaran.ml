@@ -42,7 +42,7 @@ let pp_require_import src names = prefix 5 1
 let pp_import names = string "Import "
   ^^ align (separate_map hardline string names) ^^ pp_eol
 
-let open_scope_pp scope =
+let pp_open_scope scope =
   concat [
       string "Local Open Scope";
       space;
@@ -419,7 +419,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
         pp_require_import "Coq" !coq_lib_modules;
         pp_require_import "Katamaran" !katamaran_lib_modules;
         pp_import !more_modules;
-        separate_map hardline open_scope_pp !scopes
+        separate_map hardline pp_open_scope !scopes
       ]
     in
     generate_section segments
