@@ -31,10 +31,20 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 (******************************************************************************)
 (* Heading pretty printing *)
 
-let pp_require_import src names = prefix 5 1
-  (string ("From " ^ src ^ " Require Import"))
-  (separate_map hardline string names)
-  ^^ pp_eol
+let pp_require_import src names =
+  let first_line = string src ^^ space ^^ string "Require Import"
+  and remaining_lines = List.map string names
+  in
+  let lines = first_line :: remaining_lines
+  in
+  concat [
+    string "From";
+    space;
+    align (
+      separate hardline lines
+    );
+    pp_eol
+  ]
 
 let pp_import names = string "Import "
   ^^ align (separate_map hardline string names) ^^ pp_eol
