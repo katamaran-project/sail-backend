@@ -83,10 +83,13 @@ let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and typ =
+      let parameter_types = pp_list (map pp_bind funDef.funType.arg_types)
+      and return_type = pp_ty funDef.funType.ret_type
+      in
       simple_app [
           string "Fun";
-          pp_list (map pp_bind funDef.funType.arg_types);
-          pp_ty funDef.funType.ret_type
+          parameter_types;
+          return_type
         ]
     in
     (name, typ)
