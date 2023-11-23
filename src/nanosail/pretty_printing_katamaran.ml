@@ -55,6 +55,8 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
 
 
+let pp_eol = dot
+
 (******************************************************************************)
 (* Type definition pretty printing *)
 
@@ -83,10 +85,10 @@ let numeric_expression_pp (numeric_expression : numeric_expression) =
 let require_import_pp src names = prefix 5 1
   (string ("From " ^ src ^ " Require Import"))
   (separate_map hardline string names)
-  ^^ dot
+  ^^ pp_eol
 
 let import_pp names = string "Import "
-  ^^ align (separate_map hardline string names) ^^ dot
+  ^^ align (separate_map hardline string names) ^^ pp_eol
 
 let open_scope_pp scope = string ("Local Open Scope " ^ scope ^ ".")
 
@@ -130,10 +132,10 @@ let funDecl_pp funDef = indent (simple_app [
 
 let pp_coq_section section_title contents =
   let first_line =
-    string "Section" ^^ space ^^ string section_title ^^ string "."
+    string "Section" ^^ space ^^ string section_title ^^ pp_eol
   in
   let last_line =
-    string "End" ^^ space ^^ string section_title ^^ string "."
+    string "End" ^^ space ^^ string section_title ^^ pp_eol
   in
   concat [
       first_line ^^ hardline;
@@ -144,7 +146,7 @@ let pp_coq_section section_title contents =
 let funDeclKit_pp funDefList =
   let contents = 
     separate small_step [
-        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline funDecl_pp funDefList ^^ dot;
+        string "Inductive Fun : PCtx -> Ty -> Set :=" ^^ hardline ^^ separate_map hardline funDecl_pp funDefList ^^ pp_eol;
         separate_map hardline utf8string [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
             "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
@@ -295,7 +297,7 @@ let funDef_pp funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
     list_pp (map bind_pp funDef.funType.arg_types);
     ty_pp funDef.funType.ret_type
-  ] ^^ !^" :=" ^^ hardline ^^ statement_pp funDef.funBody ^^ dot)
+  ] ^^ !^" :=" ^^ hardline ^^ statement_pp funDef.funBody ^^ pp_eol)
 
 let funDefKit_pp funDefList =
   let name_binding_pp funDef = prefix 4 1
@@ -371,7 +373,7 @@ let type_module_pp show_original type_definitions =
           string ":=";
           space;
           numeric_expression_pp numexpr;
-          string "."
+          pp_eol
         ]
     in
     annotate_with_original_definition show_original original document
@@ -404,7 +406,7 @@ let register_module_pp _show_original (register_definitions : (sail_definition *
                 [
                   [ string "Inductive Reg : Ty -> Set :=" ];
                   register_lines;
-                  [ string "." ]
+                  [ pp_eol ]
                 ]
   in
   separate hardline lines
