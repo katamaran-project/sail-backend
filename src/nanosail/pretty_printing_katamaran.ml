@@ -82,7 +82,7 @@ let pp_bind (arg, t) =
 let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
-    and typ =
+    and function_type =
       let parameter_types = pp_list (map pp_bind funDef.funType.arg_types)
       and return_type = pp_ty funDef.funType.ret_type
       in
@@ -92,7 +92,7 @@ let pp_funDeclKit funDefList =
           return_type
         ]
     in
-    (name, typ)
+    (name, function_type)
   in
   let inductive_type_declaration =
     let name = string "Fun"
