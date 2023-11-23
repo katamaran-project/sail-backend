@@ -14,6 +14,7 @@ let pp_sail_definition sail_definition =
 (* Utility definitions *)
 
 let indent = nest 2
+let indent' doc = blank 2 ^^ align doc
 let small_step = twice hardline
 let big_step = twice small_step
 
@@ -322,7 +323,7 @@ let program_module_pp program_name base_name funDefList =
 (* Type definition pretty printing *)
 
 let pp_multiline_comment comment =
-  string "(*" ^^ twice hardline ^^ blank 2 ^^ align comment ^^ string "\n*)"
+  string "(*" ^^ twice hardline ^^ indent' comment ^^ string "\n*)"
 
 let annotate_with_original_definition show_original original translation =
   if
