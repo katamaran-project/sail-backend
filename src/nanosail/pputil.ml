@@ -10,16 +10,17 @@ let pp_eol = dot
 let nys    = string "NOT_YET_SUPPORTED "
 let ic     = string " IMPOSSIBLE_CASE "
 
-let pp_list = function
-  | [] -> brackets empty
-  | items  ->
-    concat [
-      lbracket;
-      align (
-        group (separate (semi ^^ break 1) items)
-      );
-      rbracket
-    ]
+let pp_delimited_sequence left_delimiter right_delimiter separator items =
+  concat [
+    left_delimiter;
+    align (
+      group (separate (separator ^^ break 1) items)
+    );
+    right_delimiter
+  ]
+
+let pp_list items =
+  pp_delimited_sequence lbracket rbracket semi items
 
 let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
   rparen
