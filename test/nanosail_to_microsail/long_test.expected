@@ -26,9 +26,10 @@ Module Import LongProgram <: Program DefaultBase.
 
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
-    | very_long_naaaaaaaaaaaaaaaaame : Fun
-        ["l" ∷ (ty.list ty.int); "b" ∷ ty.bool; "n" ∷ ty.int]
-        (ty.list (ty.list (ty.list ty.bool))).
+    | very_long_naaaaaaaaaaaaaaaaame : Fun ["l" ∷ (ty.list ty.int);
+                                            "b" ∷ ty.bool;
+                                            "n" ∷ ty.int]
+                                           (ty.list (ty.list (ty.list ty.bool))).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.

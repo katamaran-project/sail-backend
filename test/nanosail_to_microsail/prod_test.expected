@@ -27,8 +27,9 @@ Module Import ProdProgram <: Program DefaultBase.
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
     | ex_prod : Fun ["tt" ∷ ty.unit; "tt" ∷ ty.unit]
-        (ty.prod (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-          (ty.prod ty.int ty.string))
+                    (ty.prod
+                      (ty.prod (ty.prod ty.int ty.string)
+                        (ty.prod ty.int ty.string)) (ty.prod ty.int ty.string))
     | switch : Fun ["p" ∷ (ty.prod ty.int ty.bool)] (ty.prod ty.bool ty.int).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.

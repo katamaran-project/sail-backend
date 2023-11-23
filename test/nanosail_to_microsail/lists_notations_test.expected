@@ -33,10 +33,10 @@ Module Import ListsProgram <: Program DefaultBase.
     | onetwothree : Fun ["tt" ∷ ty.unit] (ty.list ty.int)
     | last : Fun ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool)
     | append : Fun ["l1" ∷ (ty.list ty.int); "l2" ∷ (ty.list ty.int)]
-        (ty.list ty.int)
+                   (ty.list ty.int)
     | length : Fun ["l" ∷ (ty.list ty.int)] ty.int
     | reverse_aux : Fun ["l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int)]
-        (ty.list ty.int)
+                        (ty.list ty.int)
     | reverse : Fun ["l" ∷ (ty.list ty.int)] (ty.list ty.int)
     | reverse_bis : Fun ["l" ∷ (ty.list ty.int)] (ty.list ty.int).
 
