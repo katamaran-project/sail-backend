@@ -2,60 +2,12 @@ open List
 open PPrint
 open Ast
 open Util
+open Pputil
 
 let opt_list_notations = ref false
 
-
-
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
-
-(******************************************************************************)
-(* Utility definitions *)
-
-let indent = nest 2
-let indent' ?(level = 2) doc = blank level ^^ align doc
-let small_step = twice hardline
-let big_step = twice small_step
-
-let nys = string "NOT_YET_SUPPORTED "
-let ic = string " IMPOSSIBLE_CASE "
-
-let list_pp = function
-  | [] -> brackets empty
-  | l  -> soft_surround 2 0 lbracket (separate (semi ^^ break 1) l) rbracket
-
-let prod_pp v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
-  rparen
-
-let simple_app argv = indent (flow (break 1) argv)
-let parens_app argv = parens (simple_app argv)
-
-
-(* let string_of_source_position (source_position : source_position) = *)
-(*   let (file, line_number, _start_col, _end_col) = source_position *)
-(*   in *)
-(*   Printf.sprintf "%s:%d" file line_number *)
-
-let string_of_position (position : Lexing.position) =
-  match position with
-  | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
-     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
-
-let rec string_of_location (location : Libsail.Parse_ast.l) =
-  match location with
-  | Unknown -> "UnknownLocation"
-  | Unique (k, loc) ->
-     Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)
-  | Generated loc ->
-     Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
-  | Hint (hint, loc1, loc2) ->
-     Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
-  | Range (pos1, pos2) ->
-     Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
-
-
-let pp_eol = dot
 
 (******************************************************************************)
 (* Type definition pretty printing *)
@@ -135,19 +87,6 @@ let funDecl_pp funDef = indent (simple_app [
   list_pp (map bind_pp funDef.funType.arg_types);
   ty_pp funDef.funType.ret_type
 ])
-
-let pp_coq_section section_title contents =
-  let first_line =
-    string "Section" ^^ space ^^ string section_title ^^ pp_eol
-  in
-  let last_line =
-    string "End" ^^ space ^^ string section_title ^^ pp_eol
-  in
-  concat [
-      first_line ^^ hardline;
-      indent' contents ^^ hardline;
-      last_line;
-    ]
 
 let funDeclKit_pp funDefList =
   let contents = 
