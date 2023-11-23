@@ -90,7 +90,13 @@ let require_import_pp src names = prefix 5 1
 let import_pp names = string "Import "
   ^^ align (separate_map hardline string names) ^^ pp_eol
 
-let open_scope_pp scope = string ("Local Open Scope " ^ scope ^ ".")
+let open_scope_pp scope =
+  concat [
+      string "Local Open Scope";
+      space;
+      string scope;
+      pp_eol
+    ]
 
 
 (******************************************************************************)
