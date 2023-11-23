@@ -56,7 +56,7 @@ let pp_inductive_type name typ constructors =
           space;
           colon;
           space;
-          typ
+          align typ
         ]
     in
     List.map pp_constructor constructors
