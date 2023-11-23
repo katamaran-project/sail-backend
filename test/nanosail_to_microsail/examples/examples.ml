@@ -1,5 +1,8 @@
 open Nanosail.Ast
 
+let add_dummy_sail =
+  List.map (fun x -> (Util.dummy_sail_def, x))
+
 let all_ir =
   let function_definitions =
     Lists.funDefList @ 
@@ -8,7 +11,7 @@ let all_ir =
           Long.funDefList
   and program_name = "All"
   in
-  make_ir_t ~function_definitions:function_definitions program_name
+  make_ir_t ~function_definitions:(add_dummy_sail function_definitions) program_name
 
 let ir_assoc_list = [
     ("lists", Lists.ir);

@@ -58,4 +58,7 @@ let funDefList = [
   };
 ]
 
-let ir = make_ir_t ~function_definitions:funDefList "Expr"
+let add_dummy_sail =
+  List.map (fun x -> (Util.dummy_sail_def, x))
+
+let ir = make_ir_t ~function_definitions:(add_dummy_sail funDefList) "Expr"

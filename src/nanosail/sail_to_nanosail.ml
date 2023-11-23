@@ -356,7 +356,7 @@ let sail_to_nanosail ast name =
   in
   {
     program_name             = name;
-    function_definitions     = List.filter_map (fun (_original, translation) -> extract_function_definition translation) nano_definitions;
+    function_definitions     = collect extract_function_definition;
     type_definitions         = collect extract_type_definition;
     register_definitions     = collect extract_register_definition;
     untranslated_definitions = collect extract_untranslated_definition;

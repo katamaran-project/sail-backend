@@ -179,7 +179,7 @@ let extract_untranslated_definition = function
 (** The type of the NanoSail intermediate representation. *)
 type ir_t = {
   program_name : string;
-  function_definitions : function_definition list;
+  function_definitions : (sail_definition * function_definition) list;
   type_definitions: (sail_definition * type_definition) list;
   register_definitions: (sail_definition * register_definition) list;
   untranslated_definitions : (sail_definition * untranslated_definition) list
@@ -189,7 +189,7 @@ type ir_t = {
 
 
 let make_ir_t
-      ?(function_definitions : function_definition list = [])
+      ?(function_definitions : (sail_definition * function_definition) list = [])
       ?(type_definitions : (sail_definition * type_definition) list = [])
       ?(register_definitions : (sail_definition * register_definition) list = [])
       ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
