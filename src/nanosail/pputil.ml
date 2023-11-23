@@ -19,6 +19,22 @@ let pp_delimited_sequence left_delimiter right_delimiter separator items =
     right_delimiter
   ]
 
+(*
+
+Formats elements as follows
+
+ 1 2
+   3
+   4
+
+*)
+let pp_hanging_list x xs =
+  concat [
+    x;
+    space;
+    align (separate hardline xs)
+  ]
+
 let pp_list items =
   pp_delimited_sequence lbracket rbracket semi items
 

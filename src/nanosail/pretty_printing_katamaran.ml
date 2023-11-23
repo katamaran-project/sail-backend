@@ -32,19 +32,10 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 (* Heading pretty printing *)
 
 let pp_require_import src names =
-  let first_line = string src ^^ space ^^ string "Require Import"
-  and remaining_lines = List.map string names
+  let first = string src ^^ space ^^ string "Require Import"
+  and rest = map string names
   in
-  let lines = first_line :: remaining_lines
-  in
-  concat [
-    string "From";
-    space;
-    align (
-      separate hardline lines
-    );
-    pp_eol
-  ]
+  pp_hanging_list (string "From") (first :: rest) ^^ pp_eol
 
 let pp_import names = string "Import "
   ^^ align (separate_map hardline string names) ^^ pp_eol
