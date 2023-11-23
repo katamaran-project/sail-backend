@@ -246,7 +246,7 @@ and pp_par_statement s = parens (pp_statement s)
 (******************************************************************************)
 (* FunDefKit pretty printing *)
 
-let pp_funDef funDef =
+let pp_function_definition funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
     pp_list (map pp_bind funDef.funType.arg_types);
     pp_ty funDef.funType.ret_type
@@ -259,7 +259,7 @@ let pp_funDefKit funDefList =
   in
   let contents =
     separate small_step [
-        separate_map small_step pp_funDef funDefList;
+        separate_map small_step pp_function_definition funDefList;
         indent (separate hardline [
                     utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
                     utf8string "match f in Fun Δ τ return Stm Δ τ with";
