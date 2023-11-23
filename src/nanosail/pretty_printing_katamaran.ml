@@ -34,7 +34,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 (******************************************************************************)
 (* Heading pretty printing *)
 
-let require_import_pp src names = prefix 5 1
+let pp_require_import src names = prefix 5 1
   (string ("From " ^ src ^ " Require Import"))
   (separate_map hardline string names)
   ^^ pp_eol
@@ -416,8 +416,8 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   let heading =
     let segments =
       [
-        require_import_pp "Coq" !coq_lib_modules;
-        require_import_pp "Katamaran" !katamaran_lib_modules;
+        pp_require_import "Coq" !coq_lib_modules;
+        pp_require_import "Katamaran" !katamaran_lib_modules;
         import_pp !more_modules;
         separate_map hardline open_scope_pp !scopes
       ]
