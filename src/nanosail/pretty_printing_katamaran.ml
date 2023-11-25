@@ -300,7 +300,7 @@ let pp_funDefKit function_definitions =
 let pp_foreignKit =
   let title = "ForeignKit"
   and contents = 
-    separate_map hardline string [
+    separate_map hardline utf8string [
       "Definition Memory : Set := unit.";
       "Definition ForeignCall {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs)";
       "  (res : string + Val σ) (γ γ' : RegStore) (μ μ' : Memory) : Prop := False.";
