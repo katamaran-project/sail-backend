@@ -60,16 +60,26 @@ let inductive_type name typ constructors =
 
 let definition identifier parameters result_type body =
   let first_line =
-    PP.separate PP.space [
-      PP.string "Definition";
-      identifier;
-      PP.align parameters;
-      PP.string ":";
-      result_type;
-      PP.string ":="
-    ]
+    let parts = List.flatten [
+        [
+          PP.string "Definition";
+          identifier
+        ];
+        if PP.requirement parameters == 0
+        then []
+        else [ parameters ];
+        [
+          PP.string ":";
+          result_type;
+          PP.string ":="
+        ]
+      ]
+    in
+    PP.separate PP.space parts
   and second_line =
     PU.indent' body
   in
-  PP.separate PP.hardline [first_line; second_line]
-    
+  PP.concat [
+    PP.separate PP.hardline [first_line; second_line];
+    eol
+  ]

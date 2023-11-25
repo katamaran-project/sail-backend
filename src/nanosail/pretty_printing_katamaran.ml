@@ -3,6 +3,7 @@ open Ast
 open Util
 open Pputil
 
+module PP = PPrint
 module Coq = Coq_generation
 
 module S = struct
@@ -274,10 +275,31 @@ and pp_par_statement s = parens (pp_statement s)
 (* FunDefKit pretty printing *)
 
 let pp_function_definition funDef =
-  indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
-    Coq.list (List.map pp_bind funDef.funType.arg_types);
-    pp_ty funDef.funType.ret_type
-  ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ Coq.eol)
+  let identifier =
+    PP.string ("fun_" ^ funDef.funName)
+  in
+  let parameters =
+    empty
+  in
+  let return_type =
+    PP.separate PP.space [
+      PP.string "Stm";
+      Coq.list (List.map pp_bind funDef.funType.arg_types);
+      pp_ty funDef.funType.ret_type
+    ]
+  in
+  let body =
+    pp_statement funDef.funBody
+  in
+  Coq.definition identifier parameters return_type body
+
+  (* indent ( *)
+  (*   simple_app [ *)
+  (*     string ("Definition fun_" ^ funDef.funName ^ " : Stm"); *)
+  (*     Coq.list (List.map pp_bind funDef.funType.arg_types); *)
+  (*     pp_ty funDef.funType.ret_type *)
+  (*   ] ^^ string " :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ Coq.eol *)
+  (* ) *)
 
 let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
