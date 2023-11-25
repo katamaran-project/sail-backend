@@ -19,7 +19,7 @@ let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
 
 let pp_multiline_comment comment =
-  string "(*" ^^ twice hardline ^^ indent' comment ^^ string "\n*)"
+  string "(*" ^^ twice hardline ^^ indent' comment ^^ hardline ^^ string "*)"
 
 let annotate_with_original_definition original translation =
   if
