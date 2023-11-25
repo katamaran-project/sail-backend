@@ -4,7 +4,7 @@ module PU = Pputil
 
 let eol = PP.dot
 
-let pp_list items =
+let list items =
   PU.pp_delimited_sequence PP.lbracket PP.rbracket PP.semi items
 
 let pp_section section_title contents =

@@ -86,7 +86,7 @@ let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and function_type =
-      let parameter_types = Coq.pp_list (List.map pp_bind funDef.funType.arg_types)
+      let parameter_types = Coq.list (List.map pp_bind funDef.funType.arg_types)
       and return_type = pp_ty funDef.funType.ret_type
       in
       concat [
@@ -214,7 +214,7 @@ let rec pp_expression e =
   | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
   | Exp_list l ->
       let pp_l = if !opt_list_notations
-        then Coq.pp_list (List.map pp_expression l)
+        then Coq.list (List.map pp_expression l)
         else pp_exp_list l in
       simple_app [string "exp_list"; pp_l]
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
@@ -271,7 +271,7 @@ and pp_par_statement s = parens (pp_statement s)
 
 let pp_function_definition funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
-    Coq.pp_list (List.map pp_bind funDef.funType.arg_types);
+    Coq.list (List.map pp_bind funDef.funType.arg_types);
     pp_ty funDef.funType.ret_type
   ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ Coq.eol)
 
