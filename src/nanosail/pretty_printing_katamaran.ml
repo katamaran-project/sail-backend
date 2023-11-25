@@ -316,19 +316,27 @@ let pp_function_definitions function_definitions =
   separate_map small_step (uncurry pp_function_definition) function_definitions
 
 let pp_funDefKit function_definitions =
-  let pp_name_binding funDef = prefix 4 1
-    (string ("| " ^ funDef.funName ^ " =>"))
-    (string ("fun_" ^ funDef.funName))
+  let fundef =
+    let identifier = string "FunDef"
+    and parameters = utf8string "{Δ τ} (f : Fun Δ τ)"
+    and return_type = utf8string "Stm Δ τ"
+    and body =
+      let pp_name_binding funDef = prefix 4 1
+          (string ("| " ^ funDef.funName ^ " =>"))
+          (string ("fun_" ^ funDef.funName))
+      in
+      separate hardline [
+        utf8string "match f in Fun Δ τ return Stm Δ τ with";
+        separate_map hardline pp_name_binding (List.map snd function_definitions);
+        string "end"
+      ]
+    in
+    Coq.definition identifier parameters return_type body
   in
   let contents =
     separate small_step [
         pp_function_definitions function_definitions;
-        indent (separate hardline [
-                    utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
-                    utf8string "match f in Fun Δ τ return Stm Δ τ with";
-                    separate_map hardline pp_name_binding (List.map snd function_definitions);
-                    string "end."
-          ]);
+        fundef
       ]
   in
   Coq.section "FunDefKit" contents
