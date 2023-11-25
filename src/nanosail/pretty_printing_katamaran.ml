@@ -18,6 +18,18 @@ let include_original_sail_code = ref false
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
 
+let pp_multiline_comment comment =
+  string "(*" ^^ twice hardline ^^ indent' comment ^^ string "\n*)"
+
+let annotate_with_original_definition original translation =
+  if
+    !include_original_sail_code
+  then
+    pp_multiline_comment (pp_sail_definition original) ^^ hardline ^^ translation
+  else
+    translation
+
+
 (******************************************************************************)
 (* Type definition pretty printing *)
 
@@ -351,17 +363,6 @@ let pp_program_module program_name base_name function_definitions =
 
 (******************************************************************************)
 (* Type definition pretty printing *)
-
-let pp_multiline_comment comment =
-  string "(*" ^^ twice hardline ^^ indent' comment ^^ string "\n*)"
-
-let annotate_with_original_definition original translation =
-  if
-    !include_original_sail_code
-  then
-    pp_multiline_comment (pp_sail_definition original) ^^ hardline ^^ translation
-  else
-    translation
 
 let pp_type_module type_definitions =
   let pp_type_definition (original : S.sail_definition) (type_definition : type_definition) : document =
