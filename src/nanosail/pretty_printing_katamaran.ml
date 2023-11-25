@@ -136,7 +136,7 @@ let rec pp_value = function
   | Val_bool b        -> string (string_of_bool b)
   | Val_int i         -> pp_int i
   | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> pp_prod (pp_value v1) (pp_value v2)
+  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
   | Val_nys           -> !^"VAL_" ^^ nys
 
 

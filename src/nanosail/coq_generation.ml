@@ -52,3 +52,8 @@ let inductive_type name typ constructors =
     first_line :: constructor_lines
   in
   separate hardline lines ^^ eol
+
+let product v1 v2 =
+  let open PP
+  in
+  soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen

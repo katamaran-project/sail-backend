@@ -32,9 +32,6 @@ let pp_hanging_list x xs =
     align (separate hardline xs)
   ]
 
-let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
-  rparen
-
 let simple_app argv = indent (flow (break 1) argv)
 let parens_app argv = parens (simple_app argv)
 
