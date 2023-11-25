@@ -1,9 +1,3 @@
-(* open Ast *)
-(* open Libsail.Ast *)
-(* open Libsail.Ast_defs *)
-(* open Libsail.Anf *)
-(* open Libsail *)
-
 module Big_int = Nat_big_num
 
 module S = struct
