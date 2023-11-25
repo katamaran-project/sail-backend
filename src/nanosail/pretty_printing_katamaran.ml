@@ -13,6 +13,8 @@ end
 
 let opt_list_notations = ref false
 
+let include_original_sail_code = ref false
+
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
 
@@ -350,15 +352,15 @@ let pp_program_module program_name base_name function_definitions =
 let pp_multiline_comment comment =
   string "(*" ^^ twice hardline ^^ indent' comment ^^ string "\n*)"
 
-let annotate_with_original_definition show_original original translation =
+let annotate_with_original_definition original translation =
   if
-    show_original
+    !include_original_sail_code
   then
     pp_multiline_comment (pp_sail_definition original) ^^ hardline ^^ translation
   else
     translation
 
-let pp_type_module show_original type_definitions =
+let pp_type_module type_definitions =
   let pp_type_definition (original : S.sail_definition) (type_definition : type_definition) : document =
     let document =
       match type_definition with
@@ -374,7 +376,7 @@ let pp_type_module show_original type_definitions =
           Coq.eol
         ]
     in
-    annotate_with_original_definition show_original original document
+    annotate_with_original_definition original document
   in
   List.map (uncurry pp_type_definition) type_definitions
 
@@ -382,7 +384,7 @@ let pp_type_module show_original type_definitions =
 (******************************************************************************)
 (* Register definition pretty printing *)
 
-let pp_register_module _show_original (register_definitions : (S.sail_definition * register_definition) list) : document =
+let pp_register_module (register_definitions : (S.sail_definition * register_definition) list) : document =
   let pp_register_definition ({ identifier; typ } : register_definition) =
     concat [
         string "|";
@@ -458,7 +460,7 @@ let scopes = ref [
 let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
-let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
+let fromIR_pp ?(show_untranslated=false) ir =
   if !opt_list_notations then (
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
     more_modules := List.append !more_modules ["ListNotations"]
@@ -482,7 +484,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       List.concat [
           [ pp_module_header "TYPES" ];
           [ defaultBase ];
-          pp_type_module show_original ir.type_definitions;
+          pp_type_module ir.type_definitions;
         ]
     in
     generate_section segments
@@ -505,7 +507,7 @@ let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
       let segments =
         [
           pp_module_header "REGISTERS";
-          pp_register_module show_original ir.register_definitions
+          pp_register_module ir.register_definitions
         ]
       in
       generate_section segments

@@ -5,7 +5,6 @@ open Nanosail.Pretty_printing_katamaran
 (** Width of the output (default is 200) *)
 let opt_width = ref 200
 
-let opt_show_original_sail = ref false
 let opt_include_untranslated = ref false
 
 (** Command line options added to sail when the sail_katamaran_backend is loaded
@@ -21,7 +20,7 @@ let katamaran_options = [
     Arg.Set_int opt_width,
     "set a custom width for the output");
   ("-katamaran_add_original",
-   Arg.Set opt_show_original_sail,
+   Arg.Set include_original_sail_code,
    "show original Sail code in output");
   ("-katamaran_include_untranslated",
    Arg.Set opt_include_untranslated,
@@ -117,7 +116,7 @@ let katamaran_target _ _ filename ast _ _ =
   in
   let nanosail_representation = sail_to_nanosail ast program_name
   in
-  let document = fromIR_pp ~show_original:!opt_show_original_sail ~show_untranslated:!opt_include_untranslated nanosail_representation
+  let document = fromIR_pp ~show_untranslated:!opt_include_untranslated nanosail_representation
   in
   context (fun output_channel -> pretty_print !opt_width output_channel document)
 
