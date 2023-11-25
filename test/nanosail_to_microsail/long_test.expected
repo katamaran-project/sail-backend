@@ -39,9 +39,12 @@ Module Import LongProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-    Definition fun_very_long_naaaaaaaaaaaaaaaaame : Stm
-        ["l" ∷ (ty.list ty.int); "b" ∷ ty.bool; "n" ∷ ty.int]
-        (ty.list (ty.list (ty.list ty.bool))) :=
+    Definition fun_very_long_naaaaaaaaaaaaaaaaame : Stm ["l" ∷ (ty.list ty.int);
+                                                         "b" ∷ ty.bool;
+                                                         "n" ∷ ty.int]
+                                                        (ty.list
+                                                          (ty.list
+                                                            (ty.list ty.bool))) :=
       stm_exp
         (exp_list
           (cons
