@@ -288,7 +288,7 @@ and pp_par_statement s = parens (pp_statement s)
 (******************************************************************************)
 (* FunDefKit pretty printing *)
 
-let pp_function_definition _original_sail_code function_definition =
+let pp_function_definition original_sail_code function_definition =
   let identifier =
     PP.string ("fun_" ^ function_definition.funName)
   in
@@ -304,7 +304,9 @@ let pp_function_definition _original_sail_code function_definition =
   let body =
     pp_statement function_definition.funBody
   in
-  Coq.definition identifier parameters return_type body
+  annotate_with_original_definition original_sail_code (
+    Coq.definition identifier parameters return_type body
+  )
 
 let pp_function_definitions function_definitions =
   separate_map small_step (uncurry pp_function_definition) function_definitions
