@@ -19,18 +19,31 @@ let pp_delimited_sequence left_delimiter right_delimiter separator items =
   ]
 
 (*
-   Formats elements as follows
+   Formats elements as
+
+    x xs[0] xs[1] xs[2]
+
+    or
 
     x xs[0]
       xs[1]
       xs[2]
 *)
-let pp_hanging_list x xs =
-  concat [
-    x;
-    space;
-    align (separate hardline xs)
-  ]
+let pp_hanging_list ?(adaptive = true) x xs =
+  if
+    adaptive
+  then
+    concat [
+      x;
+      space;
+      align (group (separate (break 1) xs))
+    ]
+  else
+    concat [
+      x;
+      space;
+      align (separate hardline xs)
+    ]
 
 let simple_app argv = indent (flow (break 1) argv)
 let parens_app argv = parens (simple_app argv)
@@ -41,7 +54,6 @@ let pp_indented_enclosed_lines starting_line indented ending_line =
     indent' indented;
     ending_line
   ]
-
 
 let string_of_position (position : Lexing.position) =
   match position with
@@ -59,3 +71,4 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
      Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
   | Range (pos1, pos2) ->
      Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
+

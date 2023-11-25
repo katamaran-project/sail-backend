@@ -1,15 +1,14 @@
-module PP = PPrint
+open PPrint
+
 module PU = Pputil
 
 
-let eol = PP.dot
+let eol = dot
 
 let list items =
-  PU.pp_delimited_sequence PP.lbracket PP.rbracket PP.semi items
+  PU.pp_delimited_sequence lbracket rbracket semi items
 
 let product v1 v2 =
-  let open PP
-  in
   soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
 
 let section section_title contents =
@@ -48,7 +47,7 @@ let inductive_type name typ constructors =
           space;
           colon;
           space;
-          align typ
+          align typ;
         ]
     in
     List.map pp_constructor constructors
@@ -59,27 +58,34 @@ let inductive_type name typ constructors =
   separate hardline lines ^^ eol
 
 let definition identifier parameters result_type body =
+  let pp_parameters =
+    if requirement parameters == 0
+    then empty
+    else (break 1) ^^ parameters
+  in
   let first_line =
-    let parts = List.flatten [
-        [
-          PP.string "Definition";
-          identifier
-        ];
-        if PP.requirement parameters == 0
-        then []
-        else [ parameters ];
-        [
-          PP.string ":";
-          result_type;
-          PP.string ":="
-        ]
-      ]
-    in
-    PP.separate PP.space parts
+    group (
+      concat [
+        string "Definition";
+        space;
+        identifier;
+        pp_parameters;
+        space;
+        colon;
+        group (
+          concat [
+            space;
+            align result_type;
+          ]
+        );
+        space;
+        string ":="
+      ];
+    )
   and second_line =
     PU.indent' body
   in
-  PP.concat [
-    PP.separate PP.hardline [first_line; second_line];
+  concat [
+    separate hardline [first_line; second_line];
     eol
   ]

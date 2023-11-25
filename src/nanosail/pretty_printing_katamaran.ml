@@ -42,10 +42,10 @@ let pp_require_import src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
-  pp_hanging_list (string "From") (first :: rest) ^^ Coq.eol
+  pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ Coq.eol
 
 let pp_import names =
-  pp_hanging_list (string "Import") (List.map string names) ^^ Coq.eol
+  pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ Coq.eol
 
 let pp_open_scope scope =
   concat [
@@ -282,8 +282,7 @@ let pp_function_definition funDef =
     empty
   in
   let return_type =
-    PP.separate PP.space [
-      PP.string "Stm";
+    pp_hanging_list (PP.string "Stm") [
       Coq.list (List.map pp_bind funDef.funType.arg_types);
       pp_ty funDef.funType.ret_type
     ]
