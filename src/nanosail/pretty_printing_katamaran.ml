@@ -3,7 +3,7 @@ open Ast
 open Util
 open Pputil
 
-module CG = Coq_generation
+module Coq = Coq_generation
 
 
 let opt_list_notations = ref false
@@ -37,17 +37,17 @@ let pp_require_import src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
-  pp_hanging_list (string "From") (first :: rest) ^^ CG.eol
+  pp_hanging_list (string "From") (first :: rest) ^^ Coq.eol
 
 let pp_import names =
-  pp_hanging_list (string "Import") (List.map string names) ^^ pp_eol
+  pp_hanging_list (string "Import") (List.map string names) ^^ Coq.eol
 
 let pp_open_scope scope =
   concat [
       string "Local Open Scope";
       space;
       string scope;
-      CG.eol
+      Coq.eol
     ]
 
 
@@ -86,7 +86,7 @@ let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and function_type =
-      let parameter_types = pp_list (List.map pp_bind funDef.funType.arg_types)
+      let parameter_types = Coq.pp_list (List.map pp_bind funDef.funType.arg_types)
       and return_type = pp_ty funDef.funType.ret_type
       in
       concat [
@@ -110,7 +110,7 @@ let pp_funDeclKit funDefList =
     and typ = string "PCtx -> Ty -> Set"
     and constructors = List.map pp_function_declaration funDefList
     in
-    pp_inductive_type name typ constructors
+    Coq.pp_inductive_type name typ constructors
   in
   let contents =
     separate small_step [
@@ -122,7 +122,7 @@ let pp_funDeclKit funDefList =
           ]
       ]
   in
-  pp_section "FunDeclKit" contents
+  Coq.pp_section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
@@ -214,7 +214,7 @@ let rec pp_expression e =
   | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
   | Exp_list l ->
       let pp_l = if !opt_list_notations
-        then pp_list (List.map pp_expression l)
+        then Coq.pp_list (List.map pp_expression l)
         else pp_exp_list l in
       simple_app [string "exp_list"; pp_l]
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
@@ -271,9 +271,9 @@ and pp_par_statement s = parens (pp_statement s)
 
 let pp_function_definition funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
-    pp_list (List.map pp_bind funDef.funType.arg_types);
+    Coq.pp_list (List.map pp_bind funDef.funType.arg_types);
     pp_ty funDef.funType.ret_type
-  ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ CG.eol)
+  ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ Coq.eol)
 
 let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
@@ -291,7 +291,7 @@ let pp_funDefKit function_definitions =
           ]);
       ]
   in
-  pp_section "FunDefKit" contents
+  Coq.pp_section "FunDefKit" contents
 
 
 (******************************************************************************)
@@ -309,7 +309,7 @@ let pp_foreignKit =
       "Proof. destruct f. Qed."
     ]
   in
-  pp_section title contents
+  Coq.pp_section title contents
 
 
 (******************************************************************************)
@@ -354,7 +354,7 @@ let pp_type_module show_original type_definitions =
           string ":=";
           space;
           pp_numeric_expression numexpr;
-          CG.eol
+          Coq.eol
         ]
     in
     annotate_with_original_definition show_original original document
@@ -384,7 +384,7 @@ let pp_register_module _show_original (register_definitions : (sail_definition *
                 [
                   [ string "Inductive Reg : Ty -> Set :=" ];
                   register_lines;
-                  [ CG.eol ]
+                  [ Coq.eol ]
                 ]
   in
   separate hardline lines
