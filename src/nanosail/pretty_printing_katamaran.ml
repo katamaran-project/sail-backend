@@ -321,15 +321,18 @@ let pp_funDefKit function_definitions =
     and parameters = utf8string "{Δ τ} (f : Fun Δ τ)"
     and return_type = utf8string "Stm Δ τ"
     and body =
-      let pp_name_binding funDef = prefix 4 1
-          (string ("| " ^ funDef.funName ^ " =>"))
-          (string ("fun_" ^ funDef.funName))
+      let matched_expression =
+        utf8string "f in Fun Δ τ return Stm Δ τ"
+      and cases =
+        let case_of_function_definition function_definition =
+          (
+            string function_definition.funName,
+            string (Printf.sprintf "fun_%s" function_definition.funName)
+          )
+        in
+        List.map case_of_function_definition (List.map snd function_definitions)
       in
-      separate hardline [
-        utf8string "match f in Fun Δ τ return Stm Δ τ with";
-        separate_map hardline pp_name_binding (List.map snd function_definitions);
-        string "end"
-      ]
+      Coq.match' matched_expression cases
     in
     Coq.definition identifier parameters return_type body
   in

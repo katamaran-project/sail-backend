@@ -89,3 +89,25 @@ let definition identifier parameters result_type body =
     separate hardline [first_line; second_line];
     eol
   ]
+
+let match' expression cases =
+  let match_line =
+    string "match" ^^ space ^^ expression ^^ space ^^ string "with"
+  in
+  let case_lines =
+    let generate_case (pattern, expression) =
+      bar ^^ space ^^ pattern ^^ space ^^ string "=>" ^^ space ^^ expression
+    in
+    List.map generate_case cases
+  in
+  let final_line =
+    string "end"
+  in
+  let lines =
+    List.flatten [
+      [ match_line ];
+      case_lines;
+      [ final_line ]
+    ]
+  in
+  separate hardline lines
