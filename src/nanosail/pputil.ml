@@ -6,7 +6,6 @@ let indent' ?(level = 2) doc = blank level ^^ align doc
 let small_step = twice hardline
 let big_step   = twice small_step
 
-let pp_eol = dot
 let nys    = string "NOT_YET_SUPPORTED "
 let ic     = string " IMPOSSIBLE_CASE "
 

@@ -3,6 +3,9 @@ open Ast
 open Util
 open Pputil
 
+module CG = Coq_generation
+
+
 let opt_list_notations = ref false
 
 let pp_sail_definition sail_definition =
@@ -34,7 +37,7 @@ let pp_require_import src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
-  pp_hanging_list (string "From") (first :: rest) ^^ pp_eol
+  pp_hanging_list (string "From") (first :: rest) ^^ CG.eol
 
 let pp_import names =
   pp_hanging_list (string "Import") (List.map string names) ^^ pp_eol
@@ -44,7 +47,7 @@ let pp_open_scope scope =
       string "Local Open Scope";
       space;
       string scope;
-      pp_eol
+      CG.eol
     ]
 
 
@@ -270,7 +273,7 @@ let pp_function_definition funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
     pp_list (List.map pp_bind funDef.funType.arg_types);
     pp_ty funDef.funType.ret_type
-  ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ pp_eol)
+  ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ CG.eol)
 
 let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
@@ -351,7 +354,7 @@ let pp_type_module show_original type_definitions =
           string ":=";
           space;
           pp_numeric_expression numexpr;
-          pp_eol
+          CG.eol
         ]
     in
     annotate_with_original_definition show_original original document
@@ -381,7 +384,7 @@ let pp_register_module _show_original (register_definitions : (sail_definition *
                 [
                   [ string "Inductive Reg : Ty -> Set :=" ];
                   register_lines;
-                  [ pp_eol ]
+                  [ CG.eol ]
                 ]
   in
   separate hardline lines
