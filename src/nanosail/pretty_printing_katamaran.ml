@@ -293,14 +293,6 @@ let pp_function_definition funDef =
   in
   Coq.definition identifier parameters return_type body
 
-  (* indent ( *)
-  (*   simple_app [ *)
-  (*     string ("Definition fun_" ^ funDef.funName ^ " : Stm"); *)
-  (*     Coq.list (List.map pp_bind funDef.funType.arg_types); *)
-  (*     pp_ty funDef.funType.ret_type *)
-  (*   ] ^^ string " :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ Coq.eol *)
-  (* ) *)
-
 let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
     (string ("| " ^ funDef.funName ^ " =>"))
