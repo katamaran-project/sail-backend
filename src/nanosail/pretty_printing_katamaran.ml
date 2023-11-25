@@ -122,7 +122,7 @@ let pp_funDeclKit funDefList =
           ]
       ]
   in
-  Coq.pp_section "FunDeclKit" contents
+  Coq.section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
@@ -291,7 +291,7 @@ let pp_funDefKit function_definitions =
           ]);
       ]
   in
-  Coq.pp_section "FunDefKit" contents
+  Coq.section "FunDefKit" contents
 
 
 (******************************************************************************)
@@ -309,7 +309,7 @@ let pp_foreignKit =
       "Proof. destruct f. Qed."
     ]
   in
-  Coq.pp_section title contents
+  Coq.section title contents
 
 
 (******************************************************************************)
