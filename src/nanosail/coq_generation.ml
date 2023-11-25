@@ -18,7 +18,7 @@ let section section_title contents =
   in
   PU.pp_indented_enclosed_lines first_line contents last_line
 
-let pp_inductive_type name typ constructors =
+let inductive_type name typ constructors =
   let open PPrint
   in
   let first_line =

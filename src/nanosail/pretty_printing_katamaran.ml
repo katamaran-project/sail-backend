@@ -110,7 +110,7 @@ let pp_funDeclKit funDefList =
     and typ = string "PCtx -> Ty -> Set"
     and constructors = List.map pp_function_declaration funDefList
     in
-    Coq.pp_inductive_type name typ constructors
+    Coq.inductive_type name typ constructors
   in
   let contents =
     separate small_step [
