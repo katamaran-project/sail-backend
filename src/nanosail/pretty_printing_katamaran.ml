@@ -294,6 +294,9 @@ let pp_function_definition _original_sail_code function_definition =
   in
   Coq.definition identifier parameters return_type body
 
+let pp_function_definitions function_definitions =
+  separate_map small_step (uncurry pp_function_definition) function_definitions
+
 let pp_funDefKit function_definitions =
   let pp_name_binding funDef = prefix 4 1
     (string ("| " ^ funDef.funName ^ " =>"))
@@ -301,7 +304,7 @@ let pp_funDefKit function_definitions =
   in
   let contents =
     separate small_step [
-        separate_map small_step (uncurry pp_function_definition) function_definitions;
+        pp_function_definitions function_definitions;
         indent (separate hardline [
                     utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
                     utf8string "match f in Fun Δ τ return Stm Δ τ with";
