@@ -20,13 +20,11 @@ let pp_delimited_sequence left_delimiter right_delimiter separator items =
   ]
 
 (*
+   Formats elements as follows
 
-Formats elements as follows
-
- x xs[0]
-   xs[1]
-   xs[2]
-
+    x xs[0]
+      xs[1]
+      xs[2]
 *)
 let pp_hanging_list x xs =
   concat [
