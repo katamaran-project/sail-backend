@@ -274,21 +274,21 @@ and pp_par_statement s = parens (pp_statement s)
 (******************************************************************************)
 (* FunDefKit pretty printing *)
 
-let pp_function_definition funDef =
+let pp_function_definition _original_sail_code function_definition =
   let identifier =
-    PP.string ("fun_" ^ funDef.funName)
+    PP.string ("fun_" ^ function_definition.funName)
   in
   let parameters =
     empty
   in
   let return_type =
     pp_hanging_list (PP.string "Stm") [
-      Coq.list (List.map pp_bind funDef.funType.arg_types);
-      pp_ty funDef.funType.ret_type
+      Coq.list (List.map pp_bind function_definition.funType.arg_types);
+      pp_ty function_definition.funType.ret_type
     ]
   in
   let body =
-    pp_statement funDef.funBody
+    pp_statement function_definition.funBody
   in
   Coq.definition identifier parameters return_type body
 
@@ -299,11 +299,11 @@ let pp_funDefKit function_definitions =
   in
   let contents =
     separate small_step [
-        separate_map small_step pp_function_definition function_definitions;
+        separate_map small_step (uncurry pp_function_definition) function_definitions;
         indent (separate hardline [
                     utf8string "Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=";
                     utf8string "match f in Fun Δ τ return Stm Δ τ with";
-                    separate_map hardline pp_name_binding function_definitions;
+                    separate_map hardline pp_name_binding (List.map snd function_definitions);
                     string "end."
           ]);
       ]
@@ -337,7 +337,7 @@ let pp_program_module program_name base_name function_definitions =
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
     pp_funDeclKit (List.map snd function_definitions);
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
-    pp_funDefKit (List.map snd function_definitions);
+    pp_funDefKit function_definitions;
     string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
     pp_foreignKit;
     string ("Include ProgramMixin " ^ base_name ^ "Base.");
