@@ -1,4 +1,3 @@
-open List
 open PPrint
 open Ast
 open Util
@@ -33,7 +32,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 
 let pp_require_import src names =
   let first = string src ^^ space ^^ string "Require Import"
-  and rest = map string names
+  and rest = List.map string names
   in
   pp_hanging_list (string "From") (first :: rest) ^^ pp_eol
 
@@ -70,7 +69,7 @@ let pp_ty_id = function
 
 let rec pp_ty = function
   | Ty_id (ty_id)         -> pp_ty_id ty_id
-  | Ty_app (ty_id, targs) -> parens_app ((pp_ty_id ty_id) :: (map pp_type_argument targs))
+  | Ty_app (ty_id, targs) -> parens_app ((pp_ty_id ty_id) :: (List.map pp_type_argument targs))
   | Ty_nys                -> !^"TY_" ^^ nys
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
@@ -84,7 +83,7 @@ let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and function_type =
-      let parameter_types = pp_list (map pp_bind funDef.funType.arg_types)
+      let parameter_types = pp_list (List.map pp_bind funDef.funType.arg_types)
       and return_type = pp_ty funDef.funType.ret_type
       in
       concat [
@@ -212,7 +211,7 @@ let rec pp_expression e =
   | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
   | Exp_list l ->
       let pp_l = if !opt_list_notations
-        then pp_list (map pp_expression l)
+        then pp_list (List.map pp_expression l)
         else pp_exp_list l in
       simple_app [string "exp_list"; pp_l]
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
@@ -244,7 +243,7 @@ let rec pp_statement = function
          pp_par_statement m.rhs
        ]
   | Stm_call (f, arg_list) ->
-     simple_app (string "call" :: !^f :: (map pp_par_expression arg_list))
+     simple_app (string "call" :: !^f :: (List.map pp_par_expression arg_list))
   | Stm_let (v, s1, s2) ->
      simple_app [
          string ("let: \"" ^ v ^ "\" :=");
@@ -269,7 +268,7 @@ and pp_par_statement s = parens (pp_statement s)
 
 let pp_function_definition funDef =
   indent (simple_app [string ("Definition fun_" ^ funDef.funName ^ " : Stm");
-    pp_list (map pp_bind funDef.funType.arg_types);
+    pp_list (List.map pp_bind funDef.funType.arg_types);
     pp_ty funDef.funType.ret_type
   ] ^^ !^" :=" ^^ hardline ^^ pp_statement funDef.funBody ^^ pp_eol)
 
@@ -442,7 +441,7 @@ let pp_module_header title =
 let fromIR_pp ?(show_original=false) ?(show_untranslated=false) ir =
   if !opt_list_notations then (
     coq_lib_modules := "Lists.List" :: !coq_lib_modules;
-    more_modules := append !more_modules ["ListNotations"]
+    more_modules := List.append !more_modules ["ListNotations"]
   );
   let generate_section segments =
     [ separate small_step segments ]
