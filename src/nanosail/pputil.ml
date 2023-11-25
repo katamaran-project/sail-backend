@@ -42,6 +42,13 @@ let pp_prod v1 v2 = soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2)
 let simple_app argv = indent (flow (break 1) argv)
 let parens_app argv = parens (simple_app argv)
 
+let pp_indented_enclosed_lines starting_line indented ending_line =
+  separate hardline [
+    starting_line;
+    indent' indented;
+    ending_line
+  ]
+
 let pp_section section_title contents =
   let first_line =
     string "Section" ^^ space ^^ string section_title ^^ pp_eol
@@ -49,11 +56,7 @@ let pp_section section_title contents =
   let last_line =
     string "End" ^^ space ^^ string section_title ^^ pp_eol
   in
-  concat [
-      first_line ^^ hardline;
-      indent' contents ^^ hardline;
-      last_line;
-    ]
+  pp_indented_enclosed_lines first_line contents last_line
 
 let pp_inductive_type name typ constructors =
   let first_line =
