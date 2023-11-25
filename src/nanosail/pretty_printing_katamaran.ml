@@ -5,6 +5,10 @@ open Pputil
 
 module Coq = Coq_generation
 
+module S = struct
+  include Sail_util
+end
+
 
 let opt_list_notations = ref false
 
@@ -342,7 +346,7 @@ let annotate_with_original_definition show_original original translation =
     translation
 
 let pp_type_module show_original type_definitions =
-  let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
+  let pp_type_definition (original : S.sail_definition) (type_definition : type_definition) : document =
     let document =
       match type_definition with
       | TD_abbreviation (identifier, TA_numeric_expression numexpr) ->
@@ -365,7 +369,7 @@ let pp_type_module show_original type_definitions =
 (******************************************************************************)
 (* Register definition pretty printing *)
 
-let pp_register_module _show_original (register_definitions : (sail_definition * register_definition) list) : document =
+let pp_register_module _show_original (register_definitions : (S.sail_definition * register_definition) list) : document =
   let pp_register_definition ({ identifier; typ } : register_definition) =
     concat [
         string "|";
@@ -394,7 +398,7 @@ let pp_register_module _show_original (register_definitions : (sail_definition *
 (* Untranslated definition pretty printing *)
 
 let pp_untranslated_module untranslated_definitions =
-  let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
+  let pp_untranslated_definition (original : S.sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in
     let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
     let sail_location_string = Printf.sprintf "Sail location: %s" (string_of_location sail_location) in
