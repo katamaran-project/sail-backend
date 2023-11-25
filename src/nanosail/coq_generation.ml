@@ -95,8 +95,13 @@ let match' expression cases =
     string "match" ^^ space ^^ expression ^^ space ^^ string "with"
   in
   let case_lines =
+    let longest_pattern_width =
+      let widths = List.map (fun pattern -> requirement pattern) (List.map fst cases)
+      in
+      List.fold_left max 0 widths
+    in
     let generate_case (pattern, expression) =
-      bar ^^ space ^^ pattern ^^ space ^^ string "=>" ^^ space ^^ expression
+      bar ^^ space ^^ PU.pad_right longest_pattern_width pattern ^^ space ^^ string "=>" ^^ space ^^ expression
     in
     List.map generate_case cases
   in
