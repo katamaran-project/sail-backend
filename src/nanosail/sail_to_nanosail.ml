@@ -22,10 +22,10 @@ let not_yet_implemented ?(message = "") source_position sail_location =
 
 (******************************************************************************)
 
-let string_of_id (Id_aux (aux, _)) =
+let string_of_id (Id_aux (aux, location)) =
   match aux with
   | Id x -> x
-  | _ -> " NOT YET SUPPORTED "
+  | Operator _ -> not_yet_implemented __POS__ location
 
 (******************************************************************************)
 
