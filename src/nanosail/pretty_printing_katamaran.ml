@@ -25,7 +25,11 @@ let annotate_with_original_definition original translation =
   if
     !include_original_sail_code
   then
-    pp_multiline_comment (pp_sail_definition original) ^^ hardline ^^ translation
+    concat [
+      pp_multiline_comment (pp_sail_definition original);
+      hardline;
+      translation
+    ]
   else
     translation
 
