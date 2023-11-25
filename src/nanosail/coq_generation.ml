@@ -57,3 +57,19 @@ let inductive_type name typ constructors =
     first_line :: constructor_lines
   in
   separate hardline lines ^^ eol
+
+let definition identifier parameters result_type body =
+  let first_line =
+    PP.separate PP.space [
+      PP.string "Definition";
+      identifier;
+      PP.align parameters;
+      PP.string ":";
+      result_type;
+      PP.string ":="
+    ]
+  and second_line =
+    PU.indent' body
+  in
+  PP.separate PP.hardline [first_line; second_line]
+    
