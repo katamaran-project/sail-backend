@@ -11,11 +11,13 @@ type source_position = string * int * int * int
 
 exception NotYetImplemented of source_position * l * string option
 
-let not_yet_implemented source_position sail_location =
-  raise (NotYetImplemented (source_position, sail_location, None))
-
-let not_yet_implemented_msg source_position sail_location message =
-  raise (NotYetImplemented (source_position, sail_location, Some message))
+let not_yet_implemented ?(message = "") source_position sail_location =
+  let message =
+    if message == ""
+    then None
+    else Some message
+  in
+  raise (NotYetImplemented (source_position, sail_location, message))
 
 
 (******************************************************************************)
@@ -49,7 +51,7 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
   | Id "unit"      -> Unit
   | Id "string"    -> String
   | Id "bitvector" -> Bitvector
-  | Id id          -> not_yet_implemented_msg __POS__ location (Printf.sprintf "Missing case Id \"%s\"" id)
+  | Id id          -> not_yet_implemented ~message:(Printf.sprintf "Missing case Id \"%s\"" id) __POS__ location
   | Operator _     -> not_yet_implemented __POS__ location
 
 
@@ -70,7 +72,7 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
   | Typ_tuple items ->
      (
        match items with
-       | []                -> not_yet_implemented_msg __POS__ location "Should not occur"
+       | []                -> not_yet_implemented ~message:"Should not occur" __POS__ location
        | h_typ :: typs     ->
           let h_ty = ty_of_typ h_typ in
           let f ty1 typ2 =
