@@ -1,15 +1,23 @@
 open Ast
-open Libsail.Ast
-open Libsail.Ast_defs
-open Libsail.Anf
-open Libsail
+(* open Libsail.Ast *)
+(* open Libsail.Ast_defs *)
+(* open Libsail.Anf *)
+(* open Libsail *)
 
 module Big_int = Nat_big_num
 
 
+module S = struct
+  include Libsail
+  include Libsail.Ast
+  include Libsail.Ast_defs
+  include Libsail.Anf
+end
+
+
 type source_position = string * int * int * int
 
-exception NotYetImplemented of source_position * l * string option
+exception NotYetImplemented of source_position * S.l * string option
 
 let not_yet_implemented ?(message = "") source_position sail_location =
   let message =
@@ -22,14 +30,14 @@ let not_yet_implemented ?(message = "") source_position sail_location =
 
 (******************************************************************************)
 
-let string_of_id (Id_aux (aux, location)) =
+let string_of_id (S.Id_aux (aux, location)) =
   match aux with
   | Id x -> x
   | Operator _ -> not_yet_implemented __POS__ location
 
 (******************************************************************************)
 
-let rec translate_numeric_expression (Nexp_aux (numeric_expression, numexp_location)) : numeric_expression =
+let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : numeric_expression =
   match numeric_expression with
   | Nexp_constant constant -> NE_constant constant
   | Nexp_times (x, y)      -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
@@ -42,7 +50,7 @@ let rec translate_numeric_expression (Nexp_aux (numeric_expression, numexp_locat
   | Nexp_app (_, _)        -> not_yet_implemented __POS__ numexp_location
 
 
-let ty_id_of_typ_id (Id_aux (aux, location)) =
+let ty_id_of_typ_id (S.Id_aux (aux, location)) =
   match aux with
   | Id "bool"      -> Bool
   | Id "int"       -> Int
@@ -55,8 +63,8 @@ let ty_id_of_typ_id (Id_aux (aux, location)) =
   | Operator _     -> not_yet_implemented __POS__ location
 
 
-let rec ty_of_typ (Typ_aux (typ, location)) =
-  let ty_of_arg (A_aux (aux, arg_location)) : type_argument =
+let rec ty_of_typ (S.Typ_aux (typ, location)) =
+  let ty_of_arg (S.A_aux (aux, arg_location)) : type_argument =
     match aux with
     | A_nexp e  -> TA_numexp (translate_numeric_expression e)
     | A_typ typ -> TA_type (ty_of_typ typ)
@@ -88,7 +96,7 @@ let rec ty_of_typ (Typ_aux (typ, location)) =
      | Operator _, _      -> not_yet_implemented __POS__ id_loc
 
 
-let _translate_type_argument (A_aux (type_argument, location)) : type_argument =
+let _translate_type_argument (S.A_aux (type_argument, location)) : type_argument =
   match type_argument with
   | A_nexp e -> TA_numexp (translate_numeric_expression e) 
   | A_typ t  -> TA_type (ty_of_typ t)
@@ -97,27 +105,27 @@ let _translate_type_argument (A_aux (type_argument, location)) : type_argument =
 
 (******************************************************************************)
 
-let ty_of_pexp (Pat_aux (aux, _)) =
+let ty_of_pexp (S.Pat_aux (aux, _)) =
   match aux with
-  | Pat_exp (_, exp) -> ty_of_typ (Type_check.typ_of exp)
+  | Pat_exp (_, exp) -> ty_of_typ (Libsail.Type_check.typ_of exp)
   | Pat_when _ -> Ty_nys
 
 
 (******************************************************************************)
 
-let rec binds_of_pat (P_aux (aux, a)) =
+let rec binds_of_pat (S.P_aux (aux, a)) =
   match aux with
   | P_lit (L_aux (L_unit, _)) -> [("()", Ty_id Unit)]
   | P_id id ->
       let x = string_of_id id in
-      let ty = ty_of_typ (Type_check.typ_of_annot a) in
+      let ty = ty_of_typ (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
   | P_tuple pats ->
       List.concat (List.map binds_of_pat pats)
   | _ ->
       [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)]
 
-let binds_of_pexp (Pat_aux (aux, _)) =
+let binds_of_pexp (S.Pat_aux (aux, _)) =
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
   | Pat_when _ ->
@@ -126,7 +134,7 @@ let binds_of_pexp (Pat_aux (aux, _)) =
 
 (******************************************************************************)
 
-let value_of_lit (L_aux (aux, _)) =
+let value_of_lit (S.L_aux (aux, _)) =
   match aux with
   | L_true     -> Val_bool true
   | L_false    -> Val_bool false
@@ -135,22 +143,23 @@ let value_of_lit (L_aux (aux, _)) =
   | L_string s -> Val_string s
   | _ -> Val_nys
 
-let rec expression_of_aval = function
+let rec expression_of_aval (value : 'a S.aval) =
+  match value with
   | AV_lit (lit, _) ->
-      Exp_val (value_of_lit lit)
+    Exp_val (value_of_lit lit)
   | AV_id (id, _) ->
-      Exp_var (string_of_id id)
+    Exp_var (string_of_id id)
   | AV_tuple (h :: t) ->
-      let e_h = expression_of_aval h in
-      let f e1 aval2 =
-        let e2 = expression_of_aval aval2 in
-        Exp_binop (Pair, e1, e2) in
-      List.fold_left f e_h t
+    let e_h = expression_of_aval h in
+    let f e1 aval2 =
+      let e2 = expression_of_aval aval2 in
+      Exp_binop (Pair, e1, e2) in
+    List.fold_left f e_h t
   | AV_list (l, _) ->
-      Exp_list (List.map expression_of_aval l)
+    Exp_list (List.map expression_of_aval l)
   | _ -> Exp_nys
 
-let rec statement_of_aexp (AE_aux (aux, _, _)) =
+let rec statement_of_aexp (S.AE_aux (aux, _, _)) =
   match aux with
   | AE_val aval ->
       Stm_exp (expression_of_aval aval)
@@ -218,15 +227,15 @@ and statement_of_match aval = function
       }
   | _ -> Stm_nys
 
-let body_of_pexp (Pat_aux (aux, _)) =
+let body_of_pexp (S.Pat_aux (aux, _)) =
   match aux with
-  | Pat_exp (_, exp) -> statement_of_aexp (anf exp)
+  | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
   | Pat_when _       -> Stm_nys
 
 
 (******************************************************************************)
 
-let ir_funcl (FCL_aux (FCL_funcl (id, pexp), _)) = {
+let ir_funcl (S.FCL_aux (FCL_funcl (id, pexp), _)) = {
   funName = string_of_id(id);
   funType = {
     arg_types = binds_of_pexp pexp;
@@ -235,7 +244,7 @@ let ir_funcl (FCL_aux (FCL_funcl (id, pexp), _)) = {
   funBody = body_of_pexp pexp
 }
 
-let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
+let ir_fundef (S.FD_aux ((FD_function (_, _, funcls)), _)) =
   match funcls with
   | [funcl] -> Some (ir_funcl funcl)
   | _       -> None
@@ -243,9 +252,9 @@ let ir_fundef (FD_aux ((FD_function (_, _, funcls)), _)) =
 let translate_type_abbreviation
       _definition_annotation
       _type_annotation
-      (Id_aux (identifier, identifier_location))
-      (TypQ_aux (quantifier, quantifier_location))
-      (A_aux (arg, arg_location)) : definition =
+      (S.Id_aux (identifier, identifier_location))
+      (S.TypQ_aux (quantifier, quantifier_location))
+      (S.A_aux (arg, arg_location)) : definition =
   match quantifier with
   | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
   | TypQ_no_forall ->
@@ -264,7 +273,7 @@ let translate_type_abbreviation
        | Operator _ -> not_yet_implemented __POS__ identifier_location
      )
   
-let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_definition, type_annotation)) : definition =
+let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (type_definition, type_annotation)) : definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
@@ -277,14 +286,14 @@ let translate_type_definition (definition_annotation : def_annot) (TD_aux (type_
   | TD_bitfield (_, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
 
-let translate_top_level_constant (definition_annotation : def_annot) (VS_aux (value_specification, _vspec_annotation)) : definition =
+let translate_top_level_constant (definition_annotation : S.def_annot) (S.VS_aux (value_specification, _vspec_annotation)) : definition =
   let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), _identifier, _extern) = value_specification
   in
   not_yet_implemented __POS__ definition_annotation.loc
 
 let translate_register
-      (_definition_annotation : def_annot)
-      (DEC_aux
+      (_definition_annotation : S.def_annot)
+      (S.DEC_aux
          (DEC_reg (sail_type, Id_aux (identifier, identifier_location), expression),
           (_spec_location, _spec_annotation))) : definition =
   let identifier_string =
@@ -302,7 +311,7 @@ let translate_register
   in
   RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
-let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_definition * definition) =
+let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (sail_definition * definition) =
   try
     match def with
     | DEF_fundef fd ->
@@ -347,7 +356,7 @@ let translate_definition (DEF_aux (def, annotation) as sail_definition) : (sail_
     in
     (sail_definition, UntranslatedDefinition { filename=file; line_number = line_number; sail_location = sail_location; message = message })
 
-let sail_to_nanosail ast name =
+let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name =
   let lift f (original, translation) =
     Option.map (fun x -> (original, x)) (f translation)
   in
