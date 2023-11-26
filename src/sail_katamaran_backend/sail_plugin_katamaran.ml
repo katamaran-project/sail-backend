@@ -52,7 +52,7 @@ let katamaran_rewrites = [
     ("pattern_literals", [Rewrites.Literal_arg "lem"]);
     ("guarded_pats", []);
     (* ("register_ref_writes", rewrite_register_ref_writes); *)
-    ("nexp_ids", []);
+    (* ("nexp_ids", []); *)
     ("split", [Rewrites.String_arg "execute"]);
     ("minimise_recursive_functions", []);
     ("recheck_defs", []);
