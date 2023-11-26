@@ -36,15 +36,20 @@ let string_of_id (S.Id_aux (aux, location)) =
 
 let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression =
   match numeric_expression with
-  | Nexp_constant constant -> NE_constant constant
-  | Nexp_times (x, y)      -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_sum (x, y)        -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_minus (x, y)      -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_neg x             -> NE_neg (translate_numeric_expression x)
-  | Nexp_exp _             -> not_yet_implemented __POS__ numexp_location
-  | Nexp_id _              -> not_yet_implemented __POS__ numexp_location
-  | Nexp_var _             -> not_yet_implemented __POS__ numexp_location
-  | Nexp_app (_, _)        -> not_yet_implemented __POS__ numexp_location
+  | Nexp_constant constant     -> NE_constant constant
+  | Nexp_times (x, y)          -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_sum (x, y)            -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_minus (x, y)          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_neg x                 -> NE_neg (translate_numeric_expression x)
+  | Nexp_id (Id_aux (id, loc)) ->
+    (
+      match id with
+      | S.Id s                 -> NE_id s
+      | S.Operator _           -> not_yet_implemented __POS__ loc
+    )
+  | Nexp_exp _                 -> not_yet_implemented __POS__ numexp_location
+  | Nexp_var _                 -> not_yet_implemented __POS__ numexp_location
+  | Nexp_app (_, _)            -> not_yet_implemented __POS__ numexp_location
 
 
 let ty_id_of_typ_id (S.Id_aux (aux, location)) =

@@ -50,6 +50,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_minus (x, y) -> parens_if 0 (concat [ pp 0 x; space; minus; space; pp 0 y ])
     | NE_times (x, y) -> parens_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
     | NE_neg x        -> parens_if 2 (concat [ minus; pp 3 x ])
+    | NE_id id        -> string id
   in
   pp 0 numeric_expression
 
