@@ -60,7 +60,7 @@ Module Import ProdProgram <: Program DefaultBase.
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
       | ex_prod => fun_ex_prod
-      | switch => fun_switch
+      | switch  => fun_switch
       end.
   End FunDefKit.
 

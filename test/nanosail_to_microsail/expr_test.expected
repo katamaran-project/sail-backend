@@ -52,7 +52,7 @@ Module Import ExprProgram <: Program DefaultBase.
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | bool_expr => fun_bool_expr
+      | bool_expr  => fun_bool_expr
       | arith_expr => fun_arith_expr
       end.
   End FunDefKit.

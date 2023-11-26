@@ -94,14 +94,14 @@ Module Import ListsProgram <: Program DefaultBase.
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
-      | is_empty => fun_is_empty
-      | empty => fun_empty
+      | is_empty    => fun_is_empty
+      | empty       => fun_empty
       | onetwothree => fun_onetwothree
-      | last => fun_last
-      | append => fun_append
-      | length => fun_length
+      | last        => fun_last
+      | append      => fun_append
+      | length      => fun_length
       | reverse_aux => fun_reverse_aux
-      | reverse => fun_reverse
+      | reverse     => fun_reverse
       | reverse_bis => fun_reverse_bis
       end.
   End FunDefKit.
