@@ -2,3 +2,8 @@ microsail.v
 intermediate_*
 rewrite-*
 delta-*
+*.aux
+*.glob
+*.vo
+*.vok
+*.vos
