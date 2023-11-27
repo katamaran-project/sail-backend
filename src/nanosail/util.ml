@@ -1,6 +1,6 @@
 let uncurry f (x, y) = f x y
 
-let compose_functions f g x = f (g x)
+let compose f g x = f (g x)
 
 let count_chars string char =
   let count acc c =
