@@ -18,4 +18,4 @@ coq:
 	$(COQ) $(COQ_FILE)
 
 clean:
-	rm -f intermediate_* rewrite-* delta-* microsail.v
+	git clean -fx
