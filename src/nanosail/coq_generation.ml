@@ -188,7 +188,7 @@ let require_import src names =
   in
   PU.pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ eol
 
-let pp_import names =
+let imports names =
   PU.pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ eol
 
 let pp_open_scope scope =

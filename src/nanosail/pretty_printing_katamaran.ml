@@ -399,7 +399,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
         Coq.require_import "Coq" !coq_lib_modules;
         Coq.require_import "Katamaran" !katamaran_lib_modules;
         Coq.require_import "Equations" [ "Equations" ];
-        Coq.pp_import !more_modules;
+        Coq.imports !more_modules;
         separate_map hardline Coq.pp_open_scope !scopes
       ]
     in
