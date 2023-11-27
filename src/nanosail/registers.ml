@@ -9,7 +9,7 @@ module S = struct
 end
 
 
-let pp_reg_inductive_type register_definitions =
+let reg_inductive_type register_definitions =
   let identifier = string "Reg"
   and typ = string "Ty -> Set"
   and constructors =
@@ -23,7 +23,7 @@ let pp_reg_inductive_type register_definitions =
   in
   Coq.inductive_type identifier typ constructors
 
-let pp_no_confusion_for_reg () =
+let no_confusion_for_reg () =
   Coq.section "TransparentObligations" (
       separate hardline [
           string "Local Set Transparent Obligations.";
@@ -31,15 +31,15 @@ let pp_no_confusion_for_reg () =
         ]
     )
 
-let pp_reg_definition () =
+let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
   let section_contents =
     separate (twice hardline) [
-        pp_reg_inductive_type (List.map snd register_definitions);
-        pp_no_confusion_for_reg ();
-        pp_reg_definition ()
+        reg_inductive_type (List.map snd register_definitions);
+        no_confusion_for_reg ();
+        reg_definition ()
       ]
   in
   Coq.section "RegDeclKit" section_contents
