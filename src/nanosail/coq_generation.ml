@@ -167,7 +167,14 @@ let match_pair matched_expressions cases =
       cases
   in
   let matched_expression =
-    separate comma matched_expressions
+    let (left, right) = matched_expressions
+    in
+    concat [
+        left;
+        comma;
+        space;
+        right
+      ]
   in
   match' matched_expression aligned_cases
 
