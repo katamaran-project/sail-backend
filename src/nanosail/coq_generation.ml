@@ -32,7 +32,12 @@ let comment comment =
       ]
 
 let list items =
-  PU.pp_delimited_sequence lbracket rbracket semi items
+  if
+    List.is_empty items
+  then
+    lbracket ^^ rbracket
+  else
+    PU.pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
 
 let product v1 v2 =
   soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
