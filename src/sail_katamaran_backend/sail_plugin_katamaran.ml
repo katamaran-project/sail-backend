@@ -107,7 +107,7 @@ let katamaran_target _ _ filename ast _ _ =
     else filename ^ ".v"
   in
   let program_name_from_filename filename =
-    String.capitalize_ascii filename
+    String.capitalize_ascii (Filename.chop_extension filename)
   in
   let context, program_name =
     match filename with
