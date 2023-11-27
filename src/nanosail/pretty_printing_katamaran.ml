@@ -414,7 +414,10 @@ let pp_reg_inductive_type register_definitions =
   Coq.inductive_type identifier typ constructors
 
 let pp_register_module (register_definitions : (S.sail_definition * register_definition) list) : document =
-  pp_reg_inductive_type (List.map snd register_definitions)
+  let section_contents =
+    pp_reg_inductive_type (List.map snd register_definitions)
+  in
+  Coq.section "RegDeclKit" section_contents
 
 
 (******************************************************************************)
