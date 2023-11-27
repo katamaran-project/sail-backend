@@ -16,7 +16,7 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
   let nano_nexp = N.Sail_to_nanosail.translate_numeric_expression nexp in
-  let document = N.Pretty_printing_katamaran.pp_numeric_expression nano_nexp
+  let document = N.Sail_util.pp_numeric_expression nano_nexp
   in
   string_of_document document
 

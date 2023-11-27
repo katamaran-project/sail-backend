@@ -32,26 +32,6 @@ let annotate_with_original_definition original translation =
 
 
 (******************************************************************************)
-(* Type definition pretty printing *)
-
-let pp_numeric_expression (numeric_expression : numeric_expression) =
-  let rec pp level numexp =
-    let parens_if lvl doc =
-      if level <= lvl
-      then doc
-      else parens doc
-    in
-    match numexp with
-    | NE_constant z   -> string (Big_int.to_string z)
-    | NE_add (x, y)   -> parens_if 0 (concat [ pp 0 x; space; plus; space; pp 0 y ])
-    | NE_minus (x, y) -> parens_if 0 (concat [ pp 0 x; space; minus; space; pp 0 y ])
-    | NE_times (x, y) -> parens_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
-    | NE_neg x        -> parens_if 2 (concat [ minus; pp 3 x ])
-    | NE_id id        -> string id
-  in
-  pp 0 numeric_expression
-
-(******************************************************************************)
 (* Heading pretty printing *)
 
 let pp_require_import src names =
@@ -81,34 +61,12 @@ let defaultBase = string "Import DefaultBase."
 (******************************************************************************)
 (* FunDeclKit pretty printing *)
 
-let pp_ty_id = function
-  | Unit      -> string "ty.unit"
-  | Bool      -> string "ty.bool"
-  | Int       -> string "ty.int"
-  | String    -> string "ty.string"
-  | List      -> string "ty.list"
-  | Prod      -> string "ty.prod"
-  | Bitvector -> string "ty.bvec"
-  | Id_nys    -> string "TY_ID_" ^^ nys
-
-let rec pp_ty = function
-  | Ty_id (ty_id)         -> pp_ty_id ty_id
-  | Ty_app (ty_id, targs) -> parens_app ((pp_ty_id ty_id) :: (List.map pp_type_argument targs))
-  | Ty_nys                -> !^"TY_" ^^ nys
-and pp_type_argument (type_argument : type_argument) =
-  match type_argument with
-  | TA_type t   -> pp_ty t
-  | TA_numexp e -> pp_numeric_expression e
-
-let pp_bind (arg, t) =
-  utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ pp_ty t
-
 let pp_funDeclKit funDefList =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and function_type =
-      let parameter_types = Coq.list (List.map pp_bind funDef.funType.arg_types)
-      and return_type = pp_ty funDef.funType.ret_type
+      let parameter_types = Coq.list (List.map S.pp_bind funDef.funType.arg_types)
+      and return_type = S.pp_ty funDef.funType.ret_type
       in
       concat [
         string "Fun";
@@ -194,7 +152,7 @@ let rec pp_expression e =
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
     | v -> simple_app [
                string "exp_val";
-               pp_ty (ty_of_val v);
+               S.pp_ty (ty_of_val v);
                pp_value v
              ]
   in
@@ -295,8 +253,8 @@ let pp_function_definition original_sail_code function_definition =
   in
   let return_type =
     pp_hanging_list (PP.string "Stm") [
-      Coq.list (List.map pp_bind function_definition.funType.arg_types);
-      pp_ty function_definition.funType.ret_type
+      Coq.list (List.map S.pp_bind function_definition.funType.arg_types);
+      S.pp_ty function_definition.funType.ret_type
     ]
   in
   let body =
@@ -376,7 +334,7 @@ let pp_program_module program_name base_name function_definitions =
 (* Type definition pretty printing *)
 
 let pp_type_module type_definitions =
-  let pp_type_definition (original : S.sail_definition) (type_definition : type_definition) : document =
+  let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
     let document =
       match type_definition with
       | TD_abbreviation (identifier, TA_numeric_expression numexpr) ->
@@ -387,7 +345,7 @@ let pp_type_module type_definitions =
           space;
           string ":=";
           space;
-          pp_numeric_expression numexpr;
+          S.pp_numeric_expression numexpr;
           Coq.eol
         ]
     in
@@ -396,45 +354,12 @@ let pp_type_module type_definitions =
   List.map (uncurry pp_type_definition) type_definitions
 
 
-(******************************************************************************)
-(* Register definition pretty printing *)
-
-let pp_reg_inductive_type register_definitions =
-  let identifier = string "Reg"
-  and typ = string "Ty -> Set"
-  and constructors =
-    let constructor_of_register register_definition =
-      let identifier = string register_definition.identifier
-      and typ = string "Reg" ^^ space ^^ pp_ty register_definition.typ
-      in
-      (identifier, typ)
-    in
-    List.map constructor_of_register register_definitions
-  in
-  Coq.inductive_type identifier typ constructors
-
-let pp_no_confusion_for_reg () =
-  Coq.section "TransparentObligations" (
-      separate hardline [
-          string "Local Set Transparent Obligations.";
-          string "Derive Signature NoConfusion (* NoConfusionHom *) for Reg."
-        ]
-    )
-
-let pp_register_module (register_definitions : (S.sail_definition * register_definition) list) : document =
-  let section_contents =
-    separate (twice hardline) [
-        pp_reg_inductive_type (List.map snd register_definitions);
-        pp_no_confusion_for_reg ()
-      ]
-  in
-  Coq.section "RegDeclKit" section_contents
 
 (******************************************************************************)
 (* Untranslated definition pretty printing *)
 
 let pp_untranslated_module untranslated_definitions =
-  let pp_untranslated_definition (original : S.sail_definition) (untranslated_definition : untranslated_definition) =
+  let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in
     let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
     let sail_location_string = Printf.sprintf "Sail location: %s" (S.string_of_location sail_location) in
@@ -528,7 +453,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
       let segments =
         [
           pp_module_header "REGISTERS";
-          pp_register_module ir.register_definitions
+          Registers.pp_register_module ir.register_definitions
         ]
       in
       generate_section segments

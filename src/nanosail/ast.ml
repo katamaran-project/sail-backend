@@ -2,8 +2,8 @@
 
 module Big_int = Nat_big_num
 
-module S = Sail_util
 
+type sail_definition = Libsail.Type_check.tannot Libsail.Ast.def
 
 (******************************************************************************)
 (* Numeric expressions *)
@@ -180,20 +180,20 @@ let extract_untranslated_definition = function
 (** The type of the NanoSail intermediate representation. *)
 type ir_t = {
   program_name : string;
-  function_definitions : (S.sail_definition * function_definition) list;
-  type_definitions: (S.sail_definition * type_definition) list;
-  register_definitions: (S.sail_definition * register_definition) list;
-  untranslated_definitions : (S.sail_definition * untranslated_definition) list
+  function_definitions : (sail_definition * function_definition) list;
+  type_definitions: (sail_definition * type_definition) list;
+  register_definitions: (sail_definition * register_definition) list;
+  untranslated_definitions : (sail_definition * untranslated_definition) list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }
 
 
 let make_ir_t
-      ?(function_definitions : (S.sail_definition * function_definition) list = [])
-      ?(type_definitions : (S.sail_definition * type_definition) list = [])
-      ?(register_definitions : (S.sail_definition * register_definition) list = [])
-      ?(untranslated_definitions : (S.sail_definition * untranslated_definition) list = [])
+      ?(function_definitions : (sail_definition * function_definition) list = [])
+      ?(type_definitions : (sail_definition * type_definition) list = [])
+      ?(register_definitions : (sail_definition * register_definition) list = [])
+      ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
       program_name =
   {
     program_name = program_name;

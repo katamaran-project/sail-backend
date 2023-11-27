@@ -314,7 +314,7 @@ let translate_register
   in
   RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
-let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (S.sail_definition * N.definition) =
+let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
   try
     match def with
     | DEF_fundef fd ->
