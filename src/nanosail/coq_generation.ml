@@ -8,7 +8,7 @@ let eol = dot
 let left_comment_delimiter = string "(*"
 let right_comment_delimiter = string "*)"
 
-let pp_multiline_comment comment =
+let comment comment =
   let str = PU.string_of_document comment
   in
   if

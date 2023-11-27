@@ -23,7 +23,7 @@ let annotate_with_original_definition original translation =
     !include_original_sail_code
   then
     concat [
-      Coq.pp_multiline_comment (pp_sail_definition original);
+      Coq.comment (pp_sail_definition original);
       hardline;
       translation
     ]
@@ -450,7 +450,7 @@ let pp_untranslated_module untranslated_definitions =
         string message_string
       ]
   in
-  Coq.pp_multiline_comment (separate small_step (List.map (uncurry pp_untranslated_definition) untranslated_definitions))
+  Coq.comment (separate small_step (List.map (uncurry pp_untranslated_definition) untranslated_definitions))
 
 
 (******************************************************************************)
