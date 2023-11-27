@@ -127,7 +127,12 @@ let match' expression cases =
       List.fold_left max 0 widths
     in
     let generate_case (pattern, expression) =
-      bar ^^ space ^^ PU.pad_right longest_pattern_width pattern ^^ space ^^ string "=>" ^^ space ^^ expression
+      separate space [
+          bar;
+          PU.pad_right longest_pattern_width pattern;
+          string "=>";
+          expression
+        ]
     in
     List.map generate_case cases
   in
