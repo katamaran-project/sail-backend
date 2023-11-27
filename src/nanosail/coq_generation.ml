@@ -5,8 +5,30 @@ module PU = Pputil
 
 let eol = dot
 
+let left_comment_delimiter = string "(*"
+let right_comment_delimiter = string "*)"
+
 let pp_multiline_comment comment =
-  string "(*" ^^ twice hardline ^^ PU.indent' comment ^^ hardline ^^ string "*)"
+  let str = PU.string_of_document comment
+  in
+  if
+    Util.count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+  then
+    concat [
+        left_comment_delimiter;
+        space;
+        string (Util.strip str);
+        space;
+        right_comment_delimiter
+      ]
+  else
+    concat [
+        left_comment_delimiter;
+        twice hardline;
+        PU.indent' comment;
+        hardline;
+        right_comment_delimiter
+      ]
 
 let list items =
   PU.pp_delimited_sequence lbracket rbracket semi items
