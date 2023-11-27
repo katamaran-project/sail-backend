@@ -34,12 +34,27 @@ let no_confusion_for_reg () =
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
+let instance_reg_eq_dec register_names =
+  let cases =
+    List.map (fun register_name ->
+        let rn_str = string register_name in
+        ((rn_str, rn_str), string "left eq_refl"))
+      register_names
+  in
+  separate hardline [
+      utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
+      utf8string "  fun '(existT σ x) '(existT τ y) =>";
+      Pputil.indent' (Coq.match_pair (string "x", string "y") cases);
+      string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
+    ]
+
 let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
   let section_contents =
     separate (twice hardline) [
         reg_inductive_type (List.map snd register_definitions);
         no_confusion_for_reg ();
-        reg_definition ()
+        reg_definition ();
+        instance_reg_eq_dec (List.map (fun (_, def) -> def.identifier) register_definitions)
       ]
   in
   Coq.section "RegDeclKit" section_contents
