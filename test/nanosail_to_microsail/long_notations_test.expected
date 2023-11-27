@@ -31,9 +31,9 @@ Module Import LongProgram <: Program DefaultBase.
 
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
-    | very_long_naaaaaaaaaaaaaaaaame : Fun ["l" ∷ (ty.list ty.int);
-                                            "b" ∷ ty.bool;
-                                            "n" ∷ ty.int]
+    | very_long_naaaaaaaaaaaaaaaaame : Fun [ "l" ∷ (ty.list ty.int);
+                                             "b" ∷ ty.bool;
+                                             "n" ∷ ty.int ]
                                            (ty.list (ty.list (ty.list ty.bool))).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
@@ -44,20 +44,26 @@ Module Import LongProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-    Definition fun_very_long_naaaaaaaaaaaaaaaaame : Stm ["l" ∷ (ty.list ty.int);
-                                                         "b" ∷ ty.bool;
-                                                         "n" ∷ ty.int]
+    Definition fun_very_long_naaaaaaaaaaaaaaaaame : Stm [ "l" ∷ (ty.list ty.int);
+                                                          "b" ∷ ty.bool;
+                                                          "n" ∷ ty.int ]
                                                         (ty.list
                                                           (ty.list
                                                             (ty.list ty.bool))) :=
       stm_exp
         (exp_list
-          [exp_list
-             [exp_list [exp_true]; exp_list [exp_false]; exp_list [exp_false]];
-           exp_list
-             [exp_list [exp_false]; exp_list [exp_true]; exp_list [exp_false]];
-           exp_list
-             [exp_list [exp_false]; exp_list [exp_false]; exp_list [exp_true]]]).
+          [ exp_list
+              [ exp_list [ exp_true ];
+                exp_list [ exp_false ];
+                exp_list [ exp_false ] ];
+            exp_list
+              [ exp_list [ exp_false ];
+                exp_list [ exp_true ];
+                exp_list [ exp_false ] ];
+            exp_list
+              [ exp_list [ exp_false ];
+                exp_list [ exp_false ];
+                exp_list [ exp_true ] ] ]).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with

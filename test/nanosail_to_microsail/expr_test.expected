@@ -29,8 +29,8 @@ Module Import ExprProgram <: Program DefaultBase.
 
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
-    | bool_expr : Fun ["tt" ∷ ty.unit] ty.bool
-    | arith_expr : Fun ["tt" ∷ ty.unit] ty.int.
+    | bool_expr : Fun [ "tt" ∷ ty.unit ] ty.bool
+    | arith_expr : Fun [ "tt" ∷ ty.unit ] ty.int.
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -40,7 +40,7 @@ Module Import ExprProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-    Definition fun_bool_expr : Stm ["tt" ∷ ty.unit] ty.bool :=
+    Definition fun_bool_expr : Stm [ "tt" ∷ ty.unit ] ty.bool :=
       stm_exp
         ((exp_not
           (((exp_int 0%Z) = (exp_int 1%Z)) && ((exp_int 2%Z) != (exp_int 3%Z)))) ||
@@ -48,7 +48,7 @@ Module Import ExprProgram <: Program DefaultBase.
             (((exp_int 8%Z) >= (exp_int 9%Z)) ||
               ((exp_int 10%Z) < (exp_int 11%Z))))).
 
-    Definition fun_arith_expr : Stm ["tt" ∷ ty.unit] ty.int :=
+    Definition fun_arith_expr : Stm [ "tt" ∷ ty.unit ] ty.int :=
       stm_exp
         ((((- (exp_int 1%Z)) - (- (exp_int 2%Z))) * (exp_int 3%Z)) +
           (exp_int 4%Z)).

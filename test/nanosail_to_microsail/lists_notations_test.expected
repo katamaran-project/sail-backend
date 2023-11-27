@@ -31,17 +31,17 @@ Module Import ListsProgram <: Program DefaultBase.
 
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
-    | is_empty : Fun ["l" ∷ (ty.list ty.int)] ty.bool
-    | empty : Fun ["tt" ∷ ty.unit] (ty.list ty.int)
-    | onetwothree : Fun ["tt" ∷ ty.unit] (ty.list ty.int)
-    | last : Fun ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool)
-    | append : Fun ["l1" ∷ (ty.list ty.int); "l2" ∷ (ty.list ty.int)]
+    | is_empty : Fun [ "l" ∷ (ty.list ty.int) ] ty.bool
+    | empty : Fun [ "tt" ∷ ty.unit ] (ty.list ty.int)
+    | onetwothree : Fun [ "tt" ∷ ty.unit ] (ty.list ty.int)
+    | last : Fun [ "l" ∷ (ty.list ty.int) ] (ty.prod ty.int ty.bool)
+    | append : Fun [ "l1" ∷ (ty.list ty.int); "l2" ∷ (ty.list ty.int) ]
                    (ty.list ty.int)
-    | length : Fun ["l" ∷ (ty.list ty.int)] ty.int
-    | reverse_aux : Fun ["l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int)]
+    | length : Fun [ "l" ∷ (ty.list ty.int) ] ty.int
+    | reverse_aux : Fun [ "l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int) ]
                         (ty.list ty.int)
-    | reverse : Fun ["l" ∷ (ty.list ty.int)] (ty.list ty.int)
-    | reverse_bis : Fun ["l" ∷ (ty.list ty.int)] (ty.list ty.int).
+    | reverse : Fun [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int)
+    | reverse_bis : Fun [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int).
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
@@ -51,49 +51,51 @@ Module Import ListsProgram <: Program DefaultBase.
   Include FunDeclMixin DefaultBase.
 
   Section FunDefKit.
-    Definition fun_is_empty : Stm ["l" ∷ (ty.list ty.int)] ty.bool :=
+    Definition fun_is_empty : Stm [ "l" ∷ (ty.list ty.int) ] ty.bool :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_true)) "h" "t"
         (stm_exp (exp_false)).
 
-    Definition fun_empty : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
+    Definition fun_empty : Stm [ "tt" ∷ ty.unit ] (ty.list ty.int) :=
       stm_exp (exp_list []).
 
-    Definition fun_onetwothree : Stm ["tt" ∷ ty.unit] (ty.list ty.int) :=
-      stm_exp (exp_list [exp_int 1%Z; exp_int 2%Z; exp_int 3%Z]).
+    Definition fun_onetwothree : Stm [ "tt" ∷ ty.unit ] (ty.list ty.int) :=
+      stm_exp (exp_list [ exp_int 1%Z; exp_int 2%Z; exp_int 3%Z ]).
 
-    Definition fun_last : Stm ["l" ∷ (ty.list ty.int)] (ty.prod ty.int ty.bool) :=
+    Definition fun_last : Stm [ "l" ∷ (ty.list ty.int) ]
+                              (ty.prod ty.int ty.bool) :=
       stm_match_list (stm_exp (exp_var "l"))
         (stm_exp (exp_val (ty.prod ty.int ty.bool) (0%Z, false))) "h" "t"
         (stm_match_list (stm_exp (exp_var "t"))
           (stm_exp (exp_binop bop.pair (exp_var "h") (exp_true))) "h'" "t'"
           (call last (exp_var "t"))).
 
-    Definition fun_append : Stm ["l1" ∷ (ty.list ty.int);
-                                 "l2" ∷ (ty.list ty.int)]
+    Definition fun_append : Stm [ "l1" ∷ (ty.list ty.int);
+                                  "l2" ∷ (ty.list ty.int) ]
                                 (ty.list ty.int) :=
       stm_match_list (stm_exp (exp_var "l1")) (stm_exp (exp_var "l2")) "h" "t"
         (let: "r" := call append (exp_var "t") (exp_var "l2") in
           stm_exp (exp_binop bop.cons (exp_var "h") (exp_var "r"))).
 
-    Definition fun_length : Stm ["l" ∷ (ty.list ty.int)] ty.int :=
+    Definition fun_length : Stm [ "l" ∷ (ty.list ty.int) ] ty.int :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_int 0%Z)) "h" "t"
         (let: "n" := call length (exp_var "t") in
           stm_exp ((exp_var "n") + (exp_int 1%Z))).
 
-    Definition fun_reverse_aux : Stm ["l" ∷ (ty.list ty.int);
-                                      "acc" ∷ (ty.list ty.int)]
+    Definition fun_reverse_aux : Stm [ "l" ∷ (ty.list ty.int);
+                                       "acc" ∷ (ty.list ty.int) ]
                                      (ty.list ty.int) :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_var "acc")) "h" "t"
         (call reverse_aux (exp_var "t")
           (exp_binop bop.cons (exp_var "h") (exp_var "acc"))).
 
-    Definition fun_reverse : Stm ["l" ∷ (ty.list ty.int)] (ty.list ty.int) :=
+    Definition fun_reverse : Stm [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int) :=
       call reverse_aux (exp_var "l") (exp_list []).
 
-    Definition fun_reverse_bis : Stm ["l" ∷ (ty.list ty.int)] (ty.list ty.int) :=
+    Definition fun_reverse_bis : Stm [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int) :=
       stm_match_list (stm_exp (exp_var "l")) (stm_exp (exp_list [])) "h" "t"
         (let: "r" := call reverse_bis (exp_var "t") in
-          stm_exp (exp_binop bop.append (exp_var "r") (exp_list [exp_var "h"]))).
+          stm_exp
+            (exp_binop bop.append (exp_var "r") (exp_list [ exp_var "h" ]))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
