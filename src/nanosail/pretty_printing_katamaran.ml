@@ -18,15 +18,12 @@ let include_original_sail_code = ref false
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
 
-let pp_multiline_comment comment =
-  string "(*" ^^ twice hardline ^^ indent' comment ^^ hardline ^^ string "*)"
-
 let annotate_with_original_definition original translation =
   if
     !include_original_sail_code
   then
     concat [
-      pp_multiline_comment (pp_sail_definition original);
+      Coq.pp_multiline_comment (pp_sail_definition original);
       hardline;
       translation
     ]
@@ -453,7 +450,7 @@ let pp_untranslated_module untranslated_definitions =
         string message_string
       ]
   in
-  pp_multiline_comment (separate small_step (List.map (uncurry pp_untranslated_definition) untranslated_definitions))
+  Coq.pp_multiline_comment (separate small_step (List.map (uncurry pp_untranslated_definition) untranslated_definitions))
 
 
 (******************************************************************************)

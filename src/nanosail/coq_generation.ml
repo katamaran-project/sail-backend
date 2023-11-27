@@ -5,6 +5,9 @@ module PU = Pputil
 
 let eol = dot
 
+let pp_multiline_comment comment =
+  string "(*" ^^ twice hardline ^^ PU.indent' comment ^^ hardline ^^ string "*)"
+
 let list items =
   PU.pp_delimited_sequence lbracket rbracket semi items
 
