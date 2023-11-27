@@ -17,3 +17,8 @@ let strip string =
   if String.ends_with ~suffix:"\n" string
   then String.sub string 0 (String.length string - 1)
   else string
+
+let minimum ns =
+  match ns with
+  | []    -> failwith "Cannot find minimum of empty list"
+  | n::ns -> List.fold_left min n ns
