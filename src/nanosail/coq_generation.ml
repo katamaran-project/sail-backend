@@ -201,3 +201,20 @@ let open_scopes scopes =
       ]
   in
   separate hardline (List.map open_scope scopes)
+
+let record_value fields =
+  let ldelim = string "{|"
+  and rdelim = string "|}"
+  and items =
+    let item_of_field (field_name, field_value) =
+      group (
+        concat [
+          field_name ^^ space ^^ string ":=";
+          break 1;
+          align field_value
+        ]
+      )
+    in
+    List.map item_of_field fields
+  in
+  PU.pp_delimited_sequence ldelim rdelim semi items
