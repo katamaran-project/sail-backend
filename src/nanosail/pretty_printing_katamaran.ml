@@ -387,9 +387,12 @@ let pp_module_header title =
 
 let fromIR_pp ?(show_untranslated=false) ir =
   let coq_lib_modules =
-    if !opt_list_notations
-    then "Lists.List" :: coq_lib_modules
-    else coq_lib_modules
+    List.flatten [
+        if !opt_list_notations
+        then ["Lists.List"]
+        else [];
+        coq_lib_modules
+      ]
   in
   let more_modules =
     if !opt_list_notations
