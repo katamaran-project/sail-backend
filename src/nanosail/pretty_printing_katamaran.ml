@@ -400,7 +400,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
         Coq.require_imports "Katamaran" !katamaran_lib_modules;
         Coq.require_imports "Equations" [ "Equations" ];
         Coq.imports !more_modules;
-        separate_map hardline Coq.pp_open_scope !scopes
+        Coq.open_scopes !scopes
       ]
     in
     generate_section segments

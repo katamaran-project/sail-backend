@@ -191,10 +191,13 @@ let require_imports src names =
 let imports names =
   PU.pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ eol
 
-let pp_open_scope scope =
-  concat [
-      string "Local Open Scope";
-      space;
-      string scope;
-      eol
-    ]
+let open_scopes scopes =
+  let open_scope scope =
+    concat [
+        string "Local Open Scope";
+        space;
+        string scope;
+        eol
+      ]
+  in
+  separate hardline (List.map open_scope scopes)
