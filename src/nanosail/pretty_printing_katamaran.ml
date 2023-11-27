@@ -415,13 +415,16 @@ let fromIR_pp ?(show_untranslated=false) ir =
         Coq.imports more_modules
       ]
     in
+    let scopes =
+      [
+        Coq.open_scopes scopes
+      ]
+    in
     let segments =
       List.flatten [
           require_imports;
           imports;
-        [
-          Coq.open_scopes scopes
-        ]
+          scopes
       ]
     in
     generate_section segments
