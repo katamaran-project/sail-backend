@@ -148,7 +148,7 @@ let match' expression cases =
   in
   separate hardline lines
 
-let match_pair matched_expression cases =
+let match_pair matched_expressions cases =
   let left_patterns = List.map (Util.compose fst fst) cases
   in
   let left_patterns_max_width = Util.maximum (List.map PPrint.requirement left_patterns)
@@ -165,6 +165,9 @@ let match_pair matched_expression cases =
           expression
       ))
       cases
+  in
+  let matched_expression =
+    separate comma matched_expressions
   in
   match' matched_expression aligned_cases
 
