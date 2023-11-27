@@ -410,11 +410,16 @@ let fromIR_pp ?(show_untranslated=false) ir =
     let require_imports =
       List.map (uncurry Coq.require_imports) (imports ())
     in
+    let imports =
+      [
+        Coq.imports more_modules
+      ]
+    in
     let segments =
       List.flatten [
-        require_imports;
+          require_imports;
+          imports;
         [
-          Coq.imports more_modules;
           Coq.open_scopes scopes
         ]
       ]
