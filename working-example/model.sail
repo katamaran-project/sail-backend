@@ -7,6 +7,7 @@ register RAX : bitvector(32)
 register RBX : bitvector(32)
 register RCX : int
 register RDX : int
+register RLONGNAME : bitvector(16)
 
 /*
 val is_empty : list(int) -> bool
