@@ -8,6 +8,7 @@ register RBX : bitvector(32)
 register RCX : int
 register RDX : int
 
+/*
 val is_empty : list(int) -> bool
 val empty : unit -> list(int)
 val onetwothree : unit -> list(int)
@@ -35,3 +36,4 @@ function append(l1, l2) = match l1 {
   [||]   => l2,
   h :: t => h :: append(t, l2)
 }
+*/
