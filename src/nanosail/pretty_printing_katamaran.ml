@@ -362,15 +362,27 @@ let pp_untranslated_module untranslated_definitions =
 (******************************************************************************)
 (* Full pretty printing *)
 
-let coq_lib_modules = [
-  "Strings.String";
-  "ZArith.BinInt";
-]
-
-let katamaran_lib_modules = [
-  "Semantics.Registers";
-  "Program";
-]
+let imports () = [
+    ("Coq",
+     List.flatten ([
+           if !opt_list_notations
+           then ["Lists.List"]
+           else [];
+           [  
+             "Strings.String";
+             "ZArith.BinInt"
+           ]
+    ]));
+    ("Katamaran",
+     [
+       "Semantics.Registers";
+       "Program"
+    ]);
+    ("Equations",
+     [
+       "Equations"
+    ]);
+  ]
 
 let more_modules = [
   "ctx.notations";
@@ -386,14 +398,6 @@ let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
 let fromIR_pp ?(show_untranslated=false) ir =
-  let coq_lib_modules =
-    List.flatten [
-        if !opt_list_notations
-        then ["Lists.List"]
-        else [];
-        coq_lib_modules
-      ]
-  in
   let more_modules =
     if !opt_list_notations
     then List.append more_modules ["ListNotations"]
@@ -403,13 +407,16 @@ let fromIR_pp ?(show_untranslated=false) ir =
     [ separate small_step segments ]
   in
   let heading =
+    let require_imports =
+      List.map (uncurry Coq.require_imports) (imports ())
+    in
     let segments =
-      [
-        Coq.require_imports "Coq" coq_lib_modules;
-        Coq.require_imports "Katamaran" katamaran_lib_modules;
-        Coq.require_imports "Equations" [ "Equations" ];
-        Coq.imports more_modules;
-        Coq.open_scopes scopes
+      List.flatten [
+        require_imports;
+        [
+          Coq.imports more_modules;
+          Coq.open_scopes scopes
+        ]
       ]
     in
     generate_section segments
