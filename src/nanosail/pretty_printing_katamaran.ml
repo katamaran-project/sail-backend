@@ -420,14 +420,14 @@ let fromIR_pp ?(show_untranslated=false) ir =
         Coq.open_scopes scopes
       ]
     in
-    let segments =
+    let parts =
       List.flatten [
           require_imports;
           imports;
           scopes
       ]
     in
-    generate_section segments
+    generate_section parts
   in
   let base =
     let segments =
