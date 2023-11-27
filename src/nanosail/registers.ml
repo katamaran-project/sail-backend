@@ -36,15 +36,22 @@ let reg_definition () =
 
 let instance_reg_eq_dec register_names =
   let cases =
-    List.map (fun register_name ->
-        let rn_str = string register_name in
-        ((rn_str, rn_str), string "left eq_refl"))
-      register_names
+    let cs =
+      List.map (fun register_name ->
+          let rn_str = string register_name in
+          ((rn_str, rn_str), string "left eq_refl"))
+        register_names
+    and wildcard_case = ((string "_", string "_"), string "right _")
+    in
+    List.flatten [
+        cs;
+        [wildcard_case]
+      ]
   in
   separate hardline [
       utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
       utf8string "  fun '(existT σ x) '(existT τ y) =>";
-      Pputil.indent' (Coq.match_pair (string "x", string "y") cases);
+      Pputil.indent' (Coq.match_pair (string "x", string "y") cases) ^^ Coq.eol;
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
 
