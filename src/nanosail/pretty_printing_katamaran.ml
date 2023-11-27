@@ -396,9 +396,9 @@ let fromIR_pp ?(show_untranslated=false) ir =
   let heading =
     let segments =
       [
-        Coq.pp_require_import "Coq" !coq_lib_modules;
-        Coq.pp_require_import "Katamaran" !katamaran_lib_modules;
-        Coq.pp_require_import "Equations" [ "Equations" ];
+        Coq.require_import "Coq" !coq_lib_modules;
+        Coq.require_import "Katamaran" !katamaran_lib_modules;
+        Coq.require_import "Equations" [ "Equations" ];
         Coq.pp_import !more_modules;
         separate_map hardline Coq.pp_open_scope !scopes
       ]

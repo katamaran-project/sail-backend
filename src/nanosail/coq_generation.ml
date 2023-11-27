@@ -182,7 +182,7 @@ let integer i =
   let pp_i = string (Big_int.to_string i ^ "%Z") in
   if i < Z.zero then parens pp_i else pp_i
 
-let pp_require_import src names =
+let require_import src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
