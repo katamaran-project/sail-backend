@@ -31,11 +31,15 @@ let pp_no_confusion_for_reg () =
         ]
     )
 
+let pp_reg_definition () =
+  utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+
 let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
   let section_contents =
     separate (twice hardline) [
         pp_reg_inductive_type (List.map snd register_definitions);
-        pp_no_confusion_for_reg ()
+        pp_no_confusion_for_reg ();
+        pp_reg_definition ()
       ]
   in
   Coq.section "RegDeclKit" section_contents
