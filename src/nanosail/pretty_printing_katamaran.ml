@@ -435,7 +435,7 @@ let pp_untranslated_module untranslated_definitions =
   let pp_untranslated_definition (original : S.sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in
     let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
-    let sail_location_string = Printf.sprintf "Sail location: %s" (string_of_location sail_location) in
+    let sail_location_string = Printf.sprintf "Sail location: %s" (S.string_of_location sail_location) in
     let message_string =
       match message with
       | Some message -> Printf.sprintf "Message: %s" message
