@@ -7,6 +7,13 @@ register RAX : bitvector(32)
 register RBX : bitvector(32)
 register RCX : int
 register RDX : int
+register REX : bitvector(32)
+register RFX : bitvector(32)
+register RGX : bitvector(32)
+register RHX : bitvector(32)
+register RIX : int
+register RJX : int
+register RKX : int
 register RLONGNAME : bitvector(16)
 
 /*
