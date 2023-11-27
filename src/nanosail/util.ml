@@ -22,3 +22,8 @@ let minimum ns =
   match ns with
   | []    -> failwith "Cannot find minimum of empty list"
   | n::ns -> List.fold_left min n ns
+
+let maximum ns =
+  match ns with
+  | []    -> failwith "Cannot find maximum of empty list"
+  | n::ns -> List.fold_left max n ns
