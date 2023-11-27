@@ -399,29 +399,22 @@ let pp_type_module type_definitions =
 (******************************************************************************)
 (* Register definition pretty printing *)
 
+let pp_reg_inductive_type register_definitions =
+  let identifier = string "Reg"
+  and typ = string "Ty -> Set"
+  and constructors =
+    let constructor_of_register register_definition =
+      let identifier = string register_definition.identifier
+      and typ = string "Reg" ^^ space ^^ pp_ty register_definition.typ
+      in
+      (identifier, typ)
+    in
+    List.map constructor_of_register register_definitions
+  in
+  Coq.inductive_type identifier typ constructors
+
 let pp_register_module (register_definitions : (S.sail_definition * register_definition) list) : document =
-  let pp_register_definition ({ identifier; typ } : register_definition) =
-    concat [
-        string "|";
-        space;
-        string identifier;
-        space; colon; space;
-        string "Reg";
-        space;
-        pp_ty typ
-      ]
-  in
-  let register_lines =
-    List.map (compose_functions pp_register_definition snd) register_definitions
-  in
-  let lines = List.flatten
-                [
-                  [ string "Inductive Reg : Ty -> Set :=" ];
-                  register_lines;
-                  [ Coq.eol ]
-                ]
-  in
-  separate hardline lines
+  pp_reg_inductive_type (List.map snd register_definitions)
 
 
 (******************************************************************************)
