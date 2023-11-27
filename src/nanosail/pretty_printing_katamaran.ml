@@ -148,14 +148,10 @@ let pp_funDeclKit funDefList =
 (******************************************************************************)
 (* Value pretty printing *)
 
-let pp_int i =
-  let pp_i = string (Big_int.to_string i ^ "%Z") in
-  if i < Z.zero then parens pp_i else pp_i
-
 let rec pp_value = function
   | Val_unit          -> string "tt"
   | Val_bool b        -> string (string_of_bool b)
-  | Val_int i         -> pp_int i
+  | Val_int i         -> Coq.integer i
   | Val_string s      -> dquotes (string s)
   | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
   | Val_nys           -> !^"VAL_" ^^ nys
@@ -194,7 +190,7 @@ let rec pp_expression e =
   let pp_exp_val = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app [string "exp_int"; pp_int n]
+    | Val_int n      -> simple_app [string "exp_int"; Coq.integer n]
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
     | v -> simple_app [
                string "exp_val";

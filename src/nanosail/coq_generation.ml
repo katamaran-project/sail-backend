@@ -1,5 +1,6 @@
 open PPrint
 
+module Big_int = Nat_big_num
 module PU = Pputil
 
 
@@ -141,3 +142,7 @@ let match' expression cases =
     ]
   in
   separate hardline lines
+
+let integer i =
+  let pp_i = string (Big_int.to_string i ^ "%Z") in
+  if i < Z.zero then parens pp_i else pp_i
