@@ -32,27 +32,6 @@ let annotate_with_original_definition original translation =
 
 
 (******************************************************************************)
-(* Heading pretty printing *)
-
-let pp_require_import src names =
-  let first = string src ^^ space ^^ string "Require Import"
-  and rest = List.map string names
-  in
-  pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ Coq.eol
-
-let pp_import names =
-  pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ Coq.eol
-
-let pp_open_scope scope =
-  concat [
-      string "Local Open Scope";
-      space;
-      string scope;
-      Coq.eol
-    ]
-
-
-(******************************************************************************)
 (* Base pretty printing *)
 
 let defaultBase = string "Import DefaultBase."
@@ -417,11 +396,11 @@ let fromIR_pp ?(show_untranslated=false) ir =
   let heading =
     let segments =
       [
-        pp_require_import "Coq" !coq_lib_modules;
-        pp_require_import "Katamaran" !katamaran_lib_modules;
-        pp_require_import "Equations" [ "Equations" ];
-        pp_import !more_modules;
-        separate_map hardline pp_open_scope !scopes
+        Coq.pp_require_import "Coq" !coq_lib_modules;
+        Coq.pp_require_import "Katamaran" !katamaran_lib_modules;
+        Coq.pp_require_import "Equations" [ "Equations" ];
+        Coq.pp_import !more_modules;
+        separate_map hardline Coq.pp_open_scope !scopes
       ]
     in
     generate_section segments
