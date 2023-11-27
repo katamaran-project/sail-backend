@@ -148,6 +148,26 @@ let match' expression cases =
   in
   separate hardline lines
 
+let match_pair matched_expression cases =
+  let left_patterns = List.map (Util.compose fst fst) cases
+  in
+  let left_patterns_max_width = Util.maximum (List.map PPrint.requirement left_patterns)
+  in
+  let aligned_cases =
+    List.map (fun ((left, right), expression) ->
+        (
+          concat [
+              Pputil.pad_right left_patterns_max_width left;
+              comma;
+              space;
+              right
+            ],
+          expression
+      ))
+      cases
+  in
+  match' matched_expression aligned_cases
+
 let integer i =
   let pp_i = string (Big_int.to_string i ^ "%Z") in
   if i < Z.zero then parens pp_i else pp_i
