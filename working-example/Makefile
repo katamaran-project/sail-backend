@@ -13,4 +13,4 @@ rename:
 	$(RUBY) rename-rewrites.rb
 
 clean:
-	rm -f intermediate_* microsail.v
+	rm -f intermediate_* rewrite-* delta-* microsail.v
