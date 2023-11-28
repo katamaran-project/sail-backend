@@ -21,7 +21,7 @@ register RJX : int
 register RKX : int
 register RLONGNAME : bitvector(16)
 
-enum wordx_width = { BYTE, HALF, WORD, DOUBLE }
+enum word_width = { BYTE, HALF, WORD, DOUBLE }
 
 /* mapping size_bits : word_width <-> bitvector(2) = { */
 /*   BYTE   <-> 0b00, */
