@@ -289,8 +289,14 @@ let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (t
   | TD_bitfield (_, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
 
-let translate_top_level_constant (definition_annotation : S.def_annot) (S.VS_aux (value_specification, _vspec_annotation)) : N.definition =
-  let VS_val_spec (TypSchm_aux (TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)), _type_scheme_location), _identifier, _extern) = value_specification
+let translate_top_level_constant
+      (definition_annotation : S.def_annot)
+      (S.VS_aux (value_specification, _vspec_annotation)) : N.definition =
+  let VS_val_spec (
+          TypSchm_aux (
+              TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
+              _type_scheme_location),
+          _identifier, _extern) = value_specification
   in
   not_yet_implemented __POS__ definition_annotation.loc
 
