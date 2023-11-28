@@ -44,7 +44,7 @@ let instance_reg_eq_dec register_names =
         register_names
     and wildcard_case = ((string "_", string "_"), string "right _")
     in
-    Util.list_builder (fun { add; addall } ->
+    Util.build_list (fun { add; addall } ->
         addall cs;
         add wildcard_case
       )

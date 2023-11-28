@@ -33,7 +33,7 @@ type 'a list_builder = {
     addall : 'a list -> unit
   }
 
-let list_builder f =
+let build_list f =
   let list_under_construction = ref []
   in
   let add_item item = list_under_construction := item :: !list_under_construction

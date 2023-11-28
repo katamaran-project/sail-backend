@@ -85,7 +85,7 @@ let inductive_type name typ constructors =
     List.map pp_constructor constructors
   in
   let lines =
-    Util.list_builder (fun { add; addall } ->
+    Util.build_list (fun { add; addall } ->
         add first_line;
         addall constructor_lines
       )
@@ -107,7 +107,7 @@ let build_inductive_type identifier typ constructor_generator =
   in
   let first_line =
     separate space (
-        Util.list_builder (fun { add; _ } ->
+        Util.build_list (fun { add; _ } ->
             add (string "Inductive");
             add identifier;
             if requirement typ > 0
@@ -123,7 +123,7 @@ let build_inductive_type identifier typ constructor_generator =
   let constructor_lines =
     let make_line (id, params, typ) =
       separate space (
-          Util.list_builder (fun { add; _ } ->
+          Util.build_list (fun { add; _ } ->
               add (string "|");
               add id;
               if requirement params > 0
@@ -139,7 +139,7 @@ let build_inductive_type identifier typ constructor_generator =
     List.map make_line constructors
   in
   let lines =
-    Util.list_builder (fun { add; addall } ->
+    Util.build_list (fun { add; addall } ->
         add first_line;
         addall constructor_lines
       )
@@ -207,7 +207,7 @@ let match' expression cases =
     string "end"
   in
   let lines =
-    Util.list_builder (fun { add; addall } ->
+    Util.build_list (fun { add; addall } ->
         add match_line;
         addall case_lines;
         add final_line

@@ -269,7 +269,7 @@ let pp_funDefKit function_definitions =
   in
   let contents =
     separate small_step (
-        list_builder (fun { add; addall } ->
+        build_list (fun { add; addall } ->
             addall (pp_function_definitions function_definitions);
             add fundef
           )
@@ -412,7 +412,7 @@ let pp_untranslated_module untranslated_definitions =
 
 let imports () = [
     ("Coq",
-     list_builder (fun { add; _ } ->
+     build_list (fun { add; _ } ->
          if !opt_list_notations then add "Lists.List";
          add "Strings.String";
          add "ZArith.BinInt"
@@ -469,7 +469,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
       ]
     in
     let parts =
-      list_builder (fun { addall; _ } ->
+      build_list (fun { addall; _ } ->
           addall require_imports;
           addall imports;
           addall scopes
@@ -479,7 +479,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
   in
   let base =
     let segments =
-      list_builder (fun { add; addall } ->
+      build_list (fun { add; addall } ->
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
