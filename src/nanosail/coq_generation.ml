@@ -121,22 +121,38 @@ let build_inductive_type identifier typ constructor_generator =
       )
   in
   let constructor_lines =
-    let make_line (id, params, typ) =
+    let pairs =
+      List.map (fun (id, params, typ) ->
+          separate space (
+              Util.build_list (fun { add; _ } ->
+                  add id;
+                  if requirement params > 0
+                  then add params
+                )
+            ),
+          typ
+        )
+        constructors
+    in
+    let longest_left_part =
+      Util.maximum (
+          List.map (fun (left, _) -> requirement left) pairs
+        )
+    in
+    let make_line (left, right) =
       separate space (
           Util.build_list (fun { add; _ } ->
               add (string "|");
-              add id;
-              if requirement params > 0
-              then add params;
-              if requirement typ > 0
+              add (PU.pad_right longest_left_part left);
+              if requirement right > 0
               then (
                 add colon;
-                add typ
+                add right
               )
             )
         )
     in
-    List.map make_line constructors
+    List.map make_line pairs
   in
   let lines =
     Util.build_list (fun { add; addall } ->
