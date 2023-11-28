@@ -244,7 +244,7 @@ let pp_function_definition original_sail_code function_definition =
   )
 
 let pp_function_definitions function_definitions =
-  separate_map small_step (uncurry pp_function_definition) function_definitions
+  List.map (uncurry pp_function_definition) function_definitions
 
 let pp_funDefKit function_definitions =
   let fundef =
@@ -268,10 +268,12 @@ let pp_funDefKit function_definitions =
     Coq.definition identifier parameters return_type body
   in
   let contents =
-    separate small_step [
-        pp_function_definitions function_definitions;
-        fundef
-      ]
+    separate small_step (
+        list_builder (fun { add; addall } ->
+            addall (pp_function_definitions function_definitions);
+            add fundef
+          )
+      )
   in
   Coq.section "FunDefKit" contents
 
