@@ -67,9 +67,12 @@ let inductive_type name typ constructors =
   in
   let constructor_lines =
     let length_of_longest_constructor_name =
-      Util.maximum (
-          List.map (fun (identifier, _) -> requirement identifier) constructors
-        )
+      if List.is_empty constructors
+      then 0
+      else
+        Util.maximum (
+            List.map (fun (identifier, _) -> requirement identifier) constructors
+          )
     in
     let pp_constructor (name, typ) =
       separate space [
