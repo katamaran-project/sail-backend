@@ -352,8 +352,11 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       (sail_definition, translate_register annotation specification)
     | DEF_internal_mutrec _ ->
        not_yet_implemented __POS__ annotation.loc
-    | DEF_pragma (_, _, _) ->
-       not_yet_implemented __POS__ annotation.loc
+    | DEF_pragma (pragma, _argument, location) ->
+       match pragma with
+       | "include_start" -> (sail_definition, N.IgnoredDefinition)
+       | "include_end"   -> (sail_definition, N.IgnoredDefinition)
+       | _               -> not_yet_implemented __POS__ location
   with NotYetImplemented (source_position, sail_location, message) ->
     let (file, line_number, _, _) = source_position
     in
