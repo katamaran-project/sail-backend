@@ -1,3 +1,8 @@
+default Order dec
+
+$include <vector_dec.sail>
+$include <regfp.sail>
+
 type xlen       : Int = 32
 type xlen_bytes : Int = 4
 type xlen_bits  : Int = xlen_bytes * 8
@@ -15,6 +20,15 @@ register RIX : int
 register RJX : int
 register RKX : int
 register RLONGNAME : bitvector(16)
+
+enum wordx_width = { BYTE, HALF, WORD, DOUBLE }
+
+/* mapping size_bits : word_width <-> bitvector(2) = { */
+/*   BYTE   <-> 0b00, */
+/*   HALF   <-> 0b01, */
+/*   WORD   <-> 0b10, */
+/*   DOUBLE <-> 0b11 */
+/* } */
 
 /*
 val is_empty : list(int) -> bool
