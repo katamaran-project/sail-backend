@@ -275,7 +275,28 @@ let translate_type_abbreviation
           )
        | Operator _ -> not_yet_implemented __POS__ identifier_location
      )
-  
+
+let translate_enum
+      (_definition_annotation : S.def_annot)
+      (_type_annotation : 'a S.annot)
+      (S.Id_aux (identifier, identifier_location))
+      (cases : S.id list) : N.definition =
+  match identifier with
+  | S.Id identifier ->
+     (
+       let cases =
+         let string_of_case (S.Id_aux (case, case_location)) =
+           match case with
+           | S.Id string  -> string
+           | S.Operator _ -> not_yet_implemented __POS__ case_location
+         in
+         List.map string_of_case cases
+       in
+       EnumDefinition { enum_identifier = identifier; enum_cases = cases }
+     )
+  | S.Operator _ -> not_yet_implemented __POS__ identifier_location
+
+
 let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (type_definition, type_annotation)) : N.definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
@@ -284,8 +305,8 @@ let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (t
      not_yet_implemented __POS__ definition_annotation.loc
   | TD_variant (_, _, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
-  | TD_enum (_, _, _) ->
-     not_yet_implemented __POS__ definition_annotation.loc
+  | TD_enum (identifier, cases, _) ->
+     translate_enum definition_annotation type_annotation identifier cases
   | TD_bitfield (_, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
 

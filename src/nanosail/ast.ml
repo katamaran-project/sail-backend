@@ -152,10 +152,17 @@ type register_definition =
     typ: ty
   }
 
+type enum_definition =
+  {
+    enum_identifier: string;
+    enum_cases: string list
+  }
+
 type definition =
   | FunctionDefinition of function_definition
   | TypeDefinition of type_definition
   | RegisterDefinition of register_definition
+  | EnumDefinition of enum_definition
   | UntranslatedDefinition of untranslated_definition
   | IgnoredDefinition
 
