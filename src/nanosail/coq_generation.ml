@@ -77,7 +77,10 @@ let inductive_type name typ constructors =
     List.map pp_constructor constructors
   in
   let lines =
-    first_line :: constructor_lines
+    Util.list_builder (fun { add; addall } ->
+        add first_line;
+        addall constructor_lines
+      )
   in
   separate hardline lines ^^ eol
 
