@@ -32,7 +32,7 @@ Module Import ExprProgram <: Program DefaultBase.
 
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
-    | bool_expr : Fun [ "tt" ∷ ty.unit ] ty.bool
+    | bool_expr  : Fun [ "tt" ∷ ty.unit ] ty.bool
     | arith_expr : Fun [ "tt" ∷ ty.unit ] ty.int.
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
