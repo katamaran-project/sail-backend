@@ -27,3 +27,20 @@ let maximum ns =
   match ns with
   | []    -> failwith "Cannot find maximum of empty list"
   | n::ns -> List.fold_left max n ns
+
+type 'a list_builder = {
+    add : 'a -> unit;
+    addall : 'a list -> unit
+  }
+
+let list_builder f =
+  let list_under_construction = ref []
+  in
+  let add_item item = list_under_construction := item :: !list_under_construction
+  in
+  let add_items items = List.iter add_item items
+  in
+  let context = { add = add_item; addall = add_items }
+  in
+  f context;
+  List.rev !list_under_construction
