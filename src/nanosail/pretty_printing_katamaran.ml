@@ -335,6 +335,26 @@ let pp_type_module type_definitions =
   List.map (uncurry pp_type_definition) type_definitions
 
 
+(******************************************************************************)
+(* Enums pretty printing *)
+
+let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
+  let pp_enum sail_definition enum_definition =
+    let coq_translation =
+      let identifier = string enum_definition.enum_identifier
+      and typ = string "Set"
+      in
+      Coq.build_inductive_type identifier typ (fun add_constructor ->
+          List.iter
+            (fun (case : string) ->
+              add_constructor (string case)
+            )
+            enum_definition.enum_cases
+        )
+    in
+    annotate_with_original_definition sail_definition coq_translation
+  in
+  List.map (uncurry pp_enum) enum_definitions
 
 (******************************************************************************)
 (* Untranslated definition pretty printing *)
@@ -463,6 +483,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
+          addall (pp_enums ir.enum_definitions)
         )
     in
     generate_section segments
