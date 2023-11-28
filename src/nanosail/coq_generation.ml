@@ -145,11 +145,11 @@ let match' expression cases =
     string "end"
   in
   let lines =
-    List.flatten [
-      [ match_line ];
-      case_lines;
-      [ final_line ]
-    ]
+    Util.list_builder (fun { add; addall } ->
+        add match_line;
+        addall case_lines;
+        add final_line
+      )
   in
   separate hardline lines
 
