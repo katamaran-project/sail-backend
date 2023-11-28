@@ -6,7 +6,10 @@ From Katamaran Require Import
      Semantics.Registers
      Program.
 
-From Equations Require Import
+From stdpp Require Import
+     finite.
+
+     From Equations Require Import
      Equations.
 
 Import ctx.notations
