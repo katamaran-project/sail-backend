@@ -378,6 +378,10 @@ let imports () = [
        "Semantics.Registers";
        "Program"
     ]);
+    ("stdpp",
+     [
+       "finite"
+    ]);
     ("Equations",
      [
        "Equations"
