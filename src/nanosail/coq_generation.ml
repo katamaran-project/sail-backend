@@ -123,7 +123,11 @@ let definition identifier parameters result_type body =
 
 let match' expression cases =
   let match_line =
-    string "match" ^^ space ^^ expression ^^ space ^^ string "with"
+    separate space [
+        string "match";
+        expression;
+        string "with"
+      ]
   in
   let case_lines =
     let longest_pattern_width =
