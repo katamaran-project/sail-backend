@@ -57,27 +57,20 @@ let inductive_type name typ constructors =
   let open PPrint
   in
   let first_line =
-    concat [
+    separate space [
         string "Inductive";
-        space;
         name;
-        space;
         colon;
-        space;
         typ;
-        space;
         string ":="
       ]
   in
   let constructor_lines =
     let pp_constructor (name, typ) =
-      concat [
+      separate space [
           string "|";
-          space;
           name;
-          space;
           colon;
-          space;
           align typ;
         ]
     in
