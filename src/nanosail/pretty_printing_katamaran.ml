@@ -340,10 +340,33 @@ let pp_type_module type_definitions =
 (* Untranslated definition pretty printing *)
 
 let pp_untranslated_module untranslated_definitions =
+  let pp_sail_location (location : Libsail.Parse_ast.l) =
+    match location with
+    | Libsail.Parse_ast.Range (start, stop) ->
+       if start.pos_fname = stop.pos_fname
+       then (
+         if start.pos_lnum = stop.pos_lnum
+         then
+           Printf.sprintf "%s line %d chars %d-%d"
+             start.pos_fname
+             start.pos_lnum
+             (start.pos_cnum - start.pos_bol)
+             (stop.pos_cnum - stop.pos_bol)
+         else
+           Printf.sprintf "%s from line %d:%d to line %d:%d"
+             start.pos_fname
+             start.pos_lnum
+             (start.pos_cnum - start.pos_bol)
+             stop.pos_lnum
+             (stop.pos_cnum - stop.pos_bol)
+       )
+       else S.string_of_location location
+    | _ -> S.string_of_location location
+  in
   let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in
     let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
-    let sail_location_string = Printf.sprintf "Sail location: %s" (S.string_of_location sail_location) in
+    let sail_location_string = Printf.sprintf "Sail location: %s" (pp_sail_location sail_location) in
     let message_string =
       match message with
       | Some message -> Printf.sprintf "Message: %s" message
