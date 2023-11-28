@@ -358,7 +358,10 @@ let pp_untranslated_module untranslated_definitions =
         string message_string
       ]
   in
-  Coq.comment (separate small_step (List.map (uncurry pp_untranslated_definition) untranslated_definitions))
+  Coq.comment (
+      separate small_step (
+          List.map (uncurry pp_untranslated_definition) untranslated_definitions
+    ))
 
 
 (******************************************************************************)
