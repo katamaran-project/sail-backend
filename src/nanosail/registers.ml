@@ -44,10 +44,10 @@ let instance_reg_eq_dec register_names =
         register_names
     and wildcard_case = ((string "_", string "_"), string "right _")
     in
-    List.flatten [
-        cs;
-        [wildcard_case]
-      ]
+    Util.list_builder (fun { add; addall } ->
+        addall cs;
+        add wildcard_case
+      )
   in
   separate hardline [
       utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
