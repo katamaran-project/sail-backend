@@ -92,6 +92,60 @@ let inductive_type name typ constructors =
   in
   separate hardline lines ^^ eol
 
+let build_inductive_type identifier typ constructor_generator =
+  let constructors =
+    let result = ref []
+    in
+    let generate_case
+          ?(parameters : document = empty)
+          ?(typ        : document = empty)
+          (identifier  : document) =
+      result := (identifier, parameters, typ) :: !result
+    in
+    constructor_generator generate_case;
+    List.rev !result
+  in
+  let first_line =
+    separate space (
+        Util.list_builder (fun { add; _ } ->
+            add (string "Inductive");
+            add identifier;
+            if requirement typ > 0
+            then
+              (
+                add colon;
+                add typ
+              );
+            add (string ":=")
+          )
+      )
+  in
+  let constructor_lines =
+    let make_line (id, params, typ) =
+      separate space (
+          Util.list_builder (fun { add; _ } ->
+              add (string "|");
+              add id;
+              if requirement params > 0
+              then add params;
+              if requirement typ > 0
+              then (
+                add colon;
+                add typ
+              )
+            )
+        )
+    in
+    List.map make_line constructors
+  in
+  let lines =
+    Util.list_builder (fun { add; addall } ->
+        add first_line;
+        addall constructor_lines
+      )
+  in
+  separate hardline lines ^^ hardline ^^ eol
+
 let definition identifier parameters result_type body =
   let pp_parameters =
     if requirement parameters == 0
