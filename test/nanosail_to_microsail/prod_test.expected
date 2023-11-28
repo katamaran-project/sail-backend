@@ -9,7 +9,7 @@ From Katamaran Require Import
 From stdpp Require Import
      finite.
 
-     From Equations Require Import
+From Equations Require Import
      Equations.
 
 Import ctx.notations
