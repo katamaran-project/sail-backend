@@ -277,7 +277,7 @@ let pp_funDefKit function_definitions =
 
 
 (******************************************************************************)
-(* FunDefKit pretty printing *)
+(* ForeignDefKit pretty printing *)
 
 let pp_foreignKit =
   let title = "ForeignKit"
