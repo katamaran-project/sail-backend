@@ -78,6 +78,12 @@ let reg_finite register_names =
     ]
   )
 
+let obligation_tactic =
+  separate hardline [
+    string "Local Obligation Tactic :=";
+    string "  finite_from_eqdec."
+    ]
+
 
 let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
@@ -89,6 +95,7 @@ let pp_register_module (register_definitions : (sail_definition * register_defin
         no_confusion_for_reg ();
         reg_definition ();
         instance_reg_eq_dec register_names;
+        obligation_tactic;
         reg_finite register_names
       ] ^^ Coq.eol
   in
