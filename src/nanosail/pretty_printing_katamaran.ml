@@ -364,15 +364,11 @@ let pp_untranslated_module untranslated_definitions =
 
 let imports () = [
     ("Coq",
-     List.flatten ([
-           if !opt_list_notations
-           then ["Lists.List"]
-           else [];
-           [  
-             "Strings.String";
-             "ZArith.BinInt"
-           ]
-    ]));
+     list_builder (fun { add; _ } ->
+         if !opt_list_notations then add "Lists.List";
+         add "Strings.String";
+         add "ZArith.BinInt"
+    ));
     ("Katamaran",
      [
        "Semantics.Registers";
@@ -425,21 +421,21 @@ let fromIR_pp ?(show_untranslated=false) ir =
       ]
     in
     let parts =
-      List.flatten [
-          require_imports;
-          imports;
-          scopes
-      ]
+      list_builder (fun { addall; _ } ->
+          addall require_imports;
+          addall imports;
+          addall scopes
+        )
     in
     generate_section parts
   in
   let base =
     let segments =
-      List.concat [
-          [ pp_module_header "TYPES" ];
-          [ defaultBase ];
-          pp_type_module ir.type_definitions;
-        ]
+      list_builder (fun { add; addall } ->
+          add (pp_module_header "TYPES");
+          add defaultBase;
+          addall (pp_type_module ir.type_definitions);
+        )
     in
     generate_section segments
   in
