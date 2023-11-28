@@ -174,6 +174,10 @@ let extract_type_definition = function
   | TypeDefinition x -> Some x
   | _                -> None
 
+let extract_enum_definition = function
+  | EnumDefinition x -> Some x
+  | _                -> None
+
 let extract_register_definition = function
   | RegisterDefinition x -> Some x
   | _                    -> None
@@ -194,16 +198,17 @@ type ir_t = {
   program_name : string;
   function_definitions : (sail_definition * function_definition) list;
   type_definitions: (sail_definition * type_definition) list;
+  enum_definitions: (sail_definition * enum_definition) list;
   register_definitions: (sail_definition * register_definition) list;
   untranslated_definitions : (sail_definition * untranslated_definition) list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }
 
-
 let make_ir_t
       ?(function_definitions : (sail_definition * function_definition) list = [])
       ?(type_definitions : (sail_definition * type_definition) list = [])
+      ?(enum_definitions : (sail_definition * enum_definition) list = [])
       ?(register_definitions : (sail_definition * register_definition) list = [])
       ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
       program_name =
@@ -211,6 +216,7 @@ let make_ir_t
     program_name = program_name;
     function_definitions = function_definitions;
     type_definitions = type_definitions;
+    enum_definitions = enum_definitions;
     register_definitions = register_definitions;
     untranslated_definitions = untranslated_definitions
   }

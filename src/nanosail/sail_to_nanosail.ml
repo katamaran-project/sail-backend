@@ -397,7 +397,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         }
     )
 
-let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name =
+let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.ir_t =
   let lift f (original, translation) =
     Option.map (fun x -> (original, x)) (f translation)
   in
@@ -407,9 +407,10 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
     List.filter_map (lift f) nano_definitions
   in
   {
-    N.program_name             = name;
-    N.function_definitions     = collect N.extract_function_definition;
-    N.type_definitions         = collect N.extract_type_definition;
-    N.register_definitions     = collect N.extract_register_definition;
-    N.untranslated_definitions = collect N.extract_untranslated_definition;
+    program_name             = name;
+    function_definitions     = collect N.extract_function_definition;
+    type_definitions         = collect N.extract_type_definition;
+    enum_definitions         = collect N.extract_enum_definition;
+    register_definitions     = collect N.extract_register_definition;
+    untranslated_definitions = collect N.extract_untranslated_definition;
   }
