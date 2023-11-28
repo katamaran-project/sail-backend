@@ -360,7 +360,15 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
   with NotYetImplemented (source_position, sail_location, message) ->
     let (file, line_number, _, _) = source_position
     in
-    (sail_definition, UntranslatedDefinition { filename=file; line_number = line_number; sail_location = sail_location; message = message })
+    (
+      sail_definition,
+      UntranslatedDefinition {
+          filename = file;
+          line_number = line_number;
+          sail_location = sail_location;
+          message = message
+        }
+    )
 
 let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name =
   let lift f (original, translation) =
