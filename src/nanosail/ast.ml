@@ -157,6 +157,7 @@ type definition =
   | TypeDefinition of type_definition
   | RegisterDefinition of register_definition
   | UntranslatedDefinition of untranslated_definition
+  | IgnoredDefinition
 
 let extract_function_definition = function
   | FunctionDefinition x -> Some x
@@ -173,6 +174,10 @@ let extract_register_definition = function
 let extract_untranslated_definition = function
   | UntranslatedDefinition x -> Some x
   | _                        -> None
+
+let extract_ignored_definition = function
+  | IgnoredDefinition -> Some ()
+  | _                 -> None
 
 (******************************************************************************)
 (* Full intermediate representation *)
