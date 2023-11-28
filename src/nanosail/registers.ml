@@ -90,6 +90,6 @@ let pp_register_module (register_definitions : (sail_definition * register_defin
         reg_definition ();
         instance_reg_eq_dec register_names;
         reg_finite register_names
-      ]
+      ] ^^ Coq.eol
   in
   Coq.section "RegDeclKit" section_contents
