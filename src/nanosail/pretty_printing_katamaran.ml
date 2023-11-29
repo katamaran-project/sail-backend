@@ -41,11 +41,11 @@ let defaultBase = string "Import DefaultBase."
 (* FunDeclKit pretty printing *)
 
 let pp_funDeclKit function_definitions =
-  let pp_function_declaration funDef =
-    let name = string funDef.funName
+  let pp_function_declaration function_definition =
+    let name = string function_definition.funName
     and function_type =
-      let parameter_types = Coq.list (List.map S.pp_bind funDef.funType.arg_types)
-      and return_type = S.pp_ty funDef.funType.ret_type
+      let parameter_types = Coq.list (List.map S.pp_bind function_definition.funType.arg_types)
+      and return_type = S.pp_ty function_definition.funType.ret_type
       in
       concat [
         string "Fun";
