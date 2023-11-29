@@ -3,8 +3,15 @@ open Ast
 open Util
 open Pputil
 
-module PP = PPrint
-module Coq = Coq_generation
+module PP = struct
+  include PPrint
+  
+  module Coq = Coq_generation
+
+  module Katamaran = struct
+    module Registers = Pp_registers
+  end
+end
 
 module S = struct
   include Sail_util
@@ -23,7 +30,7 @@ let annotate_with_original_definition original translation =
     !include_original_sail_code
   then
     concat [
-      Coq.comment (pp_sail_definition original);
+      PP.Coq.comment (pp_sail_definition original);
       hardline;
       translation
     ]
@@ -44,7 +51,7 @@ let pp_funDeclKit function_definitions =
   let pp_function_declaration function_definition =
     let name = string function_definition.funName
     and function_type =
-      let parameter_types = Coq.list (List.map S.pp_bind function_definition.funType.arg_types)
+      let parameter_types = PP.Coq.list (List.map S.pp_bind function_definition.funType.arg_types)
       and return_type = S.pp_ty function_definition.funType.ret_type
       in
       concat [
@@ -67,7 +74,7 @@ let pp_funDeclKit function_definitions =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
-    Coq.build_inductive_type name typ (fun add_constructor ->
+    PP.Coq.build_inductive_type name typ (fun add_constructor ->
         List.iter
           (fun function_definition ->
             let name, typ = pp_function_declaration function_definition
@@ -87,7 +94,7 @@ let pp_funDeclKit function_definitions =
           ]
       ]
   in
-  Coq.section "FunDeclKit" contents
+  PP.Coq.section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
@@ -95,9 +102,9 @@ let pp_funDeclKit function_definitions =
 let rec pp_value = function
   | Val_unit          -> string "tt"
   | Val_bool b        -> string (string_of_bool b)
-  | Val_int i         -> Coq.integer i
+  | Val_int i         -> PP.Coq.integer i
   | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
+  | Val_prod (v1, v2) -> PP.Coq.product (pp_value v1) (pp_value v2)
   | Val_nys           -> !^"VAL_" ^^ nys
 
 
@@ -134,7 +141,7 @@ let rec pp_expression e =
   let pp_exp_val = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app [string "exp_int"; Coq.integer n]
+    | Val_int n      -> simple_app [string "exp_int"; PP.Coq.integer n]
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
     | v -> simple_app [
                string "exp_val";
@@ -175,7 +182,7 @@ let rec pp_expression e =
   | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
   | Exp_list l ->
       let pp_l = if !opt_list_notations
-        then Coq.list (List.map pp_expression l)
+        then PP.Coq.list (List.map pp_expression l)
         else pp_exp_list l in
       simple_app [string "exp_list"; pp_l]
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
@@ -239,7 +246,7 @@ let pp_function_definition original_sail_code function_definition =
   in
   let return_type =
     pp_hanging_list (PP.string "Stm") [
-      Coq.list (List.map S.pp_bind function_definition.funType.arg_types);
+      PP.Coq.list (List.map S.pp_bind function_definition.funType.arg_types);
       S.pp_ty function_definition.funType.ret_type
     ]
   in
@@ -247,7 +254,7 @@ let pp_function_definition original_sail_code function_definition =
     pp_statement function_definition.funBody
   in
   annotate_with_original_definition original_sail_code (
-    Coq.definition identifier parameters return_type body
+    PP.Coq.definition identifier parameters return_type body
   )
 
 let pp_function_definitions function_definitions =
@@ -270,9 +277,9 @@ let pp_funDefKit function_definitions =
         in
         List.map case_of_function_definition (List.map snd function_definitions)
       in
-      Coq.match' matched_expression cases
+      PP.Coq.match' matched_expression cases
     in
-    Coq.definition identifier parameters return_type body
+    PP.Coq.definition identifier parameters return_type body
   in
   let contents =
     separate small_step (
@@ -282,7 +289,7 @@ let pp_funDefKit function_definitions =
           )
       )
   in
-  Coq.section "FunDefKit" contents
+  PP.Coq.section "FunDefKit" contents
 
 
 (******************************************************************************)
@@ -300,7 +307,7 @@ let pp_foreignKit =
       "Proof. destruct f. Qed."
     ]
   in
-  Coq.section title contents
+  PP.Coq.section title contents
 
 
 (******************************************************************************)
@@ -334,7 +341,7 @@ let pp_type_module type_definitions =
           string ":=";
           space;
           S.pp_numeric_expression numexpr;
-          Coq.eol
+          PP.Coq.eol
         ]
     in
     annotate_with_original_definition original document
@@ -351,7 +358,7 @@ let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
       let identifier = string enum_definition.enum_identifier
       and typ = string "Set"
       in
-      Coq.build_inductive_type identifier typ (fun add_constructor ->
+      PP.Coq.build_inductive_type identifier typ (fun add_constructor ->
           List.iter
             (fun (case : string) ->
               add_constructor (string case)
@@ -408,7 +415,7 @@ let pp_untranslated_module untranslated_definitions =
         string message_string
       ]
   in
-  Coq.comment (
+  PP.Coq.comment (
       separate small_step (
           List.map (uncurry pp_untranslated_definition) untranslated_definitions
     ))
@@ -463,16 +470,16 @@ let fromIR_pp ?(show_untranslated=false) ir =
   in
   let heading =
     let require_imports =
-      List.map (uncurry Coq.require_imports) (imports ())
+      List.map (uncurry PP.Coq.require_imports) (imports ())
     in
     let imports =
       [
-        Coq.imports more_modules
+        PP.Coq.imports more_modules
       ]
     in
     let scopes =
       [
-        Coq.open_scopes scopes
+        PP.Coq.open_scopes scopes
       ]
     in
     let parts =
@@ -513,7 +520,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
       let segments =
         [
           pp_module_header "REGISTERS";
-          Registers.pp_register_module ir.register_definitions
+          PP.Katamaran.Registers.pp_register_module ir.register_definitions
         ]
       in
       generate_section segments
