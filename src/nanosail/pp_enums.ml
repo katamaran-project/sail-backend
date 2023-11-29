@@ -68,9 +68,13 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
     )
 
 let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
-  Util.build_list (fun { add; addall } ->
-      addall (generate_inductive_type enum_definitions);
-      addall (generate_constructors_inductive_type enum_definitions);
-      if not (List.is_empty enum_definitions)
-      then add (generate_enum_of_enums enum_definitions);
-    )
+  if
+    List.is_empty enum_definitions
+  then
+    []
+  else
+    Util.build_list (fun { add; addall } ->
+        addall (generate_inductive_type enum_definitions);
+        addall (generate_constructors_inductive_type enum_definitions);
+        add (generate_enum_of_enums enum_definitions);
+      )
