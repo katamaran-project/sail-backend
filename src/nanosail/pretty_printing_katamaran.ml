@@ -461,7 +461,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
-          addall (PP.Katamaran.Enums.pp_enums ir.enum_definitions)
+          addall (PP.Katamaran.Enums.enums ir.enum_definitions)
         )
     in
     generate_section segments
