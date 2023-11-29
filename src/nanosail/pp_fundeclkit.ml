@@ -18,7 +18,7 @@ module S = struct
 end
 
 
-let pp_funDeclKit function_definitions =
+let generate function_definitions =
   let pp_function_declaration function_definition =
     let name = string function_definition.funName
     and function_type =

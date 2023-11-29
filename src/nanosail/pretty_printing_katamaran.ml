@@ -249,7 +249,7 @@ let pp_foreignKit =
 let pp_program_module program_name base_name function_definitions =
   indent (separate small_step [
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
-    PP.Katamaran.FunDeclKit.pp_funDeclKit (List.map snd function_definitions);
+    PP.Katamaran.FunDeclKit.generate (List.map snd function_definitions);
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
     pp_funDefKit function_definitions;
     string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
