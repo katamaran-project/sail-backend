@@ -85,7 +85,7 @@ let obligation_tactic =
     ]
 
 
-let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
+let generate (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
     let extract_identifier (pair : sail_definition * register_definition) =
       string (snd pair).identifier

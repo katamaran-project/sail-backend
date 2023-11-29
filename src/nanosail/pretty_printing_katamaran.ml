@@ -432,7 +432,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
       let segments =
         [
           pp_module_header "REGISTERS";
-          PP.Katamaran.Registers.pp_register_module ir.register_definitions
+          PP.Katamaran.Registers.generate ir.register_definitions
         ]
       in
       generate_section segments
