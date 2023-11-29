@@ -13,16 +13,16 @@ end
 let reg_inductive_type register_definitions =
   let identifier = string "Reg"
   and typ = string "Ty -> Set"
-  and constructors =
-    let constructor_of_register register_definition =
-      let identifier = string register_definition.identifier
-      and typ = string "Reg" ^^ space ^^ S.pp_ty register_definition.typ
-      in
-      (identifier, typ)
-    in
-    List.map constructor_of_register register_definitions
   in
-  Coq.inductive_type identifier typ constructors
+  Coq.build_inductive_type identifier typ (fun add_constructor ->
+      let make_constructor register_definition =
+        let identifier = string register_definition.identifier
+        and typ = separate space [ string "Reg"; S.pp_ty register_definition.typ ]
+        in
+        add_constructor ~typ:typ identifier
+      in
+      List.iter make_constructor register_definitions
+    )
 
 let no_confusion_for_reg () =
   Coq.section "TransparentObligations" (
