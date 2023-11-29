@@ -40,7 +40,7 @@ let defaultBase = string "Import DefaultBase."
 (******************************************************************************)
 (* FunDeclKit pretty printing *)
 
-let pp_funDeclKit funDefList =
+let pp_funDeclKit function_definitions =
   let pp_function_declaration funDef =
     let name = string funDef.funName
     and function_type =
@@ -74,7 +74,7 @@ let pp_funDeclKit funDefList =
             in
             add_constructor ~typ:typ name
           )
-          funDefList
+          function_definitions
       )
   in
   let contents =
