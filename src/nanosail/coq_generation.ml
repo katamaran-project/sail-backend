@@ -135,9 +135,12 @@ let build_inductive_type identifier typ constructor_generator =
         constructors
     in
     let longest_left_part =
-      Util.maximum (
-          List.map (fun (left, _) -> requirement left) pairs
-        )
+      if List.is_empty pairs
+      then 0
+      else
+        Util.maximum (
+            List.map (fun (left, _) -> requirement left) pairs
+          )
     in
     let make_line (left, right) =
       separate space (
