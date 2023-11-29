@@ -1,7 +1,7 @@
 open PPrint
 
 module Big_int = Nat_big_num
-module PU = Pputil
+module PU = Pp_util
 
 
 let eol = dot
@@ -204,7 +204,7 @@ let match_pair matched_expressions cases =
     List.map (fun ((left, right), expression) ->
         (
           concat [
-              Pputil.pad_right left_patterns_max_width left;
+              PU.pad_right left_patterns_max_width left;
               comma;
               space;
               right
