@@ -23,19 +23,19 @@ register RLONGNAME : bitvector(16)
 
 enum word_width = { BYTE, HALF, WORD, DOUBLE }
 
-/* mapping size_bits : word_width <-> bitvector(2) = { */
-/*   BYTE   <-> 0b00, */
-/*   HALF   <-> 0b01, */
-/*   WORD   <-> 0b10, */
-/*   DOUBLE <-> 0b11 */
-/* } */
+mapping size_bits : word_width <-> bitvector(2) = {
+  BYTE   <-> 0b00,
+  HALF   <-> 0b01,
+  WORD   <-> 0b10,
+  DOUBLE <-> 0b11
+}
 
-/*
+
 val is_empty : list(int) -> bool
 val empty : unit -> list(int)
 val onetwothree : unit -> list(int)
 val last : list(int) -> (int, bool)
-val append : (list(int), list(int)) -> list(int)
+val listappend : (list(int), list(int)) -> list(int)
 
 function is_empty(l) = match l {
   [||]   => true,
@@ -54,8 +54,7 @@ function last(l) = match l {
   }
 }
 
-function append(l1, l2) = match l1 {
+function listappend(l1, l2) = match l1 {
   [||]   => l2,
-  h :: t => h :: append(t, l2)
+  h :: t => h :: listappend(t, l2)
 }
-*/
