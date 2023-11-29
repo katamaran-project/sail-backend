@@ -53,45 +53,6 @@ let section section_title contents =
   in
   PU.pp_indented_enclosed_lines first_line contents last_line
 
-let inductive_type name typ constructors =
-  let open PPrint
-  in
-  let first_line =
-    separate space [
-        string "Inductive";
-        name;
-        colon;
-        typ;
-        string ":="
-      ]
-  in
-  let constructor_lines =
-    let length_of_longest_constructor_name =
-      if List.is_empty constructors
-      then 0
-      else
-        Util.maximum (
-            List.map (fun (identifier, _) -> requirement identifier) constructors
-          )
-    in
-    let pp_constructor (name, typ) =
-      separate space [
-          string "|";
-          PU.pad_right length_of_longest_constructor_name name;
-          colon;
-          align typ;
-        ]
-    in
-    List.map pp_constructor constructors
-  in
-  let lines =
-    Util.build_list (fun { add; addall } ->
-        add first_line;
-        addall constructor_lines
-      )
-  in
-  separate hardline lines ^^ eol
-
 let build_inductive_type identifier typ constructor_generator =
   let constructors =
     let result = ref []
