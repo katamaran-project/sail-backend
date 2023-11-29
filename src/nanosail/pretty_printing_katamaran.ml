@@ -66,9 +66,16 @@ let pp_funDeclKit funDefList =
   let inductive_type_declaration =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
-    and constructors = List.map pp_function_declaration funDefList
     in
-    Coq.inductive_type name typ constructors
+    Coq.build_inductive_type name typ (fun add_constructor ->
+        List.iter
+          (fun function_definition ->
+            let (name, typ) = pp_function_declaration function_definition
+            in
+            add_constructor ~typ:typ name
+          )
+          funDefList
+      )
   in
   let contents =
     separate small_step [
