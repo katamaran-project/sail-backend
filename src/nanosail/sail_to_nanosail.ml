@@ -413,4 +413,5 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
     enum_definitions         = collect N.extract_enum_definition;
     register_definitions     = collect N.extract_register_definition;
     untranslated_definitions = collect N.extract_untranslated_definition;
+    ignored_definitions      = List.map fst (collect N.extract_ignored_definition);
   }

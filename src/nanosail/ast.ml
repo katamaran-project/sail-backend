@@ -200,7 +200,8 @@ type ir_t = {
   type_definitions: (sail_definition * type_definition) list;
   enum_definitions: (sail_definition * enum_definition) list;
   register_definitions: (sail_definition * register_definition) list;
-  untranslated_definitions : (sail_definition * untranslated_definition) list
+  untranslated_definitions : (sail_definition * untranslated_definition) list;
+  ignored_definitions : sail_definition list
   (* Other record fields will need to be added to extend the language (e.g. one
      for user types and one for registers). *)
 }
@@ -211,6 +212,7 @@ let make_ir_t
       ?(enum_definitions : (sail_definition * enum_definition) list = [])
       ?(register_definitions : (sail_definition * register_definition) list = [])
       ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
+      ?(ignored_definitions : sail_definition list = [])
       program_name =
   {
     program_name = program_name;
@@ -218,5 +220,6 @@ let make_ir_t
     type_definitions = type_definitions;
     enum_definitions = enum_definitions;
     register_definitions = register_definitions;
-    untranslated_definitions = untranslated_definitions
+    untranslated_definitions = untranslated_definitions;
+    ignored_definitions = ignored_definitions;
   }
