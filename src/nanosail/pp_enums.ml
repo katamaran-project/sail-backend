@@ -90,6 +90,19 @@ let generate_no_confusions (enum_definitions : (sail_definition * enum_definitio
   in
   PP.Coq.section "TransparentObligations" contents
 
+
+let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list) =
+  let enum_definitions = List.map snd enum_definitions
+  in
+  let generate_eqdec (enum_definition : enum_definition) =
+    string (
+        Printf.sprintf "Derive Eqdec for %s." enum_definition.identifier
+      )
+  in
+  let lines =
+    List.map generate_eqdec enum_definitions
+  in
+  separate hardline lines
  
 let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
   if
@@ -102,4 +115,5 @@ let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
         addall (generate_constructors_inductive_type enum_definitions);
         add (generate_enum_of_enums enum_definitions);
         add (generate_no_confusions enum_definitions);
+        add (generate_eqdecs enum_definitions);
       )
