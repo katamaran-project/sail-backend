@@ -1,5 +1,11 @@
 open PPrint
 
+
+module PP = struct
+  include PPrint
+end
+
+
 let indent = nest 2
 let indent' ?(level = 2) doc = blank level ^^ align doc
 

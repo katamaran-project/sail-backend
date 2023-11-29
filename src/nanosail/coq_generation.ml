@@ -265,3 +265,17 @@ let record_value fields =
     List.map item_of_field fields
   in
   PU.pp_delimited_sequence ldelim rdelim semi items
+
+let include_original_sail_code = ref false
+
+let annotate_with_original_definition original translation =
+  if
+    !include_original_sail_code
+  then
+    concat [
+        comment (Sail_util.pp_sail_definition original);
+      hardline;
+      translation
+    ]
+  else
+    translation

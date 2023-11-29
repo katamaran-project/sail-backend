@@ -3,7 +3,6 @@ open Ast
 open Pputil
        
 module PP = PPrint
-module Coq = Coq_generation
 
 
 let string_of_position (position : Lexing.position) =
@@ -61,3 +60,6 @@ and pp_type_argument (type_argument : type_argument) =
 
 let pp_bind (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ pp_ty t
+
+let pp_sail_definition sail_definition =
+  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)

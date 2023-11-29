@@ -10,6 +10,7 @@ module PP = struct
 
   module Katamaran = struct
     module Registers = Pp_registers
+    module Enums = Pp_enums
   end
 end
 
@@ -20,22 +21,6 @@ end
 
 let opt_list_notations = ref false
 
-let include_original_sail_code = ref false
-
-let pp_sail_definition sail_definition =
-  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
-
-let annotate_with_original_definition original translation =
-  if
-    !include_original_sail_code
-  then
-    concat [
-      PP.Coq.comment (pp_sail_definition original);
-      hardline;
-      translation
-    ]
-  else
-    translation
 
 
 (******************************************************************************)
@@ -253,7 +238,7 @@ let pp_function_definition original_sail_code function_definition =
   let body =
     pp_statement function_definition.funBody
   in
-  annotate_with_original_definition original_sail_code (
+  PP.Coq.annotate_with_original_definition original_sail_code (
     PP.Coq.definition identifier parameters return_type body
   )
 
@@ -344,31 +329,10 @@ let pp_type_module type_definitions =
           PP.Coq.eol
         ]
     in
-    annotate_with_original_definition original document
+    PP.Coq.annotate_with_original_definition original document
   in
   List.map (uncurry pp_type_definition) type_definitions
 
-
-(******************************************************************************)
-(* Enums pretty printing *)
-
-let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp_enum sail_definition enum_definition =
-    let coq_translation =
-      let identifier = string enum_definition.enum_identifier
-      and typ = string "Set"
-      in
-      PP.Coq.build_inductive_type identifier typ (fun add_constructor ->
-          List.iter
-            (fun (case : string) ->
-              add_constructor (string case)
-            )
-            enum_definition.enum_cases
-        )
-    in
-    annotate_with_original_definition sail_definition coq_translation
-  in
-  List.map (uncurry pp_enum) enum_definitions
 
 (******************************************************************************)
 (* Untranslated definition pretty printing *)
@@ -407,7 +371,7 @@ let pp_untranslated_module untranslated_definitions =
       | None         -> Printf.sprintf "No message"
     in
     concat [
-        pp_sail_definition original;
+        Sail_util.pp_sail_definition original;
         string ocaml_location_string;
         hardline;
         string sail_location_string;
@@ -497,7 +461,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
-          addall (pp_enums ir.enum_definitions)
+          addall (PP.Katamaran.Enums.pp_enums ir.enum_definitions)
         )
     in
     generate_section segments
