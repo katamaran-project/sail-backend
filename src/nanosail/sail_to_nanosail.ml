@@ -387,7 +387,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
        | "file_end"      -> (sail_definition, N.IgnoredDefinition)
        | _               -> not_yet_implemented __POS__ location
   with NotYetImplemented (source_position, sail_location, message) ->
-    let (file, line_number, _, _) = source_position
+    let file, line_number, _, _ = source_position
     in
     (
       sail_definition,
