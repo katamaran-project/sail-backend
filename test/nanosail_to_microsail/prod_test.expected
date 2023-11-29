@@ -36,7 +36,8 @@ Module Import ProdProgram <: Program DefaultBase.
                     (ty.prod
                       (ty.prod (ty.prod ty.int ty.string)
                         (ty.prod ty.int ty.string)) (ty.prod ty.int ty.string))
-    | switch  : Fun [ "p" ∷ (ty.prod ty.int ty.bool) ] (ty.prod ty.bool ty.int).
+    | switch  : Fun [ "p" ∷ (ty.prod ty.int ty.bool) ] (ty.prod ty.bool ty.int)
+    .
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.

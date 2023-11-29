@@ -44,7 +44,8 @@ Module Import ListsProgram <: Program DefaultBase.
     | reverse_aux : Fun [ "l" ∷ (ty.list ty.int); "acc" ∷ (ty.list ty.int) ]
                         (ty.list ty.int)
     | reverse     : Fun [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int)
-    | reverse_bis : Fun [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int).
+    | reverse_bis : Fun [ "l" ∷ (ty.list ty.int) ] (ty.list ty.int)
+    .
 
     Definition 𝑭  : PCtx -> Ty -> Set := Fun.
     Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.
