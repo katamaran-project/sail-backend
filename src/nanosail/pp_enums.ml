@@ -49,10 +49,11 @@ let generate_constructors_inductive_type (enum_definitions : (sail_definition * 
 
 
 let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
+  let enum_definitions =
+    List.map snd enum_definitions
+  in
   let enum_identifiers =
-    let extract_identifier (_, enum_definition) = enum_definition.identifier
-    in
-    List.map extract_identifier enum_definitions
+    List.map (fun enum_definition -> enum_definition.identifier) enum_definitions
   and identifier = string "Enums"
   and typ = string "Set"
   in
