@@ -15,7 +15,7 @@ let reg_inductive_type register_definitions =
   and typ = string "Ty -> Set"
   in
   Coq.build_inductive_type identifier typ (fun add_constructor ->
-      let make_constructor register_definition =
+      let make_constructor (register_definition : register_definition) =
         let identifier = string register_definition.identifier
         and typ = separate space [ string "Reg"; S.pp_ty register_definition.typ ]
         in
@@ -87,7 +87,10 @@ let obligation_tactic =
 
 let pp_register_module (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
-    List.map (fun (_, def) -> string def.identifier) register_definitions
+    let extract_identifier (pair : sail_definition * register_definition) =
+      string (snd pair).identifier
+    in
+    List.map extract_identifier register_definitions
   in
   let section_contents =
     separate (twice hardline) [

@@ -292,7 +292,7 @@ let translate_enum
          in
          List.map string_of_case cases
        in
-       EnumDefinition { enum_identifier = identifier; enum_cases = cases }
+       EnumDefinition { identifier = identifier; cases = cases }
      )
   | S.Operator _ -> not_yet_implemented __POS__ identifier_location
 

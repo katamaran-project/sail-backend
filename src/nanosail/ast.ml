@@ -154,8 +154,8 @@ type register_definition =
 
 type enum_definition =
   {
-    enum_identifier: string;
-    enum_cases: string list
+    identifier: string;
+    cases: string list
   }
 
 type definition =

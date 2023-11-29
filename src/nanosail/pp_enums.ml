@@ -17,7 +17,7 @@ end
 let generate_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
   let pp_enum sail_definition enum_definition =
     let coq_translation =
-      let identifier = string enum_definition.enum_identifier
+      let identifier = string enum_definition.identifier
       and typ = string "Set"
       in
       PP.Coq.build_inductive_type identifier typ (fun add_constructor ->
@@ -25,7 +25,7 @@ let generate_inductive_type (enum_definitions : (sail_definition * enum_definiti
             (fun (case : string) ->
               add_constructor (string case)
             )
-            enum_definition.enum_cases
+            enum_definition.cases
         )
     in
     PP.Coq.annotate_with_original_definition sail_definition coq_translation
@@ -35,14 +35,14 @@ let generate_inductive_type (enum_definitions : (sail_definition * enum_definiti
 
 let generate_constructors_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
   let pp _ enum_definition =
-    let identifier = string (enum_definition.enum_identifier ^ "Constructor")
+    let identifier = string (enum_definition.identifier ^ "Constructor")
     and typ = string "Set"
     in
     PP.Coq.build_inductive_type identifier typ (fun add_constructor ->
         List.iter
           (fun (case : string) ->
             add_constructor (string ("K" ^ case)))
-          enum_definition.enum_cases
+          enum_definition.cases
       )
   in
   List.map (uncurry pp) enum_definitions
@@ -50,7 +50,7 @@ let generate_constructors_inductive_type (enum_definitions : (sail_definition * 
 
 let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_identifiers =
-    let extract_identifier (_, enum_definition) = enum_definition.enum_identifier
+    let extract_identifier (_, enum_definition) = enum_definition.identifier
     in
     List.map extract_identifier enum_definitions
   and identifier = string "Enums"
