@@ -55,7 +55,7 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
   let identifier = string "Enums"
   and typ = string "Set"
   and constructor_of_enum (enum_definition : enum_definition) =
-    string (String.lowercase_ascii enum_definition.identifier)
+    string ("E" ^ String.lowercase_ascii enum_definition.identifier)
   in
   PP.Coq.build_inductive_type
     identifier
@@ -67,6 +67,7 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
         )
         enum_definitions
     )
+
 
 let generate_no_confusions (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_definitions = List.map snd enum_definitions
@@ -96,14 +97,15 @@ let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list
   in
   let generate_eqdec (enum_definition : enum_definition) =
     string (
-        Printf.sprintf "Derive Eqdec for %s." enum_definition.identifier
+        Printf.sprintf "Derive EqDec for %s." enum_definition.identifier
       )
   in
   let lines =
     List.map generate_eqdec enum_definitions
   in
   separate hardline lines
- 
+
+
 let pp_enums (enum_definitions : (sail_definition * enum_definition) list) =
   if
     List.is_empty enum_definitions
