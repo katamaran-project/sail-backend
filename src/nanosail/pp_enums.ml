@@ -106,7 +106,7 @@ let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list
   separate hardline lines
 
 
-let enums (enum_definitions : (sail_definition * enum_definition) list) =
+let generate (enum_definitions : (sail_definition * enum_definition) list) =
   if
     List.is_empty enum_definitions
   then
