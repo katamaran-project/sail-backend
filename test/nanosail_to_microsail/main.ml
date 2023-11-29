@@ -1,4 +1,4 @@
-open Nanosail.Pretty_printing_katamaran
+open Nanosail.Pp_katamaran
 open Examples
 
 

@@ -1,6 +1,6 @@
 open Libsail
 open Nanosail.Sail_to_nanosail
-open Nanosail.Pretty_printing_katamaran
+open Nanosail.Pp_katamaran
 
 (** Width of the output (default is 200) *)
 let opt_width = ref 100
