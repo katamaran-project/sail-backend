@@ -10,6 +10,7 @@ module PP = struct
 
   module Katamaran = struct
     module Registers = Pp_registers
+    module FunDeclKit = Pp_fundeclkit
     module Enums = Pp_enums
   end
 end
@@ -21,65 +22,12 @@ end
 
 let opt_list_notations = ref false
 
-
-
 (******************************************************************************)
 (* Base pretty printing *)
 
 let defaultBase = string "Import DefaultBase."
 
 
-(******************************************************************************)
-(* FunDeclKit pretty printing *)
-
-let pp_funDeclKit function_definitions =
-  let pp_function_declaration function_definition =
-    let name = string function_definition.funName
-    and function_type =
-      let parameter_types = PP.Coq.list (List.map S.pp_bind function_definition.funType.arg_types)
-      and return_type = S.pp_ty function_definition.funType.ret_type
-      in
-      concat [
-        string "Fun";
-        space;
-        align (
-          group (
-            concat [
-              parameter_types;
-              break 1;
-              return_type
-            ]
-          )
-        )
-      ]
-    in
-    (name, function_type)
-  in
-  let inductive_type_declaration =
-    let name = string "Fun"
-    and typ = string "PCtx -> Ty -> Set"
-    in
-    PP.Coq.build_inductive_type name typ (fun add_constructor ->
-        List.iter
-          (fun function_definition ->
-            let name, typ = pp_function_declaration function_definition
-            in
-            add_constructor ~typ:typ name
-          )
-          function_definitions
-      )
-  in
-  let contents =
-    separate small_step [
-        inductive_type_declaration;
-        separate_map hardline utf8string [
-            "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
-            "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
-            "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
-          ]
-      ]
-  in
-  PP.Coq.section "FunDeclKit" contents
 
 (******************************************************************************)
 (* Value pretty printing *)
@@ -301,7 +249,7 @@ let pp_foreignKit =
 let pp_program_module program_name base_name function_definitions =
   indent (separate small_step [
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
-    pp_funDeclKit (List.map snd function_definitions);
+    PP.Katamaran.FunDeclKit.pp_funDeclKit (List.map snd function_definitions);
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
     pp_funDefKit function_definitions;
     string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
