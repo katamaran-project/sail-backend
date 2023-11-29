@@ -52,10 +52,10 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
   let enum_definitions =
     List.map snd enum_definitions
   in
-  let enum_identifiers =
-    List.map (fun enum_definition -> enum_definition.identifier) enum_definitions
-  and identifier = string "Enums"
+  let identifier = string "Enums"
   and typ = string "Set"
+  and constructor_of_enum (enum_definition : enum_definition) =
+    string (String.lowercase_ascii enum_definition.identifier)
   in
   PP.Coq.build_inductive_type
     identifier
@@ -63,9 +63,9 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
     (fun add_constructor ->
       List.iter
         (fun enum_identifier ->
-          add_constructor (string enum_identifier)
+          add_constructor (constructor_of_enum enum_identifier)
         )
-        enum_identifiers
+        enum_definitions
     )
 
 let generate_no_confusions (enum_definitions : (sail_definition * enum_definition) list) =
