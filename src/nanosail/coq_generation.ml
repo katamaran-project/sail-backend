@@ -214,7 +214,7 @@ let match_pair matched_expressions cases =
       cases
   in
   let matched_expression =
-    let (left, right) = matched_expressions
+    let left, right = matched_expressions
     in
     concat [
         left;

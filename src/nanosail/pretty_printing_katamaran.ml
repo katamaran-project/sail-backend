@@ -70,7 +70,7 @@ let pp_funDeclKit function_definitions =
     Coq.build_inductive_type name typ (fun add_constructor ->
         List.iter
           (fun function_definition ->
-            let (name, typ) = pp_function_declaration function_definition
+            let name, typ = pp_function_declaration function_definition
             in
             add_constructor ~typ:typ name
           )
