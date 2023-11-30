@@ -6,7 +6,7 @@ open Gen.Util
 module PP = struct
   include PPrint
   
-  module Coq = Pp_coq
+  module Coq = Gen.Coq
   
   module Katamaran = struct
     module Registers = Pp_registers

@@ -6,7 +6,7 @@ module PP = struct
   include PPrint
   include Gen.Util
 
-  module Coq = Pp_coq
+  module Coq = Gen.Coq
 end
 
 
