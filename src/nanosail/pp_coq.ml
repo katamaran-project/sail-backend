@@ -1,7 +1,7 @@
 open PPrint
 
 module Big_int = Nat_big_num
-module PU = Pp_util
+module PU = Gen.Util
 
 
 let eol = dot
