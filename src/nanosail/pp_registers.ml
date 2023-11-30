@@ -1,9 +1,14 @@
 open PPrint
 open Ast
 
-module PP = PPrint
-module PU = Pp_util
-module Coq = Pp_coq
+
+module PP = struct
+  include PPrint
+  include Pp_util
+
+  module Coq = Pp_coq
+end
+
 
 module S = struct
   include Sail_util
@@ -14,7 +19,7 @@ let reg_inductive_type register_definitions =
   let identifier = string "Reg"
   and typ = string "Ty -> Set"
   in
-  Coq.build_inductive_type identifier typ (fun add_constructor ->
+  PP.Coq.build_inductive_type identifier typ (fun add_constructor ->
       let make_constructor (register_definition : register_definition) =
         let identifier = string register_definition.identifier
         and typ = separate space [ string "Reg"; S.pp_ty register_definition.typ ]
@@ -25,7 +30,7 @@ let reg_inductive_type register_definitions =
     )
 
 let no_confusion_for_reg () =
-  Coq.section "TransparentObligations" (
+  PP.Coq.section "TransparentObligations" (
       separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion (* NoConfusionHom *) for Reg."
@@ -52,7 +57,7 @@ let instance_reg_eq_dec register_names =
   separate hardline [
       utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
       utf8string "  fun '(existT σ x) '(existT τ y) =>";
-      PU.indent' (Coq.match_pair (string "x", string "y") cases) ^^ Coq.eol;
+      PP.indent' (PP.Coq.match_pair (string "x", string "y") cases) ^^ PP.Coq.eol;
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
 
@@ -65,13 +70,13 @@ let reg_finite register_names =
         register_name
       ]
     in
-    Coq.list (List.map enum_value_of_register_name register_names)
+    PP.Coq.list (List.map enum_value_of_register_name register_names)
   in
   separate hardline (
     [
       utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-      PU.indent (
-        Coq.record_value [
+      PP.indent (
+        PP.Coq.record_value [
           (string "enum", enum_values)
         ]
       )
@@ -100,6 +105,6 @@ let generate (register_definitions : (sail_definition * register_definition) lis
         instance_reg_eq_dec register_names;
         obligation_tactic;
         reg_finite register_names
-      ] ^^ Coq.eol
+      ] ^^ PP.Coq.eol
   in
-  Coq.section "RegDeclKit" section_contents
+  PP.Coq.section "RegDeclKit" section_contents
