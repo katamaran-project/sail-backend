@@ -3,7 +3,7 @@ open Ast
 
 module PP = PPrint
 module PU = Pp_util
-module Coq = Coq_generation
+module Coq = Pp_coq
 
 module S = struct
   include Sail_util

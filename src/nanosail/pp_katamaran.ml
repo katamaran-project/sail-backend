@@ -6,8 +6,8 @@ open Pp_util
 module PP = struct
   include PPrint
   
-  module Coq = Coq_generation
-
+  module Coq = Pp_coq
+  
   module Katamaran = struct
     module Registers = Pp_registers
     module FunDeclKit = Pp_fundeclkit
