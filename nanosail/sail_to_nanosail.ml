@@ -135,14 +135,19 @@ let binds_of_pexp (S.Pat_aux (aux, _)) =
 
 (******************************************************************************)
 
-let value_of_lit (S.L_aux (aux, _)) =
+let value_of_lit (S.L_aux (aux, location)) =
   match aux with
   | L_true     -> N.Val_bool true
   | L_false    -> N.Val_bool false
   | L_num n    -> N.Val_int n
   | L_unit     -> N.Val_unit
   | L_string s -> N.Val_string s
-  | _          -> N.Val_nys
+  | S.L_zero   -> not_yet_implemented __POS__ location
+  | S.L_one    -> not_yet_implemented __POS__ location
+  | S.L_hex _  -> not_yet_implemented __POS__ location
+  | S.L_bin _  -> not_yet_implemented __POS__ location
+  | S.L_undef  -> not_yet_implemented __POS__ location
+  | S.L_real _ -> not_yet_implemented __POS__ location
 
 let rec expression_of_aval (value : 'a S.aval) =
   match value with
