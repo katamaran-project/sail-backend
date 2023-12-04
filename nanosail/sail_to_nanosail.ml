@@ -106,10 +106,10 @@ let _translate_type_argument (S.A_aux (type_argument, location)) : N.type_argume
 
 (******************************************************************************)
 
-let ty_of_pexp (S.Pat_aux (aux, _)) =
+let ty_of_pexp (S.Pat_aux (aux, (loc, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> ty_of_typ (Libsail.Type_check.typ_of exp)
-  | Pat_when _ -> Ty_nys
+  | Pat_when _       -> not_yet_implemented __POS__ loc
 
 
 (******************************************************************************)
