@@ -200,7 +200,19 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
       Stm_if (s, s1, s2)
   | AE_match (aval, cases, _) ->
       statement_of_match location aval cases
-  | _ -> Stm_nys
+  | S.AE_typ (_, _)              -> not_yet_implemented __POS__ location
+  | S.AE_assign (_, _)           -> not_yet_implemented __POS__ location
+  | S.AE_block (_, _, _)         -> not_yet_implemented __POS__ location
+  | S.AE_return (_, _)           -> not_yet_implemented __POS__ location
+  | S.AE_exit (_, _)             -> not_yet_implemented __POS__ location
+  | S.AE_throw (_, _)            -> not_yet_implemented __POS__ location
+  | S.AE_field (_, _, _)         -> not_yet_implemented __POS__ location
+  | S.AE_try (_, _, _)           -> not_yet_implemented __POS__ location
+  | S.AE_struct_update (_, _, _) -> not_yet_implemented __POS__ location
+  | S.AE_for (_, _, _, _, _, _)  -> not_yet_implemented __POS__ location
+  | S.AE_loop (_, _, _)          -> not_yet_implemented __POS__ location
+  | S.AE_short_circuit (_, _, _) -> not_yet_implemented __POS__ location
+
 
 and statement_of_match location aval triples =
   match triples with
