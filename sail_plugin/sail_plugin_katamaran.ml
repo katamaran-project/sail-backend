@@ -6,11 +6,14 @@ let opt_width = ref 100
 
 let opt_include_untranslated = ref false
 
+let print_check_message () =
+  print_endline("Katamaran plugin is functioning correctly")
+
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
   ("-katamaran_check",
-    Arg.Unit (fun () -> print_endline("Katamaran plugin is functioning correctly")) ,
+    Arg.Unit print_check_message,
     "(debug) check if Katamaran plugin is correctly installed");
   ("-katamaran_list_notations",
    Arg.Set Nanosail.Gen.Katamaran.opt_list_notations,
