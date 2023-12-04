@@ -20,7 +20,7 @@ let katamaran_options = [
     Arg.Set_int opt_width,
     "set a custom width for the output");
   ("-katamaran_add_original",
-   Arg.Set Nanosail.Gen.Coq.include_original_sail_code,
+   Arg.Unit (fun () -> Nanosail.Settings.set_include_original_code true),
    "show original Sail code in output");
   ("-katamaran_include_untranslated",
    Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
