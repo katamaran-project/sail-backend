@@ -2,7 +2,6 @@ open PPrint
 open Auxlib
 
 module Big_int = Nat_big_num
-module PU = Util
 
 
 let eol = dot
@@ -11,7 +10,7 @@ let left_comment_delimiter = string "(*"
 let right_comment_delimiter = string "*)"
 
 let comment comment =
-  let str = PU.string_of_document comment
+  let str = Util.string_of_document comment
   in
   if
     count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
@@ -27,7 +26,7 @@ let comment comment =
     concat [
         left_comment_delimiter;
         twice hardline;
-        PU.indent' comment;
+        Util.indent' comment;
         hardline;
         right_comment_delimiter
       ]
@@ -38,7 +37,7 @@ let list items =
   then
     lbracket ^^ rbracket
   else
-    PU.pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
+    Util.pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
 
 let product v1 v2 =
   soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
@@ -52,7 +51,7 @@ let section section_title contents =
   let last_line =
     string "End" ^^ space ^^ string section_title ^^ eol
   in
-  PU.pp_indented_enclosed_lines first_line contents last_line
+  Util.pp_indented_enclosed_lines first_line contents last_line
 
 let build_inductive_type identifier typ constructor_generator =
   let constructors =
@@ -108,7 +107,7 @@ let build_inductive_type identifier typ constructor_generator =
       separate space (
           build_list (fun { add; _ } ->
               add (string "|");
-              add (PU.pad_right longest_left_part left);
+              add (Util.pad_right longest_left_part left);
               if requirement right > 0
               then (
                 add colon;
@@ -153,7 +152,7 @@ let definition identifier parameters result_type body =
       ];
     )
   and second_line =
-    PU.indent' body
+    Util.indent' body
   in
   concat [
     separate hardline [first_line; second_line];
@@ -177,7 +176,7 @@ let match' expression cases =
     let generate_case (pattern, expression) =
       separate space [
           bar;
-          PU.pad_right longest_pattern_width pattern;
+          Util.pad_right longest_pattern_width pattern;
           string "=>";
           expression
         ]
@@ -205,7 +204,7 @@ let match_pair matched_expressions cases =
     List.map (fun ((left, right), expression) ->
         (
           concat [
-              PU.pad_right left_patterns_max_width left;
+              Util.pad_right left_patterns_max_width left;
               comma;
               space;
               right
@@ -234,10 +233,10 @@ let require_imports src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
-  PU.pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ eol
+  Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ eol
 
 let imports names =
-  PU.pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ eol
+  Util.pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ eol
 
 let open_scopes scopes =
   let open_scope scope =
@@ -265,7 +264,7 @@ let record_value fields =
     in
     List.map item_of_field fields
   in
-  PU.pp_delimited_sequence ldelim rdelim semi items
+  Util.pp_delimited_sequence ldelim rdelim semi items
 
 let include_original_sail_code = ref false
 
