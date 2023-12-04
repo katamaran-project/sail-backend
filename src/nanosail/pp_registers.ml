@@ -4,7 +4,7 @@ open Ast
 
 module PP = struct
   include PPrint
-  include Pp_util
+  include Gen.Util
 
   module Coq = Pp_coq
 end

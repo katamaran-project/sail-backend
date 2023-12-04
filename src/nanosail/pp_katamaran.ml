@@ -1,7 +1,7 @@
 open PPrint
 open Ast
 open Util
-open Pp_util
+open Gen.Util
 
 module PP = struct
   include PPrint

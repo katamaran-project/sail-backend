@@ -1,7 +1,5 @@
-(include_subdirs qualified)
-
 (library
  (name nanosail)
  (public_name nanosail)
- (libraries libsail pprint lem))
+ (libraries libsail pprint lem gen util))
 
