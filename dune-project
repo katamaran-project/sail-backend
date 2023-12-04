@@ -26,9 +26,3 @@
 	(synopsis "Sail to µSail translation")
 	(depends ocaml dune sail pprint)
 	(allow_empty))
-
-(package
-	(name nanosail_tests)
-	(synopsis "Tests")
-	(depends ocaml dune sail pprint ounit2)
-	(allow_empty))
