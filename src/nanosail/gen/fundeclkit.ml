@@ -1,20 +1,20 @@
 open PPrint
 open Ast
-open Gen.Util
+open Util
 
 module PP = struct
   include PPrint
   
-  module Coq = Pp_coq
+  module Coq = Coq
   
   module Katamaran = struct
-    module Registers = Pp_registers
-    module Enums = Pp_enums
+    module Registers = Registers
+    module Enums = Enums
   end
 end
 
 module S = struct
-  include Sail_util
+  include Sail
 end
 
 

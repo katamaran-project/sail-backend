@@ -1,6 +1,6 @@
 open OUnit2
 module S = Libsail
-module N = Nanosail
+
 
 
 let string_of_document ?(line_width = 10000) (document : PPrint.document) : string =
@@ -15,8 +15,8 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
-  let nano_nexp = N.Sail_to_nanosail.translate_numeric_expression nexp in
-  let document = N.Sail_util.pp_numeric_expression nano_nexp
+  let nano_nexp = Nanosail.translate_numeric_expression nexp in
+  let document = Nanosail.Gen.Sail.pp_numeric_expression nano_nexp
   in
   string_of_document document
 

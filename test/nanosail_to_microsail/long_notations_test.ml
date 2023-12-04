@@ -1,4 +1,4 @@
-open Nanosail.Pp_katamaran
+open Nanosail.Gen.Katamaran
 open Examples
 
 let () =  

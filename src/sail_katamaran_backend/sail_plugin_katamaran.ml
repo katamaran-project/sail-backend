@@ -1,6 +1,5 @@
 open Libsail
-open Nanosail.Sail_to_nanosail
-open Nanosail.Pp_katamaran
+
 
 (** Width of the output (default is 200) *)
 let opt_width = ref 100
@@ -14,13 +13,13 @@ let katamaran_options = [
     Arg.Unit (fun () -> print_endline("Katamaran plugin is functioning correctly")) ,
     "(debug) check if Katamaran plugin is correctly installed");
   ("-katamaran_list_notations",
-    Arg.Set opt_list_notations,
+   Arg.Set Nanosail.Gen.Katamaran.opt_list_notations,
     "use list notations");
   ("-katamaran_width",
     Arg.Set_int opt_width,
     "set a custom width for the output");
   ("-katamaran_add_original",
-   Arg.Set Nanosail.Pp_coq.include_original_sail_code,
+   Arg.Set Nanosail.Gen.Coq.include_original_sail_code,
    "show original Sail code in output");
   ("-katamaran_include_untranslated",
    Arg.Set opt_include_untranslated,
@@ -114,11 +113,11 @@ let katamaran_target _ _ filename ast _ _ =
     | Some filename -> (with_open_file (add_extension filename), program_name_from_filename filename)
     | None          -> (with_stdout, "NoName")
   in
-  let nanosail_representation = sail_to_nanosail ast program_name
+  let nanosail_representation = Nanosail.sail_to_nanosail ast program_name
   in
-  let document = fromIR_pp ~show_untranslated:!opt_include_untranslated nanosail_representation
+  let document = Nanosail.Gen.Katamaran.fromIR_pp ~show_untranslated:!opt_include_untranslated nanosail_representation
   in
-  context (fun output_channel -> pretty_print !opt_width output_channel document)
+  context (fun output_channel -> Nanosail.Gen.Katamaran.pretty_print !opt_width output_channel document)
 
 
 (** Registering of the katamaran target. *)

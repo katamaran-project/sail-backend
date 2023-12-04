@@ -1,15 +1,15 @@
 open PPrint
 open Ast
-open Util
+open Auxlib
 
 
 module PP = struct
   include PPrint
   
-  module Coq = Pp_coq
+  module Coq = Coq
 
   module Katamaran = struct
-    module Registers = Pp_registers
+    module Registers = Registers
   end
 end
 
@@ -112,7 +112,7 @@ let generate (enum_definitions : (sail_definition * enum_definition) list) =
   then
     []
   else
-    Util.build_list (fun { add; addall } ->
+    Auxlib.build_list (fun { add; addall } ->
         addall (generate_inductive_type enum_definitions);
         addall (generate_constructors_inductive_type enum_definitions);
         add (generate_enum_of_enums enum_definitions);

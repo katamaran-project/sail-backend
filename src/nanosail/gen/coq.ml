@@ -1,7 +1,7 @@
 open PPrint
 
 module Big_int = Nat_big_num
-module PU = Gen.Util
+module PU = Util
 
 
 let eol = dot
@@ -13,12 +13,12 @@ let comment comment =
   let str = PU.string_of_document comment
   in
   if
-    Util.count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+    Auxlib.count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
   then
     concat [
         left_comment_delimiter;
         space;
-        string (Util.strip str);
+        string (Auxlib.strip str);
         space;
         right_comment_delimiter
       ]
@@ -68,7 +68,7 @@ let build_inductive_type identifier typ constructor_generator =
   in
   let first_line =
     separate space (
-        Util.build_list (fun { add; _ } ->
+        Auxlib.build_list (fun { add; _ } ->
             add (string "Inductive");
             add identifier;
             if requirement typ > 0
@@ -85,7 +85,7 @@ let build_inductive_type identifier typ constructor_generator =
     let pairs =
       List.map (fun (id, params, typ) ->
           separate space (
-              Util.build_list (fun { add; _ } ->
+              Auxlib.build_list (fun { add; _ } ->
                   add id;
                   if requirement params > 0
                   then add params
@@ -99,13 +99,13 @@ let build_inductive_type identifier typ constructor_generator =
       if List.is_empty pairs
       then 0
       else
-        Util.maximum (
+        Auxlib.maximum (
             List.map (fun (left, _) -> requirement left) pairs
           )
     in
     let make_line (left, right) =
       separate space (
-          Util.build_list (fun { add; _ } ->
+          Auxlib.build_list (fun { add; _ } ->
               add (string "|");
               add (PU.pad_right longest_left_part left);
               if requirement right > 0
@@ -119,7 +119,7 @@ let build_inductive_type identifier typ constructor_generator =
     List.map make_line pairs
   in
   let lines =
-    Util.build_list (fun { add; addall } ->
+    Auxlib.build_list (fun { add; addall } ->
         add first_line;
         addall constructor_lines
       )
@@ -187,7 +187,7 @@ let match' expression cases =
     string "end"
   in
   let lines =
-    Util.build_list (fun { add; addall } ->
+    Auxlib.build_list (fun { add; addall } ->
         add match_line;
         addall case_lines;
         add final_line
@@ -196,9 +196,9 @@ let match' expression cases =
   separate hardline lines
 
 let match_pair matched_expressions cases =
-  let left_patterns = List.map (Util.compose fst fst) cases
+  let left_patterns = List.map (Auxlib.compose fst fst) cases
   in
-  let left_patterns_max_width = Util.maximum (List.map PPrint.requirement left_patterns)
+  let left_patterns_max_width = Auxlib.maximum (List.map PPrint.requirement left_patterns)
   in
   let aligned_cases =
     List.map (fun ((left, right), expression) ->
@@ -273,7 +273,7 @@ let annotate_with_original_definition original translation =
     !include_original_sail_code
   then
     concat [
-        comment (Sail_util.pp_sail_definition original);
+        comment (Sail.pp_sail_definition original);
       hardline;
       translation
     ]

@@ -1,4 +1,0 @@
-(library
- (name gen)
- (public_name nanosail.gen)
- (libraries pprint))

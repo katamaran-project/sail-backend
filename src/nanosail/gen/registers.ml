@@ -4,14 +4,14 @@ open Ast
 
 module PP = struct
   include PPrint
-  include Gen.Util
+  include Util
 
-  module Coq = Pp_coq
+  module Coq = Coq
 end
 
 
 module S = struct
-  include Sail_util
+  include Sail
 end
 
 
@@ -49,7 +49,7 @@ let instance_reg_eq_dec register_names =
         register_names
     and wildcard_case = ((string "_", string "_"), string "right _")
     in
-    Util.build_list (fun { add; addall } ->
+    Auxlib.build_list (fun { add; addall } ->
         addall cs;
         add wildcard_case
       )

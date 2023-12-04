@@ -6,7 +6,7 @@ module S = struct
   include Libsail.Ast_defs
   include Libsail.Anf
 
-  include Sail_util
+  include Gen.Sail
 end
 
 module N = Ast

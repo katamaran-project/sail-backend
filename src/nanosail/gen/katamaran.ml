@@ -1,22 +1,22 @@
 open PPrint
 open Ast
+open Auxlib
 open Util
-open Gen.Util
 
 module PP = struct
   include PPrint
   
-  module Coq = Pp_coq
+  module Coq = Coq
   
   module Katamaran = struct
-    module Registers = Pp_registers
-    module FunDeclKit = Pp_fundeclkit
-    module Enums = Pp_enums
+    module Registers = Registers
+    module FunDeclKit = Fundeclkit
+    module Enums = Enums
   end
 end
 
 module S = struct
-  include Sail_util
+  include Sail
 end
 
 
@@ -319,7 +319,7 @@ let pp_untranslated_module untranslated_definitions =
       | None         -> Printf.sprintf "No message"
     in
     concat [
-        Sail_util.pp_sail_definition original;
+        Sail.pp_sail_definition original;
         string ocaml_location_string;
         hardline;
         string sail_location_string;

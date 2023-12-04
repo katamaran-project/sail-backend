@@ -1,6 +1,6 @@
 open PPrint
 open Ast
-open Gen.Util
+open Util
        
 module PP = PPrint
 
