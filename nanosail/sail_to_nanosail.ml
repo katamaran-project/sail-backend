@@ -149,35 +149,44 @@ let value_of_lit (S.L_aux (aux, location)) =
   | S.L_undef  -> not_yet_implemented __POS__ location
   | S.L_real _ -> not_yet_implemented __POS__ location
 
-let rec expression_of_aval (value : 'a S.aval) =
+let rec expression_of_aval location (value : 'a S.aval) =
   match value with
   | AV_lit (lit, _) ->
-    N.Exp_val (value_of_lit lit)
+     N.Exp_val (value_of_lit lit)
   | AV_id (id, _) ->
-    N.Exp_var (string_of_id id)
-  | AV_tuple (h :: t) ->
-    let e_h = expression_of_aval h in
-    let f e1 aval2 =
-      let e2 = expression_of_aval aval2 in
-      N.Exp_binop (Pair, e1, e2) in
-    List.fold_left f e_h t
-  | AV_list (l, _) ->
-    Exp_list (List.map expression_of_aval l)
-  | _ -> Exp_nys
+     N.Exp_var (string_of_id id)
+  | AV_tuple elts ->
+     (
+       match elts with
+       | [] -> not_yet_implemented ~message:"Should not occur" __POS__ location
+       | h::t ->
+          let e_h = expression_of_aval location h in
+          let f e1 aval2 =
+            let e2 = expression_of_aval location aval2 in
+            N.Exp_binop (Pair, e1, e2) in
+          List.fold_left f e_h t
+     )
+  | AV_list (lst, _) ->
+     Exp_list (List.map (expression_of_aval location) lst)
+  | S.AV_ref (_, _)    -> not_yet_implemented __POS__ location
+  | S.AV_vector (_, _) -> not_yet_implemented __POS__ location
+  | S.AV_record (_, _) -> not_yet_implemented __POS__ location
+  | S.AV_cval (_, _)   -> not_yet_implemented __POS__ location
 
-let rec statement_of_aexp (S.AE_aux (aux, _, _)) =
+
+let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   match aux with
   | AE_val aval ->
-      N.Stm_exp (expression_of_aval aval)
+      N.Stm_exp (expression_of_aval location aval)
   | AE_app (id, avals, _) ->
       let x = string_of_id id in (
         match avals with
         | [aval1; aval2] when x = "sail_cons" ->
-            let e1 = expression_of_aval aval1 in
-            let e2 = expression_of_aval aval2 in
+            let e1 = expression_of_aval location aval1 in
+            let e2 = expression_of_aval location aval2 in
             Stm_exp (Exp_binop (Cons, e1, e2))
         | _ ->
-            Stm_call (x, List.map expression_of_aval avals)
+            Stm_call (x, List.map (expression_of_aval location) avals)
       )
   | AE_let (_, id, _, aexp1, aexp2, _) ->
       let x = string_of_id id in
@@ -185,15 +194,16 @@ let rec statement_of_aexp (S.AE_aux (aux, _, _)) =
       let s2 = statement_of_aexp aexp2 in
       Stm_let (x, s1, s2)
   | AE_if (aval, aexp1, aexp2, _) ->
-      let s = N.Stm_exp (expression_of_aval aval) in
+      let s = N.Stm_exp (expression_of_aval location aval) in
       let s1 = statement_of_aexp aexp1 in
       let s2 = statement_of_aexp aexp2 in
       Stm_if (s, s1, s2)
   | AE_match (aval, cases, _) ->
-      statement_of_match aval cases
+      statement_of_match location aval cases
   | _ -> Stm_nys
 
-and statement_of_match aval = function
+and statement_of_match location aval triples =
+  match triples with
   | [ (AP_aux (AP_nil _, _, _), _, aexp1);
       (AP_aux (AP_cons (
         AP_aux ((AP_id (id_h, _)), _, _),
@@ -201,7 +211,7 @@ and statement_of_match aval = function
       ), _, _), _, aexp2)
     ] ->
       Stm_match_list {
-        s        = Stm_exp (expression_of_aval aval);
+        s        = Stm_exp (expression_of_aval location aval);
         alt_nil  = statement_of_aexp aexp1;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
@@ -214,7 +224,7 @@ and statement_of_match aval = function
       (AP_aux (AP_nil _, _, _), _, aexp2)
     ] ->
       Stm_match_list {
-        s        = Stm_exp (expression_of_aval aval);
+        s        = Stm_exp (expression_of_aval location aval);
         alt_nil  = statement_of_aexp aexp2;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
@@ -226,14 +236,14 @@ and statement_of_match aval = function
       ], _, _),_ , aexp)
     ] ->
       Stm_match_prod {
-        s   = Stm_exp (expression_of_aval aval);
+        s   = Stm_exp (expression_of_aval location aval);
         xl  = string_of_id id_l;
         xr  = string_of_id id_r;
         rhs = statement_of_aexp aexp;
       }
   | _ -> Stm_nys
 
-let body_of_pexp (S.Pat_aux (aux, _)) =
+let body_of_pexp (S.Pat_aux (aux, (_location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
   | Pat_when _       -> Stm_nys
