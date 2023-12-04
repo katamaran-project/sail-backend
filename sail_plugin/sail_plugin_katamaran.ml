@@ -4,8 +4,6 @@ open Libsail
 (** Width of the output (default is 200) *)
 let opt_width = ref 100
 
-let opt_include_untranslated = ref false
-
 let print_check_message () =
   print_endline("Katamaran plugin is functioning correctly")
 
@@ -25,7 +23,7 @@ let katamaran_options = [
    Arg.Set Nanosail.Gen.Coq.include_original_sail_code,
    "show original Sail code in output");
   ("-katamaran_include_untranslated",
-   Arg.Set opt_include_untranslated,
+   Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
    "include information about untranslated Sail code")
 ]
 
