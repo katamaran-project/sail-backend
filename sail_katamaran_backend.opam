@@ -4,8 +4,8 @@ version: "0.1"
 synopsis: "Sail to µSail translation"
 maintainer: ["Marius Goyet"]
 authors: ["Marius Goyet"]
-homepage: "https://github.com/mariusgoyet/sail-katamaran-backend"
-bug-reports: "https://github.com/mariusgoyet/sail-katamaran-backend/issues"
+homepage: "https://github.com/katamaran-project/sail-backend"
+bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.8"}
@@ -29,4 +29,4 @@ build: [
   ]
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
-dev-repo: "git+https://github.com/mariusgoyet/sail-katamaran-backend.git"
+dev-repo: "git+https://github.com/katamaran-project/sail-backend.git"

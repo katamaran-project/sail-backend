@@ -8,7 +8,7 @@
 (generate_opam_files true)
 
 (source
-	(github mariusgoyet/sail-katamaran-backend))
+	(github katamaran-project/sail-backend))
 
 (authors "Marius Goyet")
 
