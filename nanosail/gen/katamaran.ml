@@ -22,6 +22,8 @@ end
 
 let opt_list_notations = ref false
 
+let opt_include_untranslated = ref false
+
 (******************************************************************************)
 (* Base pretty printing *)
 
@@ -371,7 +373,7 @@ let scopes = [
 let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
-let fromIR_pp ?(show_untranslated=false) ir =
+let fromIR_pp ir =
   let more_modules =
     if !opt_list_notations
     then List.append more_modules ["ListNotations"]
@@ -439,7 +441,7 @@ let fromIR_pp ?(show_untranslated=false) ir =
   in
   let untranslated =
     if
-      show_untranslated
+      !opt_include_untranslated
     then
       let segments =
         [
