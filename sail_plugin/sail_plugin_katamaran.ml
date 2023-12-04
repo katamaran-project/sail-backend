@@ -1,7 +1,7 @@
 open Libsail
 
 
-(** Width of the output (default is 200) *)
+(** Width of the output (default is 100) *)
 let opt_width = ref 100
 
 let print_check_message () =
