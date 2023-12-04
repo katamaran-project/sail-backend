@@ -114,7 +114,8 @@ and pp_par_expression e = parens (pp_expression e)
 (******************************************************************************)
 (* Statement pretty printing *)
 
-let rec pp_statement = function
+let rec pp_statement statement =
+  match statement with
   | Stm_exp e -> simple_app [(string "stm_exp"); pp_par_expression e]
   | Stm_match_list m ->
      simple_app [
