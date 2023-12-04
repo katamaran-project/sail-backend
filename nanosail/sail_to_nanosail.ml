@@ -12,6 +12,10 @@ end
 module N = Ast
 
 
+let configure_list_notations enabled =
+  Gen.Katamaran.opt_list_notations := enabled
+
+
 type source_position = string * int * int * int
 
 exception NotYetImplemented of source_position * S.l * string option

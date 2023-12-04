@@ -16,7 +16,7 @@ let katamaran_options = [
     Arg.Unit print_check_message,
     "(debug) check if Katamaran plugin is correctly installed");
   ("-katamaran_list_notations",
-   Arg.Set Nanosail.Gen.Katamaran.opt_list_notations,
+   Arg.Unit (fun () -> Nanosail.configure_list_notations true),
     "use list notations");
   ("-katamaran_width",
     Arg.Set_int opt_width,
