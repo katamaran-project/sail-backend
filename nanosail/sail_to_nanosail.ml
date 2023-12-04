@@ -253,7 +253,7 @@ and statement_of_match location aval triples =
         xr  = string_of_id id_r;
         rhs = statement_of_aexp aexp;
       }
-  | _ -> Stm_nys
+  | _ -> not_yet_implemented __POS__ location
 
 let body_of_pexp (S.Pat_aux (aux, (_location, _annot))) =
   match aux with
