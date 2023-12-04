@@ -77,3 +77,12 @@ let string_of_document ?(page_width = 80) document =
   in
   PPrint.ToBuffer.pretty 1.0 page_width buffer document;
   Stdlib.Buffer.contents buffer
+
+let separate_nonempty separator items =
+  let is_nonempty item =
+    requirement item > 0
+  in
+  let nonempty_items =
+    List.filter is_nonempty items
+  in
+  separate separator nonempty_items

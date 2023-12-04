@@ -313,8 +313,8 @@ let fromIR_pp ir =
     then List.append more_modules ["ListNotations"]
     else more_modules
   in
-  let generate_section segments =
-    [ separate small_step segments ]
+  let generate_section title contents =
+    string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
   in
   let heading =
     let require_imports =
@@ -337,7 +337,7 @@ let fromIR_pp ir =
           addall scopes
         )
     in
-    generate_section parts
+    separate small_step parts
   in
   let base =
     let segments =
@@ -348,54 +348,42 @@ let fromIR_pp ir =
           addall (Enums.generate ir.enum_definitions)
         )
     in
-    generate_section segments
+    separate small_step segments
   in
   let program =
-    let segments =
-      [
-        pp_module_header "PROGRAM";
-        pp_program_module ir.program_name "Default" ir.function_definitions
-      ]
-    in
-    generate_section segments
+    generate_section
+      "PROGRAM"
+      (pp_program_module ir.program_name "Default" ir.function_definitions)
   in
-  let registers : document list =
+  let registers =
     if
       List.is_empty ir.register_definitions
     then
-      []
+      empty
     else
-      let segments =
-        [
-          pp_module_header "REGISTERS";
-          Registers.generate ir.register_definitions
-        ]
-      in
-      generate_section segments
+      generate_section
+        "REGISTERS"
+        (Registers.generate ir.register_definitions)
   in
   let untranslated =
     if
       !opt_include_untranslated
     then
-      let segments =
-        [
-           pp_module_header "UNTRANSLATED";
-           Untranslated.generate ir.untranslated_definitions
-        ]
-      in
-      generate_section segments
+      generate_section
+        "UNTRANSLATED"
+        (Untranslated.generate ir.untranslated_definitions)
     else
-      []
+      empty
   in
   let sections =
-    List.flatten [
-        heading;
-        base;
-        program;
-        registers;
-        untranslated
-      ]
+    [
+      heading;
+      base;
+      program;
+      registers;
+      untranslated
+    ]
   in
-  separate big_step sections
+  Util.separate_nonempty big_step sections
 
 let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)
