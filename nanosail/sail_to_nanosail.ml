@@ -5,15 +5,10 @@ module S = struct
   include Libsail.Ast
   include Libsail.Ast_defs
   include Libsail.Anf
-
-
 end
 
 module N = Ast
 
-
-let configure_list_notations enabled =
-  Gen.Katamaran.opt_list_notations := enabled
 
 
 type source_position = string * int * int * int
