@@ -2,28 +2,14 @@ open PPrint
 open Ast
 open Util
 
-module PP = struct
-  include PPrint
-  
-  module Coq = Coq
-  
-  module Katamaran = struct
-    module Registers = Registers
-    module Enums = Enums
-  end
-end
-
-module S = struct
-  include Sail
-end
 
 
 let generate function_definitions =
   let pp_function_declaration function_definition =
     let name = string function_definition.funName
     and function_type =
-      let parameter_types = PP.Coq.list (List.map S.pp_bind function_definition.funType.arg_types)
-      and return_type = S.pp_ty function_definition.funType.ret_type
+      let parameter_types = Coq.list (List.map Sail.pp_bind function_definition.funType.arg_types)
+      and return_type = Sail.pp_ty function_definition.funType.ret_type
       in
       concat [
         string "Fun";
@@ -45,7 +31,7 @@ let generate function_definitions =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
-    PP.Coq.build_inductive_type name typ (fun add_constructor ->
+    Coq.build_inductive_type name typ (fun add_constructor ->
         List.iter
           (fun function_definition ->
             let name, typ = pp_function_declaration function_definition
@@ -65,4 +51,4 @@ let generate function_definitions =
           ]
       ]
   in
-  PP.Coq.section "FunDeclKit" contents
+  Coq.section "FunDeclKit" contents
