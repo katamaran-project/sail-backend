@@ -3,22 +3,7 @@ open Ast
 open Auxlib
 open Util
 
-module PP = struct
-  include PPrint
-  
-  module Coq = Coq
-  
-  module Katamaran = struct
-    module Registers = Registers
-    module FunDeclKit = Fundeclkit
-    module Enums = Enums
-  end
-end
-
-module S = struct
-  include Sail
-end
-
+module FunDeclKit = Fundeclkit
 
 let opt_list_notations = ref false
 
@@ -37,9 +22,9 @@ let defaultBase = string "Import DefaultBase."
 let rec pp_value = function
   | Val_unit          -> string "tt"
   | Val_bool b        -> string (string_of_bool b)
-  | Val_int i         -> PP.Coq.integer i
+  | Val_int i         -> Coq.integer i
   | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> PP.Coq.product (pp_value v1) (pp_value v2)
+  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
   | Val_nys           -> !^"VAL_" ^^ nys
 
 
@@ -76,11 +61,11 @@ let rec pp_expression e =
   let pp_exp_val = function
     | Val_bool true  -> string "exp_true"
     | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app [string "exp_int"; PP.Coq.integer n]
+    | Val_int n      -> simple_app [string "exp_int"; Coq.integer n]
     | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
     | v -> simple_app [
                string "exp_val";
-               S.pp_ty (ty_of_val v);
+               Sail.pp_ty (ty_of_val v);
                pp_value v
              ]
   in
@@ -117,7 +102,7 @@ let rec pp_expression e =
   | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
   | Exp_list l ->
       let pp_l = if !opt_list_notations
-        then PP.Coq.list (List.map pp_expression l)
+        then Coq.list (List.map pp_expression l)
         else pp_exp_list l in
       simple_app [string "exp_list"; pp_l]
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
@@ -181,15 +166,15 @@ let pp_function_definition original_sail_code function_definition =
   in
   let return_type =
     pp_hanging_list (PP.string "Stm") [
-      PP.Coq.list (List.map S.pp_bind function_definition.funType.arg_types);
-      S.pp_ty function_definition.funType.ret_type
+      Coq.list (List.map Sail.pp_bind function_definition.funType.arg_types);
+      Sail.pp_ty function_definition.funType.ret_type
     ]
   in
   let body =
     pp_statement function_definition.funBody
   in
-  PP.Coq.annotate_with_original_definition original_sail_code (
-    PP.Coq.definition identifier parameters return_type body
+  Coq.annotate_with_original_definition original_sail_code (
+    Coq.definition identifier parameters return_type body
   )
 
 let pp_function_definitions function_definitions =
@@ -212,9 +197,9 @@ let pp_funDefKit function_definitions =
         in
         List.map case_of_function_definition (List.map snd function_definitions)
       in
-      PP.Coq.match' matched_expression cases
+      Coq.match' matched_expression cases
     in
-    PP.Coq.definition identifier parameters return_type body
+    Coq.definition identifier parameters return_type body
   in
   let contents =
     separate small_step (
@@ -224,7 +209,7 @@ let pp_funDefKit function_definitions =
           )
       )
   in
-  PP.Coq.section "FunDefKit" contents
+  Coq.section "FunDefKit" contents
 
 
 (******************************************************************************)
@@ -242,7 +227,7 @@ let pp_foreignKit =
       "Proof. destruct f. Qed."
     ]
   in
-  PP.Coq.section title contents
+  Coq.section title contents
 
 
 (******************************************************************************)
@@ -251,7 +236,7 @@ let pp_foreignKit =
 let pp_program_module program_name base_name function_definitions =
   indent (separate small_step [
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
-    PP.Katamaran.FunDeclKit.generate (List.map snd function_definitions);
+    FunDeclKit.generate (List.map snd function_definitions);
     string ("Include FunDeclMixin " ^ base_name ^ "Base.");
     pp_funDefKit function_definitions;
     string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
@@ -275,11 +260,11 @@ let pp_type_module type_definitions =
           space;
           string ":=";
           space;
-          S.pp_numeric_expression numexpr;
-          PP.Coq.eol
+          Sail.pp_numeric_expression numexpr;
+          Coq.eol
         ]
     in
-    PP.Coq.annotate_with_original_definition original document
+    Coq.annotate_with_original_definition original document
   in
   List.map (uncurry pp_type_definition) type_definitions
 
@@ -308,8 +293,8 @@ let pp_untranslated_module untranslated_definitions =
              stop.pos_lnum
              (stop.pos_cnum - stop.pos_bol)
        )
-       else S.string_of_location location
-    | _ -> S.string_of_location location
+       else Sail.string_of_location location
+    | _ -> Sail.string_of_location location
   in
   let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in
@@ -329,7 +314,7 @@ let pp_untranslated_module untranslated_definitions =
         string message_string
       ]
   in
-  PP.Coq.comment (
+  Coq.comment (
       separate small_step (
           List.map (uncurry pp_untranslated_definition) untranslated_definitions
     ))
@@ -384,16 +369,16 @@ let fromIR_pp ir =
   in
   let heading =
     let require_imports =
-      List.map (uncurry PP.Coq.require_imports) (imports ())
+      List.map (uncurry Coq.require_imports) (imports ())
     in
     let imports =
       [
-        PP.Coq.imports more_modules
+        Coq.imports more_modules
       ]
     in
     let scopes =
       [
-        PP.Coq.open_scopes scopes
+        Coq.open_scopes scopes
       ]
     in
     let parts =
@@ -411,7 +396,7 @@ let fromIR_pp ir =
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
-          addall (PP.Katamaran.Enums.generate ir.enum_definitions)
+          addall (Enums.generate ir.enum_definitions)
         )
     in
     generate_section segments
@@ -434,7 +419,7 @@ let fromIR_pp ir =
       let segments =
         [
           pp_module_header "REGISTERS";
-          PP.Katamaran.Registers.generate ir.register_definitions
+          Registers.generate ir.register_definitions
         ]
       in
       generate_section segments
