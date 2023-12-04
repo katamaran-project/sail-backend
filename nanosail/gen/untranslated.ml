@@ -6,8 +6,7 @@ open Util
 module FunDeclKit = Fundeclkit
 
 
-
-let pp_untranslated_module untranslated_definitions =
+let generate untranslated_definitions =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with
     | Libsail.Parse_ast.Range (start, stop) ->

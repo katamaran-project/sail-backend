@@ -380,7 +380,7 @@ let fromIR_pp ir =
       let segments =
         [
            pp_module_header "UNTRANSLATED";
-           Untranslated.pp_untranslated_module ir.untranslated_definitions
+           Untranslated.generate ir.untranslated_definitions
         ]
       in
       generate_section segments
