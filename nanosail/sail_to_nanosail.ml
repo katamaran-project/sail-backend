@@ -213,7 +213,6 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | S.AE_loop (_, _, _)          -> not_yet_implemented __POS__ location
   | S.AE_short_circuit (_, _, _) -> not_yet_implemented __POS__ location
 
-
 and statement_of_match location aval triples =
   match triples with
   | [ (AP_aux (AP_nil _, _, _), _, aexp1);
@@ -255,10 +254,10 @@ and statement_of_match location aval triples =
       }
   | _ -> not_yet_implemented __POS__ location
 
-let body_of_pexp (S.Pat_aux (aux, (_location, _annot))) =
+let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
-  | Pat_when _       -> Stm_nys
+  | Pat_when _       -> not_yet_implemented __POS__ location
 
 
 (******************************************************************************)
