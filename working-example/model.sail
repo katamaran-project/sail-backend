@@ -58,3 +58,8 @@ function listappend(l1, l2) = match l1 {
   [||]   => l2,
   h :: t => h :: listappend(t, l2)
 }
+
+val switch : (int, bool) -> (bool, int)
+function switch(p) = match p {
+  (l, r) => (r, l)
+}
