@@ -380,7 +380,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
          | Some translation -> (sail_definition, FunctionDefinition translation)
          | None             -> not_yet_implemented __POS__ annotation.loc
        )
-    | DEF_type type_definition  -> (sail_definition, translate_type_definition annotation type_definition)
+    | DEF_type type_definition  ->
+       (sail_definition, translate_type_definition annotation type_definition)
     | DEF_mapdef definition ->
        (sail_definition, translate_mapping_definition annotation definition)
     | DEF_impl _ ->
