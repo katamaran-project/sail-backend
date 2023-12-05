@@ -335,7 +335,7 @@ let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (t
   | TD_bitfield (_, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
 
-let translate_top_level_constant
+let translate_top_level_type_constraint
       (definition_annotation : S.def_annot)
       (S.VS_aux (value_specification, _vspec_annotation)) : N.definition =
   let VS_val_spec (
@@ -366,6 +366,11 @@ let translate_register
   in
   RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
+let translate_mapping_definition
+      _definition_annotation
+      (S.MD_aux (_definition, (location, _mapping_annotation))) =
+  not_yet_implemented __POS__ location
+
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
   try
     match def with
@@ -376,14 +381,14 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
          | None             -> not_yet_implemented __POS__ annotation.loc
        )
     | DEF_type type_definition  -> (sail_definition, translate_type_definition annotation type_definition)
-    | DEF_mapdef _ ->
-       not_yet_implemented __POS__ annotation.loc
+    | DEF_mapdef definition ->
+       (sail_definition, translate_mapping_definition annotation definition)
     | DEF_impl _ ->
        not_yet_implemented __POS__ annotation.loc
     | DEF_let _ ->
        not_yet_implemented __POS__ annotation.loc
     | DEF_val value_specification ->
-      (sail_definition, translate_top_level_constant annotation value_specification)
+      (sail_definition, translate_top_level_type_constraint annotation value_specification)
     | DEF_outcome (_, _) ->
        not_yet_implemented __POS__ annotation.loc
     | DEF_instantiation (_, _) ->
