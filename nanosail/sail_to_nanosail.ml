@@ -213,8 +213,8 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | S.AE_loop (_, _, _)          -> not_yet_implemented __POS__ location
   | S.AE_short_circuit (_, _, _) -> not_yet_implemented __POS__ location
 
-and statement_of_match location aval triples =
-  match triples with
+and statement_of_match location matched cases =
+  match cases with
   | [ (AP_aux (AP_nil _, _, _), _, aexp1);
       (AP_aux (AP_cons (
         AP_aux ((AP_id (id_h, _)), _, _),
@@ -222,7 +222,7 @@ and statement_of_match location aval triples =
       ), _, _), _, aexp2)
     ] ->
       Stm_match_list {
-        s        = Stm_exp (expression_of_aval location aval);
+        s        = Stm_exp (expression_of_aval location matched);
         alt_nil  = statement_of_aexp aexp1;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
@@ -235,7 +235,7 @@ and statement_of_match location aval triples =
       (AP_aux (AP_nil _, _, _), _, aexp2)
     ] ->
       Stm_match_list {
-        s        = Stm_exp (expression_of_aval location aval);
+        s        = Stm_exp (expression_of_aval location matched);
         alt_nil  = statement_of_aexp aexp2;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
@@ -247,7 +247,7 @@ and statement_of_match location aval triples =
       ], _, _),_ , aexp)
     ] ->
       Stm_match_prod {
-        s   = Stm_exp (expression_of_aval location aval);
+        s   = Stm_exp (expression_of_aval location matched);
         xl  = string_of_id id_l;
         xr  = string_of_id id_r;
         rhs = statement_of_aexp aexp;
