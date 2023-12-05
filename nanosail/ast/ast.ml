@@ -43,9 +43,27 @@ type ty =
   | Ty_id of ty_id                         (* For concrete types                 *)
   | Ty_app of ty_id * type_argument list   (* For type constructors              *)
   | Ty_nys                                 (* For typ variants not yet supported *)
+
 and type_argument =
   | TA_type of ty
   | TA_numexp of numeric_expression
+  | TA_bool of numeric_constraint
+
+and numeric_constraint =
+  | NC_equal of numeric_expression * numeric_expression
+  | NC_bounded_ge of numeric_expression * numeric_expression
+  | NC_bounded_gt of numeric_expression * numeric_expression
+  | NC_bounded_le of numeric_expression * numeric_expression
+  | NC_bounded_lt of numeric_expression * numeric_expression
+  | NC_not_equal of numeric_expression * numeric_expression
+  | NC_set of string * Z.t list
+  | NC_or of numeric_constraint * numeric_constraint
+  | NC_and of numeric_constraint * numeric_constraint
+  | NC_app of string * type_argument list
+  | NC_var of string
+  | NC_true
+  | NC_false
+
 
 type bind = string * ty
 
@@ -138,6 +156,7 @@ type function_definition = {
 
 type type_abbreviation =
   | TA_numeric_expression of numeric_expression
+  | TA_numeric_constraint of numeric_constraint
 
 type type_definition =
   | TD_abbreviation of (string * type_abbreviation)

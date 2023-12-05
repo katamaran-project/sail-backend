@@ -253,17 +253,25 @@ let pp_type_module type_definitions =
   let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
     let document =
       match type_definition with
-      | TD_abbreviation (identifier, TA_numeric_expression numexpr) ->
-        concat [
-          string "Definition";
-          space;
-          string identifier;
-          space;
-          string ":=";
-          space;
-          Sail.pp_numeric_expression numexpr;
-          Coq.eol
-        ]
+      | TD_abbreviation (identifier, type_abbreviation) ->
+         (
+           match type_abbreviation with
+           | TA_numeric_expression numexpr ->
+              (
+                concat [
+                    string "Definition";
+                    space;
+                    string identifier;
+                    space;
+                    string ":=";
+                    space;
+                    Sail.pp_numeric_expression numexpr;
+                    Coq.eol
+                  ]
+              )
+           | TA_numeric_constraint _numconstraint ->
+              string "NOT_YET_SUPPORTED"
+         )
     in
     Coq.annotate_with_original_definition original document
   in

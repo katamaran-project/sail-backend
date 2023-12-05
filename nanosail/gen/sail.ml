@@ -1,7 +1,7 @@
 open PPrint
 open Ast
 open Util
-       
+
 module PP = PPrint
 
 
@@ -40,6 +40,22 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
   in
   pp 0 numeric_expression
 
+and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
+  match numeric_constraint with
+  | NC_equal (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_bounded_ge (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_bounded_gt (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_bounded_le (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_bounded_lt (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_not_equal (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_set (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_or (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_and (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_app (_x, _y) -> string "NOT_YET_IMPLEMENTED"
+  | NC_var _ -> string "NOT_YET_IMPLEMENTED"
+  | NC_true -> string "true"
+  | NC_false -> string "false"
+
 let pp_ty_id = function
   | Unit      -> string "ty.unit"
   | Bool      -> string "ty.bool"
@@ -59,6 +75,7 @@ and pp_type_argument (type_argument : type_argument) =
   match type_argument with
   | TA_type t   -> pp_ty t
   | TA_numexp e -> pp_numeric_expression e
+  | TA_bool nc  -> pp_numeric_constraint nc
 
 let pp_bind (arg, t) =
   utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ pp_ty t

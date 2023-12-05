@@ -1,3 +1,5 @@
+open Nyi
+
 module Big_int = Nat_big_num
 
 module S = struct
@@ -8,20 +10,6 @@ module S = struct
 end
 
 module N = Ast
-
-
-
-type source_position = string * int * int * int
-
-exception NotYetImplemented of source_position * S.l * string option
-
-let not_yet_implemented ?(message = "") source_position sail_location =
-  let message =
-    if message == ""
-    then None
-    else Some message
-  in
-  raise (NotYetImplemented (source_position, sail_location, message))
 
 
 (******************************************************************************)
@@ -53,6 +41,21 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
   | Nexp_exp _                 -> not_yet_implemented __POS__ numexp_location
   | Nexp_app (_, _)            -> not_yet_implemented __POS__ numexp_location
 
+and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
+  match numeric_constraint with
+  | S.NC_equal (x, y) -> N.NC_equal (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_ge (x, y) -> N.NC_bounded_ge (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_gt (x, y) -> N.NC_bounded_gt (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_le (x, y) -> N.NC_bounded_le (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_lt (x, y) -> N.NC_bounded_lt (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_not_equal (x, y) -> N.NC_not_equal (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> N.NC_set (kind_id, ns)
+  | S.NC_or (x, y) -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y) 
+  | S.NC_and (x, y) -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y) 
+  | S.NC_app (_, _) -> not_yet_implemented __POS__ location
+  | S.NC_var (Kid_aux (Var kind_id, _loc)) -> N.NC_var kind_id
+  | S.NC_true -> N.NC_true
+  | S.NC_false -> N.NC_false
 
 let ty_id_of_typ_id (S.Id_aux (aux, location)) =
   match aux with
@@ -314,7 +317,10 @@ let translate_type_abbreviation
                in
                TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
             | A_typ _  -> not_yet_implemented __POS__ arg_location
-            | A_bool _ -> not_yet_implemented __POS__ arg_location
+            | A_bool numeric_constraint ->
+               TypeDefinition
+                 (TD_abbreviation
+                    (id_string, TA_numeric_constraint (translate_numeric_constraint numeric_constraint)))
           )
        | Operator _ -> not_yet_implemented __POS__ identifier_location
      )
