@@ -367,7 +367,7 @@ let translate_register
   RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
 let translate_mapping_definition
-      _definition_annotation
+      (_definition_annotation : S.def_annot)
       (S.MD_aux (_definition, (location, _mapping_annotation))) =
   not_yet_implemented __POS__ location
 
