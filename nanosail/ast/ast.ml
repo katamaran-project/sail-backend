@@ -16,6 +16,7 @@ type numeric_expression =
   | NE_times of numeric_expression * numeric_expression
   | NE_neg of numeric_expression
   | NE_id of string
+  | NE_var of string
 
 
 
@@ -30,6 +31,7 @@ type ty_id =
   | List
   | Prod
   | Bitvector
+  | Atom
   | Id_nys                                 (* For typ ids not yet supported      *)
 
 type ty =

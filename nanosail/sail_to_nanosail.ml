@@ -46,8 +46,11 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
       | S.Id s                 -> NE_id s
       | S.Operator _           -> not_yet_implemented __POS__ loc
     )
+  | Nexp_var kinded_id         ->
+     let Kid_aux (Var string, _location) = kinded_id
+     in
+     NE_var string
   | Nexp_exp _                 -> not_yet_implemented __POS__ numexp_location
-  | Nexp_var _                 -> not_yet_implemented __POS__ numexp_location
   | Nexp_app (_, _)            -> not_yet_implemented __POS__ numexp_location
 
 
@@ -60,6 +63,7 @@ let ty_id_of_typ_id (S.Id_aux (aux, location)) =
   | Id "unit"      -> N.Unit
   | Id "string"    -> N.String
   | Id "bitvector" -> N.Bitvector
+  | Id "atom"      -> N.Atom
   | Id id          -> not_yet_implemented ~message:(Printf.sprintf "Missing case Id \"%s\"" id) __POS__ location
   | Operator _     -> not_yet_implemented __POS__ location
 

@@ -36,6 +36,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_times (x, y) -> parens_if 1 (concat [ pp 1 x; space; star; space; pp 1 y ])
     | NE_neg x        -> parens_if 2 (concat [ minus; pp 3 x ])
     | NE_id id        -> string id
+    | NE_var id       -> string id
   in
   pp 0 numeric_expression
 
@@ -47,6 +48,7 @@ let pp_ty_id = function
   | List      -> string "ty.list"
   | Prod      -> string "ty.prod"
   | Bitvector -> string "ty.bvec"
+  | Atom      -> string "ty.atom"
   | Id_nys    -> string "TY_ID_" ^^ nys
 
 let rec pp_ty = function
