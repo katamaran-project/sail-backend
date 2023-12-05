@@ -23,6 +23,11 @@ type numeric_expression =
 (******************************************************************************)
 (* Built-in types *)
 
+type kind =
+  | Kind_type
+  | Kind_int
+  | Kind_bool
+
 type ty_id =
   | Unit
   | Bool
