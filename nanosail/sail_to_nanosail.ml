@@ -215,31 +215,45 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
 
 and statement_of_match location matched cases =
   match cases with
-  | [ (AP_aux (AP_nil _, _, _), _, aexp1);
+  (*
+      match matched {
+        [||] => nil_clause,
+        h :: t => cons_clause
+      }
+   *)
+  | [ (AP_aux (AP_nil _, _, _), _, nil_clause);
       (AP_aux (AP_cons (
         AP_aux (AP_id (id_h, _), _, _),
         AP_aux (AP_id (id_t, _), _, _)
-      ), _, _), _, aexp2)
+      ), _, _), _, cons_clause)
     ] ->
       Stm_match_list {
         s        = Stm_exp (expression_of_aval location matched);
-        alt_nil  = statement_of_aexp aexp1;
+        alt_nil  = statement_of_aexp nil_clause;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
-        alt_cons = statement_of_aexp aexp2;
+        alt_cons = statement_of_aexp cons_clause;
+        }
+  (*
+    match <matched> {
+      match matched {
+        h :: t => cons_clause
+        [||] => nil_clause,
       }
+    }
+   *)
   | [ (AP_aux (AP_cons (
         AP_aux (AP_id (id_h, _), _, _),
         AP_aux (AP_id (id_t, _), _, _)
-      ), _, _), _, aexp1);
-      (AP_aux (AP_nil _, _, _), _, aexp2)
+      ), _, _), _, cons_clause);
+      (AP_aux (AP_nil _, _, _), _, nil_clause)
     ] ->
       Stm_match_list {
         s        = Stm_exp (expression_of_aval location matched);
-        alt_nil  = statement_of_aexp aexp2;
+        alt_nil  = statement_of_aexp nil_clause;
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
-        alt_cons = statement_of_aexp aexp1;
+        alt_cons = statement_of_aexp cons_clause;
       }
   | [ (AP_aux (AP_tuple [
         AP_aux (AP_id (id_l, _), _, _);
@@ -251,7 +265,7 @@ and statement_of_match location matched cases =
         xl  = string_of_id id_l;
         xr  = string_of_id id_r;
         rhs = statement_of_aexp aexp;
-      }
+        }
   | _ -> not_yet_implemented __POS__ location
 
 let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
