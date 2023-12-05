@@ -31,30 +31,30 @@ mapping size_bits : word_width <-> bitvector(2) = {
 }
 
 
-/* val is_empty : list(int) -> bool */
-/* val empty : unit -> list(int) */
-/* val onetwothree : unit -> list(int) */
-/* val last : list(int) -> (int, bool) */
-/* val listappend : (list(int), list(int)) -> list(int) */
+val is_empty : list(int) -> bool
+val empty : unit -> list(int)
+val onetwothree : unit -> list(int)
+val last : list(int) -> (int, bool)
+val listappend : (list(int), list(int)) -> list(int)
 
-/* function is_empty(l) = match l { */
-/*   [||]   => true, */
-/*   h :: t => false */
-/* } */
+function is_empty(l) = match l {
+  [||]   => true,
+  h :: t => false
+}
 
-/* function empty() = [||] */
+function empty() = [||]
 
-/* function onetwothree() = [|1, 2, 3|] */
+function onetwothree() = [|1, 2, 3|]
 
-/* function last(l) = match l { */
-/*   [||]   => (0, false), */
-/*   h :: t => match t { */
-/*     [||]     => (h, true), */
-/*     h' :: t' => last(t) */
-/*   } */
-/* } */
+function last(l) = match l {
+  [||]   => (0, false),
+  h :: t => match t {
+    [||]     => (h, true),
+    h' :: t' => last(t)
+  }
+}
 
-/* function listappend(l1, l2) = match l1 { */
-/*   [||]   => l2, */
-/*   h :: t => h :: listappend(t, l2) */
-/* } */
+function listappend(l1, l2) = match l1 {
+  [||]   => l2,
+  h :: t => h :: listappend(t, l2)
+}
