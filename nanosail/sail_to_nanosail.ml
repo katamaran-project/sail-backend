@@ -217,8 +217,8 @@ and statement_of_match location matched cases =
   match cases with
   | [ (AP_aux (AP_nil _, _, _), _, aexp1);
       (AP_aux (AP_cons (
-        AP_aux ((AP_id (id_h, _)), _, _),
-        AP_aux ((AP_id (id_t, _)), _, _)
+        AP_aux (AP_id (id_h, _), _, _),
+        AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, aexp2)
     ] ->
       Stm_match_list {
@@ -229,8 +229,8 @@ and statement_of_match location matched cases =
         alt_cons = statement_of_aexp aexp2;
       }
   | [ (AP_aux (AP_cons (
-        AP_aux ((AP_id (id_h, _)), _, _),
-        AP_aux ((AP_id (id_t, _)), _, _)
+        AP_aux (AP_id (id_h, _), _, _),
+        AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, aexp1);
       (AP_aux (AP_nil _, _, _), _, aexp2)
     ] ->
@@ -242,8 +242,8 @@ and statement_of_match location matched cases =
         alt_cons = statement_of_aexp aexp1;
       }
   | [ (AP_aux (AP_tuple [
-        AP_aux ((AP_id (id_l, _)), _, _);
-        AP_aux ((AP_id (id_r, _)), _, _);
+        AP_aux (AP_id (id_l, _), _, _);
+        AP_aux (AP_id (id_r, _), _, _);
       ], _, _),_ , aexp)
     ] ->
       Stm_match_prod {
