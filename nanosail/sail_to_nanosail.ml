@@ -381,6 +381,12 @@ let translate_value_definition
       (S.LB_aux (_definition, (location, _value_def_annotation))) =
   not_yet_implemented __POS__ location
 
+let translate_top_level_outcome_definition
+      (_definition_annotation : S.def_annot)
+      (S.OV_aux (_outcome, location))
+      (_definitions : ('a S.def) list) =
+  not_yet_implemented __POS__ location
+
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
   try
     let translation =
@@ -401,8 +407,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
          translate_value_definition annotation let_definition
       | DEF_val value_specification ->
          translate_top_level_type_constraint annotation value_specification
-      | DEF_outcome (_, _) ->
-         not_yet_implemented __POS__ annotation.loc
+      | DEF_outcome (outcome_spec, definitions) ->
+         translate_top_level_outcome_definition annotation outcome_spec definitions
       | DEF_instantiation (_, _) ->
          not_yet_implemented __POS__ annotation.loc
       | DEF_fixity (_, _, _) ->
