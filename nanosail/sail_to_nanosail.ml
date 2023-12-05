@@ -371,6 +371,11 @@ let translate_mapping_definition
       (S.MD_aux (_definition, (location, _mapping_annotation))) =
   not_yet_implemented __POS__ location
 
+let translate_impl_definition
+      (_definition_annotation : S.def_annot)
+      (S.FCL_aux (_definition, (annot, _))) =
+  not_yet_implemented __POS__ annot.loc
+
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
   try
     let translation =
@@ -385,8 +390,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
          translate_type_definition annotation type_definition
       | DEF_mapdef definition ->
          translate_mapping_definition annotation definition
-      | DEF_impl _ ->
-         not_yet_implemented __POS__ annotation.loc
+      | DEF_impl impl_definition ->
+         translate_impl_definition annotation impl_definition
       | DEF_let _ ->
          not_yet_implemented __POS__ annotation.loc
       | DEF_val value_specification ->
