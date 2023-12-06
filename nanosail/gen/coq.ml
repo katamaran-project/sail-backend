@@ -304,7 +304,7 @@ let annotate_with_original_definition original translation =
     translation
 
 let annotate f =
-  let (state, result) = run f empty_state
+  let (state, result) = run f
   in
   let annotations = MetadataMap.bindings state.metadata
   in
