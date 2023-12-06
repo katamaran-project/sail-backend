@@ -56,60 +56,91 @@ let rec ty_of_val = function
 
 let rec pp_expression e =
   let rec pp_exp_list = function
-    | []      -> string "nil"
-    | x :: xs -> parens_app [!^"cons"; pp_par_expression x; pp_exp_list xs]
+    | []      -> generate (string "nil")
+    | x :: xs ->
+       let* x' = pp_par_expression x in
+       let* xs' = pp_exp_list xs
+       in
+       generate (
+           parens_app [string "cons"; x'; xs']
+         )
   in
   let pp_exp_val = function
-    | Val_bool true  -> string "exp_true"
-    | Val_bool false -> string "exp_false"
-    | Val_int n      -> simple_app [string "exp_int"; Coq.integer n]
-    | Val_string s   -> simple_app [string "exp_string"; dquotes (string s)]
-    | v -> simple_app [
-               string "exp_val";
-               Sail.pp_ty (ty_of_val v);
-               pp_value v
-             ]
+    | Val_bool true  -> generate (string "exp_true")
+    | Val_bool false -> generate (string "exp_false")
+    | Val_int n      -> generate (simple_app [string "exp_int"; Coq.integer n])
+    | Val_string s   -> generate (simple_app [string "exp_string"; dquotes (string s)])
+    | v ->
+       let* v_type = Sail.pp_ty (ty_of_val v);
+       in
+       generate (simple_app [
+                     string "exp_val";
+                     v_type;
+                     pp_value v
+                   ]
+         )
   in
   let pp_exp_binop bo e1 e2 =
+    let* e1' = pp_par_expression e1 in
+    let* e2' = pp_par_expression e2
+    in
     match bo with
     | Pair ->
-       simple_app [
-           string "exp_binop";
-           string "bop.pair";
-           pp_par_expression e1;
-           pp_par_expression e2
-         ]
+       generate (
+           simple_app [
+               string "exp_binop";
+               string "bop.pair";
+               e1';
+               e2'
+             ]
+         )
     | Cons ->
-       simple_app [
-           string "exp_binop";
-           string "bop.cons";
-           pp_par_expression e1;
-           pp_par_expression e2
-         ]
+       generate (
+           simple_app [
+               string "exp_binop";
+               string "bop.cons";
+               e1';
+               e2'
+             ]
+         )
     | Append ->
-       simple_app [
-           string "exp_binop";
-           string "bop.append";
-           pp_par_expression e1;
-           pp_par_expression e2
-         ]
+       generate (
+           simple_app [
+               string "exp_binop";
+               string "bop.append";
+               e1';
+               e2'
+             ]
+         )
     | _  ->
-       infix 2 1 (pp_infix_binOp bo) (pp_par_expression e1) (pp_par_expression e2)
+       generate (
+           infix 2 1 (pp_infix_binOp bo) e1' e2'
+         )
   in
   match e with
-  | Exp_var v  -> simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_var v  -> generate (simple_app [string "exp_var"; dquotes (string v)])
   | Exp_val v  -> pp_exp_val v
-  | Exp_neg e  -> string "- " ^^ pp_par_expression e
-  | Exp_not e  -> simple_app [string "exp_not"; pp_par_expression e]
-  | Exp_list l ->
-      let pp_l = if !opt_list_notations
-        then Coq.list (List.map pp_expression l)
-        else pp_exp_list l in
-      simple_app [string "exp_list"; pp_l]
+  | Exp_neg e  -> let* e' = pp_par_expression e in
+                  generate (string "- " ^^ e')
+  | Exp_not e  -> let* e' = pp_par_expression e in
+                  generate (simple_app [string "exp_not"; e'])
+  | Exp_list lst ->
+     let* lst' = if !opt_list_notations
+                 then
+                   (
+                     let* expressions = map pp_expression lst in
+                     generate (Coq.list expressions)
+                   )
+                 else pp_exp_list lst
+     in
+     generate (simple_app [string "exp_list"; lst'])
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
-  | Exp_nys -> !^"EXP_" ^^ nys
+  | Exp_nys -> not_yet_implemented __POS__
 
-and pp_par_expression e = parens (pp_expression e)
+and pp_par_expression e =
+  let* e' = pp_expression e
+  in
+  generate (parens e')
 
 
 (******************************************************************************)
@@ -117,43 +148,75 @@ and pp_par_expression e = parens (pp_expression e)
 
 let rec pp_statement statement =
   match statement with
-  | Stm_exp e -> simple_app [(string "stm_exp"); pp_par_expression e]
+  | Stm_exp e ->
+     let* e' = pp_par_expression e
+     in
+     generate (
+         simple_app [(string "stm_exp"); e']
+       )
   | Stm_match_list m ->
-     simple_app [
-         (string "stm_match_list");
-         pp_par_statement m.s;
-         pp_par_statement m.alt_nil;
-         dquotes (string m.xh);
-         dquotes (string m.xt);
-         pp_par_statement m.alt_cons
-       ]
+     let* m_s' = pp_par_statement m.s in
+     let* m_alt_nil' = pp_par_statement m.alt_nil in
+     let* m_alt_cons' = pp_par_statement m.alt_cons
+     in
+     generate (
+         simple_app [
+             (string "stm_match_list");
+             m_s';
+             m_alt_nil';
+             dquotes (string m.xh);
+             dquotes (string m.xt);
+             m_alt_cons'
+           ]
+       )
   | Stm_match_prod m ->
-     simple_app [
-         (string "stm_match_prod");
-         pp_par_statement m.s;
-         dquotes (string m.xl);
-         dquotes (string m.xr);
-         pp_par_statement m.rhs
-       ]
+     let* m_s' = pp_par_statement m.s in
+     let* m_rhs' = pp_par_statement m.rhs
+     in
+     generate (
+         simple_app [
+             (string "stm_match_prod");
+             m_s';
+             dquotes (string m.xl);
+             dquotes (string m.xr);
+             m_rhs'
+           ]
+       )
   | Stm_call (f, arg_list) ->
-     simple_app (string "call" :: !^f :: (List.map pp_par_expression arg_list))
+     let* arg_list' =
+       map pp_par_expression arg_list
+     in
+     generate (
+         simple_app (string "call" :: !^f :: arg_list')
+       )
   | Stm_let (v, s1, s2) ->
-     simple_app [
-         string ("let: \"" ^ v ^ "\" :=");
-         pp_statement s1;
-         string "in";
-         pp_statement s2;
-       ]
+     let* s1' = pp_statement s1 in
+     let* s2' = pp_statement s2
+     in
+     generate (
+         simple_app [
+             string ("let: \"" ^ v ^ "\" :=");
+             s1';
+             string "in";
+             s2'
+           ]
+       )
   | Stm_if (s, s1, s2) ->
-     simple_app [
-         (string "stm_if");
-         pp_par_statement s;
-         pp_par_statement s1;
-         pp_par_statement s2;
-       ]
-  | Stm_nys -> !^"STM_" ^^ nys
+     let* s' = pp_par_statement s in
+     let* s1' = pp_par_statement s1 in
+     let* s2' = pp_par_statement s2
+     in
+     generate (
+         simple_app [
+             (string "stm_if");
+             s';
+             s1';
+             s2'
+           ]
+       )
+  | Stm_nys -> not_yet_implemented __POS__
 
-and pp_par_statement s = parens (pp_statement s)
+and pp_par_statement s = lift parens (pp_statement s)
 
 
 (******************************************************************************)
@@ -166,18 +229,31 @@ let pp_function_definition original_sail_code function_definition =
   let parameters =
     empty
   in
-  let return_type =
-    pp_hanging_list (PP.string "Stm") [
-      Coq.list (List.map Sail.pp_bind function_definition.funType.arg_types);
-      Sail.pp_ty function_definition.funType.ret_type
-    ]
+  let coq_definition =
+    let* return_type =
+      let* bindings =
+        let* docs = map Sail.pp_bind function_definition.funType.arg_types
+        in
+        generate (Coq.list docs)
+      in
+      let* return_type =
+        Sail.pp_ty function_definition.funType.ret_type
+      in
+      generate (
+          pp_hanging_list (PP.string "Stm") [
+              bindings;
+              return_type
+            ]
+        )
+    in
+    let* body =
+      pp_statement function_definition.funBody
+    in
+    generate (Coq.definition identifier parameters return_type body)
   in
-  let body =
-    pp_statement function_definition.funBody
-  in
-  Coq.annotate_with_original_definition original_sail_code (
-    Coq.definition identifier parameters return_type body
-  )
+  Coq.annotate_with_original_definition
+    original_sail_code
+    (Coq.annotate coq_definition)
 
 let pp_function_definitions function_definitions =
   List.map (uncurry pp_function_definition) function_definitions
@@ -259,22 +335,22 @@ let pp_type_module type_definitions =
            match type_abbreviation with
            | TA_numeric_expression numexpr ->
               (
-                concat [
-                    string "Definition";
-                    space;
-                    string identifier;
-                    space;
-                    string ":=";
-                    space;
-                    Sail.pp_numeric_expression numexpr;
-                    Coq.eol
-                  ]
+                let* numexpr' = Sail.pp_numeric_expression numexpr
+                in
+                generate (
+                    separate space [
+                        string "Definition";
+                        string identifier;
+                        string ":=";
+                        numexpr'
+                      ] ^^ Coq.eol
+                  )
               )
            | TA_numeric_constraint _numconstraint ->
-              string "NOT_YET_SUPPORTED"
+              not_yet_implemented __POS__
          )
     in
-    Coq.annotate_with_original_definition original document
+    Coq.annotate_with_original_definition original (Coq.annotate document)
   in
   List.map (uncurry pp_type_definition) type_definitions
 
