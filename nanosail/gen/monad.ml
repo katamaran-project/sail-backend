@@ -55,3 +55,14 @@ let rec iter f xs =
   | x::xs -> let* _ = f x in
              iter f xs
 
+let rec map f xs =
+  match xs with
+  | []    -> generate []
+  | x::xs -> let* r = f x in
+             let* rs = map f xs in
+             generate (r :: rs)
+
+let lift f x =
+  let* x' = x
+  in
+  generate (f x')
