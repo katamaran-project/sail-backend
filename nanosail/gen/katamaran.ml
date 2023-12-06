@@ -311,7 +311,11 @@ let pp_foreignKit =
 (******************************************************************************)
 (* Program pretty printing *)
 
-let pp_program_module program_name base_name function_definitions =
+let pp_program_module
+      program_name
+      base_name
+      function_definitions
+      _top_level_type_constraint_definitions =
   indent (separate small_step [
     string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
     FunDeclKit.generate (List.map snd function_definitions);
@@ -449,7 +453,13 @@ let fromIR_pp ir =
   let program =
     generate_section
       "PROGRAM"
-      (pp_program_module ir.program_name "Default" ir.function_definitions)
+      (
+        pp_program_module
+          ir.program_name
+          "Default"
+          ir.function_definitions
+          ir.top_level_type_constraint_definitions
+      )
   in
   let registers =
     if
