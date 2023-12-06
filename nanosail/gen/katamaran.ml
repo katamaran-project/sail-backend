@@ -2,6 +2,7 @@ open PPrint
 open Ast
 open Auxlib
 open Util
+open Monad
 
 module FunDeclKit = Fundeclkit
 
@@ -316,6 +317,9 @@ let scopes = [
 let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
+let _generate_module_header title =
+  generate (string (Printf.sprintf "(*** %s ***)" title))
+
 let fromIR_pp ir =
   let more_modules =
     if !opt_list_notations
@@ -394,5 +398,6 @@ let fromIR_pp ir =
     ]
   in
   Util.separate_nonempty big_step sections
+
 
 let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)

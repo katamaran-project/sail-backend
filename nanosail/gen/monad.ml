@@ -13,7 +13,7 @@ let empty_state = { next_id = 1; metadata = MetadataMap.empty }
 
 let run (GenMonad f) state = f state
 
-let genid metadatum =
+let create_annotation metadatum =
   GenMonad (fun { next_id; metadata } ->
       let metadata' = MetadataMap.add next_id metadatum metadata
       and next_id' = next_id + 1
@@ -36,9 +36,16 @@ let (let*) m g =
 let add_annotations f =
   let (state, result) = run f empty_state
   in
-  let annotations =
-    List.map (fun (key, value) ->
-        PPrint.(string (string_of_int key) ^^ string " : " ^^ value)
-      ) (MetadataMap.bindings state.metadata)
+  let annotations = MetadataMap.bindings state.metadata
   in
-  PPrint.(Coq.comment (separate hardline annotations) ^^ hardline ^^ result)
+  let pp_annotations =
+    let pp_annotation index doc =
+      PPrint.(string (string_of_int index) ^^ string " : " ^^ align doc)
+    in
+    List.map (Auxlib.uncurry pp_annotation) annotations
+  in
+  PPrint.(separate hardline
+            (Auxlib.build_list (fun { add; _ } ->
+                 if not (List.is_empty annotations)
+                 then add (Coq.comment (separate hardline pp_annotations));
+                 add result)))

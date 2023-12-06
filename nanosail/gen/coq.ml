@@ -25,8 +25,30 @@ let comment comment =
   else
     concat [
         left_comment_delimiter;
-        twice hardline;
+        hardline;
         Util.indent' comment;
+        hardline;
+        right_comment_delimiter
+      ]
+
+let original_sail_code source =
+  let str = Util.string_of_document source
+  in
+  if
+    count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+  then
+    concat [
+        left_comment_delimiter;
+        space;
+        string (strip str);
+        space;
+        right_comment_delimiter
+      ]
+  else
+    concat [
+        left_comment_delimiter;
+        twice hardline;
+        Util.indent' source;
         hardline;
         right_comment_delimiter
       ]
@@ -273,7 +295,7 @@ let annotate_with_original_definition original translation =
     !include_original_sail_code
   then
     concat [
-        comment (Sail.pp_sail_definition original);
+        original_sail_code (Sail.pp_sail_definition original);
       hardline;
       translation
     ]
