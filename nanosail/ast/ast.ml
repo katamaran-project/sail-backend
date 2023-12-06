@@ -184,7 +184,13 @@ type enum_definition =
     cases: string list
   }
 
+type top_level_type_constraint_definition =
+  {
+    identifier : string;
+  }
+
 type definition =
+  | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition of function_definition
   | TypeDefinition of type_definition
   | RegisterDefinition of register_definition
@@ -215,6 +221,10 @@ let extract_untranslated_definition = function
 let extract_ignored_definition = function
   | IgnoredDefinition -> Some ()
   | _                 -> None
+
+let extract_top_level_type_constraint_definition = function
+  | TopLevelTypeConstraintDefinition x -> Some x
+  | _                                  -> None
 
 (******************************************************************************)
 (* Full intermediate representation *)

@@ -4,7 +4,7 @@ open Auxlib
 
 
 let generate_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp_enum sail_definition enum_definition =
+  let pp_enum sail_definition (enum_definition : enum_definition) =
     let coq_translation =
       let identifier = string enum_definition.identifier
       and typ = string "Set"
@@ -23,7 +23,7 @@ let generate_inductive_type (enum_definitions : (sail_definition * enum_definiti
 
 
 let generate_constructors_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp _ enum_definition =
+  let pp _ (enum_definition : enum_definition) =
     let identifier = string (enum_definition.identifier ^ "Constructor")
     and typ = string "Set"
     in
