@@ -11,7 +11,11 @@ type ('a, 'r) gen_monad =
 
 let empty_state = { next_id = 1; metadata = MetadataMap.empty }
 
-let run (GenMonad f) state = f state
+let run_with_state (GenMonad f) state = f state
+
+let run f = run_with_state f empty_state
+
+let run_result f = snd (run f)
 
 let create_annotation metadatum =
   GenMonad (fun { next_id; metadata } ->
@@ -29,9 +33,9 @@ let generate result =
 
 let (let*) m g =
        GenMonad (fun state ->
-           let (state', result) = run m state
+           let (state', result) = run_with_state m state
            in
-           run (g result) state')
+           run_with_state (g result) state')
 
 let not_yet_implemented (filename, line_number, _start_column, _end_column) =
   let annotation_doc =
