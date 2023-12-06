@@ -1,5 +1,6 @@
 open PPrint
 open Auxlib
+open Monad
 
 module Big_int = Nat_big_num
 
@@ -301,3 +302,94 @@ let annotate_with_original_definition original translation =
     ]
   else
     translation
+
+let annotate f =
+  let (state, result) = run f empty_state
+  in
+  let annotations = MetadataMap.bindings state.metadata
+  in
+  let pp_annotations =
+    let pp_annotation index doc =
+      PPrint.(string (string_of_int index) ^^ string " : " ^^ align doc)
+    in
+    List.map (Auxlib.uncurry pp_annotation) annotations
+  in
+  PPrint.(separate hardline
+            (Auxlib.build_list (fun { add; _ } ->
+                 if not (List.is_empty annotations)
+                 then add (comment (separate hardline pp_annotations));
+                 add result)))
+
+let mbuild_inductive_type identifier typ constructor_generator =
+  let* constructors =
+    let result = ref []
+    in
+    let generate_case
+          ?(parameters : document = empty)
+          ?(typ        : document = empty)
+          (identifier  : document) =
+      result := (identifier, parameters, typ) :: !result;
+      generate ()
+    in
+    let* _ = constructor_generator generate_case in
+    generate (List.rev !result)
+  in
+  let first_line =
+    separate space (
+        build_list (fun { add; _ } ->
+            add (string "Inductive");
+            add identifier;
+            if requirement typ > 0
+            then
+              (
+                add colon;
+                add typ
+              );
+            add (string ":=")
+          )
+      )
+  in
+  let constructor_lines =
+    let pairs =
+      List.map (fun (id, params, typ) ->
+          separate space (
+              build_list (fun { add; _ } ->
+                  add id;
+                  if requirement params > 0
+                  then add params
+                )
+            ),
+          typ
+        )
+        constructors
+    in
+    let longest_left_part =
+      if List.is_empty pairs
+      then 0
+      else
+        maximum (
+            List.map (fun (left, _) -> requirement left) pairs
+          )
+    in
+    let make_line (left, right) =
+      separate space (
+          build_list (fun { add; _ } ->
+              add (string "|");
+              add (Util.pad_right longest_left_part left);
+              if requirement right > 0
+              then (
+                add colon;
+                add right
+              )
+            )
+        )
+    in
+    List.map make_line pairs
+  in
+  let lines =
+    build_list (fun { add; addall } ->
+        add first_line;
+        addall constructor_lines
+      )
+  in
+  generate (separate hardline lines ^^ hardline ^^ eol)
