@@ -267,12 +267,10 @@ and statement_of_match location matched cases =
         alt_cons = statement_of_aexp cons_clause;
         }
   (*
-    match <matched> {
       match matched {
         h :: t => cons_clause
         [||] => nil_clause,
       }
-    }
    *)
   | [ (AP_aux (AP_cons (
         AP_aux (AP_id (id_h, _), _, _),
@@ -286,17 +284,22 @@ and statement_of_match location matched cases =
         xh       = string_of_id id_h;
         xt       = string_of_id id_t;
         alt_cons = statement_of_aexp cons_clause;
+        }
+  (*
+      match matched {
+        (id_l, id_r) => clause
       }
+   *)
   | [ (AP_aux (AP_tuple [
         AP_aux (AP_id (id_l, _), _, _);
         AP_aux (AP_id (id_r, _), _, _);
-      ], _, _),_ , aexp)
+      ], _, _),_ , clause)
     ] ->
       Stm_match_prod {
         s   = Stm_exp (expression_of_aval location matched);
         xl  = string_of_id id_l;
         xr  = string_of_id id_r;
-        rhs = statement_of_aexp aexp;
+        rhs = statement_of_aexp clause;
         }
   | _ -> not_yet_implemented __POS__ location
 
