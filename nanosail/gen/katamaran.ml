@@ -334,18 +334,16 @@ let pp_type_module type_definitions =
          (
            match type_abbreviation with
            | TA_numeric_expression numexpr ->
-              (
-                let* numexpr' = Sail.pp_numeric_expression numexpr
-                in
-                generate (
-                    separate space [
-                        string "Definition";
-                        string identifier;
-                        string ":=";
-                        numexpr'
-                      ] ^^ Coq.eol
-                  )
-              )
+              let* numexpr' = Sail.pp_numeric_expression numexpr
+              in
+              generate (
+                  separate space [
+                      string "Definition";
+                      string identifier;
+                      string ":=";
+                      numexpr'
+                    ] ^^ Coq.eol
+                )
            | TA_numeric_constraint _numconstraint ->
               not_yet_implemented __POS__
          )
