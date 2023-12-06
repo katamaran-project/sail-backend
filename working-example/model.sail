@@ -60,7 +60,12 @@ function listappend(l1, l2) = match l1 {
   h :: t => h :: listappend(t, l2)
 }
 
-val switch : (int, bool) -> (bool, int)
-function switch(p) = match p {
+val switch_ii : (int, int) -> (int, int)
+function switch_ii(p) = match p {
+  (l, r) => (r, l)
+}
+
+val switch_ib : (int, bool) -> (bool, int)
+function switch_ib(p) = match p {
   (l, r) => (r, l)
 }
