@@ -388,15 +388,15 @@ let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (t
      not_yet_implemented __POS__ definition_annotation.loc
 
 let translate_top_level_type_constraint
-      (definition_annotation : S.def_annot)
+      (_definition_annotation : S.def_annot)
       (S.VS_aux (value_specification, _vspec_annotation)) : N.definition =
   let VS_val_spec (
           TypSchm_aux (
               TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
               _type_scheme_location),
-          _identifier, _extern) = value_specification
+          identifier, _extern) = value_specification
   in
-  not_yet_implemented __POS__ definition_annotation.loc
+  TopLevelTypeConstraintDefinition { identifier = string_of_id identifier }
 
 let translate_register
       (_definition_annotation : S.def_annot)
@@ -511,11 +511,12 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
     List.filter_map (lift f) nano_definitions
   in
   {
-    program_name             = name;
-    function_definitions     = collect N.extract_function_definition;
-    type_definitions         = collect N.extract_type_definition;
-    enum_definitions         = collect N.extract_enum_definition;
-    register_definitions     = collect N.extract_register_definition;
-    untranslated_definitions = collect N.extract_untranslated_definition;
-    ignored_definitions      = List.map fst (collect N.extract_ignored_definition);
+    program_name                          = name;
+    function_definitions                  = collect N.extract_function_definition;
+    top_level_type_constraint_definitions = collect N.extract_top_level_type_constraint_definition;
+    type_definitions                      = collect N.extract_type_definition;
+    enum_definitions                      = collect N.extract_enum_definition;
+    register_definitions                  = collect N.extract_register_definition;
+    untranslated_definitions              = collect N.extract_untranslated_definition;
+    ignored_definitions                   = List.map fst (collect N.extract_ignored_definition);
   }
