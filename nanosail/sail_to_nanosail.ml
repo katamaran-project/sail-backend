@@ -113,31 +113,56 @@ let _translate_type_argument (S.A_aux (type_argument, location)) : N.type_argume
 
 (******************************************************************************)
 
-let ty_of_pexp (S.Pat_aux (aux, (loc, _annot))) =
+let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> ty_of_typ (Libsail.Type_check.typ_of exp)
-  | Pat_when _       -> not_yet_implemented __POS__ loc
+  | Pat_when _       -> not_yet_implemented __POS__ location
 
 
 (******************************************************************************)
 
-let rec binds_of_pat (S.P_aux (aux, a)) =
+let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   match aux with
-  | P_lit (L_aux (L_unit, _)) -> [("()", N.Ty_id Unit)]
+  | P_lit (L_aux (lit, _)) ->
+     (
+       match lit with
+       | S.L_unit     -> [("()", N.Ty_id Unit)]
+       | S.L_zero     -> not_yet_implemented __POS__ location
+       | S.L_one      -> not_yet_implemented __POS__ location
+       | S.L_true     -> not_yet_implemented __POS__ location
+       | S.L_false    -> not_yet_implemented __POS__ location
+       | S.L_num _    -> not_yet_implemented __POS__ location
+       | S.L_hex _    -> not_yet_implemented __POS__ location
+       | S.L_bin _    -> not_yet_implemented __POS__ location
+       | S.L_string _ -> not_yet_implemented __POS__ location
+       | S.L_undef    -> not_yet_implemented __POS__ location
+       | S.L_real _   -> not_yet_implemented __POS__ location
+     )
   | P_id id ->
       let x = string_of_id id in
       let ty = ty_of_typ (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
   | P_tuple pats ->
       List.concat (List.map binds_of_pat pats)
-  | _ ->
-      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)]
+  | S.P_wild                      -> not_yet_implemented __POS__ location
+  | S.P_or (_, _)                 -> not_yet_implemented __POS__ location
+  | S.P_not _                     -> not_yet_implemented __POS__ location
+  | S.P_as (_, _)                 -> not_yet_implemented __POS__ location
+  | S.P_typ (_, _)                -> not_yet_implemented __POS__ location
+  | S.P_var (_, _)                -> not_yet_implemented __POS__ location
+  | S.P_app (_, _)                -> not_yet_implemented __POS__ location
+  | S.P_vector _                  -> not_yet_implemented __POS__ location
+  | S.P_vector_concat _           -> not_yet_implemented __POS__ location
+  | S.P_vector_subrange (_, _, _) -> not_yet_implemented __POS__ location
+  | S.P_list _                    -> not_yet_implemented __POS__ location
+  | S.P_cons (_, _)               -> not_yet_implemented __POS__ location
+  | S.P_string_append _           -> not_yet_implemented __POS__ location
+  | S.P_struct (_, _)             -> not_yet_implemented __POS__ location
 
-let binds_of_pexp (S.Pat_aux (aux, _)) =
+let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _ ->
-      [("PATTERN_NOT_YET_SUPPORTED", Ty_nys)]
+  | Pat_when _ -> not_yet_implemented __POS__ location
 
 
 (******************************************************************************)
