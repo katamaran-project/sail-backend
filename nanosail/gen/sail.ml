@@ -1,6 +1,7 @@
 open PPrint
 open Ast
 open Util
+open Monad
 
 module PP = PPrint
 
@@ -38,39 +39,46 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_id id        -> string id
     | NE_var id       -> string id
   in
-  pp 0 numeric_expression
+  generate (pp 0 numeric_expression)
 
 and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   match numeric_constraint with
-  | NC_equal (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_bounded_ge (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_bounded_gt (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_bounded_le (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_bounded_lt (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_not_equal (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_set (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_or (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_and (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_app (_x, _y) -> string "NOT_YET_IMPLEMENTED"
-  | NC_var _ -> string "NOT_YET_IMPLEMENTED"
-  | NC_true -> string "true"
-  | NC_false -> string "false"
+  | NC_equal (_x, _y) -> not_yet_implemented __POS__
+  | NC_bounded_ge (_x, _y) -> not_yet_implemented __POS__
+  | NC_bounded_gt (_x, _y) -> not_yet_implemented __POS__
+  | NC_bounded_le (_x, _y) -> not_yet_implemented __POS__
+  | NC_bounded_lt (_x, _y) -> not_yet_implemented __POS__
+  | NC_not_equal (_x, _y) -> not_yet_implemented __POS__
+  | NC_set (_x, _y) -> not_yet_implemented __POS__
+  | NC_or (_x, _y) -> not_yet_implemented __POS__
+  | NC_and (_x, _y) -> not_yet_implemented __POS__
+  | NC_app (_x, _y) -> not_yet_implemented __POS__
+  | NC_var _ -> not_yet_implemented __POS__
+  | NC_true -> generate (string "true")
+  | NC_false -> generate (string "false")
 
-let pp_ty_id = function
-  | Unit      -> string "ty.unit"
-  | Bool      -> string "ty.bool"
-  | Int       -> string "ty.int"
-  | String    -> string "ty.string"
-  | List      -> string "ty.list"
-  | Prod      -> string "ty.prod"
-  | Bitvector -> string "ty.bvec"
-  | Atom      -> string "ty.atom"
-  | Id_nys    -> string "TY_ID_" ^^ nys
+let pp_ty_id type_id =
+  match type_id with
+  | Unit      -> generate (string "ty.unit")
+  | Bool      -> generate (string "ty.bool")
+  | Int       -> generate (string "ty.int")
+  | String    -> generate (string "ty.string")
+  | List      -> generate (string "ty.list")
+  | Prod      -> generate (string "ty.prod")
+  | Bitvector -> generate (string "ty.bvec")
+  | Atom      -> generate (string "ty.atom")
+  | Id_nys    -> not_yet_implemented __POS__
 
-let rec pp_ty = function
+let rec pp_ty typ =
+  match typ with
   | Ty_id (ty_id)         -> pp_ty_id ty_id
-  | Ty_app (ty_id, targs) -> parens_app ((pp_ty_id ty_id) :: (List.map pp_type_argument targs))
-  | Ty_nys                -> !^"TY_" ^^ nys
+  | Ty_nys                -> not_yet_implemented __POS__
+  | Ty_app (ty_id, targs) ->
+     let* first = pp_ty_id ty_id in
+     let* rest  = seqmap (List.map pp_type_argument targs)
+     in
+     generate (parens_app (first :: rest))
+
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
   | TA_type t   -> pp_ty t
@@ -78,7 +86,8 @@ and pp_type_argument (type_argument : type_argument) =
   | TA_bool nc  -> pp_numeric_constraint nc
 
 let pp_bind (arg, t) =
-  utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ pp_ty t
+  let* t' = pp_ty t in
+  generate (utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t')
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
