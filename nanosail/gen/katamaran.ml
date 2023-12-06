@@ -344,8 +344,17 @@ let pp_type_module type_definitions =
                       numexpr'
                     ] ^^ Coq.eol
                 )
-           | TA_numeric_constraint _numconstraint ->
-              not_yet_implemented __POS__
+           | TA_numeric_constraint numconstraint ->
+              let* numconstraint' = Sail.pp_numeric_constraint numconstraint
+              in
+              generate (
+                  separate space [
+                      string "Definition";
+                      string identifier;
+                      string ":=";
+                      numconstraint'
+                    ] ^^ Coq.eol
+                )
          )
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)
