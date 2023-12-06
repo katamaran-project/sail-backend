@@ -1,20 +1,26 @@
 open PPrint
 open Ast
-
+open Monad
 
 let reg_inductive_type register_definitions =
   let identifier = string "Reg"
   and typ = string "Ty -> Set"
   in
-  Coq.build_inductive_type identifier typ (fun add_constructor ->
-      let make_constructor (register_definition : register_definition) =
-        let identifier = string register_definition.identifier
-        and typ = separate space [ string "Reg"; Sail.pp_ty register_definition.typ ]
+  let inductive_type =
+    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+        let make_constructor (register_definition : register_definition) =
+          let identifier = string register_definition.identifier
+          in
+          let* register_type = Sail.pp_ty register_definition.typ
+          in
+          let typ = separate space [ string "Reg"; register_type  ]
+          in
+          add_constructor ~typ:typ identifier
         in
-        add_constructor ~typ:typ identifier
-      in
-      List.iter make_constructor register_definitions
-    )
+        iter make_constructor register_definitions
+      )
+  in
+  Coq.annotate inductive_type
 
 let no_confusion_for_reg () =
   Coq.section "TransparentObligations" (
@@ -75,7 +81,6 @@ let obligation_tactic =
     string "Local Obligation Tactic :=";
     string "  finite_from_eqdec."
     ]
-
 
 let generate (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
