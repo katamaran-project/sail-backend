@@ -37,17 +37,15 @@ let generate function_definitions =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
-    let* constructors =
-      seqmap (List.map pp_function_declaration function_definitions)
-    in
-    generate (
-        Coq.build_inductive_type name typ (fun add_constructor ->
-            List.iter
-              (fun (name, function_type) ->
-                add_constructor ~typ:function_type name
-              )
-              constructors
-          ))
+    Coq.mbuild_inductive_type name typ (fun add_constructor ->
+        iter
+          (fun function_definition ->
+            let* name, function_type = pp_function_declaration function_definition
+            in
+            add_constructor ~typ:function_type name
+          )
+          function_definitions
+      )
   in
   let contents =
     separate small_step [
