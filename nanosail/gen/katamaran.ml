@@ -222,7 +222,11 @@ and pp_par_statement s = lift parens (pp_statement s)
 (******************************************************************************)
 (* FunDefKit pretty printing *)
 
-let pp_function_definition original_sail_code function_definition =
+let pp_function_definition
+      original_sail_code
+      function_definition
+      _type_constraint_sail_code
+      _type_constraint_definition =
   let identifier =
     PP.string ("fun_" ^ function_definition.funName)
   in
@@ -255,10 +259,27 @@ let pp_function_definition original_sail_code function_definition =
     original_sail_code
     (Coq.annotate coq_definition)
 
-let pp_function_definitions function_definitions =
-  List.map (uncurry pp_function_definition) function_definitions
+let pp_function_definitions
+      function_definitions
+      top_level_type_constraint_definitions =
+  let type_and_function_pairs =
+    let find_type_constraint function_name =
+      match List.filter (fun (_, type_constraint) -> type_constraint.identifier = function_name) top_level_type_constraint_definitions with
+      | [x] -> x
+      | _   -> failwith "Too few or too many" (* TODO *)
+    in
+    List.map (fun (sail, function_definition) ->
+        ((sail, function_definition), find_type_constraint function_definition.funName))
+      function_definitions
+  in
+  List.map
+    (fun ((sailfun, fundef), (sailtc, tcdef)) ->
+      pp_function_definition sailfun fundef sailtc tcdef)
+    type_and_function_pairs
 
-let pp_funDefKit function_definitions =
+let pp_funDefKit
+      function_definitions
+      top_level_type_constraint_definitions =
   let fundef =
     let identifier = string "FunDef"
     and parameters = utf8string "{Δ τ} (f : Fun Δ τ)"
@@ -282,7 +303,7 @@ let pp_funDefKit function_definitions =
   let contents =
     separate small_step (
         build_list (fun { add; addall } ->
-            addall (pp_function_definitions function_definitions);
+            addall (pp_function_definitions function_definitions top_level_type_constraint_definitions);
             add fundef
           )
       )
@@ -315,16 +336,17 @@ let pp_program_module
       program_name
       base_name
       function_definitions
-      _top_level_type_constraint_definitions =
-  indent (separate small_step [
-    string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
-    FunDeclKit.generate (List.map snd function_definitions);
-    string ("Include FunDeclMixin " ^ base_name ^ "Base.");
-    pp_funDefKit function_definitions;
-    string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
-    pp_foreignKit;
-    string ("Include ProgramMixin " ^ base_name ^ "Base.");
-  ]) ^^ small_step ^^ string ("End " ^ program_name ^ "Program.")
+      top_level_type_constraint_definitions =
+  indent (
+      separate small_step [
+          string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
+          FunDeclKit.generate (List.map snd function_definitions);
+          string ("Include FunDeclMixin " ^ base_name ^ "Base.");
+          pp_funDefKit function_definitions top_level_type_constraint_definitions;
+          string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
+          pp_foreignKit;
+          string ("Include ProgramMixin " ^ base_name ^ "Base.");
+    ]) ^^ small_step ^^ string ("End " ^ program_name ^ "Program.")
 
 
 (******************************************************************************)

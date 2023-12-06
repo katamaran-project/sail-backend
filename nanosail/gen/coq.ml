@@ -297,9 +297,27 @@ let annotate_with_original_definition original translation =
   then
     concat [
         original_sail_code (Sail.pp_sail_definition original);
-      hardline;
-      translation
+        hardline;
+        translation
     ]
+  else
+    translation
+
+let annotate_with_original_definitions originals translation =
+  if
+    !include_original_sail_code
+  then
+    concat (
+        build_list (fun { add; addall } ->
+            addall (
+                List.map
+                  (fun original -> original_sail_code (Sail.pp_sail_definition original))
+                  originals
+              );
+            add hardline;
+            add translation
+          )
+      )
   else
     translation
 
