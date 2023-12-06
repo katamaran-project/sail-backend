@@ -33,19 +33,25 @@ let (let*) m g =
            in
            run (g result) state')
 
-let add_annotations f =
-  let (state, result) = run f empty_state
+let not_yet_implemented (filename, line_number, _start_column, _end_column) =
+  let annotation_doc =
+    PPrint.string (Printf.sprintf "%s line %d" filename line_number)
   in
-  let annotations = MetadataMap.bindings state.metadata
+  let* id = create_annotation annotation_doc
   in
-  let pp_annotations =
-    let pp_annotation index doc =
-      PPrint.(string (string_of_int index) ^^ string " : " ^^ align doc)
-    in
-    List.map (Auxlib.uncurry pp_annotation) annotations
-  in
-  PPrint.(separate hardline
-            (Auxlib.build_list (fun { add; _ } ->
-                 if not (List.is_empty annotations)
-                 then add (Coq.comment (separate hardline pp_annotations));
-                 add result)))
+  generate (PPrint.string (Printf.sprintf "NYI[%d]" id))
+
+let rec seqmap fs =
+  match fs with
+  | []    -> generate []
+  | f::fs -> let* r = f in
+             let* rs = seqmap fs
+             in
+             generate (r :: rs)
+
+let rec iter f xs =
+  match xs with
+  | []    -> generate ()
+  | x::xs -> let* _ = f x in
+             iter f xs
+
