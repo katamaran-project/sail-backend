@@ -54,6 +54,32 @@ let original_sail_code source =
         right_comment_delimiter
       ]
 
+let original_sail_codes sources =
+  let combined_sources =
+    separate hardline sources
+  in
+  let str =
+    Util.string_of_document combined_sources
+  in
+  if
+    count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+  then
+    concat [
+        left_comment_delimiter;
+        space;
+        string (strip str);
+        space;
+        right_comment_delimiter
+      ]
+  else
+    concat [
+        left_comment_delimiter;
+        twice hardline;
+        Util.indent' combined_sources;
+        hardline;
+        right_comment_delimiter
+      ]
+
 let list items =
   if
     List.is_empty items
@@ -308,11 +334,9 @@ let annotate_with_original_definitions originals translation =
     !include_original_sail_code
   then
     concat (
-        build_list (fun { add; addall } ->
-            addall (
-                List.map
-                  (fun original -> original_sail_code (Sail.pp_sail_definition original))
-                  originals
+        build_list (fun { add; _ } ->
+            add (
+                original_sail_codes (List.map Sail.pp_sail_definition originals)
               );
             add hardline;
             add translation

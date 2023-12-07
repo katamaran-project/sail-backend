@@ -223,8 +223,8 @@ and pp_par_statement s = lift parens (pp_statement s)
 (* FunDefKit pretty printing *)
 
 let pp_function_definition
-      ((original_sail_code : sail_definition), (function_definition : function_definition))
-      _type_constraint =
+      ((sail_function_definition : sail_definition), (function_definition : function_definition))
+      type_constraint =
   let identifier =
     PP.string ("fun_" ^ function_definition.funName)
   in
@@ -253,7 +253,17 @@ let pp_function_definition
     in
     generate (Coq.definition identifier parameters return_type body)
   in
-  Coq.annotate_with_original_definition
+  let original_sail_code =
+    build_list (fun { add; _ } ->
+        (
+          match type_constraint with
+          | Some (sail_type_constraint, _) -> add sail_type_constraint
+          | None                           -> ()
+        );
+        add sail_function_definition;
+      )
+  in
+  Coq.annotate_with_original_definitions
     original_sail_code
     (Coq.annotate coq_definition)
 
