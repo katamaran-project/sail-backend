@@ -223,10 +223,8 @@ and pp_par_statement s = lift parens (pp_statement s)
 (* FunDefKit pretty printing *)
 
 let pp_function_definition
-      original_sail_code
-      function_definition
-      _type_constraint_sail_code
-      _type_constraint_definition =
+      ((original_sail_code : sail_definition), (function_definition : function_definition))
+      _type_constraint =
   let identifier =
     PP.string ("fun_" ^ function_definition.funName)
   in
@@ -260,22 +258,20 @@ let pp_function_definition
     (Coq.annotate coq_definition)
 
 let pp_function_definitions
-      function_definitions
+      (function_definitions : (sail_definition * function_definition) list)
       top_level_type_constraint_definitions =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match List.filter (fun (_, type_constraint) -> type_constraint.identifier = function_name) top_level_type_constraint_definitions with
-      | [x] -> x
-      | _   -> failwith "Too few or too many" (* TODO *)
+      | [x] -> Some x
+      | []  -> None
+      | _   -> None
     in
-    List.map (fun (sail, function_definition) ->
-        ((sail, function_definition), find_type_constraint function_definition.funName))
+    List.map (fun ((_sail_definition, function_definition) as fdef) ->
+        (fdef, find_type_constraint function_definition.funName))
       function_definitions
   in
-  List.map
-    (fun ((sailfun, fundef), (sailtc, tcdef)) ->
-      pp_function_definition sailfun fundef sailtc tcdef)
-    type_and_function_pairs
+  List.map (uncurry pp_function_definition) type_and_function_pairs
 
 let pp_funDefKit
       function_definitions
