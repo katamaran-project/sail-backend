@@ -161,7 +161,7 @@ let katamaran_target _ _ filename ast _ _ =
 let _ =
   let rewrite_count =
     match Sys.getenv_opt "REWRITES" with
-    | None     -> 0
+    | None     -> List.length katamaran_rewrites
     | Some str -> int_of_string str
   in
   let rewrites =
