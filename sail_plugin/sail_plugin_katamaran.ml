@@ -30,61 +30,63 @@ let katamaran_options = [
 (** List of rewrites applied to the sail ast after type checking and before
     any translation to intermediate representation language. *)
 let katamaran_rewrites = [
-    ("prover_regstate", [Rewrites.Bool_arg true]);
-    ("instantiate_outcomes", [Rewrites.String_arg "coq"]);
-    ("realize_mappings", []);
-    ("remove_vector_subrange_pats", []);
-    ("remove_duplicate_valspecs", []);
-    ("toplevel_string_append", []);
-    ("pat_string_append", []);
-    ("mapping_patterns", []);
-    ("add_unspecified_rec", []);
-    ("undefined", [Rewrites.Bool_arg true]);
-    ("vector_string_pats_to_bit_list", []);
-    ("remove_not_pats", []);
-    ("remove_impossible_int_cases", []);
-    ("tuple_assignments", []);
-    ("vector_concat_assignments", []);
-    ("simple_assignments", []);
-    ("remove_vector_concat", []);
-    ("remove_bitvector_pats", []);
-    ("remove_numeral_pats", []);
-    ("pattern_literals", [Rewrites.Literal_arg "lem"]);
-    ("guarded_pats", []);
-    (* ("register_ref_writes", rewrite_register_ref_writes); *)
-    (* ("nexp_ids", []); *)
-    ("split", [Rewrites.String_arg "execute"]);
-    ("minimise_recursive_functions", []);
-    ("recheck_defs", []);
-    (* ("remove_assert", rewrite_ast_remove_assert); *)
-    ("move_termination_measures", []);
-    ("top_sort_defs", []);
-    ("const_prop_mutrec", [Rewrites.String_arg "coq"]);
-    ("exp_lift_assign", []);
-    ("early_return", []);
+    ("prover_regstate", [Rewrites.Bool_arg true]);              (* From Coq backend *)
+    ("instantiate_outcomes", [Rewrites.String_arg "coq"]);      (* From Coq backend *)
+    ("realize_mappings", []);                                   (* From Coq backend *)
+    ("remove_vector_subrange_pats", []);                        (* From Coq backend *)
+    ("remove_duplicate_valspecs", []);                          (* From Coq backend *)
+    ("toplevel_string_append", []);                             (* From Coq backend *)
+    ("pat_string_append", []);                                  (* From Coq backend *)
+    ("mapping_patterns", []);                                   (* From Coq backend *)
+    ("truncate_hex_literals", []);                              (* From C backend *)
+    ("mono_rewrites", [Rewrites.Bool_arg true]);                (* From C backend *)
+    ("add_unspecified_rec", []);                                (* From Coq backend *)
+    ("undefined", [Rewrites.Bool_arg true]);                    (* From Coq backend *)
+    ("vector_string_pats_to_bit_list", []);                     (* From Coq backend *)
+    ("remove_not_pats", []);                                    (* From Coq backend *)
+    ("remove_impossible_int_cases", []);                        (* From Coq backend *)
+    ("tuple_assignments", []);                                  (* From Coq backend *)
+    ("vector_concat_assignments", []);                          (* From Coq backend *)
+    ("simple_assignments", []);                                 (* From Coq backend *)
+    ("remove_vector_concat", []);                               (* From Coq backend *)
+    ("remove_bitvector_pats", []);                              (* From Coq backend *)
+    ("remove_numeral_pats", []);                                (* From Coq backend *)
+    ("pattern_literals", [Rewrites.Literal_arg "lem"]);         (* From Coq backend *)
+    ("guarded_pats", []);                                       (* From Coq backend *)
+    (* ("register_ref_writes", rewrite_register_ref_writes); *) (* From Coq backend *)
+    (* ("nexp_ids", []); *)                                     (* From Coq backend *)
+    ("split", [Rewrites.String_arg "execute"]);                 (* From Coq backend *)
+    ("minimise_recursive_functions", []);                       (* From Coq backend *)
+    ("recheck_defs", []);                                       (* From Coq backend *)
+    (* ("remove_assert", rewrite_ast_remove_assert); *)         (* From Coq backend *)
+    ("move_termination_measures", []);                          (* From Coq backend *)
+    ("top_sort_defs", []);                                      (* From Coq backend *)
+    ("const_prop_mutrec", [Rewrites.String_arg "coq"]);         (* From Coq backend *)
+    ("exp_lift_assign", []);                                    (* From Coq backend *)
+    ("early_return", []);                                       (* From Coq backend *)
     (* We need to do the exhaustiveness check before merging, because it may
        introduce new wildcard clauses *)
-    ("recheck_defs", []);
-    ("make_cases_exhaustive", []);
+    ("recheck_defs", []);                                       (* From Coq backend *)
+    ("make_cases_exhaustive", []);                              (* From Coq backend *)
     (* merge funcls before adding the measure argument so that it doesn't
        disappear into an internal pattern match *)
-    ("merge_function_clauses", []);
-    ("recheck_defs", []);
-    ("rewrite_explicit_measure", []);
-    ("rewrite_loops_with_escape_effect", []);
-    ("recheck_defs", []);
-    ("remove_blocks", []);
-    ("attach_effects", []);
-    ("letbind_effects", []);
-    ("remove_e_assign", []);
-    ("attach_effects", []);
-    ("internal_lets", []);
-    ("remove_superfluous_letbinds", []);
-    ("remove_superfluous_returns", []);
-    ("bit_lists_to_lits", []);
-    ("toplevel_let_patterns", []);
-    ("recheck_defs", []);
-    ("attach_effects", []);
+    ("merge_function_clauses", []);                             (* From Coq backend *)
+    ("recheck_defs", []);                                       (* From Coq backend *)
+    ("rewrite_explicit_measure", []);                           (* From Coq backend *)
+    ("rewrite_loops_with_escape_effect", []);                   (* From Coq backend *)
+    ("recheck_defs", []);                                       (* From Coq backend *)
+    ("remove_blocks", []);                                      (* From Coq backend *)
+    ("attach_effects", []);                                     (* From Coq backend *)
+    ("letbind_effects", []);                                    (* From Coq backend *)
+    ("remove_e_assign", []);                                    (* From Coq backend *)
+    ("attach_effects", []);                                     (* From Coq backend *)
+    ("internal_lets", []);                                      (* From Coq backend *)
+    ("remove_superfluous_letbinds", []);                        (* From Coq backend *)
+    ("remove_superfluous_returns", []);                         (* From Coq backend *)
+    ("bit_lists_to_lits", []);                                  (* From Coq backend *)
+    ("toplevel_let_patterns", []);                              (* From Coq backend *)
+    ("recheck_defs", []);                                       (* From Coq backend *)
+    ("attach_effects", []);                                     (* From Coq backend *)
   ]
 
 

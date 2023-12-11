@@ -1,8 +1,9 @@
 SAIL:=sail
 RUBY:=ruby
 COQ:=coqc
+C_OUT_DIR:=./build
 
-SAIL_SOURCES = model.sail
+SAIL_SOURCES = main.sail
 COQ_FILE = microsail.v
 
 all: microsail.v rename coq
@@ -19,3 +20,7 @@ coq:
 
 clean:
 	git clean -fx
+
+c_files: main.sail
+	mkdir -p $(C_OUT_DIR) > /dev/null
+	sail -c main.sail -o $(C_OUT_DIR)/main
