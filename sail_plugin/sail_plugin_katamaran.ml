@@ -7,25 +7,6 @@ let opt_width = ref 100
 let print_check_message () =
   print_endline("Katamaran plugin is functioning correctly")
 
-(** Command line options added to sail when the sail_katamaran_backend is loaded
-    or installed. *)
-let katamaran_options = [
-  ("-katamaran_check",
-    Arg.Unit print_check_message,
-    "(debug) check if Katamaran plugin is correctly installed");
-  ("-katamaran_list_notations",
-   Arg.Unit (fun () -> Nanosail.Settings.set_list_notations true),
-    "use list notations");
-  ("-katamaran_width",
-    Arg.Set_int opt_width,
-    "set a custom width for the output");
-  ("-katamaran_add_original",
-   Arg.Unit (fun () -> Nanosail.Settings.set_include_original_code true),
-   "show original Sail code in output");
-  ("-katamaran_include_untranslated",
-   Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
-   "include information about untranslated Sail code")
-]
 
 (** List of rewrites applied to the sail ast after type checking and before
     any translation to intermediate representation language. *)
@@ -89,6 +70,31 @@ let katamaran_rewrites =
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("attach_effects", []);                                            (* From Coq backend *)
   ]       
+
+let opt_rewrites = ref (List.length katamaran_rewrites)
+
+(** Command line options added to sail when the sail_katamaran_backend is loaded
+    or installed. *)
+let katamaran_options = [
+  ("-katamaran_check",
+    Arg.Unit print_check_message,
+    "(debug) check if Katamaran plugin is correctly installed");
+  ("-katamaran_list_notations",
+   Arg.Unit (fun () -> Nanosail.Settings.set_list_notations true),
+    "use list notations");
+  ("-katamaran_width",
+    Arg.Set_int opt_width,
+    "set a custom width for the output");
+  ("-katamaran_add_original",
+   Arg.Unit (fun () -> Nanosail.Settings.set_include_original_code true),
+   "show original Sail code in output");
+  ("-katamaran_include_untranslated",
+   Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
+   "include information about untranslated Sail code");
+  ("-katamaran-rewrites",
+   Arg.Set_int opt_rewrites,
+   Printf.sprintf "Set the number of rewrites (max. %d)" (List.length katamaran_rewrites))
+]
 
 
 let c_rewrites =
@@ -156,9 +162,22 @@ let katamaran_target _ _ filename ast _ _ =
   context (fun output_channel -> Nanosail.Gen.Katamaran.pretty_print !opt_width output_channel document)
 
 
+let rec take n xs =
+  if n <= 0
+  then []
+  else
+    match xs with
+    | []    -> []
+    | x::xs -> x :: take (n - 1) xs
+
+
 (** Registering of the katamaran target. *)
-let _ = Target.register
+let _ =
+  let rewrites =
+    take !opt_rewrites katamaran_rewrites
+  in
+  Target.register
     ~name:"katamaran"
     ~options:katamaran_options
-    ~rewrites:katamaran_rewrites
+    ~rewrites:rewrites
     katamaran_target
