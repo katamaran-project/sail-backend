@@ -9,6 +9,15 @@ Dir['*.sail'].each do |filename|
   end
 end
 
+$files.sort!
+
 $files.each_cons(2).with_index do |(original, updated), index|
-  `diff #{original} #{updated} > delta-#{(index+1).to_s.rjust(2, '0')}.diff`
+  filename = "delta-#{(index+1).to_s.rjust(2, '0')}.diff"
+  
+  IO.write filename, <<~END
+  #{original}
+  #{updated}
+  END
+  
+  `diff #{original} #{updated} >> #{filename}`
 end
