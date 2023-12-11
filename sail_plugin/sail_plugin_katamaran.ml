@@ -71,8 +71,6 @@ let katamaran_rewrites =
     ("attach_effects", []);                                            (* From Coq backend *)
   ]       
 
-let opt_rewrites = ref (List.length katamaran_rewrites)
-
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
@@ -91,13 +89,10 @@ let katamaran_options = [
   ("-katamaran_include_untranslated",
    Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
    "include information about untranslated Sail code");
-  ("-katamaran-rewrites",
-   Arg.Set_int opt_rewrites,
-   Printf.sprintf "Set the number of rewrites (max. %d)" (List.length katamaran_rewrites))
 ]
 
 
-let c_rewrites =
+let _c_rewrites =
   let open Rewrites in
   [
     ("instantiate_outcomes", [String_arg "c"]);
@@ -162,19 +157,15 @@ let katamaran_target _ _ filename ast _ _ =
   context (fun output_channel -> Nanosail.Gen.Katamaran.pretty_print !opt_width output_channel document)
 
 
-let rec take n xs =
-  if n <= 0
-  then []
-  else
-    match xs with
-    | []    -> []
-    | x::xs -> x :: take (n - 1) xs
-
-
 (** Registering of the katamaran target. *)
 let _ =
+  let rewrite_count =
+    match Sys.getenv_opt "REWRITES" with
+    | None     -> 0
+    | Some str -> int_of_string str
+  in
   let rewrites =
-    take !opt_rewrites katamaran_rewrites
+    Nanosail.Auxlib.take rewrite_count katamaran_rewrites
   in
   Target.register
     ~name:"katamaran"
