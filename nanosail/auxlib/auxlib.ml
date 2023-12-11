@@ -44,3 +44,11 @@ let build_list f =
   in
   f context;
   List.rev !list_under_construction
+
+let rec take n xs =
+  if n <= 0
+  then []
+  else
+    match xs with
+    | []    -> []
+    | x::xs -> x :: take (n - 1) xs
