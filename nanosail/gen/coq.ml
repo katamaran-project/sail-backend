@@ -175,39 +175,38 @@ let build_inductive_type identifier typ constructor_generator =
   in
   separate hardline lines ^^ hardline ^^ eol
 
-let definition identifier parameters result_type body =
-  let pp_parameters =
-    if requirement parameters == 0
-    then empty
-    else (break 1) ^^ parameters
-  in
-  let first_line =
-    group (
-      concat [
-        string "Definition";
-        space;
-        identifier;
-        pp_parameters;
-        space;
-        colon;
-        group (
-          concat [
-            space;
-            align result_type;
-          ]
-        );
-        space;
-        string ":="
-      ];
-    )
-  and second_line =
-    Util.indent' body
-  in
-  concat [
-    separate hardline [first_line; second_line];
-    eol
-  ]
-
+let definition
+      (identifier  : document)
+      (parameters  : document list)
+      (result_type : document option)
+      (body        : document)        : document =
+  group (concat (build_list (fun { add; _ } ->
+                     add (string "Definition");
+                     add space;
+                     add identifier;
+                     begin
+                       if not (List.is_empty parameters)
+                       then
+                         add space;
+                         add (align (separate space parameters))
+                      end;
+                      begin
+                        match result_type with
+                        | None    -> ()
+                        | Some rt ->
+                           add space;
+                           add colon;
+                           add space;
+                           add rt
+                      end;
+                      add space;
+                      add (string ":=");
+                      add (break 1);
+                      add (ifflat body (Util.indent' body))
+                    )
+    ) ^^ eol)
+  
+  
 let match' expression cases =
   let match_line =
     separate space [
