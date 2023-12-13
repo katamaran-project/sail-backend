@@ -51,7 +51,7 @@ let katamaran_rewrites =
     ("top_sort_defs", []);                                             (* From Coq backend *)
     ("const_prop_mutrec", [Rewrites.String_arg "coq"]);                (* From Coq backend *)
     ("exp_lift_assign", []);                                           (* From Coq backend *)
-    ("early_return", []);                                              (* From Coq backend *)
+    (* ("early_return", []);                                              (\* From Coq backend *\) *)
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("make_cases_exhaustive", []);                                     (* From Coq backend *)
     ("merge_function_clauses", []);                                    (* From Coq backend *)
@@ -62,16 +62,16 @@ let katamaran_rewrites =
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("remove_blocks", []);                                             (* From Coq backend *)
     ("attach_effects", []);                                            (* From Coq backend *)
-    ("letbind_effects", []);                                           (* From Coq backend *)
-    ("remove_e_assign", []);                                           (* From Coq backend *)
-    ("attach_effects", []);                                            (* From Coq backend *)
-    ("internal_lets", []);                                             (* From Coq backend *)
-    ("remove_superfluous_letbinds", []);                               (* From Coq backend *)
-    ("remove_superfluous_returns", []);                                (* From Coq backend *)
-    ("bit_lists_to_lits", []);                                         (* From Coq backend *)
-    ("toplevel_let_patterns", []);                                     (* From Coq backend *)
-    ("recheck_defs", []);                                              (* From Coq backend *)
-    ("attach_effects", []);                                            (* From Coq backend *)
+    (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
+    (* ("remove_e_assign", []);                                           (\* From Coq backend *\) *)
+    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
+    (* ("internal_lets", []);                                             (\* From Coq backend *\) *)
+    (* ("remove_superfluous_letbinds", []);                               (\* From Coq backend *\) *)
+    (* ("remove_superfluous_returns", []);                                (\* From Coq backend *\) *)
+    (* ("bit_lists_to_lits", []);                                         (\* From Coq backend *\) *)
+    (* ("toplevel_let_patterns", []);                                     (\* From Coq backend *\) *)
+    (* ("recheck_defs", []);                                              (\* From Coq backend *\) *)
+    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
   ]       
 
 
@@ -115,6 +115,7 @@ let rewrite_count () =
 let rewrites () =
   let rewrites =
     katamaran_rewrites
+    (* [] *)
   in
   Nanosail.Auxlib.take (rewrite_count ()) rewrites
 
