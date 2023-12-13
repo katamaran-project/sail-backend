@@ -29,11 +29,11 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
   | Nexp_minus (x, y)          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_neg x                 -> NE_neg (translate_numeric_expression x)
   | Nexp_id (Id_aux (id, loc)) ->
-    (
-      match id with
-      | S.Id s                 -> NE_id s
-      | S.Operator _           -> not_yet_implemented __POS__ loc
-    )
+     begin
+       match id with
+       | S.Id s                 -> NE_id s
+       | S.Operator _           -> not_yet_implemented __POS__ loc
+     end
   | Nexp_var kinded_id         ->
      let Kid_aux (Var string, _location) = kinded_id
      in
@@ -86,7 +86,7 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
   | Typ_exist (_, _, _)  -> not_yet_implemented __POS__ location
   | Typ_id id            -> Ty_id (ty_id_of_typ_id id)
   | Typ_tuple items ->
-     (
+     begin
        match items with
        | []                -> not_yet_implemented ~message:"Should not occur" __POS__ location
        | h_typ :: typs     ->
@@ -95,13 +95,15 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
             let ty2 = ty_of_typ typ2 in
             N.Ty_app (Prod, [TA_type ty1; TA_type ty2]) in
           List.fold_left f h_ty typs
-     )
+     end
   | Typ_app (Id_aux (id, id_loc) as sail_id, args) ->
-     match id, args with
-     | Id "atom", []      -> Ty_id Int
-     | Id "atom_bool", [] -> Ty_id Bool
-     | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
-     | Operator _, _      -> not_yet_implemented __POS__ id_loc
+     begin
+       match id, args with
+       | Id "atom", []      -> Ty_id Int
+       | Id "atom_bool", [] -> Ty_id Bool
+       | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
+       | Operator _, _      -> not_yet_implemented __POS__ id_loc
+     end
 
 
 let _translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
@@ -124,7 +126,7 @@ let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   match aux with
   | P_lit (L_aux (lit, _)) ->
-     (
+     begin
        match lit with
        | S.L_unit     -> [("()", N.Ty_id Unit)]
        | S.L_zero     -> not_yet_implemented __POS__ location
@@ -137,7 +139,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
        | S.L_string _ -> not_yet_implemented __POS__ location
        | S.L_undef    -> not_yet_implemented __POS__ location
        | S.L_real _   -> not_yet_implemented __POS__ location
-     )
+     end
   | P_id id ->
       let x = string_of_id id in
       let ty = ty_of_typ (Libsail.Type_check.typ_of_annot a) in
@@ -211,15 +213,16 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | AE_val aval ->
       N.Stm_exp (expression_of_aval location aval)
   | AE_app (id, avals, _) ->
-      let x = string_of_id id in (
-        match avals with
-        | [aval1; aval2] when x = "sail_cons" ->
-            let e1 = expression_of_aval location aval1 in
-            let e2 = expression_of_aval location aval2 in
-            Stm_exp (Exp_binop (Cons, e1, e2))
-        | _ ->
-            Stm_call (x, List.map (expression_of_aval location) avals)
-      )
+     begin
+       let x = string_of_id id in
+       match avals with
+       | [aval1; aval2] when x = "sail_cons" ->
+          let e1 = expression_of_aval location aval1 in
+          let e2 = expression_of_aval location aval2 in
+          Stm_exp (Exp_binop (Cons, e1, e2))
+       | _ ->
+          Stm_call (x, List.map (expression_of_aval location) avals)
+     end
   | AE_let (_, id, _, aexp1, aexp2, _) ->
       let x = string_of_id id in
       let s1 = statement_of_aexp aexp1 in
@@ -342,24 +345,22 @@ let translate_type_abbreviation
   match quantifier with
   | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
   | TypQ_no_forall ->
-     (
-       match identifier with
-       | Id id_string ->
-          begin
-            match arg with
-            | A_nexp numeric_expression ->
-               let nano_numeric_expression = translate_numeric_expression numeric_expression
-               in
-               TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
-            | A_typ _typ ->
-               not_yet_implemented __POS__ arg_location
-            | A_bool numeric_constraint ->
-               TypeDefinition
-                 (TD_abbreviation
-                    (id_string, TA_numeric_constraint (translate_numeric_constraint numeric_constraint)))
-          end
-       | Operator _ -> not_yet_implemented __POS__ identifier_location
-     )
+     match identifier with
+     | Id id_string ->
+        begin
+          match arg with
+          | A_nexp numeric_expression ->
+             let nano_numeric_expression = translate_numeric_expression numeric_expression
+             in
+             TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
+          | A_typ _typ ->
+             not_yet_implemented __POS__ arg_location
+          | A_bool numeric_constraint ->
+             TypeDefinition
+               (TD_abbreviation
+                  (id_string, TA_numeric_constraint (translate_numeric_constraint numeric_constraint)))
+        end
+     | Operator _ -> not_yet_implemented __POS__ identifier_location
 
 let translate_enum
       (_definition_annotation : S.def_annot)
