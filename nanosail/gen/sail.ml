@@ -64,7 +64,6 @@ let pp_ty_id type_id =
   | Int                 -> generate (string "ty.int")
   | String              -> generate (string "ty.string")
   | List                -> generate (string "ty.list")
-  | Prod                -> generate (string "ty.prod")
   | Bitvector           -> generate (string "ty.bvec")
   | Atom                -> generate (string "ty.atom")
   | UserType identifier -> generate (string identifier) 
@@ -74,6 +73,7 @@ let rec pp_ty typ =
   match typ with
   | Ty_id (ty_id)         -> pp_ty_id ty_id
   | Ty_nys                -> not_yet_implemented __POS__
+  | Ty_tuple _elts        -> not_yet_implemented __POS__
   | Ty_app (ty_id, targs) ->
      let* first = pp_ty_id ty_id in
      let* rest  = seqmap (List.map pp_type_argument targs)

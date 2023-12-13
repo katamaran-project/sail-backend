@@ -79,7 +79,7 @@ let list_of t =
   Ty_app (List, [TA_type (Ty_id t)])
 
 let product_of ts =
-  Ty_app (Prod, List.map (fun t -> TA_type (Ty_id t)) ts)
+  Ty_tuple ts
 
 let funDefList = [
   { funName = "is_empty";
@@ -106,7 +106,7 @@ let funDefList = [
   { funName = "last";
     funType = {
       arg_types = [("l", list_of Int)];
-      ret_type = product_of [Int; Bool]
+      ret_type = product_of [Ty_id Int; Ty_id Bool]
     };
     funBody = fun_last
   };

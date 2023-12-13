@@ -21,7 +21,7 @@ let fun_switch = Stm_match_prod {
 (* Intermediate Representation Lists *)
 
 let product_of ts =
-  Ty_app (Prod, List.map (fun t -> TA_type t) ts)
+  Ty_tuple ts
 
 
 let funDefList = [

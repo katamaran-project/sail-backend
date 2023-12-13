@@ -51,7 +51,7 @@ let rec ty_of_val = function
   | Val_bool _        -> Ty_id Bool
   | Val_int _         -> Ty_id Int
   | Val_string _      -> Ty_id String
-  | Val_prod (v1, v2) -> Ty_app (Prod, [TA_type (ty_of_val v1); TA_type (ty_of_val v2)])
+  | Val_prod (v1, v2) -> Ty_tuple [ty_of_val v1; ty_of_val v2]
   | Val_nys           -> Ty_nys
 
 let rec pp_expression e =

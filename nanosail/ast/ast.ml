@@ -34,7 +34,6 @@ type ty_id =
   | Int
   | String
   | List
-  | Prod
   | Bitvector
   | Atom
   | UserType of string
@@ -42,6 +41,7 @@ type ty_id =
 
 type ty =
   | Ty_id of ty_id                         (* For concrete types                 *)
+  | Ty_tuple of ty list
   | Ty_app of ty_id * type_argument list   (* For type constructors              *)
   | Ty_nys                                 (* For typ variants not yet supported *)
 

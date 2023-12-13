@@ -62,7 +62,6 @@ let ty_id_of_typ_id (S.Id_aux (aux, location)) =
   | Id "bool"      -> N.Bool
   | Id "int"       -> N.Int
   | Id "list"      -> N.List
-  | Id "prod"      -> N.Prod
   | Id "unit"      -> N.Unit
   | Id "string"    -> N.String
   | Id "bitvector" -> N.Bitvector
@@ -86,16 +85,9 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
   | Typ_exist (_, _, _)  -> not_yet_implemented __POS__ location
   | Typ_id id            -> Ty_id (ty_id_of_typ_id id)
   | Typ_tuple items ->
-     begin
-       match items with
-       | []                -> not_yet_implemented ~message:"Should not occur" __POS__ location
-       | h_typ :: typs     ->
-          let h_ty = ty_of_typ h_typ in
-          let f ty1 typ2 =
-            let ty2 = ty_of_typ typ2 in
-            N.Ty_app (Prod, [TA_type ty1; TA_type ty2]) in
-          List.fold_left f h_ty typs
-     end
+     let items' = List.map ty_of_typ items
+     in
+     N.Ty_tuple items'
   | Typ_app (Id_aux (id, id_loc) as sail_id, args) ->
      begin
        match id, args with
