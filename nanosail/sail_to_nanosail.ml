@@ -345,18 +345,19 @@ let translate_type_abbreviation
      (
        match identifier with
        | Id id_string ->
-          (
+          begin
             match arg with
             | A_nexp numeric_expression ->
                let nano_numeric_expression = translate_numeric_expression numeric_expression
                in
                TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
-            | A_typ _  -> not_yet_implemented __POS__ arg_location
+            | A_typ _typ ->
+               not_yet_implemented __POS__ arg_location
             | A_bool numeric_constraint ->
                TypeDefinition
                  (TD_abbreviation
                     (id_string, TA_numeric_constraint (translate_numeric_constraint numeric_constraint)))
-          )
+          end
        | Operator _ -> not_yet_implemented __POS__ identifier_location
      )
 
