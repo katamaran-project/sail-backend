@@ -1,6 +1,8 @@
 .PHONY: all build install test
 
-all: build install test
+all: build install test minimal-caps example
+
+full: clean all
 
 build:
 	dune build
@@ -21,3 +23,5 @@ mc: minimal-caps
 
 clean:
 	rm -rf _build
+	make -C working-example clean
+	make -C minimal-caps clean
