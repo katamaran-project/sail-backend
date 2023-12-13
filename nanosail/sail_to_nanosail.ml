@@ -190,7 +190,7 @@ let rec expression_of_aval location (value : 'a S.aval) =
   | AV_id (id, _) ->
      N.Exp_var (string_of_id id)
   | AV_tuple elts ->
-     (
+     begin
        match elts with
        | [] -> not_yet_implemented ~message:"Should not occur" __POS__ location
        | h::t ->
@@ -199,13 +199,23 @@ let rec expression_of_aval location (value : 'a S.aval) =
             let e2 = expression_of_aval location aval2 in
             N.Exp_binop (Pair, e1, e2) in
           List.fold_left f e_h t
-     )
+     end
   | AV_list (lst, _) ->
      Exp_list (List.map (expression_of_aval location) lst)
   | S.AV_ref (_, _)    -> not_yet_implemented __POS__ location
   | S.AV_vector (_, _) -> not_yet_implemented __POS__ location
   | S.AV_record (_, _) -> not_yet_implemented __POS__ location
   | S.AV_cval (_, _)   -> not_yet_implemented __POS__ location
+
+
+let make_sequence statements location =
+  let rec aux statements =
+    match statements with
+    | []    -> not_yet_implemented ~message:"Should not happen" __POS__  location
+    | [x]   -> x
+    | x::xs -> N.Stm_seq (x, aux xs)
+  in
+  aux statements
 
 
 let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
@@ -236,13 +246,9 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | AE_match (aval, cases, _) ->
       statement_of_match location aval cases
   | S.AE_block (statements, last_statement, _type) ->
-     let translated_statements = List.map statement_of_aexp statements
-     and translated_last_statement = statement_of_aexp last_statement
+     let translated_statements = List.map statement_of_aexp (statements @ [last_statement])
      in
-     List.fold_right
-       (fun statement acc -> N.Stm_seq (statement, acc))
-       translated_statements
-       translated_last_statement
+     make_sequence translated_statements location
   | S.AE_typ (_, _)              -> not_yet_implemented __POS__ location
   | S.AE_assign (_, _)           -> not_yet_implemented __POS__ location
   | S.AE_return (_, _)           -> not_yet_implemented __POS__ location
