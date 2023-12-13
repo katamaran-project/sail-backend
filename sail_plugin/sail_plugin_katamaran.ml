@@ -75,7 +75,7 @@ let katamaran_rewrites =
   ]       
 
 
-let c_rewrites =
+let _c_rewrites =
   let open Rewrites in
   [
     ("instantiate_outcomes", [String_arg "c"]);
