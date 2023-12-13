@@ -232,9 +232,16 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
       Stm_if (s, s1, s2)
   | AE_match (aval, cases, _) ->
       statement_of_match location aval cases
+  | S.AE_block (statements, last_statement, _type) ->
+     let translated_statements = List.map statement_of_aexp statements
+     and translated_last_statement = statement_of_aexp last_statement
+     in
+     List.fold_right
+       (fun statement acc -> N.Stm_seq (statement, acc))
+       translated_statements
+       translated_last_statement
   | S.AE_typ (_, _)              -> not_yet_implemented __POS__ location
   | S.AE_assign (_, _)           -> not_yet_implemented __POS__ location
-  | S.AE_block (_, _, _)         -> not_yet_implemented __POS__ location
   | S.AE_return (_, _)           -> not_yet_implemented __POS__ location
   | S.AE_exit (_, _)             -> not_yet_implemented __POS__ location
   | S.AE_throw (_, _)            -> not_yet_implemented __POS__ location

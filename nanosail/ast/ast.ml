@@ -139,6 +139,7 @@ type statement =
   | Stm_call of string * expression list    (* AST already in A-normal form *)
   | Stm_let of string * statement * statement
   | Stm_if of statement * statement * statement
+  | Stm_seq of statement * statement
   | Stm_nys                                 (* For statement types not yet supported *)
 
 

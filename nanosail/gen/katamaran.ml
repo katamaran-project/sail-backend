@@ -214,6 +214,17 @@ let rec pp_statement statement =
              s2'
            ]
        )
+  | Stm_seq (s1, s2) ->
+     let* s1' = pp_par_statement s1 in
+     let* s2' = pp_par_statement s2
+     in
+     generate (
+         simple_app [
+             (string "stm_seq");
+             s1';
+             s2';
+           ]
+       )
   | Stm_nys -> not_yet_implemented __POS__
 
 and pp_par_statement s = lift parens (pp_statement s)
