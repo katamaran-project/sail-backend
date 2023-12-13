@@ -236,12 +236,8 @@ and pp_par_statement s = lift parens (pp_statement s)
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier =
-    PP.string ("fun_" ^ function_definition.funName)
-  in
-  let parameters =
-    empty
-  in
+  let identifier = PP.string ("fun_" ^ function_definition.funName) in
+  let parameters = [] in
   let coq_definition =
     let* return_type =
       let* bindings =
@@ -262,7 +258,7 @@ let pp_function_definition
     let* body =
       pp_statement function_definition.funBody
     in
-    generate (Coq.definition identifier parameters return_type body)
+    generate (Coq.definition identifier parameters (Some return_type) body)
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -299,8 +295,11 @@ let pp_funDefKit
       top_level_type_constraint_definitions =
   let fundef =
     let identifier = string "FunDef"
-    and parameters = utf8string "{Δ τ} (f : Fun Δ τ)"
-    and return_type = utf8string "Stm Δ τ"
+    and parameters = [
+        utf8string "{Δ τ}";
+        utf8string "(f : Fun Δ τ)"
+      ]
+    and return_type = Some (utf8string "Stm Δ τ")
     and body =
       let matched_expression =
         utf8string "f in Fun Δ τ return Stm Δ τ"
@@ -380,34 +379,31 @@ let pp_type_module type_definitions =
               let* numexpr' = Sail.pp_numeric_expression numexpr
               in
               generate (
-                  separate space [
-                      string "Definition";
-                      string identifier;
-                      string ":=";
-                      numexpr'
-                    ] ^^ Coq.eol
+                  Coq.definition
+                    (string identifier)
+                    []
+                    None
+                    numexpr'
                 )
            | TA_numeric_constraint numconstraint ->
               let* numconstraint' = Sail.pp_numeric_constraint numconstraint
               in
               generate (
-                  separate space [
-                      string "Definition";
-                      string identifier;
-                      string ":=";
-                      numconstraint'
-                    ] ^^ Coq.eol
+                  Coq.definition
+                    (string identifier)
+                    []
+                    None
+                    numconstraint'
                 )
            | TA_alias typ ->
               let* typ' = Sail.pp_ty typ
               in
               generate (
-                  separate space [
-                      string "Definition";
-                      string identifier;
-                      string ":=";
-                      typ'
-                    ] ^^ Coq.eol
+                  Coq.definition
+                    (string identifier)
+                    []
+                    None
+                    typ';
                 )
          )
     in
