@@ -13,11 +13,11 @@ $files.sort!
 
 $files.each_cons(2).with_index do |(original, updated), index|
   filename = "delta-#{(index+1).to_s.rjust(2, '0')}.diff"
+  command = "diff #{original} #{updated} >> #{filename}"
   
   IO.write filename, <<~END
-  #{original}
-  #{updated}
+  #{command}
   END
   
-  `diff #{original} #{updated} >> #{filename}`
+  `#{command}`
 end
