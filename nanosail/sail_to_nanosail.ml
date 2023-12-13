@@ -67,7 +67,7 @@ let ty_id_of_typ_id (S.Id_aux (aux, location)) =
   | Id "string"    -> N.String
   | Id "bitvector" -> N.Bitvector
   | Id "atom"      -> N.Atom
-  | Id id          -> not_yet_implemented ~message:(Printf.sprintf "Missing case Id \"%s\"" id) __POS__ location
+  | Id id          -> N.UserType id
   | Operator _     -> not_yet_implemented __POS__ location
 
 
@@ -381,14 +381,50 @@ let translate_enum
   | S.Operator _ -> not_yet_implemented __POS__ identifier_location
 
 
+let translate_variant
+      (_definition_annotation : S.def_annot)
+      (Id_aux (identifier, identifier_location) : S.id)
+      (TypQ_aux (type_quantifier, type_quantifier_location) : S.typquant)
+      (constructors : S.type_union list)
+      (_flag : bool) : N.definition =
+  let identifier =
+    match identifier with
+    | S.Id identifier -> identifier
+    | S.Operator _ -> not_yet_implemented ~message:"Union defined with operator name; should not occur" __POS__ identifier_location
+  in
+  let translate_constructor (S.Tu_aux
+                               (Tu_ty_id (typ,
+                                          S.Id_aux (identifier, identifier_location)),
+                                _annotation)) =
+    let identifier =
+      match identifier with
+      | S.Id string -> string
+      | S.Operator _ -> not_yet_implemented ~message:"Union constructor with operator name; should not occur" __POS__ identifier_location
+    in
+    (identifier, ty_of_typ typ)
+  in
+  begin
+    match type_quantifier with
+    | TypQ_tq _      -> not_yet_implemented __POS__ type_quantifier_location
+    | TypQ_no_forall -> ()
+  end;
+  let translated_constructors =
+    List.map translate_constructor constructors
+  in
+  VariantDefinition {
+    identifier = identifier;
+    constructors = translated_constructors;
+  }
+    
+
 let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (type_definition, type_annotation)) : N.definition =
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
   | TD_record (_, _, _, _) ->
      not_yet_implemented __POS__ definition_annotation.loc
-  | TD_variant (_, _, _, _) ->
-     not_yet_implemented __POS__ definition_annotation.loc
+  | TD_variant (identifier, type_quantifier, constructors, flag) ->
+     translate_variant definition_annotation identifier type_quantifier constructors flag
   | TD_enum (identifier, cases, _) ->
      translate_enum definition_annotation type_annotation identifier cases
   | TD_bitfield (_, _, _) ->
@@ -523,6 +559,7 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
     top_level_type_constraint_definitions = collect N.extract_top_level_type_constraint_definition;
     type_definitions                      = collect N.extract_type_definition;
     enum_definitions                      = collect N.extract_enum_definition;
+    variant_definitions                   = collect N.extract_variant_definition;
     register_definitions                  = collect N.extract_register_definition;
     untranslated_definitions              = collect N.extract_untranslated_definition;
     ignored_definitions                   = List.map fst (collect N.extract_ignored_definition);

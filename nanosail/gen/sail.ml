@@ -59,15 +59,16 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
 
 let pp_ty_id type_id =
   match type_id with
-  | Unit      -> generate (string "ty.unit")
-  | Bool      -> generate (string "ty.bool")
-  | Int       -> generate (string "ty.int")
-  | String    -> generate (string "ty.string")
-  | List      -> generate (string "ty.list")
-  | Prod      -> generate (string "ty.prod")
-  | Bitvector -> generate (string "ty.bvec")
-  | Atom      -> generate (string "ty.atom")
-  | Id_nys    -> not_yet_implemented __POS__
+  | Unit                -> generate (string "ty.unit")
+  | Bool                -> generate (string "ty.bool")
+  | Int                 -> generate (string "ty.int")
+  | String              -> generate (string "ty.string")
+  | List                -> generate (string "ty.list")
+  | Prod                -> generate (string "ty.prod")
+  | Bitvector           -> generate (string "ty.bvec")
+  | Atom                -> generate (string "ty.atom")
+  | UserType identifier -> generate (string identifier) 
+  | Id_nys              -> not_yet_implemented __POS__
 
 let rec pp_ty typ =
   match typ with

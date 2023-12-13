@@ -484,7 +484,8 @@ let fromIR_pp ir =
           add (pp_module_header "TYPES");
           add defaultBase;
           addall (pp_type_module ir.type_definitions);
-          addall (Enums.generate ir.enum_definitions)
+          addall (Enums.generate ir.enum_definitions);
+          addall (Variants.generate ir.variant_definitions);
         )
     in
     separate small_step segments

@@ -37,6 +37,7 @@ type ty_id =
   | Prod
   | Bitvector
   | Atom
+  | UserType of string
   | Id_nys                                 (* For typ ids not yet supported      *)
 
 type ty =
@@ -179,6 +180,12 @@ type register_definition =
     typ: ty
   }
 
+type variant_definition =
+  {
+    identifier: string;
+    constructors: (string * ty) list;
+  }
+
 type enum_definition =
   {
     identifier: string;
@@ -195,6 +202,7 @@ type definition =
   | FunctionDefinition of function_definition
   | TypeDefinition of type_definition
   | RegisterDefinition of register_definition
+  | VariantDefinition of variant_definition
   | EnumDefinition of enum_definition
   | UntranslatedDefinition of untranslated_definition
   | IgnoredDefinition
@@ -210,6 +218,10 @@ let extract_type_definition = function
 let extract_enum_definition = function
   | EnumDefinition x -> Some x
   | _                -> None
+
+let extract_variant_definition = function
+  | VariantDefinition x -> Some x
+  | _                   -> None
 
 let extract_register_definition = function
   | RegisterDefinition x -> Some x
@@ -237,6 +249,7 @@ type ir_t = {
   top_level_type_constraint_definitions: (sail_definition * top_level_type_constraint_definition) list;
   type_definitions: (sail_definition * type_definition) list;
   enum_definitions: (sail_definition * enum_definition) list;
+  variant_definitions: (sail_definition * variant_definition) list;
   register_definitions: (sail_definition * register_definition) list;
   untranslated_definitions: (sail_definition * untranslated_definition) list;
   ignored_definitions : sail_definition list
@@ -249,6 +262,7 @@ let make_ir_t
       ?(top_level_type_constraint_definitions : (sail_definition * top_level_type_constraint_definition) list = [])
       ?(type_definitions : (sail_definition * type_definition) list = [])
       ?(enum_definitions : (sail_definition * enum_definition) list = [])
+      ?(variant_definitions : (sail_definition * variant_definition) list = [])
       ?(register_definitions : (sail_definition * register_definition) list = [])
       ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
       ?(ignored_definitions : sail_definition list = [])
@@ -259,6 +273,7 @@ let make_ir_t
     top_level_type_constraint_definitions = top_level_type_constraint_definitions;
     type_definitions = type_definitions;
     enum_definitions = enum_definitions;
+    variant_definitions = variant_definitions;
     register_definitions = register_definitions;
     untranslated_definitions = untranslated_definitions;
     ignored_definitions = ignored_definitions;
