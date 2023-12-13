@@ -74,6 +74,7 @@ let katamaran_rewrites =
     ("attach_effects", []);                                            (* From Coq backend *)
   ]       
 
+
 let c_rewrites =
   let open Rewrites in
   [
@@ -114,7 +115,6 @@ let rewrite_count () =
 let rewrites () =
   let rewrites =
     katamaran_rewrites
-    (* c_rewrites *)
   in
   Nanosail.Auxlib.take (rewrite_count ()) rewrites
 
