@@ -51,17 +51,17 @@ and type_argument =
   | TA_bool of numeric_constraint
 
 and numeric_constraint =
-  | NC_equal of numeric_expression * numeric_expression
+  | NC_equal      of numeric_expression * numeric_expression
   | NC_bounded_ge of numeric_expression * numeric_expression
   | NC_bounded_gt of numeric_expression * numeric_expression
   | NC_bounded_le of numeric_expression * numeric_expression
   | NC_bounded_lt of numeric_expression * numeric_expression
-  | NC_not_equal of numeric_expression * numeric_expression
-  | NC_set of string * Z.t list
-  | NC_or of numeric_constraint * numeric_constraint
-  | NC_and of numeric_constraint * numeric_constraint
-  | NC_app of string * type_argument list
-  | NC_var of string
+  | NC_not_equal  of numeric_expression * numeric_expression
+  | NC_set        of string             * Z.t list
+  | NC_or         of numeric_constraint * numeric_constraint
+  | NC_and        of numeric_constraint * numeric_constraint
+  | NC_app        of string             * type_argument list
+  | NC_var        of string
   | NC_true
   | NC_false
 
