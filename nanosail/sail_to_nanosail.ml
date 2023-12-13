@@ -347,7 +347,7 @@ let translate_type_abbreviation
       _type_annotation
       (S.Id_aux (identifier, identifier_location))
       (S.TypQ_aux (quantifier, quantifier_location))
-      (S.A_aux (arg, arg_location)) : N.definition =
+      (S.A_aux (arg, _arg_location)) : N.definition =
   match quantifier with
   | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
   | TypQ_no_forall ->
@@ -359,8 +359,8 @@ let translate_type_abbreviation
              let nano_numeric_expression = translate_numeric_expression numeric_expression
              in
              TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
-          | A_typ _typ ->
-             not_yet_implemented __POS__ arg_location
+          | A_typ typ ->
+             TypeDefinition (TD_abbreviation (id_string, TA_alias (ty_of_typ typ)))
           | A_bool numeric_constraint ->
              TypeDefinition
                (TD_abbreviation

@@ -398,6 +398,17 @@ let pp_type_module type_definitions =
                       numconstraint'
                     ] ^^ Coq.eol
                 )
+           | TA_alias typ ->
+              let* typ' = Sail.pp_ty typ
+              in
+              generate (
+                  separate space [
+                      string "Definition";
+                      string identifier;
+                      string ":=";
+                      typ'
+                    ] ^^ Coq.eol
+                )
          )
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)

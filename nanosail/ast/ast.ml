@@ -159,6 +159,7 @@ type function_definition = {
 type type_abbreviation =
   | TA_numeric_expression of numeric_expression
   | TA_numeric_constraint of numeric_constraint
+  | TA_alias              of ty
 
 type type_definition =
   | TD_abbreviation of (string * type_abbreviation)
