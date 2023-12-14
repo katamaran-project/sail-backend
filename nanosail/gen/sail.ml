@@ -43,19 +43,19 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 
 and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   match numeric_constraint with
-  | NC_equal (_x, _y) -> not_yet_implemented __POS__
+  | NC_equal (_x, _y)      -> not_yet_implemented __POS__
   | NC_bounded_ge (_x, _y) -> not_yet_implemented __POS__
   | NC_bounded_gt (_x, _y) -> not_yet_implemented __POS__
   | NC_bounded_le (_x, _y) -> not_yet_implemented __POS__
   | NC_bounded_lt (_x, _y) -> not_yet_implemented __POS__
-  | NC_not_equal (_x, _y) -> not_yet_implemented __POS__
-  | NC_set (_x, _y) -> not_yet_implemented __POS__
-  | NC_or (_x, _y) -> not_yet_implemented __POS__
-  | NC_and (_x, _y) -> not_yet_implemented __POS__
-  | NC_app (_x, _y) -> not_yet_implemented __POS__
-  | NC_var _ -> not_yet_implemented __POS__
-  | NC_true -> generate (string "true")
-  | NC_false -> generate (string "false")
+  | NC_not_equal (_x, _y)  -> not_yet_implemented __POS__
+  | NC_set (_x, _y)        -> not_yet_implemented __POS__
+  | NC_or (_x, _y)         -> not_yet_implemented __POS__
+  | NC_and (_x, _y)        -> not_yet_implemented __POS__
+  | NC_app (_x, _y)        -> not_yet_implemented __POS__
+  | NC_var _               -> not_yet_implemented __POS__
+  | NC_true                -> generate (string "true")
+  | NC_false               -> generate (string "false")
 
 let pp_ty_id type_id =
   match type_id with
