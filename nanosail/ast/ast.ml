@@ -46,9 +46,9 @@ type ty =
   | Ty_nys                                 (* For typ variants not yet supported *)
 
 and type_argument =
-  | TA_type of ty
+  | TA_type   of ty
   | TA_numexp of numeric_expression
-  | TA_bool of numeric_constraint
+  | TA_bool   of numeric_constraint
 
 and numeric_constraint =
   | NC_equal      of numeric_expression * numeric_expression
