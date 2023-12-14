@@ -29,7 +29,6 @@ Import DefaultBase.
 (*** PROGRAM ***)
 
 Module Import ExprProgram <: Program DefaultBase.
-
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
     | bool_expr  : Fun [ "tt" ∷ ty.unit ] ty.bool
@@ -47,7 +46,7 @@ Module Import ExprProgram <: Program DefaultBase.
     Definition fun_bool_expr : Stm [ "tt" ∷ ty.unit ] ty.bool :=
       stm_exp
         ((exp_not
-          (((exp_int 0%Z) = (exp_int 1%Z)) && ((exp_int 2%Z) != (exp_int 3%Z)))) ||
+            (((exp_int 0%Z) = (exp_int 1%Z)) && ((exp_int 2%Z) != (exp_int 3%Z)))) ||
           ((((exp_int 4%Z) <= (exp_int 5%Z)) || ((exp_int 6%Z) < (exp_int 7%Z))) &&
             (((exp_int 8%Z) >= (exp_int 9%Z)) ||
               ((exp_int 10%Z) < (exp_int 11%Z))))).
@@ -76,6 +75,5 @@ Module Import ExprProgram <: Program DefaultBase.
   End ForeignKit.
 
   Include ProgramMixin DefaultBase.
-
 End ExprProgram.
 
