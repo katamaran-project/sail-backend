@@ -146,7 +146,7 @@ let build_inductive_type identifier typ constructor_generator =
   let first_line =
     separate space (
         build_list (fun { add; _ } ->
-            add (string "Inductive");
+            add @@string "Inductive";
             add identifier;
             if requirement typ > 0
             then
@@ -154,7 +154,7 @@ let build_inductive_type identifier typ constructor_generator =
                 add colon;
                 add typ
               );
-            add (string ":=")
+            add @@ string ":="
           )
       )
   in
@@ -183,8 +183,8 @@ let build_inductive_type identifier typ constructor_generator =
     let make_line (left, right) =
       separate space (
           build_list (fun { add; _ } ->
-              add (string "|");
-              add (Util.pad_right longest_left_part left);
+              add @@ string "|";
+              add @@ Util.pad_right longest_left_part left;
               if requirement right > 0
               then (
                 add colon;
@@ -209,14 +209,14 @@ let definition
       (result_type : document option)
       (body        : document)        : document =
   group (concat (build_list (fun { add; _ } ->
-                     add (string "Definition");
+                     add @@ string "Definition";
                      add space;
                      add identifier;
                      begin
                        if not (List.is_empty parameters)
                        then
                          add space;
-                         add (align (separate space parameters))
+                         add @@ align (separate space parameters)
                       end;
                       begin
                         match result_type with
@@ -228,9 +228,9 @@ let definition
                            add rt
                       end;
                       add space;
-                      add (string ":=");
-                      add (break 1);
-                      add (ifflat body (Util.indent' body))
+                      add @@ string ":=";
+                      add @@ break 1;
+                      add @@ ifflat body (Util.indent' body)
                     )
     ) ^^ eol)
   
@@ -264,9 +264,9 @@ let match' expression cases =
   in
   let lines =
     build_list (fun { add; addall } ->
-        add match_line;
+        add    match_line;
         addall case_lines;
-        add final_line
+        add    final_line
       )
   in
   separate hardline lines
@@ -360,15 +360,12 @@ let annotate_with_original_definitions originals translation =
   if
     !include_original_sail_code
   then
-    concat (
+    concat @@
         build_list (fun { add; _ } ->
-            add (
-                original_sail_codes (List.map Sail.pp_sail_definition originals)
-              );
+            add @@ original_sail_codes (List.map Sail.pp_sail_definition originals);
             add hardline;
             add translation
           )
-      )
   else
     translation
 
@@ -386,7 +383,7 @@ let annotate f =
   PPrint.(separate hardline
             (Auxlib.build_list (fun { add; _ } ->
                  if not (List.is_empty annotations)
-                 then add (comment (separate hardline pp_annotations));
+                 then add @@ comment (separate hardline pp_annotations);
                  add result)))
 
 let mbuild_inductive_type identifier typ constructor_generator =
@@ -406,7 +403,7 @@ let mbuild_inductive_type identifier typ constructor_generator =
   let first_line =
     separate space (
         build_list (fun { add; _ } ->
-            add (string "Inductive");
+            add @@ string "Inductive";
             add identifier;
             if requirement typ > 0
             then
@@ -414,7 +411,7 @@ let mbuild_inductive_type identifier typ constructor_generator =
                 add colon;
                 add typ
               );
-            add (string ":=")
+            add @@ string ":="
           )
       )
   in
@@ -443,8 +440,8 @@ let mbuild_inductive_type identifier typ constructor_generator =
     let make_line (left, right) =
       separate space (
           build_list (fun { add; _ } ->
-              add (string "|");
-              add (Util.pad_right longest_left_part left);
+              add @@ string "|";
+              add @@ Util.pad_right longest_left_part left;
               if requirement right > 0
               then (
                 add colon;
