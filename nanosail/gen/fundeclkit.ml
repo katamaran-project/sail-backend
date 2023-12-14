@@ -11,11 +11,11 @@ let generate function_definitions =
       let* parameter_types =
         let* ps = seqmap (List.map Sail.pp_bind function_definition.funType.arg_types)
         in
-        generate (Coq.list ps)
+        generate @@ Coq.list ps
       in
       let* return_type = Sail.pp_nanotype function_definition.funType.ret_type
       in
-      generate (
+      generate @@
           concat [
               string "Fun";
               space;
@@ -29,7 +29,6 @@ let generate function_definitions =
                     )
                 )
             ]
-        )
     in
     generate (name, function_type)
   in

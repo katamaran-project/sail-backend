@@ -56,18 +56,18 @@ let rec ty_of_val = function
 
 let rec pp_expression e =
   let rec pp_exp_list = function
-    | []      -> generate (string "nil")
+    | []      -> generate @@ string "nil"
     | x :: xs ->
-       let* x' = pp_par_expression x
+       let* x'  = pp_par_expression x
        and* xs' = pp_exp_list xs
        in
        generate @@ parens @@ simple_app [string "cons"; x'; xs']
   in
   let pp_exp_val = function
-    | Val_bool true  -> generate (string "exp_true")
-    | Val_bool false -> generate (string "exp_false")
-    | Val_int n      -> generate (simple_app [string "exp_int"; Coq.integer n])
-    | Val_string s   -> generate (simple_app [string "exp_string"; dquotes (string s)])
+    | Val_bool true  -> generate @@ string "exp_true"
+    | Val_bool false -> generate @@ string "exp_false"
+    | Val_int n      -> generate @@ simple_app [string "exp_int"; Coq.integer n]
+    | Val_string s   -> generate @@ simple_app [string "exp_string"; dquotes (string s)]
     | v ->
        let* v_type = Sail.pp_nanotype (ty_of_val v);
        in
@@ -227,22 +227,21 @@ let pp_function_definition
       let* bindings =
         let* docs = map Sail.pp_bind function_definition.funType.arg_types
         in
-        generate (Coq.list docs)
+        generate @@ Coq.list docs
       in
       let* return_type =
         Sail.pp_nanotype function_definition.funType.ret_type
       in
-      generate (
+      generate @@
           pp_hanging_list (PP.string "Stm") [
               bindings;
               return_type
             ]
-        )
     in
     let* body =
       pp_statement function_definition.funBody
     in
-    generate (Coq.definition identifier parameters (Some return_type) body)
+    generate @@ Coq.definition identifier parameters (Some return_type) body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -303,7 +302,7 @@ let pp_funDefKit
   let contents =
     separate small_step (
         build_list (fun { add; addall } ->
-            addall (pp_function_definitions function_definitions top_level_type_constraint_definitions);
+            addall @@ pp_function_definitions function_definitions top_level_type_constraint_definitions;
             add fundef
           )
       )
@@ -344,7 +343,7 @@ let pp_program_module
   let includes = [ "Program"; base_identifier ]
   and contents =
     separate (twice hardline) [
-      FunDeclKit.generate (List.map snd function_definitions);
+      FunDeclKit.generate @@ List.map snd function_definitions;
       Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       pp_funDefKit function_definitions top_level_type_constraint_definitions;
       Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
@@ -372,33 +371,30 @@ let pp_type_module type_definitions =
            | TA_numeric_expression numexpr ->
               let* numexpr' = Sail.pp_numeric_expression numexpr
               in
-              generate (
+              generate @@
                   Coq.definition
                     (string identifier)
                     []
                     None
                     numexpr'
-                )
            | TA_numeric_constraint numconstraint ->
               let* numconstraint' = Sail.pp_numeric_constraint numconstraint
               in
-              generate (
+              generate @@
                   Coq.definition
                     (string identifier)
                     []
                     None
                     numconstraint'
-                )
            | TA_alias typ ->
               let* typ' = Sail.pp_nanotype typ
               in
-              generate (
+              generate @@
                   Coq.definition
                     (string identifier)
                     []
                     None
                     typ';
-                )
          )
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)
@@ -445,7 +441,7 @@ let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
 let _generate_module_header title =
-  generate (string (Printf.sprintf "(*** %s ***)" title))
+  generate @@ string @@ Printf.sprintf "(*** %s ***)" title
 
 let fromIR_pp ir =
   let more_modules =
@@ -482,11 +478,11 @@ let fromIR_pp ir =
   let base =
     let segments =
       build_list (fun { add; addall } ->
-          add (pp_module_header "TYPES");
-          add defaultBase;
-          addall (pp_type_module ir.type_definitions);
-          addall (Enums.generate ir.enum_definitions);
-          addall (Variants.generate ir.variant_definitions);
+          add    @@ pp_module_header "TYPES";
+          add    @@ defaultBase;
+          addall @@ pp_type_module ir.type_definitions;
+          addall @@ Enums.generate ir.enum_definitions;
+          addall @@ Variants.generate ir.variant_definitions;
         )
     in
     separate small_step segments

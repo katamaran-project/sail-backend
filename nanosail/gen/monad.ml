@@ -48,7 +48,7 @@ let not_yet_implemented (filename, line_number, _start_column, _end_column) =
   in
   let* id = create_annotation annotation_doc
   in
-  generate (PPrint.string (Printf.sprintf "NYI[%d]" id))
+  generate @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
 
 let rec seqmap fs =
   match fs with
@@ -56,7 +56,7 @@ let rec seqmap fs =
   | f::fs -> let* r = f in
              let* rs = seqmap fs
              in
-             generate (r :: rs)
+             generate @@ r :: rs
 
 let rec iter f xs =
   match xs with
@@ -69,9 +69,9 @@ let rec map f xs =
   | []    -> generate []
   | x::xs -> let* r = f x in
              let* rs = map f xs in
-             generate (r :: rs)
+             generate @@ r :: rs
 
 let lift f x =
   let* x' = x
   in
-  generate (f x')
+  generate @@ f x'

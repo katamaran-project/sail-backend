@@ -398,7 +398,7 @@ let mbuild_inductive_type identifier typ constructor_generator =
       generate ()
     in
     let* _ = constructor_generator generate_case in
-    generate (List.rev !result)
+    generate @@ List.rev !result
   in
   let first_line =
     separate space (
@@ -458,4 +458,4 @@ let mbuild_inductive_type identifier typ constructor_generator =
         addall constructor_lines
       )
   in
-  generate (separate hardline lines ^^ hardline ^^ eol)
+  generate @@ separate hardline lines ^^ hardline ^^ eol

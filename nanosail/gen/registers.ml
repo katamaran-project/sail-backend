@@ -90,13 +90,13 @@ let generate (register_definitions : (sail_definition * register_definition) lis
     List.map extract_identifier register_definitions
   in
   let section_contents =
-    separate (twice hardline) [
-        reg_inductive_type (List.map snd register_definitions);
-        no_confusion_for_reg ();
-        reg_definition ();
-        instance_reg_eq_dec register_names;
-        obligation_tactic;
-        reg_finite register_names
-      ] ^^ Coq.eol
+    Coq.line @@ separate (twice hardline) [
+      reg_inductive_type (List.map snd register_definitions);
+      no_confusion_for_reg ();
+      reg_definition ();
+      instance_reg_eq_dec register_names;
+      obligation_tactic;
+      reg_finite register_names
+    ]
   in
   Coq.section "RegDeclKit" section_contents

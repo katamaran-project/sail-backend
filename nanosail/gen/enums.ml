@@ -102,9 +102,9 @@ let generate (enum_definitions : (sail_definition * enum_definition) list) =
     []
   else
     Auxlib.build_list (fun { add; addall } ->
-        addall (generate_inductive_type enum_definitions);
-        addall (generate_constructors_inductive_type enum_definitions);
-        add (generate_enum_of_enums enum_definitions);
-        add (generate_no_confusions enum_definitions);
-        add (generate_eqdecs enum_definitions);
+        addall @@ generate_inductive_type enum_definitions;
+        addall @@ generate_constructors_inductive_type enum_definitions;
+        add    @@ generate_enum_of_enums enum_definitions;
+        add    @@ generate_no_confusions enum_definitions;
+        add    @@ generate_eqdecs enum_definitions;
       )
