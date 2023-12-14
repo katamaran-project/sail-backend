@@ -66,19 +66,38 @@ let pp_ty_id type_id =
   | List                -> generate (string "ty.list")
   | Bitvector           -> generate (string "ty.bvec")
   | Atom                -> generate (string "ty.atom")
-  | UserType identifier -> generate (string identifier) 
+  | UserType identifier -> generate (string identifier)
   | Id_nys              -> not_yet_implemented __POS__
 
+
 let rec pp_ty typ =
+  let pp_product x y =
+    parens (
+      simple_app [
+        string "ty.prod";
+        x;
+        y
+      ]
+    )
+  in
   match typ with
   | Ty_id (ty_id)         -> pp_ty_id ty_id
   | Ty_nys                -> not_yet_implemented __POS__
-  | Ty_tuple _elts        -> not_yet_implemented __POS__
+  | Ty_tuple elts         ->
+    begin
+      let* elts' = Monad.map pp_ty elts
+      in
+      match Auxlib.split_last elts' with
+        | Some (xs, last) -> generate (List.fold_right pp_product xs last)
+        | None            -> not_yet_implemented __POS__
+    end
   | Ty_app (ty_id, targs) ->
-     let* first = pp_ty_id ty_id in
-     let* rest  = seqmap (List.map pp_type_argument targs)
-     in
-     generate (parens_app (first :: rest))
+    begin
+      let* first = pp_ty_id ty_id in
+      let* rest  = seqmap (List.map pp_type_argument targs)
+      in
+      generate (parens_app (first :: rest))
+    end
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
