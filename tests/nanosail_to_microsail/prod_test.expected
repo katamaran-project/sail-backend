@@ -29,14 +29,13 @@ Import DefaultBase.
 (*** PROGRAM ***)
 
 Module Import ProdProgram <: Program DefaultBase.
-
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
     | ex_prod : Fun [ "tt" ∷ ty.unit; "tt" ∷ ty.unit ]
                     (ty.prod
                        (ty.prod
-                         (ty.prod ty.int ty.string)
-                         (ty.prod ty.int ty.string))
+                          (ty.prod ty.int ty.string)
+                          (ty.prod ty.int ty.string))
                        (ty.prod ty.int ty.string))
     | switch  : Fun [ "p" ∷ (ty.prod ty.int ty.bool) ] (ty.prod ty.bool ty.int)
     .
@@ -51,19 +50,23 @@ Module Import ProdProgram <: Program DefaultBase.
   Section FunDefKit.
     Definition fun_ex_prod : Stm [ "tt" ∷ ty.unit; "tt" ∷ ty.unit ]
                                  (ty.prod
-                                   (ty.prod (ty.prod ty.int ty.string)
-                                     (ty.prod ty.int ty.string))
-                                   (ty.prod ty.int ty.string)) :=
+                                    (ty.prod
+                                       (ty.prod ty.int ty.string)
+                                       (ty.prod ty.int ty.string))
+                                    (ty.prod ty.int ty.string)) :=
       stm_exp
         (exp_val
-          (ty.prod
-            (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
-            (ty.prod ty.int ty.string))
-          (((1%Z, "one"), (2%Z, "two")), (1%Z, "one"))).
+           (ty.prod
+              (ty.prod (ty.prod ty.int ty.string) (ty.prod ty.int ty.string))
+              (ty.prod ty.int ty.string))
+           (((1%Z, "one"), (2%Z, "two")), (1%Z, "one"))).
 
     Definition fun_switch : Stm [ "p" ∷ (ty.prod ty.int ty.bool) ]
                                 (ty.prod ty.bool ty.int) :=
-      stm_match_prod (stm_exp (exp_var "p")) "l" "r"
+      stm_match_prod
+        (stm_exp (exp_var "p"))
+        "l"
+        "r"
         (stm_exp (exp_binop bop.pair (exp_var "r") (exp_var "l"))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
@@ -85,6 +88,5 @@ Module Import ProdProgram <: Program DefaultBase.
   End ForeignKit.
 
   Include ProgramMixin DefaultBase.
-
 End ProdProgram.
 
