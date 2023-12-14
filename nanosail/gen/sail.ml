@@ -39,7 +39,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_id id        -> string id
     | NE_var id       -> string id
   in
-  generate (pp 0 numeric_expression)
+  generate @@ pp 0 numeric_expression
 
 and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   match numeric_constraint with
@@ -54,8 +54,8 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   | NC_and (_x, _y)        -> not_yet_implemented __POS__
   | NC_app (_x, _y)        -> not_yet_implemented __POS__
   | NC_var _               -> not_yet_implemented __POS__
-  | NC_true                -> generate (string "true")
-  | NC_false               -> generate (string "false")
+  | NC_true                -> generate @@ string "true"
+  | NC_false               -> generate @@ string "false"
 
 let rec pp_ty (typ : nanotype) =
   let pp_product x y =
@@ -71,27 +71,25 @@ let rec pp_ty (typ : nanotype) =
     let* elts' = Monad.map pp_ty elts
     in
     match Auxlib.split_last elts' with
-    | Some (xs, last) -> generate (List.fold_right pp_product xs last)
+    | Some (xs, last) -> generate @@ List.fold_right pp_product xs last
     | None            -> not_yet_implemented __POS__
   in
   let pp_list element_type =
     let* element_type' = pp_ty element_type
     in
-    generate (
-      parens (simple_app [ string "ty.list"; element_type' ])
-    )
+    generate @@ parens @@ simple_app [ string "ty.list"; element_type' ]
   in
   match typ with
-   | Ty_unit        -> generate (string "ty.unit")
-   | Ty_bool        -> generate (string "ty.bool")
-   | Ty_int         -> generate (string "ty.int")
-   | Ty_string      -> generate (string "ty.string")
-   | Ty_atom        -> generate (string "ty.atom")
+   | Ty_unit        -> generate @@ string "ty.unit"
+   | Ty_bool        -> generate @@ string "ty.bool"
+   | Ty_int         -> generate @@ string "ty.int"
+   | Ty_string      -> generate @@ string "ty.string"
+   | Ty_atom        -> generate @@ string "ty.atom"
+   | Ty_bitvector n -> generate @@ simple_app [ string "ty.bitvector"; string (string_of_int n) ]
+   | Ty_custom id   -> generate @@ string id
    | Ty_list typ    -> pp_list typ
-   | Ty_bitvector n -> generate (simple_app [ string "ty.bitvector"; string (string_of_int n) ])
    | Ty_tuple ts    -> pp_tuple ts
    | Ty_app (_, _)  -> not_yet_implemented __POS__
-   | Ty_custom id   -> generate (string id)
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
