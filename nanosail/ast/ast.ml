@@ -39,14 +39,14 @@ type ty_id =
   | UserType of string
   | Id_nys                                   (* For typ ids not yet supported      *)
 
-type ty =
+type nanotype =
   | Ty_id    of ty_id                        (* For concrete types                 *)
-  | Ty_tuple of ty list
+  | Ty_tuple of nanotype list
   | Ty_app   of ty_id * type_argument list   (* For type constructors              *)
   | Ty_nys                                   (* For typ variants not yet supported *)
 
 and type_argument =
-  | TA_type   of ty
+  | TA_type   of nanotype
   | TA_numexp of numeric_expression
   | TA_bool   of numeric_constraint
 
@@ -66,11 +66,11 @@ and numeric_constraint =
   | NC_false
 
 
-type bind = string * ty
+type bind = string * nanotype
 
 type funType_t = {
   arg_types : bind list;
-  ret_type  : ty
+  ret_type  : nanotype
 }
 
 
@@ -159,7 +159,7 @@ type function_definition = {
 type type_abbreviation =
   | TA_numeric_expression of numeric_expression
   | TA_numeric_constraint of numeric_constraint
-  | TA_alias              of ty
+  | TA_alias              of nanotype
 
 type type_definition =
   | TD_abbreviation of (string * type_abbreviation)
@@ -178,13 +178,13 @@ type untranslated_definition =
 type register_definition =
   {
     identifier: string;
-    typ: ty
+    typ: nanotype
   }
 
 type variant_definition =
   {
     identifier: string;
-    constructors: (string * ty) list;
+    constructors: (string * nanotype) list;
   }
 
 type enum_definition =
