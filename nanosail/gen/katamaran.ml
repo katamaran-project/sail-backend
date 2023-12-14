@@ -171,7 +171,7 @@ let rec pp_statement statement =
            ]
          
   | Stm_match_prod m ->
-     let* m_s' = pp_par_statement m.s
+     let* m_s'   = pp_par_statement m.s
      and* m_rhs' = pp_par_statement m.rhs
      in
      generate @@
@@ -201,7 +201,7 @@ let rec pp_statement statement =
            ]
          
   | Stm_if (s, s1, s2) ->
-     let* s' = pp_par_statement s
+     let* s'  = pp_par_statement s
      and* s1' = pp_par_statement s1
      and* s2' = pp_par_statement s2
      in

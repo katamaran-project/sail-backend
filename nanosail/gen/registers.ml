@@ -80,7 +80,7 @@ let obligation_tactic =
   separate hardline [
     string "Local Obligation Tactic :=";
     string "  finite_from_eqdec."
-    ]
+  ]
 
 let generate (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
