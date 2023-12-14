@@ -58,8 +58,8 @@ let rec pp_expression e =
   let rec pp_exp_list = function
     | []      -> generate (string "nil")
     | x :: xs ->
-       let* x' = pp_par_expression x in
-       let* xs' = pp_exp_list xs
+       let* x' = pp_par_expression x
+       and* xs' = pp_exp_list xs
        in
        generate (
            parens_app [string "cons"; x'; xs']
@@ -81,8 +81,8 @@ let rec pp_expression e =
          )
   in
   let pp_exp_binop bo e1 e2 =
-    let* e1' = pp_par_expression e1 in
-    let* e2' = pp_par_expression e2
+    let* e1' = pp_par_expression e1
+    and* e2' = pp_par_expression e2
     in
     match bo with
     | Pair ->
@@ -156,9 +156,9 @@ let rec pp_statement statement =
      generate @@ simple_app [string "stm_exp"; e']
        
   | Stm_match_list m ->
-     let* m_s' = pp_par_statement m.s in
-     let* m_alt_nil' = pp_par_statement m.alt_nil in
-     let* m_alt_cons' = pp_par_statement m.alt_cons
+     let* m_s' = pp_par_statement m.s
+     and* m_alt_nil' = pp_par_statement m.alt_nil
+     and* m_alt_cons' = pp_par_statement m.alt_cons
      in
      generate @@
          simple_app [
@@ -171,8 +171,8 @@ let rec pp_statement statement =
            ]
          
   | Stm_match_prod m ->
-     let* m_s' = pp_par_statement m.s in
-     let* m_rhs' = pp_par_statement m.rhs
+     let* m_s' = pp_par_statement m.s
+     and* m_rhs' = pp_par_statement m.rhs
      in
      generate @@
          simple_app [
@@ -189,8 +189,8 @@ let rec pp_statement statement =
      generate @@ simple_app @@ string "call" :: string f :: arg_list'
                                
   | Stm_let (v, s1, s2) ->
-     let* s1' = pp_statement s1 in
-     let* s2' = pp_statement s2
+     let* s1' = pp_statement s1
+     and* s2' = pp_statement s2
      in
      generate @@
          simple_app [
@@ -201,9 +201,9 @@ let rec pp_statement statement =
            ]
          
   | Stm_if (s, s1, s2) ->
-     let* s' = pp_par_statement s in
-     let* s1' = pp_par_statement s1 in
-     let* s2' = pp_par_statement s2
+     let* s' = pp_par_statement s
+     and* s1' = pp_par_statement s1
+     and* s2' = pp_par_statement s2
      in
      generate @@
          simple_app [
@@ -214,8 +214,8 @@ let rec pp_statement statement =
            ]
          
   | Stm_seq (s1, s2) ->
-     let* s1' = pp_par_statement s1 in
-     let* s2' = pp_par_statement s2
+     let* s1' = pp_par_statement s1
+     and* s2' = pp_par_statement s2
      in
      generate @@ simple_app [ string "stm_seq"; s1'; s2' ]
        
