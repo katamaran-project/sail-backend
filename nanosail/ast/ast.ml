@@ -37,13 +37,13 @@ type ty_id =
   | Bitvector
   | Atom
   | UserType of string
-  | Id_nys                                 (* For typ ids not yet supported      *)
+  | Id_nys                                   (* For typ ids not yet supported      *)
 
 type ty =
-  | Ty_id of ty_id                         (* For concrete types                 *)
+  | Ty_id    of ty_id                        (* For concrete types                 *)
   | Ty_tuple of ty list
-  | Ty_app of ty_id * type_argument list   (* For type constructors              *)
-  | Ty_nys                                 (* For typ variants not yet supported *)
+  | Ty_app   of ty_id * type_argument list   (* For type constructors              *)
+  | Ty_nys                                   (* For typ variants not yet supported *)
 
 and type_argument =
   | TA_type   of ty
