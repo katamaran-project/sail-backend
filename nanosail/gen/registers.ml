@@ -11,7 +11,7 @@ let reg_inductive_type register_definitions =
         let make_constructor (register_definition : register_definition) =
           let identifier = string register_definition.identifier
           in
-          let* register_type = Sail.pp_ty register_definition.typ
+          let* register_type = Sail.pp_nanotype register_definition.typ
           in
           let typ = separate space [ string "Reg"; register_type  ]
           in

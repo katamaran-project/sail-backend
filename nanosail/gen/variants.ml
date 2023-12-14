@@ -13,7 +13,7 @@ let generate_inductive_type sail_definition (variant_definition : variant_defini
          (fun add_constructor ->
            iter
              (fun (constructor, typ) ->
-               let* typ' = Sail.pp_ty typ
+               let* typ' = Sail.pp_nanotype typ
                in
                add_constructor ~typ:typ' (string constructor))
              constructors

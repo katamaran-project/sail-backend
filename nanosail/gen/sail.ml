@@ -51,25 +51,19 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   | NC_true                -> generate @@ string "true"
   | NC_false               -> generate @@ string "false"
 
-let rec pp_ty (typ : nanotype) =
+let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
-    parens (
-      simple_app [
-        string "ty.prod";
-        x;
-        y
-      ]
-    )
+    parens @@ simple_app [ string "ty.prod"; x; y ]
   in
   let pp_tuple elts =
-    let* elts' = Monad.map pp_ty elts
+    let* elts' = Monad.map pp_nanotype elts
     in
     match Auxlib.split_last elts' with
     | Some (xs, last) -> generate @@ List.fold_right pp_product xs last
     | None            -> not_yet_implemented __POS__
   in
   let pp_list element_type =
-    let* element_type' = pp_ty element_type
+    let* element_type' = pp_nanotype element_type
     in
     generate @@ parens @@ simple_app [ string "ty.list"; element_type' ]
   in
@@ -85,15 +79,15 @@ let rec pp_ty (typ : nanotype) =
    | Ty_tuple ts    -> pp_tuple ts
    | Ty_app (_, _)  -> not_yet_implemented __POS__
 
-and pp_type_argument (type_argument : type_argument) =
+and pp_nanotypepe_argument (type_argument : type_argument) =
   match type_argument with
-  | TA_type t   -> pp_ty t
+  | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e
   | TA_bool nc  -> pp_numeric_constraint nc
 
 let pp_bind (arg, t) =
-  let* t' = pp_ty t in
-  generate (utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t')
+  let* t' = pp_nanotype t in
+  generate @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)

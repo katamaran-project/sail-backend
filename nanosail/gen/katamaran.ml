@@ -71,7 +71,7 @@ let rec pp_expression e =
     | Val_int n      -> generate (simple_app [string "exp_int"; Coq.integer n])
     | Val_string s   -> generate (simple_app [string "exp_string"; dquotes (string s)])
     | v ->
-       let* v_type = Sail.pp_ty (ty_of_val v);
+       let* v_type = Sail.pp_nanotype (ty_of_val v);
        in
        generate (simple_app [
                      string "exp_val";
@@ -246,7 +246,7 @@ let pp_function_definition
         generate (Coq.list docs)
       in
       let* return_type =
-        Sail.pp_ty function_definition.funType.ret_type
+        Sail.pp_nanotype function_definition.funType.ret_type
       in
       generate (
           pp_hanging_list (PP.string "Stm") [
@@ -396,7 +396,7 @@ let pp_type_module type_definitions =
                     numconstraint'
                 )
            | TA_alias typ ->
-              let* typ' = Sail.pp_ty typ
+              let* typ' = Sail.pp_nanotype typ
               in
               generate (
                   Coq.definition

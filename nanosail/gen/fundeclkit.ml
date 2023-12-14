@@ -13,7 +13,7 @@ let generate function_definitions =
         in
         generate (Coq.list ps)
       in
-      let* return_type = Sail.pp_ty function_definition.funType.ret_type
+      let* return_type = Sail.pp_nanotype function_definition.funType.ret_type
       in
       generate (
           concat [
