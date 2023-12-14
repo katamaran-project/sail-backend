@@ -27,21 +27,21 @@ let product_of ts =
 let funDefList = [
   { funName = "ex_prod";
     funType = {
-        arg_types = [ ("tt", Ty_id Unit); ("tt", Ty_id Unit) ];
+        arg_types = [ ("tt", Ty_unit); ("tt", Ty_unit) ];
         ret_type = product_of [
                        product_of [
-                           product_of [Ty_id Int; Ty_id String];
-                           product_of [Ty_id Int; Ty_id String]
+                           product_of [Ty_int; Ty_string];
+                           product_of [Ty_int; Ty_string]
                          ];
-                         product_of [Ty_id Int; Ty_id String]
+                         product_of [Ty_int; Ty_string]
                      ]
     };
     funBody = fun_ex_prod;
   };
   { funName = "switch";
     funType = {
-      arg_types = [ ("p", product_of [Ty_id Int; Ty_id Bool]) ];
-      ret_type =  product_of [Ty_id Bool; Ty_id Int];
+      arg_types = [ ("p", product_of [Ty_int; Ty_bool]) ];
+      ret_type =  product_of [Ty_bool; Ty_int];
     };
     funBody = fun_switch;
   };
