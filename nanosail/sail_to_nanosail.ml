@@ -510,7 +510,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       | DEF_fixity (_, _, _) ->
          not_yet_implemented __POS__ annotation.loc
       | DEF_overload (_, _) ->
-         not_yet_implemented __POS__ annotation.loc
+         N.IgnoredDefinition
       | DEF_default _ ->
          not_yet_implemented __POS__ annotation.loc
       | DEF_scattered _ ->
