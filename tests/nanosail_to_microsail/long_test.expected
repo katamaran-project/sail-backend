@@ -29,7 +29,6 @@ Import DefaultBase.
 (*** PROGRAM ***)
 
 Module Import LongProgram <: Program DefaultBase.
-
   Section FunDeclKit.
     Inductive Fun : PCtx -> Ty -> Set :=
     | very_long_naaaaaaaaaaaaaaaaame : Fun [ "l" ∷ (ty.list ty.int);
@@ -50,25 +49,32 @@ Module Import LongProgram <: Program DefaultBase.
                                                           "b" ∷ ty.bool;
                                                           "n" ∷ ty.int ]
                                                         (ty.list
-                                                          (ty.list
-                                                            (ty.list ty.bool))) :=
+                                                           (ty.list
+                                                              (ty.list ty.bool))) :=
       stm_exp
         (exp_list
-          (cons
-            (exp_list
-              (cons (exp_list (cons (exp_true) nil))
-                (cons (exp_list (cons (exp_false) nil))
-                  (cons (exp_list (cons (exp_false) nil)) nil))))
-            (cons
+           (cons
               (exp_list
-                (cons (exp_list (cons (exp_false) nil))
-                  (cons (exp_list (cons (exp_true) nil))
-                    (cons (exp_list (cons (exp_false) nil)) nil))))
+                 (cons
+                    (exp_list (cons (exp_true) nil))
+                    (cons
+                       (exp_list (cons (exp_false) nil))
+                       (cons (exp_list (cons (exp_false) nil)) nil))))
               (cons
-                (exp_list
-                  (cons (exp_list (cons (exp_false) nil))
-                    (cons (exp_list (cons (exp_false) nil))
-                      (cons (exp_list (cons (exp_true) nil)) nil)))) nil)))).
+                 (exp_list
+                    (cons
+                       (exp_list (cons (exp_false) nil))
+                       (cons
+                          (exp_list (cons (exp_true) nil))
+                          (cons (exp_list (cons (exp_false) nil)) nil))))
+                 (cons
+                    (exp_list
+                       (cons
+                          (exp_list (cons (exp_false) nil))
+                          (cons
+                             (exp_list (cons (exp_false) nil))
+                             (cons (exp_list (cons (exp_true) nil)) nil))))
+                    nil)))).
 
     Definition FunDef {Δ τ} (f : Fun Δ τ) : Stm Δ τ :=
       match f in Fun Δ τ return Stm Δ τ with
@@ -88,6 +94,5 @@ Module Import LongProgram <: Program DefaultBase.
   End ForeignKit.
 
   Include ProgramMixin DefaultBase.
-
 End LongProgram.
 
