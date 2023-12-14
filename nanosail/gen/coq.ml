@@ -91,16 +91,44 @@ let list items =
 let product v1 v2 =
   soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
 
-let section section_title contents =
+let section identifier contents =
   let open PPrint
   in
-  let first_line =
-    string "Section" ^^ space ^^ string section_title ^^ eol
-  in
-  let last_line =
-    string "End" ^^ space ^^ string section_title ^^ eol
+  let first_line = string "Section" ^^ space ^^ string identifier ^^ eol
+  and last_line  = string "End" ^^ space ^^ string identifier ^^ eol
   in
   Util.pp_indented_enclosed_lines first_line contents last_line
+
+
+type module_flag =
+  | Import
+  | Export
+  | NoFlag
+
+let line contents =
+  contents ^^ eol
+
+let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
+  let first_line =
+    line @@ separate space @@ build_list (fun { add; addall } ->
+        add @@ string "Module";
+        begin
+          match flag with
+          | Import -> add @@ string "Import"
+          | Export -> add @@ string "Export"
+          | NoFlag -> ()
+        end;
+        add @@ string identifier;
+        if not (List.is_empty includes)
+        then begin
+          add @@ string "<:";
+          addall @@ List.map string includes
+        end;
+      )
+  and last_line = line @@ separate space [ string "End"; string identifier ]
+  in
+  Util.pp_indented_enclosed_lines first_line contents last_line
+    
 
 let build_inductive_type identifier typ constructor_generator =
   let constructors =
