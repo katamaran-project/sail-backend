@@ -61,9 +61,7 @@ let rec pp_expression e =
        let* x' = pp_par_expression x
        and* xs' = pp_exp_list xs
        in
-       generate (
-           parens_app [string "cons"; x'; xs']
-         )
+       generate @@ parens @@ simple_app [string "cons"; x'; xs']
   in
   let pp_exp_val = function
     | Val_bool true  -> generate (string "exp_true")
@@ -73,12 +71,12 @@ let rec pp_expression e =
     | v ->
        let* v_type = Sail.pp_nanotype (ty_of_val v);
        in
-       generate (simple_app [
-                     string "exp_val";
-                     v_type;
-                     pp_value v
-                   ]
-         )
+       generate @@ simple_app [
+         string "exp_val";
+         v_type;
+         pp_value v
+       ]
+
   in
   let pp_exp_binop bo e1 e2 =
     let* e1' = pp_par_expression e1
@@ -86,36 +84,28 @@ let rec pp_expression e =
     in
     match bo with
     | Pair ->
-       generate (
-           simple_app [
-               string "exp_binop";
-               string "bop.pair";
-               e1';
-               e2'
-             ]
-         )
+       generate @@ simple_app [
+         string "exp_binop";
+         string "bop.pair";
+         e1';
+         e2'
+       ]
     | Cons ->
-       generate (
-           simple_app [
-               string "exp_binop";
-               string "bop.cons";
-               e1';
-               e2'
-             ]
-         )
+       generate @@ simple_app [
+         string "exp_binop";
+         string "bop.cons";
+         e1';
+         e2'
+       ]
     | Append ->
-       generate (
-           simple_app [
-               string "exp_binop";
-               string "bop.append";
-               e1';
-               e2'
-             ]
-         )
+       generate @@ simple_app [
+         string "exp_binop";
+         string "bop.append";
+         e1';
+         e2'
+       ]
     | _  ->
-       generate (
-           infix 2 1 (pp_infix_binOp bo) e1' e2'
-         )
+       generate @@ infix 2 1 (pp_infix_binOp bo) e1' e2'
   in
   match e with
   | Exp_var v              -> generate @@ simple_app [string "exp_var"; dquotes (string v)]
@@ -347,7 +337,7 @@ let pp_program_module
       base_name
       function_definitions
       top_level_type_constraint_definitions =
-  indent (
+  Util.indent' (
       separate small_step [
           string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
           FunDeclKit.generate (List.map snd function_definitions);

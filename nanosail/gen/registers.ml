@@ -68,7 +68,7 @@ let reg_finite register_names =
   separate hardline (
     [
       utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-      Util.indent (
+      Util.indent' (
         Coq.record_value [
           (string "enum", enum_values)
         ]

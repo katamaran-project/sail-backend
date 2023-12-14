@@ -6,7 +6,6 @@ module PP = struct
 end
 
 
-let indent = nest 2
 let indent' ?(level = 2) doc = blank level ^^ align doc
 
 let small_step = twice hardline
@@ -51,8 +50,7 @@ let pp_hanging_list ?(adaptive = true) x xs =
       align (separate hardline xs)
     ]
 
-let simple_app argv = indent (flow (break 1) argv)
-let parens_app argv = parens (simple_app argv)
+let simple_app argv = hang 2 (flow (break 1) argv)
 
 let pp_indented_enclosed_lines starting_line indented ending_line =
   separate hardline [
