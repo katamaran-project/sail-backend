@@ -32,10 +32,15 @@ let generate result =
   GenMonad (fun state -> (state, result))
 
 let (let*) m g =
-       GenMonad (fun state ->
-           let (state', result) = run_with_state m state
-           in
-           run_with_state (g result) state')
+  GenMonad (fun state ->
+      let (state', result) = run_with_state m state
+      in
+      run_with_state (g result) state')
+    
+let (and*) x y =
+  let* x' = x in
+  let* y' = y in
+  generate (x', y')
 
 let not_yet_implemented (filename, line_number, _start_column, _end_column) =
   let annotation_doc =
