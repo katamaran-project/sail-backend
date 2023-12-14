@@ -50,7 +50,21 @@ let pp_hanging_list ?(adaptive = true) x xs =
       align (separate hardline xs)
     ]
 
-let simple_app argv = hang 2 (flow (break 1) argv)
+let simple_app terms =
+  match terms with
+  | []    -> empty
+  | [x]   -> x
+  | x::xs ->
+    let single_line = separate space terms
+    and multi_line =
+      align (concat [
+          x;
+          hardline;
+          blank 2;
+          align (separate hardline xs)
+        ])
+    in
+    group @@ ifflat single_line multi_line
 
 let pp_indented_enclosed_lines starting_line indented ending_line =
   separate hardline [
