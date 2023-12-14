@@ -57,20 +57,21 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   | NC_true                -> generate (string "true")
   | NC_false               -> generate (string "false")
 
-let pp_ty_id type_id =
-  match type_id with
-  | Unit                -> generate (string "ty.unit")
-  | Bool                -> generate (string "ty.bool")
-  | Int                 -> generate (string "ty.int")
-  | String              -> generate (string "ty.string")
-  | List                -> generate (string "ty.list")
-  | Bitvector           -> generate (string "ty.bvec")
-  | Atom                -> generate (string "ty.atom")
-  | UserType identifier -> generate (string identifier)
-  | Id_nys              -> not_yet_implemented __POS__
+
+(* let pp_ty_id type_id = *)
+(*   match type_id with *)
+(*   | Unit                -> generate (string "ty.unit") *)
+(*   | Bool                -> generate (string "ty.bool") *)
+(*   | Int                 -> generate (string "ty.int") *)
+(*   | String              -> generate (string "ty.string") *)
+(*   | List                -> generate (string "ty.list") *)
+(*   | Bitvector           -> generate (string "ty.bvec") *)
+(*   | Atom                -> generate (string "ty.atom") *)
+(*   | UserType identifier -> generate (string identifier) *)
+(*   | Id_nys              -> not_yet_implemented __POS__ *)
 
 
-let rec pp_ty typ =
+let rec pp_ty (typ : nanotype) =
   let pp_product x y =
     parens (
       simple_app [
@@ -80,24 +81,42 @@ let rec pp_ty typ =
       ]
     )
   in
+  let pp_tuple elts =
+    let* elts' = Monad.map pp_ty elts
+    in
+    match Auxlib.split_last elts' with
+    | Some (xs, last) -> generate (List.fold_right pp_product xs last)
+    | None            -> not_yet_implemented __POS__
+  in
   match typ with
-  | Ty_id (ty_id)         -> pp_ty_id ty_id
-  | Ty_nys                -> not_yet_implemented __POS__
-  | Ty_tuple elts         ->
-    begin
-      let* elts' = Monad.map pp_ty elts
-      in
-      match Auxlib.split_last elts' with
-        | Some (xs, last) -> generate (List.fold_right pp_product xs last)
-        | None            -> not_yet_implemented __POS__
-    end
-  | Ty_app (ty_id, targs) ->
-    begin
-      let* first = pp_ty_id ty_id in
-      let* rest  = seqmap (List.map pp_type_argument targs)
-      in
-      generate (parens_app (first :: rest))
-    end
+   | Ty_unit        -> generate (string "ty.unit")
+   | Ty_bool        -> generate (string "ty.bool")
+   | Ty_int         -> generate (string "ty.int")
+   | Ty_string      -> generate (string "ty.string")
+   | Ty_atom        -> generate (string "ty.atom")
+   | Ty_list _      -> not_yet_implemented __POS__
+   | Ty_bitvector n -> generate (simple_app [ string "ty.bitvector"; string (string_of_int n) ])
+   | Ty_tuple ts     -> pp_tuple ts
+   | Ty_app (_, _)  -> not_yet_implemented __POS__
+   | Ty_custom id   -> generate (string id)
+  
+  (* | Ty_id (ty_id)         -> pp_ty_id ty_id *)
+  (* | Ty_nys                -> not_yet_implemented __POS__ *)
+  (* | Ty_tuple elts         -> *)
+  (*   begin *)
+  (*     let* elts' = Monad.map pp_ty elts *)
+  (*     in *)
+  (*     match Auxlib.split_last elts' with *)
+  (*       | Some (xs, last) -> generate (List.fold_right pp_product xs last) *)
+  (*       | None            -> not_yet_implemented __POS__ *)
+  (*   end *)
+  (* | Ty_app (ty_id, targs) -> *)
+  (*   begin *)
+  (*     let* first = pp_ty_id ty_id in *)
+  (*     let* rest  = seqmap (List.map pp_type_argument targs) *)
+  (*     in *)
+  (*     generate (parens_app (first :: rest)) *)
+  (*   end *)
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with

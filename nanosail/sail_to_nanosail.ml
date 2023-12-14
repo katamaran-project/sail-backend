@@ -50,59 +50,60 @@ and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   | S.NC_bounded_lt (x, y) -> N.NC_bounded_lt (translate_numeric_expression x, translate_numeric_expression y)
   | S.NC_not_equal (x, y) -> N.NC_not_equal (translate_numeric_expression x, translate_numeric_expression y)
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> N.NC_set (kind_id, ns)
-  | S.NC_or (x, y) -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y) 
-  | S.NC_and (x, y) -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y) 
+  | S.NC_or (x, y) -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y)
+  | S.NC_and (x, y) -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y)
   | S.NC_app (_, _) -> not_yet_implemented __POS__ location
   | S.NC_var (Kid_aux (Var kind_id, _loc)) -> N.NC_var kind_id
   | S.NC_true -> N.NC_true
   | S.NC_false -> N.NC_false
 
-let ty_id_of_typ_id (S.Id_aux (aux, location)) =
-  match aux with
-  | Id "bool"      -> N.Bool
-  | Id "int"       -> N.Int
-  | Id "list"      -> N.List
-  | Id "unit"      -> N.Unit
-  | Id "string"    -> N.String
-  | Id "bitvector" -> N.Bitvector
-  | Id "atom"      -> N.Atom
-  | Id id          -> N.UserType id
-  | Operator _     -> not_yet_implemented __POS__ location
-
 
 let rec ty_of_typ (S.Typ_aux (typ, location)) =
-  let ty_of_arg (S.A_aux (aux, arg_location)) : N.type_argument =
+  (*
+    Types are representing as strings in Sail.
+  *)
+  let rec translate_identifier (S.Id_aux (aux, location)) : N.nanotype =
     match aux with
-    | A_nexp e  -> N.TA_numexp (translate_numeric_expression e)
-    | A_typ typ -> N.TA_type (ty_of_typ typ)
-    | A_bool _  -> not_yet_implemented __POS__ arg_location
+    | Id "bool"      -> Ty_bool
+    | Id "int"       -> Ty_int
+    | Id "unit"      -> Ty_unit
+    | Id "string"    -> Ty_string
+    | Id "atom"      -> Ty_atom
+    | Id id          -> Ty_custom id
+    | Operator _     -> not_yet_implemented __POS__ location
+
+  (*
+     Sail represents types with parameters with Typ_app (id, type_args).
+     This function translates these to their corresponding nanotype.
+  *)
+  and translate_type_constructor
+      (S.Id_aux (identifier, location))
+      (type_arguments : S.typ_arg list) =
+    let type_arguments' =
+      List.map translate_type_argument type_arguments
+    in
+    match identifier, type_arguments' with
+    | S.Operator _, _              -> not_yet_implemented __POS__ location
+    | S.Id "list" , [ TA_type t ]  -> N.Ty_list t
+    | S.Id id     , _              -> Ty_app (id, type_arguments')
+
+  and translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
+    match type_argument with
+    | A_nexp e -> TA_numexp (translate_numeric_expression e)
+    | A_typ t  -> TA_type (ty_of_typ t)
+    | A_bool _ -> not_yet_implemented __POS__ location
   in
+
   match typ with
-  | Typ_internal_unknown -> not_yet_implemented __POS__ location
-  | Typ_var _            -> not_yet_implemented __POS__ location
-  | Typ_fn (_, _)        -> not_yet_implemented __POS__ location
-  | Typ_bidir (_, _)     -> not_yet_implemented __POS__ location
-  | Typ_exist (_, _, _)  -> not_yet_implemented __POS__ location
-  | Typ_id id            -> Ty_id (ty_id_of_typ_id id)
-  | Typ_tuple items ->
-     let items' = List.map ty_of_typ items
-     in
-     N.Ty_tuple items'
-  | Typ_app (Id_aux (id, id_loc) as sail_id, args) ->
-     begin
-       match id, args with
-       | Id "atom", []      -> Ty_id Int
-       | Id "atom_bool", [] -> Ty_id Bool
-       | Id _, _            -> Ty_app (ty_id_of_typ_id sail_id, List.map ty_of_arg args)
-       | Operator _, _      -> not_yet_implemented __POS__ id_loc
-     end
+  | Typ_internal_unknown            -> not_yet_implemented __POS__ location
+  | Typ_var _                       -> not_yet_implemented __POS__ location
+  | Typ_fn (_, _)                   -> not_yet_implemented __POS__ location
+  | Typ_bidir (_, _)                -> not_yet_implemented __POS__ location
+  | Typ_exist (_, _, _)             -> not_yet_implemented __POS__ location
+  | Typ_id id                       -> translate_identifier id
+  | Typ_tuple items                 -> N.Ty_tuple (List.map ty_of_typ items)
+  | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
-
-let _translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
-  match type_argument with
-  | A_nexp e -> TA_numexp (translate_numeric_expression e) 
-  | A_typ t  -> TA_type (ty_of_typ t)
-  | A_bool _ -> not_yet_implemented __POS__ location
 
 
 (******************************************************************************)
@@ -120,7 +121,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   | P_lit (L_aux (lit, _)) ->
      begin
        match lit with
-       | S.L_unit     -> [("()", N.Ty_id Unit)]
+       | S.L_unit     -> [("()", N.Ty_unit)]
        | S.L_zero     -> not_yet_implemented __POS__ location
        | S.L_one      -> not_yet_implemented __POS__ location
        | S.L_true     -> not_yet_implemented __POS__ location
@@ -415,7 +416,7 @@ let translate_variant
     identifier = identifier;
     constructors = translated_constructors;
   }
-    
+
 
 let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (type_definition, type_annotation)) : N.definition =
   match type_definition with

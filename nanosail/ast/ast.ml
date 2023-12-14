@@ -28,22 +28,17 @@ type kind =
   | Kind_int
   | Kind_bool
 
-type ty_id =
-  | Unit
-  | Bool
-  | Int
-  | String
-  | List
-  | Bitvector
-  | Atom
-  | UserType of string
-  | Id_nys                                   (* For typ ids not yet supported      *)
-
 type nanotype =
-  | Ty_id    of ty_id                        (* For concrete types                 *)
-  | Ty_tuple of nanotype list
-  | Ty_app   of ty_id * type_argument list   (* For type constructors              *)
-  | Ty_nys                                   (* For typ variants not yet supported *)
+  | Ty_unit
+  | Ty_bool
+  | Ty_int
+  | Ty_string
+  | Ty_atom
+  | Ty_list      of nanotype
+  | Ty_bitvector of int
+  | Ty_tuple     of nanotype list
+  | Ty_app       of string * type_argument list
+  | Ty_custom    of string
 
 and type_argument =
   | TA_type   of nanotype

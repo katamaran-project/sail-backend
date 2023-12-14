@@ -47,12 +47,12 @@ let pp_infix_binOp = function
   | _     -> ic
 
 let rec ty_of_val = function
-  | Val_unit          -> Ty_id Unit
-  | Val_bool _        -> Ty_id Bool
-  | Val_int _         -> Ty_id Int
-  | Val_string _      -> Ty_id String
+  | Val_unit          -> Ty_unit
+  | Val_bool _        -> Ty_bool
+  | Val_int _         -> Ty_int
+  | Val_string _      -> Ty_string
   | Val_prod (v1, v2) -> Ty_tuple [ty_of_val v1; ty_of_val v2]
-  | Val_nys           -> Ty_nys
+  | Val_nys           -> failwith "TODO"
 
 let rec pp_expression e =
   let rec pp_exp_list = function
