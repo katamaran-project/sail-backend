@@ -52,3 +52,8 @@ let rec take n xs =
     match xs with
     | []    -> []
     | x::xs -> x :: take (n - 1) xs
+
+let split_last xs =
+  match List.rev xs with
+  | []    -> None
+  | x::xs -> Some (List.rev xs, x)
