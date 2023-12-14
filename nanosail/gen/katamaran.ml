@@ -337,16 +337,26 @@ let pp_program_module
       base_name
       function_definitions
       top_level_type_constraint_definitions =
-  Util.indent' (
-      separate small_step [
-          string ("Module Import " ^ program_name ^ "Program <: Program " ^ base_name ^ "Base.");
-          FunDeclKit.generate (List.map snd function_definitions);
-          string ("Include FunDeclMixin " ^ base_name ^ "Base.");
-          pp_funDefKit function_definitions top_level_type_constraint_definitions;
-          string ("Include DefaultRegStoreKit " ^ base_name ^ "Base.");
-          pp_foreignKit;
-          string ("Include ProgramMixin " ^ base_name ^ "Base.");
-    ]) ^^ small_step ^^ string ("End " ^ program_name ^ "Program.")
+  let flag = Coq.Import
+  and identifier = program_name ^ "Program"
+  and base_identifier = base_name ^ "Base"
+  in
+  let includes = [ "Program"; base_identifier ]
+  and contents =
+    separate (twice hardline) [
+      FunDeclKit.generate (List.map snd function_definitions);
+      Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
+      pp_funDefKit function_definitions top_level_type_constraint_definitions;
+      Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
+      pp_foreignKit;
+      Coq.line @@ string @@ "Include ProgramMixin " ^ base_identifier;
+    ]
+  in
+  Coq.module'
+    ~flag:flag
+    ~includes:includes
+    identifier
+    contents
 
 
 (******************************************************************************)
