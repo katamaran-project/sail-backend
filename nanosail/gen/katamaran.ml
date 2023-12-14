@@ -118,29 +118,31 @@ let rec pp_expression e =
          )
   in
   match e with
-  | Exp_var v  -> generate (simple_app [string "exp_var"; dquotes (string v)])
-  | Exp_val v  -> pp_exp_val v
-  | Exp_neg e  -> let* e' = pp_par_expression e in
-                  generate (string "- " ^^ e')
-  | Exp_not e  -> let* e' = pp_par_expression e in
-                  generate (simple_app [string "exp_not"; e'])
-  | Exp_list lst ->
-     let* lst' = if !opt_list_notations
-                 then
-                   (
-                     let* expressions = map pp_expression lst in
-                     generate (Coq.list expressions)
-                   )
-                 else pp_exp_list lst
-     in
-     generate (simple_app [string "exp_list"; lst'])
+  | Exp_var v              -> generate @@ simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_val v              -> pp_exp_val v
+  | Exp_neg e              -> let* e' = pp_par_expression e in generate @@ string "- " ^^ e'
+  | Exp_not e              -> let* e' = pp_par_expression e in generate @@ simple_app [string "exp_not"; e']
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
+  | Exp_list lst           ->
+    begin
+      let* lst' =
+        if
+          !opt_list_notations
+        then
+          let* expressions = map pp_expression lst
+          in
+          generate @@ Coq.list expressions
+        else
+          pp_exp_list lst
+      in
+      generate @@ simple_app [string "exp_list"; lst']
+    end
   | Exp_nys -> not_yet_implemented __POS__
 
 and pp_par_expression e =
   let* e' = pp_expression e
   in
-  generate (parens e')
+  generate @@ parens e'
 
 
 (******************************************************************************)
@@ -151,80 +153,72 @@ let rec pp_statement statement =
   | Stm_exp e ->
      let* e' = pp_par_expression e
      in
-     generate (
-         simple_app [(string "stm_exp"); e']
-       )
+     generate @@ simple_app [string "stm_exp"; e']
+       
   | Stm_match_list m ->
      let* m_s' = pp_par_statement m.s in
      let* m_alt_nil' = pp_par_statement m.alt_nil in
      let* m_alt_cons' = pp_par_statement m.alt_cons
      in
-     generate (
+     generate @@
          simple_app [
-             (string "stm_match_list");
+             string "stm_match_list";
              m_s';
              m_alt_nil';
              dquotes (string m.xh);
              dquotes (string m.xt);
              m_alt_cons'
            ]
-       )
+         
   | Stm_match_prod m ->
      let* m_s' = pp_par_statement m.s in
      let* m_rhs' = pp_par_statement m.rhs
      in
-     generate (
+     generate @@
          simple_app [
-             (string "stm_match_prod");
+             string "stm_match_prod";
              m_s';
              dquotes (string m.xl);
              dquotes (string m.xr);
              m_rhs'
            ]
-       )
+         
   | Stm_call (f, arg_list) ->
-     let* arg_list' =
-       map pp_par_expression arg_list
+     let* arg_list' = map pp_par_expression arg_list
      in
-     generate (
-         simple_app (string "call" :: !^f :: arg_list')
-       )
+     generate @@ simple_app @@ string "call" :: string f :: arg_list'
+                               
   | Stm_let (v, s1, s2) ->
      let* s1' = pp_statement s1 in
      let* s2' = pp_statement s2
      in
-     generate (
+     generate @@
          simple_app [
              string ("let: \"" ^ v ^ "\" :=");
              s1';
              string "in";
              s2'
            ]
-       )
+         
   | Stm_if (s, s1, s2) ->
      let* s' = pp_par_statement s in
      let* s1' = pp_par_statement s1 in
      let* s2' = pp_par_statement s2
      in
-     generate (
+     generate @@
          simple_app [
-             (string "stm_if");
+             string "stm_if";
              s';
              s1';
              s2'
            ]
-       )
+         
   | Stm_seq (s1, s2) ->
      let* s1' = pp_par_statement s1 in
      let* s2' = pp_par_statement s2
      in
-     generate (
-         simple_app [
-             (string "stm_seq");
-             s1';
-             s2';
-           ]
-       )
+     generate @@ simple_app [ string "stm_seq"; s1'; s2' ]
+       
   | Stm_nys -> not_yet_implemented __POS__
 
 and pp_par_statement s = lift parens (pp_statement s)
