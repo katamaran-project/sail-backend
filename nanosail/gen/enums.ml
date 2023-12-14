@@ -10,11 +10,7 @@ let generate_inductive_type (enum_definitions : (sail_definition * enum_definiti
       and typ = string "Set"
       in
       Coq.build_inductive_type identifier typ (fun add_constructor ->
-          List.iter
-            (fun (case : string) ->
-              add_constructor (string case)
-            )
-            enum_definition.cases
+          List.iter add_constructor @@ List.map string enum_definition.cases
         )
     in
     Coq.annotate_with_original_definition sail_definition coq_translation
@@ -23,14 +19,14 @@ let generate_inductive_type (enum_definitions : (sail_definition * enum_definiti
 
 
 let generate_constructors_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp _ (enum_definition : enum_definition) =
+  let pp (_sail_definition : sail_definition) (enum_definition : enum_definition) =
     let identifier = string (enum_definition.identifier ^ "Constructor")
     and typ = string "Set"
     in
     Coq.build_inductive_type identifier typ (fun add_constructor ->
         List.iter
           (fun (case : string) ->
-            add_constructor (string ("K" ^ case)))
+            add_constructor @@ string @@ "K" ^ case)
           enum_definition.cases
       )
   in
@@ -44,7 +40,7 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
   let identifier = string "Enums"
   and typ = string "Set"
   and constructor_of_enum (enum_definition : enum_definition) =
-    string ("E" ^ String.lowercase_ascii enum_definition.identifier)
+    string @@ "E" ^ String.lowercase_ascii enum_definition.identifier
   in
   Coq.build_inductive_type
     identifier
@@ -67,9 +63,7 @@ let generate_no_confusions (enum_definitions : (sail_definition * enum_definitio
     in
     let derivations =
       let generate_derivation (enum_definition : enum_definition) =
-        string (
-            Printf.sprintf "Derive NoConfusion for %s." enum_definition.identifier
-          )
+        string @@ Printf.sprintf "Derive NoConfusion for %s." enum_definition.identifier
       in
       let lines =
         List.map generate_derivation enum_definitions
@@ -85,9 +79,7 @@ let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list
   let enum_definitions = List.map snd enum_definitions
   in
   let generate_eqdec (enum_definition : enum_definition) =
-    string (
-        Printf.sprintf "Derive EqDec for %s." enum_definition.identifier
-      )
+    string @@ Printf.sprintf "Derive EqDec for %s." enum_definition.identifier
   in
   let lines =
     List.map generate_eqdec enum_definitions
