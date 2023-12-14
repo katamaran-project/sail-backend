@@ -88,15 +88,22 @@ let rec pp_ty (typ : nanotype) =
     | Some (xs, last) -> generate (List.fold_right pp_product xs last)
     | None            -> not_yet_implemented __POS__
   in
+  let pp_list element_type =
+    let* element_type' = pp_ty element_type
+    in
+    generate (
+      parens (simple_app [ string "ty.list"; element_type' ])
+    )
+  in
   match typ with
    | Ty_unit        -> generate (string "ty.unit")
    | Ty_bool        -> generate (string "ty.bool")
    | Ty_int         -> generate (string "ty.int")
    | Ty_string      -> generate (string "ty.string")
    | Ty_atom        -> generate (string "ty.atom")
-   | Ty_list _      -> not_yet_implemented __POS__
+   | Ty_list typ    -> pp_list typ
    | Ty_bitvector n -> generate (simple_app [ string "ty.bitvector"; string (string_of_int n) ])
-   | Ty_tuple ts     -> pp_tuple ts
+   | Ty_tuple ts    -> pp_tuple ts
    | Ty_app (_, _)  -> not_yet_implemented __POS__
    | Ty_custom id   -> generate (string id)
   
