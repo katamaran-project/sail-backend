@@ -43,19 +43,19 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
 
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   match numeric_constraint with
-  | S.NC_equal (x, y) -> N.NC_equal (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_ge (x, y) -> N.NC_bounded_ge (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_gt (x, y) -> N.NC_bounded_gt (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_le (x, y) -> N.NC_bounded_le (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_lt (x, y) -> N.NC_bounded_lt (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_not_equal (x, y) -> N.NC_not_equal (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_equal (x, y)                          -> N.NC_equal (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_ge (x, y)                     -> N.NC_bounded_ge (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_gt (x, y)                     -> N.NC_bounded_gt (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_le (x, y)                     -> N.NC_bounded_le (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_bounded_lt (x, y)                     -> N.NC_bounded_lt (translate_numeric_expression x, translate_numeric_expression y)
+  | S.NC_not_equal (x, y)                      -> N.NC_not_equal (translate_numeric_expression x, translate_numeric_expression y)
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> N.NC_set (kind_id, ns)
-  | S.NC_or (x, y) -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y)
-  | S.NC_and (x, y) -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y)
-  | S.NC_app (_, _) -> not_yet_implemented __POS__ location
-  | S.NC_var (Kid_aux (Var kind_id, _loc)) -> N.NC_var kind_id
-  | S.NC_true -> N.NC_true
-  | S.NC_false -> N.NC_false
+  | S.NC_or (x, y)                             -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y)
+  | S.NC_and (x, y)                            -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y)
+  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> N.NC_var kind_id
+  | S.NC_true                                  -> N.NC_true
+  | S.NC_false                                 -> N.NC_false
+  | S.NC_app (_, _)                            -> not_yet_implemented __POS__ location
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
