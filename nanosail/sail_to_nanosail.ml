@@ -381,11 +381,11 @@ let translate_enum
 
 
 let translate_variant
-      (_definition_annotation : S.def_annot)
-      (identifier : S.id)
-      (type_quantifier : S.typquant)
-      (constructors : S.type_union list)
-      (_flag : bool) : N.definition =
+      (_definition_annotation : S.def_annot      )
+      (identifier             : S.id             )
+      (type_quantifier        : S.typquant       )
+      (constructors           : S.type_union list)
+      (_flag                  : bool             ) : N.definition =
   let identifier' = translate_identifier identifier
   in
   let translate_constructor (S.Tu_aux
