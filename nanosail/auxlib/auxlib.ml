@@ -18,6 +18,14 @@ let strip string =
   then String.sub string 0 (String.length string - 1)
   else string
 
+let drop_chars_while string predicate =
+  let i = ref 0
+  in
+  while !i < String.length string && predicate (String.get string !i) do
+    i := !i + 1
+  done;
+  String.sub string !i (String.length string - !i)
+
 let minimum ns =
   match ns with
   | []    -> failwith "Cannot find minimum of empty list"
