@@ -386,7 +386,7 @@ let annotate f =
                  then add @@ comment (separate hardline pp_annotations);
                  add result)))
 
-let mbuild_inductive_type identifier typ constructor_generator =
+let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generator =
   let* constructors =
     let result = ref []
     in
@@ -401,10 +401,19 @@ let mbuild_inductive_type identifier typ constructor_generator =
     generate @@ List.rev !result
   in
   let first_line =
+    let parameters' =
+      List.map
+        (
+          fun (identifier, typ) ->
+            parens @@ separate space [ identifier; colon; typ ]
+        )
+        parameters
+    in
     separate space (
-        build_list (fun { add; _ } ->
+        build_list (fun { add; addall } ->
             add @@ string "Inductive";
             add identifier;
+            addall parameters';
             if requirement typ > 0
             then
               (

@@ -403,10 +403,10 @@ let translate_enum
 let translate_variant
       (_definition_annotation : S.def_annot)
       (Id_aux (identifier, identifier_location) : S.id)
-      (TypQ_aux (type_quantifier, type_quantifier_location) : S.typquant)
+      (type_quantifier : S.typquant)
       (constructors : S.type_union list)
       (_flag : bool) : N.definition =
-  let identifier =
+  let identifier' =
     match identifier with
     | S.Id identifier -> identifier
     | S.Operator _ -> not_yet_implemented ~message:"Union defined with operator name; should not occur" __POS__ identifier_location
@@ -422,17 +422,14 @@ let translate_variant
     in
     (identifier, nanotype_of_sail_type typ)
   in
-  begin
-    match type_quantifier with
-    | TypQ_tq _      -> not_yet_implemented __POS__ type_quantifier_location
-    | TypQ_no_forall -> ()
-  end;
-  let translated_constructors =
+  let type_quantifier' = translate_type_quantifier type_quantifier
+  and constructors' =
     List.map translate_constructor constructors
   in
   VariantDefinition {
-    identifier = identifier;
-    constructors = translated_constructors;
+    identifier = identifier';
+    type_quantifier = type_quantifier';
+    constructors = constructors';
   }
 
 

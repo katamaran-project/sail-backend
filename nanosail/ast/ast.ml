@@ -182,6 +182,7 @@ type register_definition =
 type variant_definition =
   {
     identifier: string;
+    type_quantifier: type_quantifier;
     constructors: (string * nanotype) list;
   }
 
