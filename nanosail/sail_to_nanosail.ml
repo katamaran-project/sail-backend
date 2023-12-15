@@ -434,22 +434,21 @@ let translate_top_level_type_constraint
 let translate_register
       (_definition_annotation : S.def_annot)
       (S.DEC_aux
-         (DEC_reg (sail_type, Id_aux (identifier, identifier_location), expression),
-          (_spec_location, _spec_annotation))) : N.definition =
-  let identifier_string =
-    match identifier with
-    | Id string -> string
-    | Operator _ -> not_yet_implemented __POS__ identifier_location
-  in
-  (
+         (DEC_reg (sail_type, identifier, expression),
+          (_spec_location, _spec_annotation))) : N.definition
+  =
+  begin
     match expression with
-    | None -> ()
-    | Some (E_aux (_expr, (location, _annotation))) ->
-       not_yet_implemented __POS__ location
-  );
-  let nano_type = nanotype_of_sail_type sail_type
+    | None                                          -> ()
+    | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented __POS__ location
+  end;
+  let identifier' = translate_identifier identifier
+  and nano_type   = nanotype_of_sail_type sail_type
   in
-  RegisterDefinition { identifier = identifier_string; typ = nano_type }
+  RegisterDefinition {
+    identifier = identifier';
+    typ        = nano_type  ;
+  }
 
 let translate_mapping_definition
       (_definition_annotation : S.def_annot)
