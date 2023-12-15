@@ -14,10 +14,10 @@ module N = Ast
 
 (******************************************************************************)
 
-let string_of_id (S.Id_aux (aux, location)) =
+let translate_identifier (S.Id_aux (aux, location)) : N.identifier =
   match aux with
-  | Id x -> x
-  | Operator _ -> not_yet_implemented __POS__ location
+  | Id x       -> x
+  | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) __POS__ location
 
 (******************************************************************************)
 
@@ -29,13 +29,8 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
   | Nexp_minus (x, y)                          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
   | Nexp_neg x                                 -> NE_neg (translate_numeric_expression x)
   | Nexp_var (Kid_aux (Var string, _location)) -> NE_var string
+  | Nexp_id identifier                         -> NE_id (translate_identifier identifier)
   | Nexp_exp _                                 -> not_yet_implemented __POS__ numexp_location
-  | Nexp_id (Id_aux (id, loc)) ->
-     begin
-       match id with
-       | S.Id s                                -> NE_id s
-       | S.Operator _                          -> not_yet_implemented __POS__ loc
-     end
   | Nexp_app (_, _)                            -> not_yet_implemented __POS__ numexp_location
 
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
@@ -59,15 +54,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   (*
     Types are representing as strings in Sail.
   *)
-  let rec translate_identifier (S.Id_aux (aux, location)) : N.nanotype =
-    match aux with
-    | Id "bool"      -> Ty_bool
-    | Id "int"       -> Ty_int
-    | Id "unit"      -> Ty_unit
-    | Id "string"    -> Ty_string
-    | Id "atom"      -> Ty_atom
-    | Id id          -> Ty_custom id
-    | Operator _     -> not_yet_implemented __POS__ location
+  let rec type_of_identifier identifier : N.nanotype =
+    match translate_identifier identifier with
+    | "bool"      -> Ty_bool
+    | "int"       -> Ty_int
+    | "unit"      -> Ty_unit
+    | "string"    -> Ty_string
+    | "atom"      -> Ty_atom
+    | id          -> Ty_custom id
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -97,7 +91,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   | Typ_fn (_, _)                   -> not_yet_implemented __POS__ location
   | Typ_bidir (_, _)                -> not_yet_implemented __POS__ location
   | Typ_exist (_, _, _)             -> not_yet_implemented __POS__ location
-  | Typ_id id                       -> translate_identifier id
+  | Typ_id id                       -> type_of_identifier id
   | Typ_tuple items                 -> N.Ty_tuple (List.map nanotype_of_sail_type items)
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
@@ -131,7 +125,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
        | S.L_real _   -> not_yet_implemented __POS__ location
      end
   | P_id id ->
-      let x = string_of_id id in
+      let x = translate_identifier id in
       let ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
   | P_tuple pats ->
@@ -178,7 +172,7 @@ let rec expression_of_aval location (value : 'a S.aval) =
   | AV_lit (lit, _) ->
      N.Exp_val (value_of_lit lit)
   | AV_id (id, _) ->
-     N.Exp_var (string_of_id id)
+     N.Exp_var (translate_identifier id)
   | AV_tuple elts ->
      begin
        match elts with
@@ -214,7 +208,7 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
       N.Stm_exp (expression_of_aval location aval)
   | AE_app (id, avals, _) ->
      begin
-       let x = string_of_id id in
+       let x = translate_identifier id in
        match avals with
        | [aval1; aval2] when x = "sail_cons" ->
           let e1 = expression_of_aval location aval1 in
@@ -224,7 +218,7 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
           Stm_call (x, List.map (expression_of_aval location) avals)
      end
   | AE_let (_, id, _, aexp1, aexp2, _) ->
-      let x = string_of_id id in
+    let x = translate_identifier id in
       let s1 = statement_of_aexp aexp1 in
       let s2 = statement_of_aexp aexp2 in
       Stm_let (x, s1, s2)
@@ -268,8 +262,8 @@ and statement_of_match location matched cases =
       Stm_match_list {
         s        = Stm_exp (expression_of_aval location matched);
         alt_nil  = statement_of_aexp nil_clause;
-        xh       = string_of_id id_h;
-        xt       = string_of_id id_t;
+        xh       = translate_identifier id_h;
+        xt       = translate_identifier id_t;
         alt_cons = statement_of_aexp cons_clause;
         }
   (*
@@ -287,8 +281,8 @@ and statement_of_match location matched cases =
       Stm_match_list {
         s        = Stm_exp (expression_of_aval location matched);
         alt_nil  = statement_of_aexp nil_clause;
-        xh       = string_of_id id_h;
-        xt       = string_of_id id_t;
+        xh       = translate_identifier id_h;
+        xt       = translate_identifier id_t;
         alt_cons = statement_of_aexp cons_clause;
         }
   (*
@@ -303,8 +297,8 @@ and statement_of_match location matched cases =
     ] ->
       Stm_match_prod {
         s   = Stm_exp (expression_of_aval location matched);
-        xl  = string_of_id id_l;
-        xr  = string_of_id id_r;
+        xl  = translate_identifier id_l;
+        xr  = translate_identifier id_r;
         rhs = statement_of_aexp clause;
         }
   | _ -> not_yet_implemented __POS__ location
@@ -319,7 +313,7 @@ let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
 
 let ir_funcl (S.FCL_aux (S.FCL_funcl (id, pexp), _)) =
   {
-    N.funName = string_of_id(id);
+    N.funName = translate_identifier(id);
     N.funType = {
       arg_types = binds_of_pexp pexp;
       ret_type  = ty_of_pexp pexp
@@ -455,7 +449,7 @@ let translate_top_level_type_constraint
               _type_scheme_location),
           identifier, _extern) = value_specification
   in
-  TopLevelTypeConstraintDefinition { identifier = string_of_id identifier }
+  TopLevelTypeConstraintDefinition { identifier = translate_identifier identifier }
 
 let translate_register
       (_definition_annotation : S.def_annot)

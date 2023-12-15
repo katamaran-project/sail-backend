@@ -5,6 +5,8 @@ module Big_int = Nat_big_num
 
 type sail_definition = Libsail.Type_check.tannot Libsail.Ast.def
 
+type identifier = string
+
 (******************************************************************************)
 (* Numeric expressions *)
 
