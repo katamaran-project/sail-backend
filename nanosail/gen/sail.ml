@@ -106,12 +106,21 @@ let pp_kind (kind : kind) =
   | Kind_int  -> generate @@ string @@ "nat"
   | Kind_bool -> not_yet_implemented __POS__
 
+(*
+  Turns Sail identifiers into valid Coq identifiers.
+  For example, 'n gets turned into n.
+*)
+let sanitize_identifier (identifier : string) : string =
+  Auxlib.drop_chars_while identifier (fun c -> c = '\'')
+
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
+    let identifier' = sanitize_identifier identifier
+    in
     let* kind' = pp_kind kind
     in
     generate @@ parens @@ separate space [
-      string identifier;
+      string identifier';
       colon;
       kind'
     ]
