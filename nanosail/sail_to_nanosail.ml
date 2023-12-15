@@ -23,23 +23,20 @@ let string_of_id (S.Id_aux (aux, location)) =
 
 let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression =
   match numeric_expression with
-  | Nexp_constant constant     -> NE_constant constant
-  | Nexp_times (x, y)          -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_sum (x, y)            -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_minus (x, y)          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_neg x                 -> NE_neg (translate_numeric_expression x)
+  | Nexp_constant constant                     -> NE_constant constant
+  | Nexp_times (x, y)                          -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_sum (x, y)                            -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_minus (x, y)                          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
+  | Nexp_neg x                                 -> NE_neg (translate_numeric_expression x)
+  | Nexp_var (Kid_aux (Var string, _location)) -> NE_var string
+  | Nexp_exp _                                 -> not_yet_implemented __POS__ numexp_location
   | Nexp_id (Id_aux (id, loc)) ->
      begin
        match id with
-       | S.Id s                 -> NE_id s
-       | S.Operator _           -> not_yet_implemented __POS__ loc
+       | S.Id s                                -> NE_id s
+       | S.Operator _                          -> not_yet_implemented __POS__ loc
      end
-  | Nexp_var kinded_id         ->
-     let Kid_aux (Var string, _location) = kinded_id
-     in
-     NE_var string
-  | Nexp_exp _                 -> not_yet_implemented __POS__ numexp_location
-  | Nexp_app (_, _)            -> not_yet_implemented __POS__ numexp_location
+  | Nexp_app (_, _)                            -> not_yet_implemented __POS__ numexp_location
 
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   match numeric_constraint with
