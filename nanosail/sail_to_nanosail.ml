@@ -538,9 +538,9 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
 let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.ir_t =
   let lift f (original, translation) =
     Option.map (fun x -> (original, x)) (f translation)
+  and nano_definitions =
+    List.map translate_definition ast.defs
   in
-  let sail_definitions = ast.defs in
-  let nano_definitions = List.map translate_definition sail_definitions in
   let collect f =
     List.filter_map (lift f) nano_definitions
   in
