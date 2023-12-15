@@ -378,7 +378,10 @@ let translate_enum
   let identifier' = translate_identifier identifier
   and cases'      = List.map translate_identifier cases
   in
-  EnumDefinition { identifier = identifier'; cases = cases' }
+  EnumDefinition {
+    identifier = identifier';
+    cases      = cases'     ;
+  }
 
 
 let translate_variant
@@ -398,9 +401,9 @@ let translate_variant
     List.map translate_constructor constructors
   in
   VariantDefinition {
-    identifier      = identifier';
+    identifier      = identifier'     ;
     type_quantifier = type_quantifier';
-    constructors    = constructors';
+    constructors    = constructors'   ;
   }
 
 
