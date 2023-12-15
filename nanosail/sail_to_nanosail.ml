@@ -389,14 +389,11 @@ let translate_enum
 
 let translate_variant
       (_definition_annotation : S.def_annot)
-      (Id_aux (identifier, identifier_location) : S.id)
+      (identifier : S.id)
       (type_quantifier : S.typquant)
       (constructors : S.type_union list)
       (_flag : bool) : N.definition =
-  let identifier' =
-    match identifier with
-    | S.Id identifier -> identifier
-    | S.Operator _ -> not_yet_implemented ~message:"Union defined with operator name; should not occur" __POS__ identifier_location
+  let identifier' = translate_identifier identifier
   in
   let translate_constructor (S.Tu_aux
                                (Tu_ty_id (typ,
