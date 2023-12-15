@@ -68,15 +68,16 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
      This function translates these to their corresponding nanotype.
   *)
   and translate_type_constructor
-      (S.Id_aux (identifier, location))
+      (identifier     : S.id          )
       (type_arguments : S.typ_arg list) =
     let type_arguments' =
       List.map translate_type_argument type_arguments
     in
-    match identifier, type_arguments' with
-    | S.Operator _, _              -> not_yet_implemented __POS__ location
-    | S.Id "list" , [ TA_type t ]  -> N.Ty_list t
-    | S.Id id     , _              -> Ty_app (id, type_arguments')
+    let identifier' = translate_identifier identifier
+    in
+    match identifier', type_arguments' with
+    | "list" , [ TA_type t ]  -> N.Ty_list t
+    | id     , _              -> Ty_app (id, type_arguments')
 
   and translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
     match type_argument with
