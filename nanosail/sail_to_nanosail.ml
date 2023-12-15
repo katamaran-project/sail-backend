@@ -375,14 +375,7 @@ let translate_enum
       (identifier             : S.id)
       (cases                  : S.id list) : N.definition =
   let identifier' = translate_identifier identifier
-  in
-  let cases' =
-    let string_of_case (S.Id_aux (case, case_location)) =
-      match case with
-      | S.Id string  -> string
-      | S.Operator _ -> not_yet_implemented __POS__ case_location
-    in
-    List.map string_of_case cases
+  and cases'      = List.map translate_identifier cases
   in
   EnumDefinition { identifier = identifier'; cases = cases' }
 
