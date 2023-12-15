@@ -137,6 +137,9 @@ let katamaran_options = [
   ("-katamaran_include_untranslated",
    Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
    "include information about untranslated Sail code");
+  ("-katamaran_include_ignored",
+   Arg.Unit (fun () -> Nanosail.Settings.set_include_ignored_definitions true),
+   "include ignored Sail definitions");
   ("-katamaran_print_rewrites",
    Arg.Set opt_print_rewrites,
   "Prints the list of rewrites");

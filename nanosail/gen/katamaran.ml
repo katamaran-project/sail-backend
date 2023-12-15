@@ -10,6 +10,8 @@ let opt_list_notations = ref false
 
 let opt_include_untranslated = ref false
 
+let opt_include_ignored = ref false
+
 (******************************************************************************)
 (* Base pretty printing *)
 
@@ -518,13 +520,24 @@ let fromIR_pp ir =
     else
       empty
   in
+  let ignored =
+    if
+      !opt_include_ignored
+    then
+      generate_section
+        "IGNORED"
+        (Ignored.generate ir.ignored_definitions)
+    else
+      empty
+  in
   let sections =
     [
       heading;
       base;
       program;
       registers;
-      untranslated
+      untranslated;
+      ignored
     ]
   in
   Util.separate_nonempty big_step sections
