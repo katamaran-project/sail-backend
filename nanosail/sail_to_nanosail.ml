@@ -371,23 +371,20 @@ let translate_type_abbreviation
 
 let translate_enum
       (_definition_annotation : S.def_annot)
-      (_type_annotation : 'a S.annot)
-      (S.Id_aux (identifier, identifier_location))
-      (cases : S.id list) : N.definition =
-  match identifier with
-  | S.Id identifier ->
-     (
-       let cases =
-         let string_of_case (S.Id_aux (case, case_location)) =
-           match case with
-           | S.Id string  -> string
-           | S.Operator _ -> not_yet_implemented __POS__ case_location
-         in
-         List.map string_of_case cases
-       in
-       EnumDefinition { identifier = identifier; cases = cases }
-     )
-  | S.Operator _ -> not_yet_implemented __POS__ identifier_location
+      (_type_annotation       : 'a S.annot)
+      (identifier             : S.id)
+      (cases                  : S.id list) : N.definition =
+  let identifier' = translate_identifier identifier
+  in
+  let cases' =
+    let string_of_case (S.Id_aux (case, case_location)) =
+      match case with
+      | S.Id string  -> string
+      | S.Operator _ -> not_yet_implemented __POS__ case_location
+    in
+    List.map string_of_case cases
+  in
+  EnumDefinition { identifier = identifier'; cases = cases' }
 
 
 let translate_variant
