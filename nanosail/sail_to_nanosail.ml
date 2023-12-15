@@ -390,19 +390,17 @@ let translate_variant
   =
   let identifier' = translate_identifier identifier
   in
-  let translate_constructor (S.Tu_aux
-                               (Tu_ty_id (typ, identifier),
-                                _annotation)) =
-    (translate_identifier identifier, nanotype_of_sail_type typ)
-  in
   let type_quantifier' = translate_type_quantifier type_quantifier
   and constructors' =
+    let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
+      (translate_identifier identifier, nanotype_of_sail_type typ)
+    in
     List.map translate_constructor constructors
   in
   VariantDefinition {
-    identifier = identifier';
+    identifier      = identifier';
     type_quantifier = type_quantifier';
-    constructors = constructors';
+    constructors    = constructors';
   }
 
 
