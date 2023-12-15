@@ -99,3 +99,21 @@ let pp_bind (arg, t) =
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+
+let pp_kind (kind : kind) =
+  match kind with
+  | Kind_type -> not_yet_implemented __POS__
+  | Kind_int  -> generate @@ string @@ "nat"
+  | Kind_bool -> not_yet_implemented __POS__
+
+let pp_type_quantifier quantifier =
+  let pp_type_quantifier_item (identifier, kind) =
+    let* kind' = pp_kind kind
+    in
+    generate @@ parens @@ separate space [
+      string identifier;
+      colon;
+      kind'
+    ]
+  in
+  map pp_type_quantifier_item quantifier
