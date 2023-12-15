@@ -58,7 +58,7 @@ and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   | S.NC_false -> N.NC_false
 
 
-let rec ty_of_typ (S.Typ_aux (typ, location)) =
+let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   (*
     Types are representing as strings in Sail.
   *)
@@ -90,7 +90,7 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
   and translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
     match type_argument with
     | A_nexp e -> TA_numexp (translate_numeric_expression e)
-    | A_typ t  -> TA_type (ty_of_typ t)
+    | A_typ t  -> TA_type (nanotype_of_sail_type t)
     | A_bool _ -> not_yet_implemented __POS__ location
   in
 
@@ -101,7 +101,7 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
   | Typ_bidir (_, _)                -> not_yet_implemented __POS__ location
   | Typ_exist (_, _, _)             -> not_yet_implemented __POS__ location
   | Typ_id id                       -> translate_identifier id
-  | Typ_tuple items                 -> N.Ty_tuple (List.map ty_of_typ items)
+  | Typ_tuple items                 -> N.Ty_tuple (List.map nanotype_of_sail_type items)
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
 
@@ -110,7 +110,7 @@ let rec ty_of_typ (S.Typ_aux (typ, location)) =
 
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
-  | Pat_exp (_, exp) -> ty_of_typ (Libsail.Type_check.typ_of exp)
+  | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
   | Pat_when _       -> not_yet_implemented __POS__ location
 
 
@@ -135,7 +135,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
      end
   | P_id id ->
       let x = string_of_id id in
-      let ty = ty_of_typ (Libsail.Type_check.typ_of_annot a) in
+      let ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
   | P_tuple pats ->
       List.concat (List.map binds_of_pat pats)
@@ -353,7 +353,7 @@ let translate_type_abbreviation
              in
              TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
           | A_typ typ ->
-             TypeDefinition (TD_abbreviation (id_string, TA_alias (ty_of_typ typ)))
+             TypeDefinition (TD_abbreviation (id_string, TA_alias (nanotype_of_sail_type typ)))
           | A_bool numeric_constraint ->
              TypeDefinition
                (TD_abbreviation
@@ -402,7 +402,7 @@ let translate_variant
       | S.Id string -> string
       | S.Operator _ -> not_yet_implemented ~message:"Union constructor with operator name; should not occur" __POS__ identifier_location
     in
-    (identifier, ty_of_typ typ)
+    (identifier, nanotype_of_sail_type typ)
   in
   begin
     match type_quantifier with
@@ -458,7 +458,7 @@ let translate_register
     | Some (E_aux (_expr, (location, _annotation))) ->
        not_yet_implemented __POS__ location
   );
-  let nano_type = ty_of_typ sail_type
+  let nano_type = nanotype_of_sail_type sail_type
   in
   RegisterDefinition { identifier = identifier_string; typ = nano_type }
 
