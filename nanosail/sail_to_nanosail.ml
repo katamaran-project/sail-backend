@@ -371,9 +371,10 @@ let translate_type_abbreviation
 
 let translate_enum
       (_definition_annotation : S.def_annot)
-      (_type_annotation       : 'a S.annot)
-      (identifier             : S.id)
-      (cases                  : S.id list) : N.definition =
+      (_type_annotation       : 'a S.annot )
+      (identifier             : S.id       )
+      (cases                  : S.id list  ) : N.definition
+  =
   let identifier' = translate_identifier identifier
   and cases'      = List.map translate_identifier cases
   in
@@ -385,7 +386,8 @@ let translate_variant
       (identifier             : S.id             )
       (type_quantifier        : S.typquant       )
       (constructors           : S.type_union list)
-      (_flag                  : bool             ) : N.definition =
+      (_flag                  : bool             ) : N.definition
+  =
   let identifier' = translate_identifier identifier
   in
   let translate_constructor (S.Tu_aux
