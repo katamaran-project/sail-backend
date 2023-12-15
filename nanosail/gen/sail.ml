@@ -67,19 +67,27 @@ let rec pp_nanotype (typ : nanotype) =
     in
     generate @@ parens @@ simple_app [ string "ty.list"; element_type' ]
   in
+  let pp_application id type_arguments =
+    let id' = string id
+    in
+    let* type_arguments' =
+      map pp_type_argument type_arguments
+    in
+    generate @@ parens @@ simple_app (id' :: type_arguments')
+  in
   match typ with
-   | Ty_unit        -> generate @@ string "ty.unit"
-   | Ty_bool        -> generate @@ string "ty.bool"
-   | Ty_int         -> generate @@ string "ty.int"
-   | Ty_string      -> generate @@ string "ty.string"
-   | Ty_atom        -> generate @@ string "ty.atom"
-   | Ty_bitvector n -> generate @@ simple_app [ string "ty.bitvector"; string (string_of_int n) ]
-   | Ty_custom id   -> generate @@ string id
-   | Ty_list typ    -> pp_list typ
-   | Ty_tuple ts    -> pp_tuple ts
-   | Ty_app (_, _)  -> not_yet_implemented __POS__
+   | Ty_unit            -> generate @@ string "ty.unit"
+   | Ty_bool            -> generate @@ string "ty.bool"
+   | Ty_int             -> generate @@ string "ty.int"
+   | Ty_string          -> generate @@ string "ty.string"
+   | Ty_atom            -> generate @@ string "ty.atom"
+   | Ty_bitvector n     -> generate @@ simple_app [ string "ty.bitvector"; string (string_of_int n) ]
+   | Ty_custom id       -> generate @@ string id
+   | Ty_list typ        -> pp_list typ
+   | Ty_tuple ts        -> pp_tuple ts
+   | Ty_app (id, targs) -> pp_application id targs
 
-and pp_nanotypepe_argument (type_argument : type_argument) =
+and pp_type_argument (type_argument : type_argument) =
   match type_argument with
   | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e

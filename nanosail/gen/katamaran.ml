@@ -363,40 +363,59 @@ let pp_program_module
 (******************************************************************************)
 (* Type definition pretty printing *)
 
+let pp_kind (kind : kind) =
+  match kind with
+  | Kind_type -> not_yet_implemented __POS__
+  | Kind_int  -> generate @@ string @@ "nat"
+  | Kind_bool -> not_yet_implemented __POS__
+
 let pp_type_module type_definitions =
   let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
+    let pp_type_quantifier_item (identifier, kind) =
+      let* kind' = pp_kind kind
+      in
+      generate @@ parens @@ separate space [
+        string identifier;
+        colon;
+        kind'
+      ]
+    in
+    let pp_type_quantifier quantifier =
+      map pp_type_quantifier_item quantifier
+    in
     let document =
       match type_definition with
       | TD_abbreviation (identifier, type_abbreviation) ->
          (
            match type_abbreviation with
-           | TA_numeric_expression numexpr ->
-              let* numexpr' = Sail.pp_numeric_expression numexpr
-              in
-              generate @@
-                  Coq.definition
-                    (string identifier)
-                    []
-                    None
-                    numexpr'
-           | TA_numeric_constraint numconstraint ->
-              let* numconstraint' = Sail.pp_numeric_constraint numconstraint
-              in
-              generate @@
-                  Coq.definition
-                    (string identifier)
-                    []
-                    None
-                    numconstraint'
-           | TA_alias typ ->
-              let* typ' = Sail.pp_nanotype typ
-              in
-              generate @@
-                  Coq.definition
-                    (string identifier)
-                    []
-                    None
-                    typ';
+           | TA_numeric_expression (quantifier, numexpr) ->
+             let* numexpr'    = Sail.pp_numeric_expression numexpr
+             and* quantifier' = pp_type_quantifier quantifier
+             in
+             generate @@ Coq.definition
+               (string identifier)
+               quantifier'
+               None
+               numexpr'
+           | TA_numeric_constraint (quantifier, numconstraint) ->
+             let* numconstraint' = Sail.pp_numeric_constraint numconstraint
+             and* quantifier'    = pp_type_quantifier quantifier
+             in
+             generate @@ Coq.definition
+               (string identifier)
+               quantifier'
+               None
+               numconstraint'
+           | TA_alias (quantifier, typ) ->
+             let* typ' = Sail.pp_nanotype typ
+             and* quantifier' = pp_type_quantifier quantifier
+             in
+             generate @@
+             Coq.definition
+               (string identifier)
+               quantifier'
+               None
+               typ';
          )
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)

@@ -332,31 +332,52 @@ let ir_fundef (S.FD_aux ((FD_function (_, _, funcls)), _)) =
   | [funcl] -> Some (ir_funcl funcl)
   | _       -> None
 
+let translate_kind (S.K_aux (kind, _location)) : Ast.kind =
+  match kind with
+  | S.K_type -> Ast.Kind_type
+  | S.K_int  -> Ast.Kind_int
+  | S.K_bool -> Ast.Kind_bool
+
+let translate_kind_id (S.Kid_aux (Var kind_id, _id_loc)) : string =
+  kind_id
+
+let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
+  match quantifier_item with
+  | S.QI_id (KOpt_aux (KOpt_kind (kind, kind_id), _loc)) ->
+    let kind'    = translate_kind kind
+    and kind_id' = translate_kind_id kind_id
+    in
+    (kind_id', kind')
+  | S.QI_constraint _ -> not_yet_implemented __POS__ location
+
+let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
+  match quantifier with
+  | S.TypQ_tq items  -> List.map translate_type_quantifier_item items
+  | S.TypQ_no_forall -> []
+
 let translate_type_abbreviation
       _definition_annotation
       _type_annotation
       (S.Id_aux (identifier, identifier_location))
-      (S.TypQ_aux (quantifier, quantifier_location))
+      quantifier
       (S.A_aux (arg, _arg_location)) : N.definition =
-  match quantifier with
-  | TypQ_tq _ -> not_yet_implemented __POS__ quantifier_location
-  | TypQ_no_forall ->
-     match identifier with
-     | Id id_string ->
-        begin
-          match arg with
-          | A_nexp numeric_expression ->
-             let nano_numeric_expression = translate_numeric_expression numeric_expression
-             in
-             TypeDefinition (TD_abbreviation (id_string, TA_numeric_expression nano_numeric_expression))
-          | A_typ typ ->
-             TypeDefinition (TD_abbreviation (id_string, TA_alias (nanotype_of_sail_type typ)))
-          | A_bool numeric_constraint ->
-             TypeDefinition
-               (TD_abbreviation
-                  (id_string, TA_numeric_constraint (translate_numeric_constraint numeric_constraint)))
-        end
-     | Operator _ -> not_yet_implemented __POS__ identifier_location
+  let quantifier' =
+    translate_type_quantifier quantifier
+  in
+  let identifier' =
+    match identifier with
+    | Id id_string -> id_string
+    | Operator _   -> not_yet_implemented __POS__ identifier_location
+  in
+  let type_abbreviation =
+    match arg with
+    | A_nexp numeric_expression -> N.TA_numeric_expression (quantifier', translate_numeric_expression numeric_expression)
+    | A_typ typ                 -> N.TA_alias (quantifier', nanotype_of_sail_type typ)
+    | A_bool numeric_constraint -> N.TA_numeric_constraint (quantifier', translate_numeric_constraint numeric_constraint)
+  in
+  TypeDefinition (
+    TD_abbreviation (identifier', type_abbreviation)
+  )
 
 let translate_enum
       (_definition_annotation : S.def_annot)

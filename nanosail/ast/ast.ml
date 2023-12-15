@@ -60,6 +60,9 @@ and numeric_constraint =
   | NC_true
   | NC_false
 
+type type_quantifier_item = (string * kind)
+
+type type_quantifier = type_quantifier_item list
 
 type bind = string * nanotype
 
@@ -152,9 +155,9 @@ type function_definition = {
 (* Type definitions *)
 
 type type_abbreviation =
-  | TA_numeric_expression of numeric_expression
-  | TA_numeric_constraint of numeric_constraint
-  | TA_alias              of nanotype
+  | TA_numeric_expression of type_quantifier * numeric_expression
+  | TA_numeric_constraint of type_quantifier * numeric_constraint
+  | TA_alias              of type_quantifier * nanotype
 
 type type_definition =
   | TD_abbreviation of (string * type_abbreviation)
