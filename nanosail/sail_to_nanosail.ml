@@ -391,15 +391,9 @@ let translate_variant
   let identifier' = translate_identifier identifier
   in
   let translate_constructor (S.Tu_aux
-                               (Tu_ty_id (typ,
-                                          S.Id_aux (identifier, identifier_location)),
+                               (Tu_ty_id (typ, identifier),
                                 _annotation)) =
-    let identifier =
-      match identifier with
-      | S.Id string -> string
-      | S.Operator _ -> not_yet_implemented ~message:"Union constructor with operator name; should not occur" __POS__ identifier_location
-    in
-    (identifier, nanotype_of_sail_type typ)
+    (translate_identifier identifier, nanotype_of_sail_type typ)
   in
   let type_quantifier' = translate_type_quantifier type_quantifier
   and constructors' =
