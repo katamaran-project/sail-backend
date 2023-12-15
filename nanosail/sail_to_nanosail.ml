@@ -488,11 +488,11 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
     let translation =
       match def with
       | DEF_fundef fd ->
-         (
+         begin
            match ir_fundef fd with
            | Some translation -> N.FunctionDefinition translation
            | None             -> not_yet_implemented __POS__ annotation.loc
-         )
+         end
       | DEF_type type_definition  ->
          translate_type_definition annotation type_definition
       | DEF_mapdef definition ->
@@ -524,12 +524,14 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       | DEF_internal_mutrec _ ->
          not_yet_implemented __POS__ annotation.loc
       | DEF_pragma (pragma, _argument, location) ->
-         match pragma with
-         | "include_start" -> N.IgnoredDefinition
-         | "include_end"   -> N.IgnoredDefinition
-         | "file_start"    -> N.IgnoredDefinition
-         | "file_end"      -> N.IgnoredDefinition
-         | _               -> not_yet_implemented __POS__ location
+        begin
+          match pragma with
+          | "include_start" -> N.IgnoredDefinition
+          | "include_end"   -> N.IgnoredDefinition
+          | "file_start"    -> N.IgnoredDefinition
+          | "file_end"      -> N.IgnoredDefinition
+          | _               -> not_yet_implemented __POS__ location
+        end
     in
     (sail_definition, translation)
   with NotYetImplemented (source_position, sail_location, message) ->
