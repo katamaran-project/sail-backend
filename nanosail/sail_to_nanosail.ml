@@ -70,10 +70,8 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   and translate_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list) =
-    let type_arguments' =
-      List.map translate_type_argument type_arguments
-    in
-    let identifier' = translate_identifier identifier
+    let type_arguments' = List.map translate_type_argument type_arguments
+    and identifier'     = translate_identifier identifier
     in
     match identifier', type_arguments' with
     | "list" , [ TA_type t ]  -> N.Ty_list t
