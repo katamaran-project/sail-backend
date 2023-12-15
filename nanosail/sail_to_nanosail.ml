@@ -351,16 +351,13 @@ let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
 let translate_type_abbreviation
       _definition_annotation
       _type_annotation
-      (S.Id_aux (identifier, identifier_location))
-      quantifier
+      (identifier : S.id)
+      (quantifier : S.typquant)
       (S.A_aux (arg, _arg_location)) : N.definition =
   let quantifier' =
     translate_type_quantifier quantifier
   in
-  let identifier' =
-    match identifier with
-    | Id id_string -> id_string
-    | Operator _   -> not_yet_implemented __POS__ identifier_location
+  let identifier' = translate_identifier identifier
   in
   let type_abbreviation =
     match arg with
