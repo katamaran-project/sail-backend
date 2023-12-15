@@ -179,13 +179,13 @@ let rec expression_of_aval location (value : 'a S.aval) =
             N.Exp_binop (Pair, e1, e2) in
           List.fold_left f e_h t
      end
-  | AV_lit (lit, _)    -> N.Exp_val (value_of_lit lit)
-  | AV_id (id, _)      -> N.Exp_var (translate_identifier id)
-  | AV_list (lst, _)   -> Exp_list (List.map (expression_of_aval location) lst)
-  | S.AV_ref (_, _)    -> not_yet_implemented __POS__ location
-  | S.AV_vector (_, _) -> not_yet_implemented __POS__ location
-  | S.AV_record (_, _) -> not_yet_implemented __POS__ location
-  | S.AV_cval (_, _)   -> not_yet_implemented __POS__ location
+  | AV_lit (lit, _)  -> N.Exp_val (value_of_lit lit)
+  | AV_id (id, _)    -> N.Exp_var (translate_identifier id)
+  | AV_list (lst, _) -> Exp_list (List.map (expression_of_aval location) lst)
+  | AV_ref (_, _)    -> not_yet_implemented __POS__ location
+  | AV_vector (_, _) -> not_yet_implemented __POS__ location
+  | AV_record (_, _) -> not_yet_implemented __POS__ location
+  | AV_cval (_, _)   -> not_yet_implemented __POS__ location
 
 
 let make_sequence statements location =
