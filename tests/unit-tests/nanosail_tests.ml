@@ -5,6 +5,7 @@ let tests =
   "all tests" >::: [
     Conversion_tests.test_suite;
     Substitution_tests.test_suite;
+    Monad_tests.test_suite;
   ]
 
 
