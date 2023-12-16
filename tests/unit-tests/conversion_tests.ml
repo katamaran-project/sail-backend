@@ -53,3 +53,9 @@ let test_suite_numeric_expression =
   ]
   in
   "string_of_numeric_expression tests" >::: List.map (fun (input, expected) -> test_string_of_numeric_expression input expected) inputs
+
+
+let test_suite =
+  "conversion test suite" >::: [
+    test_suite_numeric_expression
+  ]

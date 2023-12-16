@@ -3,7 +3,7 @@ open OUnit2
 
 let tests =
   "all tests" >::: [
-    Conversion_tests.test_suite_numeric_expression;
+    Conversion_tests.test_suite;
     Substitution_tests.test_suite_for_sanitizing_substitution;
   ]
 
