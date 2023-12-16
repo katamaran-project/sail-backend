@@ -1,6 +1,6 @@
 module type S = sig
-  type element
+  type t
 
-  val empty   : element
-  val ( <+> ) : element -> element -> element
+  val empty   : t
+  val ( <+> ) : t -> t -> t
 end
