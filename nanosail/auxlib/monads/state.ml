@@ -38,20 +38,3 @@ module Make (S : StateArg) : (S with type state = S.t) = struct
   let put s =
     State (fun _ -> ((), s))
 end
-
-
-module Util (M : S) = struct
-  let rec collect n f =
-    if n <= 0
-    then M.return []
-    else
-      M.bind f (fun r -> M.bind (collect (n-1) f) (fun rs -> M.return @@ r::rs))
-
-  let map f xs =
-    let rec aux xs acc =
-      match xs with
-      | []    -> M.return @@ List.rev acc
-      | x::xs -> M.bind (f x) (fun x' -> aux xs (x' :: acc))
-    in
-    aux xs []
-end
