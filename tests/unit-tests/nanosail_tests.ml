@@ -57,7 +57,10 @@ let numeric_expression_test_suite =
 
 
 let tests =
-  "all tests" >::: [ numeric_expression_test_suite ]
+  "all tests" >::: [
+    numeric_expression_test_suite;
+    Substitution_tests.test_suite_for_sanitizing_substitution;
+  ]
 
 
 let _ = run_test_tt_main tests
