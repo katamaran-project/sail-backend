@@ -20,7 +20,7 @@ module Make (M : Monoid.S) : (S with type monoid = M.t) = struct
   let run f   = MState.run f M.empty
 
   let write m =
-    let open Monads.Notations.Star(MState)
+    let open Notations.Star(MState)
     in
     let* state = MState.get
     in
