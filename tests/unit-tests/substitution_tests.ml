@@ -23,3 +23,9 @@ let test_suite_for_sanitizing_substitution =
   ]
   in
   "sanitizing_substitution tests" >::: List.map check test_cases
+
+
+let test_suite =
+  "substitution test suite" >::: [
+    test_suite_for_sanitizing_substitution
+  ]
