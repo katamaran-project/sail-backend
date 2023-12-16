@@ -1,7 +1,7 @@
 open Ast
     
 
-let sanitizing_substitution (identifier : Ast.identifier) : Ast.identifier =
+let sanitizing_substitution (identifier : identifier) : identifier =
   Auxlib.drop_chars_while identifier (fun c -> c = '\'')
 
 
