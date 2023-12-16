@@ -8,9 +8,7 @@ module type S = sig
   type state
     
   val get : state t
-
   val put : state -> unit t
-
   val run : 'a t -> state -> ('a * state)
 end
 
