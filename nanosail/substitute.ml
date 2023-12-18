@@ -71,12 +71,99 @@ let sanitize_identifier (identifier : identifier) : identifier option =
   else None
 
 
-(* let sanitize_numeric_expression = *)
-(*   substitute_identifiers_in_numeric_expression sanitizing_substitution *)
+module SubstitutionMonad = struct
+  module SubstitutionMap = struct
+    module M = Map.Make(String)
+
+    type t = identifier M.t
+  end
+  
+  include Auxlib.Monads.State.Make(SubstitutionMap)
 
 
-(* let sanitize_type_quantifier (type_quantifier : type_quantifier) = *)
-(*   let rec aux (items : type_quantifier_item list) = *)
-(*     match items with *)
-(*     | [] -> return [] *)
-(*     | (id, kind) :: rest -> let* kind' = substitute Subst.kind kind *)
+  let add_substitution identifier identifier' =
+    bind get (fun map ->
+        let map' = SubstitutionMap.M.add identifier identifier' map
+        in
+        bind (put map') (fun () -> return ())
+      )
+end
+
+let create_substitution_from_map map =
+  let open SubstitutionMonad
+  in
+  let contains_value (identifier : identifier) =
+    SubstitutionMap.M.exists (fun _key value -> value = identifier) map
+  in
+  fun id ->
+    match SubstitutionMap.M.find_opt id map with
+    | Some id' -> id'
+    | None     ->
+      begin
+        if contains_value id
+        then failwith "Clash!"
+        else id
+      end
+
+let process_type_quantifier
+    (sanitize        : identifier -> identifier option)
+    (type_quantifier : type_quantifier                ) =
+  let open SubstitutionMonad in
+  let open Auxlib.Monads.Notations.Star(SubstitutionMonad)
+  in
+  let rec aux (items : type_quantifier_item list) =
+    match items with
+    | []                 -> return []
+    | (id, kind) :: rest ->
+      begin
+        let* rest' = aux rest
+        in
+        match sanitize id with
+        | Some id' -> let* () = add_substitution id id' in return @@ (id', kind) :: rest'
+        | None     -> return @@ (id, kind) :: rest'
+      end
+  in
+  let (type_quantifier', map) = run (aux type_quantifier) SubstitutionMap.M.empty
+  in
+  (type_quantifier', create_substitution_from_map map)
+
+let generic_sanitize
+    (sanitize        : identifier -> identifier option       )
+    (substituter     : (identifier -> identifier) -> 'a -> 'a)
+    (type_quantifier : type_quantifier                       )
+    (x               : 'a                                    ) =
+  let type_quantifier', subst = process_type_quantifier sanitize type_quantifier
+  in
+  let x' = substituter subst x
+  in
+  (type_quantifier', x')
+
+  
+module Sanitize = struct
+  let numeric_expression
+      (type_quantifier    : type_quantifier   )
+      (numeric_expression : numeric_expression) =
+    generic_sanitize
+      sanitize_identifier
+      Subst.numeric_expression
+      type_quantifier
+      numeric_expression
+      
+  let numeric_constraint
+      (type_quantifier    : type_quantifier   )
+      (numeric_constraint : numeric_constraint) =
+    generic_sanitize
+      sanitize_identifier
+      Subst.numeric_constraint
+      type_quantifier
+      numeric_constraint
+
+  let nanotype
+      (type_quantifier    : type_quantifier)
+      (nanotype           : nanotype       ) =
+    generic_sanitize
+      sanitize_identifier
+      Subst.nanotype
+      type_quantifier
+      nanotype
+end
