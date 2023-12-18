@@ -166,29 +166,29 @@ type type_definition =
 
 type untranslated_definition =
   {
-    filename: string;
-    line_number: int;
-    sail_location: Libsail.Parse_ast.l;
-    message: string option
+    filename      : string             ;
+    line_number   : int                ;
+    sail_location : Libsail.Parse_ast.l;
+    message       : string option      ;
   }
 
 type register_definition =
   {
-    identifier: string;
-    typ: nanotype
+    identifier : string  ;
+    typ        : nanotype;
   }
 
 type variant_definition =
   {
-    identifier: string;
-    type_quantifier: type_quantifier;
-    constructors: (string * nanotype) list;
+    identifier      : string                  ;
+    type_quantifier : type_quantifier         ;
+    constructors    : (string * nanotype) list;
   }
 
 type enum_definition =
   {
-    identifier: string;
-    cases: string list
+    identifier : string     ;
+    cases      : string list;
   }
 
 type top_level_type_constraint_definition =
@@ -198,12 +198,12 @@ type top_level_type_constraint_definition =
 
 type definition =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
-  | FunctionDefinition of function_definition
-  | TypeDefinition of type_definition
-  | RegisterDefinition of register_definition
-  | VariantDefinition of variant_definition
-  | EnumDefinition of enum_definition
-  | UntranslatedDefinition of untranslated_definition
+  | FunctionDefinition               of function_definition
+  | TypeDefinition                   of type_definition
+  | RegisterDefinition               of register_definition
+  | VariantDefinition                of variant_definition
+  | EnumDefinition                   of enum_definition
+  | UntranslatedDefinition           of untranslated_definition
   | IgnoredDefinition
 
 let extract_function_definition = function
