@@ -43,19 +43,19 @@ module Subst = struct
   and numeric_constraint (subst : identifier -> identifier) =
     let rec aux (nconstr : numeric_constraint) =
       match nconstr with
-      | NC_equal (left, right) -> NC_equal (numeric_expression subst left, numeric_expression subst right)
+      | NC_equal (left, right)      -> NC_equal (numeric_expression subst left, numeric_expression subst right)
       | NC_bounded_ge (left, right) -> NC_bounded_ge (numeric_expression subst left, numeric_expression subst right)
       | NC_bounded_gt (left, right) -> NC_bounded_gt (numeric_expression subst left, numeric_expression subst right)
       | NC_bounded_le (left, right) -> NC_bounded_le (numeric_expression subst left, numeric_expression subst right)
       | NC_bounded_lt (left, right) -> NC_bounded_lt (numeric_expression subst left, numeric_expression subst right)
-      | NC_not_equal (left, right) -> NC_not_equal (numeric_expression subst left, numeric_expression subst right)
-      | NC_set (identifier, ns) -> NC_set (subst identifier, ns)
-      | NC_or (left, right) -> NC_or (aux left, aux right)
-      | NC_and (left, right) -> NC_and (aux left, aux right)
-      | NC_app (identifier, targs) -> NC_app (identifier, List.map (type_argument subst) targs)
-      | NC_var identifier -> NC_var (subst identifier)
-      | NC_true -> NC_true
-      | NC_false -> NC_false
+      | NC_not_equal (left, right)  -> NC_not_equal (numeric_expression subst left, numeric_expression subst right)
+      | NC_set (identifier, ns)     -> NC_set (subst identifier, ns)
+      | NC_or (left, right)         -> NC_or (aux left, aux right)
+      | NC_and (left, right)        -> NC_and (aux left, aux right)
+      | NC_app (identifier, targs)  -> NC_app (identifier, List.map (type_argument subst) targs)
+      | NC_var identifier           -> NC_var (subst identifier)
+      | NC_true                     -> NC_true
+      | NC_false                    -> NC_false
     in
     aux
 end
