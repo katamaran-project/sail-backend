@@ -37,7 +37,7 @@ type nanotype =
   | Ty_string
   | Ty_atom
   | Ty_list      of nanotype
-  | Ty_bitvector of int
+  | Ty_bitvector of numeric_expression
   | Ty_tuple     of nanotype list
   | Ty_app       of string * type_argument list
   | Ty_custom    of string
@@ -163,9 +163,6 @@ type type_abbreviation =
 
 type type_definition =
   | TD_abbreviation of (string * type_abbreviation)
-
-(******************************************************************************)
-(* Definitions *)
 
 type untranslated_definition =
   {
