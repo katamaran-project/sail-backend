@@ -552,3 +552,62 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
     untranslated_definitions              = collect N.extract_untranslated_definition;
     ignored_definitions                   = List.map fst (collect N.extract_ignored_definition);
   }
+
+
+let sanitize (program : N.ir_t) : N.ir_t =
+  let update f =
+    List.map (fun (x, y) -> (x, f y))
+  in
+  let sanitize_type_definition (N.TD_abbreviation (identifier, type_abbreviation)) : N.type_definition =
+    let type_abbreviation' =
+      match type_abbreviation with
+      | N.TA_numeric_expression (type_quantifier, numeric_expression) ->
+        begin
+          let type_quantifier', numeric_expression' = Substitute.Sanitize.numeric_expression type_quantifier numeric_expression
+          in
+          N.TA_numeric_expression (type_quantifier', numeric_expression')
+        end
+      | N.TA_numeric_constraint (type_quantifier, numeric_constraint) ->
+        begin
+          let type_quantifier', numeric_constraint' = Substitute.Sanitize.numeric_constraint type_quantifier numeric_constraint
+          in
+          N.TA_numeric_constraint (type_quantifier', numeric_constraint')
+        end
+      | N.TA_alias (type_quantifier, nanotype) ->
+        begin
+          let type_quantifier', nanotype' = Substitute.Sanitize.nanotype type_quantifier nanotype
+          in
+          N.TA_alias (type_quantifier', nanotype')
+        end
+    in
+    N.TD_abbreviation (identifier, type_abbreviation')
+  in
+  let sanitize_variant_definition ({ identifier; type_quantifier; constructors } : N.variant_definition) : N.variant_definition =
+    let type_quantifier', subst = Substitute.process_type_quantifier Substitute.sanitize_identifier type_quantifier
+    in
+    let sanitize_constructor (constructor_identifier, constructor_nanotype) =
+      (
+        constructor_identifier,
+        Substitute.Subst.nanotype subst constructor_nanotype
+      )
+    in
+    let constructors' =
+      List.map sanitize_constructor constructors
+    in
+    {
+      identifier      = identifier      ;
+      type_quantifier = type_quantifier';
+      constructors    = constructors'
+    }
+  in
+  {
+    program_name                          = program.program_name;
+    function_definitions                  = program.function_definitions;
+    top_level_type_constraint_definitions = program.top_level_type_constraint_definitions;
+    type_definitions                      = update sanitize_type_definition program.type_definitions;
+    enum_definitions                      = program.enum_definitions;
+    variant_definitions                   = update sanitize_variant_definition program.variant_definitions;
+    register_definitions                  = program.register_definitions;
+    untranslated_definitions              = program.untranslated_definitions;
+    ignored_definitions                   = program.ignored_definitions;
+  }
