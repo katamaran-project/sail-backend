@@ -260,7 +260,11 @@ let pp_function_definitions
       top_level_type_constraint_definitions =
   let type_and_function_pairs =
     let find_type_constraint function_name =
-      match List.filter (fun (_, type_constraint) -> type_constraint.identifier = function_name) top_level_type_constraint_definitions with
+      match
+        List.filter
+          (fun (_, type_constraint) -> type_constraint.identifier = function_name)
+          top_level_type_constraint_definitions
+      with
       | [x] -> Some x
       | []  -> None
       | _   -> None
