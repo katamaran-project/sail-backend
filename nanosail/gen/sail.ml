@@ -75,17 +75,23 @@ let rec pp_nanotype (typ : nanotype) =
     in
     generate @@ parens @@ simple_app (id' :: type_arguments')
   in
+  let pp_bitvector nexpr =
+    let* nexpr' = pp_numeric_expression nexpr
+    in
+    generate @@ simple_app [ string "ty.bitvector"; nexpr' ]
+  in
   match typ with
    | Ty_unit            -> generate @@ string "ty.unit"
    | Ty_bool            -> generate @@ string "ty.bool"
    | Ty_int             -> generate @@ string "ty.int"
    | Ty_string          -> generate @@ string "ty.string"
    | Ty_atom            -> generate @@ string "ty.atom"
-   | Ty_bitvector n     -> generate @@ simple_app [ string "ty.bitvector"; string (string_of_int n) ]
    | Ty_custom id       -> generate @@ string id
    | Ty_list typ        -> pp_list typ
    | Ty_tuple ts        -> pp_tuple ts
    | Ty_app (id, targs) -> pp_application id targs
+   | Ty_bitvector nexpr -> pp_bitvector nexpr
+
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
