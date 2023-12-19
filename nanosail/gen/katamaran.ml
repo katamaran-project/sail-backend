@@ -275,7 +275,7 @@ let pp_function_definitions
   in
   List.map (uncurry pp_function_definition) type_and_function_pairs
 
-let pp_funDefKit
+let pp_function_definition_kit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
@@ -346,7 +346,7 @@ let pp_program_module
     separate (twice hardline) [
       FunDeclKit.generate @@ List.map snd function_definitions;
       Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
-      pp_funDefKit function_definitions top_level_type_constraint_definitions;
+      pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
       Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
       pp_foreignKit;
       Coq.line @@ string @@ "Include ProgramMixin " ^ base_identifier;
