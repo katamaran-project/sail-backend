@@ -419,6 +419,7 @@ let imports () = [
     ("Katamaran",
      [
        "Semantics.Registers";
+       "Bitvector";
        "Program"
     ]);
     ("stdpp",
