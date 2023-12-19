@@ -19,7 +19,7 @@ coq:
 	$(COQ) $(COQ_FILE)
 
 clean:
-	git clean -fx
+	git clean -fdx
 
 c_files: main.sail
 	mkdir -p $(C_OUT_DIR) > /dev/null
