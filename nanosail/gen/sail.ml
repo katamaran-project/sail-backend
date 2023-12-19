@@ -5,6 +5,7 @@ open Monad
 
 module PP = PPrint
 
+let pp_identifier = string
 
 let string_of_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
   Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
@@ -30,8 +31,8 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_minus (x, y) -> parens_if 0 @@ concat [ pp 0 x; space; minus; space; pp 0 y ]
     | NE_times (x, y) -> parens_if 1 @@ concat [ pp 1 x; space; star; space; pp 1 y ]
     | NE_neg x        -> parens_if 2 @@ concat [ minus; pp 3 x ]
-    | NE_id id        -> string id
-    | NE_var id       -> string id
+    | NE_id id        -> pp_identifier id
+    | NE_var id       -> pp_identifier id
   in
   generate @@ pp 0 numeric_expression
 
@@ -53,7 +54,7 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
 
 let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
-    parens @@ simple_app [ string "ty.prod"; x; y ]
+    parens @@ simple_app [ pp_identifier "ty.prod"; x; y ]
   in
   let pp_tuple elts =
     let* elts' = Monad.map pp_nanotype elts
@@ -68,7 +69,7 @@ let rec pp_nanotype (typ : nanotype) =
     generate @@ parens @@ simple_app [ string "ty.list"; element_type' ]
   in
   let pp_application id type_arguments =
-    let id' = string id
+    let id' = pp_identifier id
     in
     let* type_arguments' =
       map pp_type_argument type_arguments
@@ -86,7 +87,7 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_int             -> generate @@ string "ty.int"
    | Ty_string          -> generate @@ string "ty.string"
    | Ty_atom            -> generate @@ string "ty.atom"
-   | Ty_custom id       -> generate @@ string id
+   | Ty_custom id       -> generate @@ pp_identifier id
    | Ty_list typ        -> pp_list typ
    | Ty_tuple ts        -> pp_tuple ts
    | Ty_app (id, targs) -> pp_application id targs
@@ -114,7 +115,7 @@ let pp_kind (kind : kind) =
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = string identifier
+    let identifier' = pp_identifier identifier
     in
     let* kind' = pp_kind kind
     in

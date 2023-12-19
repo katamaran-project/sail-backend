@@ -9,11 +9,11 @@ let generate_inductive_type sail_definition ({ identifier; type_quantifier; cons
       map (fun (id, kind) ->
           let* kind' = Sail.pp_kind kind
           in
-          generate (string id, kind')
+          generate (Sail.pp_identifier id, kind')
         ) type_quantifier
     in
     Coq.mbuild_inductive_type
-      (string identifier)
+      (Sail.pp_identifier identifier)
       ~parameters: type_quantifier'
       (string "Set")
       (fun add_constructor ->

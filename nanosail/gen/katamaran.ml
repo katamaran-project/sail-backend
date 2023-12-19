@@ -222,7 +222,7 @@ and pp_par_statement s = lift parens (pp_statement s)
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier = PP.string ("fun_" ^ function_definition.funName) in
+  let identifier = Sail.pp_identifier @@ "fun_" ^ function_definition.funName in
   let parameters = [] in
   let coq_definition =
     let* return_type =
@@ -279,7 +279,7 @@ let pp_funDefKit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
-    let identifier = string "FunDef"
+    let identifier = Sail.pp_identifier "FunDef"
     and parameters = [
         utf8string "{Δ τ}";
         utf8string "(f : Fun Δ τ)"
@@ -376,7 +376,7 @@ let pp_type_module type_definitions =
              and* quantifier' = Sail.pp_type_quantifier quantifier
              in
              generate @@ Coq.definition
-               (string identifier)
+               (Sail.pp_identifier identifier)
                quantifier'
                None
                numexpr'
@@ -385,7 +385,7 @@ let pp_type_module type_definitions =
              and* quantifier'    = Sail.pp_type_quantifier quantifier
              in
              generate @@ Coq.definition
-               (string identifier)
+               (Sail.pp_identifier identifier)
                quantifier'
                None
                numconstraint'
@@ -395,7 +395,7 @@ let pp_type_module type_definitions =
              in
              generate @@
              Coq.definition
-               (string identifier)
+               (Sail.pp_identifier identifier)
                quantifier'
                None
                typ';
@@ -408,7 +408,6 @@ let pp_type_module type_definitions =
 
 (******************************************************************************)
 (* Full pretty printing *)
-
 let imports () = [
     ("Coq",
      build_list (fun { add; _ } ->
