@@ -515,7 +515,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
           | "include_end"   -> N.IgnoredDefinition
           | "file_start"    -> N.IgnoredDefinition
           | "file_end"      -> N.IgnoredDefinition
-          | _               -> not_yet_implemented __POS__ location
+          | "sail_internal" -> N.IgnoredDefinition
+          | _               -> not_yet_implemented ~message:pragma __POS__ location
         end
     in
     (sail_definition, translation)
