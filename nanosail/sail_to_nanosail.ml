@@ -533,7 +533,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         }
     )
 
-let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.ir_t =
+let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
   let lift f (original, translation) =
     Option.map (fun x -> (original, x)) (f translation)
   and nano_definitions =
@@ -555,7 +555,7 @@ let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name
   }
 
 
-let sanitize (program : N.ir_t) : N.ir_t =
+let sanitize (program : N.program) : N.program =
   let update f =
     List.map (fun (x, y) -> (x, f y))
   in

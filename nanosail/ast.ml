@@ -242,7 +242,7 @@ let extract_top_level_type_constraint_definition = function
 (* Full intermediate representation *)
 
 (** The type of the NanoSail intermediate representation. *)
-type ir_t = {
+type program = {
   program_name: string;
   function_definitions: (sail_definition * function_definition) list;
   top_level_type_constraint_definitions: (sail_definition * top_level_type_constraint_definition) list;
