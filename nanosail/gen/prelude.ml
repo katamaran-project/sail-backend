@@ -36,10 +36,21 @@ let generate_open_scopes () =
   in
   Coq.open_scopes scopes
 
+let generate_definitions () =
+  let definitions = [
+      Coq.definition
+        ~identifier:(string "bitvector")
+        ~parameters:[string "(n : nat)"]
+        ~result_type:None
+        ~body:(string "bv n");
+    ]
+  in
+  separate hardline definitions
 
 let generate () =
   separate (twice hardline) [
       generate_require_imports ();
       generate_imports ();
-      generate_open_scopes ()
+      generate_open_scopes ();
+      generate_definitions ();
     ]

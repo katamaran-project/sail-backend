@@ -19,6 +19,8 @@ Import ctx.notations
 Local Open Scope string_scope.
 Local Open Scope list_scope.
 
+Definition bitvector (n : nat) := bv n.
+
 
 
 (*** TYPES ***)
