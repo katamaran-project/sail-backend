@@ -338,11 +338,10 @@ let pp_program_module
       base_name
       function_definitions
       top_level_type_constraint_definitions =
-  let flag = Coq.Import
-  and identifier = program_name ^ "Program"
-  and base_identifier = base_name ^ "Base"
-  in
-  let includes = [ "Program"; base_identifier ]
+  let flag            = Coq.Import
+  and identifier      = program_name ^ "Program"
+  and base_identifier = base_name ^ "Base" in
+  let includes        = [ "Program"; base_identifier ]
   and contents =
     separate (twice hardline) [
       FunDeclKit.generate @@ List.map snd function_definitions;
