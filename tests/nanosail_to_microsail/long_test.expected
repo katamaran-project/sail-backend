@@ -4,6 +4,7 @@ From Coq Require Import
 
 From Katamaran Require Import
      Semantics.Registers
+     Bitvector
      Program.
 
 From stdpp Require Import
