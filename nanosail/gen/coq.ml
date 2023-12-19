@@ -309,19 +309,18 @@ let require_imports src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map string names
   in
-  Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest) ^^ eol
+  line @@ Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest)
 
 let imports names =
-  Util.pp_hanging_list ~adaptive:false (string "Import") (List.map string names) ^^ eol
+  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (List.map string names)
 
 let open_scopes scopes =
   let open_scope scope =
-    concat [
-        string "Local Open Scope";
-        space;
-        string scope;
-        eol
-      ]
+    line @@ concat [
+                string "Local Open Scope";
+                space;
+                string scope;
+              ]
   in
   separate hardline (List.map open_scope scopes)
 

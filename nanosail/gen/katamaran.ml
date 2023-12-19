@@ -6,11 +6,6 @@ open Monad
 
 module FunDeclKit = Fundeclkit
 
-let opt_list_notations = ref false
-
-let opt_include_untranslated = ref false
-
-let opt_include_ignored = ref false
 
 (******************************************************************************)
 (* Base pretty printing *)
@@ -119,7 +114,7 @@ let rec pp_expression e =
     begin
       let* lst' =
         if
-          !opt_list_notations
+          !Gensettings.opt_list_notations
         then
           let* expressions = map pp_expression lst
           in
@@ -408,38 +403,6 @@ let pp_type_module type_definitions =
 
 (******************************************************************************)
 (* Full pretty printing *)
-let imports () = [
-    ("Coq",
-     build_list (fun { add; _ } ->
-         if !opt_list_notations then add "Lists.List";
-         add "Strings.String";
-         add "ZArith.BinInt"
-    ));
-    ("Katamaran",
-     [
-       "Semantics.Registers";
-       "Bitvector";
-       "Program"
-    ]);
-    ("stdpp",
-     [
-       "finite"
-    ]);
-    ("Equations",
-     [
-       "Equations"
-    ]);
-  ]
-
-let more_modules = [
-  "ctx.notations";
-  "ctx.resolution";
-]
-
-let scopes = [
-  "string_scope";
-  "list_scope"
-]
 
 let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
@@ -448,36 +411,11 @@ let _generate_module_header title =
   generate @@ string @@ Printf.sprintf "(*** %s ***)" title
 
 let fromIR_pp ir =
-  let more_modules =
-    if !opt_list_notations
-    then List.append more_modules ["ListNotations"]
-    else more_modules
+  let heading =
+    Prelude.generate ()
   in
   let generate_section title contents =
     string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
-  in
-  let heading =
-    let require_imports =
-      List.map (uncurry Coq.require_imports) (imports ())
-    in
-    let imports =
-      [
-        Coq.imports more_modules
-      ]
-    in
-    let scopes =
-      [
-        Coq.open_scopes scopes
-      ]
-    in
-    let parts =
-      build_list (fun { addall; _ } ->
-          addall require_imports;
-          addall imports;
-          addall scopes
-        )
-    in
-    separate small_step parts
   in
   let base =
     let segments =
@@ -514,7 +452,7 @@ let fromIR_pp ir =
   in
   let untranslated =
     if
-      !opt_include_untranslated
+      !Gensettings.opt_include_untranslated
     then
       generate_section
         "UNTRANSLATED"
@@ -524,7 +462,7 @@ let fromIR_pp ir =
   in
   let ignored =
     if
-      !opt_include_ignored
+      !Gensettings.opt_include_ignored
     then
       generate_section
         "IGNORED"

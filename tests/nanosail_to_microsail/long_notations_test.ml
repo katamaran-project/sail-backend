@@ -1,4 +1,5 @@
 open Nanosail.Gen.Katamaran
+open Nanosail.Gen.Gensettings
 open Examples
 
 let () =  
