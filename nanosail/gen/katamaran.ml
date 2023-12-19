@@ -407,7 +407,7 @@ let _generate_module_header title =
   generate @@ string @@ Printf.sprintf "(*** %s ***)" title
 
 let fromIR_pp ir =
-  let heading =
+  let prelude =
     Prelude.generate ()
   in
   let generate_section title contents =
@@ -468,7 +468,7 @@ let fromIR_pp ir =
   in
   let sections =
     [
-      heading;
+      prelude;
       base;
       program;
       registers;
