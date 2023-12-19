@@ -445,17 +445,13 @@ let fromIR_pp ir =
     then
       empty
     else
-      generate_section
-        "REGISTERS"
-        (Registers.generate ir.register_definitions)
+      generate_section "REGISTERS" @@ Registers.generate ir.register_definitions
   in
   let untranslated =
     if
       Configuration.(get include_untranslated_definitions)
     then
-      generate_section
-        "UNTRANSLATED"
-        (Untranslated.generate ir.untranslated_definitions)
+      generate_section "UNTRANSLATED" @@ Untranslated.generate ir.untranslated_definitions
     else
       empty
   in
@@ -463,9 +459,7 @@ let fromIR_pp ir =
     if
       Configuration.(get include_ignored_definitions)
     then
-      generate_section
-        "IGNORED"
-        (Ignored.generate ir.ignored_definitions)
+      generate_section "IGNORED" @@ Ignored.generate ir.ignored_definitions
     else
       empty
   in
