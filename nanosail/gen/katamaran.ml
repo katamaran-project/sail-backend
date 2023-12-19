@@ -114,7 +114,7 @@ let rec pp_expression e =
     begin
       let* lst' =
         if
-          !Gensettings.opt_list_notations
+          Configuration.(get use_list_notations)
         then
           let* expressions = map pp_expression lst
           in
@@ -452,7 +452,7 @@ let fromIR_pp ir =
   in
   let untranslated =
     if
-      !Gensettings.opt_include_untranslated
+      Configuration.(get include_untranslated_definitions)
     then
       generate_section
         "UNTRANSLATED"
@@ -462,7 +462,7 @@ let fromIR_pp ir =
   in
   let ignored =
     if
-      !Gensettings.opt_include_ignored
+      Configuration.(get include_ignored_definitions)
     then
       generate_section
         "IGNORED"

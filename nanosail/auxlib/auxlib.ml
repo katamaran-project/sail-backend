@@ -1,5 +1,5 @@
-module Monads = Monads
-
+module Monads   = Monads
+module Settings = Settings
 
 let uncurry f (x, y) = f x y
 

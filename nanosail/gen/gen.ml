@@ -6,4 +6,3 @@ module Katamaran = Katamaran
 module Registers = Registers
 module Sail = Sail
 module Monad = Monad
-module Gensettings = Gensettings

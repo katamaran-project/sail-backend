@@ -1,5 +1,4 @@
 open Nanosail.Gen.Katamaran
-open Nanosail.Gen.Gensettings
 open Examples
 
 
@@ -11,7 +10,7 @@ let input_name = ref ""
 let rec options = [
   ("-w", Arg.Set_int width,
     " Set the width of the generated lines (80 by default)");
-  ("-list_notations", Arg.Set opt_list_notations, " Use list notations");
+  ("-list_notations", Arg.Unit (fun () -> Nanosail.Configuration.(set use_list_notations true)), " Use list notations");
   ("-inputs", Arg.Unit inputs, " Print the list of available inputs");
   ("-help", Arg.Unit help,
     " Display this list of options. Also available as -h or --help");

@@ -5,7 +5,7 @@ open Auxlib
 let generate_require_imports () =
   let coq_imports =
     build_list (fun { add; _ } ->
-        if !Gensettings.opt_list_notations then add "Lists.List";
+        if Configuration.(get use_list_notations) then add "Lists.List";
         add "Strings.String";
         add "ZArith.BinInt"
       )
@@ -22,7 +22,7 @@ let generate_imports () =
     build_list (fun { add; _ } ->
         add "ctx.notations";
         add "ctx.resolution";
-        if !Gensettings.opt_list_notations then add "ListNotations";
+        if Configuration.(get use_list_notations) then add "ListNotations";
       )
   in
   Coq.imports imports

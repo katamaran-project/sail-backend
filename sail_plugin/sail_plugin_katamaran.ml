@@ -126,19 +126,19 @@ let katamaran_options = [
     Arg.Unit print_check_message,
     "(debug) check if Katamaran plugin is correctly installed");
   ("-katamaran_list_notations",
-   Arg.Unit (fun () -> Nanosail.Settings.set_list_notations true),
+   Arg.Unit (fun () -> Nanosail.Configuration.(set use_list_notations true)),
     "use list notations");
   ("-katamaran_width",
     Arg.Set_int opt_width,
     "set a custom width for the output");
   ("-katamaran_add_original",
-   Arg.Unit (fun () -> Nanosail.Settings.set_include_original_code true),
+   Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
    "show original Sail code in output");
   ("-katamaran_include_untranslated",
-   Arg.Unit (fun () -> Nanosail.Settings.set_include_untranslated_definitions true),
+   Arg.Unit (fun () -> Nanosail.Configuration.(set include_untranslated_definitions true)),
    "include information about untranslated Sail code");
   ("-katamaran_include_ignored",
-   Arg.Unit (fun () -> Nanosail.Settings.set_include_ignored_definitions true),
+   Arg.Unit (fun () -> Nanosail.Configuration.(set include_ignored_definitions true)),
    "include ignored Sail definitions");
   ("-katamaran_print_rewrites",
    Arg.Set opt_print_rewrites,
