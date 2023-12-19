@@ -1,4 +1,5 @@
 open Nyi
+open Auxlib
 
 module Big_int = Nat_big_num
 
@@ -534,31 +535,13 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
     )
 
 let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
-  let lift f (original, translation) =
-    Option.map (fun x -> (original, x)) (f translation)
-  and nano_definitions =
-    List.map translate_definition ast.defs
-  in
-  let collect f =
-    List.filter_map (lift f) nano_definitions
-  in
   {
-    program_name                          = name;
-    function_definitions                  = collect N.extract_function_definition;
-    top_level_type_constraint_definitions = collect N.extract_top_level_type_constraint_definition;
-    type_definitions                      = collect N.extract_type_definition;
-    enum_definitions                      = collect N.extract_enum_definition;
-    variant_definitions                   = collect N.extract_variant_definition;
-    register_definitions                  = collect N.extract_register_definition;
-    untranslated_definitions              = collect N.extract_untranslated_definition;
-    ignored_definitions                   = List.map fst (collect N.extract_ignored_definition);
+    program_name = name;
+    definitions  = List.map translate_definition ast.defs
   }
 
 
 let sanitize (program : N.program) : N.program =
-  let update f =
-    List.map (fun (x, y) -> (x, f y))
-  in
   let sanitize_type_definition (N.TD_abbreviation (identifier, type_abbreviation)) : N.type_definition =
     let type_abbreviation' =
       match type_abbreviation with
@@ -601,14 +584,21 @@ let sanitize (program : N.program) : N.program =
       constructors    = constructors'
     }
   in
+  let sanitize_definition (sail_definition : N.sail_definition) (definition : N.definition) : N.sail_definition * N.definition =
+    (
+      sail_definition,
+      match definition with
+      | N.TopLevelTypeConstraintDefinition _ -> definition
+       | N.FunctionDefinition _              -> definition 
+       | N.TypeDefinition def                -> N.TypeDefinition (sanitize_type_definition def)
+       | N.RegisterDefinition _              -> definition
+       | N.VariantDefinition def             -> N.VariantDefinition (sanitize_variant_definition def)
+       | N.EnumDefinition _                  -> definition
+       | N.UntranslatedDefinition _          -> definition
+       | N.IgnoredDefinition                 -> definition
+    )
+  in
   {
-    program_name                          = program.program_name;
-    function_definitions                  = program.function_definitions;
-    top_level_type_constraint_definitions = program.top_level_type_constraint_definitions;
-    type_definitions                      = update sanitize_type_definition program.type_definitions;
-    enum_definitions                      = program.enum_definitions;
-    variant_definitions                   = update sanitize_variant_definition program.variant_definitions;
-    register_definitions                  = program.register_definitions;
-    untranslated_definitions              = program.untranslated_definitions;
-    ignored_definitions                   = program.ignored_definitions;
+    program_name = program.program_name;
+    definitions  = List.map (uncurry sanitize_definition) program.definitions
   }

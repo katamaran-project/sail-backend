@@ -243,37 +243,6 @@ let extract_top_level_type_constraint_definition = function
 
 (** The type of the NanoSail intermediate representation. *)
 type program = {
-  program_name: string;
-  function_definitions: (sail_definition * function_definition) list;
-  top_level_type_constraint_definitions: (sail_definition * top_level_type_constraint_definition) list;
-  type_definitions: (sail_definition * type_definition) list;
-  enum_definitions: (sail_definition * enum_definition) list;
-  variant_definitions: (sail_definition * variant_definition) list;
-  register_definitions: (sail_definition * register_definition) list;
-  untranslated_definitions: (sail_definition * untranslated_definition) list;
-  ignored_definitions : sail_definition list
-  (* Other record fields will need to be added to extend the language (e.g. one
-     for user types and one for registers). *)
-}
-
-let make_ir_t
-      ?(function_definitions : (sail_definition * function_definition) list = [])
-      ?(top_level_type_constraint_definitions : (sail_definition * top_level_type_constraint_definition) list = [])
-      ?(type_definitions : (sail_definition * type_definition) list = [])
-      ?(enum_definitions : (sail_definition * enum_definition) list = [])
-      ?(variant_definitions : (sail_definition * variant_definition) list = [])
-      ?(register_definitions : (sail_definition * register_definition) list = [])
-      ?(untranslated_definitions : (sail_definition * untranslated_definition) list = [])
-      ?(ignored_definitions : sail_definition list = [])
-      program_name =
-  {
-    program_name = program_name;
-    function_definitions = function_definitions;
-    top_level_type_constraint_definitions = top_level_type_constraint_definitions;
-    type_definitions = type_definitions;
-    enum_definitions = enum_definitions;
-    variant_definitions = variant_definitions;
-    register_definitions = register_definitions;
-    untranslated_definitions = untranslated_definitions;
-    ignored_definitions = ignored_definitions;
+    program_name : string;
+    definitions  : (sail_definition * definition) list
   }

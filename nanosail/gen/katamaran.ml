@@ -359,46 +359,6 @@ let pp_program_module
     contents
 
 
-(******************************************************************************)
-(* Type definition pretty printing *)
-
-
-let pp_type_module type_definitions =
-  let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
-    let document =
-      match type_definition with
-      | TD_abbreviation (identifier, type_abbreviation) ->
-         begin
-           match type_abbreviation with
-           | TA_numeric_expression (quantifier, numexpr) ->
-              let  identifier  = Sail.pp_identifier identifier
-              and  result_type = None in
-              let* body        = Sail.pp_numeric_expression numexpr
-              and* parameters  = Sail.pp_type_quantifier quantifier
-              in
-              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
-
-           | TA_numeric_constraint (quantifier, numconstraint) ->
-              let  identifier  = Sail.pp_identifier identifier
-              and  result_type = None in
-              let* body        = Sail.pp_numeric_constraint numconstraint
-              and* parameters  = Sail.pp_type_quantifier quantifier
-              in
-              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
-
-           | TA_alias (quantifier, typ) ->
-              let  identifier  = Sail.pp_identifier identifier
-              and  result_type = None in
-              let* body        = Sail.pp_nanotype typ
-              and* parameters  = Sail.pp_type_quantifier quantifier
-              in
-              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body;
-         end
-    in
-    Coq.annotate_with_original_definition original (Coq.annotate document)
-  in
-  List.map (uncurry pp_type_definition) type_definitions
-
 
 (******************************************************************************)
 (* Full pretty printing *)
@@ -417,6 +377,21 @@ let fromIR_pp ir =
     string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
   in
   let base =
+    let types_enums_and_variants =
+      let translate_type_enum_or_variant
+            (sail_definition : sail_definition)
+            (definition      : definition     ) =
+        match definition with
+        | TopLevelTypeConstraintDefinition _ -> None
+        | FunctionDefinition _ -> None
+        | TypeDefinition def -> Some (Types.pp_type_definition sail_definition def)
+        | RegisterDefinition _ -> _
+        | VariantDefinition _ -> _
+        | EnumDefinition _ -> _
+        | UntranslatedDefinition _ -> _
+        | IgnoredDefinition -> _
+      in
+      List.filter_map (uncurry translate_type_enum_or_variant) ir.definitions
     let segments =
       build_list (fun { add; addall } ->
           add    @@ pp_module_header "TYPES";
