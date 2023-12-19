@@ -204,10 +204,10 @@ let build_inductive_type identifier typ constructor_generator =
   separate hardline lines ^^ hardline ^^ eol
 
 let definition
-      (identifier  : document)
-      (parameters  : document list)
-      (result_type : document option)
-      (body        : document)        : document =
+      ~(identifier  : document)
+      ~(parameters  : document list)
+      ~(result_type : document option)
+      ~(body        : document)        : document =
   group (concat (build_list (fun { add; _ } ->
                      add @@ string "Definition";
                      add space;

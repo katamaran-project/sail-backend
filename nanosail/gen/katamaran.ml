@@ -220,25 +220,26 @@ let pp_function_definition
   let identifier = Sail.pp_identifier @@ "fun_" ^ function_definition.funName in
   let parameters = [] in
   let coq_definition =
-    let* return_type =
+    let* result_type =
       let* bindings =
         let* docs = map Sail.pp_bind function_definition.funType.arg_types
         in
         generate @@ Coq.list docs
       in
-      let* return_type =
+      let* result_type =
         Sail.pp_nanotype function_definition.funType.ret_type
       in
-      generate @@
-          pp_hanging_list (PP.string "Stm") [
-              bindings;
-              return_type
-            ]
+      generate @@ Some (
+                      pp_hanging_list (PP.string "Stm") [
+                          bindings;
+                          result_type
+                        ]
+                    )
     in
     let* body =
       pp_statement function_definition.funBody
     in
-    generate @@ Coq.definition identifier parameters (Some return_type) body
+    generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -279,7 +280,7 @@ let pp_funDefKit
         utf8string "{Δ τ}";
         utf8string "(f : Fun Δ τ)"
       ]
-    and return_type = Some (utf8string "Stm Δ τ")
+    and result_type = Some (utf8string "Stm Δ τ")
     and body =
       let matched_expression =
         utf8string "f in Fun Δ τ return Stm Δ τ"
@@ -294,7 +295,7 @@ let pp_funDefKit
       in
       Coq.match' matched_expression cases
     in
-    Coq.definition identifier parameters return_type body
+    Coq.definition ~identifier ~parameters ~result_type ~body
   in
   let contents =
     separate small_step (
@@ -367,33 +368,26 @@ let pp_type_module type_definitions =
          (
            match type_abbreviation with
            | TA_numeric_expression (quantifier, numexpr) ->
-             let* numexpr'    = Sail.pp_numeric_expression numexpr
-             and* quantifier' = Sail.pp_type_quantifier quantifier
-             in
-             generate @@ Coq.definition
-               (Sail.pp_identifier identifier)
-               quantifier'
-               None
-               numexpr'
+              let  identifier  = Sail.pp_identifier identifier
+              and  result_type = None in
+              let* body        = Sail.pp_numeric_expression numexpr
+              and* parameters  = Sail.pp_type_quantifier quantifier
+              in
+              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
            | TA_numeric_constraint (quantifier, numconstraint) ->
-             let* numconstraint' = Sail.pp_numeric_constraint numconstraint
-             and* quantifier'    = Sail.pp_type_quantifier quantifier
-             in
-             generate @@ Coq.definition
-               (Sail.pp_identifier identifier)
-               quantifier'
-               None
-               numconstraint'
+              let  identifier  = Sail.pp_identifier identifier
+              and  result_type = None in
+              let* body        = Sail.pp_numeric_constraint numconstraint
+              and* parameters  = Sail.pp_type_quantifier quantifier
+              in
+              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
            | TA_alias (quantifier, typ) ->
-             let* typ'        = Sail.pp_nanotype typ
-             and* quantifier' = Sail.pp_type_quantifier quantifier
-             in
-             generate @@
-             Coq.definition
-               (Sail.pp_identifier identifier)
-               quantifier'
-               None
-               typ';
+              let  identifier  = Sail.pp_identifier identifier
+              and  result_type = None in
+              let* body        = Sail.pp_nanotype typ
+              and* parameters  = Sail.pp_type_quantifier quantifier
+              in
+              generate @@ Coq.definition ~identifier ~parameters ~result_type ~body;
          )
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)
