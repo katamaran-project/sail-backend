@@ -141,7 +141,7 @@ let rec pp_statement statement =
      let* e' = pp_par_expression e
      in
      generate @@ simple_app [string "stm_exp"; e']
-       
+
   | Stm_match_list m ->
      let* m_s' = pp_par_statement m.s
      and* m_alt_nil' = pp_par_statement m.alt_nil
@@ -156,7 +156,7 @@ let rec pp_statement statement =
              dquotes (string m.xt);
              m_alt_cons'
            ]
-         
+
   | Stm_match_prod m ->
      let* m_s'   = pp_par_statement m.s
      and* m_rhs' = pp_par_statement m.rhs
@@ -169,12 +169,12 @@ let rec pp_statement statement =
              dquotes (string m.xr);
              m_rhs'
            ]
-         
+
   | Stm_call (f, arg_list) ->
      let* arg_list' = map pp_par_expression arg_list
      in
      generate @@ simple_app @@ string "call" :: string f :: arg_list'
-                               
+
   | Stm_let (v, s1, s2) ->
      let* s1' = pp_statement s1
      and* s2' = pp_statement s2
@@ -186,7 +186,7 @@ let rec pp_statement statement =
              string "in";
              s2'
            ]
-         
+
   | Stm_if (s, s1, s2) ->
      let* s'  = pp_par_statement s
      and* s1' = pp_par_statement s1
@@ -199,13 +199,13 @@ let rec pp_statement statement =
              s1';
              s2'
            ]
-         
+
   | Stm_seq (s1, s2) ->
      let* s1' = pp_par_statement s1
      and* s2' = pp_par_statement s2
      in
      generate @@ simple_app [ string "stm_seq"; s1'; s2' ]
-       
+
   | Stm_nys -> not_yet_implemented __POS__
 
 and pp_par_statement s = lift parens (pp_statement s)
@@ -313,7 +313,7 @@ let pp_funDefKit
 
 let pp_foreignKit =
   let title = "ForeignKit"
-  and contents = 
+  and contents =
     separate_map hardline utf8string [
       "Definition Memory : Set := unit.";
       "Definition ForeignCall {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs)";
@@ -365,7 +365,7 @@ let pp_type_module type_definitions =
     let document =
       match type_definition with
       | TD_abbreviation (identifier, type_abbreviation) ->
-         (
+         begin
            match type_abbreviation with
            | TA_numeric_expression (quantifier, numexpr) ->
               let  identifier  = Sail.pp_identifier identifier
@@ -374,6 +374,7 @@ let pp_type_module type_definitions =
               and* parameters  = Sail.pp_type_quantifier quantifier
               in
               generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
+
            | TA_numeric_constraint (quantifier, numconstraint) ->
               let  identifier  = Sail.pp_identifier identifier
               and  result_type = None in
@@ -381,6 +382,7 @@ let pp_type_module type_definitions =
               and* parameters  = Sail.pp_type_quantifier quantifier
               in
               generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
+
            | TA_alias (quantifier, typ) ->
               let  identifier  = Sail.pp_identifier identifier
               and  result_type = None in
@@ -388,7 +390,7 @@ let pp_type_module type_definitions =
               and* parameters  = Sail.pp_type_quantifier quantifier
               in
               generate @@ Coq.definition ~identifier ~parameters ~result_type ~body;
-         )
+         end
     in
     Coq.annotate_with_original_definition original (Coq.annotate document)
   in
