@@ -121,12 +121,12 @@ let sanitize_identifier (identifier : string) : string =
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = sanitize_identifier identifier
+    let identifier' = string identifier
     in
     let* kind' = pp_kind kind
     in
     generate @@ parens @@ separate space [
-      string identifier';
+      identifier';
       colon;
       kind'
     ]
