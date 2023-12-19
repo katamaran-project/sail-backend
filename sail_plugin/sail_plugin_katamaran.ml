@@ -181,7 +181,9 @@ let katamaran_target _ _ filename ast _ _ =
   in
   let nanosail_representation = Nanosail.sail_to_nanosail ast program_name
   in
-  let document = Nanosail.Gen.Katamaran.fromIR_pp nanosail_representation
+  let sanitized_nanosail_representation = Nanosail.sanitize nanosail_representation
+  in
+  let document = Nanosail.Gen.Katamaran.fromIR_pp sanitized_nanosail_representation
   in
   context (fun output_channel -> Nanosail.Gen.Katamaran.pretty_print !opt_width output_channel document)
 
