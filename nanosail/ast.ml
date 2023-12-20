@@ -74,6 +74,14 @@ type funType_t = {
 }
 
 
+(*
+  If given type is a tuple, collects all types inside of it in a list.
+  If given type is not a tuple, simply return that type in a singleton list.
+ *)
+let tuple_to_list (t : nanotype) : nanotype list =
+  match t with
+  | Ty_tuple ts -> ts
+  | _           -> [ t ]
 
 
 (******************************************************************************)
@@ -255,5 +263,4 @@ let lift_extractor extractor (sail_definition, definition) =
 let select (extractor : definition -> 'a option) (definitions : (sail_definition * definition) list) =
   List.filter_map (lift_extractor extractor) definitions
 
-  
 
