@@ -146,7 +146,7 @@ let build_inductive_type identifier typ constructor_generator =
   let first_line =
     separate space (
         build_list (fun { add; _ } ->
-            add @@string "Inductive";
+            add @@ string "Inductive";
             add identifier;
             if requirement typ > 0
             then
