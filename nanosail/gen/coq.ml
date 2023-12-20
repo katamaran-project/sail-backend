@@ -341,11 +341,9 @@ let record_value fields =
   in
   Util.pp_delimited_sequence ldelim rdelim semi items
 
-let include_original_sail_code = ref false
-
 let annotate_with_original_definition original translation =
   if
-    !include_original_sail_code
+    Configuration.(get include_original_code)
   then
     concat [
         original_sail_code (Sail.pp_sail_definition original);
@@ -357,7 +355,7 @@ let annotate_with_original_definition original translation =
 
 let annotate_with_original_definitions originals translation =
   if
-    !include_original_sail_code
+    Configuration.(get include_original_code)
   then
     concat @@
         build_list (fun { add; _ } ->
