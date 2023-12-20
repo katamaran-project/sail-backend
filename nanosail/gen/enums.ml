@@ -13,9 +13,6 @@ let generate_inductive_type (sail_definition : sail_definition) (enum_definition
   in
   Coq.annotate_with_original_definition sail_definition coq_translation
 
-(* let generate_inductive_types (enum_definitions : (sail_definition * enum_definition) list) = *)
-(*   List.map (uncurry generate_inductive_type) enum_definitions *)
-
 let generate_constructors_inductive_type (_sail_definition : sail_definition) (enum_definition : enum_definition) =
   let identifier = Sail.pp_identifier @@ enum_definition.identifier ^ "Constructor"
   and typ = Sail.pp_identifier "Set"
@@ -26,9 +23,6 @@ let generate_constructors_inductive_type (_sail_definition : sail_definition) (e
           add_constructor @@ string @@ "K" ^ case)
         enum_definition.cases
     )
-
-(* let generate_constructors_inductive_types (enum_definitions : (sail_definition * enum_definition) list) = *)
-(*   List.map (uncurry generate_constructors_inductive_type) enum_definitions *)
 
 let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_definitions =
@@ -50,7 +44,6 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
         enum_definitions
     )
 
-
 let generate_no_confusions (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_definitions = List.map snd enum_definitions
   in
@@ -71,7 +64,6 @@ let generate_no_confusions (enum_definitions : (sail_definition * enum_definitio
   in
   Coq.section "TransparentObligations" contents
 
-
 let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_definitions = List.map snd enum_definitions
   in
@@ -82,18 +74,3 @@ let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list
     List.map generate_eqdec enum_definitions
   in
   separate hardline lines
-
-
-(* let generate (enum_definitions : (sail_definition * enum_definition) list) = *)
-(*   if *)
-(*     List.is_empty enum_definitions *)
-(*   then *)
-(*     [] *)
-(*   else *)
-(*     Auxlib.build_list (fun { add; addall } -> *)
-(*         addall @@ generate_inductive_types enum_definitions; *)
-(*         addall @@ generate_constructors_inductive_types enum_definitions; *)
-(*         add    @@ generate_enum_of_enums enum_definitions; *)
-(*         add    @@ generate_no_confusions enum_definitions; *)
-(*         add    @@ generate_eqdecs enum_definitions; *)
-(*       ) *)
