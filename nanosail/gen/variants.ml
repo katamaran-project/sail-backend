@@ -3,7 +3,10 @@ open Ast
 open Monad
 
 
-let generate_inductive_type sail_definition ({ identifier; type_quantifier; constructors } : variant_definition) =
+let generate_inductive_type
+      (sail_definition                               : sail_definition   )
+      ({ identifier; type_quantifier; constructors } : variant_definition)
+  =
   let identifier' =
     Sail.pp_identifier identifier
   in
