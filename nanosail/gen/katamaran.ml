@@ -400,9 +400,9 @@ let fromIR_pp ir =
                         addall @@ List.map (uncurry Enums.generate_constructors_inductive_type) enum_definitions;
                         if not (List.is_empty enum_definitions)
                         then begin
-                            add    @@ Enums.generate_enum_of_enums enum_definitions;
-                            add    @@ Enums.generate_eqdecs enum_definitions;
-                            add    @@ Enums.generate_no_confusions enum_definitions;
+                            add @@ Enums.generate_enum_of_enums enum_definitions;
+                            add @@ Enums.generate_eqdecs enum_definitions;
+                            add @@ Enums.generate_no_confusions enum_definitions;
                           end
                      end
     and translated_variant_definitions =
