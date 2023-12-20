@@ -1,7 +1,5 @@
 open PPrint
 open Ast
-open Auxlib
-open Util
 open Monad
 
 

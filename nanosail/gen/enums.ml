@@ -1,37 +1,34 @@
 open PPrint
 open Ast
-open Auxlib
 
 
-let generate_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp_enum sail_definition (enum_definition : enum_definition) =
-    let coq_translation =
-      let identifier = string enum_definition.identifier
-      and typ = string "Set"
-      in
-      Coq.build_inductive_type identifier typ (fun add_constructor ->
-          List.iter add_constructor @@ List.map string enum_definition.cases
-        )
-    in
-    Coq.annotate_with_original_definition sail_definition coq_translation
-  in
-  List.map (uncurry pp_enum) enum_definitions
-
-
-let generate_constructors_inductive_type (enum_definitions : (sail_definition * enum_definition) list) =
-  let pp (_sail_definition : sail_definition) (enum_definition : enum_definition) =
-    let identifier = string (enum_definition.identifier ^ "Constructor")
-    and typ = string "Set"
+let generate_inductive_type (sail_definition : sail_definition) (enum_definition : enum_definition) =
+  let coq_translation =
+    let identifier = Sail.pp_identifier enum_definition.identifier
+    and typ = Sail.pp_identifier "Set"
     in
     Coq.build_inductive_type identifier typ (fun add_constructor ->
-        List.iter
-          (fun (case : string) ->
-            add_constructor @@ string @@ "K" ^ case)
-          enum_definition.cases
+        List.iter add_constructor @@ List.map string enum_definition.cases
       )
   in
-  List.map (uncurry pp) enum_definitions
+  Coq.annotate_with_original_definition sail_definition coq_translation
 
+(* let generate_inductive_types (enum_definitions : (sail_definition * enum_definition) list) = *)
+(*   List.map (uncurry generate_inductive_type) enum_definitions *)
+
+let generate_constructors_inductive_type (_sail_definition : sail_definition) (enum_definition : enum_definition) =
+  let identifier = Sail.pp_identifier @@ enum_definition.identifier ^ "Constructor"
+  and typ = Sail.pp_identifier "Set"
+  in
+  Coq.build_inductive_type identifier typ (fun add_constructor ->
+      List.iter
+        (fun (case : string) ->
+          add_constructor @@ string @@ "K" ^ case)
+        enum_definition.cases
+    )
+
+(* let generate_constructors_inductive_types (enum_definitions : (sail_definition * enum_definition) list) = *)
+(*   List.map (uncurry generate_constructors_inductive_type) enum_definitions *)
 
 let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
   let enum_definitions =
@@ -94,8 +91,8 @@ let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list
 (*     [] *)
 (*   else *)
 (*     Auxlib.build_list (fun { add; addall } -> *)
-(*         addall @@ generate_inductive_type enum_definitions; *)
-(*         addall @@ generate_constructors_inductive_type enum_definitions; *)
+(*         addall @@ generate_inductive_types enum_definitions; *)
+(*         addall @@ generate_constructors_inductive_types enum_definitions; *)
 (*         add    @@ generate_enum_of_enums enum_definitions; *)
 (*         add    @@ generate_no_confusions enum_definitions; *)
 (*         add    @@ generate_eqdecs enum_definitions; *)

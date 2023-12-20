@@ -149,7 +149,9 @@ let funDefList = [
   };
 ]
 
-let add_dummy_sail =
-  List.map (fun x -> (Util.dummy_sail_def, x))
+let program_name = "Lists"
 
-let ir = make_ir_t ~function_definitions:(add_dummy_sail funDefList) "Lists"
+let ir : program = {
+    program_name = program_name;
+    definitions  = List.map (fun x -> (Util.dummy_sail_def, FunctionDefinition x)) funDefList;
+  }

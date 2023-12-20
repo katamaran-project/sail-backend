@@ -377,28 +377,46 @@ let fromIR_pp ir =
     string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
   in
   let base =
-    let types_enums_and_variants =
+    let translated_types_enums_and_variants =
       let translate_type_enum_or_variant
             (sail_definition : sail_definition)
             (definition      : definition     ) =
         match definition with
+        | TypeDefinition def                 -> Some (Types.pp_type_definition sail_definition def)
+        | VariantDefinition def              -> Some (Variants.generate_inductive_type sail_definition def)
+        | EnumDefinition def                 -> Some (Enums.generate_inductive_type sail_definition def)
         | TopLevelTypeConstraintDefinition _ -> None
-        | FunctionDefinition _ -> None
-        | TypeDefinition def -> Some (Types.pp_type_definition sail_definition def)
-        | RegisterDefinition _ -> _
-        | VariantDefinition _ -> _
-        | EnumDefinition _ -> _
-        | UntranslatedDefinition _ -> _
-        | IgnoredDefinition -> _
+        | FunctionDefinition _               -> None
+        | RegisterDefinition _               -> None
+        | UntranslatedDefinition _           -> None
+        | IgnoredDefinition                  -> None
       in
       List.filter_map (uncurry translate_type_enum_or_variant) ir.definitions
+    in
+    let translated_enum_definitions =
+      let enum_definitions = select Extract.enum_definition ir.definitions
+      in
+      build_list @@ fun { add; addall } -> begin
+                        addall @@ List.map (uncurry Enums.generate_constructors_inductive_type) enum_definitions;
+                        if not (List.is_empty enum_definitions)
+                        then begin
+                            add    @@ Enums.generate_enum_of_enums enum_definitions;
+                            add    @@ Enums.generate_eqdecs enum_definitions;
+                            add    @@ Enums.generate_no_confusions enum_definitions;
+                          end
+                     end
+    and translated_variant_definitions =
+      List.map
+        (uncurry Variants.generate_inductive_type)
+        (select Extract.variant_definition ir.definitions)
+    in
     let segments =
       build_list (fun { add; addall } ->
           add    @@ pp_module_header "TYPES";
           add    @@ defaultBase;
-          addall @@ pp_type_module ir.type_definitions;
-          addall @@ Enums.generate ir.enum_definitions;
-          addall @@ Variants.generate ir.variant_definitions;
+          addall @@ translated_types_enums_and_variants;
+          addall @@ translated_enum_definitions;
+          addall @@ translated_variant_definitions;
         )
     in
     separate small_step segments
@@ -410,23 +428,23 @@ let fromIR_pp ir =
         pp_program_module
           ir.program_name
           "Default"
-          ir.function_definitions
-          ir.top_level_type_constraint_definitions
+          (select Extract.function_definition ir.definitions)
+          (select Extract.top_level_type_constraint_definition ir.definitions)
       )
   in
   let registers =
     if
-      List.is_empty ir.register_definitions
+      List.is_empty @@ select Extract.register_definition ir.definitions
     then
       empty
     else
-      generate_section "REGISTERS" @@ Registers.generate ir.register_definitions
+      generate_section "REGISTERS" @@ Registers.generate @@ select Extract.register_definition ir.definitions
   in
   let untranslated =
     if
       Configuration.(get include_untranslated_definitions)
     then
-      generate_section "UNTRANSLATED" @@ Untranslated.generate ir.untranslated_definitions
+      generate_section "UNTRANSLATED" @@ Untranslated.generate @@ select Extract.untranslated_definition ir.definitions
     else
       empty
   in
@@ -434,7 +452,7 @@ let fromIR_pp ir =
     if
       Configuration.(get include_ignored_definitions)
     then
-      generate_section "IGNORED" @@ Ignored.generate ir.ignored_definitions
+      generate_section "IGNORED" @@ Ignored.generate @@ List.map fst @@ select Extract.ignored_definition ir.definitions
     else
       empty
   in

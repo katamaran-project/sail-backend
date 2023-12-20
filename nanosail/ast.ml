@@ -206,38 +206,40 @@ type definition =
   | UntranslatedDefinition           of untranslated_definition
   | IgnoredDefinition
 
-let extract_function_definition = function
-  | FunctionDefinition x -> Some x
-  | _                    -> None
+module Extract = struct
+  let function_definition = function
+    | FunctionDefinition x -> Some x
+    | _                    -> None
 
-let extract_type_definition = function
-  | TypeDefinition x -> Some x
-  | _                -> None
+  let type_definition = function
+    | TypeDefinition x -> Some x
+    | _                -> None
 
-let extract_enum_definition = function
-  | EnumDefinition x -> Some x
-  | _                -> None
+  let enum_definition = function
+    | EnumDefinition x -> Some x
+    | _                -> None
 
-let extract_variant_definition = function
-  | VariantDefinition x -> Some x
-  | _                   -> None
+  let variant_definition = function
+    | VariantDefinition x -> Some x
+    | _                   -> None
 
-let extract_register_definition = function
-  | RegisterDefinition x -> Some x
-  | _                    -> None
+  let register_definition = function
+    | RegisterDefinition x -> Some x
+    | _                    -> None
 
-let extract_untranslated_definition = function
-  | UntranslatedDefinition x -> Some x
-  | _                        -> None
+  let untranslated_definition = function
+    | UntranslatedDefinition x -> Some x
+    | _                        -> None
 
-let extract_ignored_definition = function
-  | IgnoredDefinition -> Some ()
-  | _                 -> None
+  let ignored_definition = function
+    | IgnoredDefinition -> Some ()
+    | _                 -> None
 
-let extract_top_level_type_constraint_definition = function
-  | TopLevelTypeConstraintDefinition x -> Some x
-  | _                                  -> None
-
+  let top_level_type_constraint_definition = function
+    | TopLevelTypeConstraintDefinition x -> Some x
+    | _                                  -> None
+end
+  
 (******************************************************************************)
 (* Full intermediate representation *)
 
@@ -246,3 +248,12 @@ type program = {
     program_name : string;
     definitions  : (sail_definition * definition) list
   }
+
+let lift_extractor extractor (sail_definition, definition) =
+  Option.map (fun def -> (sail_definition, def)) (extractor definition)
+  
+let select (extractor : definition -> 'a option) (definitions : (sail_definition * definition) list) =
+  List.filter_map (lift_extractor extractor) definitions
+
+  
+
