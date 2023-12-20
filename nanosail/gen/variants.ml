@@ -7,17 +7,17 @@ let generate_inductive_type
       (sail_definition                               : sail_definition   )
       ({ identifier; type_quantifier; constructors } : variant_definition)
   =
-  let identifier' =
-    Sail.pp_identifier identifier
-  in
-  let pp_constructor_type (nanotype : nanotype) =
-    let* ts = map Sail.pp_nanotype @@ Ast.tuple_to_list nanotype
-    in
-    let ts = ts @ [ identifier' ]
-    in
-    generate @@ separate (string " -> ") ts
-  in
   let inductive_type =
+    let identifier' =
+      Sail.pp_identifier identifier
+    in
+    let pp_constructor_type (nanotype : nanotype) =
+      let* ts = map Sail.pp_nanotype @@ Ast.tuple_to_list nanotype
+      in
+      let ts = ts @ [ identifier' ]
+      in
+      generate @@ separate (string " -> ") ts
+    in
     let* type_quantifier' =
       map (fun (id, kind) ->
           let* kind' = Sail.pp_kind kind
