@@ -214,6 +214,11 @@ type definition =
   | UntranslatedDefinition           of untranslated_definition
   | IgnoredDefinition
 
+type program = {
+    program_name : string;
+    definitions  : (sail_definition * definition) list   (* All translated definitions; original order preserved *)
+  }
+
 module Extract = struct
   let function_definition = function
     | FunctionDefinition x -> Some x
@@ -247,15 +252,7 @@ module Extract = struct
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
 end
-  
-(******************************************************************************)
-(* Full intermediate representation *)
 
-(** The type of the NanoSail intermediate representation. *)
-type program = {
-    program_name : string;
-    definitions  : (sail_definition * definition) list
-  }
 
 let lift_extractor extractor (sail_definition, definition) =
   Option.map (fun def -> (sail_definition, def)) (extractor definition)
