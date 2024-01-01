@@ -253,11 +253,9 @@ module Extract = struct
     | _                                  -> None
 end
 
-
-let lift_extractor extractor (sail_definition, definition) =
-  Option.map (fun def -> (sail_definition, def)) (extractor definition)
   
 let select (extractor : definition -> 'a option) (definitions : (sail_definition * definition) list) =
+  let lift_extractor extractor (sail_definition, definition) =
+    Option.map (fun def -> (sail_definition, def)) (extractor definition)
+  in
   List.filter_map (lift_extractor extractor) definitions
-
-
