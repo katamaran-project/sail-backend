@@ -28,18 +28,21 @@ let pp_value =
 
 let pp_infix_binOp (binOp : binOp) =
   match binOp with
-  | Plus  -> plus
-  | Times -> star
-  | Minus -> minus
-  | And   -> twice ampersand
-  | Or    -> twice bar
-  | Eq    -> equals
-  | Neq   -> bang ^^ equals
-  | Le    -> langle ^^ equals
-  | Lt    -> langle
-  | Ge    -> rangle ^^ equals
-  | Gt    -> rangle
-  | _     -> failwith "Impossible"
+  | Plus   -> generate @@ plus
+  | Times  -> generate @@ star
+  | Minus  -> generate @@ minus
+  | And    -> generate @@ twice ampersand
+  | Or     -> generate @@ twice bar
+  | Eq     -> generate @@ equals
+  | Neq    -> generate @@ bang ^^ equals
+  | Le     -> generate @@ langle ^^ equals
+  | Lt     -> generate @@ langle
+  | Ge     -> generate @@ rangle ^^ equals
+  | Gt     -> generate @@ rangle
+  | Pair   -> not_yet_implemented __POS__ (* Should not occur *)
+  | Cons   -> not_yet_implemented __POS__ (* Should not occur *)
+  | Append -> not_yet_implemented __POS__ (* Should not occur *)
+
 
 (* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *)
 let ty_of_val =
@@ -106,7 +109,9 @@ let rec pp_expression e =
          e2'
        ]
     | _  ->
-       generate @@ infix 2 1 (pp_infix_binOp bo) e1' e2'
+      let* binop' = pp_infix_binOp bo
+      in
+      generate @@ infix 2 1 binop' e1' e2'
   in
   match e with
   | Exp_var v              -> generate @@ simple_app [string "exp_var"; dquotes (string v)]
