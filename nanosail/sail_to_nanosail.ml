@@ -495,7 +495,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_loop_measures (_, _)                 -> not_yet_implemented __POS__ annotation.loc
         | DEF_register specification               -> translate_register annotation specification
         | DEF_internal_mutrec _                    -> not_yet_implemented __POS__ annotation.loc
-        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:pragma __POS__ location
+        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) __POS__ location
         | DEF_fundef fd                            -> begin
             match ir_fundef fd with
             | Some translation -> N.FunctionDefinition translation
