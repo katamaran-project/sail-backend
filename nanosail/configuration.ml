@@ -2,6 +2,8 @@ include Auxlib.Settings
 
 type 'a setting = 'a t
 
+type sail_definition_predicate = Ast.sail_definition -> bool
+
 (* Use list notations *)
 let use_list_notations               = create false
 
@@ -15,4 +17,4 @@ let include_original_code            = create false
 let include_ignored_definitions      = create false
 
 (* Predicate that determines which Sail definitions to ignore *)
-let ignore_definition = create (fun (_ : Ast.sail_definition) -> false)
+let ignore_definition                = create (fun (_ : Ast.sail_definition) -> false)

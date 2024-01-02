@@ -1,5 +1,7 @@
 type 'a setting
 
+type sail_definition_predicate = Ast.sail_definition -> bool
+
 val use_list_notations               : bool setting
 val include_untranslated_definitions : bool setting
 val include_original_code            : bool setting
