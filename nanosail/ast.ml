@@ -115,7 +115,6 @@ type value =
   | Val_int of Big_int.num
   | Val_string of string
   | Val_prod of value * value
-  | Val_nys   (* For value types not yet supported *)
 
 
 (******************************************************************************)
@@ -128,7 +127,6 @@ type expression =
   | Exp_not of expression     (* Not yet used by the sail to nanosail translator *)
   | Exp_list of expression list
   | Exp_binop of binOp * expression * expression
-  | Exp_nys                   (* For expression types not yet supported *)
 
 type statement =
   | Stm_exp of expression
