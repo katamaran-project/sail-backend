@@ -26,7 +26,7 @@ let pp_value =
 (******************************************************************************)
 (* Expression pretty printing *)
 
-let pp_infix_binOp (binOp : binOp) =
+let pp_infix_binOp (binOp : binary_operator) =
   match binOp with
   | Plus   -> generate @@ plus
   | Times  -> generate @@ star
