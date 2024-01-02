@@ -26,7 +26,8 @@ let pp_value =
 (******************************************************************************)
 (* Expression pretty printing *)
 
-let pp_infix_binOp = function
+let pp_infix_binOp (binOp : binOp) =
+  match binOp with
   | Plus  -> plus
   | Times -> star
   | Minus -> minus
@@ -38,7 +39,7 @@ let pp_infix_binOp = function
   | Lt    -> langle
   | Ge    -> rangle ^^ equals
   | Gt    -> rangle
-  | _     -> ic
+  | _     -> failwith "Impossible"
 
 (* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *)
 let ty_of_val =
