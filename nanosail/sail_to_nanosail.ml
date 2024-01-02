@@ -584,7 +584,9 @@ let sanitize (program : N.program) : N.program =
       constructors    = constructors'
     }
   in
-  let sanitize_definition (sail_definition : N.sail_definition) (definition : N.definition) : N.sail_definition * N.definition =
+  let sanitize_definition
+      (sail_definition : N.sail_definition)
+      (definition      : N.definition     ) : N.sail_definition * N.definition =
     (
       sail_definition,
       match definition with
