@@ -5,6 +5,12 @@ let uncurry f (x, y) = f x y
 
 let compose f g x = f (g x)
 
+let (&.&) p1 p2 x =
+  p1 x && p2 x
+
+let (|.|) p1 p2 x =
+  p1 x || p2 x
+
 let count_chars string char =
   let count acc c =
     if c == char
