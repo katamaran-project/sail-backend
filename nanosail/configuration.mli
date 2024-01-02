@@ -10,3 +10,5 @@ val ignore_definition                : (Ast.sail_definition -> bool) setting
 
 val get : 'a setting -> 'a
 val set : 'a setting -> 'a -> unit
+
+val ignore_pragmas : string list -> sail_definition_predicate

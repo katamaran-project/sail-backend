@@ -159,6 +159,7 @@ let with_stdout func =
 
 (** Katamaran target action. *)
 let katamaran_target _ _ filename ast _ _ =
+  Slang.test ();
   if !opt_print_rewrites
   then begin
       List.iteri (fun index (rewrite_name, _) ->
