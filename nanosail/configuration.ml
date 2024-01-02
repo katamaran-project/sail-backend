@@ -13,3 +13,6 @@ let include_original_code            = create false
 
 (* Output ignored definitions *)
 let include_ignored_definitions      = create false
+
+(* Predicate that determines which Sail definitions to ignore *)
+let ignore_definition = create (fun (_ : Ast.sail_definition) -> false)
