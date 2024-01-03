@@ -1,10 +1,4 @@
 module Continuation = Continuation
 module Tokenizer    = Tokenizer
-
-type ast =
-  | Cons    of ast * ast
-  | Integer of int
-  | Symbol  of string
-  | String  of string
-  | Bool    of bool
-  | Nil
+module Ast          = Ast
+module Parser       = Parsing

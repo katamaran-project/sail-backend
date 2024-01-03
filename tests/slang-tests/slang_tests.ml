@@ -11,6 +11,7 @@ let tests =
   "all tests" >::: [
     Continuation_tests.tests;
     Tokenizer_tests.tests;
+    Parser_tests.tests;
   ]
 
 
