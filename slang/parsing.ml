@@ -27,10 +27,17 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
     then Values.Nil
     else aux xs
   in
+  let create_new_list () =
+    add_level ()
+  and finish_list () =
+    let elts = pop_level ()
+    in
+    push_value @@ make_list @@ List.rev elts
+  in
   let process_token (token : Tokenizer.token)  =
     match token with
-    | Tokenizer.TLeftParenthesis  -> add_level ()
-    | Tokenizer.TRightParenthesis -> let elts = pop_level () in push_value @@ make_list @@ List.rev elts
+    | Tokenizer.TLeftParenthesis  -> create_new_list ()
+    | Tokenizer.TRightParenthesis -> finish_list ()
     | Tokenizer.TSymbol symbol    -> push_value @@ Symbol symbol
     | Tokenizer.TString str       -> push_value @@ String str
     | Tokenizer.TInteger n        -> push_value @@ Integer n
