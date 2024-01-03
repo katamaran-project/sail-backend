@@ -3,6 +3,12 @@ open Slang.Parser
 open Slang.Ast
 
 
+let rec make_list xs =
+  match xs with
+  | []    -> Nil
+  | x::xs -> Cons (x, make_list xs)
+
+
 let parse_string_tests =
   let test_cases =
     [
@@ -10,6 +16,13 @@ let parse_string_tests =
       ("1 2", [Integer 1; Integer 2]);
       ("(1 2)", [Cons (Integer 1, Cons (Integer 2, Nil))]);
       ("()", [Nil]);
+      ("(* 5 (1 2))", [
+          make_list [
+            Symbol "*";
+            Integer 5;
+            make_list [ Integer 1; Integer 2 ]
+          ]
+        ]);
     ]
   in
   let test_parse_string (input, expected) =
