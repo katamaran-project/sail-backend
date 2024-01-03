@@ -20,11 +20,11 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
   let make_list xs =
     let rec aux xs =
       match xs with
-      | []    -> Ast.Nil
-      | x::xs -> Ast.Cons (x, aux xs)
+      | []    -> Values.Nil
+      | x::xs -> Values.Cons (x, aux xs)
     in
     if List.is_empty xs
-    then Ast.Nil
+    then Values.Nil
     else aux xs
   in
   let process_token (token : Tokenizer.token)  =

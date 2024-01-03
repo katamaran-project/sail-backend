@@ -1,6 +1,6 @@
 open OUnit2
 open Slang.Parser
-open Slang.Ast
+open Slang.Values
 
 
 let rec make_list xs =
