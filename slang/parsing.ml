@@ -29,15 +29,15 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
   in
   let create_new_list () =
     add_level ()
-  and finish_list () =
+  and pop_list () =
     let elts = pop_level ()
     in
-    push_value @@ make_list @@ List.rev elts
+    make_list @@ List.rev elts
   in
   let process_token (token : Tokenizer.token)  =
     match token with
     | Tokenizer.TLeftParenthesis  -> create_new_list ()
-    | Tokenizer.TRightParenthesis -> finish_list ()
+    | Tokenizer.TRightParenthesis -> push_value @@ pop_list ()
     | Tokenizer.TSymbol symbol    -> push_value @@ Symbol symbol
     | Tokenizer.TString str       -> push_value @@ String str
     | Tokenizer.TInteger n        -> push_value @@ Integer n
