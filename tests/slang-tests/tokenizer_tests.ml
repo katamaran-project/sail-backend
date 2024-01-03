@@ -12,9 +12,25 @@ let tokenizer_tests =
       ("#t", [ TTrue ]);
       ("#f", [ TFalse ]);
       ("#t #f", [ TTrue; TFalse ]);
-      (* ("+", [ TSymbol "+" ]); *)
-      (* ("-", [ TSymbol "-" ]); *)
-      (* ("123", [ TInteger 123 ]); *)
+      ("+", [ TSymbol "+" ]);
+      ("-", [ TSymbol "-" ]);
+      ("=", [ TSymbol "=" ]);
+      ("123", [ TInteger 123 ]);
+      ("-123", [ TInteger (-123) ]);
+      ("1+", [ TSymbol "1+" ]);
+      ("(= (1+ x) (foo 1))", [
+          TLeftParenthesis;
+          TSymbol "=";
+          TLeftParenthesis;
+          TSymbol "1+";
+          TSymbol "x";
+          TRightParenthesis;
+          TLeftParenthesis;
+          TSymbol "foo";
+          TInteger 1;
+          TRightParenthesis;
+          TRightParenthesis
+        ]);
     ]
   in
   let test_tokenize (input, expected) =

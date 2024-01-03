@@ -56,6 +56,31 @@ let read_string (node : char Seq.node) =
       | _ -> failwith "expected to find a string token"
     end
 
+let read_symbol_or_integer (node : char Seq.node) =
+  let rec collect_chars acc node =
+    match node with
+    | Seq.Nil               -> (string_of_chars @@ List.rev acc, node)
+    | Seq.Cons (char, tail) -> begin
+        match char with
+        | '('
+        | ')'
+        | ' '
+        | '\t'
+        | '\n'
+        | '\r' -> (string_of_chars @@ List.rev acc, node)
+        | _    -> collect_chars (char :: acc) @@ tail ()
+      end
+  in
+  let (chars, tail) = collect_chars [] node
+  in
+  if String.length chars = 0
+  then failwith "invalid input"
+  else begin
+    match int_of_string_opt chars with
+    | Some n -> (TInteger n, tail)
+    | None   -> (TSymbol chars, tail)
+  end
+
 let rec read_next_token (node : char Seq.node) =
   match node with
   | Seq.Nil               -> None
@@ -69,7 +94,7 @@ let rec read_next_token (node : char Seq.node) =
       | '\t'
       | '\n'
       | '\r' -> read_next_token @@ tail ()
-      | _    -> failwith "invalid input"
+      | _    -> Some (read_symbol_or_integer node)
     end
 
 let tokenize (seq : char Seq.t) =
