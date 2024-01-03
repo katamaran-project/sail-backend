@@ -17,11 +17,15 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
         stack := (x :: xs) :: xss
       end
   in
-  let rec make_list xs =
-    match xs with
-    | []    -> Ast.Nil
-    | x::xs -> Ast.Cons (x, make_list xs)
-
+  let make_list xs =
+    let rec aux xs =
+      match xs with
+      | []    -> Ast.Nil
+      | x::xs -> Ast.Cons (x, aux xs)
+    in
+    if List.is_empty xs
+    then Ast.Nil
+    else aux xs
   in
   let process_token (token : Tokenizer.token)  =
     match token with

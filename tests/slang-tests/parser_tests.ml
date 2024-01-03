@@ -8,6 +8,8 @@ let parse_string_tests =
     [
       ("5", [Integer 5]);
       ("1 2", [Integer 1; Integer 2]);
+      ("(1 2)", [Cons (Integer 1, Cons (Integer 2, Nil))]);
+      ("()", [Nil]);
     ]
   in
   let test_parse_string (input, expected) =
