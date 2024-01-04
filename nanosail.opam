@@ -13,6 +13,8 @@ depends: [
   "sail"
   "pprint"
   "auxlib"
+  "accessor_base"
+  "base"
   "odoc" {with-doc}
 ]
 build: [
