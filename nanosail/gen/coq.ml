@@ -376,7 +376,7 @@ let annotate_with_original_definitions originals translation =
 let annotate f =
   let (state, result) = Annotation_monad.run f
   in
-  let annotations = MetadataMap.bindings state.metadata
+  let annotations = AnnotationMap.bindings state.metadata
   in
   let pp_annotations =
     let pp_annotation index doc =

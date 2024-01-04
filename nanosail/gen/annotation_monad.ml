@@ -1,15 +1,15 @@
-module MetadataMap = Map.Make(Int)
+module AnnotationMap = Map.Make(Int)
 
 type 'a gen_state =
   {
     next_id : int;
-    metadata : 'a MetadataMap.t
+    metadata : 'a AnnotationMap.t
   }
 
 type ('a, 'r) gen_monad =
   | GenMonad of ('a gen_state -> ('a gen_state * 'r))
 
-let empty_state = { next_id = 1; metadata = MetadataMap.empty }
+let empty_state = { next_id = 1; metadata = AnnotationMap.empty }
 
 let run_with_state (GenMonad f) state = f state
 
@@ -19,7 +19,7 @@ let run_result f = snd (run f)
 
 let create_annotation metadatum =
   GenMonad (fun { next_id; metadata } ->
-      let metadata' = MetadataMap.add next_id metadatum metadata
+      let metadata' = AnnotationMap.add next_id metadatum metadata
       and next_id' = next_id + 1
       in
       (
