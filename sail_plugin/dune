@@ -6,9 +6,15 @@
   (name sail_plugin_katamaran)
   (modes
     (native plugin))
-  (libraries libsail nanosail auxlib monads)
-  (embed_in_plugin_libraries auxlib monads nanosail)  ; IMPORTANT: the order in which these libraries are mentioned matters
-  )
+  (libraries libsail nanosail)
+  (embed_in_plugin_libraries            ; IMPORTANT: the order in which these libraries are mentioned matters
+        sexplib0
+        base.base_internalhash_types
+        base.shadow_stdlib
+        base
+        auxlib
+        monads
+        nanosail))
 
 (install
   (section

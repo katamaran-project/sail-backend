@@ -10,8 +10,11 @@ let eol = dot
 let left_comment_delimiter = string "(*"
 let right_comment_delimiter = string "*)"
 
-let is_suffix ~suffix string =
-  String.ends_with ~suffix:suffix string
+(* let is_suffix ~suffix string = *)
+  (* String.ends_with ~suffix:suffix string *)
+
+let is_suffix = Base.String.is_suffix
+
 
 let map ~f lst =
   List.map f lst
