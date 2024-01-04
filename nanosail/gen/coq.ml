@@ -1,6 +1,6 @@
 open PPrint
 open Auxlib
-open Monad
+open Annotation_monad
 
 module Big_int = Nat_big_num
 
@@ -10,16 +10,22 @@ let eol = dot
 let left_comment_delimiter = string "(*"
 let right_comment_delimiter = string "*)"
 
+let is_suffix ~suffix string =
+  String.ends_with ~suffix:suffix string
+
+let map ~f lst =
+  List.map f lst
+
 let comment comment =
   let str = Util.string_of_document comment
   in
   if
-    count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
   then
     concat [
         left_comment_delimiter;
         space;
-        string (strip str);
+        string (rstrip str);
         space;
         right_comment_delimiter
       ]
@@ -36,12 +42,12 @@ let original_sail_code source =
   let str = Util.string_of_document source
   in
   if
-    count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
   then
     concat [
         left_comment_delimiter;
         space;
-        string (strip str);
+        string (rstrip str);
         space;
         right_comment_delimiter
       ]
@@ -62,12 +68,12 @@ let original_sail_codes sources =
     Util.string_of_document combined_sources
   in
   if
-    count_chars str '\n' == 1 && String.ends_with ~suffix:"\n" str
+    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
   then
     concat [
         left_comment_delimiter;
         space;
-        string (strip str);
+        string (rstrip str);
         space;
         right_comment_delimiter
       ]
@@ -122,7 +128,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
         if not (List.is_empty includes)
         then begin
           add @@ string "<:";
-          addall @@ List.map string includes
+          addall @@ map ~f:string includes
         end;
       )
   and last_line = line @@ separate space [ string "End"; string identifier ]
@@ -160,7 +166,7 @@ let build_inductive_type identifier typ constructor_generator =
   in
   let constructor_lines =
     let pairs =
-      List.map (fun (id, params, typ) ->
+      map constructors ~f:(fun (id, params, typ) ->
           separate space (
               build_list (fun { add; _ } ->
                   add id;
@@ -170,14 +176,13 @@ let build_inductive_type identifier typ constructor_generator =
             ),
           typ
         )
-        constructors
     in
     let longest_left_part =
       if List.is_empty pairs
       then 0
       else
         maximum (
-            List.map (fun (left, _) -> requirement left) pairs
+            map ~f:(fun (left, _) -> requirement left) pairs
           )
     in
     let make_line (left, right) =
@@ -193,7 +198,7 @@ let build_inductive_type identifier typ constructor_generator =
             )
         )
     in
-    List.map make_line pairs
+    map ~f:make_line pairs
   in
   let lines =
     build_list (fun { add; addall } ->
@@ -245,7 +250,7 @@ let match' expression cases =
   in
   let case_lines =
     let longest_pattern_width =
-      let widths = List.map (fun pattern -> requirement pattern) (List.map fst cases)
+      let widths = map ~f:(fun pattern -> requirement pattern) (map ~f:fst cases)
       in
       List.fold_left max 0 widths
     in
@@ -257,7 +262,7 @@ let match' expression cases =
           expression
         ]
     in
-    List.map generate_case cases
+    map ~f:generate_case cases
   in
   let final_line =
     string "end"
@@ -272,12 +277,12 @@ let match' expression cases =
   separate hardline lines
 
 let match_pair matched_expressions cases =
-  let left_patterns = List.map (compose fst fst) cases
+  let left_patterns = map ~f:(compose fst fst) cases
   in
-  let left_patterns_max_width = maximum (List.map PPrint.requirement left_patterns)
+  let left_patterns_max_width = maximum (map ~f:PPrint.requirement left_patterns)
   in
   let aligned_cases =
-    List.map (fun ((left, right), expression) ->
+    map cases ~f:(fun ((left, right), expression) ->
         (
           concat [
               Util.pad_right left_patterns_max_width left;
@@ -287,7 +292,6 @@ let match_pair matched_expressions cases =
             ],
           expression
       ))
-      cases
   in
   let matched_expression =
     let left, right = matched_expressions
@@ -303,16 +307,16 @@ let match_pair matched_expressions cases =
 
 let integer i =
   let pp_i = string (Big_int.to_string i ^ "%Z") in
-  if i < Z.zero then parens pp_i else pp_i
+  if Big_int.less i Z.zero then parens pp_i else pp_i
 
 let require_imports src names =
   let first = string src ^^ space ^^ string "Require Import"
-  and rest = List.map string names
+  and rest = map ~f:string names
   in
   line @@ Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest)
 
 let imports names =
-  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (List.map string names)
+  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (map ~f:string names)
 
 let open_scopes scopes =
   let open_scope scope =
@@ -322,7 +326,7 @@ let open_scopes scopes =
                 string scope;
               ]
   in
-  separate hardline (List.map open_scope scopes)
+  separate hardline (map ~f:open_scope scopes)
 
 let record_value fields =
   let ldelim = string "{| "
@@ -337,7 +341,7 @@ let record_value fields =
         ]
       )
     in
-    List.map item_of_field fields
+    map ~f:item_of_field fields
   in
   Util.pp_delimited_sequence ldelim rdelim semi items
 
@@ -359,7 +363,7 @@ let annotate_with_original_definitions originals translation =
   then
     concat @@
         build_list (fun { add; _ } ->
-            add @@ original_sail_codes (List.map Sail.pp_sail_definition originals);
+            add @@ original_sail_codes (map ~f:Sail.pp_sail_definition originals);
             add hardline;
             add translation
           )
@@ -367,7 +371,7 @@ let annotate_with_original_definitions originals translation =
     translation
 
 let annotate f =
-  let (state, result) = run f
+  let (state, result) = Annotation_monad.run f
   in
   let annotations = MetadataMap.bindings state.metadata
   in
@@ -375,7 +379,7 @@ let annotate f =
     let pp_annotation index doc =
       PPrint.(string (string_of_int index) ^^ string " : " ^^ align doc)
     in
-    List.map (Auxlib.uncurry pp_annotation) annotations
+    map ~f:(Auxlib.uncurry pp_annotation) annotations
   in
   PPrint.(separate hardline
             (Auxlib.build_list (fun { add; _ } ->
@@ -399,12 +403,10 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
   in
   let first_line =
     let parameters' =
-      List.map
-        (
+      map parameters ~f:(
           fun (identifier, typ) ->
-            parens @@ separate space [ identifier; colon; typ ]
+          parens @@ separate space [ identifier; colon; typ ]
         )
-        parameters
     in
     separate space (
         build_list (fun { add; addall } ->
@@ -423,7 +425,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
   in
   let constructor_lines =
     let pairs =
-      List.map (fun (id, params, typ) ->
+      map constructors ~f:(fun (id, params, typ) ->
           separate space (
               build_list (fun { add; _ } ->
                   add id;
@@ -433,14 +435,13 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
             ),
           typ
         )
-        constructors
     in
     let longest_left_part =
       if List.is_empty pairs
       then 0
       else
         maximum (
-            List.map (fun (left, _) -> requirement left) pairs
+            map ~f:(fun (left, _) -> requirement left) pairs
           )
     in
     let make_line (left, right) =
@@ -456,7 +457,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
             )
         )
     in
-    List.map make_line pairs
+    map ~f:make_line pairs
   in
   let lines =
     build_list (fun { add; addall } ->

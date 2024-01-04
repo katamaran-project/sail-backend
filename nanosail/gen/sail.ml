@@ -1,7 +1,7 @@
 open PPrint
 open Ast
 open Util
-open Monad
+open Annotation_monad
 
 module PP = PPrint
 
@@ -57,7 +57,7 @@ let rec pp_nanotype (typ : nanotype) =
     parens @@ simple_app [ pp_identifier "ty.prod"; x; y ]
   in
   let pp_tuple elts =
-    let* elts' = Monad.map pp_nanotype elts
+    let* elts' = Annotation_monad.map pp_nanotype elts
     in
     match Auxlib.split_last elts' with
     | Some (xs, last) -> generate @@ List.fold_right pp_product xs last

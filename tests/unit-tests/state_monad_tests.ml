@@ -1,5 +1,4 @@
 open OUnit2
-open Nanosail.Auxlib
 
 
 module IntState = Monads.State.Make(Int)

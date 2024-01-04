@@ -2,7 +2,7 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open Monad
+open Annotation_monad
 
 module FunDeclKit = Fundeclkit
 

@@ -1,6 +1,6 @@
 open PPrint
 open Ast
-open Monad
+open Annotation_monad
 
 
 let generate_inductive_type

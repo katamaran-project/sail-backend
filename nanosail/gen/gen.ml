@@ -5,4 +5,4 @@ module FunDeclKit = Fundeclkit
 module Katamaran = Katamaran
 module Registers = Registers
 module Sail = Sail
-module Monad = Monad
+module Annotation_monad = Annotation_monad

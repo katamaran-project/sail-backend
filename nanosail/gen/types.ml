@@ -1,6 +1,6 @@
 open PPrint
 open Ast
-open Monad
+open Annotation_monad
 
 
 let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =

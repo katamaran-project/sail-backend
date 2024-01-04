@@ -12,6 +12,7 @@ depends: [
   "dune" {>= "3.8"}
   "sail"
   "pprint"
+  "auxlib"
   "odoc" {with-doc}
 ]
 build: [

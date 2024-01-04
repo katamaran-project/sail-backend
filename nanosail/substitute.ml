@@ -78,7 +78,7 @@ module SubstitutionMonad = struct
     type t = identifier M.t
   end
   
-  include Auxlib.Monads.State.Make(SubstitutionMap)
+  include Monads.State.Make(SubstitutionMap)
 
 
   let add_substitution identifier identifier' =
@@ -109,7 +109,7 @@ let process_type_quantifier
     (sanitize        : identifier -> identifier option)
     (type_quantifier : type_quantifier                ) =
   let open SubstitutionMonad in
-  let open Auxlib.Monads.Notations.Star(SubstitutionMonad)
+  let open Monads.Notations.Star(SubstitutionMonad)
   in
   let rec aux (items : type_quantifier_item list) =
     match items with

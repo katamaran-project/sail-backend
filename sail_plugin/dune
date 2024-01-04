@@ -6,8 +6,8 @@
   (name sail_plugin_katamaran)
   (modes
     (native plugin))
-  (libraries libsail nanosail slang)
-  (embed_in_plugin_libraries nanosail slang))
+  (libraries libsail auxlib monads nanosail)
+  (embed_in_plugin_libraries auxlib monads nanosail))
 
 (install
   (section

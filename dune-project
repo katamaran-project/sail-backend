@@ -18,18 +18,32 @@
 	(name nanosail)
 	(synopsis
 		"Intermediate representation language for the Sail to µSail translation")
-	(depends ocaml dune sail pprint)
+	(depends ocaml dune sail pprint auxlib)
 	(allow_empty))
 
 (package
 	(name slang)
 	(synopsis
 		"S-Expression Language")
+	(depends ocaml dune pprint auxlib)
+	(allow_empty))
+
+(package
+	(name auxlib)
+	(synopsis
+		"Auxlib")
+	(depends ocaml dune pprint)
+	(allow_empty))
+
+(package
+	(name monads)
+	(synopsis
+		"Monad Library")
 	(depends ocaml dune pprint)
 	(allow_empty))
 
 (package
 	(name sail_katamaran_backend)
 	(synopsis "Sail to µSail translation")
-	(depends ocaml dune sail pprint)
+	(depends ocaml dune sail pprint auxlib)
 	(allow_empty))

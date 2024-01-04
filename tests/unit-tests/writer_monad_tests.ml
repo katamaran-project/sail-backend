@@ -1,5 +1,4 @@
 open OUnit2
-open Nanosail.Auxlib
 
 module IntMonoid = struct
   type t = int
