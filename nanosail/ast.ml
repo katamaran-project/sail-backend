@@ -1,3 +1,5 @@
+open Base
+
 (** NanoSail AST definition *)
 
 module Big_int = Nat_big_num
@@ -217,6 +219,7 @@ type program = {
     definitions  : (sail_definition * definition) list   (* All translated definitions; original order preserved *)
   }
 
+
 module Extract = struct
   let function_definition = function
     | FunctionDefinition x -> Some x
@@ -254,6 +257,6 @@ end
   
 let select (extractor : definition -> 'a option) (definitions : (sail_definition * definition) list) =
   let lift_extractor extractor (sail_definition, definition) =
-    Option.map (fun def -> (sail_definition, def)) (extractor definition)
+    Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
   in
-  List.filter_map (lift_extractor extractor) definitions
+  List.filter_map ~f:(lift_extractor extractor) definitions
