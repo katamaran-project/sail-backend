@@ -7,49 +7,53 @@ open Monad
 module FunDeclKit = Fundeclkit
 
 
-(******************************************************************************)
-(* Base pretty printing *)
-
 let defaultBase = string "Import DefaultBase."
 
 
 
-(******************************************************************************)
-(* Value pretty printing *)
-
-let rec pp_value = function
-  | Val_unit          -> string "tt"
-  | Val_bool b        -> string (string_of_bool b)
-  | Val_int i         -> Coq.integer i
-  | Val_string s      -> dquotes (string s)
-  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
-  | Val_nys           -> !^"VAL_" ^^ nys
+(* Having a separate aux function is completely redundant, but it allows us to easily modify pp_value's name *)
+let pp_value =
+  let rec aux = function
+    | Val_unit          -> string "tt"
+    | Val_bool b        -> string (string_of_bool b)
+    | Val_int i         -> Coq.integer i
+    | Val_string s      -> dquotes (string s)
+    | Val_prod (v1, v2) -> Coq.product (aux v1) (aux v2)
+  in
+  aux
 
 
 (******************************************************************************)
 (* Expression pretty printing *)
 
-let pp_infix_binOp = function
-  | Plus  -> plus
-  | Times -> star
-  | Minus -> minus
-  | And   -> twice ampersand
-  | Or    -> twice bar
-  | Eq    -> equals
-  | Neq   -> bang ^^ equals
-  | Le    -> langle ^^ equals
-  | Lt    -> langle
-  | Ge    -> rangle ^^ equals
-  | Gt    -> rangle
-  | _     -> ic
+let pp_infix_binOp (binary_operator : binary_operator) =
+  match binary_operator with
+  | Plus   -> generate @@ plus
+  | Times  -> generate @@ star
+  | Minus  -> generate @@ minus
+  | And    -> generate @@ twice ampersand
+  | Or     -> generate @@ twice bar
+  | Eq     -> generate @@ equals
+  | Neq    -> generate @@ bang ^^ equals
+  | Le     -> generate @@ langle ^^ equals
+  | Lt     -> generate @@ langle
+  | Ge     -> generate @@ rangle ^^ equals
+  | Gt     -> generate @@ rangle
+  | Pair   -> not_yet_implemented __POS__ (* Should not occur *)
+  | Cons   -> not_yet_implemented __POS__ (* Should not occur *)
+  | Append -> not_yet_implemented __POS__ (* Should not occur *)
 
-let rec ty_of_val = function
-  | Val_unit          -> Ty_unit
-  | Val_bool _        -> Ty_bool
-  | Val_int _         -> Ty_int
-  | Val_string _      -> Ty_string
-  | Val_prod (v1, v2) -> Ty_tuple [ty_of_val v1; ty_of_val v2]
-  | Val_nys           -> failwith "TODO"
+
+(* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *)
+let ty_of_val =
+  let rec aux = function
+    | Val_unit          -> Ty_unit
+    | Val_bool _        -> Ty_bool
+    | Val_int _         -> Ty_int
+    | Val_string _      -> Ty_string
+    | Val_prod (v1, v2) -> Ty_tuple [aux v1; aux v2]
+  in
+  aux
 
 let rec pp_expression e =
   let rec pp_exp_list = function
@@ -61,19 +65,22 @@ let rec pp_expression e =
        generate @@ parens @@ simple_app [string "cons"; x'; xs']
   in
   let pp_exp_val = function
-    | Val_bool true  -> generate @@ string "exp_true"
-    | Val_bool false -> generate @@ string "exp_false"
-    | Val_int n      -> generate @@ simple_app [string "exp_int"; Coq.integer n]
-    | Val_string s   -> generate @@ simple_app [string "exp_string"; dquotes (string s)]
-    | v ->
-       let* v_type = Sail.pp_nanotype (ty_of_val v);
-       in
-       generate @@ simple_app [
-         string "exp_val";
-         v_type;
-         pp_value v
-       ]
-
+    | Val_bool true        -> generate @@ string "exp_true"
+    | Val_bool false       -> generate @@ string "exp_false"
+    | Val_int n            -> generate @@ simple_app [string "exp_int"; Coq.integer n]
+    | Val_string s         -> generate @@ simple_app [string "exp_string"; dquotes (string s)]
+    | Val_unit             -> generate @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
+    | Val_prod (_, _) as v -> begin
+        let* tuple_type' = Sail.pp_nanotype (ty_of_val v)
+        in
+        let value' = pp_value v
+        in
+        generate @@ simple_app [
+          string "exp_val";
+          tuple_type';
+          value'
+        ]
+      end
   in
   let pp_exp_binop bo e1 e2 =
     let* e1' = pp_par_expression e1
@@ -102,7 +109,9 @@ let rec pp_expression e =
          e2'
        ]
     | _  ->
-       generate @@ infix 2 1 (pp_infix_binOp bo) e1' e2'
+      let* binop' = pp_infix_binOp bo
+      in
+      generate @@ infix 2 1 binop' e1' e2'
   in
   match e with
   | Exp_var v              -> generate @@ simple_app [string "exp_var"; dquotes (string v)]
@@ -124,7 +133,6 @@ let rec pp_expression e =
       in
       generate @@ simple_app [string "exp_list"; lst']
     end
-  | Exp_nys -> not_yet_implemented __POS__
 
 and pp_par_expression e =
   let* e' = pp_expression e

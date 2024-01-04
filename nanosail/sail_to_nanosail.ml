@@ -470,69 +470,52 @@ let translate_top_level_outcome_definition
   not_yet_implemented __POS__ location
 
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
-  try
-    let translation =
-      match def with
-      | DEF_fundef fd ->
-         begin
-           match ir_fundef fd with
-           | Some translation -> N.FunctionDefinition translation
-           | None             -> not_yet_implemented __POS__ annotation.loc
-         end
-      | DEF_type type_definition  ->
-         translate_type_definition annotation type_definition
-      | DEF_mapdef definition ->
-         translate_mapping_definition annotation definition
-      | DEF_impl impl_definition ->
-         translate_impl_definition annotation impl_definition
-      | DEF_let let_definition ->
-         translate_value_definition annotation let_definition
-      | DEF_val value_specification ->
-         translate_top_level_type_constraint annotation value_specification
-      | DEF_outcome (outcome_spec, definitions) ->
-         translate_top_level_outcome_definition annotation outcome_spec definitions
-      | DEF_instantiation (_, _) ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_fixity (_, _, _) ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_overload (_, _) ->
-         N.IgnoredDefinition
-      | DEF_default _ ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_scattered _ ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_measure (_, _, _) ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_loop_measures (_, _) ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_register specification ->
-         translate_register annotation specification
-      | DEF_internal_mutrec _ ->
-         not_yet_implemented __POS__ annotation.loc
-      | DEF_pragma (pragma, _argument, location) ->
-        begin
-          match pragma with
-          | "include_start" -> N.IgnoredDefinition
-          | "include_end"   -> N.IgnoredDefinition
-          | "file_start"    -> N.IgnoredDefinition
-          | "file_end"      -> N.IgnoredDefinition
-          | "sail_internal" -> N.IgnoredDefinition
-          | _               -> not_yet_implemented ~message:pragma __POS__ location
-        end
-    in
-    (sail_definition, translation)
-  with NotYetImplemented (source_position, sail_location, message) ->
-    let file, line_number, _, _ = source_position
-    in
-    (
-      sail_definition,
-      UntranslatedDefinition {
+  let ignore_definition = Configuration.(get ignore_definition)
+  in
+  if
+    ignore_definition sail_definition
+  then
+    (sail_definition, N.IgnoredDefinition)
+  else begin
+    try
+      let translation =
+        match def with
+        | DEF_type type_definition                 -> translate_type_definition annotation type_definition
+        | DEF_mapdef definition                    -> translate_mapping_definition annotation definition
+        | DEF_impl impl_definition                 -> translate_impl_definition annotation impl_definition
+        | DEF_let let_definition                   -> translate_value_definition annotation let_definition
+        | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
+        | DEF_outcome (outcome_spec, definitions)  -> translate_top_level_outcome_definition annotation outcome_spec definitions
+        | DEF_instantiation (_, _)                 -> not_yet_implemented __POS__ annotation.loc
+        | DEF_fixity (_, _, _)                     -> not_yet_implemented __POS__ annotation.loc
+        | DEF_overload (_, _)                      -> not_yet_implemented __POS__ annotation.loc
+        | DEF_default _                            -> not_yet_implemented __POS__ annotation.loc
+        | DEF_scattered _                          -> not_yet_implemented __POS__ annotation.loc
+        | DEF_measure (_, _, _)                    -> not_yet_implemented __POS__ annotation.loc
+        | DEF_loop_measures (_, _)                 -> not_yet_implemented __POS__ annotation.loc
+        | DEF_register specification               -> translate_register annotation specification
+        | DEF_internal_mutrec _                    -> not_yet_implemented __POS__ annotation.loc
+        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) __POS__ location
+        | DEF_fundef fd                            -> begin
+            match ir_fundef fd with
+            | Some translation -> N.FunctionDefinition translation
+            | None             -> not_yet_implemented __POS__ annotation.loc
+          end
+      in
+      (sail_definition, translation)
+    with NotYetImplemented (source_position, sail_location, message) ->
+      let file, line_number, _, _ = source_position
+      in
+      (
+        sail_definition,
+        UntranslatedDefinition {
           filename = file;
           line_number = line_number;
           sail_location = sail_location;
           message = message
         }
-    )
+      )
+  end
 
 let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
   {
@@ -584,18 +567,20 @@ let sanitize (program : N.program) : N.program =
       constructors    = constructors'
     }
   in
-  let sanitize_definition (sail_definition : N.sail_definition) (definition : N.definition) : N.sail_definition * N.definition =
+  let sanitize_definition
+      (sail_definition : N.sail_definition)
+      (definition      : N.definition     ) : N.sail_definition * N.definition =
     (
       sail_definition,
       match definition with
       | N.TopLevelTypeConstraintDefinition _ -> definition
-       | N.FunctionDefinition _              -> definition 
-       | N.TypeDefinition def                -> N.TypeDefinition (sanitize_type_definition def)
-       | N.RegisterDefinition _              -> definition
-       | N.VariantDefinition def             -> N.VariantDefinition (sanitize_variant_definition def)
-       | N.EnumDefinition _                  -> definition
-       | N.UntranslatedDefinition _          -> definition
-       | N.IgnoredDefinition                 -> definition
+      | N.FunctionDefinition _              -> definition 
+      | N.TypeDefinition def                -> N.TypeDefinition (sanitize_type_definition def)
+      | N.RegisterDefinition _              -> definition
+      | N.VariantDefinition def             -> N.VariantDefinition (sanitize_variant_definition def)
+      | N.EnumDefinition _                  -> definition
+      | N.UntranslatedDefinition _          -> definition
+      | N.IgnoredDefinition                 -> definition
     )
   in
   {

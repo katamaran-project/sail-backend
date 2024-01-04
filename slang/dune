@@ -1,0 +1,6 @@
+(include_subdirs qualified)
+
+(library
+ (name slang)
+ (public_name slang)
+ (libraries pprint))

@@ -8,7 +8,7 @@ type xlen_bytes : Int  = 4
 type xlen_bits  : Int  = xlen_bytes * 8
 type foo        : Int  = 3 * (8 + 1)
 type bar        : Bool = true
-type baz               = xlen
+
 
 /* /\* register RAX : bitvector(32) *\/ */
 /* /\* register RBX : bitvector(32) *\/ */

@@ -22,6 +22,13 @@
 	(allow_empty))
 
 (package
+	(name slang)
+	(synopsis
+		"S-Expression Language")
+	(depends ocaml dune pprint)
+	(allow_empty))
+
+(package
 	(name sail_katamaran_backend)
 	(synopsis "Sail to µSail translation")
 	(depends ocaml dune sail pprint)
