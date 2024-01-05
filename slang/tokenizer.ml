@@ -11,6 +11,9 @@ type token =
   | TFalse
 
 
+let is_newline = Char.equal '\n'
+
+
 let rec read_next_token (seq : char Sequence.t) =
   match Sequence.next seq with
   | None              -> return ()
@@ -22,6 +25,7 @@ let rec read_next_token (seq : char Sequence.t) =
       | ')'  -> yield TRightParenthesis >>= continue
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
+      | ';'  -> read_comment seq
       | _    -> begin
           if Char.is_whitespace char
           then continue ()
@@ -99,6 +103,11 @@ and read_symbol_or_integer (seq : char Sequence.t) =
     | None   -> yield (TSymbol chars) >>= continue
   end
 
+and read_comment (seq : char Sequence.t) =
+  match Sequence.next seq with
+  | Some (';', tail) -> read_next_token @@ Sequence.drop_while ~f:(Fn.non is_newline) tail
+  | _                -> failwith "expected to find comment"
+  
 
 let tokenize (seq : char Sequence.t) =
   run @@ read_next_token seq
