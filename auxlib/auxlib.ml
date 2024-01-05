@@ -13,14 +13,6 @@ let (|.|) p1 p2 x =
 let last_char string =
   String.get string (String.length string - 1)
 
-let drop_chars_while string predicate =
-  let i = ref 0
-  in
-  while !i < String.length string && predicate (String.get string !i) do
-    i := !i + 1
-  done;
-  String.sub string !i (String.length string - !i)
-
 let minimum ns =
   match ns with
   | []    -> failwith "Cannot find minimum of empty list"
