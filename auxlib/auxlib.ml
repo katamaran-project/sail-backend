@@ -10,14 +10,6 @@ let (&.&) p1 p2 x =
 let (|.|) p1 p2 x =
   p1 x || p2 x
 
-let count_chars string char =
-  let count acc c =
-    if c == char
-    then acc + 1
-    else acc
-  in
-  String.fold_left count 0 string
-
 let last_char string =
   String.get string (String.length string - 1)
 
