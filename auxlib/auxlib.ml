@@ -21,11 +21,6 @@ let count_chars string char =
 let last_char string =
   String.get string (String.length string - 1)
 
-let rstrip string =
-  if String.ends_with ~suffix:"\n" string
-  then String.sub string 0 (String.length string - 1)
-  else string
-
 let drop_chars_while string predicate =
   let i = ref 0
   in

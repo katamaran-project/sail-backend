@@ -33,7 +33,7 @@ let comment comment =
     concat [
         left_comment_delimiter;
         space;
-        string (rstrip str);
+        string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
@@ -55,7 +55,7 @@ let original_sail_code source =
     concat [
         left_comment_delimiter;
         space;
-        string (rstrip str);
+        string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
@@ -81,7 +81,7 @@ let original_sail_codes sources =
     concat [
         left_comment_delimiter;
         space;
-        string (rstrip str);
+        string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
