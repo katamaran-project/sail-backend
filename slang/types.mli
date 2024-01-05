@@ -3,13 +3,14 @@ exception TypeError
 type 'a converter = Value.t -> 'a option
 
 val (<|>)   : (Value.t -> 'a option) -> (Value.t -> 'a option) -> Value.t -> 'a option
+val (|?>)   : 'a option -> ('a -> 'b) -> 'b option
 
 val value   : Value.t converter
 val integer : int converter
 val tuple2  : 'a converter -> 'b converter -> ('a * 'b) converter
 val tuple3  : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 'c) converter
 val symbol  : string converter
-val cons    : ('a -> 'b -> 'c) -> 'a converter -> 'b converter -> 'c converter
+val cons    : 'a converter -> 'b converter -> ('a * 'b) converter
 val nil     : 'a -> 'a converter
 val list    : 'a converter -> 'a list converter
 

@@ -14,7 +14,7 @@ type 'a converter = Value.t -> 'a option
 exception TypeError
 
 
-let <(|>) f g =
+let (<|>) f g =
   let converter value =
     match f value with
     | Some x -> Some x
@@ -25,6 +25,9 @@ let <(|>) f g =
       end
   in
   converter
+
+let (|?>) x f = Option.map x ~f
+
 
 let value v =
   Some v
@@ -54,9 +57,9 @@ let symbol value =
   | _                 -> None
 
 
-let cons combine f g value =
+let cons f g value =
   match value with
-  | Cons (car, cdr) -> let* car = f car and* cdr = g cdr in return @@ combine car cdr
+  | Cons (car, cdr) -> let* car = f car and* cdr = g cdr in return (car, cdr)
   | _               -> None
 
 
