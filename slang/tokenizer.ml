@@ -1,7 +1,5 @@
 open Base
 
-type raw_token = string
-
 
 let is_whitespace char =
   match char with
