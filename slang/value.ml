@@ -20,12 +20,12 @@ let rec cons_to_list value =
 
 let rec to_string value =
   match value with
-  | Cons (_, _) -> "(" ^ (String.concat " " @@ List.map to_string (cons_to_list value)) ^ ")"
-  | Integer n -> Int.to_string n
-  | Symbol s -> s
-  | String s -> Printf.sprintf "\"%s\"" s
-  | Bool true -> "#t"
-  | Bool false -> "#f"
-  | Nil -> "()"
-  | Closure (_, _, _) -> "<closure>"
-  | NativeFunction _ -> "<native function>"
+  | Cons (_, _)        -> "(" ^ (String.concat " " @@ List.map to_string (cons_to_list value)) ^ ")"
+  | Integer n          -> Int.to_string n
+  | Symbol s           -> s
+  | String s           -> Printf.sprintf "\"%s\"" s
+  | Bool true          -> "#t"
+  | Bool false         -> "#f"
+  | Nil                -> "()"
+  | Closure (_, _, _)  -> "<closure>"
+  | NativeFunction _   -> "<native function>"
