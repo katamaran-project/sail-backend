@@ -1,3 +1,4 @@
+open Base
 open OUnit2
 open Slang.Tokenizer
 
@@ -35,12 +36,12 @@ let tokenizer_tests =
   in
   let test_tokenize (input, expected) =
     input >:: fun _ -> begin
-        let actual = List.of_seq @@ tokenize @@ String.to_seq input
+        let actual = Sequence.to_list @@ tokenize_string input
         in
         assert_equal expected actual
       end
   in
-  "tokenizer tests" >::: List.map test_tokenize test_cases
+  "tokenizer tests" >::: List.map ~f:test_tokenize test_cases
 
 
 let tests =

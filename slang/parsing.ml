@@ -1,11 +1,17 @@
-let parse_tokens (tokens : Tokenizer.token Seq.t) =
+open Base
+    
+
+exception ParseError of string
+  
+
+let parse_tokens (tokens : Tokenizer.token Sequence.t) =
   let stack = ref [[]]
   in
   let add_level () =
     stack := [] :: !stack
   and pop_level () =
     match !stack with
-    | []    -> failwith "too many )"
+    | []    -> raise (ParseError "too many )")
     | x::xs -> begin
         stack := xs;
         x
@@ -44,7 +50,7 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
     | Tokenizer.TTrue             -> push_value @@ Bool true
     | Tokenizer.TFalse            -> push_value @@ Bool false
   in
-  Seq.iter process_token tokens;
+  Sequence.iter ~f:process_token tokens;
   match !stack with
   | []  -> failwith "too many )"
   | [x] -> List.rev x
@@ -52,6 +58,6 @@ let parse_tokens (tokens : Tokenizer.token Seq.t) =
 
 
 let parse_string string =
-  let tokens = Tokenizer.tokenize (String.to_seq string)
+  let tokens = Tokenizer.tokenize @@ Sequence.of_list @@ String.to_list string
   in
   parse_tokens tokens
