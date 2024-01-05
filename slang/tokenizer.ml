@@ -75,20 +75,20 @@ let read_symbol_or_integer (seq : char Sequence.t) =
   end
 
 
-let rec read_next_token (node : char Sequence.t) =
-  match Sequence.next node with
+let rec read_next_token (seq : char Sequence.t) =
+  match Sequence.next seq with
   | None               -> None
   | Some (char, tail) -> begin
       match char with
       | '('  -> Some (TLeftParenthesis, tail)
       | ')'  -> Some (TRightParenthesis, tail)
-      | '#'  -> Some (read_boolean node)
-      | '"'  -> Some (read_string node)
+      | '#'  -> Some (read_boolean seq)
+      | '"'  -> Some (read_string seq)
       | ' '
       | '\t'
       | '\n'
       | '\r' -> read_next_token tail
-      | _    -> Some (read_symbol_or_integer node)
+      | _    -> Some (read_symbol_or_integer seq)
     end
 
 
