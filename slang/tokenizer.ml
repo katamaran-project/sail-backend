@@ -1,7 +1,6 @@
 open Base
 open Sequence.Generator
 
-
 type token =
   | TLeftParenthesis
   | TRightParenthesis
@@ -16,16 +15,16 @@ let rec read_next_token (seq : char Sequence.t) =
   match Sequence.next seq with
   | None              -> return ()
   | Some (char, tail) -> begin
-      let next () = read_next_token tail
+      let continue () = read_next_token tail
       in
       match char with
-      | '('  -> yield TLeftParenthesis >>= next
-      | ')'  -> yield TRightParenthesis >>= next
+      | '('  -> yield TLeftParenthesis >>= continue
+      | ')'  -> yield TRightParenthesis >>= continue
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
       | _    -> begin
           if Char.is_whitespace char
-          then next ()
+          then continue ()
           else read_symbol_or_integer seq
         end
     end
@@ -39,12 +38,12 @@ and read_boolean (seq : char Sequence.t) =
           match Sequence.next tail with
           | None               -> failwith "unfinished boolean"
           | Some (char, tail) -> begin
-              let next () =
+              let continue () =
                 read_next_token tail
               in
               match char with
-              | 't'  -> yield TTrue >>= next
-              | 'f'  -> yield TFalse >>= next
+              | 't'  -> yield TTrue >>= continue
+              | 'f'  -> yield TFalse >>= continue
               | _    -> failwith "unrecognized boolean"
             end
         end
@@ -56,11 +55,11 @@ and read_string (seq : char Sequence.t) =
     match Sequence.next seq with
     | None -> failwith "unfinished string"
     | Some (char, tail) -> begin
-        let next () =
+        let continue () =
           read_next_token tail
         in
         match char with
-        | '"' -> yield (TString (String.of_char_list @@ List.rev acc)) >>= next
+        | '"' -> yield (TString (String.of_char_list @@ List.rev acc)) >>= continue
         | _   -> collect_string_chars (char :: acc) @@ tail
       end
   in
@@ -89,15 +88,15 @@ and read_symbol_or_integer (seq : char Sequence.t) =
   in
   let (chars, tail) = collect_chars [] seq
   in
-  let next () =
+  let continue () =
     read_next_token tail
   in
   if String.is_empty chars
   then failwith "invalid input"
   else begin
     match Int.of_string_opt chars with
-    | Some n -> yield (TInteger n) >>= next
-    | None   -> yield (TSymbol chars) >>= next
+    | Some n -> yield (TInteger n) >>= continue
+    | None   -> yield (TSymbol chars) >>= continue
   end
 
 
