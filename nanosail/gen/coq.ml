@@ -12,17 +12,23 @@ let eol = dot
 let left_comment_delimiter = string "(*"
 let right_comment_delimiter = string "*)"
 
-(* let is_suffix ~suffix string = *)
-  (* String.ends_with ~suffix:suffix string *)
 
-let is_suffix = Base.String.is_suffix
+let ends_on_newline string =
+  String.is_suffix string ~suffix:"\n"
 
+let count_newlines string =
+  String.count string ~f:(Char.equal '\n')
+
+let is_single_line string =
+  let newline_count = count_newlines string
+  in
+  newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
 let comment comment =
   let str = Util.string_of_document comment
   in
   if
-    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
+    is_single_line str
   then
     concat [
         left_comment_delimiter;
@@ -44,7 +50,7 @@ let original_sail_code source =
   let str = Util.string_of_document source
   in
   if
-    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
+    is_single_line str
   then
     concat [
         left_comment_delimiter;
@@ -70,7 +76,7 @@ let original_sail_codes sources =
     Util.string_of_document combined_sources
   in
   if
-    count_chars str '\n' = 1 && is_suffix str ~suffix:"\n"
+    is_single_line str
   then
     concat [
         left_comment_delimiter;
