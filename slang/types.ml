@@ -63,9 +63,9 @@ let cons f g value =
   | _               -> None
 
 
-let nil r value =
+let nil value =
   match value with
-  | Nil -> Some r
+  | Nil -> Some ()
   | _   -> None
 
 

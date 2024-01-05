@@ -11,7 +11,7 @@ val tuple2  : 'a converter -> 'b converter -> ('a * 'b) converter
 val tuple3  : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 'c) converter
 val symbol  : string converter
 val cons    : 'a converter -> 'b converter -> ('a * 'b) converter
-val nil     : 'a -> 'a converter
+val nil     : unit converter
 val list    : 'a converter -> 'a list converter
 
 val map     : 'a converter -> Value.t list -> 'a list option
