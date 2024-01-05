@@ -1,3 +1,4 @@
+open Base
 open Nyi
 open Auxlib
 
@@ -71,7 +72,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   and translate_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list) =
-    let type_arguments' = List.map translate_type_argument type_arguments
+    let type_arguments' = List.map ~f:translate_type_argument type_arguments
     and identifier'     = translate_identifier identifier
     in
     match identifier', type_arguments' with
@@ -92,7 +93,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   | Typ_bidir (_, _)                -> not_yet_implemented [%here] location
   | Typ_exist (_, _, _)             -> not_yet_implemented [%here] location
   | Typ_id id                       -> type_of_identifier id
-  | Typ_tuple items                 -> N.Ty_tuple (List.map nanotype_of_sail_type items)
+  | Typ_tuple items                 -> N.Ty_tuple (List.map ~f:nanotype_of_sail_type items)
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
 
@@ -129,7 +130,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
       let ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
   | P_tuple pats ->
-      List.concat (List.map binds_of_pat pats)
+      List.concat (List.map ~f:binds_of_pat pats)
   | S.P_wild                      -> not_yet_implemented [%here] location
   | S.P_or (_, _)                 -> not_yet_implemented [%here] location
   | S.P_not _                     -> not_yet_implemented [%here] location
@@ -178,11 +179,11 @@ let rec expression_of_aval location (value : 'a S.aval) =
           let f e1 aval2 =
             let e2 = expression_of_aval location aval2 in
             N.Exp_binop (Pair, e1, e2) in
-          List.fold_left f e_h t
+          List.fold_left ~f:f ~init:e_h t
      end
   | AV_lit (lit, _)  -> N.Exp_val (value_of_lit lit)
   | AV_id (id, _)    -> N.Exp_var (translate_identifier id)
-  | AV_list (lst, _) -> Exp_list (List.map (expression_of_aval location) lst)
+  | AV_list (lst, _) -> Exp_list (List.map ~f:(expression_of_aval location) lst)
   | AV_ref (_, _)    -> not_yet_implemented [%here] location
   | AV_vector (_, _) -> not_yet_implemented [%here] location
   | AV_record (_, _) -> not_yet_implemented [%here] location
@@ -207,12 +208,12 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
      begin
        let x = translate_identifier id in
        match avals with
-       | [aval1; aval2] when x = "sail_cons" ->
+       | [aval1; aval2] when String.equal x "sail_cons" ->
           let e1 = expression_of_aval location aval1 in
           let e2 = expression_of_aval location aval2 in
           Stm_exp (Exp_binop (Cons, e1, e2))
        | _ ->
-          Stm_call (x, List.map (expression_of_aval location) avals)
+          Stm_call (x, List.map ~f:(expression_of_aval location) avals)
      end
   | AE_let (_, id, _, aexp1, aexp2, _) ->
     let x = translate_identifier id in
@@ -227,7 +228,7 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | AE_match (aval, cases, _) ->
       statement_of_match location aval cases
   | S.AE_block (statements, last_statement, _type) ->
-     let translated_statements = List.map statement_of_aexp (statements @ [last_statement])
+     let translated_statements = List.map ~f:statement_of_aexp (statements @ [last_statement])
      in
      make_sequence translated_statements location
   | S.AE_typ (_, _)              -> not_yet_implemented [%here] location
@@ -343,7 +344,7 @@ let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
-  | S.TypQ_tq items  -> List.map translate_type_quantifier_item items
+  | S.TypQ_tq items  -> List.map ~f:translate_type_quantifier_item items
   | S.TypQ_no_forall -> []
 
 let translate_type_abbreviation
@@ -374,7 +375,7 @@ let translate_enum
       (cases                  : S.id list  ) : N.definition
   =
   let identifier' = translate_identifier identifier
-  and cases'      = List.map translate_identifier cases
+  and cases'      = List.map ~f:translate_identifier cases
   in
   EnumDefinition {
     identifier = identifier';
@@ -396,7 +397,7 @@ let translate_variant
     let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
       (translate_identifier identifier, nanotype_of_sail_type typ)
     in
-    List.map translate_constructor constructors
+    List.map ~f:translate_constructor constructors
   in
   VariantDefinition {
     identifier      = identifier'     ;
@@ -518,7 +519,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
 let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
   {
     program_name = name;
-    definitions  = List.map translate_definition ast.defs
+    definitions  = List.map ~f:translate_definition ast.defs
   }
 
 
@@ -557,7 +558,7 @@ let sanitize (program : N.program) : N.program =
       )
     in
     let constructors' =
-      List.map sanitize_constructor constructors
+      List.map ~f:sanitize_constructor constructors
     in
     {
       identifier      = identifier      ;
@@ -583,5 +584,5 @@ let sanitize (program : N.program) : N.program =
   in
   {
     program_name = program.program_name;
-    definitions  = List.map (uncurry sanitize_definition) program.definitions
+    definitions  = List.map ~f:(uncurry sanitize_definition) program.definitions
   }
