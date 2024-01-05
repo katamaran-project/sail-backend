@@ -11,9 +11,6 @@ let (&.&) p1 p2 x =
 let (|.|) p1 p2 x =
   p1 x || p2 x
 
-let last_char string =
-  String.get string (String.length string - 1)
-
 let minimum ns =
   match ns with
   | []    -> failwith "Cannot find minimum of empty list"
