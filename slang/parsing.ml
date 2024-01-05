@@ -26,11 +26,11 @@ let parse_tokens (tokens : Tokenizer.token Sequence.t) =
   let make_list xs =
     let rec aux xs =
       match xs with
-      | []    -> Values.Nil
-      | x::xs -> Values.Cons (x, aux xs)
+      | []    -> Value.Nil
+      | x::xs -> Value.Cons (x, aux xs)
     in
     if List.is_empty xs
-    then Values.Nil
+    then Value.Nil
     else aux xs
   in
   let create_new_list () =
@@ -44,11 +44,11 @@ let parse_tokens (tokens : Tokenizer.token Sequence.t) =
     match token with
     | Tokenizer.TLeftParenthesis  -> create_new_list ()
     | Tokenizer.TRightParenthesis -> push_value @@ pop_list ()
-    | Tokenizer.TSymbol symbol    -> push_value @@ Symbol symbol
-    | Tokenizer.TString str       -> push_value @@ String str
-    | Tokenizer.TInteger n        -> push_value @@ Integer n
-    | Tokenizer.TTrue             -> push_value @@ Bool true
-    | Tokenizer.TFalse            -> push_value @@ Bool false
+    | Tokenizer.TSymbol symbol    -> push_value @@ Value.Symbol symbol
+    | Tokenizer.TString str       -> push_value @@ Value.String str
+    | Tokenizer.TInteger n        -> push_value @@ Value.Integer n
+    | Tokenizer.TTrue             -> push_value @@ Value.Bool true
+    | Tokenizer.TFalse            -> push_value @@ Value.Bool false
   in
   Sequence.iter ~f:process_token tokens;
   match !stack with
