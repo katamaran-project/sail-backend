@@ -1,6 +1,8 @@
+open Base
 open PPrint
 open Auxlib
 open Annotation_monad
+open Monads.Notations.Star(Annotation_monad)
 
 module Big_int = Nat_big_num
 
@@ -15,9 +17,6 @@ let right_comment_delimiter = string "*)"
 
 let is_suffix = Base.String.is_suffix
 
-
-let map ~f lst =
-  List.map f lst
 
 let comment comment =
   let str = Util.string_of_document comment
@@ -131,7 +130,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
         if not (List.is_empty includes)
         then begin
           add @@ string "<:";
-          addall @@ map ~f:string includes
+          addall @@ List.map ~f:string includes
         end;
       )
   and last_line = line @@ separate space [ string "End"; string identifier ]
@@ -169,7 +168,7 @@ let build_inductive_type identifier typ constructor_generator =
   in
   let constructor_lines =
     let pairs =
-      map constructors ~f:(fun (id, params, typ) ->
+      List.map constructors ~f:(fun (id, params, typ) ->
           separate space (
               build_list (fun { add; _ } ->
                   add id;
@@ -185,7 +184,7 @@ let build_inductive_type identifier typ constructor_generator =
       then 0
       else
         maximum (
-            map ~f:(fun (left, _) -> requirement left) pairs
+            List.map ~f:(fun (left, _) -> requirement left) pairs
           )
     in
     let make_line (left, right) =
@@ -201,7 +200,7 @@ let build_inductive_type identifier typ constructor_generator =
             )
         )
     in
-    map ~f:make_line pairs
+    List.map ~f:make_line pairs
   in
   let lines =
     build_list (fun { add; addall } ->
@@ -253,9 +252,9 @@ let match' expression cases =
   in
   let case_lines =
     let longest_pattern_width =
-      let widths = map ~f:(fun pattern -> requirement pattern) (map ~f:fst cases)
+      let widths = List.map ~f:(fun pattern -> requirement pattern) (List.map ~f:fst cases)
       in
-      List.fold_left max 0 widths
+      List.fold_left ~f:max ~init:0 widths
     in
     let generate_case (pattern, expression) =
       separate space [
@@ -265,7 +264,7 @@ let match' expression cases =
           expression
         ]
     in
-    map ~f:generate_case cases
+    List.map ~f:generate_case cases
   in
   let final_line =
     string "end"
@@ -280,12 +279,12 @@ let match' expression cases =
   separate hardline lines
 
 let match_pair matched_expressions cases =
-  let left_patterns = map ~f:(compose fst fst) cases
+  let left_patterns = List.map ~f:(compose fst fst) cases
   in
-  let left_patterns_max_width = maximum (map ~f:PPrint.requirement left_patterns)
+  let left_patterns_max_width = maximum (List.map ~f:PPrint.requirement left_patterns)
   in
   let aligned_cases =
-    map cases ~f:(fun ((left, right), expression) ->
+    List.map cases ~f:(fun ((left, right), expression) ->
         (
           concat [
               Util.pad_right left_patterns_max_width left;
@@ -314,12 +313,12 @@ let integer i =
 
 let require_imports src names =
   let first = string src ^^ space ^^ string "Require Import"
-  and rest = map ~f:string names
+  and rest = List.map ~f:string names
   in
   line @@ Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest)
 
 let imports names =
-  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (map ~f:string names)
+  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names)
 
 let open_scopes scopes =
   let open_scope scope =
@@ -329,7 +328,7 @@ let open_scopes scopes =
                 string scope;
               ]
   in
-  separate hardline (map ~f:open_scope scopes)
+  separate hardline (List.map ~f:open_scope scopes)
 
 let record_value fields =
   let ldelim = string "{| "
@@ -344,7 +343,7 @@ let record_value fields =
         ]
       )
     in
-    map ~f:item_of_field fields
+    List.map ~f:item_of_field fields
   in
   Util.pp_delimited_sequence ldelim rdelim semi items
 
@@ -366,7 +365,7 @@ let annotate_with_original_definitions originals translation =
   then
     concat @@
         build_list (fun { add; _ } ->
-            add @@ original_sail_codes (map ~f:Sail.pp_sail_definition originals);
+            add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
             add hardline;
             add translation
           )
@@ -374,21 +373,19 @@ let annotate_with_original_definitions originals translation =
     translation
 
 let annotate f =
-  let (state, result) = Annotation_monad.run f
-  in
-  let annotations = AnnotationMap.bindings state.metadata
+  let (document, annotations) = Annotation_monad.collect_annotations f
   in
   let pp_annotations =
     let pp_annotation index doc =
-      PPrint.(string (string_of_int index) ^^ string " : " ^^ align doc)
+      PPrint.(string (Int.to_string index) ^^ string " : " ^^ align doc)
     in
-    map ~f:(Auxlib.uncurry pp_annotation) annotations
+    List.mapi ~f:pp_annotation annotations
   in
   PPrint.(separate hardline
             (Auxlib.build_list (fun { add; _ } ->
                  if not (List.is_empty annotations)
                  then add @@ comment (separate hardline pp_annotations);
-                 add result)))
+                 add document)))
 
 let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generator =
   let* constructors =
@@ -399,14 +396,14 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
           ?(typ        : document = empty)
           (identifier  : document) =
       result := (identifier, parameters, typ) :: !result;
-      generate ()
+      return ()
     in
     let* _ = constructor_generator generate_case in
-    generate @@ List.rev !result
+    return @@ List.rev !result
   in
   let first_line =
     let parameters' =
-      map parameters ~f:(
+      List.map parameters ~f:(
           fun (identifier, typ) ->
           parens @@ separate space [ identifier; colon; typ ]
         )
@@ -428,7 +425,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
   in
   let constructor_lines =
     let pairs =
-      map constructors ~f:(fun (id, params, typ) ->
+      List.map constructors ~f:(fun (id, params, typ) ->
           separate space (
               build_list (fun { add; _ } ->
                   add id;
@@ -444,7 +441,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
       then 0
       else
         maximum (
-            map ~f:(fun (left, _) -> requirement left) pairs
+            List.map ~f:(fun (left, _) -> requirement left) pairs
           )
     in
     let make_line (left, right) =
@@ -460,7 +457,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
             )
         )
     in
-    map ~f:make_line pairs
+    List.map ~f:make_line pairs
   in
   let lines =
     build_list (fun { add; addall } ->
@@ -468,4 +465,4 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
         addall constructor_lines
       )
   in
-  generate @@ separate hardline lines ^^ hardline ^^ eol
+  return @@ separate hardline lines ^^ hardline ^^ eol

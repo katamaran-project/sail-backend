@@ -3,6 +3,7 @@ open Ast
 open Auxlib
 open Util
 open Annotation_monad
+open Monads.Notations.Star(Annotation_monad)
 
 module FunDeclKit = Fundeclkit
 
@@ -28,17 +29,17 @@ let pp_value =
 
 let pp_infix_binOp (binary_operator : binary_operator) =
   match binary_operator with
-  | Plus   -> generate @@ plus
-  | Times  -> generate @@ star
-  | Minus  -> generate @@ minus
-  | And    -> generate @@ twice ampersand
-  | Or     -> generate @@ twice bar
-  | Eq     -> generate @@ equals
-  | Neq    -> generate @@ bang ^^ equals
-  | Le     -> generate @@ langle ^^ equals
-  | Lt     -> generate @@ langle
-  | Ge     -> generate @@ rangle ^^ equals
-  | Gt     -> generate @@ rangle
+  | Plus   -> return @@ plus
+  | Times  -> return @@ star
+  | Minus  -> return @@ minus
+  | And    -> return @@ twice ampersand
+  | Or     -> return @@ twice bar
+  | Eq     -> return @@ equals
+  | Neq    -> return @@ bang ^^ equals
+  | Le     -> return @@ langle ^^ equals
+  | Lt     -> return @@ langle
+  | Ge     -> return @@ rangle ^^ equals
+  | Gt     -> return @@ rangle
   | Pair   -> not_yet_implemented __POS__ (* Should not occur *)
   | Cons   -> not_yet_implemented __POS__ (* Should not occur *)
   | Append -> not_yet_implemented __POS__ (* Should not occur *)
@@ -57,25 +58,25 @@ let ty_of_val =
 
 let rec pp_expression e =
   let rec pp_exp_list = function
-    | []      -> generate @@ string "nil"
+    | []      -> return @@ string "nil"
     | x :: xs ->
        let* x'  = pp_par_expression x
        and* xs' = pp_exp_list xs
        in
-       generate @@ parens @@ simple_app [string "cons"; x'; xs']
+       return @@ parens @@ simple_app [string "cons"; x'; xs']
   in
   let pp_exp_val = function
-    | Val_bool true        -> generate @@ string "exp_true"
-    | Val_bool false       -> generate @@ string "exp_false"
-    | Val_int n            -> generate @@ simple_app [string "exp_int"; Coq.integer n]
-    | Val_string s         -> generate @@ simple_app [string "exp_string"; dquotes (string s)]
-    | Val_unit             -> generate @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
+    | Val_bool true        -> return @@ string "exp_true"
+    | Val_bool false       -> return @@ string "exp_false"
+    | Val_int n            -> return @@ simple_app [string "exp_int"; Coq.integer n]
+    | Val_string s         -> return @@ simple_app [string "exp_string"; dquotes (string s)]
+    | Val_unit             -> return @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
     | Val_prod (_, _) as v -> begin
         let* tuple_type' = Sail.pp_nanotype (ty_of_val v)
         in
         let value' = pp_value v
         in
-        generate @@ simple_app [
+        return @@ simple_app [
           string "exp_val";
           tuple_type';
           value'
@@ -88,21 +89,21 @@ let rec pp_expression e =
     in
     match bo with
     | Pair ->
-       generate @@ simple_app [
+       return @@ simple_app [
          string "exp_binop";
          string "bop.pair";
          e1';
          e2'
        ]
     | Cons ->
-       generate @@ simple_app [
+       return @@ simple_app [
          string "exp_binop";
          string "bop.cons";
          e1';
          e2'
        ]
     | Append ->
-       generate @@ simple_app [
+       return @@ simple_app [
          string "exp_binop";
          string "bop.append";
          e1';
@@ -111,13 +112,13 @@ let rec pp_expression e =
     | _  ->
       let* binop' = pp_infix_binOp bo
       in
-      generate @@ infix 2 1 binop' e1' e2'
+      return @@ infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var v              -> generate @@ simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_var v              -> return @@ simple_app [string "exp_var"; dquotes (string v)]
   | Exp_val v              -> pp_exp_val v
-  | Exp_neg e              -> let* e' = pp_par_expression e in generate @@ string "- " ^^ e'
-  | Exp_not e              -> let* e' = pp_par_expression e in generate @@ simple_app [string "exp_not"; e']
+  | Exp_neg e              -> let* e' = pp_par_expression e in return @@ string "- " ^^ e'
+  | Exp_not e              -> let* e' = pp_par_expression e in return @@ simple_app [string "exp_not"; e']
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
   | Exp_list lst           ->
     begin
@@ -127,17 +128,17 @@ let rec pp_expression e =
         then
           let* expressions = map pp_expression lst
           in
-          generate @@ Coq.list expressions
+          return @@ Coq.list expressions
         else
           pp_exp_list lst
       in
-      generate @@ simple_app [string "exp_list"; lst']
+      return @@ simple_app [string "exp_list"; lst']
     end
 
 and pp_par_expression e =
   let* e' = pp_expression e
   in
-  generate @@ parens e'
+  return @@ parens e'
 
 
 (******************************************************************************)
@@ -148,14 +149,14 @@ let rec pp_statement statement =
   | Stm_exp e ->
      let* e' = pp_par_expression e
      in
-     generate @@ simple_app [string "stm_exp"; e']
+     return @@ simple_app [string "stm_exp"; e']
 
   | Stm_match_list m ->
      let* m_s' = pp_par_statement m.s
      and* m_alt_nil' = pp_par_statement m.alt_nil
      and* m_alt_cons' = pp_par_statement m.alt_cons
      in
-     generate @@
+     return @@
          simple_app [
              string "stm_match_list";
              m_s';
@@ -169,7 +170,7 @@ let rec pp_statement statement =
      let* m_s'   = pp_par_statement m.s
      and* m_rhs' = pp_par_statement m.rhs
      in
-     generate @@
+     return @@
          simple_app [
              string "stm_match_prod";
              m_s';
@@ -181,13 +182,13 @@ let rec pp_statement statement =
   | Stm_call (f, arg_list) ->
      let* arg_list' = map pp_par_expression arg_list
      in
-     generate @@ simple_app @@ string "call" :: string f :: arg_list'
+     return @@ simple_app @@ string "call" :: string f :: arg_list'
 
   | Stm_let (v, s1, s2) ->
      let* s1' = pp_statement s1
      and* s2' = pp_statement s2
      in
-     generate @@
+     return @@
          simple_app [
              string ("let: \"" ^ v ^ "\" :=");
              s1';
@@ -200,7 +201,7 @@ let rec pp_statement statement =
      and* s1' = pp_par_statement s1
      and* s2' = pp_par_statement s2
      in
-     generate @@
+     return @@
          simple_app [
              string "stm_if";
              s';
@@ -212,11 +213,14 @@ let rec pp_statement statement =
      let* s1' = pp_par_statement s1
      and* s2' = pp_par_statement s2
      in
-     generate @@ simple_app [ string "stm_seq"; s1'; s2' ]
+     return @@ simple_app [ string "stm_seq"; s1'; s2' ]
 
   | Stm_nys -> not_yet_implemented __POS__
 
-and pp_par_statement s = lift parens (pp_statement s)
+and pp_par_statement s =
+  let* s' = pp_statement s
+  in
+  return @@ parens s'
 
 
 (******************************************************************************)
@@ -232,12 +236,12 @@ let pp_function_definition
       let* bindings =
         let* docs = map Sail.pp_bind function_definition.funType.arg_types
         in
-        generate @@ Coq.list docs
+        return @@ Coq.list docs
       in
       let* result_type =
         Sail.pp_nanotype function_definition.funType.ret_type
       in
-      generate @@ Some (
+      return @@ Some (
                       pp_hanging_list (PP.string "Stm") [
                           bindings;
                           result_type
@@ -247,7 +251,7 @@ let pp_function_definition
     let* body =
       pp_statement function_definition.funBody
     in
-    generate @@ Coq.definition ~identifier ~parameters ~result_type ~body
+    return @@ Coq.definition ~identifier ~parameters ~result_type ~body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -375,7 +379,7 @@ let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
 let _generate_module_header title =
-  generate @@ string @@ Printf.sprintf "(*** %s ***)" title
+  return @@ string @@ Printf.sprintf "(*** %s ***)" title
 
 let fromIR_pp ir =
   let prelude =

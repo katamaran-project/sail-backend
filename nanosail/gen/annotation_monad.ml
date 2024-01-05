@@ -1,77 +1,48 @@
-module AnnotationMap = Map.Make(Int)
+type annotation = PPrint.document
 
-type 'a gen_state =
+type annotations = annotation list
+
+type state =
   {
-    next_id : int;
-    metadata : 'a AnnotationMap.t
+    annotations : annotations
   }
 
-type ('a, 'r) gen_monad =
-  | GenMonad of ('a gen_state -> ('a gen_state * 'r))
+module Monad = Monads.State.Make(struct type t = state end)
 
-let empty_state = { next_id = 1; metadata = AnnotationMap.empty }
+type 'a t = 'a Monad.t
 
-let run_with_state (GenMonad f) state = f state
+let return = Monad.return
 
-let run f = run_with_state f empty_state
+let bind = Monad.bind
 
-let run_result f = snd (run f)
+let initial_state = { annotations = [] }
 
-let create_annotation metadatum =
-  GenMonad (fun { next_id; metadata } ->
-      let metadata' = AnnotationMap.add next_id metadatum metadata
-      and next_id' = next_id + 1
-      in
-      (
-        { next_id=next_id'; metadata=metadata' },
-        next_id
-      )
-    )
-
-let generate result =
-  GenMonad (fun state -> (state, result))
-
-let (let*) m g =
-  GenMonad (fun state ->
-      let (state', result) = run_with_state m state
-      in
-      run_with_state (g result) state')
-    
-let (and*) x y =
-  let* x' = x in
-  let* y' = y in
-  generate (x', y')
+let create_annotation annotation =
+  let open Monads.Notations.Star(Monad)
+  in
+  let* state = Monad.get
+  in
+  let annotations' = annotation :: state.annotations
+  in
+  let state' = { annotations = annotations' }
+  in
+  let* () = Monad.put state'
+  in
+  Monad.return @@ List.length annotations'
 
 let not_yet_implemented (filename, line_number, _start_column, _end_column) =
+  let open Monads.Notations.Star(Monad)
+  in
   let annotation_doc =
     PPrint.string (Printf.sprintf "%s line %d" filename line_number)
   in
   let* id = create_annotation annotation_doc
   in
-  generate @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
+  return @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
 
-let rec seqmap fs =
-  match fs with
-  | []    -> generate []
-  | f::fs -> let* r = f in
-             let* rs = seqmap fs
-             in
-             generate @@ r :: rs
-
-let rec iter f xs =
-  match xs with
-  | []    -> generate ()
-  | x::xs -> let* _ = f x in
-             iter f xs
-
-let rec map f xs =
-  match xs with
-  | []    -> generate []
-  | x::xs -> let* r = f x in
-             let* rs = map f xs in
-             generate @@ r :: rs
-
-let lift f x =
-  let* x' = x
+let collect_annotations f =
+  let result, state = Monad.run f initial_state
   in
-  generate @@ f x'
+  (result, List.rev state.annotations)
+
+include Monads.Util.Make(Monad)

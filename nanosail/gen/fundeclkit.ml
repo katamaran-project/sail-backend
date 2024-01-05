@@ -2,6 +2,7 @@ open PPrint
 open Ast
 open Util
 open Annotation_monad
+open Monads.Notations.Star(Annotation_monad)
 
 
 let generate function_definitions =
@@ -9,13 +10,13 @@ let generate function_definitions =
     let name = string function_definition.funName in
     let* function_type =
       let* parameter_types =
-        let* ps = seqmap (List.map Sail.pp_bind function_definition.funType.arg_types)
+        let* ps = map Sail.pp_bind function_definition.funType.arg_types
         in
-        generate @@ Coq.list ps
+        return @@ Coq.list ps
       in
       let* return_type = Sail.pp_nanotype function_definition.funType.ret_type
       in
-      generate @@
+      return @@
           concat [
               string "Fun";
               space;
@@ -30,7 +31,7 @@ let generate function_definitions =
                 )
             ]
     in
-    generate (name, function_type)
+    return (name, function_type)
   in
   let inductive_type_declaration =
     let name = string "Fun"

@@ -1,6 +1,7 @@
 open PPrint
 open Ast
 open Annotation_monad
+open Monads.Notations.Star(Annotation_monad)
 
 
 let generate_inductive_type
@@ -16,13 +17,13 @@ let generate_inductive_type
       in
       let ts = ts @ [ identifier' ]
       in
-      generate @@ separate (string " -> ") ts
+      return @@ separate (string " -> ") ts
     in
     let* type_quantifier' =
       map (fun (id, kind) ->
           let* kind' = Sail.pp_kind kind
           in
-          generate (Sail.pp_identifier id, kind')
+          return (Sail.pp_identifier id, kind')
         ) type_quantifier
     in
     Coq.mbuild_inductive_type

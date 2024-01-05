@@ -2,6 +2,7 @@ open PPrint
 open Ast
 open Util
 open Annotation_monad
+open Monads.Notations.Star(Annotation_monad)
 
 module PP = PPrint
 
@@ -34,7 +35,7 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
     | NE_id id        -> pp_identifier id
     | NE_var id       -> pp_identifier id
   in
-  generate @@ pp 0 numeric_expression
+  return @@ pp 0 numeric_expression
 
 and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   match numeric_constraint with
@@ -49,8 +50,8 @@ and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   | NC_and (_x, _y)        -> not_yet_implemented __POS__
   | NC_app (_x, _y)        -> not_yet_implemented __POS__
   | NC_var _               -> not_yet_implemented __POS__
-  | NC_true                -> generate @@ string "true"
-  | NC_false               -> generate @@ string "false"
+  | NC_true                -> return @@ string "true"
+  | NC_false               -> return @@ string "false"
 
 let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
@@ -60,13 +61,13 @@ let rec pp_nanotype (typ : nanotype) =
     let* elts' = Annotation_monad.map pp_nanotype elts
     in
     match Auxlib.split_last elts' with
-    | Some (xs, last) -> generate @@ List.fold_right pp_product xs last
+    | Some (xs, last) -> return @@ List.fold_right pp_product xs last
     | None            -> not_yet_implemented __POS__
   in
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    generate @@ parens @@ simple_app [ string "ty.list"; element_type' ]
+    return @@ parens @@ simple_app [ string "ty.list"; element_type' ]
   in
   let pp_application id type_arguments =
     let id' = pp_identifier id
@@ -74,20 +75,20 @@ let rec pp_nanotype (typ : nanotype) =
     let* type_arguments' =
       map pp_type_argument type_arguments
     in
-    generate @@ parens @@ simple_app (id' :: type_arguments')
+    return @@ parens @@ simple_app (id' :: type_arguments')
   in
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
-    generate @@ simple_app [ string "ty.bitvector"; nexpr' ]
+    return @@ simple_app [ string "ty.bitvector"; nexpr' ]
   in
   match typ with
-   | Ty_unit            -> generate @@ string "ty.unit"
-   | Ty_bool            -> generate @@ string "ty.bool"
-   | Ty_int             -> generate @@ string "ty.int"
-   | Ty_string          -> generate @@ string "ty.string"
-   | Ty_atom            -> generate @@ string "ty.atom"
-   | Ty_custom id       -> generate @@ pp_identifier id
+   | Ty_unit            -> return @@ string "ty.unit"
+   | Ty_bool            -> return @@ string "ty.bool"
+   | Ty_int             -> return @@ string "ty.int"
+   | Ty_string          -> return @@ string "ty.string"
+   | Ty_atom            -> return @@ string "ty.atom"
+   | Ty_custom id       -> return @@ pp_identifier id
    | Ty_list typ        -> pp_list typ
    | Ty_tuple ts        -> pp_tuple ts
    | Ty_app (id, targs) -> pp_application id targs
@@ -102,7 +103,7 @@ and pp_type_argument (type_argument : type_argument) =
 
 let pp_bind (arg, t) =
   let* t' = pp_nanotype t in
-  generate @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
+  return @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
@@ -110,7 +111,7 @@ let pp_sail_definition sail_definition =
 let pp_kind (kind : kind) =
   match kind with
   | Kind_type -> not_yet_implemented __POS__
-  | Kind_int  -> generate @@ string @@ "nat"
+  | Kind_int  -> return @@ string @@ "nat"
   | Kind_bool -> not_yet_implemented __POS__
 
 let pp_type_quantifier quantifier =
@@ -119,7 +120,7 @@ let pp_type_quantifier quantifier =
     in
     let* kind' = pp_kind kind
     in
-    generate @@ parens @@ separate space [
+    return @@ parens @@ separate space [
       identifier';
       colon;
       kind'
