@@ -23,11 +23,11 @@ let rec read_next_token (seq : char Sequence.t) =
       | ')'  -> yield TRightParenthesis >>= next
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
-      | ' '
-      | '\t'
-      | '\n'
-      | '\r' -> next ()
-      | _    -> read_symbol_or_integer seq
+      | _    -> begin
+          if Char.is_whitespace char
+          then next ()
+          else read_symbol_or_integer seq
+        end
     end
 
 and read_boolean (seq : char Sequence.t) =
