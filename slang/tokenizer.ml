@@ -1,11 +1,6 @@
 open Base
 
 
-let is_whitespace char =
-  match char with
-  | ' ' | '\n' | '\r' | '\t' -> true
-  | _                        -> false
-
 type token =
   | TLeftParenthesis
   | TRightParenthesis
