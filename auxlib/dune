@@ -1,4 +1,4 @@
 (library
  (name auxlib)
  (public_name auxlib)
- (libraries pprint))
+ (libraries base))
