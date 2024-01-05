@@ -1,5 +1,5 @@
-type ast =
-  | Cons    of ast * ast
+type value =
+  | Cons    of value * value
   | Integer of int
   | Symbol  of string
   | String  of string
