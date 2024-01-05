@@ -1,13 +1,6 @@
 open Base
 
 
-exception TypeError
-  
-let as_int (value : Value.t) =
-  match value with
-  | Value.Integer n -> n
-  | _               -> raise TypeError
-
 type extend_environment_context = {
   extend          : (Value.t Environment.t -> Value.t Environment.t) -> unit;
   native_function : string -> Value.native_function -> unit;

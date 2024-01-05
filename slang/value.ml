@@ -5,10 +5,10 @@ type t =
   | String         of string
   | Bool           of bool
   | Nil
-  | Closure        of t Environment.t * string list * t
+  | Closure        of t Environment.t * string list * t list
   | NativeFunction of native_function
 
-and native_function = t list -> t
+and native_function = t Environment.t -> t list -> t
 
 let rec cons_to_list value =
   match value with

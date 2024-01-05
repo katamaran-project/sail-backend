@@ -84,14 +84,25 @@ and evaluate_closure_call environment parameters arguments body =
   with_environment environment (fun () ->
       let* () = bind_parameters parameters arguments
       in
-      evaluate body
+      evaluate_many body
     )
 
 and evaluate_native_call native_function arguments =
-  EvaluationContext.return @@ native_function arguments
+  let open EvaluationContext
+  in
+  let* env = current_environment
+  in
+  EvaluationContext.return @@ native_function env arguments
 
-let evaluate_many asts =
-  EvaluationContext.map evaluate asts
+and evaluate_many asts =
+  let open EvaluationContext
+  in
+  let* results = EvaluationContext.map evaluate asts
+  in
+  match List.last results with
+  | None   -> return Value.Nil
+  | Some x -> return x
+
 
 let run asts =
   EvaluationContext.run (evaluate_many asts) Prelude.prelude

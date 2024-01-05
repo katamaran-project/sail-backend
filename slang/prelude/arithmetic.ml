@@ -1,17 +1,18 @@
 open Base
 open Util
+open Types
 
 
-let addition args =
-  let ns = List.map ~f:as_int args
+let addition _ args =
+  let=! ns = map integer args
   in
   let result = List.fold_left ~f:Int.(+) ~init:0 ns
   in
   Value.Integer result
 
 
-let subtraction args =
-  let ns = List.map ~f:as_int args
+let subtraction _ args =
+  let=! ns = map integer args
   in
   let result = match ns with
     | []    -> 0
@@ -21,16 +22,16 @@ let subtraction args =
   Value.Integer result
 
 
-let multiplication args =
-  let ns = List.map ~f:as_int args
+let multiplication _ args =
+  let=! ns = map integer args
   in
   let result = List.fold_left ~f:Int.( * ) ~init:1 ns
   in
   Value.Integer result
 
 
-let division args =
-  let ns = List.map ~f:as_int args
+let division _ args =
+  let=! ns = map integer args
   in
   let result = match ns with
     | []    -> raise TypeError

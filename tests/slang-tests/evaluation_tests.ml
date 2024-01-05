@@ -5,21 +5,21 @@ open OUnit2
 let evaluation_tests =
   let test_cases =
     [
-      ("5", [ Slang.Value.Integer 5 ]);
-      ("(+)", [ Slang.Value.Integer 0 ]);
-      ("(+ 1)", [ Slang.Value.Integer 1 ]);
-      ("(+ 1 2)", [ Slang.Value.Integer 3 ]);
-      ("(+ 7 8 10)", [ Slang.Value.Integer 25 ]);
-      ("(-)", [ Slang.Value.Integer 0 ]);
-      ("(- 5)", [ Slang.Value.Integer (-5) ]);
-      ("(- 5 1)", [ Slang.Value.Integer 4 ]);
-      ("(- 5 1 2)", [ Slang.Value.Integer 2 ]);
-      ("(*)", [ Slang.Value.Integer 1 ]);
-      ("(* 2)", [ Slang.Value.Integer 2 ]);
-      ("(* 2 3)", [ Slang.Value.Integer 6 ]);
-      ("(/ 10 2)", [ Slang.Value.Integer 5 ]);
-      ("(/ 9 2)", [ Slang.Value.Integer 4 ]);
-      ("(/ 100 2 2)", [ Slang.Value.Integer 25 ]);
+      ("5", Slang.Value.Integer 5 );
+      ("(+)", Slang.Value.Integer 0 );
+      ("(+ 1)", Slang.Value.Integer 1 );
+      ("(+ 1 2)", Slang.Value.Integer 3 );
+      ("(+ 7 8 10)", Slang.Value.Integer 25 );
+      ("(-)", Slang.Value.Integer 0 );
+      ("(- 5)", Slang.Value.Integer (-5) );
+      ("(- 5 1)", Slang.Value.Integer 4 );
+      ("(- 5 1 2)", Slang.Value.Integer 2 );
+      ("(*)", Slang.Value.Integer 1 );
+      ("(* 2)", Slang.Value.Integer 2 );
+      ("(* 2 3)", Slang.Value.Integer 6 );
+      ("(/ 10 2)", Slang.Value.Integer 5 );
+      ("(/ 9 2)", Slang.Value.Integer 4 );
+      ("(/ 100 2 2)", Slang.Value.Integer 25 );
     ]
   in
   let test_run (input, expected) =
