@@ -19,6 +19,8 @@ let tokenizer_tests =
       ("123", [ TInteger 123 ]);
       ("-123", [ TInteger (-123) ]);
       ("1+", [ TSymbol "1+" ]);
+      ("; 1", [ ]);
+      ("1 ; 2\n3", [ TInteger 1; TInteger 3 ]);
       ("(= (1+ x) (foo 1))", [
           TLeftParenthesis;
           TSymbol "=";
