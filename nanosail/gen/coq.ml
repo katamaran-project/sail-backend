@@ -285,7 +285,7 @@ let match' expression cases =
   separate hardline lines
 
 let match_pair matched_expressions cases =
-  let left_patterns = List.map ~f:(compose fst fst) cases
+  let left_patterns = List.map ~f:(Fn.compose fst fst) cases
   in
   let left_patterns_max_width = maximum (List.map ~f:PPrint.requirement left_patterns)
   in
