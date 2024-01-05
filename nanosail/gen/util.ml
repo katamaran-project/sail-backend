@@ -1,3 +1,4 @@
+open Base
 open PPrint
 
 
@@ -92,6 +93,6 @@ let separate_nonempty separator items =
     requirement item > 0
   in
   let nonempty_items =
-    List.filter is_nonempty items
+    List.filter ~f:is_nonempty items
   in
   separate separator nonempty_items

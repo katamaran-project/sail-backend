@@ -33,11 +33,11 @@ let create_annotation annotation =
   in
   Monad.return @@ List.length annotations'
 
-let not_yet_implemented (filename, line_number, _start_column, _end_column) =
+let not_yet_implemented (position : Lexing.position) =
   let open Monads.Notations.Star(Monad)
   in
   let annotation_doc =
-    PPrint.string (Printf.sprintf "%s line %d" filename line_number)
+    PPrint.string (Printf.sprintf "%s line %d" position.pos_fname position.pos_lnum)
   in
   let* id = create_annotation annotation_doc
   in

@@ -1,3 +1,4 @@
+open Base
 open PPrint
 open Ast
 open Annotation_monad
@@ -38,7 +39,7 @@ let reg_definition () =
 let instance_reg_eq_dec register_names =
   let cases =
     let cs =
-      List.map (fun register_name ->
+      List.map ~f:(fun register_name ->
           let rn_str = register_name in
           ((rn_str, rn_str), string "left eq_refl"))
         register_names
@@ -65,7 +66,7 @@ let reg_finite register_names =
         register_name
       ]
     in
-    Coq.list (List.map enum_value_of_register_name register_names)
+    Coq.list (List.map ~f:enum_value_of_register_name register_names)
   in
   separate hardline (
     [
@@ -89,11 +90,11 @@ let generate (register_definitions : (sail_definition * register_definition) lis
     let extract_identifier (pair : sail_definition * register_definition) =
       string (snd pair).identifier
     in
-    List.map extract_identifier register_definitions
+    List.map ~f:extract_identifier register_definitions
   in
   let section_contents =
     Coq.line @@ separate (twice hardline) [
-      reg_inductive_type (List.map snd register_definitions);
+      reg_inductive_type @@ List.map ~f:snd register_definitions;
       no_confusion_for_reg ();
       reg_definition ();
       instance_reg_eq_dec register_names;

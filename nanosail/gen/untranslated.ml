@@ -1,3 +1,4 @@
+open Base
 open PPrint
 open Ast
 open Auxlib
@@ -10,7 +11,7 @@ let generate untranslated_definitions =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with
     | Libsail.Parse_ast.Range (start, stop) ->
-       if start.pos_fname = stop.pos_fname
+       if String.equal start.pos_fname stop.pos_fname
        then (
          if start.pos_lnum = stop.pos_lnum
          then
@@ -50,5 +51,5 @@ let generate untranslated_definitions =
   in
   Coq.comment (
       separate small_step (
-          List.map (uncurry pp_untranslated_definition) untranslated_definitions
+          List.map ~f:(uncurry pp_untranslated_definition) untranslated_definitions
     ))

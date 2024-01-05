@@ -1,3 +1,4 @@
+open Base
 open PPrint
 open Ast
 open Annotation_monad

@@ -1,3 +1,4 @@
+open Base
 open PPrint
 open Ast
 open Auxlib
@@ -16,7 +17,7 @@ let defaultBase = string "Import DefaultBase."
 let pp_value =
   let rec aux = function
     | Val_unit          -> string "tt"
-    | Val_bool b        -> string (string_of_bool b)
+    | Val_bool b        -> string (Bool.to_string b)
     | Val_int i         -> Coq.integer i
     | Val_string s      -> dquotes (string s)
     | Val_prod (v1, v2) -> Coq.product (aux v1) (aux v2)
@@ -40,9 +41,9 @@ let pp_infix_binOp (binary_operator : binary_operator) =
   | Lt     -> return @@ langle
   | Ge     -> return @@ rangle ^^ equals
   | Gt     -> return @@ rangle
-  | Pair   -> not_yet_implemented __POS__ (* Should not occur *)
-  | Cons   -> not_yet_implemented __POS__ (* Should not occur *)
-  | Append -> not_yet_implemented __POS__ (* Should not occur *)
+  | Pair   -> not_yet_implemented [%here] (* Should not occur *)
+  | Cons   -> not_yet_implemented [%here] (* Should not occur *)
+  | Append -> not_yet_implemented [%here] (* Should not occur *)
 
 
 (* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *)
@@ -215,7 +216,7 @@ let rec pp_statement statement =
      in
      return @@ simple_app [ string "stm_seq"; s1'; s2' ]
 
-  | Stm_nys -> not_yet_implemented __POS__
+  | Stm_nys -> not_yet_implemented [%here]
 
 and pp_par_statement s =
   let* s' = pp_statement s
@@ -274,18 +275,18 @@ let pp_function_definitions
     let find_type_constraint function_name =
       match
         List.filter
-          (fun (_, type_constraint) -> type_constraint.identifier = function_name)
+          ~f:(fun (_, type_constraint) -> String.equal type_constraint.identifier function_name)
           top_level_type_constraint_definitions
       with
       | [x] -> Some x
       | []  -> None
       | _   -> None
     in
-    List.map (fun ((_sail_definition, function_definition) as fdef) ->
+    List.map ~f:(fun ((_sail_definition, function_definition) as fdef) ->
         (fdef, find_type_constraint function_definition.funName))
       function_definitions
   in
-  List.map (uncurry pp_function_definition) type_and_function_pairs
+  List.map ~f:(uncurry pp_function_definition) type_and_function_pairs
 
 let pp_function_definition_kit
       function_definitions
@@ -307,7 +308,7 @@ let pp_function_definition_kit
             string (Printf.sprintf "fun_%s" function_definition.funName)
           )
         in
-        List.map case_of_function_definition (List.map snd function_definitions)
+        List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
       in
       Coq.match' matched_expression cases
     in
@@ -356,7 +357,7 @@ let pp_program_module
   let includes        = [ "Program"; base_identifier ]
   and contents =
     separate (twice hardline) [
-      FunDeclKit.generate @@ List.map snd function_definitions;
+      FunDeclKit.generate @@ List.map ~f:snd function_definitions;
       Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
       Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
@@ -403,13 +404,13 @@ let fromIR_pp ir =
         | UntranslatedDefinition _           -> None
         | IgnoredDefinition                  -> None
       in
-      List.filter_map (uncurry translate_type_enum_or_variant) ir.definitions
+      List.filter_map ~f:(uncurry translate_type_enum_or_variant) ir.definitions
     in
     let translated_enum_definitions =
       let enum_definitions = select Extract.enum_definition ir.definitions
       in
       build_list @@ fun { add; addall } -> begin
-                        addall @@ List.map (uncurry Enums.generate_constructors_inductive_type) enum_definitions;
+                        addall @@ List.map ~f:(uncurry Enums.generate_constructors_inductive_type) enum_definitions;
                         if not (List.is_empty enum_definitions)
                         then begin
                             add @@ Enums.generate_enum_of_enums enum_definitions;
@@ -419,7 +420,7 @@ let fromIR_pp ir =
                      end
     and translated_variant_definitions =
       List.map
-        (uncurry Variants.generate_inductive_type)
+        ~f:(uncurry Variants.generate_inductive_type)
         (select Extract.variant_definition ir.definitions)
     in
     let segments =
@@ -464,7 +465,7 @@ let fromIR_pp ir =
     if
       Configuration.(get include_ignored_definitions)
     then
-      generate_section "IGNORED" @@ Ignored.generate @@ List.map fst @@ select Extract.ignored_definition ir.definitions
+      generate_section "IGNORED" @@ Ignored.generate @@ List.map ~f:fst @@ select Extract.ignored_definition ir.definitions
     else
       empty
   in

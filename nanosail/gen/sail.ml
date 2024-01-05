@@ -1,3 +1,4 @@
+open Base
 open PPrint
 open Ast
 open Util
@@ -39,17 +40,17 @@ let pp_numeric_expression (numeric_expression : numeric_expression) =
 
 and pp_numeric_constraint (numeric_constraint : numeric_constraint) =
   match numeric_constraint with
-  | NC_equal (_x, _y)      -> not_yet_implemented __POS__
-  | NC_bounded_ge (_x, _y) -> not_yet_implemented __POS__
-  | NC_bounded_gt (_x, _y) -> not_yet_implemented __POS__
-  | NC_bounded_le (_x, _y) -> not_yet_implemented __POS__
-  | NC_bounded_lt (_x, _y) -> not_yet_implemented __POS__
-  | NC_not_equal (_x, _y)  -> not_yet_implemented __POS__
-  | NC_set (_x, _y)        -> not_yet_implemented __POS__
-  | NC_or (_x, _y)         -> not_yet_implemented __POS__
-  | NC_and (_x, _y)        -> not_yet_implemented __POS__
-  | NC_app (_x, _y)        -> not_yet_implemented __POS__
-  | NC_var _               -> not_yet_implemented __POS__
+  | NC_equal (_x, _y)      -> not_yet_implemented [%here]
+  | NC_bounded_ge (_x, _y) -> not_yet_implemented [%here]
+  | NC_bounded_gt (_x, _y) -> not_yet_implemented [%here]
+  | NC_bounded_le (_x, _y) -> not_yet_implemented [%here]
+  | NC_bounded_lt (_x, _y) -> not_yet_implemented [%here]
+  | NC_not_equal (_x, _y)  -> not_yet_implemented [%here]
+  | NC_set (_x, _y)        -> not_yet_implemented [%here]
+  | NC_or (_x, _y)         -> not_yet_implemented [%here]
+  | NC_and (_x, _y)        -> not_yet_implemented [%here]
+  | NC_app (_x, _y)        -> not_yet_implemented [%here]
+  | NC_var _               -> not_yet_implemented [%here]
   | NC_true                -> return @@ string "true"
   | NC_false               -> return @@ string "false"
 
@@ -61,8 +62,8 @@ let rec pp_nanotype (typ : nanotype) =
     let* elts' = Annotation_monad.map pp_nanotype elts
     in
     match Auxlib.split_last elts' with
-    | Some (xs, last) -> return @@ List.fold_right pp_product xs last
-    | None            -> not_yet_implemented __POS__
+    | Some (xs, last) -> return @@ List.fold_right ~f:pp_product ~init:last xs
+    | None            -> not_yet_implemented [%here]
   in
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
@@ -110,9 +111,9 @@ let pp_sail_definition sail_definition =
 
 let pp_kind (kind : kind) =
   match kind with
-  | Kind_type -> not_yet_implemented __POS__
+  | Kind_type -> not_yet_implemented [%here]
   | Kind_int  -> return @@ string @@ "nat"
-  | Kind_bool -> not_yet_implemented __POS__
+  | Kind_bool -> not_yet_implemented [%here]
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
