@@ -1,8 +1,19 @@
 open Base
+open Auxlib
 open OUnit2
 
 
-let evaluation_tests =
+let test_run input expected =
+  input >:: fun _ -> begin
+      let asts = Slang.Parser.parse_string input
+      in
+      let (actual, _)  = Slang.Evaluation.run asts
+      in
+      assert_equal expected actual
+    end
+
+
+let arithmetic_tests =
   let test_cases =
     [
       ("5", Slang.Value.Integer 5 );
@@ -22,19 +33,10 @@ let evaluation_tests =
       ("(/ 100 2 2)", Slang.Value.Integer 25 );
     ]
   in
-  let test_run (input, expected) =
-    input >:: fun _ -> begin
-        let asts = Slang.Parser.parse_string input
-        in
-        let (actual, _)  = Slang.Evaluation.run asts
-        in
-        assert_equal expected actual
-      end
-  in
-  "run tests" >::: List.map ~f:test_run test_cases
+  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
 let tests =
   "evaluation tests" >::: [
-    evaluation_tests;
+    arithmetic_tests;
   ]
