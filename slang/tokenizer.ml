@@ -73,7 +73,7 @@ let read_symbol_or_integer (seq : char Sequence.t) =
   in
   let (chars, tail) = collect_chars [] seq
   in
-  if String.length chars = 0
+  if String.is_empty chars
   then failwith "invalid input"
   else begin
     match Int.of_string_opt chars with
