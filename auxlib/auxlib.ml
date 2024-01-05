@@ -1,5 +1,5 @@
 open Base
-    
+
 
 module Settings = Settings
 
@@ -41,15 +41,17 @@ let build_list f =
   f context;
   List.rev !list_under_construction
 
-let rec take n xs =
-  if n <= 0
-  then []
-  else
-    match xs with
-    | []    -> []
-    | x::xs -> x :: take (n - 1) xs
-
 let split_last xs =
   match List.rev xs with
   | []    -> None
   | x::xs -> Some (List.rev xs, x)
+
+let using ~resource:(x : 'a) ~close ~body =
+  begin
+    try
+      body x
+    with e ->
+      close x;
+      raise e
+  end;
+  close x
