@@ -18,7 +18,7 @@
 	(name nanosail)
 	(synopsis
 		"Intermediate representation language for the Sail to µSail translation")
-	(depends ocaml dune sail pprint auxlib accessor_base base)
+	(depends ocaml dune sail pprint auxlib accessor_base base ppx_accessor ppx_here)
 	(allow_empty))
 
 (package

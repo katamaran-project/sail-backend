@@ -15,6 +15,8 @@ depends: [
   "auxlib"
   "accessor_base"
   "base"
+  "ppx_accessor"
+  "ppx_here"
   "odoc" {with-doc}
 ]
 build: [

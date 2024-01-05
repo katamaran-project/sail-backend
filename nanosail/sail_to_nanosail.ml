@@ -18,7 +18,7 @@ module N = Ast
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier =
   match aux with
   | Id x       -> x
-  | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) __POS__ location
+  | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
 
 (******************************************************************************)
 
@@ -31,8 +31,8 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
   | Nexp_neg x                                 -> NE_neg (translate_numeric_expression x)
   | Nexp_var (Kid_aux (Var string, _location)) -> NE_var string
   | Nexp_id identifier                         -> NE_id (translate_identifier identifier)
-  | Nexp_exp _                                 -> not_yet_implemented __POS__ numexp_location
-  | Nexp_app (_, _)                            -> not_yet_implemented __POS__ numexp_location
+  | Nexp_exp _                                 -> not_yet_implemented [%here] numexp_location
+  | Nexp_app (_, _)                            -> not_yet_implemented [%here] numexp_location
 
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   match numeric_constraint with
@@ -48,7 +48,7 @@ and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> N.NC_var kind_id
   | S.NC_true                                  -> N.NC_true
   | S.NC_false                                 -> N.NC_false
-  | S.NC_app (_, _)                            -> not_yet_implemented __POS__ location
+  | S.NC_app (_, _)                            -> not_yet_implemented [%here] location
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
@@ -82,15 +82,15 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
     match type_argument with
     | A_nexp e -> TA_numexp (translate_numeric_expression e)
     | A_typ t  -> TA_type (nanotype_of_sail_type t)
-    | A_bool _ -> not_yet_implemented __POS__ location
+    | A_bool _ -> not_yet_implemented [%here] location
   in
 
   match typ with
-  | Typ_internal_unknown            -> not_yet_implemented __POS__ location
-  | Typ_var _                       -> not_yet_implemented __POS__ location
-  | Typ_fn (_, _)                   -> not_yet_implemented __POS__ location
-  | Typ_bidir (_, _)                -> not_yet_implemented __POS__ location
-  | Typ_exist (_, _, _)             -> not_yet_implemented __POS__ location
+  | Typ_internal_unknown            -> not_yet_implemented [%here] location
+  | Typ_var _                       -> not_yet_implemented [%here] location
+  | Typ_fn (_, _)                   -> not_yet_implemented [%here] location
+  | Typ_bidir (_, _)                -> not_yet_implemented [%here] location
+  | Typ_exist (_, _, _)             -> not_yet_implemented [%here] location
   | Typ_id id                       -> type_of_identifier id
   | Typ_tuple items                 -> N.Ty_tuple (List.map nanotype_of_sail_type items)
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
@@ -102,7 +102,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
-  | Pat_when _       -> not_yet_implemented __POS__ location
+  | Pat_when _       -> not_yet_implemented [%here] location
 
 
 (******************************************************************************)
@@ -113,16 +113,16 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
      begin
        match lit with
        | S.L_unit     -> [("()", N.Ty_unit)]
-       | S.L_zero     -> not_yet_implemented __POS__ location
-       | S.L_one      -> not_yet_implemented __POS__ location
-       | S.L_true     -> not_yet_implemented __POS__ location
-       | S.L_false    -> not_yet_implemented __POS__ location
-       | S.L_num _    -> not_yet_implemented __POS__ location
-       | S.L_hex _    -> not_yet_implemented __POS__ location
-       | S.L_bin _    -> not_yet_implemented __POS__ location
-       | S.L_string _ -> not_yet_implemented __POS__ location
-       | S.L_undef    -> not_yet_implemented __POS__ location
-       | S.L_real _   -> not_yet_implemented __POS__ location
+       | S.L_zero     -> not_yet_implemented [%here] location
+       | S.L_one      -> not_yet_implemented [%here] location
+       | S.L_true     -> not_yet_implemented [%here] location
+       | S.L_false    -> not_yet_implemented [%here] location
+       | S.L_num _    -> not_yet_implemented [%here] location
+       | S.L_hex _    -> not_yet_implemented [%here] location
+       | S.L_bin _    -> not_yet_implemented [%here] location
+       | S.L_string _ -> not_yet_implemented [%here] location
+       | S.L_undef    -> not_yet_implemented [%here] location
+       | S.L_real _   -> not_yet_implemented [%here] location
      end
   | P_id id ->
       let x = translate_identifier id in
@@ -130,25 +130,25 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
       [(x, ty)]
   | P_tuple pats ->
       List.concat (List.map binds_of_pat pats)
-  | S.P_wild                      -> not_yet_implemented __POS__ location
-  | S.P_or (_, _)                 -> not_yet_implemented __POS__ location
-  | S.P_not _                     -> not_yet_implemented __POS__ location
-  | S.P_as (_, _)                 -> not_yet_implemented __POS__ location
-  | S.P_typ (_, _)                -> not_yet_implemented __POS__ location
-  | S.P_var (_, _)                -> not_yet_implemented __POS__ location
-  | S.P_app (_, _)                -> not_yet_implemented __POS__ location
-  | S.P_vector _                  -> not_yet_implemented __POS__ location
-  | S.P_vector_concat _           -> not_yet_implemented __POS__ location
-  | S.P_vector_subrange (_, _, _) -> not_yet_implemented __POS__ location
-  | S.P_list _                    -> not_yet_implemented __POS__ location
-  | S.P_cons (_, _)               -> not_yet_implemented __POS__ location
-  | S.P_string_append _           -> not_yet_implemented __POS__ location
-  | S.P_struct (_, _)             -> not_yet_implemented __POS__ location
+  | S.P_wild                      -> not_yet_implemented [%here] location
+  | S.P_or (_, _)                 -> not_yet_implemented [%here] location
+  | S.P_not _                     -> not_yet_implemented [%here] location
+  | S.P_as (_, _)                 -> not_yet_implemented [%here] location
+  | S.P_typ (_, _)                -> not_yet_implemented [%here] location
+  | S.P_var (_, _)                -> not_yet_implemented [%here] location
+  | S.P_app (_, _)                -> not_yet_implemented [%here] location
+  | S.P_vector _                  -> not_yet_implemented [%here] location
+  | S.P_vector_concat _           -> not_yet_implemented [%here] location
+  | S.P_vector_subrange (_, _, _) -> not_yet_implemented [%here] location
+  | S.P_list _                    -> not_yet_implemented [%here] location
+  | S.P_cons (_, _)               -> not_yet_implemented [%here] location
+  | S.P_string_append _           -> not_yet_implemented [%here] location
+  | S.P_struct (_, _)             -> not_yet_implemented [%here] location
 
 let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _ -> not_yet_implemented __POS__ location
+  | Pat_when _ -> not_yet_implemented [%here] location
 
 
 (******************************************************************************)
@@ -160,19 +160,19 @@ let value_of_lit (S.L_aux (aux, location)) =
   | L_num n    -> N.Val_int n
   | L_unit     -> N.Val_unit
   | L_string s -> N.Val_string s
-  | S.L_zero   -> not_yet_implemented __POS__ location
-  | S.L_one    -> not_yet_implemented __POS__ location
-  | S.L_hex _  -> not_yet_implemented __POS__ location
-  | S.L_bin _  -> not_yet_implemented __POS__ location
-  | S.L_undef  -> not_yet_implemented __POS__ location
-  | S.L_real _ -> not_yet_implemented __POS__ location
+  | S.L_zero   -> not_yet_implemented [%here] location
+  | S.L_one    -> not_yet_implemented [%here] location
+  | S.L_hex _  -> not_yet_implemented [%here] location
+  | S.L_bin _  -> not_yet_implemented [%here] location
+  | S.L_undef  -> not_yet_implemented [%here] location
+  | S.L_real _ -> not_yet_implemented [%here] location
 
 let rec expression_of_aval location (value : 'a S.aval) =
   match value with
   | AV_tuple elts ->
      begin
        match elts with
-       | [] -> not_yet_implemented ~message:"Should not occur" __POS__ location
+       | [] -> not_yet_implemented ~message:"Should not occur" [%here] location
        | h::t ->
           let e_h = expression_of_aval location h in
           let f e1 aval2 =
@@ -183,16 +183,16 @@ let rec expression_of_aval location (value : 'a S.aval) =
   | AV_lit (lit, _)  -> N.Exp_val (value_of_lit lit)
   | AV_id (id, _)    -> N.Exp_var (translate_identifier id)
   | AV_list (lst, _) -> Exp_list (List.map (expression_of_aval location) lst)
-  | AV_ref (_, _)    -> not_yet_implemented __POS__ location
-  | AV_vector (_, _) -> not_yet_implemented __POS__ location
-  | AV_record (_, _) -> not_yet_implemented __POS__ location
-  | AV_cval (_, _)   -> not_yet_implemented __POS__ location
+  | AV_ref (_, _)    -> not_yet_implemented [%here] location
+  | AV_vector (_, _) -> not_yet_implemented [%here] location
+  | AV_record (_, _) -> not_yet_implemented [%here] location
+  | AV_cval (_, _)   -> not_yet_implemented [%here] location
 
 
 let make_sequence statements location =
   let rec aux statements =
     match statements with
-    | []    -> not_yet_implemented ~message:"Should not happen" __POS__  location
+    | []    -> not_yet_implemented ~message:"Should not happen" [%here]  location
     | [x]   -> x
     | x::xs -> N.Stm_seq (x, aux xs)
   in
@@ -230,17 +230,17 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
      let translated_statements = List.map statement_of_aexp (statements @ [last_statement])
      in
      make_sequence translated_statements location
-  | S.AE_typ (_, _)              -> not_yet_implemented __POS__ location
-  | S.AE_assign (_, _)           -> not_yet_implemented __POS__ location
-  | S.AE_return (_, _)           -> not_yet_implemented __POS__ location
-  | S.AE_exit (_, _)             -> not_yet_implemented __POS__ location
-  | S.AE_throw (_, _)            -> not_yet_implemented __POS__ location
-  | S.AE_field (_, _, _)         -> not_yet_implemented __POS__ location
-  | S.AE_try (_, _, _)           -> not_yet_implemented __POS__ location
-  | S.AE_struct_update (_, _, _) -> not_yet_implemented __POS__ location
-  | S.AE_for (_, _, _, _, _, _)  -> not_yet_implemented __POS__ location
-  | S.AE_loop (_, _, _)          -> not_yet_implemented __POS__ location
-  | S.AE_short_circuit (_, _, _) -> not_yet_implemented __POS__ location
+  | S.AE_typ (_, _)              -> not_yet_implemented [%here] location
+  | S.AE_assign (_, _)           -> not_yet_implemented [%here] location
+  | S.AE_return (_, _)           -> not_yet_implemented [%here] location
+  | S.AE_exit (_, _)             -> not_yet_implemented [%here] location
+  | S.AE_throw (_, _)            -> not_yet_implemented [%here] location
+  | S.AE_field (_, _, _)         -> not_yet_implemented [%here] location
+  | S.AE_try (_, _, _)           -> not_yet_implemented [%here] location
+  | S.AE_struct_update (_, _, _) -> not_yet_implemented [%here] location
+  | S.AE_for (_, _, _, _, _, _)  -> not_yet_implemented [%here] location
+  | S.AE_loop (_, _, _)          -> not_yet_implemented [%here] location
+  | S.AE_short_circuit (_, _, _) -> not_yet_implemented [%here] location
 
 and statement_of_match location matched cases =
   match cases with
@@ -298,12 +298,12 @@ and statement_of_match location matched cases =
         xr  = translate_identifier id_r;
         rhs = statement_of_aexp clause;
         }
-  | _ -> not_yet_implemented __POS__ location
+  | _ -> not_yet_implemented [%here] location
 
 let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
-  | Pat_when _       -> not_yet_implemented __POS__ location
+  | Pat_when _       -> not_yet_implemented [%here] location
 
 
 (******************************************************************************)
@@ -339,7 +339,7 @@ let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
     and kind_id' = translate_kind_id kind_id
     in
     (kind_id', kind')
-  | S.QI_constraint _ -> not_yet_implemented __POS__ location
+  | S.QI_constraint _ -> not_yet_implemented [%here] location
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
@@ -410,13 +410,13 @@ let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (t
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
   | TD_record (_, _, _, _) ->
-     not_yet_implemented __POS__ definition_annotation.loc
+     not_yet_implemented [%here] definition_annotation.loc
   | TD_variant (identifier, type_quantifier, constructors, flag) ->
      translate_variant definition_annotation identifier type_quantifier constructors flag
   | TD_enum (identifier, cases, _) ->
      translate_enum definition_annotation type_annotation identifier cases
   | TD_bitfield (_, _, _) ->
-     not_yet_implemented __POS__ definition_annotation.loc
+     not_yet_implemented [%here] definition_annotation.loc
 
 let translate_top_level_type_constraint
       (_definition_annotation : S.def_annot)
@@ -438,7 +438,7 @@ let translate_register
   begin
     match expression with
     | None                                          -> ()
-    | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented __POS__ location
+    | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented [%here] location
   end;
   let identifier' = translate_identifier identifier
   and nano_type   = nanotype_of_sail_type sail_type
@@ -451,23 +451,23 @@ let translate_register
 let translate_mapping_definition
       (_definition_annotation : S.def_annot)
       (S.MD_aux (_definition, (location, _mapping_annotation))) =
-  not_yet_implemented __POS__ location
+  not_yet_implemented [%here] location
 
 let translate_impl_definition
       (_definition_annotation : S.def_annot)
       (S.FCL_aux (_definition, (annot, _))) =
-  not_yet_implemented __POS__ annot.loc
+  not_yet_implemented [%here] annot.loc
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
       (S.LB_aux (_definition, (location, _value_def_annotation))) =
-  not_yet_implemented __POS__ location
+  not_yet_implemented [%here] location
 
 let translate_top_level_outcome_definition
       (_definition_annotation : S.def_annot)
       (S.OV_aux (_outcome, location))
       (_definitions : ('a S.def) list) =
-  not_yet_implemented __POS__ location
+  not_yet_implemented [%here] location
 
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
   let ignore_definition = Configuration.(get ignore_definition)
@@ -486,31 +486,29 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_let let_definition                   -> translate_value_definition annotation let_definition
         | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
         | DEF_outcome (outcome_spec, definitions)  -> translate_top_level_outcome_definition annotation outcome_spec definitions
-        | DEF_instantiation (_, _)                 -> not_yet_implemented __POS__ annotation.loc
-        | DEF_fixity (_, _, _)                     -> not_yet_implemented __POS__ annotation.loc
-        | DEF_overload (_, _)                      -> not_yet_implemented __POS__ annotation.loc
-        | DEF_default _                            -> not_yet_implemented __POS__ annotation.loc
-        | DEF_scattered _                          -> not_yet_implemented __POS__ annotation.loc
-        | DEF_measure (_, _, _)                    -> not_yet_implemented __POS__ annotation.loc
-        | DEF_loop_measures (_, _)                 -> not_yet_implemented __POS__ annotation.loc
+        | DEF_instantiation (_, _)                 -> not_yet_implemented [%here] annotation.loc
+        | DEF_fixity (_, _, _)                     -> not_yet_implemented [%here] annotation.loc
+        | DEF_overload (_, _)                      -> not_yet_implemented [%here] annotation.loc
+        | DEF_default _                            -> not_yet_implemented [%here] annotation.loc
+        | DEF_scattered _                          -> not_yet_implemented [%here] annotation.loc
+        | DEF_measure (_, _, _)                    -> not_yet_implemented [%here] annotation.loc
+        | DEF_loop_measures (_, _)                 -> not_yet_implemented [%here] annotation.loc
         | DEF_register specification               -> translate_register annotation specification
-        | DEF_internal_mutrec _                    -> not_yet_implemented __POS__ annotation.loc
-        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) __POS__ location
+        | DEF_internal_mutrec _                    -> not_yet_implemented [%here] annotation.loc
+        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
         | DEF_fundef fd                            -> begin
             match ir_fundef fd with
             | Some translation -> N.FunctionDefinition translation
-            | None             -> not_yet_implemented __POS__ annotation.loc
+            | None             -> not_yet_implemented [%here] annotation.loc
           end
       in
       (sail_definition, translation)
     with NotYetImplemented (source_position, sail_location, message) ->
-      let file, line_number, _, _ = source_position
-      in
       (
         sail_definition,
         UntranslatedDefinition {
-          filename = file;
-          line_number = line_number;
+          filename = source_position.pos_fname;
+          line_number = source_position.pos_lnum;
           sail_location = sail_location;
           message = message
         }

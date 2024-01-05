@@ -1,7 +1,7 @@
 open Base
 
 
-type source_position = string * int * int * int
+type source_position = Lexing.position
 
 exception NotYetImplemented of source_position * Libsail.Ast.l * string option
 
