@@ -3,4 +3,4 @@
 (library
  (name slang)
  (public_name slang)
- (libraries base auxlib monads))
+ (libraries base stdio auxlib monads))

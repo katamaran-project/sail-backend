@@ -36,7 +36,18 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let function_tests =
+  let test_cases =
+    [
+      ("((lambda (x) 5))", Slang.Value.Integer 5 );
+    ]
+  in
+  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
+    (* function_tests; *)
   ]

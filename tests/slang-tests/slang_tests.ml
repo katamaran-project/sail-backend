@@ -7,6 +7,7 @@ let tests =
     Tokenizer_tests.tests;
     Parser_tests.tests;
     Evaluation_tests.tests;
+    Type_tests.tests;
   ]
 
 

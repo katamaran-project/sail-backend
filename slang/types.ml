@@ -8,12 +8,23 @@ let (and*) = Option.both
 
 let return = Option.return
 
-
 type 'a converter = Value.t -> 'a option
 
 
 exception TypeError
 
+
+let <(|>) f g =
+  let converter value =
+    match f value with
+    | Some x -> Some x
+    | None   -> begin
+        match g value with
+        | Some x -> Some x
+        | None   -> None
+      end
+  in
+  converter
 
 let value v =
   Some v
@@ -43,20 +54,28 @@ let symbol value =
   | _                 -> None
 
 
-let cons f g value =
+let cons combine f g value =
   match value with
-  | Cons (car, cdr) -> let* car = f car and* cdr = g cdr in return (car, cdr)
+  | Cons (car, cdr) -> let* car = f car and* cdr = g cdr in return @@ combine car cdr
   | _               -> None
 
 
-let rec list f value =
-  let* (car, cdr) = cons f (list f) value
-  in
-  return @@ car :: cdr
+let nil r value =
+  match value with
+  | Nil -> Some r
+  | _   -> None
 
 
 let map f values =
   Option.all @@ List.map ~f values
+
+
+let list f value =
+  match value with
+  | Cons (_, _) -> map f @@ cons_to_list value
+  | Nil         -> return @@ []
+  | _           -> None
+  (* (cons List.cons f (list f)) <|> (nil []) *)
 
 
 let (!!) r =
