@@ -1,5 +1,5 @@
 open OUnit2
-open Slang.Continuation
+open Monads.Continuation
 
 
 let test_simple_continuation _ =
