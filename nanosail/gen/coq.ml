@@ -254,7 +254,7 @@ let match' expression cases =
     let longest_pattern_width =
       let widths = List.map ~f:(fun pattern -> requirement pattern) (List.map ~f:fst cases)
       in
-      Auxlib.maximum (0 :: widths)
+      maximum (0 :: widths)
     in
     let generate_case (pattern, expression) =
       separate space [
