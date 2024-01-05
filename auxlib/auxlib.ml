@@ -1,3 +1,6 @@
+open Base
+    
+
 module Settings = Settings
 
 let uncurry f (x, y) = f x y
@@ -14,12 +17,12 @@ let last_char string =
 let minimum ns =
   match ns with
   | []    -> failwith "Cannot find minimum of empty list"
-  | n::ns -> List.fold_left min n ns
+  | n::ns -> List.fold_left ~f:min ~init:n ns
 
 let maximum ns =
   match ns with
   | []    -> failwith "Cannot find maximum of empty list"
-  | n::ns -> List.fold_left max n ns
+  | n::ns -> List.fold_left ~f:max ~init:n ns
 
 type 'a list_builder = {
     add : 'a -> unit;
@@ -31,7 +34,7 @@ let build_list f =
   in
   let add_item item = list_under_construction := item :: !list_under_construction
   in
-  let add_items items = List.iter add_item items
+  let add_items items = List.iter ~f:add_item items
   in
   let context = { add = add_item; addall = add_items }
   in
