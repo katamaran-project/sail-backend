@@ -1,3 +1,4 @@
+open Base
 open Ast
 
 
@@ -25,8 +26,8 @@ module Subst = struct
       | Ty_atom            -> Ty_atom
       | Ty_list x          -> Ty_list (aux x)
       | Ty_bitvector nexpr -> Ty_bitvector (numeric_expression subst nexpr)
-      | Ty_tuple ts        -> Ty_tuple (List.map aux ts)
-      | Ty_app (id, targs) -> Ty_app (id, List.map (type_argument subst) targs) (* id should probably not be substituted *)
+      | Ty_tuple ts        -> Ty_tuple (List.map ~f:aux ts)
+      | Ty_app (id, targs) -> Ty_app (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
       | Ty_custom id       -> Ty_custom id (* probably should not be substituted *)
     in
     aux
@@ -52,7 +53,7 @@ module Subst = struct
       | NC_set (identifier, ns)     -> NC_set (subst identifier, ns)
       | NC_or (left, right)         -> NC_or (aux left, aux right)
       | NC_and (left, right)        -> NC_and (aux left, aux right)
-      | NC_app (identifier, targs)  -> NC_app (identifier, List.map (type_argument subst) targs)
+      | NC_app (identifier, targs)  -> NC_app (identifier, List.map ~f:(type_argument subst) targs)
       | NC_var identifier           -> NC_var (subst identifier)
       | NC_true                     -> NC_true
       | NC_false                    -> NC_false
@@ -61,21 +62,30 @@ module Subst = struct
 end
 
 
-let sanitizing_substitution (identifier : identifier) : identifier =
-  Auxlib.drop_chars_while identifier (fun c -> c = '\'')
+let remove_apostrophes_at_start =
+  String.lstrip ~drop:(Char.equal '\'')
 
+let sanitizing_substitution =
+  remove_apostrophes_at_start
   
 let sanitize_identifier (identifier : identifier) : identifier option =
-  if String.starts_with ~prefix:"'" identifier
-  then Some (Auxlib.drop_chars_while identifier (fun c -> c = '\''))
+  if String.is_prefix ~prefix:"'" identifier
+  then Some (remove_apostrophes_at_start identifier)
   else None
 
 
 module SubstitutionMonad = struct
   module SubstitutionMap = struct
-    module M = Map.Make(String)
+    type t = (identifier, identifier, String.comparator_witness) Map.t
 
-    type t = identifier M.t
+    let empty = Map.empty (module String)
+    
+    let add = Map.add_exn
+
+    let find = Map.find
+
+    let contains_value map identifier =
+      Map.exists map ~f:(String.equal identifier)
   end
   
   include Monads.State.Make(SubstitutionMap)
@@ -83,20 +93,33 @@ module SubstitutionMonad = struct
 
   let add_substitution identifier identifier' =
     bind get (fun map ->
-        let map' = SubstitutionMap.M.add identifier identifier' map
+        let map' = SubstitutionMap.add map ~key:identifier ~data:identifier'
         in
         bind (put map') (fun () -> return ())
       )
 end
 
+(*
+   Creates a function of type identifier -> identifier.
+   that "translates" identifiers based on associations in the given map.
+
+   If a given identifier is in the map, the function will return its associated key.
+   
+   If a given identifier is not in the map, the identifier is preserved.
+   However, if this identifier is used as a value in the map,
+   a clash occurs. For example, say you have substitution { a -> b },
+   and wish to apply it on the expression a + b.
+   Without clash-checking, this would result in b + b, which we
+   want to avoid: distinct variables needs to remain as such.
+*)
 let create_substitution_from_map map =
   let open SubstitutionMonad
   in
   let contains_value (identifier : identifier) =
-    SubstitutionMap.M.exists (fun _key value -> value = identifier) map
+    SubstitutionMap.contains_value map identifier
   in
   fun id ->
-    match SubstitutionMap.M.find_opt id map with
+    match SubstitutionMap.find map id with
     | Some id' -> id'
     | None     ->
       begin
@@ -123,7 +146,7 @@ let process_type_quantifier
         | None     -> return @@ (id, kind) :: rest'
       end
   in
-  let (type_quantifier', map) = run (aux type_quantifier) SubstitutionMap.M.empty
+  let (type_quantifier', map) = run (aux type_quantifier) SubstitutionMap.empty
   in
   (type_quantifier', create_substitution_from_map map)
 
