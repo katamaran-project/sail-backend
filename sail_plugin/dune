@@ -12,6 +12,7 @@
         base.base_internalhash_types
         base.shadow_stdlib
         base
+        stdio
         auxlib
         monads
         nanosail))
