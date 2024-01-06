@@ -45,9 +45,9 @@ let lambda_tests =
       ("((lambda () 1))", Slang.Value.Integer 1 );
       ("((lambda () (+ 1 2)))", Slang.Value.Integer 3 );
       ("((lambda (x) 5) 1)", Slang.Value.Integer 5 );
-      (* ("((lambda (x) x) 2)", Slang.Value.Integer 2 ); *)
-      (* ("((lambda (x) (+ x 1)) 2)", Slang.Value.Integer 3 ); *)
-      (* ("((lambda (x) (\* 2 x)) 3)", Slang.Value.Integer 6 ); *)
+      ("((lambda (x) x) 2)", Slang.Value.Integer 2 );
+      ("((lambda (x) (+ x 1)) 2)", Slang.Value.Integer 3 );
+      ("((lambda (x) (* 2 x)) 3)", Slang.Value.Integer 6 );
     ]
   in
   "lambda" >::: List.map ~f:(uncurry test_run) test_cases
