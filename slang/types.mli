@@ -3,7 +3,7 @@ exception TypeError
 type 'a converter = Value.t -> 'a option
 
 val (<|>)   : (Value.t -> 'a option) -> (Value.t -> 'a option) -> Value.t -> 'a option
-val (|?>)   : 'a option -> ('a -> 'b) -> 'b option
+val (|?>)   : 'a converter -> ('a -> 'b) -> 'b converter
 
 val value   : Value.t converter
 val integer : int converter

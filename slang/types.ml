@@ -1,10 +1,16 @@
-open Base
+open! Base
+open! Auxlib
 open Value
 
 
 let (let*) x f = Option.bind x ~f
 
-let (and*) = Option.both
+let (and*) f g =
+  let* x = f
+  in
+  let* y = g
+  in
+  Some (x, y)
 
 let return = Option.return
 
@@ -26,7 +32,8 @@ let (<|>) f g =
   in
   converter
 
-let (|?>) x f = Option.map x ~f
+let (|?>) f g =
+  fun value -> Option.map (f value) ~f:g
 
 
 let value v =
@@ -73,12 +80,9 @@ let map f values =
   Option.all @@ List.map ~f values
 
 
-let list f value =
-  match value with
-  | Cons (_, _) -> map f @@ cons_to_list value
-  | Nil         -> return @@ []
-  | _           -> None
-  (* (cons List.cons f (list f)) <|> (nil []) *)
+(* Removing 'value' leads to infinite loops, not sure why; may need to be investigated *)
+let rec list f value =
+  ((cons f (list f) |?> uncurry List.cons) <|> (nil |?> Fn.const [])) value
 
 
 let (!!) r =
@@ -91,6 +95,7 @@ let (let=!) x f =
   match x with
   | Some r -> f r
   | None   -> raise TypeError
+
 
 let (and=!) x y =
   let=! x = x

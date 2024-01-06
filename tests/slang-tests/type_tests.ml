@@ -38,6 +38,24 @@ let tests =
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Nil)
           in
+          let actual = T.cons T.integer T.nil value
+          in
+          assert_equal (Some (1, ())) actual
+        end
+    );
+    "()" >:: (
+      fun _ -> begin
+          let value = V.Nil
+          in
+          let actual = T.list T.integer value
+          in
+          assert_equal (Some []) actual
+        end
+    );
+    "(1)" >:: (
+      fun _ -> begin
+          let value = V.Cons (V.Integer 1, V.Nil)
+          in
           let actual = T.list T.integer value
           in
           assert_equal (Some [1]) actual
