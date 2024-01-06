@@ -11,7 +11,7 @@ exception EvaluationError of string
 
 let bind_parameters parameters arguments =
   match List.zip parameters arguments with
-  | List.Or_unequal_lengths.Ok pairs        -> EC.iter (uncurry EC.bind) pairs
+  | List.Or_unequal_lengths.Ok pairs        -> EC.iter (uncurry EC.add_binding) pairs
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ EvaluationError "wrong number of parameters"
 
 let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =

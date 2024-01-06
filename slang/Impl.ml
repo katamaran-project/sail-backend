@@ -54,7 +54,7 @@ and EvaluationContext : sig
   val return                  : 'a -> 'a t
   val current_environment     : Value.t Environment.t t
   val set_current_environment : Value.t Environment.t -> unit t
-  val bind                    : string -> Value.t -> unit t
+  val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
   val run                     : 'a t -> state -> 'a * state
 
@@ -85,7 +85,7 @@ end = struct
   let set_current_environment =
     Monad.put
 
-  let bind identifier value =
+  let add_binding identifier value =
     let open Notations
     in
     let* env = current_environment
