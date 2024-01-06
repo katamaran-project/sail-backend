@@ -14,23 +14,26 @@ let test_run input expected =
 
 
 let arithmetic_tests =
+  let open Slang.Value
+  in
   let test_cases =
     [
-      ("5", Slang.Value.Integer 5 );
-      ("(+)", Slang.Value.Integer 0 );
-      ("(+ 1)", Slang.Value.Integer 1 );
-      ("(+ 1 2)", Slang.Value.Integer 3 );
-      ("(+ 7 8 10)", Slang.Value.Integer 25 );
-      ("(-)", Slang.Value.Integer 0 );
-      ("(- 5)", Slang.Value.Integer (-5) );
-      ("(- 5 1)", Slang.Value.Integer 4 );
-      ("(- 5 1 2)", Slang.Value.Integer 2 );
-      ("(*)", Slang.Value.Integer 1 );
-      ("(* 2)", Slang.Value.Integer 2 );
-      ("(* 2 3)", Slang.Value.Integer 6 );
-      ("(/ 10 2)", Slang.Value.Integer 5 );
-      ("(/ 9 2)", Slang.Value.Integer 4 );
-      ("(/ 100 2 2)", Slang.Value.Integer 25 );
+      ("5", Integer 5 );
+      ("(+)", Integer 0 );
+      ("(+ 1)", Integer 1 );
+      ("(+ 1 2)", Integer 3 );
+      ("(+ 7 8 10)", Integer 25 );
+      ("(-)", Integer 0 );
+      ("(- 5)", Integer (-5) );
+      ("(- 5 1)", Integer 4 );
+      ("(- 5 1 2)", Integer 2 );
+      ("(*)", Integer 1 );
+      ("(* 2)", Integer 2 );
+      ("(* 2 3)", Integer 6 );
+      ("(/ 10 2)", Integer 5 );
+      ("(/ 9 2)", Integer 4 );
+      ("(/ 100 2 2)", Integer 25 );
+      ("(+ 1 (* 2 3))", Integer 7);
     ]
   in
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
@@ -39,7 +42,12 @@ let arithmetic_tests =
 let function_tests =
   let test_cases =
     [
-      ("((lambda (x) 5))", Slang.Value.Integer 5 );
+      ("((lambda () 1))", Slang.Value.Integer 1 );
+      ("((lambda () (+ 1 2)))", Slang.Value.Integer 3 );
+      ("((lambda (x) 5) 1)", Slang.Value.Integer 5 );
+      (* ("((lambda (x) x) 2)", Slang.Value.Integer 2 ); *)
+      (* ("((lambda (x) (+ x 1)) 2)", Slang.Value.Integer 3 ); *)
+      (* ("((lambda (x) (\* 2 x)) 3)", Slang.Value.Integer 6 ); *)
     ]
   in
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
@@ -49,5 +57,5 @@ let function_tests =
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
-    (* function_tests; *)
+    function_tests;
   ]

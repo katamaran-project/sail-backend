@@ -81,8 +81,11 @@ and evaluate_call func arguments =
 and evaluate_closure_call environment parameters arguments body =
   let open EvaluationContext
   in
+  let* evaluated_arguments =
+    map evaluate arguments
+  in
   with_environment environment (fun () ->
-      let* () = bind_parameters parameters arguments
+      let* () = bind_parameters parameters evaluated_arguments
       in
       evaluate_many body
     )

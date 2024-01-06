@@ -3,6 +3,9 @@ open! Auxlib
 open Value
 
 
+exception TypeError
+
+
 let (let*) x f = Option.bind x ~f
 
 let (and*) f g =
@@ -15,9 +18,6 @@ let (and*) f g =
 let return = Option.return
 
 type 'a converter = Value.t -> 'a option
-
-
-exception TypeError
 
 
 let (<|>) f g =
