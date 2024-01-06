@@ -1,11 +1,7 @@
-open Base
-
-
 type extend_environment_context = {
   extend          : (Value.t Environment.t -> Value.t Environment.t) -> unit;
   native_function : string -> Value.native_function -> unit;
 }
-
 
 let extend_environment env (f : extend_environment_context -> unit) =
   let current = ref env

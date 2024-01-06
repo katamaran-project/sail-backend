@@ -1,5 +1,4 @@
 open Base
-open Util
 open Exception
 open Evaluation_context
 open Monads.Notations.Star(Evaluation_context)
@@ -46,7 +45,7 @@ let define args =
 
 
 let library env =
-  extend_environment env (fun { native_function; _ } ->
+  Environment_builder.extend_environment env (fun { native_function; _ } ->
       native_function "lambda" lambda;
       native_function "define" define;
     )
