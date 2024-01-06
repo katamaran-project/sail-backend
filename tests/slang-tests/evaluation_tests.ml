@@ -39,7 +39,7 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
-let function_tests =
+let lambda_tests =
   let test_cases =
     [
       ("((lambda () 1))", Slang.Value.Integer 1 );
@@ -50,12 +50,12 @@ let function_tests =
       (* ("((lambda (x) (\* 2 x)) 3)", Slang.Value.Integer 6 ); *)
     ]
   in
-  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+  "lambda" >::: List.map ~f:(uncurry test_run) test_cases
 
 
 
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
-    function_tests;
+    lambda_tests;
   ]
