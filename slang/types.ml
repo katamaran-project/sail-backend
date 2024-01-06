@@ -85,21 +85,23 @@ let rec list f value =
   ((cons f (list f) |?> uncurry List.cons) <|> (nil |?> Fn.const [])) value
 
 
-let (!!) r =
-  match r with
-  | Some r -> r
-  | None   -> raise TypeError
+module Notations = struct
+  let (!!) r =
+    match r with
+    | Some r -> r
+    | None   -> raise TypeError
 
 
-let (let=!) x f =
-  match x with
-  | Some r -> f r
-  | None   -> raise TypeError
+  let (let=!) x f =
+    match x with
+    | Some r -> f r
+    | None   -> raise TypeError
 
 
-let (and=!) x y =
-  let=! x = x
-  in
-  let=! y = y
-  in
-  return (x, y)
+  let (and=!) x y =
+    let=! x = x
+    in
+    let=! y = y
+    in
+    return (x, y)
+end

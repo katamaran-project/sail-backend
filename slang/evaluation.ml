@@ -1,32 +1,42 @@
 open Base
 open Auxlib
 
-module EvaluationContext = Evaluation_context
 
+module EC = struct
+  include Evaluation_context
+  include Evaluation_context.Notations
+end
 
-
+exception EvaluationError of string
 
 let bind_parameters parameters arguments =
   match List.zip parameters arguments with
-  | List.Or_unequal_lengths.Ok pairs        -> EvaluationContext.iter (uncurry EvaluationContext.bind) pairs
+  | List.Or_unequal_lengths.Ok pairs        -> EC.iter (uncurry EC.bind) pairs
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ EvaluationError "wrong number of parameters"
 
-let with_environment env func =
-  let open EvaluationContext
+let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =
+  let open EC
   in
   let* old_env = current_environment in
   let* ()      = set_current_environment env in
-  let* result  = func () in
+  let* result  = func in
   let* ()      = set_current_environment old_env
   in
   return result
 
-let rec evaluate (ast : Value.t) =
-  let open EvaluationContext
+
+let rec evaluate (ast : Value.t) : Value.t EC.t =
+  let open EC
   in
   match ast with
   | Value.Cons (id, args)   -> let* f = evaluate id in evaluate_call f @@ Value.cons_to_list args
-  | Value.Symbol identifier -> lookup identifier
+  | Value.Symbol identifier -> begin
+      let* lookup_result = lookup identifier
+      in
+      match lookup_result with
+      | Some value          -> return value
+      | None                -> raise @@ EvaluationError ("unbound identifier " ^ identifier)
+    end
   | Value.Integer _         -> return ast
   | Value.String _          -> return ast
   | Value.Bool _            -> return ast
@@ -46,33 +56,25 @@ and evaluate_call func arguments =
   | Value.NativeFunction f            -> evaluate_native_call f arguments
 
 and evaluate_closure_call environment parameters arguments body =
-  let open EvaluationContext
+  let open EC
   in
   let* evaluated_arguments =
     map evaluate arguments
   in
-  with_environment environment (fun () ->
-      let* () = bind_parameters parameters evaluated_arguments
-      in
-      evaluate_many body
-    )
+  with_environment environment begin
+    let* () = bind_parameters parameters evaluated_arguments
+    in
+    evaluate_many body
+  end
 
 and evaluate_native_call native_function arguments =
-  let open EvaluationContext
-  in
-  let* env = current_environment
-  in
-  EvaluationContext.return @@ native_function env arguments
+  native_function arguments
 
 and evaluate_many asts =
-  let open EvaluationContext
+  let open EC
   in
-  let* results = EvaluationContext.map evaluate asts
+  let* results = EC.map evaluate asts
   in
   match List.last results with
   | None   -> return Value.Nil
   | Some x -> return x
-
-
-let run asts =
-  EvaluationContext.run (evaluate_many asts) Prelude.prelude

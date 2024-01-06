@@ -1,31 +1,34 @@
-type t =
-  | Cons           of t * t
-  | Integer        of int
-  | Symbol         of string
-  | String         of string
-  | Bool           of bool
-  | Nil
-  | Closure        of t Environment.t * string list * t list
-  | NativeFunction of native_function
-
-and native_function = t Environment.t -> t list -> t
+include Impl.Value
 
 
-let rec cons_to_list value =
-  match value with
-  | Nil               -> []
-  | Cons (head, tail) -> head :: cons_to_list tail
-  | _                 -> failwith "invalid list"
+
+(* type t = *)
+(*   | Cons           of t * t *)
+(*   | Integer        of int *)
+(*   | Symbol         of string *)
+(*   | String         of string *)
+(*   | Bool           of bool *)
+(*   | Nil *)
+(*   | Closure        of t Environment.t * string list * t list *)
+(*   | NativeFunction of native_function *)
+
+(* and native_function = t Environment.t -> t list -> t *)
+
+(* let rec cons_to_list value = *)
+(*   match value with *)
+(*   | Nil               -> [] *)
+(*   | Cons (head, tail) -> head :: cons_to_list tail *)
+(*   | _                 -> failwith "invalid list" *)
 
 
-let rec to_string value =
-  match value with
-  | Cons (_, _)        -> "(" ^ (String.concat " " @@ List.map to_string (cons_to_list value)) ^ ")"
-  | Integer n          -> Int.to_string n
-  | Symbol s           -> s
-  | String s           -> Printf.sprintf "\"%s\"" s
-  | Bool true          -> "#t"
-  | Bool false         -> "#f"
-  | Nil                -> "()"
-  | Closure (_, _, _)  -> "<closure>"
-  | NativeFunction _   -> "<native function>"
+(* let rec to_string value = *)
+(*   match value with *)
+(*   | Cons (_, _)        -> "(" ^ (String.concat " " @@ List.map to_string (cons_to_list value)) ^ ")" *)
+(*   | Integer n          -> Int.to_string n *)
+(*   | Symbol s           -> s *)
+(*   | String s           -> Printf.sprintf "\"%s\"" s *)
+(*   | Bool true          -> "#t" *)
+(*   | Bool false         -> "#f" *)
+(*   | Nil                -> "()" *)
+(*   | Closure (_, _, _)  -> "<closure>" *)
+(*   | NativeFunction _   -> "<native function>" *)

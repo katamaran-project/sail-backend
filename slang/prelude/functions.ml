@@ -1,17 +1,27 @@
+open Base
 open Util
-open Value
-open Types
+open Evaluation_context
+open Evaluation_context.Notations
+
+
+module T = Types
+module V = Value
+
+open T.Notations
     
 
-let lambda env args =
+let lambda args =
   match args with
-  | []             -> raise TypeError
-  | [_]            -> raise TypeError
-  | params :: body ->
-    let=! params = list symbol params
-    and=! body = map value body
-    in    
-    Closure (env, params, body)
+  | []             -> raise T.TypeError
+  | [_]            -> raise T.TypeError
+  | params :: body -> begin
+      let*  env = current_environment
+      in
+      let=! params = T.list T.symbol params
+      and=! body = T.map T.value body
+      in    
+      return @@ V.Closure (env, params, body)
+    end
 
 
 let library env =

@@ -15,6 +15,9 @@ val nil     : unit converter
 val list    : 'a converter -> 'a list converter
 
 val map     : 'a converter -> Value.t list -> 'a list option
-val (!!)    : 'a option -> 'a
-val (let=!) : 'a option -> ('a -> 'b) -> 'b
-val (and=!) : 'a option -> 'b option -> ('a * 'b) option
+
+module Notations : sig
+  val (!!)    : 'a option -> 'a
+  val (let=!) : 'a option -> ('a -> 'b) -> 'b
+  val (and=!) : 'a option -> 'b option -> ('a * 'b) option
+end

@@ -7,7 +7,7 @@ let test_run input expected =
   input >:: fun _ -> begin
       let asts = Slang.Parser.parse_string input
       in
-      let (actual, _)  = Slang.Evaluation.run asts
+      let (actual, _)  = Slang.run asts
       in
       assert_equal expected actual
     end

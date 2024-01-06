@@ -1,39 +1,47 @@
-open Base
+include Impl.EvaluationContext
 
 
-exception EvaluationError of string
+(* open Base *)
 
 
-module Monad = Monads.State.Make(struct type t = Value.t Environment.t end)
+(* exception EvaluationError of string *)
 
-module Notations = Monads.Notations.Star(Monad)
 
-include Notations
 
-type 'a t = 'a Monad.t
+(* module Make(Value : sig type t end) = struct *)
 
-let current_environment =
-  Monad.get
+(*   type state = Value.t Environment.t *)
 
-let set_current_environment =
-  Monad.put
+(*   module Monad = Monads.State.Make(struct type t = state end) *)
 
-let bind identifier value =
-  let* env = current_environment
-  in
-  let env' = Environment.bind env identifier value
-  in
-  Monad.put env'
+(*   include Monads.Notations.Star(Monad) *)
 
-let lookup identifier =
-  let* env = current_environment
-  in
-  match Environment.lookup env identifier with
-  | Some value -> Monad.return value
-  | None       -> raise @@ EvaluationError ("unbound identifier " ^ identifier)
+(*   include Monads.Util.Make(Monad) *)
 
-let return = Monad.return
 
-let run = Monad.run
+(*   type 'a t = 'a Monad.t *)
+  
+(*   let current_environment = *)
+(*     Monad.get *)
 
-include Monads.Util.Make(Monad)
+(*   let set_current_environment = *)
+(*     Monad.put *)
+
+(*   let bind identifier value = *)
+(*     let* env = current_environment *)
+(*     in *)
+(*     let env' = Environment.bind env identifier value *)
+(*     in *)
+(*     Monad.put env' *)
+
+(*   let lookup identifier = *)
+(*     let* env = current_environment *)
+(*     in *)
+(*     match Environment.lookup env identifier with *)
+(*     | Some value -> Monad.return value *)
+(*     | None       -> raise @@ EvaluationError ("unbound identifier " ^ identifier) *)
+
+(*   let return = Monad.return *)
+
+(*   let run = Monad.run *)
+(* end *)

@@ -1,44 +1,60 @@
 open Base
 open Util
-open Types
+open Evaluation
+open Evaluation_context
+open Evaluation_context.Notations
 
 
-let addition _ args =
-  let=! ns = map integer args
+module T = Types
+module V = Value
+
+open T.Notations
+
+
+let addition args =
+  let* evaluated_args = map evaluate args
+  in
+  let=! ns = T.map T.integer evaluated_args
   in
   let result = List.fold_left ~f:Int.(+) ~init:0 ns
   in
-  Value.Integer result
+  return @@ V.Integer result
 
 
-let subtraction _ args =
-  let=! ns = map integer args
+let subtraction args =
+  let* evaluated_args = map evaluate args
+  in
+  let=! ns = T.map T.integer evaluated_args
   in
   let result = match ns with
     | []    -> 0
     | [n]   -> -n
     | n::ns -> List.fold_left ~f:Int.(-) ~init:n ns
   in
-  Value.Integer result
+  return @@ V.Integer result
 
 
-let multiplication _ args =
-  let=! ns = map integer args
+let multiplication args =
+  let* evaluated_args = map evaluate args
+  in
+  let=! ns = T.map T.integer evaluated_args
   in
   let result = List.fold_left ~f:Int.( * ) ~init:1 ns
   in
-  Value.Integer result
+  return @@ V.Integer result
 
 
-let division _ args =
-  let=! ns = map integer args
+let division args =
+  let* evaluated_args = map evaluate args
+  in
+  let=! ns = T.map T.integer evaluated_args
   in
   let result = match ns with
-    | []    -> raise TypeError
-    | [_]   -> raise TypeError
+    | []    -> raise T.TypeError
+    | [_]   -> raise T.TypeError
     | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
   in
-  Value.Integer result
+  return @@ V.Integer result
 
 
 let library env =
