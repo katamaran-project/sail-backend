@@ -1,7 +1,7 @@
 open Base
 open Util
 open Evaluation_context
-open Evaluation_context.Notations
+open Monads.Notations.Star(Evaluation_context)
 
 
 module T = Types

@@ -61,17 +61,10 @@ and EvaluationContext : sig
 
   val map                     : ('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : ('a -> unit t) -> 'a list -> unit t
-
-  module Notations : sig
-    val (let*)                  : 'a t -> ('a -> 'b t) -> 'b t
-    val (and*)                  : 'a t -> 'b t -> ('a * 'b) t
-  end
 end = struct
   type state = Value.t Environment.t
 
   module Monad = Monads.State.Make(struct type t = state end)
-
-  module Notations = Monads.Notations.Star(Monad)
 
   include Monads.Util.Make(Monad)
 
@@ -89,7 +82,7 @@ end = struct
     Monad.put
 
   let add_binding identifier value =
-    let open Notations
+    let open Monads.Notations.Star(Monad)
     in
     let* env = current_environment
     in
@@ -98,7 +91,7 @@ end = struct
     Monad.put env'
 
   let lookup identifier =
-    let open Notations
+    let open Monads.Notations.Star(Monad)
     in
     let* env = current_environment
     in

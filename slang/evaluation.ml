@@ -4,7 +4,7 @@ open Auxlib
 
 module EC = struct
   include Evaluation_context
-  include Evaluation_context.Notations
+  include Monads.Notations.Star(Evaluation_context)
 end
 
 exception EvaluationError of string
