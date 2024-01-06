@@ -52,6 +52,7 @@ and EvaluationContext : sig
   type 'a t
 
   val return                  : 'a -> 'a t
+  val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val current_environment     : Value.t Environment.t t
   val set_current_environment : Value.t Environment.t -> unit t
   val add_binding             : string -> Value.t -> unit t
@@ -78,6 +79,8 @@ end = struct
   type 'a t = 'a Monad.t
 
   let return = Monad.return
+
+  let bind = Monad.bind
 
   let current_environment =
     Monad.get
