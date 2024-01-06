@@ -40,22 +40,49 @@ let arithmetic_tests =
 
 
 let lambda_tests =
+  let open Slang.Value
+  in
   let test_cases =
     [
-      ("((lambda () 1))", Slang.Value.Integer 1 );
-      ("((lambda () (+ 1 2)))", Slang.Value.Integer 3 );
-      ("((lambda (x) 5) 1)", Slang.Value.Integer 5 );
-      ("((lambda (x) x) 2)", Slang.Value.Integer 2 );
-      ("((lambda (x) (+ x 1)) 2)", Slang.Value.Integer 3 );
-      ("((lambda (x) (* 2 x)) 3)", Slang.Value.Integer 6 );
+      ("((lambda () 1))", Integer 1 );
+      ("((lambda () (+ 1 2)))", Integer 3 );
+      ("((lambda (x) 5) 1)", Integer 5 );
+      ("((lambda (x) x) 2)", Integer 2 );
+      ("((lambda (x) (+ x 1)) 2)", Integer 3 );
+      ("((lambda (x) (* 2 x)) 3)", Integer 6 );
     ]
   in
   "lambda" >::: List.map ~f:(uncurry test_run) test_cases
 
+
+let define_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+          (define (sqr x) (* x x))
+          (sqr 3)
+        |},
+        Integer 9
+      );
+      (
+        {|
+          (define (sqr x) (* x x))
+          (define (1+ x) (+ 1 x))
+          (1+ (sqr 3))
+        |},
+        Integer 10
+      );
+    ]
+  in
+  "define" >::: List.map ~f:(uncurry test_run) test_cases
 
 
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
     lambda_tests;
+    define_tests;
   ]
