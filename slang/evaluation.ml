@@ -1,43 +1,10 @@
 open Base
 open Auxlib
 
+module EvaluationContext = Evaluation_context
 
-exception EvaluationError of string
 
 
-module EvaluationContext = struct
-  module Monad = Monads.State.Make(struct type t = Value.t Environment.t end)
-
-  module Notations = Monads.Notations.Star(Monad)
-
-  include Notations
-
-  let current_environment =
-    Monad.get
-
-  let set_current_environment =
-    Monad.put
-
-  let bind identifier value =
-    let* env = current_environment
-    in
-    let env' = Environment.bind env identifier value
-    in
-    Monad.put env'
-
-  let lookup identifier =
-    let* env = current_environment
-    in
-    match Environment.lookup env identifier with
-    | Some value -> Monad.return value
-    | None       -> raise @@ EvaluationError ("unbound identifier " ^ identifier)
-
-  let return = Monad.return
-
-  let run = Monad.run
-
-  include Monads.Util.Make(Monad)
-end
 
 let bind_parameters parameters arguments =
   match List.zip parameters arguments with
