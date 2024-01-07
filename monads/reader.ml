@@ -30,14 +30,14 @@ module Make (S : Source) = struct
   let run     = MState.run
 
   let current =
-    let open Monads.Notations.Star(MState)
+    let open Notations.Star(MState)
     in
     let* state = MState.get
     in
     return @@ Option.map fst state
   
   let next =
-    let open Monads.Notations.Star(MState)
+    let open Notations.Star(MState)
     in
     let* state = MState.get
     in

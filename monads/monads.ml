@@ -5,3 +5,4 @@ module Notations    = Notations
 module Monoid       = Monoid
 module Util         = Util
 module Continuation = Continuation
+module Reader       = Reader
