@@ -7,8 +7,6 @@ let opt_width = ref 100
 
 let opt_print_rewrites = ref false
 
-let opt_configuration_file = ref None
-
 let print_check_message () =
   Stdio.print_endline("Katamaran plugin is functioning correctly")
 
@@ -147,7 +145,7 @@ let katamaran_options = [
    Stdlib.Arg.Set opt_print_rewrites,
    "Prints the list of rewrites");
   ("-katamaran_config",
-   Stdlib.Arg.String (fun s -> opt_configuration_file := Some s),
+   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration_file s),
    "Specify configuration file");
 ]
 
