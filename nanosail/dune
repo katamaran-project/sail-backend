@@ -4,4 +4,4 @@
  (name nanosail)
  (public_name nanosail)
  (preprocess (pps ppx_accessor ppx_here))
- (libraries base accessor_base libsail pprint monads auxlib))
+ (libraries base accessor_base libsail pprint monads auxlib slang))

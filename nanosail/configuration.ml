@@ -22,3 +22,15 @@ let ignore_pragma pragma (Libsail.Ast.DEF_aux (definition, _annotation)) =
 
 let ignore_pragmas pragmas =
   List.fold_left ~f:(fun acc p -> acc |.| ignore_pragma p) ~init:(Fn.const false) pragmas
+  
+let load_configuration_file path =
+  let open Slang in
+  let open Slang.Evaluation_context
+  in
+  let contents = Stdio.In_channel.read_all path
+  in
+  let environment = extend_environment prelude @@ fun { native_function; _ } -> begin
+      native_function "use-list-notations" @@ fun _ -> (set use_list_notations true; return Value.Nil)
+    end
+  in
+  ignore @@ run_string environment contents

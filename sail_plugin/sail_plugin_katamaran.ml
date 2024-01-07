@@ -7,6 +7,8 @@ let opt_width = ref 100
 
 let opt_print_rewrites = ref false
 
+let opt_configuration_file = ref None
+
 let print_check_message () =
   Stdio.print_endline("Katamaran plugin is functioning correctly")
 
@@ -143,7 +145,10 @@ let katamaran_options = [
    "include ignored Sail definitions");
   ("-katamaran_print_rewrites",
    Stdlib.Arg.Set opt_print_rewrites,
-  "Prints the list of rewrites");
+   "Prints the list of rewrites");
+  ("-katamaran_config",
+   Stdlib.Arg.String (fun s -> opt_configuration_file := Some s),
+   "Specify configuration file");
 ]
 
        
