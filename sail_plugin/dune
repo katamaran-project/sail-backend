@@ -15,6 +15,7 @@
         stdio
         auxlib
         monads
+        slang
         nanosail))
 
 (install
