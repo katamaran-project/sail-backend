@@ -12,6 +12,8 @@ module rec Value : sig
 
   and native_function = t list -> t EvaluationContext.t
 
+  val equal        : t -> t -> bool
+
   val cons_to_list : t -> t list
   val to_string    : t -> string
     
@@ -47,7 +49,79 @@ end = struct
     | Nil                -> "()"
     | Closure (_, _, _)  -> "<closure>"
     | NativeFunction _   -> "<native function>"
-      
+
+  (* Deal with all cases explicitly so as to get a compiler error when we add more value types *)
+  let rec equal (v1 : t) (v2 : t) : bool =
+    match v1 with
+    | Cons (h1, t1) -> begin
+        match v2 with
+        | Cons (h2, t2) -> equal h1 h2 && equal t1 t2
+        | Integer _ -> false
+        | Symbol _ -> false
+        | String _ -> false
+        | Bool _ -> false
+        | Nil -> false
+        | Closure (_, _, _) -> false
+        | NativeFunction _ -> false
+      end
+    | Integer n1 -> begin
+        match v2 with
+        | Cons (_, _) -> false
+        | Integer n2 -> Int.equal n1 n2
+        | Symbol _ -> false
+        | String _ -> false
+        | Bool _ -> false
+        | Nil -> false
+        | Closure (_, _, _) -> false
+        | NativeFunction _ -> false
+      end
+    | Symbol s1 -> begin
+      match v2 with
+       | Cons (_, _) -> false
+       | Integer _ -> false
+       | Symbol s2 -> String.equal s1 s2
+       | String _ -> false
+       | Bool _ -> false
+       | Nil -> false
+       | Closure (_, _, _) -> false
+       | NativeFunction _ -> false
+    end
+    | String s1 -> begin
+        match v2 with
+        | Cons (_, _) -> false
+        | Integer _ -> false
+        | Symbol _ -> false
+        | String s2 -> String.equal s1 s2
+        | Bool _ -> false
+        | Nil -> false
+        | Closure (_, _, _) -> false
+        | NativeFunction _ -> false
+      end
+    | Bool b1 -> begin
+      match v2 with
+       | Cons (_, _) -> false
+       | Integer _ -> false
+       | Symbol _ -> false
+       | String _ -> false
+       | Bool b2 -> Bool.equal b1 b2
+       | Nil -> false
+       | Closure (_, _, _) -> false
+       | NativeFunction _ -> false
+    end
+    | Nil -> begin
+        match v2 with
+        | Cons (_, _) -> false
+        | Integer _ -> false
+        | Symbol _ -> false
+        | String _ -> false
+        | Bool _ -> false
+        | Nil -> true
+        | Closure (_, _, _) -> false
+        | NativeFunction _ -> false
+      end
+    | Closure (_, _, _) -> false
+    | NativeFunction _ -> false
+  
 end
 
 and EvaluationContext : sig
