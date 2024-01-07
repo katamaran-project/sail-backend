@@ -2,38 +2,40 @@ open Base
 open OUnit2
 open Slang.Tokenizer
 
+module T = Slang.Token
+             
 
 let tokenizer_tests =
   let test_cases =
     [
-      ("(", [ TLeftParenthesis ]);
-      (")", [ TRightParenthesis ]);
-      ("'", [ TQuote ]);
-      ("()", [ TLeftParenthesis; TRightParenthesis ]);
-      ("\"abc\"", [ TString "abc" ]);
-      ("#t", [ TTrue ]);
-      ("#f", [ TFalse ]);
-      ("#t #f", [ TTrue; TFalse ]);
-      ("+", [ TSymbol "+" ]);
-      ("-", [ TSymbol "-" ]);
-      ("=", [ TSymbol "=" ]);
-      ("123", [ TInteger 123 ]);
-      ("-123", [ TInteger (-123) ]);
-      ("1+", [ TSymbol "1+" ]);
+      ("(", [ T.LeftParenthesis ]);
+      (")", [ T.RightParenthesis ]);
+      ("'", [ T.Quote ]);
+      ("()", [ T.LeftParenthesis; T.RightParenthesis ]);
+      ("\"abc\"", [ T.String "abc" ]);
+      ("#t", [ T.True ]);
+      ("#f", [ T.False ]);
+      ("#t #f", [ T.True; T.False ]);
+      ("+", [ T.Symbol "+" ]);
+      ("-", [ T.Symbol "-" ]);
+      ("=", [ T.Symbol "=" ]);
+      ("123", [ T.Integer 123 ]);
+      ("-123", [ T.Integer (-123) ]);
+      ("1+", [ T.Symbol "1+" ]);
       ("; 1", [ ]);
-      ("1 ; 2\n3", [ TInteger 1; TInteger 3 ]);
+      ("1 ; 2\n3", [ T.Integer 1; T.Integer 3 ]);
       ("(= (1+ x) (foo 1))", [
-          TLeftParenthesis;
-          TSymbol "=";
-          TLeftParenthesis;
-          TSymbol "1+";
-          TSymbol "x";
-          TRightParenthesis;
-          TLeftParenthesis;
-          TSymbol "foo";
-          TInteger 1;
-          TRightParenthesis;
-          TRightParenthesis
+          T.LeftParenthesis;
+          T.Symbol "=";
+          T.LeftParenthesis;
+          T.Symbol "1+";
+          T.Symbol "x";
+          T.RightParenthesis;
+          T.LeftParenthesis;
+          T.Symbol "foo";
+          T.Integer 1;
+          T.RightParenthesis;
+          T.RightParenthesis
         ]);
     ]
   in

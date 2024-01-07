@@ -1,3 +1,4 @@
+module Token               = Token
 module Tokenizer           = Tokenizer
 module Value               = Value
 module Parser              = Parsing

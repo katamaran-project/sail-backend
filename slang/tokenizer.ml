@@ -1,16 +1,7 @@
 open Base
 open Sequence.Generator
 
-type token =
-  | TLeftParenthesis
-  | TRightParenthesis
-  | TQuote
-  | TSymbol           of string
-  | TString           of string
-  | TInteger          of int
-  | TTrue
-  | TFalse
-
+module T = Token
 
 let is_newline = Char.equal '\n'
 
@@ -22,12 +13,12 @@ let rec read_next_token (seq : char Sequence.t) =
       let continue () = read_next_token tail
       in
       match char with
-      | '('  -> yield TLeftParenthesis >>= continue
-      | ')'  -> yield TRightParenthesis >>= continue
+      | '('  -> yield T.LeftParenthesis >>= continue
+      | ')'  -> yield T.RightParenthesis >>= continue
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
       | ';'  -> read_comment seq
-      | '\'' -> yield TQuote
+      | '\'' -> yield T.Quote
       | _    -> begin
           if Char.is_whitespace char
           then continue ()
@@ -48,8 +39,8 @@ and read_boolean (seq : char Sequence.t) =
                 read_next_token tail
               in
               match char with
-              | 't'  -> yield TTrue >>= continue
-              | 'f'  -> yield TFalse >>= continue
+              | 't'  -> yield T.True >>= continue
+              | 'f'  -> yield T.False >>= continue
               | _    -> failwith "unrecognized boolean"
             end
         end
@@ -65,7 +56,7 @@ and read_string (seq : char Sequence.t) =
           read_next_token tail
         in
         match char with
-        | '"' -> yield (TString (String.of_char_list @@ List.rev acc)) >>= continue
+        | '"' -> yield (T.String (String.of_char_list @@ List.rev acc)) >>= continue
         | _   -> collect_string_chars (char :: acc) @@ tail
       end
   in
@@ -101,8 +92,8 @@ and read_symbol_or_integer (seq : char Sequence.t) =
   then failwith "invalid input"
   else begin
     match Int.of_string_opt chars with
-    | Some n -> yield (TInteger n) >>= continue
-    | None   -> yield (TSymbol chars) >>= continue
+    | Some n -> yield (T.Integer n) >>= continue
+    | None   -> yield (T.Symbol chars) >>= continue
   end
 
 and read_comment (seq : char Sequence.t) =
