@@ -61,6 +61,6 @@ let parse_tokens (tokens : Token.t Sequence.t) =
  
 
 let parse_string string =
-  let tokens = Tokenizer.tokenize @@ Sequence.of_list @@ String.to_list string
+  let tokens = Tokenizing.tokenize @@ Sequence.of_list @@ String.to_list string
   in
   parse_tokens tokens

@@ -1,5 +1,5 @@
 module Token               = Token
-module Tokenizer           = Tokenizer
+module Tokenizing          = Tokenizing
 module Value               = Value
 module Parser              = Parsing
 module Environment         = Environment

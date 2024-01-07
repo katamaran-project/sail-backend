@@ -1,6 +1,6 @@
 open Base
 open OUnit2
-open Slang.Tokenizer
+open Slang.Tokenizing
 
 module T = Slang.Token
              
