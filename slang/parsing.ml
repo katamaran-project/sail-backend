@@ -49,6 +49,7 @@ let parse_tokens (tokens : Tokenizer.token Sequence.t) =
     | Tokenizer.TInteger n        -> push_value @@ Value.Integer n
     | Tokenizer.TTrue             -> push_value @@ Value.Bool true
     | Tokenizer.TFalse            -> push_value @@ Value.Bool false
+    | Tokenizer.TQuote            -> (create_new_list (); push_value @@ Value.Symbol "quote")
   in
   Sequence.iter ~f:process_token tokens;
   match !stack with

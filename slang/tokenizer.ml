@@ -4,6 +4,7 @@ open Sequence.Generator
 type token =
   | TLeftParenthesis
   | TRightParenthesis
+  | TQuote
   | TSymbol           of string
   | TString           of string
   | TInteger          of int
@@ -26,6 +27,7 @@ let rec read_next_token (seq : char Sequence.t) =
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
       | ';'  -> read_comment seq
+      | '\'' -> yield TQuote
       | _    -> begin
           if Char.is_whitespace char
           then continue ()
