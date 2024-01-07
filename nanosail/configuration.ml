@@ -22,15 +22,32 @@ let ignore_pragma pragma (Libsail.Ast.DEF_aux (definition, _annotation)) =
 
 let ignore_pragmas pragmas =
   List.fold_left ~f:(fun acc p -> acc |.| ignore_pragma p) ~init:(Fn.const false) pragmas
+
+
+module Script = struct
+  open Slang
+  open Slang.Evaluation_context
   
+  let boolean_setter setting args =
+    if List.is_empty args
+    then begin
+      set setting true;
+      return Value.Nil
+    end else
+      failwith "No arguments expected"
+end
+
+
 let load_configuration_file path =
-  let open Slang in
-  let open Slang.Evaluation_context
+  let open Slang
   in
   let contents = Stdio.In_channel.read_all path
   in
   let environment = extend_environment prelude @@ fun { native_function; _ } -> begin
-      native_function "use-list-notations" @@ fun _ -> (set use_list_notations true; return Value.Nil)
+      native_function "use-list-notations"               @@ Script.boolean_setter use_list_notations;
+      native_function "include-untranslated-definitions" @@ Script.boolean_setter include_untranslated_definitions;
+      native_function "include-original-code"            @@ Script.boolean_setter include_original_code;
+      native_function "include-ignored-definitions"      @@ Script.boolean_setter include_ignored_definitions;
     end
   in
   ignore @@ run_string environment contents
