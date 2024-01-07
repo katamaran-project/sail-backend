@@ -23,6 +23,19 @@ let parse_string_tests =
             make_list [ Integer 1; Integer 2 ]
           ]
         ]);
+      ("(a '(b c) d)", [
+          make_list [
+            Symbol "a";
+            make_list [
+              Symbol "quote";
+              make_list [
+                Symbol "b";
+                Symbol "c";
+              ];
+            ];
+            Symbol "d";
+          ]
+        ]);
     ]
   in
   let test_parse_string (input, expected) =

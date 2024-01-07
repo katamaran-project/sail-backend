@@ -8,6 +8,7 @@ let tokenizer_tests =
     [
       ("(", [ TLeftParenthesis ]);
       (")", [ TRightParenthesis ]);
+      ("'", [ TQuote ]);
       ("()", [ TLeftParenthesis; TRightParenthesis ]);
       ("\"abc\"", [ TString "abc" ]);
       ("#t", [ TTrue ]);

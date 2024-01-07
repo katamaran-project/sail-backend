@@ -1,5 +1,8 @@
 open Base
-    
+
+
+module T = Tokenizer
+
 
 exception ParseError of string
   
@@ -40,16 +43,16 @@ let parse_tokens (tokens : Tokenizer.token Sequence.t) =
     in
     make_list @@ List.rev elts
   in
-  let process_token (token : Tokenizer.token)  =
+  let process_token (token : T.token)  =
     match token with
-    | Tokenizer.TLeftParenthesis  -> create_new_list ()
-    | Tokenizer.TRightParenthesis -> push_value @@ pop_list ()
-    | Tokenizer.TSymbol symbol    -> push_value @@ Value.Symbol symbol
-    | Tokenizer.TString str       -> push_value @@ Value.String str
-    | Tokenizer.TInteger n        -> push_value @@ Value.Integer n
-    | Tokenizer.TTrue             -> push_value @@ Value.Bool true
-    | Tokenizer.TFalse            -> push_value @@ Value.Bool false
-    | Tokenizer.TQuote            -> (create_new_list (); push_value @@ Value.Symbol "quote")
+    | T.TLeftParenthesis  -> create_new_list ()
+    | T.TRightParenthesis -> push_value @@ pop_list ()
+    | T.TSymbol symbol    -> push_value @@ Value.Symbol symbol
+    | T.TString str       -> push_value @@ Value.String str
+    | T.TInteger n        -> push_value @@ Value.Integer n
+    | T.TTrue             -> push_value @@ Value.Bool true
+    | T.TFalse            -> push_value @@ Value.Bool false
+    | T.TQuote            -> raise @@ ParseError "quote not supported yet :-("
   in
   Sequence.iter ~f:process_token tokens;
   match !stack with
@@ -57,8 +60,9 @@ let parse_tokens (tokens : Tokenizer.token Sequence.t) =
   | [x] -> List.rev x
   | _   -> failwith "open lists left"
 
+ 
 
 let parse_string string =
-  let tokens = Tokenizer.tokenize @@ Sequence.of_list @@ String.to_list string
+  let tokens = T.tokenize @@ Sequence.of_list @@ String.to_list string
   in
   parse_tokens tokens
