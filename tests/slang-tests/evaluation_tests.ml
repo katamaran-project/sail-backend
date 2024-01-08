@@ -78,9 +78,42 @@ let define_function_tests =
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let define_variable_tests = 
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+          (define x 1)
+          (define y 2)
+          (+ x y)
+        |},
+        Integer 3
+      );
+      (
+        {|
+          (define x (* 5 9))
+          x
+        |},
+        Integer 45
+      );
+      (
+        {|
+          (define foo (lambda (x y) (+ x y)))
+          (foo 13 12)
+        |},
+        Integer 25
+      );
+    ]
+  in
+  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
     lambda_tests;
     define_function_tests;
+    define_variable_tests;
   ]
