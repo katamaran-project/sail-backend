@@ -5,6 +5,7 @@ let tests =
   "all tests" >::: [
     State_monad_tests.test_suite;
     Writer_monad_tests.test_suite;
+    Reader_monad_tests.test_suite;
   ]
 
 
