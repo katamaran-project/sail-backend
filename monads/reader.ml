@@ -8,7 +8,7 @@ module type Source = sig
   val next : t -> (item * t) option
 end
 
-module ListSource (Item : sig type t end) : (Source with type item = Item.t) = struct
+module MakeListSource (Item : sig type t end) : (Source with type item = Item.t and type t = Item.t list) = struct
   type item = Item.t
   type t    = item list
 
@@ -18,7 +18,7 @@ module ListSource (Item : sig type t end) : (Source with type item = Item.t) = s
     | x::xs -> Some (x, xs)
 end
 
-module SequenceSource (Item : sig type t end) : (Source with type item = Item.t) = struct
+module MakeSequenceSource (Item : sig type t end) : (Source with type item = Item.t and type t = Item.t Sequence.t) = struct
   type item = Item.t
   type t    = item Sequence.t
 
@@ -31,20 +31,21 @@ module type S = sig
   module S : Source
 
   type item
+  type source
 
   val current     : item option t
   val next        : unit t
       
-  val run         : 'a t -> S.t -> ('a * S.t)
+  val run         : 'a t -> source -> ('a * source)
 end
 
 
-module Make (S : Source) : (S with type item = S.item) = struct
+module Make (S : Source) : (S with type item = S.item and type source = S.t) = struct
   type item        = S.item
-  type state       = S.t
+  type source      = S.t
 
   module S         = S
-  module MState    = State.Make(struct type t = state end)
+  module MState    = State.Make(struct type t = source end)
 
   type 'a t        = 'a MState.t
 
