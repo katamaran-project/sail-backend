@@ -59,7 +59,7 @@
 	(allow_empty))
 
 (package
-	(name configlib)
+	(name ConfigLib)
 	(synopsis
 		"Configuration library")
 	(depends ocaml

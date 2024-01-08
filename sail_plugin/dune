@@ -16,7 +16,7 @@
         auxlib
         monads
         slang
-        configlib
+        ConfigLib
         nanosail))
 
 (install

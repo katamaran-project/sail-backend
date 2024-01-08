@@ -11,4 +11,4 @@
             monads
             auxlib
             slang
-            configlib))
+            ConfigLib))
