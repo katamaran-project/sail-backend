@@ -471,7 +471,7 @@ let translate_top_level_outcome_definition
   not_yet_implemented [%here] location
 
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
-  let ignore_definition = Configuration.(get ignore_definition)
+  let ignore_definition = Fn.const false (* Configuration.(get ignore_definition) *)
   in
   if
     ignore_definition sail_definition

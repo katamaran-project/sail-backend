@@ -17,6 +17,7 @@ depends: [
   "base"
   "ppx_accessor"
   "ppx_here"
+  "configlib"
   "odoc" {with-doc}
 ]
 build: [
