@@ -50,3 +50,8 @@ let using ~resource:(x : 'a) ~close ~body =
       raise e
   end;
   close x
+
+let rec unordered_pairs xs =
+  match xs with
+  | []    -> []
+  | x::xs -> (List.map ~f:(fun y -> (x, y)) xs) @ (unordered_pairs xs)
