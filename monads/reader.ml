@@ -1,3 +1,6 @@
+open Base
+
+
 module type Source = sig
   type t
   type item
@@ -5,43 +8,63 @@ module type Source = sig
   val next : t -> (item * t) option
 end
 
+module ListSource (Item : sig type t end) : (Source with type item = Item.t) = struct
+  type item = Item.t
+  type t    = item list
+
+  let next xs =
+    match xs with
+    | []    -> None
+    | x::xs -> Some (x, xs)
+end
+
+module SequenceSource (Item : sig type t end) : (Source with type item = Item.t) = struct
+  type item = Item.t
+  type t    = item Sequence.t
+
+  let next  = Sequence.next
+end
+
 module type S = sig
   include Sig.Monad
+
+  module S : Source
 
   type item
 
   val current     : item option t
   val next        : unit t
       
-  val run         : 'a t -> ('a * item)
+  val run         : 'a t -> S.t -> ('a * S.t)
 end
 
 
-(* module Make (S : Source) : (S with type item = S.item) = struct *)
-module Make (S : Source) = struct
-  type item = S.item
+module Make (S : Source) : (S with type item = S.item) = struct
+  type item        = S.item
+  type state       = S.t
 
-  module MState = State.Make(struct type t = (item * S.t) option end)
+  module S         = S
+  module MState    = State.Make(struct type t = state end)
 
-  type 'a t = 'a MState.t
+  type 'a t        = 'a MState.t
 
-  let return  = MState.return
-  let bind    = MState.bind
-  let run     = MState.run
+  let return       = MState.return
+  let bind         = MState.bind
+  let run f source = MState.run f source
 
   let current =
     let open Notations.Star(MState)
     in
     let* state = MState.get
     in
-    return @@ Option.map fst state
+    return @@ Option.map ~f:fst (S.next state)
   
   let next =
     let open Notations.Star(MState)
     in
     let* state = MState.get
     in
-    match state with
-    | None             -> failwith "reader reached end"
-    | Some (_, source) -> MState.put @@ S.next source
+    match S.next state with
+    | Some (_, tail) -> MState.put tail
+    | None           -> failwith "reader end reached"
 end
