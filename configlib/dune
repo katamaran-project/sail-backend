@@ -1,0 +1,4 @@
+(library
+ (name configlib)
+ (public_name configlib)
+ (libraries base auxlib monads slang))
