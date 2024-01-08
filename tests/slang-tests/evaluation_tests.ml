@@ -37,6 +37,53 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let atom_equality_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      "1";
+      "2";
+      "#t";
+      "#f";
+      {|"abc"|};
+      "()";
+    ]
+  in
+  "equality of atoms" >::: List.map ~f:(fun input -> test_run (Printf.sprintf "(= %s %s)" input input) (Bool true)) test_cases
+
+
+let expression_equality_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ("(+ 1 2)", "(/ 6 2)");
+      ("(cons 1 2)", "(cons 1 (+ 1 1))");
+    ]
+  in
+  "equality of expressions" >::: List.map ~f:(fun (lhs, rhs) -> test_run (Printf.sprintf "(= %s %s)" lhs rhs) (Bool true)) test_cases
+
+
+let inequality_tests =
+  let open Slang.Value
+  in
+  let expressions = [
+    "0";
+    "1";
+    "(+ 2 3)";
+    "#t";
+    "#f";
+    {|""|};
+    {|"xyz"|};
+    "()";
+  ]
+  in
+  let pairs = Auxlib.unordered_pairs expressions
+  in
+  "inequality" >::: List.map ~f:(fun (lhs, rhs) -> test_run (Printf.sprintf "(= %s %s)" lhs rhs) (Bool false)) pairs
+
+
 let lambda_tests =
   let open Slang.Value
   in
@@ -78,7 +125,7 @@ let define_function_tests =
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
 
-let define_variable_tests = 
+let define_variable_tests =
   let open Slang.Value
   in
   let test_cases =
@@ -116,4 +163,7 @@ let tests =
     lambda_tests;
     define_function_tests;
     define_variable_tests;
+    atom_equality_tests;
+    expression_equality_tests;
+    inequality_tests;
   ]
