@@ -53,7 +53,7 @@ let lambda_tests =
   "lambda" >::: List.map ~f:(uncurry test_run) test_cases
 
 
-let define_tests =
+let define_function_tests =
   let open Slang.Value
   in
   let test_cases =
@@ -75,12 +75,12 @@ let define_tests =
       );
     ]
   in
-  "define" >::: List.map ~f:(uncurry test_run) test_cases
+  "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
 
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
     lambda_tests;
-    define_tests;
+    define_function_tests;
   ]
