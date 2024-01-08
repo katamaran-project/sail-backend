@@ -11,6 +11,7 @@ let tokenizer_tests =
       ("(", [ T.LeftParenthesis ]);
       (")", [ T.RightParenthesis ]);
       ("'", [ T.Quote ]);
+      ("'5", [ T.Quote; T.Integer 5 ]);
       ("()", [ T.LeftParenthesis; T.RightParenthesis ]);
       ("\"abc\"", [ T.String "abc" ]);
       ("#t", [ T.True ]);
