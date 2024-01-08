@@ -1,6 +1,6 @@
 module State        = State
 module Writer       = Writer
-module ListWriter   = List_writer
+module ListWriter   = ListWriter
 module Notations    = Notations
 module Monoid       = Monoid
 module Util         = Util
