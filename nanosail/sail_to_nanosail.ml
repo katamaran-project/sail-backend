@@ -59,6 +59,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   let rec type_of_identifier identifier : N.nanotype =
     match translate_identifier identifier with
     | "bool"      -> Ty_bool
+    | "nat"       -> Ty_nat
     | "int"       -> Ty_int
     | "unit"      -> Ty_unit
     | "string"    -> Ty_string

@@ -36,6 +36,7 @@ type nanotype =
   | Ty_unit
   | Ty_bool
   | Ty_int
+  | Ty_nat
   | Ty_string
   | Ty_atom
   | Ty_list      of nanotype

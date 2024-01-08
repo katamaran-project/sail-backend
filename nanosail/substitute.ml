@@ -21,6 +21,7 @@ module Subst = struct
       match t with
       | Ty_unit            -> Ty_unit
       | Ty_bool            -> Ty_bool
+      | Ty_nat             -> Ty_nat
       | Ty_int             -> Ty_int
       | Ty_string          -> Ty_string
       | Ty_atom            -> Ty_atom

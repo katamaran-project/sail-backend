@@ -87,6 +87,7 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_unit            -> return @@ string "ty.unit"
    | Ty_bool            -> return @@ string "ty.bool"
    | Ty_int             -> return @@ string "ty.int"
+   | Ty_nat             -> return @@ string "ty.nat"
    | Ty_string          -> return @@ string "ty.string"
    | Ty_atom            -> return @@ string "ty.atom"
    | Ty_custom id       -> return @@ pp_identifier id
@@ -99,6 +100,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   match nanotype with
   | Ty_unit              -> return @@ string "Datatypes.unit"
   | Ty_bool              -> return @@ string "Datatypes.bool"
+  | Ty_nat               -> return @@ string "nat"
   | Ty_int               -> return @@ string "Z"
   | Ty_string            -> return @@ string "String.string"
   | Ty_atom              -> not_yet_implemented [%here]
