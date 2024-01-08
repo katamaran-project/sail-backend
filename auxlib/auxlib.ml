@@ -1,8 +1,6 @@
 open Base
 
 
-module Settings = Settings
-
 let uncurry f (x, y) = f x y
 
 let (&.&) p1 p2 x =
