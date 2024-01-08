@@ -37,6 +37,20 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let list_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ("(car (cons 1 2))", Integer 1 );
+      ("(cdr (cons 1 2))", Integer 2 );
+      ("(car (cons (+ 1 5) (cons 2 3)))", Integer 6 );
+      ("(cdr (cons (+ 1 5) (cons 2 3)))", Cons (Integer 2, Integer 3) );
+    ]
+  in
+  "lists" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let atom_equality_tests =
   let open Slang.Value
   in
@@ -166,4 +180,5 @@ let tests =
     atom_equality_tests;
     expression_equality_tests;
     inequality_tests;
+    list_tests;
   ]
