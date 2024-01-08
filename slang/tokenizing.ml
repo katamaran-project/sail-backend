@@ -13,12 +13,12 @@ let rec read_next_token (seq : char Sequence.t) =
       let continue () = read_next_token tail
       in
       match char with
-      | '('  -> yield T.LeftParenthesis >>= continue
+      | '('  -> yield T.LeftParenthesis  >>= continue
       | ')'  -> yield T.RightParenthesis >>= continue
+      | '\'' -> yield T.Quote            >>= continue
       | '#'  -> read_boolean seq
       | '"'  -> read_string seq
       | ';'  -> read_comment seq
-      | '\'' -> yield T.Quote
       | _    -> begin
           if Char.is_whitespace char
           then continue ()
