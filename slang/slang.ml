@@ -5,7 +5,7 @@ module Parser              = Parsing
 module Environment         = Environment
 module EnvironmentBuilder  = EnvironmentBuilder
 module Evaluation          = Evaluation
-module Evaluation_context  = Evaluation_context
+module EvaluationContext   = EvaluationContext
 module Types               = Types
 
 
@@ -14,7 +14,7 @@ let prelude = Prelude.prelude
 let extend_environment = EnvironmentBuilder.extend_environment
 
 let run_asts environment asts =
-  Evaluation_context.run (Evaluation.evaluate_many asts) environment
+  EvaluationContext.run (Evaluation.evaluate_many asts) environment
 
 let run_string environment string =
   let asts = Parser.parse_string string

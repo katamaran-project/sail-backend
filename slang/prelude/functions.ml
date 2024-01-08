@@ -1,7 +1,7 @@
 open Base
 open Exception
-open Evaluation_context
-open Monads.Notations.Star(Evaluation_context)
+open EvaluationContext
+open Monads.Notations.Star(EvaluationContext)
 
 
 module T = Types

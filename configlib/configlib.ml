@@ -1,7 +1,7 @@
 open Base
 open Auxlib
-open Slang.Evaluation_context
-open Monads.Notations.Star(Slang.Evaluation_context)
+open Slang.EvaluationContext
+open Monads.Notations.Star(Slang.EvaluationContext)
 
 
 (* List of native functions to be made accessible in configuration script *)

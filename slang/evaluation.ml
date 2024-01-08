@@ -3,8 +3,8 @@ open Auxlib
 
 
 module EC = struct
-  include Evaluation_context
-  include Monads.Notations.Star(Evaluation_context)
+  include EvaluationContext
+  include Monads.Notations.Star(EvaluationContext)
 end
 
 exception EvaluationError of string
