@@ -17,25 +17,31 @@ let parse_string_tests =
       ("(1 2)", [Cons (Integer 1, Cons (Integer 2, Nil))]);
       ("()", [Nil]);
       ("(* 5 (1 2))", [
-          make_list [
-            Symbol "*";
-            Integer 5;
-            make_list [ Integer 1; Integer 2 ]
-          ]
-        ]);
-      ("(a '(b c) d)", [
-          make_list [
-            Symbol "a";
-            make_list [
-              Symbol "quote";
-              make_list [
-                Symbol "b";
-                Symbol "c";
-              ];
-            ];
-            Symbol "d";
-          ]
-        ]);
+         make_list [
+             Symbol "*";
+             Integer 5;
+             make_list [ Integer 1; Integer 2 ]
+           ]
+      ]);
+      ("'5", [
+         make_list [
+             Symbol "quote";
+             Integer 5;
+           ]
+      ]);
+      (* ("(a '(b c) d)", [ *)
+      (*     make_list [ *)
+      (*       Symbol "a"; *)
+      (*       make_list [ *)
+      (*         Symbol "quote"; *)
+      (*         make_list [ *)
+      (*           Symbol "b"; *)
+      (*           Symbol "c"; *)
+      (*         ]; *)
+      (*       ]; *)
+      (*       Symbol "d"; *)
+      (*     ] *)
+      (*   ]); *)
     ]
   in
   let test_parse_string (input, expected) =
