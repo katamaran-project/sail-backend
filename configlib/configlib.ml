@@ -29,6 +29,24 @@ let bool ?(init=false) export_as =
   register_script_function export_as script_function;
   Setting (get, set)
 
+let strings export_as =
+  let cell = ref []
+  in
+  let get () = !cell
+  and set xs = cell := xs
+  in
+  let script_function values =
+    let open Slang.Types in
+    let open Slang.Types.Notations
+    in
+    let=! strings = map string values
+    in
+    set strings;
+    return Slang.Value.Nil
+  in
+  register_script_function export_as script_function;
+  Setting (get, set)
+
 module Exported = struct
   let get (Setting (getter, _)) =
     getter ()
