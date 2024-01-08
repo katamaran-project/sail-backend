@@ -95,6 +95,18 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_app (id, targs) -> pp_application id targs
    | Ty_bitvector nexpr -> pp_bitvector nexpr
 
+and coq_type_of_nanotype (nanotype : nanotype) =
+  match nanotype with
+  | Ty_unit              -> return @@ string "Datatypes.unit"
+  | Ty_bool              -> return @@ string "Datatypes.bool"
+  | Ty_int               -> return @@ string "Z"
+  | Ty_string            -> return @@ string "String.string"
+  | Ty_atom              -> not_yet_implemented [%here]
+  | Ty_list _t           -> not_yet_implemented [%here]
+  | Ty_bitvector n       -> let* n' = pp_numeric_expression n in return @@ string "bv" ^^ space ^^ n'
+  | Ty_tuple _ts         -> not_yet_implemented [%here]
+  | Ty_app (_t1, _t2)    -> not_yet_implemented [%here]
+  | Ty_custom _id        -> not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with

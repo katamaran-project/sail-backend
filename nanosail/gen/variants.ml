@@ -14,7 +14,7 @@ let generate_inductive_type
       Sail.pp_identifier identifier
     in
     let pp_constructor_type (nanotype : nanotype) =
-      let* ts = map Sail.pp_nanotype @@ Ast.tuple_to_list nanotype
+      let* ts = map Sail.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
       in
       let ts = ts @ [ identifier' ]
       in
