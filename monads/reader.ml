@@ -39,7 +39,6 @@ module type S = sig
   val run         : 'a t -> source -> ('a * source)
 end
 
-
 module Make (S : Source) : (S with type item = S.item and type source = S.t) = struct
   type item        = S.item
   type source      = S.t
