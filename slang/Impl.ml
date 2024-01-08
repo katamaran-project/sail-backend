@@ -15,6 +15,7 @@ module rec Value : sig
   val equal        : t -> t -> bool
 
   val cons_to_list : t -> t list
+  val list_to_cons : t list -> t
   val to_string    : t -> string
     
 end = struct
@@ -37,6 +38,10 @@ end = struct
     | Cons (head, tail) -> head :: cons_to_list tail
     | _                 -> failwith "invalid list"
 
+  let rec list_to_cons values =
+    match values with
+    | []       -> Nil
+    | x::xs    -> Cons (x, list_to_cons xs)
 
   let rec to_string value =
     match value with
