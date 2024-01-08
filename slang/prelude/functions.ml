@@ -66,7 +66,7 @@ let define args =
 
 
 let library env =
-  Environment_builder.extend_environment env (fun { native_function; _ } ->
+  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
       native_function "lambda" lambda;
       native_function "define" define;
     )
