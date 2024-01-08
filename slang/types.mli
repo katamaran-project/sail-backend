@@ -7,6 +7,7 @@ val (|?>)   : 'a converter -> ('a -> 'b) -> 'b converter
 
 val value   : Value.t converter
 val integer : int converter
+val string  : string converter
 val tuple2  : 'a converter -> 'b converter -> ('a * 'b) converter
 val tuple3  : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 'c) converter
 val symbol  : string converter

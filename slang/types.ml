@@ -58,6 +58,12 @@ let tuple3 f1 f2 f3 value =
   | _                                    -> None
 
 
+let string value =
+  match value with
+  | String s -> Some s
+  | _        -> None
+
+
 let symbol value =
   match value with
   | Symbol identifier -> Some identifier
