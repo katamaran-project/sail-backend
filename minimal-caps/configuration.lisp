@@ -8,3 +8,7 @@
                 "include_end"
                 "sail_internal"
                 "file_end")
+
+(ignore-functions "eq_unit"
+                  "neq_int"
+                  "neq_bool")
