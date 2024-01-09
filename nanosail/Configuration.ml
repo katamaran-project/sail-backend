@@ -1,5 +1,4 @@
 open Base
-open NYI
 
 include ConfigLib.Exported
 
@@ -13,15 +12,19 @@ let include_ignored_definitions      = ConfigLib.bool    "include-ignored-defini
 let ignore_pragmas                   = ConfigLib.strings "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
 let ignore_functions                 = ConfigLib.strings "ignore-functions"                 (* Functions to be ignored                                                     *)
 let ignore_overloads                 = ConfigLib.bool    "ignore-all-overloads"             (* Ignore all overloads                                                        *)
+let ignore_types                     = ConfigLib.strings "ignore-types"                     (* Types to be ignored                                                         *)
 
 let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
   match definition with
   | Libsail.Ast.DEF_pragma (identifier, _, _) ->
      List.mem (get ignore_pragmas) identifier ~equal:String.equal
-  | Libsail.Ast.DEF_fundef (FD_aux (FD_function (_, _, x), (location, _))) -> begin
-      match x with
-      | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> List.mem (get ignore_functions) identifier ~equal:String.equal
-      | _ -> not_yet_implemented [%here] location
-    end
+  | Libsail.Ast.DEF_fundef function_definition ->
+     let identifier = Sail.identifier_of_function_definition function_definition
+     in
+     List.mem (get ignore_functions) identifier ~equal:String.equal
   | Libsail.Ast.DEF_overload (_, _) -> get (ignore_overloads)
+  | Libsail.Ast.DEF_type type_definition ->
+     let identifier = Sail.identifier_of_type_definition type_definition
+     in
+     List.mem (get ignore_types) identifier ~equal:String.equal
   | _ -> false
