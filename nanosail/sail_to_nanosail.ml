@@ -130,8 +130,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
       let x = translate_identifier id in
       let ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a) in
       [(x, ty)]
-  | P_tuple pats ->
-      List.concat (List.map ~f:binds_of_pat pats)
+  | P_tuple pats                  -> List.concat (List.map ~f:binds_of_pat pats)
   | S.P_wild                      -> not_yet_implemented [%here] location
   | S.P_or (_, _)                 -> not_yet_implemented [%here] location
   | S.P_not _                     -> not_yet_implemented [%here] location
