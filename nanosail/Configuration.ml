@@ -12,6 +12,7 @@ let include_original_code            = ConfigLib.bool    "include-original-code"
 let include_ignored_definitions      = ConfigLib.bool    "include-ignored-definitions"      (* Output ignored definitions                                                  *)
 let ignore_pragmas                   = ConfigLib.strings "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
 let ignore_functions                 = ConfigLib.strings "ignore-functions"                 (* Functions to be ignored                                                     *)
+let ignore_overloads                 = ConfigLib.bool    "ignore-all-overloads"             (* Ignore all overloads                                                        *)
 
 let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
   match definition with
@@ -22,4 +23,5 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
       | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> List.mem (get ignore_functions) identifier ~equal:String.equal
       | _ -> not_yet_implemented [%here] location
     end
+  | Libsail.Ast.DEF_overload (_, _) -> get (ignore_overloads)
   | _ -> false
