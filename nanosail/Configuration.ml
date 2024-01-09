@@ -18,13 +18,14 @@ let ignored_types                    = ConfigLib.strings "ignore-types"         
 module Identifier = struct
   open Libsail.Ast
   open NYI
+
   
-  let function_definition (FD_aux (FD_function (_, _, x), (location, _))) =
+  let of_function_definition (FD_aux (FD_function (_, _, x), (location, _))) =
     match x with
     | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
     | _ -> not_yet_implemented [%here] location
 
-  let type_definition (TD_aux (definition, (location, _))) =
+  let of_type_definition (TD_aux (definition, (location, _))) =
     match definition with
     | TD_abbrev (Id_aux (Id identifier, _), _, _)     -> identifier
     | TD_record (Id_aux (Id identifier, _), _, _, _)  -> identifier
@@ -36,16 +37,14 @@ end
 
 
 let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
+  let open Libsail.Ast
+  in
+  let member setting item =
+    List.mem (get setting) item ~equal:String.equal
+  in
   match definition with
-  | Libsail.Ast.DEF_pragma (identifier, _, _) ->
-     List.mem (get ignored_pragmas) identifier ~equal:String.equal
-  | Libsail.Ast.DEF_fundef function_definition ->
-     let identifier = Identifier.function_definition function_definition
-     in
-     List.mem (get ignored_functions) identifier ~equal:String.equal
-  | Libsail.Ast.DEF_overload (_, _) -> get (ignore_overloads)
-  | Libsail.Ast.DEF_type type_definition ->
-     let identifier = Identifier.type_definition type_definition
-     in
-     List.mem (get ignored_types) identifier ~equal:String.equal
-  | _ -> false
+  | DEF_pragma (identifier, _, _)  -> member ignored_pragmas   @@ identifier
+  | DEF_fundef function_definition -> member ignored_functions @@ Identifier.of_function_definition function_definition
+  | DEF_type type_definition       -> member ignored_types     @@ Identifier.of_type_definition type_definition
+  | DEF_overload (_, _)            -> get (ignore_overloads)
+  | _                              -> false
