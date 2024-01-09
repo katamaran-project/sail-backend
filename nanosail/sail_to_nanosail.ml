@@ -80,11 +80,11 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
     | "list" , [ TA_type t ]  -> N.Ty_list t
     | id     , _              -> Ty_app (id, type_arguments')
 
-  and translate_type_argument (S.A_aux (type_argument, location)) : N.type_argument =
+  and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument =
     match type_argument with
     | A_nexp e -> TA_numexp (translate_numeric_expression e)
     | A_typ t  -> TA_type (nanotype_of_sail_type t)
-    | A_bool _ -> not_yet_implemented [%here] location
+    | A_bool b -> TA_bool (translate_numeric_constraint b)
   in
 
   match typ with
