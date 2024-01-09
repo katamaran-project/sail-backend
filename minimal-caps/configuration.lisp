@@ -24,3 +24,5 @@
                   )
 
 (ignore-all-overloads)
+
+(ignore-types "option")
