@@ -1,4 +1,6 @@
 (library
  (name monads)
  (public_name monads)
- (libraries pprint auxlib))
+ (preprocess (pps ppx_accessor))
+ (libraries pprint
+            auxlib))
