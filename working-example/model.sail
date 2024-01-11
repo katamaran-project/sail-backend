@@ -7,8 +7,8 @@ enum foo = A | B
 
 
 val bar : foo -> bool
-function bar(x : foo) = {
-  match x {
+function bar(tralala : foo) = {
+  match tralala {
     A => true,
     B => false
   }
