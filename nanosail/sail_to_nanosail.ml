@@ -178,7 +178,18 @@ let rec expression_of_aval location (value : S.typ S.aval) =
           List.fold_left ~f:f ~init:e_h t
      end
   | AV_lit (lit, _)   -> N.Exp_val (value_of_lit lit)
-  | AV_id (id, _lvar) -> let id' = translate_identifier id in N.Exp_var id'
+  | AV_id (id, lvar) ->
+     begin
+       let id' = translate_identifier id in 
+       (
+         match lvar with
+         | S.Ast_util.Register _ -> Stdio.printf "register %s\n" id'
+         | S.Ast_util.Enum _ -> Stdio.printf "enum %s\n" id'
+         | S.Ast_util.Local (_, typ) -> Stdio.printf "local %s %s\n" id' (Libsail.Ast_util.string_of_typ typ)
+         | S.Ast_util.Unbound _ -> Stdio.printf "unbound %s\n" id'
+       );
+       N.Exp_var id'
+     end
   | AV_list (lst, _)  -> Exp_list (List.map ~f:(expression_of_aval location) lst)
   | AV_ref (_, _)     -> not_yet_implemented [%here] location
   | AV_vector (_, _)  -> not_yet_implemented [%here] location
@@ -325,8 +336,11 @@ and statement_of_match (location : S.l                                          
         }
   | _ -> begin
       let cases' = List.map ~f:translate_case cases
+      and _matched' = expression_of_aval location matched
       in
-      Stm_match cases'
+      begin
+        Stm_match cases'
+      end
     end
 
 let body_of_pexp pexp =
