@@ -333,9 +333,6 @@ let body_of_pexp pexp =
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
   | Pat_when _       -> not_yet_implemented [%here] location
 
-
-(******************************************************************************)
-
 let translate_function_definition
       (definition_annotation : S.def_annot               )
       (function_definition   : N.type_annotation S.fundef)
