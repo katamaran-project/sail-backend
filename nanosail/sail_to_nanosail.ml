@@ -430,7 +430,9 @@ let translate_variant
   }
 
 
-let translate_type_definition (definition_annotation : S.def_annot) (S.TD_aux (type_definition, type_annotation)) : N.definition =
+let translate_type_definition (definition_annotation : S.def_annot) (x : N.type_annotation S.type_def) : N.definition =
+  let S.TD_aux (type_definition, type_annotation) = x
+  in
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg) ->
      translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
