@@ -196,7 +196,7 @@ let make_sequence statements location =
   aux statements
 
 
-let rec statement_of_aexp expression =
+let rec statement_of_aexp (expression : S.typ S.aexp)  =
   let S.AE_aux (aux, _environment, location) =  expression
   in
   match aux with
