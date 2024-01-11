@@ -180,6 +180,9 @@ let rec pp_statement statement =
              m_rhs'
            ]
 
+  | Stm_match _cases ->
+     return @@ string "MATCH"
+
   | Stm_call (f, arg_list) ->
      let* arg_list' = map pp_par_expression arg_list
      in

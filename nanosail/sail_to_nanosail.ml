@@ -244,6 +244,26 @@ let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
   | S.AE_short_circuit (_, _, _) -> not_yet_implemented [%here] location
 
 and statement_of_match location matched cases =
+  let translate_case (case : 'a S.apat * 'a S.aexp * 'a S.aexp) =
+    let S.AP_aux (pattern, _env, location), _exp1, clause = case
+    in
+    match pattern with
+    | S.AP_id (id, _) -> begin
+        let id' = translate_identifier id
+        and clause' = statement_of_aexp clause
+        in
+        N.MatchCase (Pat_id id', clause')
+      end
+    | S.AP_tuple _       -> not_yet_implemented [%here] location
+    | S.AP_global (_, _) -> not_yet_implemented [%here] location
+    | S.AP_app (_, _, _) -> not_yet_implemented [%here] location
+    | S.AP_cons (_, _)   -> not_yet_implemented [%here] location
+    | S.AP_as (_, _, _)  -> not_yet_implemented [%here] location
+    | S.AP_struct (_, _) -> not_yet_implemented [%here] location
+    | S.AP_nil _         -> not_yet_implemented [%here] location
+    | S.AP_wild _        -> not_yet_implemented [%here] location
+  in
+  
   match cases with
   (*
       match matched {
@@ -299,7 +319,11 @@ and statement_of_match location matched cases =
         xr  = translate_identifier id_r;
         rhs = statement_of_aexp clause;
         }
-  | _ -> not_yet_implemented [%here] location
+  | _ -> begin
+      let cases' = List.map ~f:translate_case cases
+      in
+      Stm_match cases'
+    end
 
 let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
