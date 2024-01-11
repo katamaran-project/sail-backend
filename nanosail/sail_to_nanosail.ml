@@ -344,7 +344,7 @@ let translate_function_definition
       let S.FCL_aux (S.FCL_funcl (id, pexp), _) = funcl
       in
       N.FunctionDefinition {
-        N.funName = translate_identifier(id);
+        N.funName = translate_identifier id;
         N.funType = {
             arg_types = binds_of_pexp pexp;
             ret_type  = ty_of_pexp pexp
