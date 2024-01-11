@@ -7,8 +7,9 @@ COQ_FILE = microsail.v
 
 all: microsail.v rename coq
 
-microsail.v: $(SAIL_SOURCES)
-	$(SAIL) -katamaran -katamaran_add_original -katamaran_include_untranslated -katamaran_include_ignored -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o $(COQ_FILE)
+.PHONY: microsail.v
+microsail.v:
+	$(SAIL) -katamaran -katamaran_config configuration.lisp -ddump_rewrite_ast intermediate $(SAIL_SOURCES) -o $(COQ_FILE)
 
 .PHONY: rename
 rename:
