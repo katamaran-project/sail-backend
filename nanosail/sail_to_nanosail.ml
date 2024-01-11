@@ -343,10 +343,10 @@ let ir_funcl (S.FCL_aux (S.FCL_funcl (id, pexp), _)) =
     N.funBody = body_of_pexp pexp
   }
 
-let translate_function_definition (S.FD_aux ((FD_function (_, _, funcls)), _)) =
+let translate_function_definition (definition_annotation : S.def_annot) (S.FD_aux ((FD_function (_, _, funcls)), _)) =
   match funcls with
   | [funcl] -> Some (ir_funcl funcl)
-  | _       -> None
+  | _       -> not_yet_implemented [%here] definition_annotation.loc
 
 let translate_kind (S.K_aux (kind, _location)) : Ast.kind =
   match kind with
@@ -520,7 +520,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_internal_mutrec _                    -> not_yet_implemented [%here] annotation.loc
         | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
         | DEF_fundef fd                            -> begin
-            match translate_function_definition fd with
+            match translate_function_definition annotation fd with
             | Some translation -> N.FunctionDefinition translation
             | None             -> not_yet_implemented [%here] annotation.loc
           end
