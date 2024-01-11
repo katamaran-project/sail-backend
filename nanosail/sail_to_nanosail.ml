@@ -204,27 +204,30 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       N.Stm_exp (expression_of_aval location aval)
   | AE_app (id, avals, _) ->
      begin
-       let x = translate_identifier id in
+       let id' = translate_identifier id
+       in
        match avals with
        | [aval1; aval2] when String.equal x "sail_cons" ->
           let e1 = expression_of_aval location aval1 in
           let e2 = expression_of_aval location aval2 in
           Stm_exp (Exp_binop (Cons, e1, e2))
        | _ ->
-          Stm_call (x, List.map ~f:(expression_of_aval location) avals)
+          Stm_call (id', List.map ~f:(expression_of_aval location) avals)
      end
   | AE_let (_, id, _, aexp1, aexp2, _) ->
-    let x = translate_identifier id in
-      let s1 = statement_of_aexp aexp1 in
-      let s2 = statement_of_aexp aexp2 in
-      Stm_let (x, s1, s2)
+     let id' = translate_identifier id
+     and s1 = statement_of_aexp aexp1
+     and s2 = statement_of_aexp aexp2
+     in
+     Stm_let (id', s1, s2)
   | AE_if (aval, aexp1, aexp2, _) ->
-      let s = N.Stm_exp (expression_of_aval location aval) in
-      let s1 = statement_of_aexp aexp1 in
-      let s2 = statement_of_aexp aexp2 in
-      Stm_if (s, s1, s2)
+     let s = N.Stm_exp (expression_of_aval location aval)
+     and s1 = statement_of_aexp aexp1
+     and s2 = statement_of_aexp aexp2
+     in
+     Stm_if (s, s1, s2)
   | AE_match (aval, cases, _) ->
-      statement_of_match location aval cases
+     statement_of_match location aval cases
   | S.AE_block (statements, last_statement, _type) ->
      let translated_statements = List.map ~f:statement_of_aexp (statements @ [last_statement])
      in
