@@ -120,14 +120,9 @@ let create_substitution_from_map map =
     SubstitutionMap.contains_value map identifier
   in
   fun id ->
-    match SubstitutionMap.find map id with
-    | Some id' -> id'
-    | None     ->
-      begin
-        if contains_value id
-        then failwith "Clash!"
-        else id
-      end
+  match SubstitutionMap.find map id with
+  | Some id' -> id'
+  | None     -> if contains_value id then failwith "Clash!" else id
 
 let process_type_quantifier
     (sanitize        : identifier -> identifier option)
