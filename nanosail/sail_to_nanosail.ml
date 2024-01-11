@@ -207,7 +207,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
        let id' = translate_identifier id
        in
        match avals with
-       | [aval1; aval2] when String.equal x "sail_cons" ->
+       | [aval1; aval2] when String.equal id' "sail_cons" ->
           let e1 = expression_of_aval location aval1 in
           let e2 = expression_of_aval location aval2 in
           Stm_exp (Exp_binop (Cons, e1, e2))
