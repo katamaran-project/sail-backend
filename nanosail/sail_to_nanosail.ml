@@ -196,7 +196,9 @@ let make_sequence statements location =
   aux statements
 
 
-let rec statement_of_aexp (S.AE_aux (aux, _, location)) =
+let rec statement_of_aexp expression =
+  let S.AE_aux (aux, _environment, location) =  expression
+  in
   match aux with
   | AE_val aval ->
       N.Stm_exp (expression_of_aval location aval)
@@ -321,7 +323,9 @@ and statement_of_match location matched cases =
       Stm_match cases'
     end
 
-let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
+let body_of_pexp pexp =
+  let S.Pat_aux (aux, (location, _annot)) = pexp
+  in
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
   | Pat_when _       -> not_yet_implemented [%here] location
