@@ -455,11 +455,11 @@ let translate_top_level_type_constraint
   TopLevelTypeConstraintDefinition { identifier = translate_identifier identifier }
 
 let translate_register
-      (_definition_annotation : S.def_annot)
-      (S.DEC_aux
-         (DEC_reg (sail_type, identifier, expression),
-          (_spec_location, _spec_annotation))) : N.definition
+      (_definition_annotation        : S.def_annot                 )
+      (annotated_register_definition : N.type_annotation S.dec_spec) : N.definition
   =
+  let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
+  in
   begin
     match expression with
     | None                                          -> ()
