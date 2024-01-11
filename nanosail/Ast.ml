@@ -132,7 +132,6 @@ type expression =
   | Exp_binop of binary_operator * expression * expression
 
 type statement =
-  | Stm_exp of expression
   | Stm_match_list of {       (* Simple pattern matching on list (2 cases) *)
       s        : statement;   (* Statement to match *)
       alt_nil  : statement;   (* Nil case statement *)
@@ -146,10 +145,11 @@ type statement =
       xr  : string;           (* Variable name for the right tern of the product *)
       rhs : statement;        (* Resulting statement *)
     }
+  | Stm_exp  of expression
   | Stm_call of string * expression list    (* AST already in A-normal form *)
-  | Stm_let of string * statement * statement
-  | Stm_if of statement * statement * statement
-  | Stm_seq of statement * statement
+  | Stm_let  of string * statement * statement
+  | Stm_if   of statement * statement * statement
+  | Stm_seq  of statement * statement
   | Stm_nys                                 (* For statement types not yet supported *)
 
 
