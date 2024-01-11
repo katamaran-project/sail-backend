@@ -466,11 +466,11 @@ let translate_register
     | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented [%here] location
   end;
   let identifier' = translate_identifier identifier
-  and nano_type   = nanotype_of_sail_type sail_type
+  and nanotype    = nanotype_of_sail_type sail_type
   in
   RegisterDefinition {
     identifier = identifier';
-    typ        = nano_type  ;
+    typ        = nanotype   ;
   }
 
 let translate_mapping_definition
