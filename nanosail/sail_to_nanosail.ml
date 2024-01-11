@@ -263,7 +263,7 @@ and statement_of_match location matched cases =
     | S.AP_nil _         -> not_yet_implemented [%here] location
     | S.AP_wild _        -> not_yet_implemented [%here] location
   in
-  
+
   match cases with
   (*
       match matched {
@@ -333,19 +333,22 @@ let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
 
 (******************************************************************************)
 
-let ir_funcl (S.FCL_aux (S.FCL_funcl (id, pexp), _)) =
-  {
-    N.funName = translate_identifier(id);
-    N.funType = {
-      arg_types = binds_of_pexp pexp;
-      ret_type  = ty_of_pexp pexp
-    };
-    N.funBody = body_of_pexp pexp
-  }
-
-let translate_function_definition (definition_annotation : S.def_annot) (S.FD_aux ((FD_function (_, _, funcls)), _)) =
+let translate_function_definition
+      (definition_annotation : S.def_annot)
+      (S.FD_aux ((FD_function (_, _, funcls)), _)) =
   match funcls with
-  | [funcl] -> Some (ir_funcl funcl)
+  | [funcl] -> begin
+      let S.FCL_aux (S.FCL_funcl (id, pexp), _) = funcl
+      in
+      N.FunctionDefinition {
+        N.funName = translate_identifier(id);
+        N.funType = {
+            arg_types = binds_of_pexp pexp;
+            ret_type  = ty_of_pexp pexp
+          };
+        N.funBody = body_of_pexp pexp
+      }
+    end
   | _       -> not_yet_implemented [%here] definition_annotation.loc
 
 let translate_kind (S.K_aux (kind, _location)) : Ast.kind =
@@ -519,11 +522,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_register specification               -> translate_register annotation specification
         | DEF_internal_mutrec _                    -> not_yet_implemented [%here] annotation.loc
         | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
-        | DEF_fundef fd                            -> begin
-            match translate_function_definition annotation fd with
-            | Some translation -> N.FunctionDefinition translation
-            | None             -> not_yet_implemented [%here] annotation.loc
-          end
+        | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
       in
       (sail_definition, translation)
     with NotYetImplemented (source_position, sail_location, message) ->
@@ -595,7 +594,7 @@ let sanitize (program : N.program) : N.program =
       sail_definition,
       match definition with
       | N.TopLevelTypeConstraintDefinition _ -> definition
-      | N.FunctionDefinition _               -> definition 
+      | N.FunctionDefinition _               -> definition
       | N.TypeDefinition def                 -> N.TypeDefinition (sanitize_type_definition def)
       | N.RegisterDefinition _               -> definition
       | N.VariantDefinition def              -> N.VariantDefinition (sanitize_variant_definition def)
