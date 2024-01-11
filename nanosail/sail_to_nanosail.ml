@@ -244,7 +244,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   | S.AE_loop (_, _, _)          -> not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> not_yet_implemented [%here] location
 
-and statement_of_match location matched cases =
+and statement_of_match (location : S.l)
+                       (matched : S.typ S.aval)
+                       (cases : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) =
   let translate_case (case : 'a S.apat * 'a S.aexp * 'a S.aexp) =
     let S.AP_aux (pattern, _env, location), _exp1, clause = case
     in
