@@ -150,8 +150,8 @@ let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
 
 (******************************************************************************)
 
-let value_of_lit (S.L_aux (aux, location)) =
-  match aux with
+let value_of_lit (S.L_aux (literal, location)) =
+  match literal with
   | L_true     -> N.Val_bool true
   | L_false    -> N.Val_bool false
   | L_num n    -> N.Val_int n
