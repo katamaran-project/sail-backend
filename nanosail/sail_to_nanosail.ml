@@ -164,7 +164,7 @@ let value_of_lit (S.L_aux (literal, location)) =
   | S.L_undef  -> not_yet_implemented [%here] location
   | S.L_real _ -> not_yet_implemented [%here] location
 
-let rec expression_of_aval location (value : 'a S.aval) =
+let rec expression_of_aval location (value : S.typ S.aval) =
   match value with
   | AV_tuple elts ->
      begin
