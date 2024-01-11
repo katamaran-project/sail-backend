@@ -434,16 +434,11 @@ let translate_type_definition (definition_annotation : S.def_annot) (x : N.type_
   let S.TD_aux (type_definition, type_annotation) = x
   in
   match type_definition with
-  | TD_abbrev (identifier, quantifier, arg) ->
-     translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
-  | TD_record (_, _, _, _) ->
-     not_yet_implemented [%here] definition_annotation.loc
-  | TD_variant (identifier, type_quantifier, constructors, flag) ->
-     translate_variant definition_annotation identifier type_quantifier constructors flag
-  | TD_enum (identifier, cases, _) ->
-     translate_enum definition_annotation type_annotation identifier cases
-  | TD_bitfield (_, _, _) ->
-     not_yet_implemented [%here] definition_annotation.loc
+  | TD_abbrev (identifier, quantifier, arg)                      -> translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
+  | TD_record (_, _, _, _)                                       -> not_yet_implemented [%here] definition_annotation.loc
+  | TD_variant (identifier, type_quantifier, constructors, flag) -> translate_variant definition_annotation identifier type_quantifier constructors flag
+  | TD_enum (identifier, cases, _)                               -> translate_enum definition_annotation type_annotation identifier cases
+  | TD_bitfield (_, _, _)                                        -> not_yet_implemented [%here] definition_annotation.loc
 
 let translate_top_level_type_constraint
       (_definition_annotation : S.def_annot)
