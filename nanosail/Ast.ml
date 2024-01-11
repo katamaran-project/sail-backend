@@ -5,7 +5,9 @@ open Base
 module Big_int = Nat_big_num
 
 
-type sail_definition = Libsail.Type_check.tannot Libsail.Ast.def
+type type_annotation = Libsail.Type_check.tannot
+
+type sail_definition = type_annotation Libsail.Ast.def
 
 type identifier = string
 
