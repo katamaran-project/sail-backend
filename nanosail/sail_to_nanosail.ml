@@ -350,7 +350,7 @@ let translate_function_definition
         N.funBody = body_of_pexp pexp
       }
     end
-  | _       -> not_yet_implemented [%here] definition_annotation.loc
+  | _ -> not_yet_implemented [%here] definition_annotation.loc
 
 let translate_kind (S.K_aux (kind, _location)) : Ast.kind =
   match kind with
