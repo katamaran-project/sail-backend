@@ -335,7 +335,8 @@ let body_of_pexp (S.Pat_aux (aux, (location, _annot))) =
 
 let translate_function_definition
       (definition_annotation : S.def_annot)
-      (S.FD_aux ((FD_function (_, _, funcls)), _)) =
+      (S.FD_aux ((FD_function (_, _, funcls)), _))
+  =
   match funcls with
   | [funcl] -> begin
       let S.FCL_aux (S.FCL_funcl (id, pexp), _) = funcl
