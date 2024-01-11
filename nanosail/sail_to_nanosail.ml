@@ -14,14 +14,10 @@ end
 module N = Ast
 
 
-(******************************************************************************)
-
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier =
   match aux with
   | Id x       -> x
   | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
-
-(******************************************************************************)
 
 let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression =
   match numeric_expression with
@@ -341,7 +337,7 @@ let translate_function_definition
   in
   match funcls with
   | [funcl] -> begin
-      let S.FCL_aux (S.FCL_funcl (id, pexp), _) = funcl
+      let S.FCL_aux (S.FCL_funcl (id, pexp), (_def_annot, _type_annotation)) = funcl
       in
       N.FunctionDefinition {
         N.funName = translate_identifier id;
