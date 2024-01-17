@@ -6,6 +6,7 @@ module type S = sig
     | Failure of error
 
   val return : 'a -> 'a t
+  val fail   : error -> 'a t
   val bind   : 'a t -> ('a -> 'b t) -> 'b t
 
   val (<|>)  : ('a -> 'b t) -> ('a -> 'b t) -> ('a -> 'b t)
@@ -19,6 +20,8 @@ module Make (E : sig type t end) : (S with type error = E.t) = struct
     | Failure of error
 
   let return x = Success x
+
+  let fail e = Failure e
 
   let bind x f =
     match x with
