@@ -3,7 +3,7 @@ open Nanosail.Ast
 let all_ir : program =
   let function_definitions =
     List.concat [
-        Lists.funDefList; 
+        Lists.funDefList;
         Prod.funDefList;
         Expr.funDefList;
         Long.funDefList

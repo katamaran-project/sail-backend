@@ -122,7 +122,7 @@ let parse_tokens tokens =
   in
   if Sequence.is_empty rest
   then result
-  else failwith "BUG"    
+  else failwith "BUG"
 
 
 let parse_string string =

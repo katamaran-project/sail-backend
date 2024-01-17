@@ -22,7 +22,7 @@ let get_and_inc =
   let* _ = increment
   in
   return result
-    
+
 
 let test_collect =
   "collect get_and_inc" >:: fun _ ->
@@ -30,7 +30,7 @@ let test_collect =
     in
     assert_equal result [0; 1; 2; 3; 4];
     assert_equal state 5
-    
+
 let test_suite =
   "state monad test suite" >::: [
     test_collect

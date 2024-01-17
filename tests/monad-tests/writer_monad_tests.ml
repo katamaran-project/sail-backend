@@ -22,7 +22,7 @@ let test_repeat =
     in
     assert_equal 5 r
 
-    
+
 let test_suite =
   "writer monad test suite" >::: [
     test_repeat

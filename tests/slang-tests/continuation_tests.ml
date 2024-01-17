@@ -13,7 +13,7 @@ let test_simple_continuation _ =
 
 
 let test_two_steps _ =
-  let c = 
+  let c =
     let* x = return 1
     in
     let* y = return 2

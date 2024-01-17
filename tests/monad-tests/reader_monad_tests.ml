@@ -26,7 +26,7 @@ let test_sum =
                 assert_equal 15 result;
                 assert_equal rest []
               end
-                      
+
 
 let test_suite =
   "reader monad test suite" >::: [

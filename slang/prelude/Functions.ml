@@ -8,7 +8,7 @@ module T = Types
 module V = Value
 
 open T.Notations
-    
+
 
 let lambda args =
   match args with
@@ -18,7 +18,7 @@ let lambda args =
       let*  env    = current_environment in
       let=! params = T.list T.symbol params
       and=! body   = T.map T.value body
-      in    
+      in
       return @@ V.Closure (env, params, body)
     end
 

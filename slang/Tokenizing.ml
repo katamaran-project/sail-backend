@@ -100,7 +100,7 @@ and read_comment (seq : char Sequence.t) =
   match Sequence.next seq with
   | Some (';', tail) -> read_next_token @@ Sequence.drop_while ~f:(Fn.non is_newline) tail
   | _                -> failwith "expected to find comment"
-  
+
 
 let tokenize (seq : char Sequence.t) =
   run @@ read_next_token seq

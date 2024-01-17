@@ -86,7 +86,7 @@ let map f values =
   Option.all @@ List.map ~f values
 
 
-(* Removing 'value' leads to infinite loops, not sure why; may need to be investigated *)
+(* TODO Removing 'value' leads to infinite loops, not sure why; may need to be investigated *)
 let rec list f value =
   ((cons f (list f) |?> uncurry List.cons) <|> (nil |?> Fn.const [])) value
 
