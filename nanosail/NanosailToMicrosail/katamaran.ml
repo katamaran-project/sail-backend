@@ -393,46 +393,28 @@ let fromIR_pp ir =
     string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
   in
   let base =
-    let translated_types_enums_and_variants =
-      let translate_type_enum_or_variant
-            (sail_definition : sail_definition)
-            (definition      : definition     ) =
-        match definition with
-        | TypeDefinition def                 -> Some (Types.pp_type_definition sail_definition def)
-        | VariantDefinition def              -> Some (Variants.generate_inductive_type sail_definition def)
-        | EnumDefinition def                 -> Some (Enums.generate_inductive_type sail_definition def)
-        | TopLevelTypeConstraintDefinition _ -> None
-        | FunctionDefinition _               -> None
-        | RegisterDefinition _               -> None
-        | UntranslatedDefinition _           -> None
-        | IgnoredDefinition                  -> None
+    let translated_type_definitions =
+      let type_definitions = select Extract.type_definition ir.definitions
       in
-      List.filter_map ~f:(uncurry translate_type_enum_or_variant) ir.definitions
+      List.map ~f:(uncurry Types.pp_type_definition) type_definitions
     in
-    let translated_enum_definitions =
+    let extra_enum_definitions =
       let enum_definitions = select Extract.enum_definition ir.definitions
       in
-      build_list @@ fun { add; addall } -> begin
-                        addall @@ List.map ~f:(uncurry Enums.generate_constructors_inductive_type) enum_definitions;
-                        if not (List.is_empty enum_definitions)
-                        then begin
-                            add @@ Enums.generate_enum_of_enums enum_definitions;
-                            add @@ Enums.generate_eqdecs enum_definitions;
-                            add @@ Enums.generate_no_confusions enum_definitions;
-                          end
-                     end
-    and translated_variant_definitions =
-      List.map
-        ~f:(uncurry Variants.generate_inductive_type)
-        (select Extract.variant_definition ir.definitions)
+      if List.is_empty enum_definitions
+      then []
+      else [
+        Types.Enums.generate_enum_of_enums enum_definitions;
+        Types.Enums.generate_eqdecs enum_definitions;
+        Types.Enums.generate_no_confusions enum_definitions;
+      ]
     in
     let segments =
       build_list (fun { add; addall } ->
           add    @@ pp_module_header "TYPES";
           add    @@ defaultBase;
-          addall @@ translated_types_enums_and_variants;
-          addall @@ translated_enum_definitions;
-          addall @@ translated_variant_definitions;
+          addall @@ translated_type_definitions;
+          addall @@ extra_enum_definitions;
         )
     in
     separate small_step segments

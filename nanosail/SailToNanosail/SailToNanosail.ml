@@ -183,10 +183,24 @@ let rec expression_of_aval location (value : S.typ S.aval) =
        let id' = translate_identifier id in 
        (
          match lvar with
-         | S.Ast_util.Register _ -> Stdio.printf "register %s\n" id'
-         | S.Ast_util.Enum _ -> Stdio.printf "enum %s\n" id'
-         | S.Ast_util.Local (_, typ) -> Stdio.printf "local %s %s\n" id' (Libsail.Ast_util.string_of_typ typ)
-         | S.Ast_util.Unbound _ -> Stdio.printf "unbound %s\n" id'
+         | S.Ast_util.Register _     -> Stdio.printf "register %s\n" id'
+         | S.Ast_util.Enum _         -> Stdio.printf "enum %s\n" id'
+         | S.Ast_util.Local (_, typ) -> (
+             Stdio.printf "local %s %s\n" id' (Libsail.Ast_util.string_of_typ typ);
+             match typ with |
+               S.Typ_aux (t, _) -> begin
+                 match t with
+                 | S.Typ_internal_unknown -> Stdio.printf "S.Typ_internal_unknown\n"
+                 | S.Typ_id _ -> Stdio.printf "S.Typ_id _\n"
+                 | S.Typ_var _ -> Stdio.printf "S.Typ_var _\n"
+                 | S.Typ_fn (_, _) -> Stdio.printf "S.Typ_fn (_, _)\n"
+                 | S.Typ_bidir (_, _) -> Stdio.printf "S.Typ_bidir (_, _)\n"
+                 | S.Typ_tuple _ -> Stdio.printf "S.Typ_tuple _\n"
+                 | S.Typ_app (_, _) -> Stdio.printf "S.Typ_app (_, _)\n"
+                 | S.Typ_exist (_, _, _) -> Stdio.printf "S.Typ_exist (_, _, _)\n"
+               end
+           )
+         | S.Ast_util.Unbound _      -> Stdio.printf "unbound %s\n" id'
        );
        N.Exp_var id'
      end
@@ -412,7 +426,7 @@ let translate_type_abbreviation
     | A_bool numeric_constraint -> N.TA_numeric_constraint (quantifier', translate_numeric_constraint numeric_constraint)
   in
   TypeDefinition (
-    TD_abbreviation (identifier', type_abbreviation)
+    N.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
   )
 
 let translate_enum
@@ -424,10 +438,12 @@ let translate_enum
   let identifier' = translate_identifier identifier
   and cases'      = List.map ~f:translate_identifier cases
   in
-  EnumDefinition {
-    identifier = identifier';
-    cases      = cases'     ;
-  }
+  TypeDefinition (
+    TD_enum {
+      identifier = identifier';
+      cases      = cases'     ;
+    }
+  )
 
 
 let translate_variant
@@ -446,11 +462,13 @@ let translate_variant
     in
     List.map ~f:translate_constructor constructors
   in
-  VariantDefinition {
-    identifier      = identifier'     ;
-    type_quantifier = type_quantifier';
-    constructors    = constructors'   ;
-  }
+  TypeDefinition (
+    TD_variant {
+      identifier      = identifier'     ;
+      type_quantifier = type_quantifier';
+      constructors    = constructors'   ;
+    }
+  )
 
 
 let translate_type_definition
@@ -566,47 +584,70 @@ let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.pr
 
 (* Renames variables so that the identifiers are valid in Coq *)
 let coqify_identifiers (program : N.program) : N.program =
-  let sanitize_type_definition (N.TD_abbreviation (identifier, type_abbreviation)) : N.type_definition =
-    let type_abbreviation' =
-      match type_abbreviation with
+  let sanitize_type_definition (type_definition : N.type_definition) : N.type_definition =
+    let sanitize_type_abbreviation (type_abbreviation_definition : N.type_abbreviation_definition) : N.type_abbreviation_definition =
+      let identifier = type_abbreviation_definition.identifier
+      and abbreviation = type_abbreviation_definition.abbreviation
+      in
+      match abbreviation with
       | N.TA_numeric_expression (type_quantifier, numeric_expression) ->
         begin
           let type_quantifier', numeric_expression' = Substitute.Sanitize.numeric_expression type_quantifier numeric_expression
           in
-          N.TA_numeric_expression (type_quantifier', numeric_expression')
+          {
+            identifier = identifier;
+            abbreviation = N.TA_numeric_expression (type_quantifier', numeric_expression')
+          }
         end
       | N.TA_numeric_constraint (type_quantifier, numeric_constraint) ->
         begin
           let type_quantifier', numeric_constraint' = Substitute.Sanitize.numeric_constraint type_quantifier numeric_constraint
           in
-          N.TA_numeric_constraint (type_quantifier', numeric_constraint')
+          {
+            identifier = identifier;
+            abbreviation = N.TA_numeric_constraint (type_quantifier', numeric_constraint')
+          }
         end
       | N.TA_alias (type_quantifier, nanotype) ->
         begin
           let type_quantifier', nanotype' = Substitute.Sanitize.nanotype type_quantifier nanotype
           in
-          N.TA_alias (type_quantifier', nanotype')
+          {
+            identifier = identifier;
+            abbreviation = N.TA_alias (type_quantifier', nanotype')
+          }
         end
     in
-    N.TD_abbreviation (identifier, type_abbreviation')
-  in
-  let sanitize_variant_definition ({ identifier; type_quantifier; constructors } : N.variant_definition) : N.variant_definition =
-    let type_quantifier', subst = Substitute.process_type_quantifier Substitute.sanitize_identifier type_quantifier
+    let sanitize_variant (variant_definition : N.variant_definition) : N.variant_definition =
+      let identifier      = variant_definition.identifier
+      and type_quantifier = variant_definition.type_quantifier
+      and constructors    = variant_definition.constructors
+      in
+      let type_quantifier', subst = Substitute.process_type_quantifier Substitute.sanitize_identifier type_quantifier
+      in
+      let sanitize_constructor (constructor_identifier, constructor_nanotype) =
+        (
+          constructor_identifier,
+          Substitute.Subst.nanotype subst constructor_nanotype
+        )
+      in
+      let constructors' =
+        List.map ~f:sanitize_constructor constructors
+      in
+      {
+        identifier      = identifier      ;
+        type_quantifier = type_quantifier';
+        constructors    = constructors'
+      }
     in
-    let sanitize_constructor (constructor_identifier, constructor_nanotype) =
-      (
-        constructor_identifier,
-        Substitute.Subst.nanotype subst constructor_nanotype
-      )
+    let sanitize_enum (enum_definition : N.enum_definition) : N.enum_definition =
+      (* no work to be done *)
+      enum_definition
     in
-    let constructors' =
-      List.map ~f:sanitize_constructor constructors
-    in
-    {
-      identifier      = identifier      ;
-      type_quantifier = type_quantifier';
-      constructors    = constructors'
-    }
+    match (type_definition : N.type_definition) with
+    | N.TD_abbreviation abbreviation -> N.TD_abbreviation (sanitize_type_abbreviation abbreviation)
+    | N.TD_variant variant           -> N.TD_variant (sanitize_variant variant)
+    | N.TD_enum enum                 -> N.TD_enum (sanitize_enum enum)
   in
   let sanitize_definition
       (sail_definition : N.sail_definition)
@@ -618,8 +659,8 @@ let coqify_identifiers (program : N.program) : N.program =
       | N.FunctionDefinition _               -> definition
       | N.TypeDefinition def                 -> N.TypeDefinition (sanitize_type_definition def)
       | N.RegisterDefinition _               -> definition
-      | N.VariantDefinition def              -> N.VariantDefinition (sanitize_variant_definition def)
-      | N.EnumDefinition _                   -> definition
+      (* | N.VariantDefinition def              -> N.VariantDefinition (sanitize_variant_definition def) *)
+      (* | N.EnumDefinition _                   -> definition *)
       | N.UntranslatedDefinition _           -> definition
       | N.IgnoredDefinition                  -> definition
     )

@@ -173,14 +173,6 @@ type function_definition = {
 (******************************************************************************)
 (* Type definitions *)
 
-type type_abbreviation =
-  | TA_numeric_expression of type_quantifier * numeric_expression
-  | TA_numeric_constraint of type_quantifier * numeric_constraint
-  | TA_alias              of type_quantifier * nanotype
-
-type type_definition =
-  | TD_abbreviation of (string * type_abbreviation)
-
 type untranslated_definition =
   {
     filename      : string             ;
@@ -193,6 +185,17 @@ type register_definition =
   {
     identifier : string  ;
     typ        : nanotype;
+  }
+
+type type_abbreviation =
+  | TA_numeric_expression of type_quantifier * numeric_expression
+  | TA_numeric_constraint of type_quantifier * numeric_constraint
+  | TA_alias              of type_quantifier * nanotype
+
+type type_abbreviation_definition =
+  {
+    identifier   : string;
+    abbreviation : type_abbreviation
   }
 
 type variant_definition =
@@ -213,13 +216,17 @@ type top_level_type_constraint_definition =
     identifier : string;
   }
 
+type type_definition =
+  | TD_abbreviation of type_abbreviation_definition
+  | TD_variant      of variant_definition
+  | TD_enum         of enum_definition
+
+
 type definition =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition               of function_definition
   | TypeDefinition                   of type_definition
   | RegisterDefinition               of register_definition
-  | VariantDefinition                of variant_definition
-  | EnumDefinition                   of enum_definition
   | UntranslatedDefinition           of untranslated_definition
   | IgnoredDefinition
 
@@ -239,12 +246,16 @@ module Extract = struct
     | _                -> None
 
   let enum_definition = function
-    | EnumDefinition x -> Some x
-    | _                -> None
+    | TypeDefinition (TD_enum x) -> Some x
+    | _                          -> None
 
   let variant_definition = function
-    | VariantDefinition x -> Some x
-    | _                   -> None
+    | TypeDefinition (TD_variant x) -> Some x
+    | _                             -> None
+
+  let abbreviation_definition = function
+    | TypeDefinition (TD_abbreviation x) -> Some x
+    | _                                  -> None
 
   let register_definition = function
     | RegisterDefinition x -> Some x
