@@ -42,7 +42,7 @@ let define args =
         in
         EV.return Value.Nil
       end
-    | _     -> raise M.DispatchFailure
+    | _ -> raise M.DispatchFailure
 
   in
   match args with
