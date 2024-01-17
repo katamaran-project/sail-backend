@@ -55,6 +55,13 @@ let nil value =
   | _         -> raise DispatchFailure
 
 
+let rec list f value =
+  match value with
+  | Value.Cons (car, cdr) -> f car :: list f cdr
+  | Value.Nil             -> []
+  | _                     -> raise DispatchFailure
+
+
 let binary_combine f g arg =
   try
     f arg
@@ -66,12 +73,6 @@ let rec combine methods arg =
   match methods with
   | []    -> raise DispatchFailure
   | m::ms -> (binary_combine m (combine ms)) arg
-
-let rec list f value =
-  match value with
-  | Value.Cons (car, cdr) -> f car :: list f cdr
-  | Value.Nil             -> []
-  | _                     -> raise DispatchFailure
 
 
 module Notations = struct
