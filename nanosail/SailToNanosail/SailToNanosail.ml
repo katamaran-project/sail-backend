@@ -564,7 +564,8 @@ let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.pr
   }
 
 
-let sanitize (program : N.program) : N.program =
+(* Renames variables so that the identifiers are valid in Coq *)
+let coqify_identifiers (program : N.program) : N.program =
   let sanitize_type_definition (N.TD_abbreviation (identifier, type_abbreviation)) : N.type_definition =
     let type_abbreviation' =
       match type_abbreviation with
