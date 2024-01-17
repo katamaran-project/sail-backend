@@ -3,7 +3,7 @@ open OUnit2
 open Slang.Tokenizing
 
 module T = Slang.Token
-             
+
 
 let tokenizer_tests =
   let test_cases =
