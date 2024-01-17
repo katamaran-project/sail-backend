@@ -1,12 +1,7 @@
-type multimethod_error =
-  | ArgumentTypeError
-  | ExecutionError
+exception DispatchFailure
+exception ExecutionError
 
-exception MultimethodError of multimethod_error
-
-module Result : Monads.Result.S with type error = multimethod_error
-
-type 'a converter = Value.t -> 'a Result.t
+type 'a converter = Value.t -> 'a
 
 val value   : Value.t converter
 val integer : int converter
@@ -18,9 +13,8 @@ val cons    : 'a converter -> 'b converter -> ('a * 'b) converter
 val nil     : unit converter
 val list    : 'a converter -> 'a list converter
 
-val map     : ('a -> 'b Result.t) -> 'a list -> 'b list Result.t
-val combine : ('a -> 'b Result.t) list -> 'a -> 'b Result.t
+val combine : ('a -> 'b) list -> 'a -> 'b
 
 module Notations : sig
-  val (<+>) : ('a -> 'b Result.t) -> ('a -> 'b Result.t) -> 'a -> 'b Result.t
+  val (<+>) : ('a -> 'b) -> ('a -> 'b) -> 'a -> 'b
 end

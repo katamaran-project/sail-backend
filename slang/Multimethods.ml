@@ -2,87 +2,77 @@ open! Base
 open! Auxlib
 
 
-type multimethod_error =
-  | ArgumentTypeError
-  | ExecutionError
+exception DispatchFailure
+exception ExecutionError
 
 
-exception MultimethodError of multimethod_error
-
-
-module Result = Monads.Result.Make(struct type t = multimethod_error end)
-
-open Result.Notations
-open Monads.Notations.Star(Result)
-
-
-type 'a converter = Value.t -> 'a Result.t
+type 'a converter = Value.t -> 'a
 
 
 let value (v : Value.t) =
-  Result.return v
+  v
 
 
 let integer value =
   match value with
-  | Value.Integer n -> Result.return n
-  | _               -> Result.fail ArgumentTypeError
+  | Value.Integer n -> n
+  | _               -> raise DispatchFailure
 
 
 let tuple2 f1 f2 value =
   match value with
-  | Value.Cons (x1, Cons (x2, Nil)) -> let* x1 = f1 x1 and* x2 = f2 x2 in Result.return (x1, x2)
-  | _                               -> Result.fail ArgumentTypeError
+  | Value.Cons (x1, Cons (x2, Nil)) -> let x1 = f1 x1 and x2 = f2 x2 in (x1, x2)
+  | _                               -> raise DispatchFailure
 
 
 let tuple3 f1 f2 f3 value =
   match value with
-  | Value.Cons (x1, Value.Cons (x2, Value.Cons (x3, Nil))) -> let* x1 = f1 x1 and* x2 = f2 x2 and* x3 = f3 x3 in Result.return (x1, x2, x3)
-  | _                                                      -> Result.fail ArgumentTypeError
+  | Value.Cons (x1, Value.Cons (x2, Value.Cons (x3, Nil))) -> (f1 x1, f2 x2, f3 x3)
+  | _                                                      -> raise DispatchFailure
 
 
 let string value =
   match value with
-  | Value.String s -> Result.return s
-  | _              -> Result.fail ArgumentTypeError
+  | Value.String s -> s
+  | _              -> raise DispatchFailure
 
 
 let symbol value =
   match value with
-  | Value.Symbol identifier -> Result.return identifier
-  | _                       -> Result.fail ArgumentTypeError
+  | Value.Symbol identifier -> identifier
+  | _                       -> raise DispatchFailure
 
 
 let cons f g value =
   match value with
-  | Value.Cons (car, cdr) -> let* car = f car and* cdr = g cdr in Result.return (car, cdr)
-  | _                     -> Result.fail ArgumentTypeError
+  | Value.Cons (car, cdr) -> (f car, g cdr)
+  | _                     -> raise DispatchFailure
 
 
 let nil value =
   match value with
-  | Value.Nil -> Result.return ()
-  | _         -> Result.fail ArgumentTypeError
+  | Value.Nil -> ()
+  | _         -> raise DispatchFailure
 
-
-let map f values =
-  Result.all @@ List.map ~f values
-
-
-(* TODO Removing 'value' leads to infinite loops, not sure why; may need to be investigated *)
-let rec list f value =
-  ((cons f (list f) |?> uncurry List.cons) <|> (nil |?> Fn.const [])) value
 
 let binary_combine f g arg =
-    match f arg with
-    | Result.Success a                 -> Result.Success a
-    | Result.Failure ArgumentTypeError -> g arg
-    | Result.Failure ExecutionError    -> Result.Failure ExecutionError
+  try
+    f arg
+  with
+  | DispatchFailure -> g arg
+
 
 let rec combine methods arg =
   match methods with
-  | []    -> Result.Failure ArgumentTypeError
+  | []    -> raise DispatchFailure
   | m::ms -> (binary_combine m (combine ms)) arg
+
+let rec list f value =
+  match value with
+  | Value.Cons (car, cdr) -> f car :: list f cdr
+  | Value.Nil             -> []
+  | _                     -> raise DispatchFailure
+
 
 module Notations = struct
   let (<+>) = binary_combine

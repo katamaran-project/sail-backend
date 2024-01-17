@@ -36,10 +36,9 @@ let strings export_as =
   and set xs = cell := xs
   in
   let script_function values =
-    let open Slang.Multimethods in
-    let open Slang.Multimethods.Result.Notations
+    let open Slang.Multimethods
     in
-    let=! strings = map string values
+    let strings = List.map ~f:string values
     in
     set strings;
     return Slang.Value.Nil
