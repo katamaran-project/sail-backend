@@ -46,8 +46,8 @@ let define args =
 
   in
   match args with
-  | []             -> raise @@ SlangError "ill-formed define"
-  | [_]            -> raise @@ SlangError "ill-formed define"
+  | []             -> raise M.DispatchFailure
+  | [_]            -> raise M.DispatchFailure
   | form :: body -> begin
       let body = List.map ~f:M.value body
       in
