@@ -187,9 +187,9 @@ let katamaran_target _ _ filename ast _ _ =
   in
   let sanitized_nanosail_representation = Nanosail.SailToNanosail.coqify_identifiers nanosail_representation
   in
-  let document = Nanosail.Gen.Katamaran.fromIR_pp sanitized_nanosail_representation
+  let document = Nanosail.NanosailToMicrosail.Katamaran.fromIR_pp sanitized_nanosail_representation
   in
-  context (fun output_channel -> Nanosail.Gen.Katamaran.pretty_print !opt_width output_channel document)
+  context (fun output_channel -> Nanosail.NanosailToMicrosail.Katamaran.pretty_print !opt_width output_channel document)
 
 
 (** Registering of the katamaran target. *)

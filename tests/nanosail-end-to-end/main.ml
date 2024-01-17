@@ -1,4 +1,4 @@
-open Nanosail.Gen.Katamaran
+open Nanosail.NanosailToMicrosail.Katamaran
 open Examples
 
 
