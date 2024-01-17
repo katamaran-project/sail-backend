@@ -20,6 +20,7 @@ let return = Option.return
 type 'a converter = Value.t -> 'a option
 
 
+(* f <|> g builds a converter that accepts both f and g *)
 let (<|>) f g =
   let converter value =
     match f value with
@@ -32,6 +33,8 @@ let (<|>) f g =
   in
   converter
 
+
+(* (f |?> g) x computes g(f(x)), taking into account some/none (similar to monadic bind)  *)
 let (|?>) f g =
   fun value -> Option.map (f value) ~f:g
 
