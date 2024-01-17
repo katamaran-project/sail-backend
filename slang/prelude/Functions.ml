@@ -42,12 +42,12 @@ let define args =
         in
         EV.return Value.Nil
       end
-    | _     -> raise @@ SlangError "ill-formed define"
+    | _     -> raise M.DispatchFailure
 
   in
   match args with
-  | []             -> raise M.DispatchFailure
-  | [_]            -> raise M.DispatchFailure
+  | []  -> raise M.DispatchFailure
+  | [_] -> raise M.DispatchFailure
   | form :: body -> begin
       let body = List.map ~f:M.value body
       in
