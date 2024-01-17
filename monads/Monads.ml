@@ -7,3 +7,4 @@ module Monoid         = Monoid
 module Util           = Util
 module Continuation   = Continuation
 module Reader         = Reader
+module Error          = Error
