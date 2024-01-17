@@ -557,7 +557,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       )
   end
 
-let sail_to_nanosail (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
+let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
   {
     program_name = name;
     definitions  = List.map ~f:translate_definition ast.defs
