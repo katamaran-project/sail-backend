@@ -183,9 +183,9 @@ let katamaran_target _ _ filename ast _ _ =
     | Some filename -> (with_open_file (add_extension filename), program_name_from_filename filename)
     | None          -> (with_stdout, "NoName")
   in
-  let nanosail_representation = Nanosail.sail_to_nanosail ast program_name
+  let nanosail_representation = Nanosail.SailToNanosail.sail_to_nanosail ast program_name
   in
-  let sanitized_nanosail_representation = Nanosail.sanitize nanosail_representation
+  let sanitized_nanosail_representation = Nanosail.SailToNanosail.sanitize nanosail_representation
   in
   let document = Nanosail.Gen.Katamaran.fromIR_pp sanitized_nanosail_representation
   in
