@@ -1,7 +1,7 @@
 open OUnit2
 
 module V = Slang.Value
-module T = Slang.Types
+module M = Slang.Multimethods
 
 
 
@@ -11,72 +11,72 @@ let tests =
       fun _ -> begin
           let value = V.Integer 5
           in
-          let actual = T.integer value
+          let actual = M.integer value
           in
-          assert_equal (T.Result.Success 5) actual
+          assert_equal (M.Result.Success 5) actual
         end
     );
     "a" >:: (
       fun _ -> begin
           let value = V.Symbol "a"
           in
-          let actual = T.symbol value
+          let actual = M.symbol value
           in
-          assert_equal (T.Result.Success "a") actual
+          assert_equal (M.Result.Success "a") actual
         end
     );
     "a" >:: (
       fun _ -> begin
           let value = V.Symbol "a"
           in
-          let actual = T.symbol value
+          let actual = M.symbol value
           in
-          assert_equal (T.Result.Success "a") actual
+          assert_equal (M.Result.Success "a") actual
         end
     );
     "(1)" >:: (
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Nil)
           in
-          let actual = T.cons T.integer T.nil value
+          let actual = M.cons M.integer M.nil value
           in
-          assert_equal (T.Result.Success (1, ())) actual
+          assert_equal (M.Result.Success (1, ())) actual
         end
     );
     "()" >:: (
       fun _ -> begin
           let value = V.Nil
           in
-          let actual = T.list T.integer value
+          let actual = M.list M.integer value
           in
-          assert_equal (T.Result.Success []) actual
+          assert_equal (M.Result.Success []) actual
         end
     );
     "(1)" >:: (
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Nil)
           in
-          let actual = T.list T.integer value
+          let actual = M.list M.integer value
           in
-          assert_equal (T.Result.Success [1]) actual
+          assert_equal (M.Result.Success [1]) actual
         end
     );
     "(1 2 3)" >:: (
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Cons (V.Integer 2, V.Cons (V.Integer 3, V.Nil)))
           in
-          let actual = T.list T.integer value
+          let actual = M.list M.integer value
           in
-          assert_equal (T.Result.Success [1; 2; 3]) actual
+          assert_equal (M.Result.Success [1; 2; 3]) actual
         end
     );
     "(a b c)" >:: (
       fun _ -> begin
           let value = V.Cons (V.Symbol "a", V.Cons (V.Symbol "bc", V.Cons (V.Symbol "xyz", V.Nil)))
           in
-          let actual = T.list T.symbol value
+          let actual = M.list M.symbol value
           in
-          assert_equal (T.Result.Success ["a"; "bc"; "xyz"]) actual
+          assert_equal (M.Result.Success ["a"; "bc"; "xyz"]) actual
         end
     );
   ]

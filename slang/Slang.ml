@@ -6,7 +6,7 @@ module Environment         = Environment
 module EnvironmentBuilder  = EnvironmentBuilder
 module Evaluation          = Evaluation
 module EvaluationContext   = EvaluationContext
-module Types               = Types
+module Multimethods        = Multimethods
 
 
 let prelude = Prelude.prelude

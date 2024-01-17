@@ -2,11 +2,11 @@ open Base
 open Exception
 open Evaluation
 open EvaluationContext
-open Types.Result.Notations
+open Multimethods.Result.Notations
 open Monads.Notations.Star(EvaluationContext)
 
 
-module T = Types
+module M = Multimethods
 module V = Value
 
 
@@ -25,7 +25,7 @@ let car args =
   | [ argument ] ->
     let* argument' = evaluate argument
     in
-    let=! (car, _) = T.cons T.value T.value argument'
+    let=! (car, _) = M.cons M.value M.value argument'
     in
     return car
   | _ -> raise @@ SlangError "car expects one argument"
@@ -36,7 +36,7 @@ let cdr args =
   | [ argument ] ->
     let* argument' = evaluate argument
     in
-    let=! (_, cdr) = T.cons T.value T.value argument'
+    let=! (_, cdr) = M.cons M.value M.value argument'
     in
     return cdr
   | _ -> raise @@ SlangError "cdr expects one argument"

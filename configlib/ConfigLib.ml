@@ -36,8 +36,8 @@ let strings export_as =
   and set xs = cell := xs
   in
   let script_function values =
-    let open Slang.Types in
-    let open Slang.Types.Result.Notations
+    let open Slang.Multimethods in
+    let open Slang.Multimethods.Result.Notations
     in
     let=! strings = map string values
     in

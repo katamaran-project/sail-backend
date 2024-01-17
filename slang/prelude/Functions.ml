@@ -2,10 +2,10 @@ open Base
 open Exception
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
-open Types.Result.Notations
+open Multimethods.Result.Notations
 
 
-module T = Types
+module M = Multimethods
 
 
 let lambda args =
@@ -14,8 +14,8 @@ let lambda args =
   | [_]            -> raise @@ SlangError "ill-formed lambda"
   | params :: body -> begin
       let* env    = current_environment    in
-      let  params = !!(T.list T.symbol params)
-      and  body   = !!(T.map T.value body)
+      let  params = !!(M.list M.symbol params)
+      and  body   = !!(M.map M.value body)
       in
       return @@ Value.Closure (env, params, body)
     end
@@ -24,7 +24,7 @@ let lambda args =
 let define args =
   let define_function form body =
     match form with
-    | []                          -> raise @@ Types.MultimethodError Types.ArgumentTypeError
+    | []                          -> raise @@ Multimethods.MultimethodError M.ArgumentTypeError
     | function_name :: parameters -> begin
         let* env = current_environment
         in
@@ -51,15 +51,15 @@ let define args =
   | []             -> raise @@ SlangError "ill-formed define"
   | [_]            -> raise @@ SlangError "ill-formed define"
   | form :: body -> begin
-      let=! body = T.map T.value body
+      let=! body = M.map M.value body
       in
-      match T.list T.symbol form with
-      | T.Result.Success form_symbols -> define_function form_symbols body
-      | T.Result.Failure T.ExecutionError -> raise @@ T.MultimethodError T.ExecutionError
-      | T.Result.Failure T.ArgumentTypeError -> begin
-          match T.symbol form with
-          | T.Result.Success identifier -> define_variable identifier body
-          | T.Result.Failure e          -> raise @@ T.MultimethodError e
+      match M.list M.symbol form with
+      | M.Result.Success form_symbols -> define_function form_symbols body
+      | M.Result.Failure M.ExecutionError -> raise @@ M.MultimethodError M.ExecutionError
+      | M.Result.Failure M.ArgumentTypeError -> begin
+          match M.symbol form with
+          | M.Result.Success identifier -> define_variable identifier body
+          | M.Result.Failure e          -> raise @@ M.MultimethodError e
         end
     end
 
