@@ -2,28 +2,24 @@ open Base
 open Evaluation
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
-
+open Types.Result.Notations
 
 module T = Types
 module V = Value
 
-open T.Notations
 
 
 let addition args =
-  let* evaluated_args = map evaluate args
-  in
-  let=! ns = T.map T.integer evaluated_args
-  in
-  let result = List.fold_left ~f:Int.(+) ~init:0 ns
+  let*  evaluated_args = map evaluate args                    in
+  let=! ns             = T.map T.integer evaluated_args       in
+  let   result         = List.fold_left ~f:Int.(+) ~init:0 ns
   in
   return @@ V.Integer result
 
 
 let subtraction args =
-  let* evaluated_args = map evaluate args
-  in
-  let=! ns = T.map T.integer evaluated_args
+  let*  evaluated_args = map evaluate args              in
+  let=! ns             = T.map T.integer evaluated_args
   in
   let result = match ns with
     | []    -> 0
@@ -34,9 +30,8 @@ let subtraction args =
 
 
 let multiplication args =
-  let* evaluated_args = map evaluate args
-  in
-  let=! ns = T.map T.integer evaluated_args
+  let*  evaluated_args = map evaluate args              in
+  let=! ns             = T.map T.integer evaluated_args
   in
   let result = List.fold_left ~f:Int.( * ) ~init:1 ns
   in
@@ -49,8 +44,8 @@ let division args =
   let=! ns = T.map T.integer evaluated_args
   in
   let result = match ns with
-    | []    -> raise T.TypeError
-    | [_]   -> raise T.TypeError
+    | []    -> raise @@ T.MultimethodError ArgumentTypeError
+    | [_]   -> raise @@ T.MultimethodError ArgumentTypeError
     | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
   in
   return @@ V.Integer result

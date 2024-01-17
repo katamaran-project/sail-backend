@@ -13,7 +13,7 @@ let tests =
           in
           let actual = T.integer value
           in
-          assert_equal (Some 5) actual
+          assert_equal (T.Result.Success 5) actual
         end
     );
     "a" >:: (
@@ -22,7 +22,7 @@ let tests =
           in
           let actual = T.symbol value
           in
-          assert_equal (Some "a") actual
+          assert_equal (T.Result.Success "a") actual
         end
     );
     "a" >:: (
@@ -31,7 +31,7 @@ let tests =
           in
           let actual = T.symbol value
           in
-          assert_equal (Some "a") actual
+          assert_equal (T.Result.Success "a") actual
         end
     );
     "(1)" >:: (
@@ -40,7 +40,7 @@ let tests =
           in
           let actual = T.cons T.integer T.nil value
           in
-          assert_equal (Some (1, ())) actual
+          assert_equal (T.Result.Success (1, ())) actual
         end
     );
     "()" >:: (
@@ -49,7 +49,7 @@ let tests =
           in
           let actual = T.list T.integer value
           in
-          assert_equal (Some []) actual
+          assert_equal (T.Result.Success []) actual
         end
     );
     "(1)" >:: (
@@ -58,7 +58,7 @@ let tests =
           in
           let actual = T.list T.integer value
           in
-          assert_equal (Some [1]) actual
+          assert_equal (T.Result.Success [1]) actual
         end
     );
     "(1 2 3)" >:: (
@@ -67,7 +67,7 @@ let tests =
           in
           let actual = T.list T.integer value
           in
-          assert_equal (Some [1; 2; 3]) actual
+          assert_equal (T.Result.Success [1; 2; 3]) actual
         end
     );
     "(a b c)" >:: (
@@ -76,7 +76,7 @@ let tests =
           in
           let actual = T.list T.symbol value
           in
-          assert_equal (Some ["a"; "bc"; "xyz"]) actual
+          assert_equal (T.Result.Success ["a"; "bc"; "xyz"]) actual
         end
     );
   ]

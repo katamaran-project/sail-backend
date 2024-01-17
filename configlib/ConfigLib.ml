@@ -37,7 +37,7 @@ let strings export_as =
   in
   let script_function values =
     let open Slang.Types in
-    let open Slang.Types.Notations
+    let open Slang.Types.Result.Notations
     in
     let=! strings = map string values
     in

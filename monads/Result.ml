@@ -15,9 +15,12 @@ module type S = sig
   val all    : 'a t list -> ('a list) t
 
   module Notations : sig
-    val (<|>)  : ('a -> 'b t) -> ('a -> 'b t) -> ('a -> 'b t)
-    val (!!)   : 'a t -> 'a
-    val (|?>)  : ('a -> 'b t) -> ('b -> 'c) -> 'a -> 'c t
+    val (<|>)   : ('a -> 'b t) -> ('a -> 'b t) -> ('a -> 'b t)
+    val (!!)    : 'a t -> 'a
+    val (|?>)   : ('a -> 'b t) -> ('b -> 'c) -> 'a -> 'c t
+
+    val (let=!) : 'a t -> ('a -> 'b) -> 'b
+    val (and=!) : 'a t -> 'b t -> 'a * 'b
   end
 end
 
@@ -75,5 +78,13 @@ module Make (E : sig type t end) : (S with type error = E.t) = struct
 
     let (|?>) f g =
       fun value -> map (f value) ~f:g
+
+    let (let=!) x f =
+      f (!! x)
+
+    let (and=!) x y =
+      let=! x in
+      let=! y in
+      (x, y)
   end
 end

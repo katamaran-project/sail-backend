@@ -2,7 +2,7 @@ open Base
 open Exception
 open Evaluation
 open EvaluationContext
-open Types.Notations
+open Types.Result.Notations
 open Monads.Notations.Star(EvaluationContext)
 
 

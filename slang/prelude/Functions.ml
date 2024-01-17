@@ -2,12 +2,10 @@ open Base
 open Exception
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
+open Types.Result.Notations
 
 
 module T = Types
-module V = Value
-
-open T.Notations
 
 
 let lambda args =
@@ -15,26 +13,26 @@ let lambda args =
   | []             -> raise @@ SlangError "ill-formed lambda"
   | [_]            -> raise @@ SlangError "ill-formed lambda"
   | params :: body -> begin
-      let*  env    = current_environment in
-      let=! params = T.list T.symbol params
-      and=! body   = T.map T.value body
+      let* env    = current_environment    in
+      let  params = !!(T.list T.symbol params)
+      and  body   = !!(T.map T.value body)
       in
-      return @@ V.Closure (env, params, body)
+      return @@ Value.Closure (env, params, body)
     end
 
 
 let define args =
   let define_function form body =
     match form with
-    | []                          -> raise @@ SlangError "ill-formed define"
+    | []                          -> raise @@ Types.MultimethodError Types.ArgumentTypeError
     | function_name :: parameters -> begin
         let* env = current_environment
         in
-        let closure = V.Closure (env, parameters, body)
+        let closure = Value.Closure (env, parameters, body)
         in
         let* () = add_binding function_name closure
         in
-        return V.Nil
+        return Value.Nil
       end
 
   and define_variable identifier body =
@@ -44,7 +42,7 @@ let define args =
         in
         let* () = add_binding identifier value
         in
-        return V.Nil
+        return Value.Nil
       end
     | _     -> raise @@ SlangError "ill-formed define"
 
@@ -56,11 +54,12 @@ let define args =
       let=! body = T.map T.value body
       in
       match T.list T.symbol form with
-      | Some form_symbols -> define_function form_symbols body
-      | None              -> begin
+      | T.Result.Success form_symbols -> define_function form_symbols body
+      | T.Result.Failure T.ExecutionError -> raise @@ T.MultimethodError T.ExecutionError
+      | T.Result.Failure T.ArgumentTypeError -> begin
           match T.symbol form with
-          | Some identifier -> define_variable identifier body
-          | None            -> raise @@ SlangError "ill-formed define"
+          | T.Result.Success identifier -> define_variable identifier body
+          | T.Result.Failure e          -> raise @@ T.MultimethodError e
         end
     end
 

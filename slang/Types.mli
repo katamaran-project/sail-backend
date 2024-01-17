@@ -1,9 +1,12 @@
-exception TypeError
+type multimethod_error =
+  | ArgumentTypeError
+  | ExecutionError
 
-type 'a converter = Value.t -> 'a option
+exception MultimethodError of multimethod_error
 
-val (<|>)   : (Value.t -> 'a option) -> (Value.t -> 'a option) -> Value.t -> 'a option
-val (|?>)   : 'a converter -> ('a -> 'b) -> 'b converter
+module Result : Monads.Result.S with type error = multimethod_error
+
+type 'a converter = Value.t -> 'a Result.t
 
 val value   : Value.t converter
 val integer : int converter
@@ -15,10 +18,9 @@ val cons    : 'a converter -> 'b converter -> ('a * 'b) converter
 val nil     : unit converter
 val list    : 'a converter -> 'a list converter
 
-val map     : 'a converter -> Value.t list -> 'a list option
+val map     : ('a -> 'b Result.t) -> 'a list -> 'b list Result.t
+val combine : ('a -> 'b Result.t) list -> 'a -> 'b Result.t
 
 module Notations : sig
-  val (!!)    : 'a option -> 'a
-  val (let=!) : 'a option -> ('a -> 'b) -> 'b
-  val (and=!) : 'a option -> 'b option -> ('a * 'b) option
+  val (<+>) : ('a -> 'b Result.t) -> ('a -> 'b Result.t) -> 'a -> 'b Result.t
 end

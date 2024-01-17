@@ -126,7 +126,6 @@ end = struct
       end
     | Closure (_, _, _)           -> false
     | NativeFunction _            -> false
-
 end
 
 and EvaluationContext : sig
