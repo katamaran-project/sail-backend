@@ -55,3 +55,9 @@ let rec unordered_pairs xs =
   match xs with
   | []    -> []
   | x::xs -> (List.map ~f:(fun y -> (x, y)) xs) @ (unordered_pairs xs)
+
+
+let rec consecutive_overlapping_pairs xs =
+  match xs with
+  | x::y::xs -> (x, y) :: consecutive_overlapping_pairs (y :: xs)
+  | _        -> []
