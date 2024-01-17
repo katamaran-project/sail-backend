@@ -35,7 +35,7 @@ module type S = sig
 
   val current     : item option t
   val next        : unit t
-      
+
   val run         : 'a t -> source -> ('a * source)
 end
 
@@ -58,7 +58,7 @@ module Make (S : Source) : (S with type item = S.item and type source = S.t) = s
     let* state = MState.get
     in
     return @@ Option.map ~f:fst (S.next state)
-  
+
   let next =
     let open Notations.Star(MState)
     in

@@ -50,7 +50,7 @@ let strings export_as =
 module Exported = struct
   let get (Setting (getter, _)) =
     getter ()
-  
+
   let set (Setting (_, setter)) value =
     setter value
 

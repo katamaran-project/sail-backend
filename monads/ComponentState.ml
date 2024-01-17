@@ -2,7 +2,7 @@ module type S = sig
   include Sig.Monad
 
   type state
-    
+
   val get : (state -> 'a) -> 'a t
   val put : (state -> 'a -> state) -> 'a -> unit t
   val run : 'a t -> state -> ('a * state)
@@ -10,7 +10,7 @@ end
 
 module Make (S : sig type t end) : (S with type state = S.t) = struct
   module M = State.Make(S)
-      
+
   type state = M.state
   type 'a t  = 'a M.t
 

@@ -180,7 +180,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
   | AV_lit (lit, _)   -> N.Exp_val (value_of_lit lit)
   | AV_id (id, lvar) ->
      begin
-       let id' = translate_identifier id in 
+       let id' = translate_identifier id in
        (
          match lvar with
          | S.Ast_util.Register _     -> Stdio.printf "register %s\n" id'

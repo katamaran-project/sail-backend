@@ -1,6 +1,6 @@
 module type S = sig
   include Sig.Monad
-            
+
   type monoid
 
   val write : monoid -> unit t

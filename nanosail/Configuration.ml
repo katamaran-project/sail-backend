@@ -19,7 +19,7 @@ module Identifier = struct
   open Libsail.Ast
   open NYI
 
-  
+
   let of_function_definition (FD_aux (FD_function (_, _, x), (location, _))) =
     match x with
     | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier

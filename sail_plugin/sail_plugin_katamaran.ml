@@ -73,7 +73,7 @@ let katamaran_rewrites =
     (* ("toplevel_let_patterns", []);                                     (\* From Coq backend *\) *)
     (* ("recheck_defs", []);                                              (\* From Coq backend *\) *)
     (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
-  ]       
+  ]
 
 
 let _c_rewrites =
@@ -149,7 +149,7 @@ let katamaran_options = [
    "Specify configuration file");
 ]
 
-       
+
 let with_open_file filename func =
   Auxlib.using
     ~resource:(Stdio.Out_channel.create filename)

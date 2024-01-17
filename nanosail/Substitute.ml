@@ -68,7 +68,7 @@ let remove_apostrophes_at_start =
 
 let sanitizing_substitution =
   remove_apostrophes_at_start
-  
+
 let sanitize_identifier (identifier : identifier) : identifier option =
   if String.is_prefix ~prefix:"'" identifier
   then Some (remove_apostrophes_at_start identifier)
@@ -80,7 +80,7 @@ module SubstitutionMonad = struct
     type t = (identifier, identifier, String.comparator_witness) Map.t
 
     let empty = Map.empty (module String)
-    
+
     let add = Map.add_exn
 
     let find = Map.find
@@ -88,7 +88,7 @@ module SubstitutionMonad = struct
     let contains_value map identifier =
       Map.exists map ~f:(String.equal identifier)
   end
-  
+
   include Monads.State.Make(SubstitutionMap)
 
 
@@ -105,7 +105,7 @@ end
    that "translates" identifiers based on associations in the given map.
 
    If a given identifier is in the map, the function will return its associated key.
-   
+
    If a given identifier is not in the map, the identifier is preserved.
    However, if this identifier is used as a value in the map,
    a clash occurs. For example, say you have substitution { a -> b },
@@ -157,7 +157,7 @@ let generic_sanitize
   in
   (type_quantifier', x')
 
-  
+
 module Sanitize = struct
   let numeric_expression
       (type_quantifier    : type_quantifier   )
@@ -167,7 +167,7 @@ module Sanitize = struct
       Subst.numeric_expression
       type_quantifier
       numeric_expression
-      
+
   let numeric_constraint
       (type_quantifier    : type_quantifier   )
       (numeric_constraint : numeric_constraint) =

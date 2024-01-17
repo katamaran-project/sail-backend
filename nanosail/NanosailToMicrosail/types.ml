@@ -42,7 +42,7 @@ module Variants = struct
     in
     inductive_type
 end
-  
+
 
 module TypeAbbreviations = struct
   let pp_definition (type_abbreviation : type_abbreviation_definition) : annotation t =

@@ -142,7 +142,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   and last_line = line @@ separate space [ string "End"; string identifier ]
   in
   Util.pp_indented_enclosed_lines first_line contents last_line
-    
+
 
 let build_inductive_type identifier typ constructor_generator =
   let constructors =
@@ -246,8 +246,8 @@ let definition
                       add @@ ifflat body (Util.indent' body)
                     )
     ) ^^ eol)
-  
-  
+
+
 let match' expression cases =
   let match_line =
     separate space [
