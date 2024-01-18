@@ -41,12 +41,35 @@ let subtraction args =
 
 
 let multiplication args =
-  let* evaluated_args = EV.map evaluate args                  in
-  let  ns             = List.map ~f:M.integer evaluated_args
+  let multiply_integers evaluated_args =
+    let ns = List.map ~f:M.integer evaluated_args
+    in
+    let result = List.fold_left ~f:Int.( * ) ~init:1 ns
+    in
+    EV.return @@ V.Integer result
+
+  and multiply_string_with_int evaluated_args =
+    let string, integer = M.map2 M.string M.integer evaluated_args
+    in
+    let result = String.concat @@ List.init integer ~f:(Fn.const string)
+    in
+    EV.return @@ V.String result
+
+  and multiply_int_with_string evaluated_args =
+    let integer, string = M.map2 M.integer M.string evaluated_args
+    in
+    let result = String.concat @@ List.init integer ~f:(Fn.const string)
+    in
+    EV.return @@ V.String result
+
   in
-  let result = List.fold_left ~f:Int.( * ) ~init:1 ns
+  let* evaluated_args = EV.map evaluate args
   in
-  EV.return @@ V.Integer result
+  M.combine [
+    multiply_integers;
+    multiply_string_with_int;
+    multiply_int_with_string;
+  ] evaluated_args
 
 
 let division args =
