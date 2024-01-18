@@ -108,7 +108,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_bitvector n       -> let* n' = pp_numeric_expression n in return @@ string "bv" ^^ space ^^ n'
   | Ty_tuple _ts         -> not_yet_implemented [%here]
   | Ty_app (_t1, _t2)    -> not_yet_implemented [%here]
-  | Ty_custom _id        -> not_yet_implemented [%here]
+  | Ty_custom id         -> return @@ string id
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
