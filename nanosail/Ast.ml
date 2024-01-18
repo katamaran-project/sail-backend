@@ -280,3 +280,10 @@ let select (extractor : definition -> 'a option) (definitions : (sail_definition
     Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
   in
   List.filter_map ~f:(lift_extractor extractor) definitions
+
+
+let type_identifier (type_definition : type_definition) =
+  match type_definition with
+  | TD_abbreviation x -> x.identifier
+  | TD_variant x      -> x.identifier
+  | TD_enum x         -> x.identifier
