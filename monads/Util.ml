@@ -1,3 +1,4 @@
+(* TODO Use higher order symbols *)
 module Make (M : Sig.Monad) = struct
   let rec collect n f =
     if n <= 0
@@ -25,4 +26,9 @@ module Make (M : Sig.Monad) = struct
 
   let lift f x =
     M.bind x (fun x -> M.return @@ f x)
+
+  let rec fold_left f acc xs =
+    match xs with
+    | []    -> M.return acc
+    | x::xs -> M.bind (f acc x) (fun acc' -> fold_left f acc' xs)
 end
