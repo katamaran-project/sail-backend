@@ -7,7 +7,12 @@ module Context = struct
   type t = {
     types : (string, Ast.type_definition, String.comparator_witness) Map.t
   }
-  [@@deriving accessors]
+
+  let types =
+    let get context = context.types
+    and set _ types = { types }
+    in
+    (get, set)
 end
 
 module Monad = Monads.ComponentState.Make(struct type t = Context.t end)
@@ -24,11 +29,11 @@ let empty_context : Context.t = { types = Map.empty(module String) }
 
 let run f = Monad.run f empty_context
 
-let get accessor =
-  Monad.get @@ Accessor.get accessor
+let get (g, _) =
+  Monad.get g
 
-let put accessor =
-  Monad.put (fun state x -> Accessor.set accessor state ~to_:x)
+let put (_, s) =
+  Monad.put s
 
 let register_type (type_definition : type_definition) =
   let* types = get Context.types
