@@ -32,6 +32,7 @@ let arithmetic_tests =
       ("(/ 9 2)", Integer 4 );
       ("(/ 100 2 2)", Integer 25 );
       ("(+ 1 (* 2 3))", Integer 7);
+      ({|(+ "ab" "cd")|}, String "abcd");
     ]
   in
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases

@@ -8,11 +8,24 @@ module V  = Value
 
 
 let addition args =
-  let*  evaluated_args = EV.map evaluate args                 in
-  let   ns             = List.map ~f:M.integer evaluated_args in
-  let   result         = List.fold_left ~f:Int.(+) ~init:0 ns
+  let add_integers evaluated_args =
+    let ns = List.map ~f:M.integer evaluated_args
+    in
+    let result = List.fold_left ~f:Int.(+) ~init:0 ns
+    in
+    EV.return @@ V.Integer result
+      
+  and add_strings evaluated_args =
+    let strings = List.map ~f:M.string evaluated_args
+    in
+    let result = String.concat strings
+    in
+    EV.return @@ V.String result
+
   in
-  EV.return @@ V.Integer result
+  let*  evaluated_args = EV.map evaluate args
+  in
+  M.combine [ add_integers; add_strings ] evaluated_args
 
 
 let subtraction args =
