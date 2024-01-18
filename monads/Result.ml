@@ -11,8 +11,7 @@ module type S = sig
 
   val disjunction : ('a -> 'b t) -> ('a -> 'b t) -> ('a -> 'b t)
   val force       : 'a t -> 'a
-  val map    : 'a t -> f:('a -> 'b) -> 'b t
-  val all    : 'a t list -> ('a list) t
+  val all         : 'a t list -> ('a list) t
 
   module Notations : sig
     val (<|>)   : ('a -> 'b t) -> ('a -> 'b t) -> ('a -> 'b t)
