@@ -22,4 +22,7 @@ module Make (M : Sig.Monad) = struct
     match xs with
     | []    -> M.return ()
     | x::xs -> M.bind (f x) (fun _ -> iter f xs)
+
+  let lift f x =
+    M.bind x (fun x -> M.return @@ f x)
 end
