@@ -14,7 +14,7 @@ let addition args =
     let result = List.fold_left ~f:Int.(+) ~init:0 ns
     in
     EV.return @@ V.Integer result
-      
+
   and add_strings evaluated_args =
     let strings = List.map ~f:M.string evaluated_args
     in
