@@ -15,54 +15,124 @@ end
 
 module N = Ast
 
+module TC = TranslationContext
+open Monads.Notations.Star(TC)
 
-let translate_identifier (S.Id_aux (aux, location)) : N.identifier =
+
+let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
-  | Id x       -> x
+  | Id x       -> TC.return x
   | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
 
-let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression =
-  match numeric_expression with
-  | Nexp_constant constant                     -> NE_constant constant
-  | Nexp_times (x, y)                          -> NE_times (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_sum (x, y)                            -> NE_add (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_minus (x, y)                          -> NE_minus (translate_numeric_expression x, translate_numeric_expression y)
-  | Nexp_neg x                                 -> NE_neg (translate_numeric_expression x)
-  | Nexp_var (Kid_aux (Var string, _location)) -> NE_var string
-  | Nexp_id identifier                         -> NE_id (translate_identifier identifier)
-  | Nexp_exp _                                 -> not_yet_implemented [%here] numexp_location
-  | Nexp_app (_, _)                            -> not_yet_implemented [%here] numexp_location
 
-and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) =
+let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression TC.t =
+  match numeric_expression with
+  | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
+  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var string
+  | Nexp_times (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NE_times (x', y')
+    end
+  | Nexp_sum (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NE_add (x', y')
+    end
+  | Nexp_minus (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NE_minus (x', y')
+    end
+  | Nexp_neg x  -> begin
+      let* x' = translate_numeric_expression x
+      in
+      TC.return @@ N.NE_neg x'
+    end
+  | Nexp_id identifier -> begin
+      let* identifier' = translate_identifier identifier
+      in
+      TC.return @@ N.NE_id identifier'
+    end
+  | Nexp_exp _      -> not_yet_implemented [%here] numexp_location
+  | Nexp_app (_, _) -> not_yet_implemented [%here] numexp_location
+
+
+and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.numeric_constraint TC.t =
   match numeric_constraint with
-  | S.NC_equal (x, y)                          -> N.NC_equal (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_ge (x, y)                     -> N.NC_bounded_ge (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_gt (x, y)                     -> N.NC_bounded_gt (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_le (x, y)                     -> N.NC_bounded_le (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_bounded_lt (x, y)                     -> N.NC_bounded_lt (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_not_equal (x, y)                      -> N.NC_not_equal (translate_numeric_expression x, translate_numeric_expression y)
-  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> N.NC_set (kind_id, ns)
-  | S.NC_or (x, y)                             -> N.NC_or (translate_numeric_constraint x, translate_numeric_constraint y)
-  | S.NC_and (x, y)                            -> N.NC_and (translate_numeric_constraint x, translate_numeric_constraint y)
-  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> N.NC_var kind_id
-  | S.NC_true                                  -> N.NC_true
-  | S.NC_false                                 -> N.NC_false
+  | S.NC_equal (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_equal (x', y')
+    end
+  | S.NC_bounded_ge (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_bounded_ge (x', y')
+    end
+  | S.NC_bounded_gt (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_bounded_gt (x', y')
+    end
+  | S.NC_bounded_le (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_bounded_le (x', y')
+    end
+  | S.NC_bounded_lt (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_bounded_lt (x', y')
+    end
+  | S.NC_not_equal (x, y) -> begin
+      let* x' = translate_numeric_expression x
+      and* y' = translate_numeric_expression y
+      in
+      TC.return @@ N.NC_not_equal (x', y')
+    end
+  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (kind_id, ns)
+  | S.NC_or (x, y) -> begin
+      let* x' = translate_numeric_constraint x
+      and* y' = translate_numeric_constraint y
+      in
+      TC.return @@ N.NC_or (x', y')
+    end
+  | S.NC_and (x, y) -> begin
+      let* x' = translate_numeric_constraint x
+      and* y' = translate_numeric_constraint y
+      in
+      TC.return @@ N.NC_and (x', y')
+    end
+  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var kind_id
+  | S.NC_true                                  -> TC.return @@ N.NC_true
+  | S.NC_false                                 -> TC.return @@ N.NC_false
   | S.NC_app (_, _)                            -> not_yet_implemented [%here] location
 
 
-let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
+let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   (*
     Types are representing as strings in Sail.
   *)
-  let rec type_of_identifier identifier : N.nanotype =
-    match translate_identifier identifier with
-    | "bool"      -> Ty_bool
-    | "nat"       -> Ty_nat
-    | "int"       -> Ty_int
-    | "unit"      -> Ty_unit
-    | "string"    -> Ty_string
-    | "atom"      -> Ty_atom
-    | id          -> Ty_custom id
+  let rec type_of_identifier identifier : N.nanotype TC.t =
+    let* identifier' = translate_identifier identifier
+    in
+    match identifier' with
+    | "bool"      -> TC.return @@ N.Ty_bool
+    | "nat"       -> TC.return @@ N.Ty_nat
+    | "int"       -> TC.return @@ N.Ty_int
+    | "unit"      -> TC.return @@ N.Ty_unit
+    | "string"    -> TC.return @@ N.Ty_string
+    | "atom"      -> TC.return @@ N.Ty_atom
+    | id          -> TC.return @@ N.Ty_custom id
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -71,18 +141,30 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   and translate_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list) =
-    let type_arguments' = List.map ~f:translate_type_argument type_arguments
-    and identifier'     = translate_identifier identifier
+    let* type_arguments' = TC.map translate_type_argument type_arguments
+    and* identifier'     = translate_identifier identifier
     in
     match identifier', type_arguments' with
-    | "list" , [ TA_type t ]  -> N.Ty_list t
-    | id     , _              -> Ty_app (id, type_arguments')
+    | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
+    | id     , _                -> TC.return @@ N.Ty_app (id, type_arguments')
 
-  and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument =
+  and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument TC.t =
     match type_argument with
-    | A_nexp e -> TA_numexp (translate_numeric_expression e)
-    | A_typ t  -> TA_type (nanotype_of_sail_type t)
-    | A_bool b -> TA_bool (translate_numeric_constraint b)
+    | A_nexp e -> begin
+        let* e' = translate_numeric_expression e
+        in
+        TC.return @@ N.TA_numexp e'
+      end
+    | A_typ t  -> begin
+        let* t' = nanotype_of_sail_type t
+        in
+        TC.return @@ N.TA_type t'
+      end
+    | A_bool b -> begin
+        let* b' = translate_numeric_constraint b
+        in
+        TC.return @@ N.TA_bool b'
+      end
   in
 
   match typ with
@@ -92,7 +174,11 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) =
   | Typ_bidir (_, _)                -> not_yet_implemented [%here] location
   | Typ_exist (_, _, _)             -> not_yet_implemented [%here] location
   | Typ_id id                       -> type_of_identifier id
-  | Typ_tuple items                 -> N.Ty_tuple (List.map ~f:nanotype_of_sail_type items)
+  | Typ_tuple items                 -> begin
+      let* items' = TC.map nanotype_of_sail_type items
+      in
+      TC.return @@ N.Ty_tuple items'
+    end
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
 
@@ -112,7 +198,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   | P_lit (L_aux (lit, _)) ->
      begin
        match lit with
-       | S.L_unit     -> [("()", N.Ty_unit)]
+       | S.L_unit     -> TC.return @@ [("()", N.Ty_unit)]
        | S.L_zero     -> not_yet_implemented [%here] location
        | S.L_one      -> not_yet_implemented [%here] location
        | S.L_true     -> not_yet_implemented [%here] location
@@ -125,10 +211,15 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
        | S.L_real _   -> not_yet_implemented [%here] location
      end
   | P_id id ->
-      let x = translate_identifier id in
-      let ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a) in
-      [(x, ty)]
-  | P_tuple pats                  -> List.concat (List.map ~f:binds_of_pat pats)
+      let* x  = translate_identifier id in
+      let* ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a)
+      in
+      TC.return [(x, ty)]
+  | P_tuple pats -> begin
+      let* pats' = TC.map binds_of_pat pats
+      in
+      TC.return @@ List.concat pats'
+    end
   | S.P_wild                      -> not_yet_implemented [%here] location
   | S.P_or (_, _)                 -> not_yet_implemented [%here] location
   | S.P_not _                     -> not_yet_implemented [%here] location
@@ -154,11 +245,11 @@ let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
 
 let value_of_lit (S.L_aux (literal, location)) =
   match literal with
-  | L_true     -> N.Val_bool true
-  | L_false    -> N.Val_bool false
-  | L_num n    -> N.Val_int n
-  | L_unit     -> N.Val_unit
-  | L_string s -> N.Val_string s
+  | L_true     -> TC.return @@ N.Val_bool true
+  | L_false    -> TC.return @@ N.Val_bool false
+  | L_num n    -> TC.return @@ N.Val_int n
+  | L_unit     -> TC.return @@ N.Val_unit
+  | L_string s -> TC.return @@ N.Val_string s
   | S.L_zero   -> not_yet_implemented [%here] location
   | S.L_one    -> not_yet_implemented [%here] location
   | S.L_hex _  -> not_yet_implemented [%here] location
@@ -172,41 +263,31 @@ let rec expression_of_aval location (value : S.typ S.aval) =
      begin
        match elts with
        | [] -> not_yet_implemented ~message:"Should not occur" [%here] location
-       | h::t ->
-          let e_h = expression_of_aval location h in
-          let f e1 aval2 =
-            let e2 = expression_of_aval location aval2 in
-            N.Exp_binop (Pair, e1, e2) in
-          List.fold_left ~f:f ~init:e_h t
+       | h::t -> begin
+           let* e_h = expression_of_aval location h
+           in
+           let f e1 aval2 =
+             let* e2 = expression_of_aval location aval2
+             in
+             TC.return @@ N.Exp_binop (Pair, e1, e2) in
+           TC.fold_left f e_h t
+         end
      end
-  | AV_lit (lit, _)   -> N.Exp_val (value_of_lit lit)
-  | AV_id (id, lvar) ->
-     begin
-       let id' = translate_identifier id in
-       (
-         match lvar with
-         | S.Ast_util.Register _     -> Stdio.printf "register %s\n" id'
-         | S.Ast_util.Enum _         -> Stdio.printf "enum %s\n" id'
-         | S.Ast_util.Local (_, typ) -> (
-             Stdio.printf "local %s %s\n" id' (Libsail.Ast_util.string_of_typ typ);
-             match typ with |
-               S.Typ_aux (t, _) -> begin
-                 match t with
-                 | S.Typ_internal_unknown -> Stdio.printf "S.Typ_internal_unknown\n"
-                 | S.Typ_id _ -> Stdio.printf "S.Typ_id _\n"
-                 | S.Typ_var _ -> Stdio.printf "S.Typ_var _\n"
-                 | S.Typ_fn (_, _) -> Stdio.printf "S.Typ_fn (_, _)\n"
-                 | S.Typ_bidir (_, _) -> Stdio.printf "S.Typ_bidir (_, _)\n"
-                 | S.Typ_tuple _ -> Stdio.printf "S.Typ_tuple _\n"
-                 | S.Typ_app (_, _) -> Stdio.printf "S.Typ_app (_, _)\n"
-                 | S.Typ_exist (_, _, _) -> Stdio.printf "S.Typ_exist (_, _, _)\n"
-               end
-           )
-         | S.Ast_util.Unbound _      -> Stdio.printf "unbound %s\n" id'
-       );
-       N.Exp_var id'
-     end
-  | AV_list (lst, _)  -> Exp_list (List.map ~f:(expression_of_aval location) lst)
+  | AV_lit (lit, _)   -> begin
+      let* lit' = value_of_lit lit
+      in
+      TC.return @@ N.Exp_val lit'
+    end
+  | AV_id (id, _lvar) -> begin
+      let* id' = translate_identifier id
+      in
+      TC.return @@ N.Exp_var id'
+    end
+  | AV_list (lst, _)  -> begin
+      let* lst' = TC.map (expression_of_aval location) lst
+      in
+      TC.return @@ N.Exp_list lst'
+    end
   | AV_ref (_, _)     -> not_yet_implemented [%here] location
   | AV_vector (_, _)  -> not_yet_implemented [%here] location
   | AV_record (_, _)  -> not_yet_implemented [%here] location
@@ -217,8 +298,12 @@ let make_sequence statements location =
   let rec aux statements =
     match statements with
     | []    -> not_yet_implemented ~message:"Should not happen" [%here]  location
-    | [x]   -> x
-    | x::xs -> N.Stm_seq (x, aux xs)
+    | [x]   -> TC.return x
+    | x::xs -> begin
+        let* xs' = aux xs
+        in
+        TC.return @@ N.Stm_seq (x, xs')
+      end
   in
   aux statements
 
@@ -227,38 +312,56 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   let S.AE_aux (aux, _environment, location) =  expression
   in
   match aux with
-  | AE_val aval ->
-      N.Stm_exp (expression_of_aval location aval)
-  | AE_app (id, avals, _) ->
-     begin
-       let id' = translate_identifier id
-       in
-       match avals with
-       | [aval1; aval2] when String.equal id' "sail_cons" ->
-          let e1 = expression_of_aval location aval1 in
-          let e2 = expression_of_aval location aval2 in
-          Stm_exp (Exp_binop (Cons, e1, e2))
-       | _ ->
-          Stm_call (id', List.map ~f:(expression_of_aval location) avals)
-     end
-  | AE_let (_, id, _, aexp1, aexp2, _) ->
-     let id' = translate_identifier id
-     and s1 = statement_of_aexp aexp1
-     and s2 = statement_of_aexp aexp2
-     in
-     Stm_let (id', s1, s2)
-  | AE_if (aval, aexp1, aexp2, _) ->
-     let s = N.Stm_exp (expression_of_aval location aval)
-     and s1 = statement_of_aexp aexp1
-     and s2 = statement_of_aexp aexp2
-     in
-     Stm_if (s, s1, s2)
-  | AE_match (aval, cases, _) ->
-     statement_of_match location aval cases
-  | S.AE_block (statements, last_statement, _type) ->
-     let translated_statements = List.map ~f:statement_of_aexp (statements @ [last_statement])
-     in
-     make_sequence translated_statements location
+  | AE_val aval -> begin
+      let* aval' = expression_of_aval location aval
+      in
+      TC.return @@ N.Stm_exp aval'
+    end
+    
+  | AE_app (id, avals, _) -> begin
+      let* id' = translate_identifier id
+      in
+      match avals with
+      | [aval1; aval2] when String.equal id' "sail_cons" -> begin
+          let* e1 = expression_of_aval location aval1
+          and* e2 = expression_of_aval location aval2
+          in
+          TC.return @@ N.Stm_exp (Exp_binop (Cons, e1, e2))
+        end
+      | _ -> begin
+          let* args = TC.map (expression_of_aval location) avals
+          in
+          TC.return @@ N.Stm_call (id', args)
+        end
+    end
+     
+  | AE_let (_, id, _, aexp1, aexp2, _) -> begin
+      let* id' = translate_identifier id
+      and* s1 = statement_of_aexp aexp1
+      and* s2 = statement_of_aexp aexp2
+      in
+      TC.return @@ N.Stm_let (id', s1, s2)
+    end
+       
+  | AE_if (aval, aexp1, aexp2, _) -> begin
+      let* s =
+        let* e = expression_of_aval location aval
+        in
+        TC.return @@ N.Stm_exp e
+      and* s1 = statement_of_aexp aexp1
+      and* s2 = statement_of_aexp aexp2
+      in
+      TC.return @@ N.Stm_if (s, s1, s2)
+    end
+       
+  | AE_match (aval, cases, _) -> statement_of_match location aval cases
+      
+  | S.AE_block (statements, last_statement, _type) -> begin
+      let* translated_statements = TC.map statement_of_aexp (statements @ [last_statement])
+      in
+      make_sequence translated_statements location
+    end
+    
   | S.AE_typ (_, _)              -> not_yet_implemented [%here] location
   | S.AE_assign (_, _)           -> not_yet_implemented [%here] location
   | S.AE_return (_, _)           -> not_yet_implemented [%here] location
@@ -275,15 +378,15 @@ and statement_of_match (location : S.l                                          
                        (matched  : S.typ S.aval                                     )
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
   =
-  let translate_case (case : 'a S.apat * 'a S.aexp * 'a S.aexp) =
+  let _translate_case (case : 'a S.apat * 'a S.aexp * 'a S.aexp) =
     let S.AP_aux (pattern, _env, location), _exp1, clause = case
     in
     match pattern with
     | S.AP_id (id, _) -> begin
-        let id' = translate_identifier id
-        and clause' = statement_of_aexp clause
+        let* id' = translate_identifier id
+        and* clause' = statement_of_aexp clause
         in
-        N.MatchCase (Pat_id id', clause')
+        TC.return @@ N.MatchCase (Pat_id id', clause')
       end
     | S.AP_tuple _       -> not_yet_implemented [%here] location
     | S.AP_global (_, _) -> not_yet_implemented [%here] location
@@ -307,14 +410,21 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_h, _), _, _),
         AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, cons_clause)
-    ] ->
-      Stm_match_list {
-        s        = Stm_exp (expression_of_aval location matched);
-        alt_nil  = statement_of_aexp nil_clause;
-        xh       = translate_identifier id_h;
-        xt       = translate_identifier id_t;
-        alt_cons = statement_of_aexp cons_clause;
-        }
+    ] -> begin
+      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
+      and* alt_nil = statement_of_aexp nil_clause
+      and* xh = translate_identifier id_h
+      and* xt = translate_identifier id_t
+      and* alt_cons = statement_of_aexp cons_clause
+      in
+      TC.return @@ N.Stm_match_list {
+        s        = s;
+        alt_nil  = alt_nil;
+        xh       = xh;
+        xt       = xt;
+        alt_cons = alt_cons;
+      }
+    end
   (*
       match matched {
         h :: t => cons_clause
@@ -326,14 +436,21 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, cons_clause);
       (AP_aux (AP_nil _, _, _), _, nil_clause)
-    ] ->
-      Stm_match_list {
-        s        = Stm_exp (expression_of_aval location matched);
-        alt_nil  = statement_of_aexp nil_clause;
-        xh       = translate_identifier id_h;
-        xt       = translate_identifier id_t;
-        alt_cons = statement_of_aexp cons_clause;
-        }
+    ] -> begin
+      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
+      and* alt_nil = statement_of_aexp nil_clause
+      and* xh = translate_identifier id_h
+      and* xt = translate_identifier id_t
+      and* alt_cons = statement_of_aexp cons_clause
+      in
+      TC.return @@ N.Stm_match_list {
+        s        = s;
+        alt_nil  = alt_nil;
+        xh       = xh;
+        xt       = xt;
+        alt_cons = alt_cons;
+      }
+    end
   (*
       match matched {
         (id_l, id_r) => clause
@@ -343,21 +460,20 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_l, _), _, _);
         AP_aux (AP_id (id_r, _), _, _);
       ], _, _),_ , clause)
-    ] ->
-      Stm_match_prod {
-        s   = Stm_exp (expression_of_aval location matched);
-        xl  = translate_identifier id_l;
-        xr  = translate_identifier id_r;
-        rhs = statement_of_aexp clause;
-        }
-  | _ -> begin
-      let cases' = List.map ~f:translate_case cases
-      and _matched' = expression_of_aval location matched
+    ] -> begin
+      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr
+      and* xl = translate_identifier id_l
+      and* xr = translate_identifier id_r
+      and* rhs = statement_of_aexp clause
       in
-      begin
-        Stm_match cases'
-      end
+      TC.return @@ N.Stm_match_prod {
+        s   = s;
+        xl  = xl;
+        xr  = xr;
+        rhs = rhs;
+      }
     end
+  | _ -> not_yet_implemented [%here] location
 
 let body_of_pexp pexp =
   let S.Pat_aux (aux, (location, _annot)) = pexp
@@ -376,58 +492,73 @@ let translate_function_definition
   | [funcl] -> begin
       let S.FCL_aux (S.FCL_funcl (id, pexp), (_def_annot, _type_annotation)) = funcl
       in
-      N.FunctionDefinition {
-        N.funName = translate_identifier id;
+      let* funName = translate_identifier id
+      and* arg_types = binds_of_pexp pexp
+      and* ret_type = ty_of_pexp pexp
+      and* funBody = body_of_pexp pexp
+      in
+      TC.return @@ N.FunctionDefinition {
+        N.funName = funName; (* TODO fix name *)
         N.funType = {
-            arg_types = binds_of_pexp pexp;
-            ret_type  = ty_of_pexp pexp
+            arg_types = arg_types;
+            ret_type  = ret_type;
           };
-        N.funBody = body_of_pexp pexp
+        N.funBody = funBody;
       }
     end
   | _ -> not_yet_implemented [%here] definition_annotation.loc
 
-let translate_kind (S.K_aux (kind, _location)) : Ast.kind =
+let translate_kind (S.K_aux (kind, _location)) : Ast.kind TC.t =
   match kind with
-  | S.K_type -> Ast.Kind_type
-  | S.K_int  -> Ast.Kind_int
-  | S.K_bool -> Ast.Kind_bool
+  | S.K_type -> TC.return @@ Ast.Kind_type
+  | S.K_int  -> TC.return @@ Ast.Kind_int
+  | S.K_bool -> TC.return @@ Ast.Kind_bool
 
-let translate_kind_id (S.Kid_aux (Var kind_id, _id_loc)) : string =
-  kind_id
+let translate_kind_id (S.Kid_aux (Var kind_id, _id_loc)) : string TC.t =
+  TC.return @@ kind_id
 
 let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
   match quantifier_item with
   | S.QI_id (KOpt_aux (KOpt_kind (kind, kind_id), _loc)) ->
-    let kind'    = translate_kind kind
-    and kind_id' = translate_kind_id kind_id
+    let* kind'    = translate_kind kind
+    and* kind_id' = translate_kind_id kind_id
     in
-    (kind_id', kind')
+    TC.return @@ (kind_id', kind')
   | S.QI_constraint _ -> not_yet_implemented [%here] location
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
-  | S.TypQ_tq items  -> List.map ~f:translate_type_quantifier_item items
-  | S.TypQ_no_forall -> []
+  | S.TypQ_tq items  -> TC.map translate_type_quantifier_item items
+  | S.TypQ_no_forall -> TC.return @@ []
 
 let translate_type_abbreviation
       _definition_annotation
       _type_annotation
       (identifier : S.id)
       (quantifier : S.typquant)
-      (S.A_aux (arg, _arg_location)) : N.definition =
-  let quantifier' =
-    translate_type_quantifier quantifier
+      (S.A_aux (arg, _arg_location)) : N.definition TC.t =
+  let* quantifier' = translate_type_quantifier quantifier
+  and* identifier' = translate_identifier identifier
   in
-  let identifier' = translate_identifier identifier
-  in
-  let type_abbreviation =
+  let* type_abbreviation =
     match arg with
-    | A_nexp numeric_expression -> N.TA_numeric_expression (quantifier', translate_numeric_expression numeric_expression)
-    | A_typ typ                 -> N.TA_alias (quantifier', nanotype_of_sail_type typ)
-    | A_bool numeric_constraint -> N.TA_numeric_constraint (quantifier', translate_numeric_constraint numeric_constraint)
+    | A_nexp numeric_expression -> begin
+        let* numeric_expression' = translate_numeric_expression numeric_expression
+        in          
+        TC.return @@ N.TA_numeric_expression (quantifier', numeric_expression')
+      end
+    | A_typ typ -> begin
+        let* typ' = nanotype_of_sail_type typ
+        in
+        TC.return @@ N.TA_alias (quantifier', typ')
+      end
+    | A_bool numeric_constraint -> begin
+        let* numeric_constraint' = translate_numeric_constraint numeric_constraint
+        in
+        TC.return @@ N.TA_numeric_constraint (quantifier', numeric_constraint')
+      end
   in
-  TypeDefinition (
+  TC.return @@ N.TypeDefinition (
     N.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
   )
 
@@ -435,13 +566,13 @@ let translate_enum
       (_definition_annotation : S.def_annot)
       (_type_annotation       : 'a S.annot )
       (identifier             : S.id       )
-      (cases                  : S.id list  ) : N.definition
+      (cases                  : S.id list  ) : N.definition TC.t
   =
-  let identifier' = translate_identifier identifier
-  and cases'      = List.map ~f:translate_identifier cases
+  let* identifier' = translate_identifier identifier
+  and* cases'      = TC.map translate_identifier cases
   in
-  TypeDefinition (
-    TD_enum {
+  TC.return @@ N.TypeDefinition (
+    N.TD_enum {
       identifier = identifier';
       cases      = cases'     ;
     }
@@ -453,19 +584,21 @@ let translate_variant
       (identifier             : S.id             )
       (type_quantifier        : S.typquant       )
       (constructors           : S.type_union list)
-      (_flag                  : bool             ) : N.definition
+      (_flag                  : bool             ) : N.definition TC.t
   =
-  let identifier' = translate_identifier identifier
-  in
-  let type_quantifier' = translate_type_quantifier type_quantifier
-  and constructors' =
+  let* identifier' = translate_identifier identifier
+  and* type_quantifier' = translate_type_quantifier type_quantifier
+  and* constructors' =
     let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
-      (translate_identifier identifier, nanotype_of_sail_type typ)
+      let* identifier' = translate_identifier identifier
+      and* typ' = nanotype_of_sail_type typ
+      in
+      TC.return @@ (identifier', typ')
     in
-    List.map ~f:translate_constructor constructors
+    TC.map translate_constructor constructors
   in
-  TypeDefinition (
-    TD_variant {
+  TC.return @@ N.TypeDefinition (
+    N.TD_variant {
       identifier      = identifier'     ;
       type_quantifier = type_quantifier';
       constructors    = constructors'   ;
@@ -475,7 +608,7 @@ let translate_variant
 
 let translate_type_definition
       (definition_annotation     : S.def_annot                 )
-      (annotated_type_definition : N.type_annotation S.type_def) : N.definition
+      (annotated_type_definition : N.type_annotation S.type_def) : N.definition TC.t
   =
   let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
   in
@@ -488,18 +621,20 @@ let translate_type_definition
 
 let translate_top_level_type_constraint
       (_definition_annotation : S.def_annot)
-      (S.VS_aux (value_specification, _vspec_annotation)) : N.definition =
+      (S.VS_aux (value_specification, _vspec_annotation)) : N.definition TC.t =
   let VS_val_spec (
           TypSchm_aux (
               TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
               _type_scheme_location),
           identifier, _extern) = value_specification
   in
-  TopLevelTypeConstraintDefinition { identifier = translate_identifier identifier }
+  let* identifier' = translate_identifier identifier
+  in
+  TC.return @@ N.TopLevelTypeConstraintDefinition { identifier = identifier' }
 
 let translate_register
       (_definition_annotation        : S.def_annot                 )
-      (annotated_register_definition : N.type_annotation S.dec_spec) : N.definition
+      (annotated_register_definition : N.type_annotation S.dec_spec) : N.definition TC.t
   =
   let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
   in
@@ -508,10 +643,10 @@ let translate_register
     | None                                          -> ()
     | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented [%here] location
   end;
-  let identifier' = translate_identifier identifier
-  and nanotype    = nanotype_of_sail_type sail_type
+  let* identifier' = translate_identifier identifier
+  and* nanotype    = nanotype_of_sail_type sail_type
   in
-  RegisterDefinition {
+  TC.return @@ N.RegisterDefinition {
     identifier = identifier';
     typ        = nanotype   ;
   }
@@ -537,14 +672,14 @@ let translate_top_level_outcome_definition
       (_definitions : ('a S.def) list) =
   not_yet_implemented [%here] location
 
-let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) =
+let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) TC.t =
   if
     Configuration.ignore_definition sail_definition
   then
-    (sail_definition, N.IgnoredDefinition)
+    TC.return (sail_definition, N.IgnoredDefinition)
   else begin
     try
-      let translation =
+      let* translation =
         match def with
         | DEF_type type_definition                 -> translate_type_definition annotation type_definition
         | DEF_mapdef definition                    -> translate_mapping_definition annotation definition
@@ -564,21 +699,22 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
         | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
       in
-      (sail_definition, translation)
+      TC.return (sail_definition, translation)
     with NotYetImplemented (source_position, sail_location, message) ->
-      (
-        sail_definition,
-        UntranslatedDefinition {
+      let untranslated_definition = N.UntranslatedDefinition {
           filename = source_position.pos_fname;
           line_number = source_position.pos_lnum;
           sail_location = sail_location;
           message = message
         }
-      )
+      in
+      TC.return (sail_definition, untranslated_definition)
   end
 
 let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
+  let (definitions, _context) = TC.run @@ TC.map translate_definition ast.defs
+  in
   {
     program_name = name;
-    definitions  = List.map ~f:translate_definition ast.defs
+    definitions  = definitions
   }

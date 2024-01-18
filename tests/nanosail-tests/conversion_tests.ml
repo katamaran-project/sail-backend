@@ -1,5 +1,10 @@
 open OUnit2
 module S = Libsail
+  
+open Nanosail.SailToNanosail.Translation
+open Nanosail.NanosailToMicrosail.AnnotationMonad
+
+module TC = Nanosail.SailToNanosail.TranslationContext
 
 
 let string_of_document ?(line_width = 10000) (document : PPrint.document) : string =
@@ -14,9 +19,8 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
-  let nano_nexp = Nanosail.SailToNanosail.Translation.translate_numeric_expression nexp in
-  let (document, _) =
-    Nanosail.NanosailToMicrosail.AnnotationMonad.collect_annotations (Nanosail.NanosailToMicrosail.Sail.pp_numeric_expression nano_nexp)
+  let (nano_nexp, _) = TC.run @@ translate_numeric_expression nexp in
+  let (document, _) = collect_annotations (Nanosail.NanosailToMicrosail.Sail.pp_numeric_expression nano_nexp)
   in
   string_of_document document
 
