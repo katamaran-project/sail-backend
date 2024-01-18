@@ -1,5 +1,5 @@
 module Coq = Coq
-module FunDeclKit = Fundeclkit
+module FunDeclKit = FunDeclKit
 module Katamaran = Katamaran
 module Registers = Registers
 module Sail = Sail

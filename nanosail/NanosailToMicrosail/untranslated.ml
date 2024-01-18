@@ -4,8 +4,6 @@ open Ast
 open Auxlib
 open Util
 
-module FunDeclKit = Fundeclkit
-
 
 let generate untranslated_definitions =
   let pp_sail_location (location : Libsail.Parse_ast.l) =

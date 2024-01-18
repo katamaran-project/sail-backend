@@ -6,8 +6,6 @@ open Util
 open AnnotationMonad
 open Monads.Notations.Star(AnnotationMonad)
 
-module FunDeclKit = Fundeclkit
-
 
 let defaultBase = string "Import DefaultBase."
 
