@@ -1,8 +1,8 @@
 open Base
 open PPrint
 open Ast
-open Annotation_monad
-open Monads.Notations.Star(Annotation_monad)
+open AnnotationMonad
+open Monads.Notations.Star(AnnotationMonad)
 
 
 let reg_inductive_type register_definitions =

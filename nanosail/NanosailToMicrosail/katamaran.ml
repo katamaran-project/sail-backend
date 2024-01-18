@@ -3,8 +3,8 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open Annotation_monad
-open Monads.Notations.Star(Annotation_monad)
+open AnnotationMonad
+open Monads.Notations.Star(AnnotationMonad)
 
 module FunDeclKit = Fundeclkit
 

@@ -1,8 +1,8 @@
 open Base
 open PPrint
 open Auxlib
-open Annotation_monad
-open Monads.Notations.Star(Annotation_monad)
+open AnnotationMonad
+open Monads.Notations.Star(AnnotationMonad)
 
 module Big_int = Nat_big_num
 
@@ -379,7 +379,7 @@ let annotate_with_original_definitions originals translation =
     translation
 
 let annotate f =
-  let (document, annotations) = Annotation_monad.collect_annotations f
+  let (document, annotations) = collect_annotations f
   in
   let pp_annotations =
     let pp_annotation index doc =
