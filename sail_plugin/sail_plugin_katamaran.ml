@@ -185,7 +185,7 @@ let katamaran_target _ _ filename ast _ _ =
   in
   let nanosail_representation = Nanosail.SailToNanosail.translate ast program_name
   in
-  let sanitized_nanosail_representation = Nanosail.SailToNanosail.Sanitation.coqify_identifiers nanosail_representation
+  let sanitized_nanosail_representation = Nanosail.SailToNanosail.coqify_identifiers nanosail_representation
   in
   let document = Nanosail.NanosailToMicrosail.Katamaran.fromIR_pp sanitized_nanosail_representation
   in

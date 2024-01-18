@@ -14,7 +14,7 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
-  let nano_nexp = Nanosail.SailToNanosail.translate_numeric_expression nexp in
+  let nano_nexp = Nanosail.SailToNanosail.Translation.translate_numeric_expression nexp in
   let (document, _) =
     Nanosail.NanosailToMicrosail.AnnotationMonad.collect_annotations (Nanosail.NanosailToMicrosail.Sail.pp_numeric_expression nano_nexp)
   in
