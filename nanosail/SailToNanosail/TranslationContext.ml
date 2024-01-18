@@ -29,14 +29,8 @@ let empty_context : Context.t = { types = Map.empty(module String) }
 
 let run f = Monad.run f empty_context
 
-let get (g, _) =
-  Monad.get g
-
-let put (_, s) =
-  Monad.put s
-
 let register_type (type_definition : type_definition) =
-  let* types = get Context.types
+  let* types = Monad.get Context.types
   in
   let identifier = type_identifier type_definition
   in
@@ -44,7 +38,7 @@ let register_type (type_definition : type_definition) =
   in
   match add_result with
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
-  | `Ok types' -> put Context.types types'
+  | `Ok types' -> Monad.put Context.types types'
 
 
 module MonadUtil = Monads.Util.Make(Monad)
