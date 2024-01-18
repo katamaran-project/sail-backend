@@ -19,7 +19,10 @@ type 'a t = 'a Monad.t
 
 let return = Monad.return
 let bind   = Monad.bind
-let run    = Monad.run
+
+let empty_context : Context.t = { types = Map.empty(module String) }
+
+let run f = Monad.run f empty_context
 
 let get accessor =
   Monad.get @@ Accessor.get accessor
@@ -37,3 +40,9 @@ let register_type (type_definition : type_definition) =
   match add_result with
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> put Context.types types'
+
+
+module MonadUtil = Monads.Util.Make(Monad)
+
+let map = MonadUtil.map
+let fold_left = MonadUtil.fold_left
