@@ -13,6 +13,7 @@ val cons    : 'a converter -> 'b converter -> ('a * 'b) converter
 val nil     : unit converter
 val list    : 'a converter -> 'a list converter
 
+val map2    : 'a converter -> 'b converter -> Value.t list -> 'a * 'b
 val combine : ('a -> 'b) list -> 'a -> 'b
 
 module Notations : sig

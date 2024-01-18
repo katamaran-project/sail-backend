@@ -62,6 +62,13 @@ let rec list f value =
   | _                     -> raise DispatchFailure
 
 
+(* expects values to contain exactly 2 items that satisfy the given patterns *)
+let map2 f g values =
+  match values with
+  | [v1; v2] -> (f v1, g v2)
+  | _        -> raise DispatchFailure
+
+
 let binary_combine f g arg =
   try
     f arg
