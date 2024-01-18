@@ -10,24 +10,22 @@ module Context = struct
   [@@deriving accessors]
 end
 
-
 module Monad = Monads.ComponentState.Make(struct type t = Context.t end)
 
 open Monads.Notations.Star(Monad)
 
+
 type 'a t = 'a Monad.t
 
 let return = Monad.return
-let bind = Monad.bind
-let run = Monad.run
+let bind   = Monad.bind
+let run    = Monad.run
 
 let get accessor =
   Monad.get @@ Accessor.get accessor
 
-
 let put accessor =
   Monad.put (fun state x -> Accessor.set accessor state ~to_:x)
-
 
 let register_type (type_definition : type_definition) =
   let* types = get Context.types
