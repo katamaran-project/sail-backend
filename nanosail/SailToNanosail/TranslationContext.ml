@@ -1,29 +1,49 @@
 open Base
 open Ast
 open Exception
-    
+
+(* TODO cleanup *)
 
 module Context = struct
+  type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
+  
   type t = {
-    types : (string, Ast.type_definition, String.comparator_witness) Map.t
+    types : type_map
   }
 
   let types =
-    let get context = context.types
-    and set _ types = { types }
+    let get (context : t) : type_map = context.types
+    and set (_context : t) (types : type_map) : t = { types }
     in
     (get, set)
 end
 
-module Monad = Monads.ComponentState.Make(struct type t = Context.t end)
+type error =
+  | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
+
+
+module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
 
 open Monads.Notations.Star(Monad)
 
 
 type 'a t = 'a Monad.t
 
+type 'a result = 'a Monad.result = Success of 'a | Failure of error (* prevents result from becoming abstract *)
+
 let return = Monad.return
+
+let not_yet_implemented ?(message = "") ocaml_position sail_position =
+  let message =
+    if String.is_empty message
+    then None
+    else Some message
+  in
+  Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
+
 let bind   = Monad.bind
+
+let recover = Monad.recover
 
 let empty_context : Context.t = { types = Map.empty(module String) }
 
