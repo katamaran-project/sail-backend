@@ -1,4 +1,3 @@
-(* TODO Use higher order symbols *)
 module Make (M : Sig.Monad) = struct
   let rec collect n f =
     if n <= 0
