@@ -10,9 +10,9 @@ type error =
 type 'a result =
   | Success of 'a | Failure of error
 
+val bind                : 'a t -> ('a -> 'b t) -> 'b t
 val return              : 'a -> 'a t
 val not_yet_implemented : ?message : string -> Lexing.position -> Libsail.Ast.l -> 'a t
-val bind                : 'a t -> ('a -> 'b t) -> 'b t
 val recover             : 'a t -> (error -> 'a t) -> 'a t
 val run                 : 'a t -> 'a result * Context.t
 
