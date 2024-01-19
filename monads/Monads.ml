@@ -8,3 +8,4 @@ module Util           = Util
 module Continuation   = Continuation
 module Reader         = Reader
 module Result         = Result
+module StateResult    = StateResult
