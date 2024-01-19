@@ -1,5 +1,4 @@
 open Base
-open NYI
 
 module Big_int = Nat_big_num
 
@@ -22,7 +21,7 @@ open Monads.Notations.Star(TC)
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
   | Id x       -> TC.return x
-  | Operator x -> not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
+  | Operator x -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
 
 
 let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression TC.t =
@@ -57,8 +56,8 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
       in
       TC.return @@ N.NE_id identifier'
     end
-  | Nexp_exp _      -> not_yet_implemented [%here] numexp_location
-  | Nexp_app (_, _) -> not_yet_implemented [%here] numexp_location
+  | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
+  | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
 
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.numeric_constraint TC.t =
@@ -115,7 +114,7 @@ and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.n
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var kind_id
   | S.NC_true                                  -> TC.return @@ N.NC_true
   | S.NC_false                                 -> TC.return @@ N.NC_false
-  | S.NC_app (_, _)                            -> not_yet_implemented [%here] location
+  | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] location
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
@@ -168,11 +167,11 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   in
 
   match typ with
-  | Typ_internal_unknown            -> not_yet_implemented [%here] location
-  | Typ_var _                       -> not_yet_implemented [%here] location
-  | Typ_fn (_, _)                   -> not_yet_implemented [%here] location
-  | Typ_bidir (_, _)                -> not_yet_implemented [%here] location
-  | Typ_exist (_, _, _)             -> not_yet_implemented [%here] location
+  | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
+  | Typ_var _                       -> TC.not_yet_implemented [%here] location
+  | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
+  | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
+  | Typ_exist (_, _, _)             -> TC.not_yet_implemented [%here] location
   | Typ_id id                       -> type_of_identifier id
   | Typ_tuple items                 -> begin
       let* items' = TC.map nanotype_of_sail_type items
@@ -188,7 +187,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
-  | Pat_when _       -> not_yet_implemented [%here] location
+  | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
 (******************************************************************************)
@@ -199,16 +198,16 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
      begin
        match lit with
        | S.L_unit     -> TC.return @@ [("()", N.Ty_unit)]
-       | S.L_zero     -> not_yet_implemented [%here] location
-       | S.L_one      -> not_yet_implemented [%here] location
-       | S.L_true     -> not_yet_implemented [%here] location
-       | S.L_false    -> not_yet_implemented [%here] location
-       | S.L_num _    -> not_yet_implemented [%here] location
-       | S.L_hex _    -> not_yet_implemented [%here] location
-       | S.L_bin _    -> not_yet_implemented [%here] location
-       | S.L_string _ -> not_yet_implemented [%here] location
-       | S.L_undef    -> not_yet_implemented [%here] location
-       | S.L_real _   -> not_yet_implemented [%here] location
+       | S.L_zero     -> TC.not_yet_implemented [%here] location
+       | S.L_one      -> TC.not_yet_implemented [%here] location
+       | S.L_true     -> TC.not_yet_implemented [%here] location
+       | S.L_false    -> TC.not_yet_implemented [%here] location
+       | S.L_num _    -> TC.not_yet_implemented [%here] location
+       | S.L_hex _    -> TC.not_yet_implemented [%here] location
+       | S.L_bin _    -> TC.not_yet_implemented [%here] location
+       | S.L_string _ -> TC.not_yet_implemented [%here] location
+       | S.L_undef    -> TC.not_yet_implemented [%here] location
+       | S.L_real _   -> TC.not_yet_implemented [%here] location
      end
   | P_id id ->
       let* x  = translate_identifier id in
@@ -220,25 +219,25 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
       in
       TC.return @@ List.concat pats'
     end
-  | S.P_wild                      -> not_yet_implemented [%here] location
-  | S.P_or (_, _)                 -> not_yet_implemented [%here] location
-  | S.P_not _                     -> not_yet_implemented [%here] location
-  | S.P_as (_, _)                 -> not_yet_implemented [%here] location
-  | S.P_typ (_, _)                -> not_yet_implemented [%here] location
-  | S.P_var (_, _)                -> not_yet_implemented [%here] location
-  | S.P_app (_, _)                -> not_yet_implemented [%here] location
-  | S.P_vector _                  -> not_yet_implemented [%here] location
-  | S.P_vector_concat _           -> not_yet_implemented [%here] location
-  | S.P_vector_subrange (_, _, _) -> not_yet_implemented [%here] location
-  | S.P_list _                    -> not_yet_implemented [%here] location
-  | S.P_cons (_, _)               -> not_yet_implemented [%here] location
-  | S.P_string_append _           -> not_yet_implemented [%here] location
-  | S.P_struct (_, _)             -> not_yet_implemented [%here] location
+  | S.P_wild                      -> TC.not_yet_implemented [%here] location
+  | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
+  | S.P_not _                     -> TC.not_yet_implemented [%here] location
+  | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
+  | S.P_typ (_, _)                -> TC.not_yet_implemented [%here] location
+  | S.P_var (_, _)                -> TC.not_yet_implemented [%here] location
+  | S.P_app (_, _)                -> TC.not_yet_implemented [%here] location
+  | S.P_vector _                  -> TC.not_yet_implemented [%here] location
+  | S.P_vector_concat _           -> TC.not_yet_implemented [%here] location
+  | S.P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] location
+  | S.P_list _                    -> TC.not_yet_implemented [%here] location
+  | S.P_cons (_, _)               -> TC.not_yet_implemented [%here] location
+  | S.P_string_append _           -> TC.not_yet_implemented [%here] location
+  | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _ -> not_yet_implemented [%here] location
+  | Pat_when _ -> TC.not_yet_implemented [%here] location
 
 
 (******************************************************************************)
@@ -250,19 +249,19 @@ let value_of_lit (S.L_aux (literal, location)) =
   | L_num n    -> TC.return @@ N.Val_int n
   | L_unit     -> TC.return @@ N.Val_unit
   | L_string s -> TC.return @@ N.Val_string s
-  | S.L_zero   -> not_yet_implemented [%here] location
-  | S.L_one    -> not_yet_implemented [%here] location
-  | S.L_hex _  -> not_yet_implemented [%here] location
-  | S.L_bin _  -> not_yet_implemented [%here] location
-  | S.L_undef  -> not_yet_implemented [%here] location
-  | S.L_real _ -> not_yet_implemented [%here] location
+  | S.L_zero   -> TC.not_yet_implemented [%here] location
+  | S.L_one    -> TC.not_yet_implemented [%here] location
+  | S.L_hex _  -> TC.not_yet_implemented [%here] location
+  | S.L_bin _  -> TC.not_yet_implemented [%here] location
+  | S.L_undef  -> TC.not_yet_implemented [%here] location
+  | S.L_real _ -> TC.not_yet_implemented [%here] location
 
 let rec expression_of_aval location (value : S.typ S.aval) =
   match value with
   | AV_tuple elts ->
      begin
        match elts with
-       | [] -> not_yet_implemented ~message:"Should not occur" [%here] location
+       | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
        | h::t -> begin
            let* e_h = expression_of_aval location h
            in
@@ -288,16 +287,16 @@ let rec expression_of_aval location (value : S.typ S.aval) =
       in
       TC.return @@ N.Exp_list lst'
     end
-  | AV_ref (_, _)     -> not_yet_implemented [%here] location
-  | AV_vector (_, _)  -> not_yet_implemented [%here] location
-  | AV_record (_, _)  -> not_yet_implemented [%here] location
-  | AV_cval (_, _)    -> not_yet_implemented [%here] location
+  | AV_ref (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_vector (_, _)  -> TC.not_yet_implemented [%here] location
+  | AV_record (_, _)  -> TC.not_yet_implemented [%here] location
+  | AV_cval (_, _)    -> TC.not_yet_implemented [%here] location
 
 
 let make_sequence statements location =
   let rec aux statements =
     match statements with
-    | []    -> not_yet_implemented ~message:"Should not happen" [%here]  location
+    | []    -> TC.not_yet_implemented ~message:"Should not happen" [%here]  location
     | [x]   -> TC.return x
     | x::xs -> begin
         let* xs' = aux xs
@@ -362,17 +361,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       make_sequence translated_statements location
     end
     
-  | S.AE_typ (_, _)              -> not_yet_implemented [%here] location
-  | S.AE_assign (_, _)           -> not_yet_implemented [%here] location
-  | S.AE_return (_, _)           -> not_yet_implemented [%here] location
-  | S.AE_exit (_, _)             -> not_yet_implemented [%here] location
-  | S.AE_throw (_, _)            -> not_yet_implemented [%here] location
-  | S.AE_field (_, _, _)         -> not_yet_implemented [%here] location
-  | S.AE_try (_, _, _)           -> not_yet_implemented [%here] location
-  | S.AE_struct_update (_, _, _) -> not_yet_implemented [%here] location
-  | S.AE_for (_, _, _, _, _, _)  -> not_yet_implemented [%here] location
-  | S.AE_loop (_, _, _)          -> not_yet_implemented [%here] location
-  | S.AE_short_circuit (_, _, _) -> not_yet_implemented [%here] location
+  | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
+  | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
+  | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
+  | S.AE_exit (_, _)             -> TC.not_yet_implemented [%here] location
+  | S.AE_throw (_, _)            -> TC.not_yet_implemented [%here] location
+  | S.AE_field (_, _, _)         -> TC.not_yet_implemented [%here] location
+  | S.AE_try (_, _, _)           -> TC.not_yet_implemented [%here] location
+  | S.AE_struct_update (_, _, _) -> TC.not_yet_implemented [%here] location
+  | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
+  | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
+  | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
 
 and statement_of_match (location : S.l                                              )
                        (matched  : S.typ S.aval                                     )
@@ -388,14 +387,14 @@ and statement_of_match (location : S.l                                          
         in
         TC.return @@ N.MatchCase (Pat_id id', clause')
       end
-    | S.AP_tuple _       -> not_yet_implemented [%here] location
-    | S.AP_global (_, _) -> not_yet_implemented [%here] location
-    | S.AP_app (_, _, _) -> not_yet_implemented [%here] location
-    | S.AP_cons (_, _)   -> not_yet_implemented [%here] location
-    | S.AP_as (_, _, _)  -> not_yet_implemented [%here] location
-    | S.AP_struct (_, _) -> not_yet_implemented [%here] location
-    | S.AP_nil _         -> not_yet_implemented [%here] location
-    | S.AP_wild _        -> not_yet_implemented [%here] location
+    | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
+    | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
+    | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
+    | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
+    | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AP_nil _         -> TC.not_yet_implemented [%here] location
+    | S.AP_wild _        -> TC.not_yet_implemented [%here] location
   in
 
   match cases with
@@ -473,14 +472,14 @@ and statement_of_match (location : S.l                                          
         rhs = rhs;
       }
     end
-  | _ -> not_yet_implemented [%here] location
+  | _ -> TC.not_yet_implemented [%here] location
 
 let body_of_pexp pexp =
   let S.Pat_aux (aux, (location, _annot)) = pexp
   in
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
-  | Pat_when _       -> not_yet_implemented [%here] location
+  | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 let translate_function_definition
       (definition_annotation : S.def_annot               )
@@ -506,7 +505,7 @@ let translate_function_definition
         N.funBody = funBody;
       }
     end
-  | _ -> not_yet_implemented [%here] definition_annotation.loc
+  | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
 
 let translate_kind (S.K_aux (kind, _location)) : Ast.kind TC.t =
   match kind with
@@ -524,7 +523,7 @@ let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
     and* kind_id' = translate_kind_id kind_id
     in
     TC.return @@ (kind_id', kind')
-  | S.QI_constraint _ -> not_yet_implemented [%here] location
+  | S.QI_constraint _ -> TC.not_yet_implemented [%here] location
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
@@ -616,8 +615,8 @@ let translate_type_definition
   | TD_abbrev (identifier, quantifier, arg)                      -> translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
   | TD_variant (identifier, type_quantifier, constructors, flag) -> translate_variant definition_annotation identifier type_quantifier constructors flag
   | TD_enum (identifier, cases, _)                               -> translate_enum definition_annotation type_annotation identifier cases
-  | TD_record (_, _, _, _)                                       -> not_yet_implemented [%here] definition_annotation.loc
-  | TD_bitfield (_, _, _)                                        -> not_yet_implemented [%here] definition_annotation.loc
+  | TD_record (_, _, _, _)                                       -> TC.not_yet_implemented [%here] definition_annotation.loc
+  | TD_bitfield (_, _, _)                                        -> TC.not_yet_implemented [%here] definition_annotation.loc
 
 let translate_top_level_type_constraint
       (_definition_annotation : S.def_annot)
@@ -638,39 +637,39 @@ let translate_register
   =
   let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
   in
-  begin
-    match expression with
-    | None                                          -> ()
-    | Some (E_aux (_expr, (location, _annotation))) -> not_yet_implemented [%here] location
-  end;
-  let* identifier' = translate_identifier identifier
-  and* nanotype    = nanotype_of_sail_type sail_type
-  in
-  TC.return @@ N.RegisterDefinition {
-    identifier = identifier';
-    typ        = nanotype   ;
-  }
+  match expression with
+  | None -> begin
+      let* identifier' = translate_identifier identifier
+      and* nanotype    = nanotype_of_sail_type sail_type
+      in
+      TC.return @@ N.RegisterDefinition {
+          identifier = identifier';
+          typ        = nanotype   ;
+        }
+    end
+  | Some (E_aux (_expr, (location, _annotation))) -> TC.not_yet_implemented [%here] location
+
 
 let translate_mapping_definition
       (_definition_annotation : S.def_annot)
       (S.MD_aux (_definition, (location, _mapping_annotation))) =
-  not_yet_implemented [%here] location
+  TC.not_yet_implemented [%here] location
 
 let translate_impl_definition
       (_definition_annotation : S.def_annot)
       (S.FCL_aux (_definition, (annot, _))) =
-  not_yet_implemented [%here] annot.loc
+  TC.not_yet_implemented [%here] annot.loc
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
       (S.LB_aux (_definition, (location, _value_def_annotation))) =
-  not_yet_implemented [%here] location
+  TC.not_yet_implemented [%here] location
 
 let translate_top_level_outcome_definition
       (_definition_annotation : S.def_annot)
       (S.OV_aux (_outcome, location))
       (_definitions : ('a S.def) list) =
-  not_yet_implemented [%here] location
+  TC.not_yet_implemented [%here] location
 
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) TC.t =
   if
@@ -678,8 +677,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
   then
     TC.return (sail_definition, N.IgnoredDefinition)
   else begin
-    try
-      let* translation =
+    let translation =
+      let* result =
         match def with
         | DEF_type type_definition                 -> translate_type_definition annotation type_definition
         | DEF_mapdef definition                    -> translate_mapping_definition annotation definition
@@ -687,34 +686,39 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_let let_definition                   -> translate_value_definition annotation let_definition
         | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
         | DEF_outcome (outcome_spec, definitions)  -> translate_top_level_outcome_definition annotation outcome_spec definitions
-        | DEF_instantiation (_, _)                 -> not_yet_implemented [%here] annotation.loc
-        | DEF_fixity (_, _, _)                     -> not_yet_implemented [%here] annotation.loc
-        | DEF_overload (_, _)                      -> not_yet_implemented [%here] annotation.loc
-        | DEF_default _                            -> not_yet_implemented [%here] annotation.loc
-        | DEF_scattered _                          -> not_yet_implemented [%here] annotation.loc
-        | DEF_measure (_, _, _)                    -> not_yet_implemented [%here] annotation.loc
-        | DEF_loop_measures (_, _)                 -> not_yet_implemented [%here] annotation.loc
+        | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_fixity (_, _, _)                     -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_overload (_, _)                      -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_default _                            -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_scattered _                          -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_measure (_, _, _)                    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_loop_measures (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_register specification               -> translate_register annotation specification
-        | DEF_internal_mutrec _                    -> not_yet_implemented [%here] annotation.loc
-        | DEF_pragma (pragma, _argument, location) -> not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
+        | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
         | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
       in
-      TC.return (sail_definition, translation)
-    with NotYetImplemented (source_position, sail_location, message) ->
-      let untranslated_definition = N.UntranslatedDefinition {
-          filename = source_position.pos_fname;
-          line_number = source_position.pos_lnum;
-          sail_location = sail_location;
-          message = message
-        }
-      in
-      TC.return (sail_definition, untranslated_definition)
+      TC.return (sail_definition, result)
+    in
+    TC.recover translation begin fun error ->
+      match error with
+      | TC.NotYetImplemented (ocaml_location, sail_location, message) -> begin
+          let untranslated_definition = N.UntranslatedDefinition {
+              filename = ocaml_location.pos_fname;
+              line_number = ocaml_location.pos_lnum;
+              sail_location = sail_location;
+              message = message
+            }
+          in
+          TC.return (sail_definition, untranslated_definition)
+        end
+    end
   end
 
 let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
-  let (definitions, _context) = TC.run @@ TC.map translate_definition ast.defs
+  let (result, _context) = TC.run @@ TC.map translate_definition ast.defs
   in
-  {
-    program_name = name;
-    definitions  = definitions
-  }
+  match result with
+  | TC.Success definitions -> { program_name = name; definitions  = definitions }
+  | TC.Failure _           -> failwith "Bug: failures should have been recovered from earlier"
+
