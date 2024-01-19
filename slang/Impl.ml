@@ -1,5 +1,4 @@
 module rec Value : sig
-
   type t =
     | Cons           of t * t
     | Integer        of int
@@ -17,9 +16,9 @@ module rec Value : sig
   val cons_to_list : t -> t list
   val list_to_cons : t list -> t
   val to_string    : t -> string
-
-end = struct
-
+end
+=
+struct
   type t =
     | Cons           of t * t
     | Integer        of int
@@ -129,7 +128,6 @@ end = struct
 end
 
 and EvaluationContext : sig
-
   type state = Value.t Environment.t
 
   type 'a t
@@ -144,9 +142,9 @@ and EvaluationContext : sig
 
   val map                     : ('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : ('a -> unit t) -> 'a list -> unit t
-
-end = struct
-
+end
+=
+struct
   type state = Value.t Environment.t
 
   module Monad = Monads.State.Make(struct type t = state end)
@@ -183,5 +181,4 @@ end = struct
     return @@ Environment.lookup env identifier
 
   let run = Monad.run
-
 end
