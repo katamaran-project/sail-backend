@@ -19,10 +19,13 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
-  let (nano_nexp, _) = TC.run @@ translate_numeric_expression nexp in
-  let (document, _) = collect_annotations (Nanosail.NanosailToMicrosail.Sail.pp_numeric_expression nano_nexp)
-  in
-  string_of_document document
+  match TC.run @@ translate_numeric_expression nexp with
+  | (TC.Success nano_nexp, _) -> begin
+      let (document, _) = collect_annotations (Nanosail.NanosailToMicrosail.Sail.pp_numeric_expression nano_nexp)
+      in
+      string_of_document document
+    end
+  | _ -> assert_failure "translation failed"
 
 
 let test_suite_numeric_expression =
