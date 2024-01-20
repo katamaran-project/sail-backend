@@ -132,6 +132,18 @@ let define_function_tests =
         in
         return (
           Printf.sprintf {|
+            (define (id x) x)
+            (id %d)
+          |} k,
+          Integer k
+        );
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        return (
+          Printf.sprintf {|
             (define (sqr x) (* x x))
             (sqr %d)
           |} k,
@@ -201,17 +213,21 @@ let define_variable_tests =
 
 
 let predicate_tests =
-  let open Slang.Value
+  let open Slang.Value in
+  let open ListMonadNotations
   in
   let test_cases =
-    [
-      (
-        {|
-          (cons? (cons 1 2))
-        |},
-        Bool true
-      );
-    ]
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* car = [ "1"; {|"abc"|}; "#t"; "#f"; "()" ]
+        and* cdr = [ "1"; {|"abc"|}; "#t"; "#f"; "()" ]
+        in
+        return (
+          Printf.sprintf "(cons? (cons %s %s))" car cdr,
+          Bool true
+        );
+      end
+    end;
   in
   "predicate" >::: List.map ~f:(uncurry test_run) test_cases
 
