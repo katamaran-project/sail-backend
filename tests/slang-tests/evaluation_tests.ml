@@ -175,7 +175,7 @@ let define_function_tests =
           Integer (k * 2)
         );
       end;
-      
+
       addall begin
         let* k = List.range (-10) 10
         and* i = List.range (-10) 10
@@ -264,6 +264,24 @@ let predicate_tests =
         in
         return (
           Printf.sprintf "(integer? %s)" value,
+          Bool false
+        )
+      end;
+
+      addall begin
+        let* value = ["abc"; "x"; "1+"; "="]
+        in
+        return (
+          Printf.sprintf "(symbol? '%s)" value,
+          Bool true
+        )
+      end;
+
+      addall begin
+        let* value = [ "(cons 1 2)"; {|"abc"|}; "#t"; "#f"; "()"; "4" ]
+        in
+        return (
+          Printf.sprintf "(symbol? %s)" value,
           Bool false
         )
       end;
