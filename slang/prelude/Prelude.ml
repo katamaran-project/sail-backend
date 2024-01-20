@@ -7,4 +7,5 @@ let prelude =
       extend Comparison.library;
       extend Lists.library;
       extend Predicates.library;
+      extend Quote.library;
     )
