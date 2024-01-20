@@ -1,3 +1,6 @@
+open Base
+
+
 module rec Value : sig
   type t =
     | Cons           of t * t
@@ -44,15 +47,15 @@ struct
 
   let rec to_string value =
     match value with
-    | Cons (_, _)        -> "(" ^ (String.concat " " @@ List.map to_string (cons_to_list value)) ^ ")"
-    | Integer n          -> Int.to_string n
-    | Symbol s           -> s
-    | String s           -> Printf.sprintf "\"%s\"" s
-    | Bool true          -> "#t"
-    | Bool false         -> "#f"
-    | Nil                -> "()"
-    | Closure (_, _, _)  -> "<closure>"
-    | NativeFunction _   -> "<native function>"
+    | Cons (_, _)          -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string (cons_to_list value)) ^ ")"
+    | Integer n            -> Int.to_string n
+    | Symbol s             -> s
+    | String s             -> Printf.sprintf "\"%s\"" s
+    | Bool true            -> "#t"
+    | Bool false           -> "#f"
+    | Nil                  -> "()"
+    | Closure (_, _, body) -> Printf.sprintf "(<closure> %s)" (String.concat ~sep:" " @@ List.map ~f:to_string body)
+    | NativeFunction _     -> "<native function>"
 
   (* Deal with all cases explicitly so as to get a compiler error when we add more value types *)
   let rec equal (v1 : t) (v2 : t) : bool =
