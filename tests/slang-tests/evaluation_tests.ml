@@ -1,13 +1,17 @@
 open Base
 open Auxlib
 open OUnit2
+open Shared
 
 
 let test_run input expected =
   input >:: fun _ -> begin
       let (actual, _)  = Slang.run_string Slang.prelude input
       in
-      assert_equal expected actual
+      let msg =
+        Printf.sprintf "%s != %s" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
+      in
+      assert_equal ~msg expected actual
     end
 
 
@@ -118,26 +122,48 @@ let lambda_tests =
 
 
 let define_function_tests =
-  let open Slang.Value
+  let open Slang.Value in
+  let open ListMonadNotations
   in
   let test_cases =
-    [
-      (
-        {|
-          (define (sqr x) (* x x))
-          (sqr 3)
-        |},
-        Integer 9
-      );
-      (
-        {|
-          (define (sqr x) (* x x))
-          (define (1+ x) (+ 1 x))
-          (1+ (sqr 3))
-        |},
-        Integer 10
-      );
-    ]
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        return (
+          Printf.sprintf {|
+            (define (sqr x) (* x x))
+            (sqr %d)
+          |} k,
+          Integer (k * k)
+        );
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        return (
+          Printf.sprintf {|
+            (define (double x) (* x 2))
+            (double %d)
+          |} k,
+          Integer (k * 2)
+        );
+      end;
+      
+      addall begin
+        let* k = List.range (-10) 10
+        and* i = List.range (-10) 10
+        in
+        return (
+          Printf.sprintf {|
+            (define (add x y) (+ x y))
+            (add %d %d)
+          |} k i,
+          Integer (k + i)
+        );
+      end;
+    end
   in
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
@@ -174,6 +200,22 @@ let define_variable_tests =
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let predicate_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+          (cons? (cons 1 2))
+        |},
+        Bool true
+      );
+    ]
+  in
+  "predicate" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
@@ -184,4 +226,5 @@ let tests =
     expression_equality_tests;
     inequality_tests;
     list_tests;
+    predicate_tests;
   ]
