@@ -8,4 +8,5 @@ let prelude =
       extend Lists.library;
       extend Predicates.library;
       extend Quote.library;
+      extend ControlFlow.library;
     )
