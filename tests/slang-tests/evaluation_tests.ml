@@ -232,15 +232,42 @@ let predicate_tests =
   let test_cases =
     build_list begin fun { addall; _ } ->
       addall begin
-        let* car = [ "1"; {|"abc"|}; "#t"; "#f"; "()" ]
-        and* cdr = [ "1"; {|"abc"|}; "#t"; "#f"; "()" ]
+        let* car = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
+        and* cdr = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
         in
         return (
           Printf.sprintf "(cons? (cons %s %s))" car cdr,
           Bool true
-        );
-      end
-    end;
+        )
+      end;
+
+      addall begin
+        let* value = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz" ]
+        in
+        return (
+          Printf.sprintf "(cons? %s)" value,
+          Bool false
+        )
+      end;
+
+      addall begin
+        let* value = [-431; 0; 312]
+        in
+        return (
+          Printf.sprintf "(integer? %d)" value,
+          Bool true
+        )
+      end;
+
+      addall begin
+        let* value = [ "(cons 1 2)"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz" ]
+        in
+        return (
+          Printf.sprintf "(integer? %s)" value,
+          Bool false
+        )
+      end;
+    end
   in
   "predicate" >::: List.map ~f:(uncurry test_run) test_cases
 
