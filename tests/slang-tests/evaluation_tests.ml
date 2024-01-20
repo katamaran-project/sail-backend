@@ -24,11 +24,11 @@ let arithmetic_tests =
       ("(+)", Integer 0 );
       ("(+ 1)", Integer 1 );
       ("(+ 1 2)", Integer 3 );
-      ("(+ 7 8 10)", Integer 25 );
+      ("(+ 7 8 10)", Integer (7 + 8 + 10) );
       ("(-)", Integer 0 );
       ("(- 5)", Integer (-5) );
-      ("(- 5 1)", Integer 4 );
-      ("(- 5 1 2)", Integer 2 );
+      ("(- 5 1)", Integer (5 - 1) );
+      ("(- 5 1 2)", Integer (5 - 1 - 2) );
       ("(*)", Integer 1 );
       ("(* 2)", Integer 2 );
       ("(* 2 3)", Integer 6 );
