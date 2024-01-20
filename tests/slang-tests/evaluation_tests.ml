@@ -66,6 +66,10 @@ let list_tests =
       ("(cdr (cons 1 2))", Integer 2 );
       ("(car (cons (+ 1 5) (cons 2 3)))", Integer 6 );
       ("(cdr (cons (+ 1 5) (cons 2 3)))", Cons (Integer 2, Integer 3) );
+      ("(any? (lambda (x) (> x 10)) '(1 2 3))", Bool false);
+      ("(any? (lambda (x) (> x 10)) '(1 15 7))", Bool true);
+      ("(any? (lambda (x) (= x 8)) '(1 15 7))", Bool false);
+      ("(any? (lambda (x) (= x 15)) '(1 15 7))", Bool true);
     ]
   in
   "lists" >::: List.map ~f:(uncurry test_run) test_cases
