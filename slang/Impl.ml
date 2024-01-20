@@ -198,13 +198,15 @@ and EvaluationContext : sig
 
   val return                  : 'a -> 'a t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
+  val lift                    : ('a -> 'b) -> 'a t -> 'b t
+  val run                     : 'a t -> state -> 'a * state
+
   val current_environment     : Value.t Environment.t t
   val set_current_environment : Value.t Environment.t -> unit t
   val current_state           : state t
   val set_current_state       : state -> unit t
   val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
-  val run                     : 'a t -> state -> 'a * state
 
   val map                     : ('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : ('a -> unit t) -> 'a list -> unit t
@@ -222,6 +224,7 @@ struct
 
   let return                  = Monad.return
   let bind                    = Monad.bind
+
   let current_environment     = Monad.get
   let set_current_environment = Monad.put
   let current_state           = Monad.get
