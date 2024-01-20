@@ -44,6 +44,18 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let quote_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ("'5", Integer 5 );
+      ("'abc", Symbol "abc" );
+    ]
+  in
+  "quoting" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let list_tests =
   let open Slang.Value
   in
@@ -235,6 +247,7 @@ let predicate_tests =
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
+    quote_tests;
     lambda_tests;
     define_function_tests;
     define_variable_tests;
