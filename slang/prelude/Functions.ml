@@ -25,7 +25,7 @@ let define (args : Value.t list) : Value.t EV.t =
   let define_function (args : Value.t list) =
     match args with
     | form :: body -> begin
-        let=?  function_name, parameters = M.cons M.symbol (M.list M.symbol) form
+        let=? function_name, parameters = M.cons M.symbol (M.list M.symbol) form
         in
         let* env     = EV.current_environment                in
         let  closure = Value.Closure (env, parameters, body) in
