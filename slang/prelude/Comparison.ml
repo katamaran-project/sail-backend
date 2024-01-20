@@ -45,5 +45,5 @@ let less_than args =
 let library env =
   EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
       native_function "=" equality_check;
-      native_function "<" equality_check;
+      native_function "<" less_than;
     )
