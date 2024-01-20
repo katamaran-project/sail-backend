@@ -13,7 +13,7 @@ let tests =
           in
           let actual = M.integer value
           in
-          assert_equal 5 actual
+          assert_equal (Some 5) actual
         end
     );
     "a" >:: (
@@ -22,7 +22,7 @@ let tests =
           in
           let actual = M.symbol value
           in
-          assert_equal "a" actual
+          assert_equal (Some "a") actual
         end
     );
     "a" >:: (
@@ -31,7 +31,7 @@ let tests =
           in
           let actual = M.symbol value
           in
-          assert_equal "a" actual
+          assert_equal (Some "a") actual
         end
     );
     "(1)" >:: (
@@ -40,7 +40,7 @@ let tests =
           in
           let actual = M.cons M.integer M.nil value
           in
-          assert_equal (1, ()) actual
+          assert_equal (Some (1, ())) actual
         end
     );
     "()" >:: (
@@ -49,7 +49,7 @@ let tests =
           in
           let actual = M.list M.integer value
           in
-          assert_equal [] actual
+          assert_equal (Some []) actual
         end
     );
     "(1)" >:: (
@@ -58,7 +58,7 @@ let tests =
           in
           let actual = M.list M.integer value
           in
-          assert_equal [1] actual
+          assert_equal (Some [1]) actual
         end
     );
     "(1 2 3)" >:: (
@@ -67,7 +67,7 @@ let tests =
           in
           let actual = M.list M.integer value
           in
-          assert_equal [1; 2; 3] actual
+          assert_equal (Some [1; 2; 3]) actual
         end
     );
     "(a b c)" >:: (
@@ -76,7 +76,7 @@ let tests =
           in
           let actual = M.list M.symbol value
           in
-          assert_equal ["a"; "bc"; "xyz"] actual
+          assert_equal (Some ["a"; "bc"; "xyz"]) actual
         end
     );
   ]
