@@ -285,6 +285,25 @@ let predicate_tests =
           Bool false
         )
       end;
+
+      addall begin
+        let* value = ["abc"; "x"; "1+"; "="]
+        in
+        return (
+          Printf.sprintf {|(string? "%s")|} value,
+          Bool true
+        )
+      end;
+
+      addall begin
+        let* value = [ "(cons 1 2)"; "'aaa"; "#t"; "#f"; "()"; "4" ]
+        in
+        return (
+          Printf.sprintf "(string? %s)" value,
+          Bool false
+        )
+      end;
+
     end
   in
   "predicate" >::: List.map ~f:(uncurry test_run) test_cases
