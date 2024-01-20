@@ -80,6 +80,12 @@ let list ?(min_length = 0) f value =
   else return elts
 
 
+let callable value =
+  match value with
+  | Value.Callable callable -> return callable
+  | _                       -> fail
+
+
 (* expects values to contain exactly 1 item that satisfy the given pattern *)
 let map1 (f : 'a converter) (values : Value.t list) =
   match values with

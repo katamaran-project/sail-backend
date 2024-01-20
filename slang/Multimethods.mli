@@ -6,9 +6,9 @@ val value          : Value.t converter
 val integer        : int converter
 val string         : string converter
 val symbol         : string converter
-
 val cons           : 'a converter -> 'b converter -> ('a * 'b) converter
 val nil            : unit converter
+val callable       : (Value.t list -> Value.t EvaluationContext.t) converter
 
 val list           : ?min_length : int -> 'a converter -> 'a list converter
 val tuple2         : 'a converter -> 'b converter -> ('a * 'b) converter
