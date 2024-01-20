@@ -5,63 +5,43 @@ open Monads.Notations.Star(EvaluationContext)
 module EV = EvaluationContext
 module M = Multimethods
 
+open Shared
 
-let lambda args =
+
+let lambda (args : Value.t list) : Value.t EV.t =
   match args with
   | []             -> raise @@ SlangError "ill-formed lambda"
   | [_]            -> raise @@ SlangError "ill-formed lambda"
   | params :: body -> begin
-      let* env    = EV.current_environment    in
-      let  params = M.list M.symbol params
-      and  body   = List.map ~f:M.value body
+      let*   env    = EV.current_environment   in
+      let=!  params = M.list M.symbol params   in
+      let=!! body   = List.map ~f:M.value body
       in
       EV.return @@ Value.Closure (env, params, body)
     end
 
 
-let define args =
-  let define_function form body =
-    match form with
-    | []                          -> raise M.DispatchFailure
-    | function_name :: parameters -> begin
-        let* env = EV.current_environment
-        in
-        let closure = Value.Closure (env, parameters, body)
-        in
-        let* () = EV.add_binding function_name closure
-        in
-        EV.return Value.Nil
-      end
+let define (args : Value.t list) : Value.t EV.t =
+  let define_function (args : Value.t list) =
+    let=? (function_name, parameters), body = M.map2 (M.cons M.symbol (M.list M.symbol)) (M.list M.value) args
+    in
+    let* env     = EV.current_environment                in
+    let  closure = Value.Closure (env, parameters, body) in
+    let* ()      = EV.add_binding function_name closure
+    in
+    EV.return @@ Some (Value.Nil)
 
-  and define_variable identifier body =
-    match body with
-    | [ expression ] -> begin
-        let* value = Evaluation.evaluate expression
-        in
-        let* () = EV.add_binding identifier value
-        in
-        EV.return Value.Nil
-      end
-    | _ -> raise M.DispatchFailure
+  and define_variable (args : Value.t list) =
+    let=? identifier, expression = M.map2 M.symbol M.value args
+    in
+    let* value = Evaluation.evaluate expression
+    in
+    let* () = EV.add_binding identifier value
+    in
+    EV.return @@ Some (Value.Nil)
 
   in
-  match args with
-  | []  -> raise M.DispatchFailure
-  | [_] -> raise M.DispatchFailure
-  | form :: body -> begin
-      let body = List.map ~f:M.value body
-      in
-      try
-        let form_symbols = M.list M.symbol form
-        in
-        define_function form_symbols body
-      with
-      | M.DispatchFailure -> begin
-          let identifier = M.symbol form
-          in
-          define_variable identifier body
-        end
-    end
+  M.mk_multimacro [ define_function; define_variable ] args
 
 
 let library env =
