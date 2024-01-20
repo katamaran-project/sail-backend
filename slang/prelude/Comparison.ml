@@ -24,22 +24,22 @@ let equality_check args =
   aux evaluated_args
 
 
-let less_than args =
-  let less_than_ints args =
-    let=?? ns = List.map ~f:M.integer args
-    in
-    let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry (<)) @@ Auxlib.consecutive_overlapping_pairs ns)
-    in
-    EC.return @@ Some result
+let comparison converter comparator args =
+  let=?? ns = List.map ~f:converter args
   in
-  let less_than_strings args =
-    let=?? ns = List.map ~f:M.string args
-    in
-    let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry (String.(<))) @@ Auxlib.consecutive_overlapping_pairs ns)
-    in
-    EC.return @@ Some result
+  let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
   in
-  M.mk_multimethod [ less_than_ints; less_than_strings ] args
+  EC.return @@ Some result
+
+
+let int_string_comparison int_comparator string_comparator args =
+  M.mk_multimethod [
+    comparison M.integer int_comparator;
+    comparison M.string string_comparator;
+  ] args
+
+
+let less_than = int_string_comparison (<) String.(<)
 
 
 let library env =
