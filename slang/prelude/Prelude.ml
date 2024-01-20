@@ -6,4 +6,5 @@ let prelude =
       extend Functions.library;
       extend Comparison.library;
       extend Lists.library;
+      extend Predicates.library;
     )
