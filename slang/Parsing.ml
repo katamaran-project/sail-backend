@@ -59,7 +59,7 @@ let parse_tokens tokens =
     match c with
     | None
     | Some RightParenthesis     -> return @@ []
-    | _                         -> let* x = parse_single ()
+    | _                         -> let* x  = parse_single ()
                                    and* xs = parse_multiple ()
                                    in
                                    return @@ x::xs
@@ -68,7 +68,7 @@ let parse_tokens tokens =
   in
   if Sequence.is_empty rest
   then result
-  else failwith "BUG"
+  else failwith "invalid input"
 
 
 let parse_string string =
