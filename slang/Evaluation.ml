@@ -29,7 +29,13 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
   let open EC
   in
   match ast with
-  | Value.Cons (id, args)   -> let* f = evaluate id in evaluate_call f @@ Value.cons_to_list args
+  | Value.Cons (id, args)   -> begin
+      let* f = evaluate id
+      in
+      match Value.cons_to_list args with
+      | Some vs -> evaluate_call f vs
+      | _       -> raise @@ EvaluationError "invalid call: expected well-formed list"
+    end
   | Value.Symbol identifier -> begin
       let* lookup_result = lookup identifier
       in
@@ -58,8 +64,7 @@ and evaluate_call func arguments =
 and evaluate_closure_call environment parameters arguments body =
   let open EC
   in
-  let* evaluated_arguments =
-    map evaluate arguments
+  let* evaluated_arguments = map evaluate arguments
   in
   with_environment environment begin
     let* () = bind_parameters parameters evaluated_arguments
