@@ -344,6 +344,76 @@ let predicate_tests =
   "predicate" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let conditional_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+           (if #t 5 1)
+        |},
+        Integer 5
+      );
+      (
+        {|
+           (if #f 5 1)
+        |},
+        Integer 1
+      );
+      (
+        {|
+           (if #t 5)
+        |},
+        Integer 5
+      );
+      (
+        {|
+           (if #f 5)
+        |},
+        Nil
+      );
+      (
+        {|
+           (if 2 5 1)
+        |},
+        Integer 5
+      );
+      (
+        {|
+           (if 0 5 1)
+        |},
+        Integer 5
+      );
+      (
+        {|
+           (if (= 1 1) 'yes 'no)
+        |},
+        Symbol "yes"
+      );
+      (
+        {|
+           (if (= 1 2) 'yes 'no)
+        |},
+        Symbol "no"
+      );
+      (
+        {|
+           (if (= "abc" "abc") (* 2 3) (+ 7 5))
+        |},
+        Integer 6
+      );
+      (
+        {|
+           (if (= "abc" "abcd") (* 2 3) (+ 7 5))
+        |},
+        Integer 12
+      );
+    ]
+  in
+  "conditionals" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
@@ -356,4 +426,5 @@ let tests =
     inequality_tests;
     list_tests;
     predicate_tests;
+    conditional_tests;
   ]
