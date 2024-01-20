@@ -16,7 +16,7 @@ module rec Value : sig
 
   val equal        : t -> t -> bool
 
-  val cons_to_list : t -> t list
+  val cons_to_list : t -> t list option
   val list_to_cons : t list -> t
   val to_string    : t -> string
 end
@@ -34,11 +34,14 @@ struct
 
   and native_function = t list -> t EvaluationContext.t
 
-  let rec cons_to_list value =
-    match value with
-    | Nil               -> []
-    | Cons (head, tail) -> head :: cons_to_list tail
-    | _                 -> failwith "invalid list"
+  let cons_to_list value =
+    let rec aux acc value =
+      match value with
+      | Nil               -> Some (List.rev acc)
+      | Cons (head, tail) -> aux (head :: acc) tail
+      | _                 -> None
+    in
+    aux [] value
 
   let rec list_to_cons values =
     match values with
@@ -47,7 +50,6 @@ struct
 
   let rec to_string value =
     match value with
-    | Cons (_, _)          -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string (cons_to_list value)) ^ ")"
     | Integer n            -> Int.to_string n
     | Symbol s             -> s
     | String s             -> Printf.sprintf "\"%s\"" s
@@ -56,6 +58,11 @@ struct
     | Nil                  -> "()"
     | Closure (_, _, body) -> Printf.sprintf "(<closure> %s)" (String.concat ~sep:" " @@ List.map ~f:to_string body)
     | NativeFunction _     -> "<native function>"
+    | Cons (car, cdr)      -> begin
+        match cons_to_list value with
+        | Some vs -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string vs) ^ ")"
+        | None    -> Printf.sprintf "(cons %s %s)" (to_string car) (to_string cdr)
+      end
 
   (* Deal with all cases explicitly so as to get a compiler error when we add more value types *)
   let rec equal (v1 : t) (v2 : t) : bool =
