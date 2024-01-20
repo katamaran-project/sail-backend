@@ -16,5 +16,6 @@ val tuple3         : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 
 
 val map1           : 'a converter -> 'a multiconverter
 val map2           : 'a converter -> 'b converter -> ('a * 'b) multiconverter
+val map3           : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 'c) multiconverter
 val mk_multimacro  : method_definition list -> Value.native_function    
 val mk_multimethod : method_definition list -> Value.native_function
