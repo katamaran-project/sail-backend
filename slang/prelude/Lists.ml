@@ -13,7 +13,7 @@ let cons (args : Value.t list) =
   let impl args =
     let=? car, cdr = M.(map2 value value) args
     in
-    EC.return @@ Some (Value.Cons (car, cdr))
+    EC.return @@ Option.some @@ Value.Cons (car, cdr)
   in
   M.mk_multimethod [ impl ] args
 
