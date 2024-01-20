@@ -30,4 +30,28 @@ module Make (M : Sig.Monad) = struct
     match xs with
     | []    -> M.return acc
     | x::xs -> M.bind (f acc x) (fun acc' -> fold_left f acc' xs)
+
+  let rec exists predicate xs =
+    match xs with
+    | x::xs -> begin
+        M.bind
+          (predicate x)
+          (fun b ->
+             if b
+             then M.return true
+             else exists predicate xs)
+      end
+    | [] -> M.return false
+
+  let rec forall predicate xs =
+    match xs with
+    | x::xs -> begin
+        M.bind
+          (predicate x)
+          (fun b ->
+             if b
+             then forall predicate xs
+             else M.return false)
+      end
+    | [] -> M.return true
 end
