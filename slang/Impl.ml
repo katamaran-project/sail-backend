@@ -20,6 +20,15 @@ module rec Value : sig
   val to_string    : t -> string
   val truthy       : t -> bool
 
+  module Mk : sig
+    val cons      : t -> t   -> t
+    val integer   : int      -> t
+    val symbol    : string   -> t
+    val string    : string   -> t
+    val bool      : bool     -> t
+    val callable  : callable -> t
+  end
+
   module Predicate : sig
     val is_cons      : t -> bool
     val is_integer   : t -> bool
@@ -145,6 +154,15 @@ struct
   let truthy (value : t) =
     not @@ falsey value
 
+  module Mk = struct
+    let symbol   s   = Symbol s
+    let string   s   = String s
+    let cons     x y = Cons (x, y)
+    let integer  n   = Integer n
+    let bool     b   = Bool b
+    let callable f   = Callable f
+  end
+
   module Predicate = struct
     let is_cons value =
       match value with
@@ -202,6 +220,8 @@ and EvaluationContext : sig
 
   val map                     : ('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : ('a -> unit t) -> 'a list -> unit t
+  val exists                  : ('a -> bool t) -> 'a list -> bool t
+  val forall                  : ('a -> bool t) -> 'a list -> bool t
 end
 =
 struct
