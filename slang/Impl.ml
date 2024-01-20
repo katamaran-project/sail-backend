@@ -19,6 +19,7 @@ module rec Value : sig
   val cons_to_list : t -> t list option
   val list_to_cons : t list -> t
   val to_string    : t -> string
+  val truthy       : t -> bool
 
   module Predicate : sig
     val is_cons      : t -> bool
@@ -74,6 +75,7 @@ struct
         | Some vs -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string vs) ^ ")"
         | None    -> Printf.sprintf "(cons %s %s)" (to_string car) (to_string cdr)
       end
+
 
   (* Deal with all cases explicitly so as to get a compiler error when we add more value types *)
   let rec equal (v1 : t) (v2 : t) : bool =
@@ -147,6 +149,11 @@ struct
     | Closure (_, _, _)           -> false
     | NativeFunction _            -> false
 
+  let falsey (value : t) =
+    equal value @@ Bool false
+
+  let truthy (value : t) =
+    not @@ falsey value
 
   module Predicate = struct
     let is_cons value =
