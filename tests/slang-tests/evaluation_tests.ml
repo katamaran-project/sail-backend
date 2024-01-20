@@ -66,10 +66,23 @@ let list_tests =
       ("(cdr (cons 1 2))", Integer 2 );
       ("(car (cons (+ 1 5) (cons 2 3)))", Integer 6 );
       ("(cdr (cons (+ 1 5) (cons 2 3)))", Cons (Integer 2, Integer 3) );
+      ("(any? (lambda (x) #t) '())", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 2 3))", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 15 7))", Bool true);
+      ("(any? (lambda (x) (< x 10)) '(1 15 7))", Bool true);
+      ("(any? (lambda (x) (< x 10)) '(10 15 17))", Bool false);
       ("(any? (lambda (x) (= x 8)) '(1 15 7))", Bool false);
       ("(any? (lambda (x) (= x 15)) '(1 15 7))", Bool true);
+      ("(all? (lambda (x) #t) '())", Bool true);
+      ("(all? (lambda (x) #f) '())", Bool true);
+      ("(all? (lambda (x) (= x 10)) '(1 2 3))", Bool false);
+      ("(all? (lambda (x) (= x 10)) '(10))", Bool true);
+      ("(all? (lambda (x) (= x 10)) '(10 10))", Bool true);
+      ("(all? (lambda (x) (> x 10)) '(1 2 3))", Bool false);
+      ("(all? (lambda (x) (> x 3)) '(1 2 3))", Bool false);
+      ("(all? (lambda (x) (> x 2)) '(1 2 3))", Bool false);
+      ("(all? (lambda (x) (> x 1)) '(1 2 3))", Bool false);
+      ("(all? (lambda (x) (> x 0)) '(1 2 3))", Bool true);
     ]
   in
   "lists" >::: List.map ~f:(uncurry test_run) test_cases
@@ -98,6 +111,7 @@ let expression_equality_tests =
     [
       ("(+ 1 2)", "(/ 6 2)");
       ("(cons 1 2)", "(cons 1 (+ 1 1))");
+      ("()", "'()");
     ]
   in
   "equality of expressions" >::: List.map ~f:(fun (lhs, rhs) -> test_run (Printf.sprintf "(= %s %s)" lhs rhs) (Bool true)) test_cases
@@ -453,7 +467,7 @@ let comparison_tests =
           "4 1 4";
           "4 9 2";
           {| "b" "a" |};
-          {| "a" "c" "b" |};          
+          {| "a" "c" "b" |};
         ]
         in
         [
@@ -476,10 +490,10 @@ let comparison_tests =
           "1 1 2 2 3 3";
           {| "x" |};
           {| "a" "b" |};
-          {| "a" "b" "c" |};          
-          {| "a" "a" |};          
+          {| "a" "b" "c" |};
+          {| "a" "a" |};
           {| "a" "a" "a" |};
-          {| "aardvark" "zebra" |};          
+          {| "aardvark" "zebra" |};
         ]
         in
         [
@@ -493,7 +507,7 @@ let comparison_tests =
           "4 1";
           "1 3 2";
           "2 2 1";
-          {| "a" "b" "a" |};          
+          {| "a" "b" "a" |};
         ]
         in
         [
@@ -522,6 +536,7 @@ let comparison_tests =
         let* args = [
           "1 2";
           "4 2 3";
+          "1 1";
           "6 6";
           {| "b" "a" "a" |};
           {| "g" "t" |};
