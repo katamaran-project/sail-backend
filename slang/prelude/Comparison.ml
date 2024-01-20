@@ -3,9 +3,10 @@ open Evaluation
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
 
-
 module M = Multimethods
 module V = Value
+
+(* open Shared *)
 
 
 let equality_check args =
