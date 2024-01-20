@@ -19,6 +19,17 @@ module rec Value : sig
   val cons_to_list : t -> t list option
   val list_to_cons : t list -> t
   val to_string    : t -> string
+
+  module Predicate : sig
+    val is_cons      : t -> bool
+    val is_integer   : t -> bool
+    val is_symbol    : t -> bool
+    val is_string    : t -> bool
+    val is_bool      : t -> bool
+    val is_nil       : t -> bool
+    val is_closure   : t -> bool
+    val is_native    : t -> bool
+  end
 end
 =
 struct
@@ -135,6 +146,49 @@ struct
       end
     | Closure (_, _, _)           -> false
     | NativeFunction _            -> false
+
+
+  module Predicate = struct
+    let is_cons value =
+      match value with
+      | Cons _           -> true
+      | _                -> false
+
+    let is_integer value =
+      match value with
+      | Integer _        -> true
+      | _                -> false
+
+    let is_symbol value =
+      match value with
+      | Symbol _         -> true
+      | _                -> false
+
+    let is_string value =
+      match value with
+      | String _         -> true
+      | _                -> false
+
+    let is_bool value =
+      match value with
+      | Bool _           -> true
+      | _                -> false
+
+    let is_nil value =
+      match value with
+      | Nil              -> true
+      | _                -> false
+
+    let is_closure value =
+      match value with
+      | Closure _        -> true
+      | _                -> false
+
+    let is_native value =
+      match value with
+      | NativeFunction _ -> true
+      | _                -> false
+  end
 end
 
 and EvaluationContext : sig
