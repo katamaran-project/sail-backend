@@ -9,7 +9,7 @@ let test_run input expected =
       let (actual, _)  = Slang.run_string Slang.prelude input
       in
       let msg =
-        Printf.sprintf "%s != %s" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
+        Printf.sprintf "expected = %s != %s = actual" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
       in
       assert_equal ~msg expected actual
     end
