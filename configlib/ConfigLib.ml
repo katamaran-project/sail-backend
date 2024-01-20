@@ -39,12 +39,13 @@ let strings export_as =
   and set xs = cell := xs
   in
   let script_function values =
-    let open Slang.Multimethods
+    let open Slang in
+    let open Slang.Prelude.Shared
     in
-    let strings = List.map ~f:string values
+    let=!! strings = List.map ~f:Multimethods.string values
     in
     set strings;
-    return Slang.Value.Nil
+    return @@ Value.Nil
   in
   register_script_function export_as script_function;
   Setting (get, set)
