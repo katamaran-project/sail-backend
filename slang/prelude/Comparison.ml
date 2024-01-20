@@ -39,13 +39,16 @@ let int_string_comparison int_comparator string_comparator args =
   ] args
 
 
-let less_than             = int_string_comparison (<)  String.(<)
-let less_than_or_equal_to = int_string_comparison (<=) String.(<=)
-
+let less_than                = int_string_comparison (<)  String.(<)
+let less_than_or_equal_to    = int_string_comparison (<=) String.(<=)
+let greater_than             = int_string_comparison (>)  String.(>)
+let greater_than_or_equal_to = int_string_comparison (>=) String.(>=)
 
 let library env =
   EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "=" equality_check;
-      native_function "<" less_than;
+      native_function "="  equality_check;
+      native_function "<"  less_than;
       native_function "<=" less_than_or_equal_to;
+      native_function ">"  greater_than;
+      native_function ">=" greater_than_or_equal_to;
     )

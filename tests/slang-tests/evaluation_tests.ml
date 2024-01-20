@@ -431,7 +431,8 @@ let comparison_tests =
           "4 6 8";
           {| "x" |};
           {| "a" "b" |};
-          {| "a" "b" "c" |};          
+          {| "a" "b" "c" |};
+          {| "aardvark" "zebra" |};
         ]
         in
         [
@@ -453,6 +454,112 @@ let comparison_tests =
         in
         [
           Printf.sprintf "(< %s)" args,
+          Bool false
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "";
+          "1";
+          "1 2";
+          "1 3";
+          "2 3";
+          "1 2 3";
+          "4 6 8";
+          "4 4";
+          "4 4 4";
+          "1 1 2 2 3 3";
+          {| "x" |};
+          {| "a" "b" |};
+          {| "a" "b" "c" |};          
+          {| "a" "a" |};          
+          {| "a" "a" "a" |};
+          {| "aardvark" "zebra" |};          
+        ]
+        in
+        [
+          Printf.sprintf "(<= %s)" args,
+          Bool true
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "4 1";
+          "1 3 2";
+          "2 2 1";
+          {| "a" "b" "a" |};          
+        ]
+        in
+        [
+          Printf.sprintf "(<= %s)" args,
+          Bool false
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "";
+          "1";
+          "4 1";
+          "6 5 2";
+          {| "b" "a" |};
+          {| "f" "b" "a" |};
+        ]
+        in
+        [
+          Printf.sprintf "(> %s)" args,
+          Bool true
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "1 2";
+          "4 2 3";
+          "6 6";
+          {| "b" "a" "a" |};
+          {| "g" "t" |};
+        ]
+        in
+        [
+          Printf.sprintf "(> %s)" args,
+          Bool false
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "";
+          "4";
+          "5 2";
+          "5 5";
+          "9 9 8 8 3";
+          "9 5 5 2 1 1";
+          {| "x" |};
+          {| "b" "b" |};
+          {| "b" "a" |};
+          {| "f" "b" "a" |};
+          {| "f" "b" "b" "a" |};
+        ]
+        in
+        [
+          Printf.sprintf "(>= %s)" args,
+          Bool true
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "1 2";
+          "4 2 9";
+          "9 5 5 2 1 1 2";
+          {| "x" "z" |};
+        ]
+        in
+        [
+          Printf.sprintf "(>= %s)" args,
           Bool false
         ]
       end;
