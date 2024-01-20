@@ -11,10 +11,12 @@ type 'a getter  = unit -> 'a
 type 'a setter  = 'a -> unit
 type 'a setting = Setting of 'a getter * 'a setter
 
+
 let register_script_function
       (identifier : string)
       (native_function : Slang.Value.native_function) =
   exported_functions := (identifier, native_function) :: !exported_functions
+
 
 let bool ?(init=false) export_as =
   let cell = ref init
@@ -28,6 +30,7 @@ let bool ?(init=false) export_as =
   in
   register_script_function export_as script_function;
   Setting (get, set)
+
 
 let strings export_as =
   let cell = ref []
@@ -45,6 +48,7 @@ let strings export_as =
   in
   register_script_function export_as script_function;
   Setting (get, set)
+
 
 module Exported = struct
   let get (Setting (getter, _)) =
