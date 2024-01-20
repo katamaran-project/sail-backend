@@ -1,46 +1,39 @@
 open Base
-open Exception
 open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 
 
 module EV = EvaluationContext
 module M = Multimethods
-module V = Value
+
+open Shared
 
 
-let cons args =
-  match args with
-  | car :: cdr :: [] ->
-    let* car' = evaluate car
-    and* cdr' = evaluate cdr
+let cons (args : Value.t list) =
+  let impl args =
+    let=? car, cdr = M.(map2 value value) args
     in
-    EV.return @@ V.Cons (car', cdr')
-  | _ -> raise @@ SlangError "ill-formed cons"
+    EC.return @@ Some (Value.Cons (car, cdr))
+  in
+  M.mk_multimethod [ impl ] args
 
 
 let car args =
-  match args with
-  | [ argument ] -> begin
-      let* argument' = evaluate argument
-      in
-      let (car, _) = M.cons M.value M.value argument'
-      in
-      EV.return car
-    end
-  | _ -> raise @@ SlangError "car expects one argument"
+  let impl args =
+    let=? (car, _) = M.(map1 (cons value value)) args
+    in
+    EC.return @@ Some car
+  in
+  M.mk_multimethod [ impl ] args
 
 
 let cdr args =
-  match args with
-  | [ argument ] -> begin
-      let* argument' = evaluate argument
-      in
-      let (_, cdr) = M.cons M.value M.value argument'
-      in
-      EV.return cdr
-    end
-  | _ -> raise @@ SlangError "cdr expects one argument"
+  let impl args =
+    let=? (_, cdr) = M.(map1 (cons value value)) args
+    in
+    EC.return @@ Some cdr
+  in
+  M.mk_multimethod [ impl ] args
 
 
 let library env =
