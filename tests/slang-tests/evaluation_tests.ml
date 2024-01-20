@@ -143,50 +143,50 @@ let define_function_tests =
       addall begin
         let* k = List.range (-10) 10
         in
-        return (
+        [
           Printf.sprintf {|
             (define (id x) x)
             (id %d)
           |} k,
           Integer k
-        );
+        ];
       end;
 
       addall begin
         let* k = List.range (-10) 10
         in
-        return (
+        [
           Printf.sprintf {|
             (define (sqr x) (* x x))
             (sqr %d)
           |} k,
           Integer (k * k)
-        );
+        ];
       end;
 
       addall begin
         let* k = List.range (-10) 10
         in
-        return (
+        [
           Printf.sprintf {|
             (define (double x) (* x 2))
             (double %d)
           |} k,
           Integer (k * 2)
-        );
+        ];
       end;
 
       addall begin
         let* k = List.range (-10) 10
         and* i = List.range (-10) 10
         in
-        return (
+        [
           Printf.sprintf {|
             (define (add x y) (+ x y))
             (add %d %d)
           |} k i,
           Integer (k + i)
-        );
+        ];
       end;
     end
   in
@@ -235,19 +235,19 @@ let predicate_tests =
         let* car = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
         and* cdr = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
         in
-        return (
+        [
           Printf.sprintf "(cons? (cons %s %s))" car cdr,
           Bool true
-        )
+        ]
       end;
 
       addall begin
         let* value = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz" ]
         in
-        return (
+        [
           Printf.sprintf "(cons? %s)" value,
           Bool false
-        )
+        ]
       end;
 
       addall begin
@@ -262,82 +262,82 @@ let predicate_tests =
       addall begin
         let* value = [ "(cons 1 2)"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz" ]
         in
-        return (
+        [
           Printf.sprintf "(integer? %s)" value,
           Bool false
-        )
+        ]
       end;
 
       addall begin
         let* value = ["abc"; "x"; "1+"; "="]
         in
-        return (
+        [
           Printf.sprintf "(symbol? '%s)" value,
           Bool true
-        )
+        ]
       end;
 
       addall begin
         let* value = [ "(cons 1 2)"; {|"abc"|}; "#t"; "#f"; "()"; "4" ]
         in
-        return (
+        [
           Printf.sprintf "(symbol? %s)" value,
           Bool false
-        )
+        ]
       end;
 
       addall begin
         let* value = ["abc"; "x"; "1+"; "="]
         in
-        return (
+        [
           Printf.sprintf {|(string? "%s")|} value,
           Bool true
-        )
+        ]
       end;
 
       addall begin
         let* value = [ "(cons 1 2)"; "'aaa"; "#t"; "#f"; "()"; "4" ]
         in
-        return (
+        [
           Printf.sprintf "(string? %s)" value,
           Bool false
-        )
+        ]
       end;
 
       addall begin
         let* value = ["#t"; "#f"]
         in
-        return (
+        [
           Printf.sprintf {|(bool? %s)|} value,
           Bool true
-        )
+        ]
       end;
 
       addall begin
         let* value = [ "(cons 1 2)"; "'aaa"; {|"f"|}; "()"; "4" ]
         in
-        return (
+        [
           Printf.sprintf "(bool? %s)" value,
           Bool false
-        )
+        ]
       end;
 
       addall begin
         let* value = ["()"]
         in
-        return (
+        [
           Printf.sprintf {|(nil? %s)|} value,
           Bool true
-        )
+        ]
       end;
 
       addall begin
         let* value = [ "(cons 1 2)"; "'aaa"; {|"f"|}; "4"; "#t"; "#f" ]
         in
-        return (
+        [
           Printf.sprintf "(nil? %s)" value,
           Bool false
-        )
+        ]
       end;
     end
   in
@@ -414,6 +414,54 @@ let conditional_tests =
   "conditionals" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let comparison_tests =
+  let open Slang.Value in
+  let open ListMonadNotations
+  in
+  let test_cases =
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* args = [
+          "";
+          "1";
+          "1 2";
+          "1 3";
+          "2 3";
+          "1 2 3";
+          "4 6 8";
+          {| "x" |};
+          {| "a" "b" |};
+          {| "a" "b" "c" |};          
+        ]
+        in
+        [
+          Printf.sprintf "(< %s)" args,
+          Bool true
+        ]
+      end;
+
+      addall begin
+        let* args = [
+          "1 1";
+          "3 1";
+          "4 2 1";
+          "4 1 4";
+          "4 9 2";
+          {| "b" "a" |};
+          {| "a" "c" "b" |};          
+        ]
+        in
+        [
+          Printf.sprintf "(< %s)" args,
+          Bool false
+        ]
+      end;
+    end
+  in
+  "comparisons" >::: List.map ~f:(uncurry test_run) test_cases
+
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
@@ -424,6 +472,7 @@ let tests =
     atom_equality_tests;
     expression_equality_tests;
     inequality_tests;
+    comparison_tests;
     list_tests;
     predicate_tests;
     conditional_tests;
