@@ -20,13 +20,12 @@ let mk_predicate pred args =
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "cons?"    @@ mk_predicate P.is_cons;
-      native_function "integer?" @@ mk_predicate P.is_integer;
-      native_function "symbol?"  @@ mk_predicate P.is_symbol;
-      native_function "string?"  @@ mk_predicate P.is_string;
-      native_function "bool?"    @@ mk_predicate P.is_bool;
-      native_function "nil?"     @@ mk_predicate P.is_nil;
-      native_function "closure?" @@ mk_predicate P.is_closure;
-      native_function "native?"  @@ mk_predicate P.is_native;
+  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
+      callable "cons?"     @@ mk_predicate P.is_cons;
+      callable "integer?"  @@ mk_predicate P.is_integer;
+      callable "symbol?"   @@ mk_predicate P.is_symbol;
+      callable "string?"   @@ mk_predicate P.is_string;
+      callable "bool?"     @@ mk_predicate P.is_bool;
+      callable "nil?"      @@ mk_predicate P.is_nil;
+      callable "callable?" @@ mk_predicate P.is_callable;
     )

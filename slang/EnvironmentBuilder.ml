@@ -1,23 +1,17 @@
 type extend_environment_context = {
-  extend          : (Value.t Environment.t -> Value.t Environment.t) -> unit;
-  native_function : string -> Value.native_function -> unit;
+  extend    : (Value.t Environment.t -> Value.t Environment.t) -> unit;
+  callable  : string -> Value.callable -> unit;
 }
 
 let extend_environment env (f : extend_environment_context -> unit) =
-  let current = ref env
+  let current               = ref env
   in
-  let update env =
-    current := env
+  let update env            = current := env
   in
-  let native_function identifier f =
-    update @@ Environment.bind !current identifier @@ Value.NativeFunction f
-  and extend f =
-    update @@ f !current
+  let callable identifier f = update @@ Environment.bind !current identifier @@ Value.Callable f
+  and extend   f            =    update @@ f !current
   in
-  let context = {
-    extend          = extend;
-    native_function = native_function;
-  }
+  let context = { extend; callable; }
   in
   f context;
   !current

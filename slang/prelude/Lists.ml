@@ -37,8 +37,8 @@ let cdr args =
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "cons" cons;
-      native_function "car" car;
-      native_function "cdr" cdr;
+  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
+      callable "cons" cons;
+      callable "car" car;
+      callable "cdr" cdr;
     )

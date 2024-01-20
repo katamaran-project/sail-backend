@@ -84,9 +84,9 @@ let division args =
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "+" addition;
-      native_function "-" subtraction;
-      native_function "*" multiplication;
-      native_function "/" division;
+  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
+      callable "+" addition;
+      callable "-" subtraction;
+      callable "*" multiplication;
+      callable "/" division;
     )

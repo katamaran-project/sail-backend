@@ -17,7 +17,7 @@ let lambda (args : Value.t list) : Value.t EV.t =
       let=!  params = M.list M.symbol params   in
       let=!! body   = List.map ~f:M.value body
       in
-      EV.return @@ Value.Closure (env, params, body)
+      EV.return @@ Value.Callable (Evaluation.mk_closure env params body)
     end
 
 
@@ -27,9 +27,11 @@ let define (args : Value.t list) : Value.t EV.t =
     | form :: body -> begin
         let=? function_name, parameters = M.(cons symbol (list symbol)) form
         in
-        let* env     = EV.current_environment                in
-        let  closure = Value.Closure (env, parameters, body) in
-        let* ()      = EV.add_binding function_name closure
+        let* env      = EV.current_environment
+        in
+        let  callable = Value.Callable (Evaluation.mk_closure env parameters body)
+        in
+        let* ()       = EV.add_binding function_name callable
         in
         EV.return @@ Some (Value.Nil)
       end
@@ -49,7 +51,7 @@ let define (args : Value.t list) : Value.t EV.t =
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "lambda" lambda;
-      native_function "define" define;
+  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
+      callable "lambda" lambda;
+      callable "define" define;
     )

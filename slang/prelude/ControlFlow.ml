@@ -35,6 +35,6 @@ let conditional (args : Value.t list) : Value.t EV.t =
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { native_function; _ } ->
-      native_function "if" conditional
+  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
+      callable "if" conditional
     )

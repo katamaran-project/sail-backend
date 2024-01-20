@@ -9,10 +9,9 @@ module rec Value : sig
     | String         of string
     | Bool           of bool
     | Nil
-    | Closure        of t Environment.t * string list * t list
-    | NativeFunction of native_function
+    | Callable       of callable
 
-  and native_function = t list -> t EvaluationContext.t
+  and callable = t list -> t EvaluationContext.t
 
   val equal        : t -> t -> bool
 
@@ -28,8 +27,7 @@ module rec Value : sig
     val is_string    : t -> bool
     val is_bool      : t -> bool
     val is_nil       : t -> bool
-    val is_closure   : t -> bool
-    val is_native    : t -> bool
+    val is_callable  : t -> bool
   end
 end
 =
@@ -41,10 +39,9 @@ struct
     | String         of string
     | Bool           of bool
     | Nil
-    | Closure        of t Environment.t * string list * t list
-    | NativeFunction of native_function
+    | Callable       of callable
 
-  and native_function = t list -> t EvaluationContext.t
+  and callable = t list -> t EvaluationContext.t
 
   let cons_to_list value =
     let rec aux acc value =
@@ -68,8 +65,7 @@ struct
     | Bool true            -> "#t"
     | Bool false           -> "#f"
     | Nil                  -> "()"
-    | Closure (_, _, body) -> Printf.sprintf "(<closure> %s)" (String.concat ~sep:" " @@ List.map ~f:to_string body)
-    | NativeFunction _     -> "<native function>"
+    | Callable _           -> "<callable>"
     | Cons (car, cdr)      -> begin
         match cons_to_list value with
         | Some vs -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string vs) ^ ")"
@@ -88,8 +84,7 @@ struct
         | String _                -> false
         | Bool _                  -> false
         | Nil                     -> false
-        | Closure (_, _, _)       -> false
-        | NativeFunction _        -> false
+        | Callable _              -> false
       end
     | Integer n1 -> begin
         match v2 with
@@ -99,20 +94,18 @@ struct
         | String _                -> false
         | Bool _                  -> false
         | Nil                     -> false
-        | Closure (_, _, _)       -> false
-        | NativeFunction _        -> false
+        | Callable _              -> false
       end
     | Symbol s1 -> begin
-      match v2 with
-       | Cons (_, _)              -> false
-       | Integer _                -> false
-       | Symbol s2                -> String.equal s1 s2
-       | String _                 -> false
-       | Bool _                   -> false
-       | Nil                      -> false
-       | Closure (_, _, _)        -> false
-       | NativeFunction _         -> false
-    end
+        match v2 with
+        | Cons (_, _)              -> false
+        | Integer _                -> false
+        | Symbol s2                -> String.equal s1 s2
+        | String _                 -> false
+        | Bool _                   -> false
+        | Nil                      -> false
+        | Callable _              -> false
+      end
     | String s1 -> begin
         match v2 with
         | Cons (_, _)             -> false
@@ -121,20 +114,18 @@ struct
         | String s2               -> String.equal s1 s2
         | Bool _                  -> false
         | Nil                     -> false
-        | Closure (_, _, _)       -> false
-        | NativeFunction _        -> false
+        | Callable _              -> false
       end
     | Bool b1 -> begin
-      match v2 with
-       | Cons (_, _)              -> false
-       | Integer _                -> false
-       | Symbol _                 -> false
-       | String _                 -> false
-       | Bool b2                  -> Bool.equal b1 b2
-       | Nil                      -> false
-       | Closure (_, _, _)        -> false
-       | NativeFunction _         -> false
-    end
+        match v2 with
+        | Cons (_, _)              -> false
+        | Integer _                -> false
+        | Symbol _                 -> false
+        | String _                 -> false
+        | Bool b2                  -> Bool.equal b1 b2
+        | Nil                      -> false
+        | Callable _              -> false
+      end
     | Nil -> begin
         match v2 with
         | Cons (_, _)             -> false
@@ -143,11 +134,10 @@ struct
         | String _                -> false
         | Bool _                  -> false
         | Nil                     -> true
-        | Closure (_, _, _)       -> false
-        | NativeFunction _        -> false
+        | Callable _              -> false
       end
-    | Closure (_, _, _)           -> false
-    | NativeFunction _            -> false
+    | Callable _ -> false
+
 
   let falsey (value : t) =
     equal value @@ Bool false
@@ -186,14 +176,9 @@ struct
       | Nil              -> true
       | _                -> false
 
-    let is_closure value =
+    let is_callable value =
       match value with
-      | Closure _        -> true
-      | _                -> false
-
-    let is_native value =
-      match value with
-      | NativeFunction _ -> true
+      | Callable _       -> true
       | _                -> false
   end
 end

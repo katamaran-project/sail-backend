@@ -43,36 +43,23 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
       | Some value          -> return value
       | None                -> raise @@ EvaluationError ("unbound identifier " ^ identifier)
     end
-  | Value.Integer _         -> return ast
-  | Value.String _          -> return ast
-  | Value.Bool _            -> return ast
-  | Value.Nil               -> return ast
-  | Value.NativeFunction _  -> return ast
-  | Value.Closure _         -> return ast
+  | Value.Integer _      -> return ast
+  | Value.String _       -> return ast
+  | Value.Bool _         -> return ast
+  | Value.Nil            -> return ast
+  | Value.Callable _     -> return ast
 
 and evaluate_call func arguments =
   match func with
-  | Value.Cons (_, _)                 -> raise @@ EvaluationError "cons are not callable"
-  | Value.Integer _                   -> raise @@ EvaluationError "integers are not callable"
-  | Value.Symbol _                    -> raise @@ EvaluationError "symbols are not callable"
-  | Value.String _                    -> raise @@ EvaluationError "strings are not callable"
-  | Value.Bool _                      -> raise @@ EvaluationError "bools are not callable"
-  | Value.Nil                         -> raise @@ EvaluationError "nil is not callable"
-  | Value.Closure (env, params, body) -> evaluate_closure_call env params arguments body
-  | Value.NativeFunction f            -> evaluate_native_call f arguments
+  | Value.Cons (_, _)    -> raise @@ EvaluationError "cons are not callable"
+  | Value.Integer _      -> raise @@ EvaluationError "integers are not callable"
+  | Value.Symbol _       -> raise @@ EvaluationError "symbols are not callable"
+  | Value.String _       -> raise @@ EvaluationError "strings are not callable"
+  | Value.Bool _         -> raise @@ EvaluationError "bools are not callable"
+  | Value.Nil            -> raise @@ EvaluationError "nil is not callable"
+  | Value.Callable f     -> evaluate_callable f arguments
 
-and evaluate_closure_call environment parameters arguments body =
-  let open EC
-  in
-  let* evaluated_arguments = map evaluate arguments
-  in
-  with_environment environment begin
-    let* () = bind_parameters parameters evaluated_arguments
-    in
-    evaluate_many body
-  end
-
-and evaluate_native_call native_function arguments =
+and evaluate_callable native_function arguments =
   native_function arguments
 
 and evaluate_many asts =
@@ -83,3 +70,16 @@ and evaluate_many asts =
   match List.last results with
   | None   -> return Value.Nil
   | Some x -> return x
+
+let mk_closure environment parameters body : Value.callable =
+  fun arguments -> begin
+      let open EC
+      in
+      let* evaluated_arguments = map evaluate arguments
+      in
+      with_environment environment begin
+        let* () = bind_parameters parameters evaluated_arguments
+        in
+        evaluate_many body
+      end
+    end

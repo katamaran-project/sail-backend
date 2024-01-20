@@ -13,9 +13,9 @@ type 'a setting = Setting of 'a getter * 'a setter
 
 
 let register_script_function
-      (identifier : string)
-      (native_function : Slang.Value.native_function) =
-  exported_functions := (identifier, native_function) :: !exported_functions
+      (identifier : string              )
+      (callable   : Slang.Value.callable) =
+  exported_functions := (identifier, callable) :: !exported_functions
 
 
 let bool ?(init=false) export_as =
@@ -64,7 +64,7 @@ module Exported = struct
     let contents = Stdio.In_channel.read_all path
     in
     let environment =
-      extend_environment prelude @@ fun { native_function; _ } -> List.iter ~f:(uncurry native_function) !exported_functions
+      extend_environment prelude @@ fun { callable; _ } -> List.iter ~f:(uncurry callable) !exported_functions
     in
     ignore @@ run_string environment contents
 end
