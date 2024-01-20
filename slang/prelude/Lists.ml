@@ -36,9 +36,21 @@ let cdr args =
   M.mk_multimethod [ impl ] args
 
 
+let any args =
+  let impl args =
+    let=? predicate, items = M.(map2 callable (list value)) args
+    in
+    let predicate arg = EC.lift Value.truthy @@ predicate [ arg ]
+    in
+    EC.lift (Fn.compose Option.some Value.Mk.bool) @@ EC.exists predicate items
+  in
+  M.mk_multimethod [ impl ] args
+
+
 let library env =
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
       callable "cons" cons;
       callable "car" car;
       callable "cdr" cdr;
+      callable "any?" any;
     )
