@@ -51,6 +51,7 @@ let quote_tests =
     [
       ("'5", Integer 5 );
       ("'abc", Symbol "abc" );
+      ("'(1 2 3)", Cons (Integer 1, Cons (Integer 2, Cons (Integer 3, Nil))) );
     ]
   in
   "quoting" >::: List.map ~f:(uncurry test_run) test_cases
