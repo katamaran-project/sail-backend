@@ -465,12 +465,7 @@ and statement_of_match (location : S.l                                          
       and* xr = translate_identifier id_r
       and* rhs = statement_of_aexp clause
       in
-      TC.return @@ N.Stm_match_prod {
-        s   = s;
-        xl  = xl;
-        xr  = xr;
-        rhs = rhs;
-      }
+      TC.return @@ N.Stm_match_prod { s; xl; xr; rhs }
     end
   | _ -> TC.not_yet_implemented [%here] location
 
@@ -497,12 +492,12 @@ let translate_function_definition
       and* funBody = body_of_pexp pexp
       in
       TC.return @@ N.FunctionDefinition {
-        N.funName = funName; (* TODO fix name *)
-        N.funType = {
-            arg_types = arg_types;
-            ret_type  = ret_type;
+        funName; (* TODO fix name *)
+        funType = {
+            arg_types;
+            ret_type;
           };
-        N.funBody = funBody;
+        funBody;
       }
     end
   | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
