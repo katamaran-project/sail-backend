@@ -1,7 +1,5 @@
 open Base
 
-(* TODO Use ppx_variants_conv *)
-
 module Big_int = Nat_big_num
 
 
