@@ -220,8 +220,6 @@ let rec pp_statement statement =
      in
      return @@ simple_app [ string "stm_seq"; s1'; s2' ]
 
-  | Stm_nys -> not_yet_implemented [%here]
-
 and pp_par_statement s =
   let* s' = pp_statement s
   in

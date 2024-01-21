@@ -118,7 +118,6 @@ type statement =
   | Stm_let   of string * statement * statement
   | Stm_if    of statement * statement * statement
   | Stm_seq   of statement * statement
-  | Stm_nys                                 (* For statement types not yet supported *) (* TODO get rid of this *)
 
 and match_pattern_list =
   {
