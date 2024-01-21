@@ -119,6 +119,10 @@ type statement =
   | Stm_if    of statement * statement * statement
   | Stm_seq   of statement * statement
 
+and match_pattern =
+  | MP_list    of match_pattern_list
+  | MP_product of match_pattern_product
+
 and match_pattern_list =
   {
     matched   : statement;
@@ -133,11 +137,6 @@ and match_pattern_product =
     id_snd    : string;
     body      : statement
   }
-
-and match_pattern =
-  | MP_list    of match_pattern_list
-  | MP_product of match_pattern_product
-
 
 type function_definition = {
   function_name : string;
