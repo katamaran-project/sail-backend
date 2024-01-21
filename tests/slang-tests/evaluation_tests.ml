@@ -36,6 +36,10 @@ let arithmetic_tests =
       ( "(/ 9 2)", Integer 4 );
       ( "(/ 100 2 2)", Integer 25 );
       ( "(+ 1 (* 2 3))", Integer 7 );
+      ( "(% 10 5)", Integer 0 );
+      ( "(% 5 10)", Integer 5 );
+      ( "(% 12 10)", Integer 2 );
+      ( "(% 128 10)", Integer 8 );
       ( {|(+ "ab" "cd")|}, String "abcd" );
       ( {|(* "ab" 3)|}, String "ababab" );
       ( {|(* 3 "ab")|}, String "ababab" );
