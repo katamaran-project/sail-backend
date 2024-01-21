@@ -110,26 +110,31 @@ type expression =
   | Exp_list of expression list
   | Exp_binop of binary_operator * expression * expression
 
+
 type statement =
-  | Stm_match_list of {       (* Simple pattern matching on list (2 cases) *)
-      s        : statement;   (* Statement to match *)
-      alt_nil  : statement;   (* Nil case statement *)
-      xh       : string;      (* Variable name for the head of the list *)
-      xt       : string;      (* Variable name for the tail of the list *)
-      alt_cons : statement;   (* Cons case statement *)
-    }
   | Stm_match_prod of {       (* Simple pattern matching on product (1 case) *)
       s   : statement;        (* Statement to match *)
       xl  : string;           (* Variable name for the left term of the product *)
       xr  : string;           (* Variable name for the right tern of the product *)
       rhs : statement;        (* Resulting statement *)
     }
+  | Stm_match of match_pattern
   | Stm_exp   of expression
   | Stm_call  of string * expression list    (* AST already in A-normal form *)
   | Stm_let   of string * statement * statement
   | Stm_if    of statement * statement * statement
   | Stm_seq   of statement * statement
-  | Stm_nys                                 (* For statement types not yet supported *)
+  | Stm_nys                                 (* For statement types not yet supported *) (* TODO get rid of this *)
+
+and match_pattern_list =
+  {
+    matched   : statement;
+    when_cons : string * string * statement;
+    when_nil  : statement;
+  }
+
+and match_pattern =
+  | MP_list of match_pattern_list
 
 
 type function_definition = {

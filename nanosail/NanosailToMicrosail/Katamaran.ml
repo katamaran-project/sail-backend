@@ -150,20 +150,26 @@ let rec pp_statement statement =
      in
      return @@ simple_app [string "stm_exp"; e']
 
-  | Stm_match_list m ->
-     let* m_s' = pp_par_statement m.s
-     and* m_alt_nil' = pp_par_statement m.alt_nil
-     and* m_alt_cons' = pp_par_statement m.alt_cons
-     in
-     return @@
-         simple_app [
-             string "stm_match_list";
-             m_s';
-             m_alt_nil';
-             dquotes (string m.xh);
-             dquotes (string m.xt);
-             m_alt_cons'
-           ]
+  | Stm_match match_pattern -> begin
+      match match_pattern with
+      | MP_list { matched; when_nil; when_cons } -> begin
+          let id_head, id_tail, when_cons_body = when_cons
+          in
+          let* matched'   = pp_par_statement matched
+          and* when_nil'  = pp_par_statement when_nil
+          and* when_cons' = pp_par_statement when_cons_body
+          in
+          return @@
+          simple_app [
+            string "stm_match_list";
+            matched';
+            when_nil';
+            dquotes (string id_head);
+            dquotes (string id_tail);
+            when_cons';
+          ]
+        end
+    end
 
   | Stm_match_prod m ->
      let* m_s'   = pp_par_statement m.s

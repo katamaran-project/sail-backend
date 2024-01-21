@@ -390,19 +390,23 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, cons_clause)
     ] -> begin
-      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
-      and* alt_nil = statement_of_aexp nil_clause
-      and* xh = translate_identifier id_h
-      and* xt = translate_identifier id_t
-      and* alt_cons = statement_of_aexp cons_clause
+      let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
+      and* when_nil = statement_of_aexp nil_clause
+      and* when_cons =
+        let* id_head = translate_identifier id_h
+        and* id_tail = translate_identifier id_t
+        and* clause = statement_of_aexp cons_clause
+        in
+        TC.return (id_head, id_tail, clause)
       in
-      TC.return @@ N.Stm_match_list {
-        s        = s;
-        alt_nil  = alt_nil;
-        xh       = xh;
-        xt       = xt;
-        alt_cons = alt_cons;
-      }
+      let match_pattern =
+        N.MP_list {
+          matched;
+          when_cons;
+          when_nil;
+        }
+      in
+      TC.return @@ N.Stm_match match_pattern
     end
   (*
       match matched {
@@ -416,19 +420,36 @@ and statement_of_match (location : S.l                                          
       ), _, _), _, cons_clause);
       (AP_aux (AP_nil _, _, _), _, nil_clause)
     ] -> begin
-      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
-      and* alt_nil = statement_of_aexp nil_clause
-      and* xh = translate_identifier id_h
-      and* xt = translate_identifier id_t
-      and* alt_cons = statement_of_aexp cons_clause
+      let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
+      and* when_nil = statement_of_aexp nil_clause
+      and* when_cons =
+        let* id_head = translate_identifier id_h
+        and* id_tail = translate_identifier id_t
+        and* clause = statement_of_aexp cons_clause
+        in
+        TC.return (id_head, id_tail, clause)
       in
-      TC.return @@ N.Stm_match_list {
-        s        = s;
-        alt_nil  = alt_nil;
-        xh       = xh;
-        xt       = xt;
-        alt_cons = alt_cons;
-      }
+      let match_pattern =
+        N.MP_list {
+          matched;
+          when_cons;
+          when_nil;
+        }
+      in
+      TC.return @@ N.Stm_match match_pattern
+      (* let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (\* TODO use lift *\) *)
+      (* and* alt_nil = statement_of_aexp nil_clause *)
+      (* and* xh = translate_identifier id_h *)
+      (* and* xt = translate_identifier id_t *)
+      (* and* alt_cons = statement_of_aexp cons_clause *)
+      (* in *)
+      (* TC.return @@ N.Stm_match_list { *)
+      (*   s        = s; *)
+      (*   alt_nil  = alt_nil; *)
+      (*   xh       = xh; *)
+      (*   xt       = xt; *)
+      (*   alt_cons = alt_cons; *)
+      (* } *)
     end
   (*
       match matched {
