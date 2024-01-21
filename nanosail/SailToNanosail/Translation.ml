@@ -192,9 +192,9 @@ let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
-let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
+let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   match aux with
-  | P_lit (L_aux (lit, _)) ->
+  | P_lit (L_aux (lit, _loc)) ->
      begin
        match lit with
        | S.L_unit     -> TC.return @@ [("()", N.Ty_unit)]
@@ -211,7 +211,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
      end
   | P_id id ->
       let* x  = translate_identifier id in
-      let* ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot a)
+      let* ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot annotation)
       in
       TC.return [(x, ty)]
   | P_tuple pats -> begin
@@ -223,7 +223,6 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.P_not _                     -> TC.not_yet_implemented [%here] location
   | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
-  | S.P_typ (_, _)                -> TC.not_yet_implemented [%here] location
   | S.P_var (_, _)                -> TC.not_yet_implemented [%here] location
   | S.P_app (_, _)                -> TC.not_yet_implemented [%here] location
   | S.P_vector _                  -> TC.not_yet_implemented [%here] location
@@ -233,6 +232,12 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   | S.P_cons (_, _)               -> TC.not_yet_implemented [%here] location
   | S.P_string_append _           -> TC.not_yet_implemented [%here] location
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
+  | S.P_typ (_typ, pattern)       -> begin
+      (*
+         parameter is annotated with type, e.g., function foo(x : int) = { }
+      *)
+      binds_of_pat pattern
+    end
 
 
 let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
