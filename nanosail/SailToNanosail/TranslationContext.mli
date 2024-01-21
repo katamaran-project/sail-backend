@@ -17,5 +17,7 @@ val recover             : 'a t -> (error -> 'a t) -> 'a t
 val run                 : 'a t -> 'a result * Context.t
 
 val register_type       : Ast.type_definition -> unit t
+
 val map                 : ('a -> 'b t) -> 'a list -> 'b list t
 val fold_left           : ('a -> 'b -> 'a t) -> 'a -> 'b list -> 'a t
+val lift                : ('a -> 'b) -> 'a t -> 'b t

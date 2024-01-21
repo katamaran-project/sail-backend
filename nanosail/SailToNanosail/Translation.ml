@@ -390,7 +390,7 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_t, _), _, _)
       ), _, _), _, cons_clause)
     ] -> begin
-      let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
+      let* matched = TC.lift (fun x -> N.Stm_exp x) @@ expression_of_aval location matched
       and* when_nil = statement_of_aexp nil_clause
       and* when_cons =
         let* id_head = translate_identifier id_h

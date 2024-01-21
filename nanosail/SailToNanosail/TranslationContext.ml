@@ -63,5 +63,5 @@ let register_type (type_definition : type_definition) =
 
 module MonadUtil = Monads.Util.Make(Monad)
 
-let map = MonadUtil.map
-let fold_left = MonadUtil.fold_left
+include MonadUtil
+
