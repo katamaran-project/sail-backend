@@ -169,20 +169,20 @@ let rec pp_statement statement =
             when_cons';
           ]
         end
-    end
 
-  | Stm_match_prod m ->
-     let* m_s'   = pp_par_statement m.s
-     and* m_rhs' = pp_par_statement m.rhs
-     in
-     return @@
-         simple_app [
-             string "stm_match_prod";
-             m_s';
-             dquotes (string m.xl);
-             dquotes (string m.xr);
-             m_rhs'
-           ]
+      | MP_product { matched; id_fst; id_snd; body } -> begin
+          let* matched' = pp_par_statement matched
+          and* body'    = pp_par_statement body
+          in
+          return @@ simple_app [
+            string "stm_match_prod";
+            matched';
+            dquotes (string id_fst);
+            dquotes (string id_snd);
+            body';
+          ]
+        end
+    end
 
   | Stm_call (f, arg_list) ->
      let* arg_list' = map pp_par_expression arg_list

@@ -448,12 +448,12 @@ and statement_of_match (location : S.l                                          
         AP_aux (AP_id (id_r, _), _, _);
       ], _, _),_ , clause)
     ] -> begin
-      let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr
-      and* xl = translate_identifier id_l
-      and* xr = translate_identifier id_r
-      and* rhs = statement_of_aexp clause
+      let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* use lift *)
+      and* id_fst = translate_identifier id_l
+      and* id_snd = translate_identifier id_r
+      and* body = statement_of_aexp clause
       in
-      TC.return @@ N.Stm_match_prod { s; xl; xr; rhs }
+      TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
     end
   | _ -> TC.not_yet_implemented [%here] location
 

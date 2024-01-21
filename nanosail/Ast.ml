@@ -112,12 +112,6 @@ type expression =
 
 
 type statement =
-  | Stm_match_prod of {       (* Simple pattern matching on product (1 case) *)
-      s   : statement;        (* Statement to match *)
-      xl  : string;           (* Variable name for the left term of the product *)
-      xr  : string;           (* Variable name for the right tern of the product *)
-      rhs : statement;        (* Resulting statement *)
-    }
   | Stm_match of match_pattern
   | Stm_exp   of expression
   | Stm_call  of string * expression list    (* AST already in A-normal form *)
@@ -133,8 +127,17 @@ and match_pattern_list =
     when_nil  : statement;
   }
 
+and match_pattern_product =
+  {
+    matched   : statement;
+    id_fst    : string;
+    id_snd    : string;
+    body      : statement
+  }
+
 and match_pattern =
-  | MP_list of match_pattern_list
+  | MP_list    of match_pattern_list
+  | MP_product of match_pattern_product
 
 
 type function_definition = {

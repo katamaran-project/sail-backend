@@ -9,12 +9,14 @@ let fun_ex_prod = Stm_exp (Exp_val (Val_prod (Val_prod (
   Val_prod (Val_int (Big_int.of_int 1), Val_string "one")
 )))
 
-let fun_switch = Stm_match_prod {
-  s = Stm_exp (Exp_var "p");
-  xl = "l";
-  xr = "r";
-  rhs = Stm_exp (Exp_binop (Pair, Exp_var "r", Exp_var "l"));
-}
+let fun_switch = Stm_match begin
+    MP_product {
+      matched = Stm_exp (Exp_var "p");
+      id_fst  = "l";
+      id_snd  = "r";
+      body    = Stm_exp (Exp_binop (Pair, Exp_var "r", Exp_var "l"));
+    }
+  end
 
 
 (******************************************************************************)
