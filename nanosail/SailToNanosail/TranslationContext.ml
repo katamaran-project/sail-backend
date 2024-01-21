@@ -11,6 +11,9 @@ module Context = struct
   }
 
   let empty : t = { types = Map.empty(module String) }
+
+  let lookup_type (type_map : type_map) identifier =
+    Map.find type_map identifier
   
   (*
      Accessors
@@ -59,3 +62,8 @@ let register_type (type_definition : type_definition) =
   match add_result with
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> Monad.put Context.types types'
+
+let lookup_type (identifier : string) : type_definition option t =
+  let* types = Monad.get Context.types
+  in
+  return @@ Context.lookup_type types identifier
