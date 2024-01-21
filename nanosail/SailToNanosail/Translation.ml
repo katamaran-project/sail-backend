@@ -209,11 +209,12 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
        | S.L_undef    -> TC.not_yet_implemented [%here] location
        | S.L_real _   -> TC.not_yet_implemented [%here] location
      end
-  | P_id id ->
+  | P_id id -> begin
       let* x  = translate_identifier id in
       let* ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot annotation)
       in
       TC.return [(x, ty)]
+    end
   | P_tuple pats -> begin
       let* pats' = TC.map binds_of_pat pats
       in
