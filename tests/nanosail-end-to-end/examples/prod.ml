@@ -25,7 +25,7 @@ let product_of ts =
 
 
 let funDefList = [
-  { funName = "ex_prod";
+  { function_name = "ex_prod";
     funType = {
         arg_types = [ ("tt", Ty_unit); ("tt", Ty_unit) ];
         ret_type = product_of [
@@ -38,7 +38,7 @@ let funDefList = [
     };
     funBody = fun_ex_prod;
   };
-  { funName = "switch";
+  { function_name = "switch";
     funType = {
       arg_types = [ ("p", product_of [Ty_int; Ty_bool]) ];
       ret_type =  product_of [Ty_bool; Ty_int];

@@ -228,7 +228,7 @@ and pp_par_statement s =
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier = Sail.pp_identifier @@ "fun_" ^ function_definition.funName in
+  let identifier = Sail.pp_identifier @@ "fun_" ^ function_definition.function_name in
   let parameters = [] in
   let coq_definition =
     let* result_type =
@@ -281,7 +281,7 @@ let pp_function_definitions
       | _   -> None
     in
     List.map ~f:(fun ((_sail_definition, function_definition) as fdef) ->
-        (fdef, find_type_constraint function_definition.funName))
+        (fdef, find_type_constraint function_definition.function_name))
       function_definitions
   in
   List.map ~f:(uncurry pp_function_definition) type_and_function_pairs
@@ -302,8 +302,8 @@ let pp_function_definition_kit
       and cases =
         let case_of_function_definition function_definition =
           (
-            string function_definition.funName,
-            string (Printf.sprintf "fun_%s" function_definition.funName)
+            string function_definition.function_name,
+            string (Printf.sprintf "fun_%s" function_definition.function_name)
           )
         in
         List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)

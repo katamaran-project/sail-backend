@@ -8,7 +8,7 @@ open Monads.Notations.Star(AnnotationMonad)
 
 let generate function_definitions =
   let pp_function_declaration function_definition =
-    let name = string function_definition.funName in
+    let name = string function_definition.function_name in
     let* function_type =
       let* parameter_types =
         let* ps = map Sail.pp_bind function_definition.funType.arg_types

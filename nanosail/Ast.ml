@@ -131,8 +131,9 @@ type statement =
   | Stm_seq   of statement * statement
   | Stm_nys                                 (* For statement types not yet supported *)
 
+
 type function_definition = {
-  funName : string;
+  function_name : string;
   funType : funType_t;
   funBody : statement;
 }

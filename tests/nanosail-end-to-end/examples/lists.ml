@@ -82,35 +82,35 @@ let product_of ts =
   Ty_tuple ts
 
 let funDefList = [
-  { funName = "is_empty";
+  { function_name = "is_empty";
     funType = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = Ty_bool
     };
     funBody = fun_is_empty
   };
-  { funName = "empty";
+  { function_name = "empty";
     funType = {
       arg_types = [("tt", Ty_unit)];
       ret_type = list_of Ty_int
     };
     funBody = fun_empty
   };
-  { funName = "onetwothree";
+  { function_name = "onetwothree";
     funType = {
       arg_types = [("tt", Ty_unit)];
       ret_type = list_of Ty_int
     };
     funBody = fun_onetwothree
   };
-  { funName = "last";
+  { function_name = "last";
     funType = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = product_of [Ty_int; Ty_bool]
     };
     funBody = fun_last
   };
-  { funName = "append";
+  { function_name = "append";
     funType = {
       arg_types = [("l1", list_of Ty_int);
                    ("l2", list_of Ty_int)];
@@ -118,14 +118,14 @@ let funDefList = [
     };
     funBody = fun_append
   };
-  { funName = "length";
+  { function_name = "length";
     funType = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = Ty_int
     };
     funBody = fun_length
   };
-  { funName = "reverse_aux";
+  { function_name = "reverse_aux";
     funType = {
       arg_types = [("l", list_of Ty_int);
                    ("acc", list_of Ty_int)];
@@ -133,14 +133,14 @@ let funDefList = [
     };
     funBody = fun_reverse_aux
   };
-  { funName = "reverse";
+  { function_name = "reverse";
     funType = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
     funBody = fun_reverse
   };
-  { funName = "reverse_bis";
+  { function_name = "reverse_bis";
     funType = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = list_of Ty_int
