@@ -83,10 +83,20 @@ let division args =
   EV.return @@ Value.Integer result
 
 
+let modulo args =
+  let impl args =
+    let=! (x, y) = M.(map2 integer integer) args
+    in
+    EV.return @@ Some (Value.Integer (x % y))
+  in
+  M.mk_multimethod [ impl ] args
+
+
 let library env =
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
       callable "+" addition;
       callable "-" subtraction;
       callable "*" multiplication;
       callable "/" division;
+      callable "%" modulo;
     )
