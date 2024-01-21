@@ -2,7 +2,6 @@ open Base
 open Ast
 open Exception
 
-(* TODO cleanup *)
 
 module Context = struct
   type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
@@ -11,6 +10,11 @@ module Context = struct
     types : type_map
   }
 
+  let empty : t = { types = Map.empty(module String) }
+  
+  (*
+     Accessors
+  *)
   let types =
     let get (context : t) : type_map = context.types
     and set (_context : t) (types : type_map) : t = { types }
@@ -23,15 +27,19 @@ type error =
 
 
 module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
+module MonadUtil = Monads.Util.Make(Monad)
 
+include MonadUtil
 open Monads.Notations.Star(Monad)
 
 
-type 'a t = 'a Monad.t
-
+type 'a t      = 'a Monad.t
 type 'a result = 'a Monad.result = Success of 'a | Failure of error (* prevents result from becoming abstract *)
 
-let return = Monad.return
+let return     = Monad.return
+let bind       = Monad.bind
+let recover    = Monad.recover
+let run f      = Monad.run f Context.empty
 
 let not_yet_implemented ?(message = "") ocaml_position sail_position =
   let message =
@@ -40,14 +48,6 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
     else Some message
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
-
-let bind   = Monad.bind
-
-let recover = Monad.recover
-
-let empty_context : Context.t = { types = Map.empty(module String) }
-
-let run f = Monad.run f empty_context
 
 let register_type (type_definition : type_definition) =
   let* types = Monad.get Context.types
@@ -59,9 +59,3 @@ let register_type (type_definition : type_definition) =
   match add_result with
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> Monad.put Context.types types'
-
-
-module MonadUtil = Monads.Util.Make(Monad)
-
-include MonadUtil
-
