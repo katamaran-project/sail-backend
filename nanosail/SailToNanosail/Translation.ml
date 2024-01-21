@@ -384,9 +384,9 @@ and statement_of_match (location : S.l                                          
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
   =
   match matched with
-  | S.AV_id (_id, aval) -> begin
+  | S.AV_id (_id, lvar) -> begin
       begin
-        match aval with
+        match lvar with
         | S.Ast_util.Local (_mut, _typ) -> begin
             match cases with
             (*
