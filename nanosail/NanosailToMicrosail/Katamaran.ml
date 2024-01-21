@@ -182,6 +182,19 @@ let rec pp_statement statement =
             body';
           ]
         end
+
+      | MP_bool { condition; when_true; when_false } -> begin
+          let* condition'  = pp_par_statement condition
+          and* when_true'  = pp_par_statement when_true
+          and* when_false' = pp_par_statement when_false
+          in
+          return @@ simple_app [
+            string "stm_if";
+            condition';
+            when_true';
+            when_false'
+          ]
+        end
     end
 
   | Stm_call (f, arg_list) ->
@@ -198,19 +211,6 @@ let rec pp_statement statement =
              string ("let: \"" ^ v ^ "\" :=");
              s1';
              string "in";
-             s2'
-           ]
-
-  | Stm_if (s, s1, s2) ->
-     let* s'  = pp_par_statement s
-     and* s1' = pp_par_statement s1
-     and* s2' = pp_par_statement s2
-     in
-     return @@
-         simple_app [
-             string "stm_if";
-             s';
-             s1';
              s2'
            ]
 

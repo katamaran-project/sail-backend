@@ -116,12 +116,12 @@ type statement =
   | Stm_exp   of expression
   | Stm_call  of string * expression list    (* AST already in A-normal form *)
   | Stm_let   of string * statement * statement
-  | Stm_if    of statement * statement * statement
   | Stm_seq   of statement * statement
 
 and match_pattern =
   | MP_list    of match_pattern_list
   | MP_product of match_pattern_product
+  | MP_bool    of match_pattern_bool
 
 and match_pattern_list =
   {
@@ -135,7 +135,14 @@ and match_pattern_product =
     matched   : statement;
     id_fst    : string;
     id_snd    : string;
-    body      : statement
+    body      : statement;
+  }
+
+and match_pattern_bool =
+  {
+    condition  : statement;
+    when_true  : statement;
+    when_false : statement;
   }
 
 type function_definition = {

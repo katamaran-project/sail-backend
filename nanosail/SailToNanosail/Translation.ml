@@ -343,14 +343,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
     end
        
   | AE_if (aval, aexp1, aexp2, _) -> begin
-      let* s =
-        let* e = expression_of_aval location aval
+      let* condition =
+        let* e = expression_of_aval location aval  (* use lift *)
         in
         TC.return @@ N.Stm_exp e
-      and* s1 = statement_of_aexp aexp1
-      and* s2 = statement_of_aexp aexp2
+      and* when_true = statement_of_aexp aexp1
+      and* when_false = statement_of_aexp aexp2
       in
-      TC.return @@ N.Stm_if (s, s1, s2)
+      TC.return @@ N.Stm_match (MP_bool { condition; when_true; when_false })
     end
        
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
