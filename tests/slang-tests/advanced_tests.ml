@@ -29,6 +29,19 @@ let arithmetic_tests =
         |},
         Integer 4
       );
+      (
+        {|
+          (define (filter pick? xs)
+            (if (nil? xs)
+                ()
+                (if (pick? (car xs))
+                    (cons (car xs) (recurse pick? (cdr xs)))
+                    (recurse pick? (cdr xs)))))
+
+          (filter (lambda (x) (> x 0)) '(-4 9 -2 4))
+        |},
+        list_to_cons [Integer 9; Integer 4]
+      );
     ]
   in
   "advanced" >::: List.map ~f:(uncurry test_run) test_cases
