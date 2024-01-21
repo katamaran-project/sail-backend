@@ -374,12 +374,12 @@ and statement_of_match (location : S.l                                          
   match matched with
   | S.AV_id (_id, _aval) -> begin
       match cases with
-        (*
-           match matched {
-             [||] => nil_clause,
-             h :: t => cons_clause
-           }
-        *)
+      (*
+         match matched {
+           [||] => nil_clause,
+           h :: t => cons_clause
+         }
+      *)
       | [ (AP_aux (AP_nil _, _, _), _, nil_clause);
           (AP_aux (AP_cons (
                AP_aux (AP_id (id_h, _), _, _),
@@ -404,12 +404,12 @@ and statement_of_match (location : S.l                                          
           in
           TC.return @@ N.Stm_match match_pattern
         end
-        (*
-            match matched {
-              h :: t => cons_clause
-              [||] => nil_clause,
-            }
-        *)
+      (*
+          match matched {
+            h :: t => cons_clause
+            [||] => nil_clause,
+          }
+      *)
       | [ (AP_aux (AP_cons (
           AP_aux (AP_id (id_h, _), _, _),
           AP_aux (AP_id (id_t, _), _, _)
@@ -434,11 +434,11 @@ and statement_of_match (location : S.l                                          
           in
           TC.return @@ N.Stm_match match_pattern
         end
-       (*
-           match matched {
-             (id_l, id_r) => clause
-           }
-       *)
+     (*
+         match matched {
+           (id_l, id_r) => clause
+         }
+     *)
       | [ (AP_aux (AP_tuple [
           AP_aux (AP_id (id_l, _), _, _);
           AP_aux (AP_id (id_r, _), _, _);
