@@ -79,68 +79,74 @@ let product_of ts =
   Ty_tuple ts
 
 let funDefList = [
-  { function_name = "is_empty";
+  {
+    function_name = "is_empty";
     function_type = {
-      arg_types = [("l", list_of Ty_int)];
-      ret_type = Ty_bool
+      arg_types   = [("l", list_of Ty_int)];
+      ret_type    = Ty_bool
     };
     function_body = fun_is_empty
   };
-  { function_name = "empty";
+  {
+    function_name = "empty";
     function_type = {
-      arg_types = [("tt", Ty_unit)];
-      ret_type = list_of Ty_int
+      arg_types   = [("tt", Ty_unit)];
+      ret_type    = list_of Ty_int
     };
     function_body = fun_empty
   };
-  { function_name = "onetwothree";
+  {
+    function_name = "onetwothree";
     function_type = {
-      arg_types = [("tt", Ty_unit)];
-      ret_type = list_of Ty_int
+      arg_types   = [("tt", Ty_unit)];
+      ret_type    = list_of Ty_int
     };
     function_body = fun_onetwothree
   };
-  { function_name = "last";
+  {
+    function_name = "last";
     function_type = {
-      arg_types = [("l", list_of Ty_int)];
-      ret_type = product_of [Ty_int; Ty_bool]
+      arg_types   = [("l", list_of Ty_int)];
+      ret_type    = product_of [Ty_int; Ty_bool]
     };
     function_body = fun_last
   };
-  { function_name = "append";
+  {
+    function_name = "append";
     function_type = {
-      arg_types = [("l1", list_of Ty_int);
-                   ("l2", list_of Ty_int)];
-      ret_type = list_of Ty_int
+      arg_types   = [("l1", list_of Ty_int); ("l2", list_of Ty_int)];
+      ret_type    = list_of Ty_int
     };
     function_body = fun_append
   };
   { function_name = "length";
     function_type = {
-      arg_types = [("l", list_of Ty_int)];
-      ret_type = Ty_int
+      arg_types   = [("l", list_of Ty_int)];
+      ret_type    = Ty_int
     };
     function_body = fun_length
   };
-  { function_name = "reverse_aux";
+  {
+    function_name = "reverse_aux";
     function_type = {
-      arg_types = [("l", list_of Ty_int);
-                   ("acc", list_of Ty_int)];
-      ret_type = list_of Ty_int
+      arg_types   = [("l", list_of Ty_int); ("acc", list_of Ty_int)];
+      ret_type    = list_of Ty_int
     };
     function_body = fun_reverse_aux
   };
-  { function_name = "reverse";
+  {
+    function_name = "reverse";
     function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
     function_body = fun_reverse
   };
-  { function_name = "reverse_bis";
+  {
+    function_name = "reverse_bis";
     function_type = {
-      arg_types = [("l", list_of Ty_int)];
-      ret_type = list_of Ty_int
+      arg_types   = [("l", list_of Ty_int)];
+      ret_type    = list_of Ty_int
     };
     function_body = fun_reverse_bis
   };
