@@ -150,19 +150,12 @@ type statement =
       xr  : string;           (* Variable name for the right tern of the product *)
       rhs : statement;        (* Resulting statement *)
     }
-  | Stm_match of match_case list
   | Stm_exp   of expression
   | Stm_call  of string * expression list    (* AST already in A-normal form *)
   | Stm_let   of string * statement * statement
   | Stm_if    of statement * statement * statement
   | Stm_seq   of statement * statement
   | Stm_nys                                 (* For statement types not yet supported *)
-
-and match_case =
-  | MatchCase of pattern * statement
-
-and pattern =
-  | Pat_id of string
 
 (******************************************************************************)
 (* Function definitions *)

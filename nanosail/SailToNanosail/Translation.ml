@@ -377,26 +377,6 @@ and statement_of_match (location : S.l                                          
                        (matched  : S.typ S.aval                                     )
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
   =
-  let _translate_case (case : 'a S.apat * 'a S.aexp * 'a S.aexp) =
-    let S.AP_aux (pattern, _env, location), _exp1, clause = case
-    in
-    match pattern with
-    | S.AP_id (id, _) -> begin
-        let* id' = translate_identifier id
-        and* clause' = statement_of_aexp clause
-        in
-        TC.return @@ N.MatchCase (Pat_id id', clause')
-      end
-    | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
-    | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
-    | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
-    | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
-    | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AP_nil _         -> TC.not_yet_implemented [%here] location
-    | S.AP_wild _        -> TC.not_yet_implemented [%here] location
-  in
-
   match cases with
   (*
       match matched {
