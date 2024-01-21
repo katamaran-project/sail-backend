@@ -72,14 +72,17 @@ and evaluate_many asts =
   | Some x -> return x
 
 let mk_closure environment parameters body : Value.callable =
-  fun arguments -> begin
-      let open EC
+  let rec callable arguments =
+    let open EC
+    in
+    let* evaluated_arguments = map evaluate arguments
+    in
+    with_environment environment begin
+      let* () = bind_parameters parameters evaluated_arguments
       in
-      let* evaluated_arguments = map evaluate arguments
+      let* () = add_binding "recurse" (Value.Callable callable)
       in
-      with_environment environment begin
-        let* () = bind_parameters parameters evaluated_arguments
-        in
-        evaluate_many body
-      end
+      evaluate_many body
     end
+  in
+  callable
