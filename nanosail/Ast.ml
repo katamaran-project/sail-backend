@@ -62,7 +62,7 @@ type type_quantifier = type_quantifier_item list
 
 type bind = string * nanotype
 
-type funType_t = {
+type function_type = {
   arg_types : bind list;
   ret_type  : nanotype
 }
@@ -134,7 +134,7 @@ type statement =
 
 type function_definition = {
   function_name : string;
-  function_type : funType_t;
+  function_type : function_type;
   function_body : statement;
 }
 
