@@ -32,7 +32,7 @@ let rec disjunction args =
     end
 
 
-let rec negation args =
+let negation args =
   let impl args =
     let=? b = M.(map1 truthy) args
     in
