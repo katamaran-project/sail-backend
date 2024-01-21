@@ -83,69 +83,69 @@ let product_of ts =
 
 let funDefList = [
   { function_name = "is_empty";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = Ty_bool
     };
-    funBody = fun_is_empty
+    function_body = fun_is_empty
   };
   { function_name = "empty";
-    funType = {
+    function_type = {
       arg_types = [("tt", Ty_unit)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_empty
+    function_body = fun_empty
   };
   { function_name = "onetwothree";
-    funType = {
+    function_type = {
       arg_types = [("tt", Ty_unit)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_onetwothree
+    function_body = fun_onetwothree
   };
   { function_name = "last";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = product_of [Ty_int; Ty_bool]
     };
-    funBody = fun_last
+    function_body = fun_last
   };
   { function_name = "append";
-    funType = {
+    function_type = {
       arg_types = [("l1", list_of Ty_int);
                    ("l2", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_append
+    function_body = fun_append
   };
   { function_name = "length";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = Ty_int
     };
-    funBody = fun_length
+    function_body = fun_length
   };
   { function_name = "reverse_aux";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int);
                    ("acc", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_reverse_aux
+    function_body = fun_reverse_aux
   };
   { function_name = "reverse";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_reverse
+    function_body = fun_reverse
   };
   { function_name = "reverse_bis";
-    funType = {
+    function_type = {
       arg_types = [("l", list_of Ty_int)];
       ret_type = list_of Ty_int
     };
-    funBody = fun_reverse_bis
+    function_body = fun_reverse_bis
   };
 ]
 

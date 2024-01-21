@@ -25,25 +25,28 @@ let product_of ts =
 
 
 let funDefList = [
-  { function_name = "ex_prod";
-    funType = {
+  {
+    function_name = "ex_prod";
+    function_type = {
         arg_types = [ ("tt", Ty_unit); ("tt", Ty_unit) ];
-        ret_type = product_of [
-                       product_of [
-                           product_of [Ty_int; Ty_string];
-                           product_of [Ty_int; Ty_string]
-                         ];
-                         product_of [Ty_int; Ty_string]
-                     ]
-    };
-    funBody = fun_ex_prod;
+        ret_type  = product_of
+            [
+              product_of [
+                product_of [Ty_int; Ty_string];
+                product_of [Ty_int; Ty_string]
+              ];
+              product_of [Ty_int; Ty_string]
+            ]
+      };
+    function_body = fun_ex_prod;
   };
-  { function_name = "switch";
-    funType = {
-      arg_types = [ ("p", product_of [Ty_int; Ty_bool]) ];
-      ret_type =  product_of [Ty_bool; Ty_int];
+  {
+    function_name = "switch";
+    function_type = {
+      arg_types   = [ ("p", product_of [Ty_int; Ty_bool]) ];
+      ret_type    =  product_of [Ty_bool; Ty_int];
     };
-    funBody = fun_switch;
+    function_body = fun_switch;
   };
 ]
 

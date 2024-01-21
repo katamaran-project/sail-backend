@@ -469,15 +469,15 @@ let translate_function_definition
       let* function_name = translate_identifier id
       and* arg_types = binds_of_pexp pexp
       and* ret_type = ty_of_pexp pexp
-      and* funBody = body_of_pexp pexp
+      and* function_body = body_of_pexp pexp
       in
       TC.return @@ N.FunctionDefinition {
-        function_name; (* TODO fix name *)
-        funType = {
+        function_name;
+        function_type = {
             arg_types;
             ret_type;
           };
-        funBody;
+        function_body;
       }
     end
   | _ -> TC.not_yet_implemented [%here] definition_annotation.loc

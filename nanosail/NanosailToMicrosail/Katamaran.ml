@@ -233,12 +233,12 @@ let pp_function_definition
   let coq_definition =
     let* result_type =
       let* bindings =
-        let* docs = map Sail.pp_bind function_definition.funType.arg_types
+        let* docs = map Sail.pp_bind function_definition.function_type.arg_types
         in
         return @@ Coq.list docs
       in
       let* result_type =
-        Sail.pp_nanotype function_definition.funType.ret_type
+        Sail.pp_nanotype function_definition.function_type.ret_type
       in
       return @@ Some (
                       pp_hanging_list (PP.string "Stm") [
@@ -248,7 +248,7 @@ let pp_function_definition
                     )
     in
     let* body =
-      pp_statement function_definition.funBody
+      pp_statement function_definition.function_body
     in
     return @@ Coq.definition ~identifier ~parameters ~result_type ~body
   in

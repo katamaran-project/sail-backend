@@ -11,11 +11,11 @@ let generate function_definitions =
     let name = string function_definition.function_name in
     let* function_type =
       let* parameter_types =
-        let* ps = map Sail.pp_bind function_definition.funType.arg_types
+        let* ps = map Sail.pp_bind function_definition.function_type.arg_types
         in
         return @@ Coq.list ps
       in
-      let* return_type = Sail.pp_nanotype function_definition.funType.ret_type
+      let* return_type = Sail.pp_nanotype function_definition.function_type.ret_type
       in
       return @@
           concat [

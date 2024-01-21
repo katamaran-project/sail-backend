@@ -134,8 +134,8 @@ type statement =
 
 type function_definition = {
   function_name : string;
-  funType : funType_t;
-  funBody : statement;
+  function_type : funType_t;
+  function_body : statement;
 }
 
 type untranslated_definition =
