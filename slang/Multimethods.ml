@@ -66,6 +66,16 @@ let nil value =
   | _         -> fail
 
 
+let bool value =
+  match value with
+  | Value.Bool x -> return x
+  | _            -> fail
+
+
+let truthy value =
+  return @@ Value.truthy value
+
+
 let list ?(min_length = 0) f value =
   let rec aux acc value =
     match value with
