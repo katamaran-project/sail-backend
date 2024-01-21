@@ -437,19 +437,6 @@ and statement_of_match (location : S.l                                          
         }
       in
       TC.return @@ N.Stm_match match_pattern
-      (* let* s = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (\* TODO use lift *\) *)
-      (* and* alt_nil = statement_of_aexp nil_clause *)
-      (* and* xh = translate_identifier id_h *)
-      (* and* xt = translate_identifier id_t *)
-      (* and* alt_cons = statement_of_aexp cons_clause *)
-      (* in *)
-      (* TC.return @@ N.Stm_match_list { *)
-      (*   s        = s; *)
-      (*   alt_nil  = alt_nil; *)
-      (*   xh       = xh; *)
-      (*   xt       = xt; *)
-      (*   alt_cons = alt_cons; *)
-      (* } *)
     end
   (*
       match matched {
