@@ -59,7 +59,6 @@ let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_loc
   | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
   | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
-
 and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.numeric_constraint TC.t =
   match numeric_constraint with
   | S.NC_equal (x, y) -> begin
@@ -181,16 +180,11 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
 
-
-(******************************************************************************)
-
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
   | Pat_when _       -> TC.not_yet_implemented [%here] location
 
-
-(******************************************************************************)
 
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   match aux with
@@ -234,13 +228,12 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as a))) =
   | S.P_string_append _           -> TC.not_yet_implemented [%here] location
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
+
 let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
   | Pat_when _ -> TC.not_yet_implemented [%here] location
 
-
-(******************************************************************************)
 
 let value_of_lit (S.L_aux (literal, location)) =
   match literal with
@@ -255,6 +248,7 @@ let value_of_lit (S.L_aux (literal, location)) =
   | S.L_bin _  -> TC.not_yet_implemented [%here] location
   | S.L_undef  -> TC.not_yet_implemented [%here] location
   | S.L_real _ -> TC.not_yet_implemented [%here] location
+
 
 let rec expression_of_aval location (value : S.typ S.aval) =
   match value with
@@ -457,12 +451,14 @@ and statement_of_match (location : S.l                                          
     end
   | _ -> TC.not_yet_implemented [%here] location
 
+
 let body_of_pexp pexp =
   let S.Pat_aux (aux, (location, _annot)) = pexp
   in
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
   | Pat_when _       -> TC.not_yet_implemented [%here] location
+
 
 let translate_function_definition
       (definition_annotation : S.def_annot               )
@@ -490,14 +486,17 @@ let translate_function_definition
     end
   | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
 
+
 let translate_kind (S.K_aux (kind, _location)) : Ast.kind TC.t =
   match kind with
   | S.K_type -> TC.return @@ Ast.Kind_type
   | S.K_int  -> TC.return @@ Ast.Kind_int
   | S.K_bool -> TC.return @@ Ast.Kind_bool
 
+
 let translate_kind_id (S.Kid_aux (Var kind_id, _id_loc)) : string TC.t =
   TC.return @@ kind_id
+
 
 let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
   match quantifier_item with
@@ -508,10 +507,12 @@ let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
     TC.return @@ (kind_id', kind')
   | S.QI_constraint _ -> TC.not_yet_implemented [%here] location
 
+
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
   | S.TypQ_tq items  -> TC.map translate_type_quantifier_item items
   | S.TypQ_no_forall -> TC.return @@ []
+
 
 let translate_type_abbreviation
       _definition_annotation
@@ -543,6 +544,7 @@ let translate_type_abbreviation
   TC.return @@ N.TypeDefinition (
     N.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
   )
+
 
 let translate_enum
       (_definition_annotation : S.def_annot)
