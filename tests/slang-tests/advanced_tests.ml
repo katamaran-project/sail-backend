@@ -27,7 +27,8 @@ let arithmetic_tests =
               (recurse (- x y) y)))
           (mod 9 5)
         |},
-        Integer 4 );
+        Integer 4
+      );
     ]
   in
   "advanced" >::: List.map ~f:(uncurry test_run) test_cases
