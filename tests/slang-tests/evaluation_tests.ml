@@ -44,6 +44,48 @@ let arithmetic_tests =
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let boolean_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ("#t", Bool true);
+      ("#f", Bool false);
+      
+      ("(or)", Bool false);
+      
+      ("(or #t)", Bool true);
+      ("(or #f)", Bool false);
+      
+      ("(or #f #f)", Bool false);
+      ("(or #t #f)", Bool true);
+      ("(or #f #t)", Bool true);
+      ("(or #t #t)", Bool true);
+      
+      ("(or #f #f #f)", Bool false);
+      ("(or #t #f #f)", Bool true);
+      ("(or #f #t #f)", Bool true);
+      ("(or #f #f #t)", Bool true);
+      
+      ("(and)", Bool true);
+
+      ("(and #t)", Bool true);
+      ("(and #f)", Bool false);
+
+      ("(and #t #t)", Bool true);
+      ("(and #f #t)", Bool false);
+      ("(and #t #f)", Bool false);
+      ("(and #f #f)", Bool false);
+
+      ("(and #t #t #t)", Bool true);
+      ("(and #f #t #t)", Bool false);
+      ("(and #t #f #t)", Bool false);
+      ("(and #t #t #f)", Bool false);
+    ]
+  in
+  "booleans" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let quote_tests =
   let open Slang.Value
   in
