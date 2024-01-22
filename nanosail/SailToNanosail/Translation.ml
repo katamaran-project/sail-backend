@@ -400,7 +400,10 @@ and statement_of_match (location : S.l                                          
                      AP_aux (AP_id (id_h, _), _, _),
                      AP_aux (AP_id (id_t, _), _, _)
                    ), _, _), _, cons_clause) ) -> begin
-        let* matched = TC.lift (fun x -> N.Stm_exp x) @@ expression_of_aval location matched
+        let* matched =
+          let* expr = expression_of_aval location matched
+          in
+          TC.return @@ N.Stm_exp expr (* use lift *)
         and* when_nil = statement_of_aexp nil_clause
         and* when_cons =
           let* id_head = translate_identifier id_h
@@ -428,7 +431,10 @@ and statement_of_match (location : S.l                                          
                      AP_aux (AP_id (id_l, _), _, _);
                      AP_aux (AP_id (id_r, _), _, _);
                    ], _, _),_ , clause) ] -> begin
-        let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* use lift *)
+        let* matched =
+          let* expr = expression_of_aval location matched
+          in
+          TC.return @@ N.Stm_exp expr (* use lift *)
         and* id_fst = translate_identifier id_l
         and* id_snd = translate_identifier id_r
         and* body = statement_of_aexp clause
@@ -457,7 +463,51 @@ and statement_of_match (location : S.l                                          
       in
       TC.check [%here] (n_match_cases = n_enum_cases) @@ Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
     in
-    TC.not_yet_implemented [%here] location
+    let process_case
+          (table      : N.statement StringMap.t                     )
+          (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
+      let (AP_aux (pattern, _, _), _, body) = match_case
+      in
+      match pattern with
+      | S.AP_id (S.Id_aux (id, location), _typ) -> begin
+          match id with
+          | S.Operator  _   -> TC.not_yet_implemented [%here] location
+          | S.Id identifier -> begin
+              let* () = TC.check
+                          [%here]
+                          (List.mem enum_definition.cases identifier ~equal:String.equal)
+                          (Printf.sprintf "encountered unknown case %s while matching an %s value" identifier enum_definition.identifier)
+              in
+              let* body' = statement_of_aexp body
+              in
+              let result = StringMap.add table ~key:identifier ~data:body'
+              in
+              match result with
+              | `Duplicate -> TC.fail
+                                [%here]
+                                (Printf.sprintf "duplicate case %s in enum match" identifier)
+              | `Ok table -> TC.return table
+            end
+        end
+      | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_cons (_, _)    -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
+      | S.AP_wild _         -> TC.fail [%here] "unexpected case while matching on enum"
+    in
+    let* matched =
+      let* expr = expression_of_aval location matched
+      in
+      TC.return @@ N.Stm_exp expr (* use lift *)
+    and* cases = TC.fold_left process_case StringMap.empty cases
+    in
+    TC.return @@ N.Stm_match (N.MP_enum {
+        matched;
+        cases
+      })
 
   and match_variant (_variant_definition : N.variant_definition) =
     TC.not_yet_implemented [%here] location
@@ -494,7 +544,6 @@ and statement_of_match (location : S.l                                          
   | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
   | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
   | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
-
 
 
 let body_of_pexp pexp =
