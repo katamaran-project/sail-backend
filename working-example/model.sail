@@ -1,6 +1,6 @@
 default Order dec
 
-$include <prelude.sail> 
+$include <prelude.sail>
 
 
 enum foo = A | B
@@ -20,5 +20,12 @@ function qux(xs : list(int)) = {
   match xs {
     [||] => 1,
     h::t => 2
+  }
+}
+
+val baz : (int, int) -> int
+function baz(pair) = {
+  match pair {
+   (x, y) => x + y
   }
 }
