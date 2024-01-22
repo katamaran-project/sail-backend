@@ -27,7 +27,7 @@ end
 
 type error =
   | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
-
+  | AssertionFailure of Lexing.position * string
 
 module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
 module MonadUtil = Monads.Util.Make(Monad)
@@ -37,7 +37,8 @@ open Monads.Notations.Star(Monad)
 
 
 type 'a t      = 'a Monad.t
-type 'a result = 'a Monad.result = Success of 'a | Failure of error (* prevents result from becoming abstract *)
+type 'a result = 'a Monad.result = Success of 'a     (* explicitly enumerating cases here prevents result from becoming abstract *)
+                                 | Failure of error
 
 let return     = Monad.return
 let bind       = Monad.bind
@@ -51,6 +52,14 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
     else Some message
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
+
+let check ocaml_position condition message =
+  if not condition
+  then Monad.fail @@ AssertionFailure (ocaml_position, message)
+  else Monad.return ()
+
+let fail ocaml_position message =
+  Monad.fail @@ AssertionFailure (ocaml_position, message)
 
 let register_type (type_definition : type_definition) =
   let* types = Monad.get Context.types

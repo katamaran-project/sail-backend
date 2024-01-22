@@ -6,6 +6,7 @@ type 'a t
 
 type error =
   | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
+  | AssertionFailure of Lexing.position * string
 
 type 'a result =
   | Success of 'a | Failure of error
@@ -13,6 +14,8 @@ type 'a result =
 val bind                : 'a t -> ('a -> 'b t) -> 'b t
 val return              : 'a -> 'a t
 val not_yet_implemented : ?message : string -> Lexing.position -> Libsail.Ast.l -> 'a t
+val check               : Lexing.position -> bool -> string -> unit t
+val fail                : Lexing.position -> string -> 'a t 
 val recover             : 'a t -> (error -> 'a t) -> 'a t
 val run                 : 'a t -> 'a result * Context.t
 
