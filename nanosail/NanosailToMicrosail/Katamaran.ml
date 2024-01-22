@@ -195,6 +195,16 @@ let rec pp_statement statement =
             when_false'
           ]
         end
+
+      | MP_enum { matched; cases } -> begin
+          let translate_case ~key ~data cases =
+            
+          in
+          let matched' = pp_par_statement matched
+          and cases' =  cases ~init:[] ~f:translate_case
+          in
+          return @@ string "x"
+        end
     end
 
   | Stm_call (f, arg_list) ->
