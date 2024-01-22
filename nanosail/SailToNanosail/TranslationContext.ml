@@ -5,7 +5,7 @@ open Exception
 
 module Context = struct
   type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
-  
+
   type t = {
     types : type_map
   }
@@ -14,7 +14,7 @@ module Context = struct
 
   let lookup_type (type_map : type_map) identifier =
     Map.find type_map identifier
-  
+
   (*
      Accessors
   *)

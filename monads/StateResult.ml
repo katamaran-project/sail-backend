@@ -34,7 +34,7 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
     SM.return @@ RM.Failure error
 
   let bind (f : 'a t) (g : 'a -> 'b t) : 'b t =
-    SM.bind f (fun x -> 
+    SM.bind f (fun x ->
         match x with
         | RM.Success x -> g x
         | RM.Failure e -> SM.return @@ RM.Failure e

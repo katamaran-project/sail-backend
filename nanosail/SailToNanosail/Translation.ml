@@ -22,7 +22,7 @@ let string_of_identifier (S.Id_aux (aux, _location)) : string =
   match aux with
   | Id x       -> x
   | Operator x -> x
-  
+
 
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
@@ -322,7 +322,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       in
       TC.return @@ N.Stm_exp aval'
     end
-    
+
   | AE_app (id, avals, _) -> begin
       let* id' = translate_identifier id
       in
@@ -339,7 +339,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
           TC.return @@ N.Stm_call (id', args)
         end
     end
-     
+
   | AE_let (_, id, _, aexp1, aexp2, _) -> begin
       let* id' = translate_identifier id
       and* s1 = statement_of_aexp aexp1
@@ -347,7 +347,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       in
       TC.return @@ N.Stm_let (id', s1, s2)
     end
-       
+
   | AE_if (aval, aexp1, aexp2, _) -> begin
       let* condition =
         let* e = expression_of_aval location aval  (* use lift *)
@@ -358,15 +358,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       in
       TC.return @@ N.Stm_match (MP_bool { condition; when_true; when_false })
     end
-       
+
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
-      
+
   | S.AE_block (statements, last_statement, _type) -> begin
       let* translated_statements = TC.map statement_of_aexp (statements @ [last_statement])
       in
       make_sequence translated_statements location
     end
-    
+
   | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
   | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
@@ -558,7 +558,7 @@ let translate_type_abbreviation
     match arg with
     | A_nexp numeric_expression -> begin
         let* numeric_expression' = translate_numeric_expression numeric_expression
-        in          
+        in
         TC.return @@ N.TA_numeric_expression (quantifier', numeric_expression')
       end
     | A_typ typ -> begin

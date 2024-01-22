@@ -3,7 +3,7 @@ module Context : sig
 end
 
 type 'a t
-    
+
 type error =
   | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
 
@@ -18,7 +18,7 @@ val run                 : 'a t -> 'a result * Context.t
 
 val register_type       : Ast.type_definition -> unit t
 val lookup_type         : string -> Ast.type_definition option t
-                                        
+
 val map                 : ('a -> 'b t) -> 'a list -> 'b list t
 val fold_left           : ('a -> 'b -> 'a t) -> 'a -> 'b list -> 'a t
 val lift                : ('a -> 'b) -> 'a t -> 'b t

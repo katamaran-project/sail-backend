@@ -1,6 +1,6 @@
 open OUnit2
 module S = Libsail
-  
+
 open Nanosail.SailToNanosail.Translation
 open Nanosail.NanosailToMicrosail.AnnotationMonad
 

@@ -6,7 +6,7 @@ module EV = EvaluationContext
 module M  = Multimethods
 
 open Shared
-    
+
 
 let rec conjunction args =
   match args with

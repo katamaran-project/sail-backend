@@ -49,7 +49,7 @@ let multiplication args =
     EV.return @@ Some (Value.Integer result)
 
   and multiply_string_with_int evaluated_args =
-    let=? string, integer = M.map2 M.string M.integer evaluated_args 
+    let=? string, integer = M.map2 M.string M.integer evaluated_args
     in
     let result = String.concat @@ List.init integer ~f:(Fn.const string)
     in

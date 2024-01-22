@@ -55,22 +55,22 @@ let boolean_tests =
     [
       ("#t", Bool true);
       ("#f", Bool false);
-      
+
       ("(or)", Bool false);
-      
+
       ("(or #t)", Bool true);
       ("(or #f)", Bool false);
-      
+
       ("(or #f #f)", Bool false);
       ("(or #t #f)", Bool true);
       ("(or #f #t)", Bool true);
       ("(or #t #t)", Bool true);
-      
+
       ("(or #f #f #f)", Bool false);
       ("(or #t #f #f)", Bool true);
       ("(or #f #t #f)", Bool true);
       ("(or #f #f #t)", Bool true);
-      
+
       ("(and)", Bool true);
 
       ("(and #t)", Bool true);
