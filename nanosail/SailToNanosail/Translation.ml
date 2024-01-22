@@ -449,11 +449,11 @@ and statement_of_match (location : S.l                                          
                 in
                 TC.return @@ N.Stm_match match_pattern
               end
-           (*
-               match matched {
-                 (id_l, id_r) => clause
-               }
-           *)
+            (*
+                match matched {
+                  (id_l, id_r) => clause
+                }
+            *)
             | [ (AP_aux (AP_tuple [
                 AP_aux (AP_id (id_l, _), _, _);
                 AP_aux (AP_id (id_r, _), _, _);
