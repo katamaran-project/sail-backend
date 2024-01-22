@@ -197,13 +197,24 @@ let rec pp_statement statement =
         end
 
       | MP_enum { matched; cases } -> begin
-          let translate_case ~key ~data cases =
-            
+          let translate_case ~(key:string) ~(data:statement) (acc : document list t) =
+            let* acc
+            and* pattern = return @@ string key
+            and* clause = pp_statement data
+            in
+            return @@ separate space [
+              pattern;
+              string " => ";
+              clause
+            ] :: acc
           in
-          let matched' = pp_par_statement matched
-          and cases' =  cases ~init:[] ~f:translate_case
+          let* matched' = pp_par_statement matched
+          and* cases' = StringMap.fold cases ~init:(return []) ~f:translate_case
           in
-          return @@ string "x"
+          return @@ separate hardline @@ build_list begin fun { add; addall } ->
+            add @@ separate space [ string "match"; matched'; string "with" ];
+            addall cases'
+          end
         end
     end
 
