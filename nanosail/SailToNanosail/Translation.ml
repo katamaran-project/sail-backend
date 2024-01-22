@@ -383,7 +383,7 @@ and statement_of_match (location : S.l                                          
                        (matched  : S.typ S.aval                                     )
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
   =
-  let match_list () =
+  let rec match_list () =
     let* () = TC.check [%here] (List.length cases = 2) "matching list; expected exactly two cases"
     in
     let* nil_case, cons_case =
@@ -443,10 +443,15 @@ and statement_of_match (location : S.l                                          
         let* lookup_result = TC.lookup_type id
         in
         match lookup_result with
-        | Some _type_definition -> TC.not_yet_implemented [%here] location
-        | None                  -> TC.fail [%here] (Printf.sprintf "Unknown type %s" id)
+        | Some (TD_abbreviation _)        -> TC.not_yet_implemented [%here] location
+        | Some (TD_variant _)             -> TC.not_yet_implemented [%here] location
+        | Some (TD_enum enum_definition)  -> match_enum enum_definition
+        | None                            -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
       end
     | S.Operator _ -> TC.not_yet_implemented [%here] location
+
+  and match_enum (_enum_definition : N.enum_definition) =
+    TC.not_yet_implemented [%here] location
 
   in
   match matched with
