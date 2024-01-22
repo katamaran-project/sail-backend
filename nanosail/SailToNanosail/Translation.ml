@@ -381,92 +381,81 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
 
 and statement_of_match (location : S.l                                              )
                        (matched  : S.typ S.aval                                     )
-                       (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
+                       (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
   =
+  let match_list () =
+    let* () = TC.check [%here] (List.length cases = 2) "matching list; expected exactly two cases"
+    in
+    let* nil_case, cons_case =
+      match cases with
+      | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
+          (AP_aux (AP_cons _, _, _), _, _) as cons_case ] -> TC.return (nil_case, cons_case)
+      | [ (AP_aux (AP_cons _, _, _), _, _) as cons_case;
+          (AP_aux (AP_nil  _, _, _), _, _) as nil_case  ] -> TC.return (nil_case, cons_case)
+      | _                                                 -> TC.fail [%here] "unrecognized cases; should be nil and cons"
+    in
+    match nil_case, cons_case with
+    | ( (AP_aux (AP_nil _, _, _), _, nil_clause),
+        (AP_aux (AP_cons (
+                     AP_aux (AP_id (id_h, _), _, _),
+                     AP_aux (AP_id (id_t, _), _, _)
+                   ), _, _), _, cons_clause) )       -> begin
+        let* matched = TC.lift (fun x -> N.Stm_exp x) @@ expression_of_aval location matched
+        and* when_nil = statement_of_aexp nil_clause
+        and* when_cons =
+          let* id_head = translate_identifier id_h
+          and* id_tail = translate_identifier id_t
+          and* clause = statement_of_aexp cons_clause
+          in
+          TC.return (id_head, id_tail, clause)
+        in
+        let match_pattern =
+          N.MP_list {
+              matched;
+              when_cons;
+              when_nil;
+            }
+        in
+        TC.return @@ N.Stm_match match_pattern
+      end
+    | _ -> TC.fail [%here] "list cases do not have expected structure"
+        
+  in
   match matched with
   | S.AV_id (_id, lvar) -> begin
       begin
         match lvar with
-        | S.Ast_util.Local (_mut, _typ) -> begin
-            match cases with
-            (*
-               match matched {
-                 [||] => nil_clause,
-                 h :: t => cons_clause
-               }
-            *)
-            | [ (AP_aux (AP_nil _, _, _), _, nil_clause);
-                (AP_aux (AP_cons (
-                     AP_aux (AP_id (id_h, _), _, _),
-                     AP_aux (AP_id (id_t, _), _, _)
-                   ), _, _), _, cons_clause)
-              ] -> begin
-                let* matched = TC.lift (fun x -> N.Stm_exp x) @@ expression_of_aval location matched
-                and* when_nil = statement_of_aexp nil_clause
-                and* when_cons =
-                  let* id_head = translate_identifier id_h
-                  and* id_tail = translate_identifier id_t
-                  and* clause = statement_of_aexp cons_clause
-                  in
-                  TC.return (id_head, id_tail, clause)
-                in
-                let match_pattern =
-                  N.MP_list {
-                    matched;
-                    when_cons;
-                    when_nil;
-                  }
-                in
-                TC.return @@ N.Stm_match match_pattern
-              end
-            (*
-                match matched {
-                  h :: t => cons_clause
-                  [||] => nil_clause,
-                }
-            *)
-            | [ (AP_aux (AP_cons (
-                AP_aux (AP_id (id_h, _), _, _),
-                AP_aux (AP_id (id_t, _), _, _)
-              ), _, _), _, cons_clause);
-                (AP_aux (AP_nil _, _, _), _, nil_clause)
-              ] -> begin
-                let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* TODO use lift *)
-                and* when_nil = statement_of_aexp nil_clause
-                and* when_cons =
-                  let* id_head = translate_identifier id_h
-                  and* id_tail = translate_identifier id_t
-                  and* clause = statement_of_aexp cons_clause
-                  in
-                  TC.return (id_head, id_tail, clause)
-                in
-                let match_pattern =
-                  N.MP_list {
-                    matched;
-                    when_cons;
-                    when_nil;
-                  }
-                in
-                TC.return @@ N.Stm_match match_pattern
-              end
-            (*
-                match matched {
-                  (id_l, id_r) => clause
-                }
-            *)
-            | [ (AP_aux (AP_tuple [
-                AP_aux (AP_id (id_l, _), _, _);
-                AP_aux (AP_id (id_r, _), _, _);
-              ], _, _),_ , clause)
-              ] -> begin
-                let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* use lift *)
-                and* id_fst = translate_identifier id_l
-                and* id_snd = translate_identifier id_r
-                and* body = statement_of_aexp clause
-                in
-                TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
-              end
-            | _ -> TC.not_yet_implemented [%here] location
+        | S.Ast_util.Local (_mut, typ) -> begin
+            let S.Typ_aux (typ, loc) = typ
+            in
+            match typ with
+             | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+             | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
+             | S.Typ_id _             -> TC.not_yet_implemented [%here] loc
+             | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
+             | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
+             | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
+             | S.Typ_tuple _          -> TC.not_yet_implemented [%here] loc
+             | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] loc
+             | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] loc
+            (* (\* *)
+            (*     match matched { *)
+            (*       (id_l, id_r) => clause *)
+            (*     } *)
+            (* *\) *)
+            (* | [ (AP_aux (AP_tuple [ *)
+            (*     AP_aux (AP_id (id_l, _), _, _); *)
+            (*     AP_aux (AP_id (id_r, _), _, _); *)
+            (*   ], _, _),_ , clause) *)
+            (*   ] -> begin *)
+            (*     let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (\* use lift *\) *)
+            (*     and* id_fst = translate_identifier id_l *)
+            (*     and* id_snd = translate_identifier id_r *)
+            (*     and* body = statement_of_aexp clause *)
+            (*     in *)
+            (*     TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body }) *)
+            (*   end *)
+            (* | _ -> TC.not_yet_implemented [%here] location *)
           end
         | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
         | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
@@ -727,6 +716,12 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
             }
           in
           TC.return (sail_definition, untranslated_definition)
+        end
+      | TC.AssertionFailure (ocaml_location, message) -> begin
+          let location_string =
+            Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
+          in
+          failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s" location_string message
         end
     end
   end
