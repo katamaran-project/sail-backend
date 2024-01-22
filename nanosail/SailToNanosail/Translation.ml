@@ -399,7 +399,7 @@ and statement_of_match (location : S.l                                          
         (AP_aux (AP_cons (
                      AP_aux (AP_id (id_h, _), _, _),
                      AP_aux (AP_id (id_t, _), _, _)
-                   ), _, _), _, cons_clause) )       -> begin
+                   ), _, _), _, cons_clause) ) -> begin
         let* matched = TC.lift (fun x -> N.Stm_exp x) @@ expression_of_aval location matched
         and* when_nil = statement_of_aexp nil_clause
         and* when_cons =
@@ -419,7 +419,24 @@ and statement_of_match (location : S.l                                          
         TC.return @@ N.Stm_match match_pattern
       end
     | _ -> TC.fail [%here] "list cases do not have expected structure"
-        
+
+  and match_tuple () =
+    let* () = TC.check [%here] (List.length cases = 1) "match tuple; expected only one case"
+    in
+    match cases with
+    | [ (AP_aux (AP_tuple [
+                     AP_aux (AP_id (id_l, _), _, _);
+                     AP_aux (AP_id (id_r, _), _, _);
+                   ], _, _),_ , clause) ] -> begin
+        let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (* use lift *)
+        and* id_fst = translate_identifier id_l
+        and* id_snd = translate_identifier id_r
+        and* body = statement_of_aexp clause
+        in
+        TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
+      end
+    | _ -> TC.not_yet_implemented [%here] location
+
   in
   match matched with
   | S.AV_id (_id, lvar) -> begin
@@ -430,32 +447,14 @@ and statement_of_match (location : S.l                                          
             in
             match typ with
              | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+             | S.Typ_tuple _          -> match_tuple ()
              | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
              | S.Typ_id _             -> TC.not_yet_implemented [%here] loc
              | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
              | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
              | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
-             | S.Typ_tuple _          -> TC.not_yet_implemented [%here] loc
              | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] loc
              | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] loc
-            (* (\* *)
-            (*     match matched { *)
-            (*       (id_l, id_r) => clause *)
-            (*     } *)
-            (* *\) *)
-            (* | [ (AP_aux (AP_tuple [ *)
-            (*     AP_aux (AP_id (id_l, _), _, _); *)
-            (*     AP_aux (AP_id (id_r, _), _, _); *)
-            (*   ], _, _),_ , clause) *)
-            (*   ] -> begin *)
-            (*     let* matched = let* expr = expression_of_aval location matched in TC.return @@ N.Stm_exp expr (\* use lift *\) *)
-            (*     and* id_fst = translate_identifier id_l *)
-            (*     and* id_snd = translate_identifier id_r *)
-            (*     and* body = statement_of_aexp clause *)
-            (*     in *)
-            (*     TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body }) *)
-            (*   end *)
-            (* | _ -> TC.not_yet_implemented [%here] location *)
           end
         | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
         | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
