@@ -76,7 +76,7 @@ mapping perm_bits : Permission <-> bits(3) = {
 
 function capToString(c) : Capability -> string = {
   concat_str("perm: ",
-  concat_str(permToString(c.cap_permission), 
+  concat_str(permToString(c.cap_permission),
   concat_str(" begin: ",
   concat_str(bits_str(c.cap_begin),
   concat_str(" end: ",

@@ -1,6 +1,6 @@
 default Order dec
 
-$include <prelude.sail> 
+$include <prelude.sail>
 $include <string.sail>
 $include "prelude_minimal_caps.sail"
 $include "capabilities.sail"

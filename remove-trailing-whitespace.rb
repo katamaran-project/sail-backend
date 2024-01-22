@@ -6,7 +6,7 @@ Find.find('.') do |path|
   unless path =~ %r{^./_build}
     path = Pathname.new path
 
-    if [ '.ml', '.mli' ].include? path.extname
+    if [ '.ml', '.mli', '.sail' ].include? path.extname
       path
         .read
         .gsub(%r{ +\n}, "\n")

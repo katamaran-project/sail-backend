@@ -12,7 +12,7 @@ val onetwothree : unit -> list(int)
 val last : list(int) -> (int, bool)
 val append : (list(int), list(int)) -> list(int)
 /*
-val length : list(int) -> int 
+val length : list(int) -> int
 */
 val reverse_aux: (list(int), list(int)) -> list(int)
 val reverse : list(int) -> list(int)
@@ -39,13 +39,13 @@ function last(l) = match l {
 
 function append(l1, l2) = match l1 {
   [||]   => l2,
-  h :: t => h :: append(t, l2) 
+  h :: t => h :: append(t, l2)
 }
 
 /*
 function length(l) = match l {
   [||]   => 0,
-  h :: t => length(t) + 1 
+  h :: t => length(t) + 1
 }
 */
 
@@ -59,6 +59,6 @@ function reverse(l) = reverse_aux(l, [||])
 function reverse_bis(l) = match l {
   [||]   => [||],
   h :: t => append(reverse_bis(t), [|h|])
-} 
+}
 
 
