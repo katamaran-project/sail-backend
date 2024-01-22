@@ -450,7 +450,13 @@ and statement_of_match (location : S.l                                          
       end
     | S.Operator _ -> TC.not_yet_implemented [%here] location
 
-  and match_enum (_enum_definition : N.enum_definition) =
+  and match_enum (enum_definition : N.enum_definition) =
+    let* () =
+      let n_match_cases = List.length cases
+      and n_enum_cases = List.length enum_definition.cases
+      in
+      TC.check [%here] (n_match_cases = n_enum_cases) @@ Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
+    in
     TC.not_yet_implemented [%here] location
 
   and match_variant (_variant_definition : N.variant_definition) =
@@ -462,26 +468,24 @@ and statement_of_match (location : S.l                                          
   in
   match matched with
   | S.AV_id (_id, lvar) -> begin
-      begin
-        match lvar with
-        | S.Ast_util.Local (_mut, typ) -> begin
-            let S.Typ_aux (typ, loc) = typ
-            in
-            match typ with
-             | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-             | S.Typ_tuple _          -> match_tuple ()
-             | S.Typ_id id            -> match_type_by_identifier id
-             | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
-             | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
-             | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
-             | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
-             | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] loc
-             | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] loc
-          end
-        | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
-        | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
-        | S.Ast_util.Unbound _  -> TC.not_yet_implemented [%here] location
-      end
+      match lvar with
+      | S.Ast_util.Local (_mut, typ) -> begin
+          let S.Typ_aux (typ, loc) = typ
+          in
+          match typ with
+          | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+          | S.Typ_tuple _          -> match_tuple ()
+          | S.Typ_id id            -> match_type_by_identifier id
+          | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
+          | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
+          | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
+          | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
+          | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] loc
+          | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] loc
+        end
+      | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
+      | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
+      | S.Ast_util.Unbound _  -> TC.not_yet_implemented [%here] location
     end
   | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
   | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
