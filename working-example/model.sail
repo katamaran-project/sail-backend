@@ -22,10 +22,3 @@ function qux(xs : list(int)) = {
     h::t => 2
   }
 }
-
-val baz : (int, int) -> int
-function baz(pair) = {
-  match pair {
-   (x, y) => x + y
-  }
-}
