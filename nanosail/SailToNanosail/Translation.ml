@@ -439,8 +439,12 @@ and statement_of_match (location : S.l                                          
 
   and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
     match type_identifier with
-    | S.Id _id -> begin
-        TC.not_yet_implemented [%here] location
+    | S.Id id -> begin
+        let* lookup_result = TC.lookup_type id
+        in
+        match lookup_result with
+        | Some _type_definition -> TC.not_yet_implemented [%here] location
+        | None                  -> TC.fail [%here] (Printf.sprintf "Unknown type %s" id)
       end
     | S.Operator _ -> TC.not_yet_implemented [%here] location
 
@@ -545,7 +549,7 @@ let translate_type_abbreviation
       _type_annotation
       (identifier : S.id)
       (quantifier : S.typquant)
-      (S.A_aux (arg, _arg_location)) : N.definition TC.t =
+      (S.A_aux (arg, _arg_location)) : N.type_definition TC.t =
   let* quantifier' = translate_type_quantifier quantifier
   and* identifier' = translate_identifier identifier
   in
@@ -567,26 +571,22 @@ let translate_type_abbreviation
         TC.return @@ N.TA_numeric_constraint (quantifier', numeric_constraint')
       end
   in
-  TC.return @@ N.TypeDefinition (
-    N.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
-  )
+  TC.return @@ N.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
 
 
 let translate_enum
       (_definition_annotation : S.def_annot)
       (_type_annotation       : 'a S.annot )
       (identifier             : S.id       )
-      (cases                  : S.id list  ) : N.definition TC.t
+      (cases                  : S.id list  ) : N.type_definition TC.t
   =
   let* identifier' = translate_identifier identifier
   and* cases'      = TC.map translate_identifier cases
   in
-  TC.return @@ N.TypeDefinition (
-    N.TD_enum {
+  TC.return @@ N.TD_enum {
       identifier = identifier';
       cases      = cases'     ;
     }
-  )
 
 
 let translate_variant
@@ -594,7 +594,7 @@ let translate_variant
       (identifier             : S.id             )
       (type_quantifier        : S.typquant       )
       (constructors           : S.type_union list)
-      (_flag                  : bool             ) : N.definition TC.t
+      (_flag                  : bool             ) : N.type_definition TC.t
   =
   let* identifier' = translate_identifier identifier
   and* type_quantifier' = translate_type_quantifier type_quantifier
@@ -607,13 +607,11 @@ let translate_variant
     in
     TC.map translate_constructor constructors
   in
-  TC.return @@ N.TypeDefinition (
-    N.TD_variant {
+  TC.return @@ N.TD_variant {
       identifier      = identifier'     ;
       type_quantifier = type_quantifier';
       constructors    = constructors'   ;
     }
-  )
 
 
 let translate_type_definition
@@ -622,10 +620,17 @@ let translate_type_definition
   =
   let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
   in
+  let register translation =
+    let* result = translation
+    in
+    let* () = TC.register_type result
+    in
+    TC.return @@ N.TypeDefinition result
+  in
   match type_definition with
-  | TD_abbrev (identifier, quantifier, arg)                      -> translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
-  | TD_variant (identifier, type_quantifier, constructors, flag) -> translate_variant definition_annotation identifier type_quantifier constructors flag
-  | TD_enum (identifier, cases, _)                               -> translate_enum definition_annotation type_annotation identifier cases
+  | TD_abbrev (identifier, quantifier, arg)                      -> register @@ translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
+  | TD_variant (identifier, type_quantifier, constructors, flag) -> register @@ translate_variant definition_annotation identifier type_quantifier constructors flag
+  | TD_enum (identifier, cases, _)                               -> register @@ translate_enum definition_annotation type_annotation identifier cases
   | TD_record (_, _, _, _)                                       -> TC.not_yet_implemented [%here] definition_annotation.loc
   | TD_bitfield (_, _, _)                                        -> TC.not_yet_implemented [%here] definition_annotation.loc
 
