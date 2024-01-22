@@ -122,6 +122,7 @@ and match_pattern =
   | MP_list    of match_pattern_list
   | MP_product of match_pattern_product
   | MP_bool    of match_pattern_bool
+  | MP_enum    of match_pattern_enum
 
 and match_pattern_list =
   {
@@ -143,6 +144,12 @@ and match_pattern_bool =
     condition  : statement;
     when_true  : statement;
     when_false : statement;
+  }
+
+and match_pattern_enum =
+  {
+    matched    : statement;
+    cases      : statement StringMap.t
   }
 
 type function_definition = {
