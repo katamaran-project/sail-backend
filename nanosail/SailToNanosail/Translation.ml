@@ -437,6 +437,13 @@ and statement_of_match (location : S.l                                          
       end
     | _ -> TC.not_yet_implemented [%here] location
 
+  and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
+    match type_identifier with
+    | S.Id _id -> begin
+        TC.not_yet_implemented [%here] location
+      end
+    | S.Operator _ -> TC.not_yet_implemented [%here] location
+
   in
   match matched with
   | S.AV_id (_id, lvar) -> begin
@@ -448,8 +455,8 @@ and statement_of_match (location : S.l                                          
             match typ with
              | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
              | S.Typ_tuple _          -> match_tuple ()
+             | S.Typ_id id            -> match_type_by_identifier id
              | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
-             | S.Typ_id _             -> TC.not_yet_implemented [%here] loc
              | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
              | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
              | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
