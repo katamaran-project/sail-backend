@@ -443,14 +443,20 @@ and statement_of_match (location : S.l                                          
         let* lookup_result = TC.lookup_type id
         in
         match lookup_result with
-        | Some (TD_abbreviation _)        -> TC.not_yet_implemented [%here] location
-        | Some (TD_variant _)             -> TC.not_yet_implemented [%here] location
-        | Some (TD_enum enum_definition)  -> match_enum enum_definition
-        | None                            -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+        | Some (TD_abbreviation def)  -> match_abbreviation def
+        | Some (TD_variant def)       -> match_variant def
+        | Some (TD_enum def)          -> match_enum def
+        | None                        -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
       end
     | S.Operator _ -> TC.not_yet_implemented [%here] location
 
   and match_enum (_enum_definition : N.enum_definition) =
+    TC.not_yet_implemented [%here] location
+
+  and match_variant (_variant_definition : N.variant_definition) =
+    TC.not_yet_implemented [%here] location
+
+  and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
     TC.not_yet_implemented [%here] location
 
   in
