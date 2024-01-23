@@ -1,8 +1,9 @@
 open Base
 open PPrint
 open Ast
-open AnnotationContext
 open Monads.Notations.Star(AnnotationContext)
+
+module AC = AnnotationContext
 
 
 let reg_inductive_type register_definitions =
@@ -20,7 +21,7 @@ let reg_inductive_type register_definitions =
           in
           add_constructor ~typ:typ identifier
         in
-        iter make_constructor register_definitions
+        AC.iter make_constructor register_definitions
       )
   in
   Coq.annotate inductive_type
