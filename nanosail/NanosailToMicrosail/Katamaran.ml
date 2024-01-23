@@ -121,12 +121,16 @@ let fromIR_pp ir =
     else
       empty
   in
+  let finite =
+    Finite.generate @@ List.map ~f:snd ir.definitions
+  in
   let sections =
     [
       prelude;
       base;
       program;
       registers;
+      finite;
       untranslated;
       ignored
     ]
