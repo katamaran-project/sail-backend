@@ -515,24 +515,25 @@ and statement_of_match (location : S.l                                          
   and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
     TC.not_yet_implemented [%here] location
 
+  (*
+     called after we determine what the type of matched is
+  *)
+  and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
+    match type_of_matched with
+    | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+    | S.Typ_tuple _          -> match_tuple ()
+    | S.Typ_id id            -> match_type_by_identifier id
+    | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+    | S.Typ_var _            -> TC.not_yet_implemented [%here] location
+    | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+    | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+    | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+    | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
   in
   match matched with
   | S.AV_id (_id, lvar) -> begin
       match lvar with
-      | S.Ast_util.Local (_mut, typ) -> begin
-          let S.Typ_aux (typ, loc) = typ
-          in
-          match typ with
-          | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-          | S.Typ_tuple _          -> match_tuple ()
-          | S.Typ_id id            -> match_type_by_identifier id
-          | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] loc
-          | S.Typ_var _            -> TC.not_yet_implemented [%here] loc
-          | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] loc
-          | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] loc
-          | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] loc
-          | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] loc
-        end
+      | S.Ast_util.Local (_mut, typ) -> match_typed typ
       | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
       | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
       | S.Ast_util.Unbound _  -> TC.not_yet_implemented [%here] location
