@@ -122,7 +122,7 @@ let fromIR_pp ir =
       empty
   in
   let finite =
-    Finite.generate @@ List.map ~f:snd ir.definitions
+    Finite.generate ir.definitions
   in
   let sections =
     [
