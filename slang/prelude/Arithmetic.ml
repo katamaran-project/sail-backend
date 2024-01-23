@@ -28,7 +28,7 @@ let addition args =
 
 
 let subtraction args =
-  let* evaluated_args = EV.map evaluate args
+  let* evaluated_args = EV.map ~f:evaluate args
   in
   let=!! ns = List.map ~f:M.integer evaluated_args
   in
@@ -71,7 +71,7 @@ let multiplication args =
 
 
 let division args =
-  let* evaluated_args = EV.map evaluate args
+  let* evaluated_args = EV.map ~f:evaluate args
   in
   let=!! ns = List.map ~f:M.integer evaluated_args
   in

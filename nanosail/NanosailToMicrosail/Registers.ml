@@ -21,7 +21,7 @@ let reg_inductive_type register_definitions =
           in
           add_constructor ~typ:typ identifier
         in
-        AC.iter make_constructor register_definitions
+        AC.iter ~f:make_constructor register_definitions
       )
   in
   Coq.annotate inductive_type

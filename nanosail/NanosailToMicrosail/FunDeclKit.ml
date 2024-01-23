@@ -12,7 +12,7 @@ let generate function_definitions =
     let name = string function_definition.function_name in
     let* function_type =
       let* parameter_types =
-        let* ps = AC.map Sail.pp_bind function_definition.function_type.arg_types
+        let* ps = AC.map ~f:Sail.pp_bind function_definition.function_type.arg_types
         in
         AC.return @@ Coq.list ps
       in
@@ -39,15 +39,13 @@ let generate function_definitions =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
-    Coq.mbuild_inductive_type name typ (fun add_constructor ->
-        AC.iter
-          (fun function_definition ->
+    Coq.mbuild_inductive_type name typ @@ fun add_constructor -> begin
+        AC.iter function_definitions ~f:(fun function_definition ->
             let* name, function_type = pp_function_declaration function_definition
             in
             add_constructor ~typ:function_type name
           )
-          function_definitions
-      )
+      end
   in
   let contents =
     separate small_step [

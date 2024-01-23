@@ -134,6 +134,6 @@ let mk_multimacro methods arguments =
 
 
 let mk_multimethod (methods : method_definition list) arguments =
-  let* evaluated_arguments = EC.map evaluate arguments
+  let* evaluated_arguments = EC.map ~f:evaluate arguments
   in
   mk_multimacro methods evaluated_arguments

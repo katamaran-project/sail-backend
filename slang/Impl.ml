@@ -208,7 +208,7 @@ and EvaluationContext : sig
 
   val return                  : 'a -> 'a t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
-  val lift                    : ('a -> 'b) -> 'a t -> 'b t
+  val lift                    : f:('a -> 'b) -> 'a t -> 'b t
   val run                     : 'a t -> state -> 'a * state
 
   val current_environment     : Value.t Environment.t t
@@ -218,10 +218,10 @@ and EvaluationContext : sig
   val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
 
-  val map                     : ('a -> 'b t) -> 'a list -> 'b list t
-  val iter                    : ('a -> unit t) -> 'a list -> unit t
-  val exists                  : ('a -> bool t) -> 'a list -> bool t
-  val forall                  : ('a -> bool t) -> 'a list -> bool t
+  val map                     : f:('a -> 'b t) -> 'a list -> 'b list t
+  val iter                    : f:('a -> unit t) -> 'a list -> unit t
+  val exists                  : f:('a -> bool t) -> 'a list -> bool t
+  val forall                  : f:('a -> bool t) -> 'a list -> bool t
 end
 =
 struct

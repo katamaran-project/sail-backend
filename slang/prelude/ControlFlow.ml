@@ -17,7 +17,7 @@ let conditional (args : Value.t list) : Value.t EV.t =
     let* evaluated_condition = evaluate condition
     in
     if Value.truthy evaluated_condition
-    then EV.lift Option.some @@ evaluate then_clause
+    then EV.lift ~f:Option.some @@ evaluate then_clause
     else EV.return @@ Some (Value.Nil)
   in
 
@@ -27,8 +27,8 @@ let conditional (args : Value.t list) : Value.t EV.t =
     let* evaluated_condition = evaluate condition
     in
     if Value.truthy evaluated_condition
-    then EV.lift Option.some @@ evaluate then_clause
-    else EV.lift Option.some @@ evaluate else_clause
+    then EV.lift ~f:Option.some @@ evaluate then_clause
+    else EV.lift ~f:Option.some @@ evaluate else_clause
   in
 
   M.mk_multimacro [ if_then_else; if_then ] args

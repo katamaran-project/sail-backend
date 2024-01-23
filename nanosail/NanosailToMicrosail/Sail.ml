@@ -35,4 +35,4 @@ let pp_type_quantifier quantifier =
       kind'
     ]
   in
-  AC.map pp_type_quantifier_item quantifier
+  AC.map ~f:pp_type_quantifier_item quantifier

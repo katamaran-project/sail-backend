@@ -15,7 +15,7 @@ let rec pp_nanotype (typ : nanotype) =
     parens @@ simple_app [ pp_identifier "ty.prod"; x; y ]
   in
   let pp_tuple elts =
-    let* elts' = AnnotationContext.map pp_nanotype elts
+    let* elts' = AnnotationContext.map ~f:pp_nanotype elts
     in
     match Auxlib.split_last elts' with
     | Some (xs, last) -> AC.return @@ List.fold_right ~f:pp_product ~init:last xs
@@ -30,7 +30,7 @@ let rec pp_nanotype (typ : nanotype) =
     let id' = pp_identifier id
     in
     let* type_arguments' =
-      AC.map pp_type_argument type_arguments
+      AC.map ~f:pp_type_argument type_arguments
     in
     AC.return @@ parens @@ simple_app (id' :: type_arguments')
   in

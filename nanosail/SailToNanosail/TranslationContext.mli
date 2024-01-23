@@ -22,6 +22,6 @@ val run                 : 'a t -> 'a result * Context.t
 val register_type       : Ast.type_definition -> unit t
 val lookup_type         : string -> Ast.type_definition option t
 
-val map                 : ('a -> 'b t) -> 'a list -> 'b list t
-val fold_left           : ('a -> 'b -> 'a t) -> 'a -> 'b list -> 'a t
-val lift                : ('a -> 'b) -> 'a t -> 'b t
+val map                 : f:('a -> 'b t) -> 'a list -> 'b list t
+val fold_left           : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
+val lift                : f:('a -> 'b) -> 'a t -> 'b t

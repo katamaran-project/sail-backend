@@ -16,31 +16,30 @@ module Variants = struct
         pp_identifier identifier
       in
       let pp_constructor_type (nanotype : nanotype) =
-        let* ts = AC.map Nanotype.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
+        let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
         in
         let ts = ts @ [ identifier' ]
         in
         AC.return @@ separate (string " -> ") ts
       in
       let* type_quantifier' =
-        AC.map (fun (id, kind) ->
+        AC.map type_quantifier ~f:(fun (id, kind) ->
             let* kind' = Sail.pp_kind kind
             in
             AC.return (pp_identifier id, kind')
-          ) type_quantifier
+          )
       in
       Coq.mbuild_inductive_type
         identifier'
         ~parameters: type_quantifier'
         (string "Set")
-        (fun add_constructor ->
-           AC.iter
-             (fun (constructor, typ) ->
+        begin
+          fun add_constructor ->
+            AC.iter constructors ~f:(fun (constructor, typ) ->
                 let* typ' = pp_constructor_type typ
                 in
                 add_constructor ~typ:typ' (string constructor))
-             constructors
-        )
+        end
     in
     inductive_type
 end

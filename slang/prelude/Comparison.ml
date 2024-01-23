@@ -10,7 +10,7 @@ open Shared
 
 
 let equality_check args =
-  let* evaluated_args = map evaluate args
+  let* evaluated_args = map ~f:evaluate args
   in
   let rec aux values =
     match values with

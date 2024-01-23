@@ -145,7 +145,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   and translate_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list) =
-    let* type_arguments' = TC.map translate_type_argument type_arguments
+    let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
     and* identifier'     = translate_identifier identifier
     in
     match identifier', type_arguments' with
@@ -179,7 +179,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   | Typ_exist (_, _, _)             -> TC.not_yet_implemented [%here] location
   | Typ_id id                       -> type_of_identifier id
   | Typ_tuple items                 -> begin
-      let* items' = TC.map nanotype_of_sail_type items
+      let* items' = TC.map ~f:nanotype_of_sail_type items
       in
       TC.return @@ N.Ty_tuple items'
     end
@@ -216,7 +216,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
       TC.return [(x, ty)]
     end
   | P_tuple pats -> begin
-      let* pats' = TC.map binds_of_pat pats
+      let* pats' = TC.map ~f:binds_of_pat pats
       in
       TC.return @@ List.concat pats'
     end
@@ -275,7 +275,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
              let* e2 = expression_of_aval location aval2
              in
              TC.return @@ N.Exp_binop (Pair, e1, e2) in
-           TC.fold_left f e_h t
+           TC.fold_left ~f:f ~init:e_h t
          end
      end
   | AV_lit (lit, _)   -> begin
@@ -289,7 +289,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
       TC.return @@ N.Exp_var id'
     end
   | AV_list (lst, _)  -> begin
-      let* lst' = TC.map (expression_of_aval location) lst
+      let* lst' = TC.map ~f:(expression_of_aval location) lst
       in
       TC.return @@ N.Exp_list lst'
     end
@@ -334,7 +334,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
           TC.return @@ N.Stm_exp (Exp_binop (Cons, e1, e2))
         end
       | _ -> begin
-          let* args = TC.map (expression_of_aval location) avals
+          let* args = TC.map ~f:(expression_of_aval location) avals
           in
           TC.return @@ N.Stm_call (id', args)
         end
@@ -362,7 +362,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
 
   | S.AE_block (statements, last_statement, _type) -> begin
-      let* translated_statements = TC.map statement_of_aexp (statements @ [last_statement])
+      let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
       in
       make_sequence translated_statements location
     end
@@ -502,7 +502,7 @@ and statement_of_match (location : S.l                                          
       let* expr = expression_of_aval location matched
       in
       TC.return @@ N.Stm_exp expr (* use lift *)
-    and* cases = TC.fold_left process_case StringMap.empty cases
+    and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
     in
     TC.return @@ N.Stm_match (N.MP_enum {
         matched;
@@ -604,7 +604,7 @@ let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
   match quantifier with
-  | S.TypQ_tq items  -> TC.map translate_type_quantifier_item items
+  | S.TypQ_tq items  -> TC.map ~f:translate_type_quantifier_item items
   | S.TypQ_no_forall -> TC.return @@ []
 
 
@@ -645,7 +645,7 @@ let translate_enum
       (cases                  : S.id list  ) : N.type_definition TC.t
   =
   let* identifier' = translate_identifier identifier
-  and* cases'      = TC.map translate_identifier cases
+  and* cases'      = TC.map ~f:translate_identifier cases
   in
   TC.return @@ N.TD_enum {
       identifier = identifier';
@@ -669,7 +669,7 @@ let translate_variant
       in
       TC.return @@ (identifier', typ')
     in
-    TC.map translate_constructor constructors
+    TC.map ~f:translate_constructor constructors
   in
   TC.return @@ N.TD_variant {
       identifier      = identifier'     ;
@@ -802,7 +802,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
   end
 
 let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
-  let (result, _context) = TC.run @@ TC.map translate_definition ast.defs
+  let (result, _context) = TC.run @@ TC.map ~f:translate_definition ast.defs
   in
   match result with
   | TC.Success definitions -> { program_name = name; definitions  = definitions }

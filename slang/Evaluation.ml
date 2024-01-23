@@ -11,7 +11,7 @@ end
 
 let bind_parameters parameters arguments =
   match List.zip parameters arguments with
-  | List.Or_unequal_lengths.Ok pairs        -> EC.iter (uncurry EC.add_binding) pairs
+  | List.Or_unequal_lengths.Ok pairs        -> EC.iter ~f:(uncurry EC.add_binding) pairs
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ SlangError "wrong number of parameters"
 
 let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =
@@ -65,7 +65,7 @@ and evaluate_callable native_function arguments =
 and evaluate_many asts =
   let open EC
   in
-  let* results = EC.map evaluate asts
+  let* results = EC.map ~f:evaluate asts
   in
   match List.last results with
   | None   -> return Value.Nil
@@ -75,7 +75,7 @@ let mk_closure environment parameters body : Value.callable =
   let rec callable arguments =
     let open EC
     in
-    let* evaluated_arguments = map evaluate arguments
+    let* evaluated_arguments = map ~f:evaluate arguments
     in
     with_environment environment begin
       let* () = bind_parameters parameters evaluated_arguments

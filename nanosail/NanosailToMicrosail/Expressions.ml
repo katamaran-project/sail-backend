@@ -119,7 +119,7 @@ let rec pp_expression e =
         if
           Configuration.(get use_list_notations)
         then
-          let* expressions = AC.map pp_expression lst
+          let* expressions = AC.map ~f:pp_expression lst
           in
           AC.return @@ Coq.list expressions
         else

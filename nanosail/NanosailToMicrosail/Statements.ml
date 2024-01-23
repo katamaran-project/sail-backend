@@ -86,7 +86,7 @@ let rec pp_statement statement =
     end
 
   | Stm_call (f, arg_list) ->
-     let* arg_list' = AC.map pp_par_expression arg_list
+     let* arg_list' = AC.map ~f:pp_par_expression arg_list
      in
      AC.return @@ simple_app @@ string "call" :: string f :: arg_list'
 

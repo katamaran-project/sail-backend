@@ -40,9 +40,9 @@ let any args =
   let impl args =
     let=? predicate, items = M.(map2 callable (list value)) args
     in
-    let predicate arg = EC.lift Value.truthy @@ predicate [ arg ]
+    let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
-    EC.lift (Fn.compose Option.some Value.Mk.bool) @@ EC.exists predicate items
+    EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.exists ~f:predicate items
   in
   M.mk_multimethod [ impl ] args
 
@@ -51,9 +51,9 @@ let all args =
   let impl args =
     let=? predicate, items = M.(map2 callable (list value)) args
     in
-    let predicate arg = EC.lift Value.truthy @@ predicate [ arg ]
+    let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
-    EC.lift (Fn.compose Option.some Value.Mk.bool) @@ EC.forall predicate items
+    EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.forall ~f:predicate items
   in
   M.mk_multimethod [ impl ] args
 
