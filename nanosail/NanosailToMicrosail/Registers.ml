@@ -1,8 +1,9 @@
 open Base
 open PPrint
 open Ast
-open AnnotationMonad
-open Monads.Notations.Star(AnnotationMonad)
+open Monads.Notations.Star(AnnotationContext)
+
+module AC = AnnotationContext
 
 
 let reg_inductive_type register_definitions =
@@ -14,13 +15,13 @@ let reg_inductive_type register_definitions =
         let make_constructor (register_definition : register_definition) =
           let identifier = string register_definition.identifier
           in
-          let* register_type = Sail.pp_nanotype register_definition.typ
+          let* register_type = Nanotype.pp_nanotype register_definition.typ
           in
           let typ = separate space [ string "Reg"; register_type  ]
           in
           add_constructor ~typ:typ identifier
         in
-        iter make_constructor register_definitions
+        AC.iter make_constructor register_definitions
       )
   in
   Coq.annotate inductive_type

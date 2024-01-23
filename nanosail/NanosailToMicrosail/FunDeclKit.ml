@@ -2,8 +2,9 @@ open Base
 open PPrint
 open Ast
 open Util
-open AnnotationMonad
-open Monads.Notations.Star(AnnotationMonad)
+open Monads.Notations.Star(AnnotationContext)
+
+module AC = AnnotationContext
 
 
 let generate function_definitions =
@@ -11,13 +12,13 @@ let generate function_definitions =
     let name = string function_definition.function_name in
     let* function_type =
       let* parameter_types =
-        let* ps = map Sail.pp_bind function_definition.function_type.arg_types
+        let* ps = AC.map Sail.pp_bind function_definition.function_type.arg_types
         in
-        return @@ Coq.list ps
+        AC.return @@ Coq.list ps
       in
-      let* return_type = Sail.pp_nanotype function_definition.function_type.ret_type
+      let* return_type = Nanotype.pp_nanotype function_definition.function_type.ret_type
       in
-      return @@
+      AC.return @@
           concat [
               string "Fun";
               space;
@@ -32,14 +33,14 @@ let generate function_definitions =
                 )
             ]
     in
-    return (name, function_type)
+    AC.return (name, function_type)
   in
   let inductive_type_declaration =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
     Coq.mbuild_inductive_type name typ (fun add_constructor ->
-        iter
+        AC.iter
           (fun function_definition ->
             let* name, function_type = pp_function_declaration function_definition
             in
