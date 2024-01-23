@@ -203,6 +203,7 @@ let rec pp_statement statement =
             and* clause = pp_statement data
             in
             return @@ separate space [
+              string "|";
               pattern;
               string " => ";
               clause
@@ -211,7 +212,8 @@ let rec pp_statement statement =
           let* matched' = pp_par_statement matched
           and* cases' = StringMap.fold cases ~init:(return []) ~f:translate_case
           in
-          return @@ separate hardline @@ build_list begin fun { add; addall } ->
+          return @@ separate hardline @@ build_list @@ fun { add; addall } -> begin
+            add @@ Coq.comment @@ string "TODO Fix this";
             add @@ separate space [ string "match"; matched'; string "with" ];
             addall cases'
           end
