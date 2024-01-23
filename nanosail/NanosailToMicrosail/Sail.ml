@@ -77,7 +77,7 @@ let rec pp_nanotype (typ : nanotype) =
     let* type_arguments' =
       AC.map pp_type_argument type_arguments
     in
-    return @@ parens @@ simple_app (id' :: type_arguments')
+    AC.return @@ parens @@ simple_app (id' :: type_arguments')
   in
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
