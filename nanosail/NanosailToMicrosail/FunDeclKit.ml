@@ -16,7 +16,7 @@ let generate function_definitions =
         in
         AC.return @@ Coq.list ps
       in
-      let* return_type = Sail.pp_nanotype function_definition.function_type.ret_type
+      let* return_type = Nanotype.pp_nanotype function_definition.function_type.ret_type
       in
       AC.return @@
           concat [

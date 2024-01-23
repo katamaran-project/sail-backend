@@ -65,7 +65,7 @@ let rec pp_expression e =
     | Val_string s         -> AC.return @@ simple_app [string "exp_string"; dquotes (string s)]
     | Val_unit             -> AC.return @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
     | Val_prod (_, _) as v -> begin
-        let* tuple_type' = Sail.pp_nanotype (ty_of_val v)
+        let* tuple_type' = Nanotype.pp_nanotype (ty_of_val v)
         in
         let value' = pp_value v
         in

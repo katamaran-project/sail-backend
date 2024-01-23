@@ -2,6 +2,7 @@ open Base
 open PPrint
 open Ast
 open Auxlib
+open Basics
 open Util
 
 
@@ -26,8 +27,8 @@ let generate untranslated_definitions =
              stop.pos_lnum
              (stop.pos_cnum - stop.pos_bol)
        )
-       else Sail.string_of_location location
-    | _ -> Sail.string_of_location location
+       else string_of_location location
+    | _ -> string_of_location location
   in
   let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
     let { filename; line_number; sail_location; message } = untranslated_definition in

@@ -3,6 +3,7 @@ open PPrint
 open Ast
 open Auxlib
 open Util
+open Basics
 open Statements
 open Monads.Notations.Star(AnnotationContext)
 
@@ -12,7 +13,7 @@ module AC = AnnotationContext
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier = Sail.pp_identifier @@ "fun_" ^ function_definition.function_name in
+  let identifier = pp_identifier @@ "fun_" ^ function_definition.function_name in
   let parameters = [] in
   let coq_definition =
     let* result_type =
@@ -22,7 +23,7 @@ let pp_function_definition
         AC.return @@ Coq.list docs
       in
       let* result_type =
-        Sail.pp_nanotype function_definition.function_type.ret_type
+        Nanotype.pp_nanotype function_definition.function_type.ret_type
       in
       AC.return @@ Some (
                       pp_hanging_list (PP.string "Stm") [
@@ -74,7 +75,7 @@ let pp_function_definition_kit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
-    let identifier = Sail.pp_identifier "FunDef"
+    let identifier = pp_identifier "FunDef"
     and parameters = [
         utf8string "{Δ τ}";
         utf8string "(f : Fun Δ τ)"

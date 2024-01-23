@@ -1,6 +1,7 @@
 open Base
 open PPrint
 open Ast
+open Basics
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -12,10 +13,10 @@ module Variants = struct
     in
     let inductive_type =
       let identifier' =
-        Sail.pp_identifier identifier
+        pp_identifier identifier
       in
       let pp_constructor_type (nanotype : nanotype) =
-        let* ts = AC.map Sail.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
+        let* ts = AC.map Nanotype.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
         in
         let ts = ts @ [ identifier' ]
         in
@@ -25,7 +26,7 @@ module Variants = struct
         AC.map (fun (id, kind) ->
             let* kind' = Sail.pp_kind kind
             in
-            AC.return (Sail.pp_identifier id, kind')
+            AC.return (pp_identifier id, kind')
           ) type_quantifier
       in
       Coq.mbuild_inductive_type
@@ -51,27 +52,27 @@ module TypeAbbreviations = struct
     in
     match abbreviation with
     | TA_numeric_expression (quantifier, numexpr) -> begin
-        let  identifier  = Sail.pp_identifier identifier
+        let  identifier  = pp_identifier identifier
         and  result_type = None in
-        let* body        = Sail.pp_numeric_expression numexpr
+        let* body        = Numeric.pp_numeric_expression numexpr
         and* parameters  = Sail.pp_type_quantifier quantifier
         in
         AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body
       end
 
     | TA_numeric_constraint (quantifier, numconstraint) -> begin
-        let  identifier  = Sail.pp_identifier identifier
+        let  identifier  = pp_identifier identifier
         and  result_type = None in
-        let* body        = Sail.pp_numeric_constraint numconstraint
+        let* body        = Numeric.pp_numeric_constraint numconstraint
         and* parameters  = Sail.pp_type_quantifier quantifier
         in
         AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body
       end
 
     | TA_alias (quantifier, typ) -> begin
-        let  identifier  = Sail.pp_identifier identifier
+        let  identifier  = pp_identifier identifier
         and  result_type = None in
-        let* body        = Sail.pp_nanotype typ
+        let* body        = Nanotype.pp_nanotype typ
         and* parameters  = Sail.pp_type_quantifier quantifier
         in
         AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body;
@@ -81,8 +82,8 @@ end
 
 module Enums = struct
   let pp_definition (enum_definition : enum_definition) : AC.annotation AC.t =
-    let identifier = Sail.pp_identifier enum_definition.identifier
-    and typ = Sail.pp_identifier "Set"
+    let identifier = pp_identifier enum_definition.identifier
+    and typ = pp_identifier "Set"
     in
     AC.return @@ Coq.build_inductive_type identifier typ (fun add_constructor ->
         List.iter ~f:add_constructor @@ List.map ~f:string enum_definition.cases
@@ -90,8 +91,8 @@ module Enums = struct
 
 
   let generate_constructors_inductive_type (_sail_definition : sail_definition) (enum_definition : enum_definition) =
-    let identifier = Sail.pp_identifier @@ enum_definition.identifier ^ "Constructor"
-    and typ = Sail.pp_identifier "Set"
+    let identifier = pp_identifier @@ enum_definition.identifier ^ "Constructor"
+    and typ = pp_identifier "Set"
     in
     Coq.build_inductive_type identifier typ (fun add_constructor ->
         List.iter

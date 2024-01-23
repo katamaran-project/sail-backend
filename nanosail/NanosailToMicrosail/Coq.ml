@@ -1,6 +1,7 @@
 open Base
 open PPrint
 open Auxlib
+open Basics
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -109,8 +110,8 @@ let product v1 v2 =
 let section identifier contents =
   let open PPrint
   in
-  let first_line = string "Section" ^^ space ^^ Sail.pp_identifier identifier ^^ eol
-  and last_line  = string "End" ^^ space ^^ Sail.pp_identifier identifier ^^ eol
+  let first_line = string "Section" ^^ space ^^ pp_identifier identifier ^^ eol
+  and last_line  = string "End" ^^ space ^^ pp_identifier identifier ^^ eol
   in
   Util.pp_indented_enclosed_lines first_line contents last_line
 
