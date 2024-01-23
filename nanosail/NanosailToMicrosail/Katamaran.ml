@@ -3,9 +3,10 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open AnnotationMonad
 open Monads.Notations.Star(AnnotationMonad)
 
+
+module AC = AnnotationMonad
 
 let defaultBase = string "Import DefaultBase."
 
@@ -28,20 +29,20 @@ let pp_value =
 
 let pp_infix_binOp (binary_operator : binary_operator) =
   match binary_operator with
-  | Plus   -> return @@ plus
-  | Times  -> return @@ star
-  | Minus  -> return @@ minus
-  | And    -> return @@ twice ampersand
-  | Or     -> return @@ twice bar
-  | Eq     -> return @@ equals
-  | Neq    -> return @@ bang ^^ equals
-  | Le     -> return @@ langle ^^ equals
-  | Lt     -> return @@ langle
-  | Ge     -> return @@ rangle ^^ equals
-  | Gt     -> return @@ rangle
-  | Pair   -> not_yet_implemented [%here] (* Should not occur *)
-  | Cons   -> not_yet_implemented [%here] (* Should not occur *)
-  | Append -> not_yet_implemented [%here] (* Should not occur *)
+  | Plus   -> AC.return @@ plus
+  | Times  -> AC.return @@ star
+  | Minus  -> AC.return @@ minus
+  | And    -> AC.return @@ twice ampersand
+  | Or     -> AC.return @@ twice bar
+  | Eq     -> AC.return @@ equals
+  | Neq    -> AC.return @@ bang ^^ equals
+  | Le     -> AC.return @@ langle ^^ equals
+  | Lt     -> AC.return @@ langle
+  | Ge     -> AC.return @@ rangle ^^ equals
+  | Gt     -> AC.return @@ rangle
+  | Pair   -> AC.not_yet_implemented [%here] (* Should not occur *)
+  | Cons   -> AC.not_yet_implemented [%here] (* Should not occur *)
+  | Append -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
 (* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *)
@@ -57,25 +58,25 @@ let ty_of_val =
 
 let rec pp_expression e =
   let rec pp_exp_list = function
-    | []      -> return @@ string "nil"
+    | []      -> AC.return @@ string "nil"
     | x :: xs ->
        let* x'  = pp_par_expression x
        and* xs' = pp_exp_list xs
        in
-       return @@ parens @@ simple_app [string "cons"; x'; xs']
+       AC.return @@ parens @@ simple_app [string "cons"; x'; xs']
   in
   let pp_exp_val = function
-    | Val_bool true        -> return @@ string "exp_true"
-    | Val_bool false       -> return @@ string "exp_false"
-    | Val_int n            -> return @@ simple_app [string "exp_int"; Coq.integer n]
-    | Val_string s         -> return @@ simple_app [string "exp_string"; dquotes (string s)]
-    | Val_unit             -> return @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
+    | Val_bool true        -> AC.return @@ string "exp_true"
+    | Val_bool false       -> AC.return @@ string "exp_false"
+    | Val_int n            -> AC.return @@ simple_app [string "exp_int"; Coq.integer n]
+    | Val_string s         -> AC.return @@ simple_app [string "exp_string"; dquotes (string s)]
+    | Val_unit             -> AC.return @@ simple_app [string "exp_val"; string "ty.unit"; string "tt"]
     | Val_prod (_, _) as v -> begin
         let* tuple_type' = Sail.pp_nanotype (ty_of_val v)
         in
         let value' = pp_value v
         in
-        return @@ simple_app [
+        AC.return @@ simple_app [
           string "exp_val";
           tuple_type';
           value'
@@ -88,21 +89,21 @@ let rec pp_expression e =
     in
     match bo with
     | Pair ->
-       return @@ simple_app [
+       AC.return @@ simple_app [
          string "exp_binop";
          string "bop.pair";
          e1';
          e2'
        ]
     | Cons ->
-       return @@ simple_app [
+       AC.return @@ simple_app [
          string "exp_binop";
          string "bop.cons";
          e1';
          e2'
        ]
     | Append ->
-       return @@ simple_app [
+       AC.return @@ simple_app [
          string "exp_binop";
          string "bop.append";
          e1';
@@ -111,13 +112,13 @@ let rec pp_expression e =
     | _  ->
       let* binop' = pp_infix_binOp bo
       in
-      return @@ infix 2 1 binop' e1' e2'
+      AC.return @@ infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var v              -> return @@ simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_var v              -> AC.return @@ simple_app [string "exp_var"; dquotes (string v)]
   | Exp_val v              -> pp_exp_val v
-  | Exp_neg e              -> let* e' = pp_par_expression e in return @@ string "- " ^^ e'
-  | Exp_not e              -> let* e' = pp_par_expression e in return @@ simple_app [string "exp_not"; e']
+  | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ string "- " ^^ e'
+  | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ simple_app [string "exp_not"; e']
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
   | Exp_list lst           ->
     begin
@@ -125,19 +126,19 @@ let rec pp_expression e =
         if
           Configuration.(get use_list_notations)
         then
-          let* expressions = map pp_expression lst
+          let* expressions = AC.map pp_expression lst
           in
-          return @@ Coq.list expressions
+          AC.return @@ Coq.list expressions
         else
           pp_exp_list lst
       in
-      return @@ simple_app [string "exp_list"; lst']
+      AC.return @@ simple_app [string "exp_list"; lst']
     end
 
 and pp_par_expression e =
   let* e' = pp_expression e
   in
-  return @@ parens e'
+  AC.return @@ parens e'
 
 
 (******************************************************************************)
@@ -148,7 +149,7 @@ let rec pp_statement statement =
   | Stm_exp e ->
      let* e' = pp_par_expression e
      in
-     return @@ simple_app [string "stm_exp"; e']
+     AC.return @@ simple_app [string "stm_exp"; e']
 
   | Stm_match match_pattern -> begin
       match match_pattern with
@@ -159,8 +160,7 @@ let rec pp_statement statement =
           and* when_nil'  = pp_par_statement when_nil
           and* when_cons' = pp_par_statement when_cons_body
           in
-          return @@
-          simple_app [
+          AC.return @@ simple_app [
             string "stm_match_list";
             matched';
             when_nil';
@@ -174,7 +174,7 @@ let rec pp_statement statement =
           let* matched' = pp_par_statement matched
           and* body'    = pp_par_statement body
           in
-          return @@ simple_app [
+          AC.return @@ simple_app [
             string "stm_match_prod";
             matched';
             dquotes (string id_fst);
@@ -188,7 +188,7 @@ let rec pp_statement statement =
           and* when_true'  = pp_par_statement when_true
           and* when_false' = pp_par_statement when_false
           in
-          return @@ simple_app [
+          AC.return @@ simple_app [
             string "stm_if";
             condition';
             when_true';
@@ -197,12 +197,12 @@ let rec pp_statement statement =
         end
 
       | MP_enum { matched; cases } -> begin
-          let translate_case ~(key:string) ~(data:statement) (acc : document list t) =
+          let translate_case ~(key:string) ~(data:statement) (acc : document list AC.t) =
             let* acc
-            and* pattern = return @@ string key
+            and* pattern = AC.return @@ string key
             and* clause = pp_statement data
             in
-            return @@ separate space [
+            AC.return @@ separate space [
               string "|";
               pattern;
               string " => ";
@@ -210,9 +210,9 @@ let rec pp_statement statement =
             ] :: acc
           in
           let* matched' = pp_par_statement matched
-          and* cases' = StringMap.fold cases ~init:(return []) ~f:translate_case
+          and* cases' = StringMap.fold cases ~init:(AC.return []) ~f:translate_case
           in
-          return @@ separate hardline @@ build_list @@ fun { add; addall } -> begin
+          AC.return @@ separate hardline @@ build_list @@ fun { add; addall } -> begin
             add @@ Coq.comment @@ string "TODO Fix this";
             add @@ separate space [ string "match"; matched'; string "with" ];
             addall cases'
@@ -221,15 +221,15 @@ let rec pp_statement statement =
     end
 
   | Stm_call (f, arg_list) ->
-     let* arg_list' = map pp_par_expression arg_list
+     let* arg_list' = AC.map pp_par_expression arg_list
      in
-     return @@ simple_app @@ string "call" :: string f :: arg_list'
+     AC.return @@ simple_app @@ string "call" :: string f :: arg_list'
 
   | Stm_let (v, s1, s2) ->
      let* s1' = pp_statement s1
      and* s2' = pp_statement s2
      in
-     return @@
+     AC.return @@
          simple_app [
              string ("let: \"" ^ v ^ "\" :=");
              s1';
@@ -241,12 +241,12 @@ let rec pp_statement statement =
      let* s1' = pp_par_statement s1
      and* s2' = pp_par_statement s2
      in
-     return @@ simple_app [ string "stm_seq"; s1'; s2' ]
+     AC.return @@ simple_app [ string "stm_seq"; s1'; s2' ]
 
 and pp_par_statement s =
   let* s' = pp_statement s
   in
-  return @@ parens s'
+  AC.return @@ parens s'
 
 
 (******************************************************************************)
@@ -260,14 +260,14 @@ let pp_function_definition
   let coq_definition =
     let* result_type =
       let* bindings =
-        let* docs = map Sail.pp_bind function_definition.function_type.arg_types
+        let* docs = AC.map Sail.pp_bind function_definition.function_type.arg_types
         in
-        return @@ Coq.list docs
+        AC.return @@ Coq.list docs
       in
       let* result_type =
         Sail.pp_nanotype function_definition.function_type.ret_type
       in
-      return @@ Some (
+      AC.return @@ Some (
                       pp_hanging_list (PP.string "Stm") [
                           bindings;
                           result_type
@@ -277,7 +277,7 @@ let pp_function_definition
     let* body =
       pp_statement function_definition.function_body
     in
-    return @@ Coq.definition ~identifier ~parameters ~result_type ~body
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -405,7 +405,7 @@ let pp_module_header title =
   string (Printf.sprintf "(*** %s ***)" title)
 
 let _generate_module_header title =
-  return @@ string @@ Printf.sprintf "(*** %s ***)" title
+  AC.return @@ string @@ Printf.sprintf "(*** %s ***)" title
 
 let fromIR_pp ir =
   let prelude =
