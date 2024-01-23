@@ -26,7 +26,7 @@ let get_and_inc =
 
 let test_collect =
   "collect get_and_inc" >:: fun _ ->
-    let (result, state) = IntState.run (collect 5 get_and_inc) 0
+    let (result, state) = IntState.run (collect 5 ~f:get_and_inc) 0
     in
     assert_equal result [0; 1; 2; 3; 4];
     assert_equal state 5
