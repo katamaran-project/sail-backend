@@ -5,10 +5,12 @@ $include <prelude.sail>
 
 enum foo = A | B | C
 
+register R : foo
 
-val bar : foo -> int
+
+val bar : int -> int
 function bar(x) = {
-  match x {
+  match R {
     A => 0,
     B => 1,
     C => 2
@@ -23,3 +25,7 @@ function qux(xs : list(int)) = {
     h::t => 2
   }
 }
+
+
+
+// mapping clause instruction_mapping = ADD(n) <-> n @ 0b001
