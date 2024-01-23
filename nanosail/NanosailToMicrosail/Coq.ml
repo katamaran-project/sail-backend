@@ -1,8 +1,9 @@
 open Base
 open PPrint
 open Auxlib
-open AnnotationContext
 open Monads.Notations.Star(AnnotationContext)
+
+module AC = AnnotationContext
 
 module Big_int = Nat_big_num
 
@@ -379,7 +380,7 @@ let annotate_with_original_definitions originals translation =
     translation
 
 let annotate f =
-  let (document, annotations) = collect_annotations f
+  let (document, annotations) = AC.collect_annotations f
   in
   let pp_annotations =
     let pp_annotation index doc =
@@ -402,10 +403,10 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
           ?(typ        : document = empty)
           (identifier  : document) =
       result := (identifier, parameters, typ) :: !result;
-      return ()
+      AC.return ()
     in
     let* _ = constructor_generator generate_case in
-    return @@ List.rev !result
+    AC.return @@ List.rev !result
   in
   let first_line =
     let parameters' =
@@ -471,4 +472,4 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
         addall constructor_lines
       )
   in
-  return @@ separate hardline lines ^^ hardline ^^ eol
+  AC.return @@ separate hardline lines ^^ hardline ^^ eol
