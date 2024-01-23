@@ -7,7 +7,7 @@ module AC = AnnotationContext
 
 
 module Variants = struct
-  let pp_definition (variant_definition : variant_definition) : annotation t =
+  let pp_definition (variant_definition : variant_definition) : AC.annotation AC.t =
     let { identifier; type_quantifier; constructors } = variant_definition
     in
     let inductive_type =
@@ -46,7 +46,7 @@ end
 
 
 module TypeAbbreviations = struct
-  let pp_definition (type_abbreviation : type_abbreviation_definition) : annotation t =
+  let pp_definition (type_abbreviation : type_abbreviation_definition) : AC.annotation AC.t =
     let { identifier; abbreviation } = type_abbreviation
     in
     match abbreviation with
@@ -80,7 +80,7 @@ end
 
 
 module Enums = struct
-  let pp_definition (enum_definition : enum_definition) : annotation t =
+  let pp_definition (enum_definition : enum_definition) : AC.annotation AC.t =
     let identifier = Sail.pp_identifier enum_definition.identifier
     and typ = Sail.pp_identifier "Set"
     in
