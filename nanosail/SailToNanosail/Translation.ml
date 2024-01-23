@@ -534,7 +534,7 @@ and statement_of_match (location : S.l                                          
   | S.AV_id (_id, lvar) -> begin
       match lvar with
       | S.Ast_util.Local (_mut, typ) -> match_typed typ
-      | S.Ast_util.Register _ -> TC.not_yet_implemented [%here] location
+      | S.Ast_util.Register typ -> match_typed typ
       | S.Ast_util.Enum _     -> TC.not_yet_implemented [%here] location
       | S.Ast_util.Unbound _  -> TC.not_yet_implemented [%here] location
     end
