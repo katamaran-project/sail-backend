@@ -3,14 +3,15 @@ default Order dec
 $include <prelude.sail>
 
 
-enum foo = A | B
+enum foo = A | B | C
 
 
-val bar : foo -> bool
-function bar(tralala) = {
-  match tralala {
-    A => true,
-    B => false
+val bar : foo -> int
+function bar(x) = {
+  match x {
+    A => 0,
+    B => 1,
+    C => 2
   }
 }
 
