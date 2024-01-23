@@ -3,4 +3,4 @@ module FunDeclKit = FunDeclKit
 module Katamaran = Katamaran
 module Registers = Registers
 module Sail = Sail
-module AnnotationMonad = AnnotationMonad
+module AnnotationContext = AnnotationContext

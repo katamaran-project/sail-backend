@@ -1,8 +1,8 @@
 open Base
 open PPrint
 open Auxlib
-open AnnotationMonad
-open Monads.Notations.Star(AnnotationMonad)
+open AnnotationContext
+open Monads.Notations.Star(AnnotationContext)
 
 module Big_int = Nat_big_num
 

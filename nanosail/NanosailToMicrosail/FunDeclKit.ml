@@ -2,8 +2,8 @@ open Base
 open PPrint
 open Ast
 open Util
-open AnnotationMonad
-open Monads.Notations.Star(AnnotationMonad)
+open AnnotationContext
+open Monads.Notations.Star(AnnotationContext)
 
 
 let generate function_definitions =

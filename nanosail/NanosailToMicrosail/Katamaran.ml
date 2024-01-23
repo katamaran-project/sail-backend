@@ -3,10 +3,10 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open Monads.Notations.Star(AnnotationMonad)
+open Monads.Notations.Star(AnnotationContext)
 
+module AC = AnnotationContext
 
-module AC = AnnotationMonad
 
 let defaultBase = string "Import DefaultBase."
 

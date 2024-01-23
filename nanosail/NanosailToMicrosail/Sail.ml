@@ -2,8 +2,8 @@ open Base
 open PPrint
 open Ast
 open Util
-open AnnotationMonad
-open Monads.Notations.Star(AnnotationMonad)
+open AnnotationContext
+open Monads.Notations.Star(AnnotationContext)
 
 module PP = PPrint
 
@@ -59,7 +59,7 @@ let rec pp_nanotype (typ : nanotype) =
     parens @@ simple_app [ pp_identifier "ty.prod"; x; y ]
   in
   let pp_tuple elts =
-    let* elts' = AnnotationMonad.map pp_nanotype elts
+    let* elts' = AnnotationContext.map pp_nanotype elts
     in
     match Auxlib.split_last elts' with
     | Some (xs, last) -> return @@ List.fold_right ~f:pp_product ~init:last xs
