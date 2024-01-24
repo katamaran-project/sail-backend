@@ -37,6 +37,19 @@ let no_confusion_for_reg () =
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
+let regnames (register_definitions : (sail_definition * register_definition) list) =
+  let register_names =
+    List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+  in
+  let type_name = string "RegName"
+  and typ = string "Set"
+  in
+  let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
+                           AC.iter register_names ~f:(fun name -> add_constructor @@ string name)
+                         )
+  in
+  Coq.annotate inductive_type
+
 let instance_reg_eq_dec register_names =
   let cases =
     let cs =
