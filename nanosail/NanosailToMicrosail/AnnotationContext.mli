@@ -11,3 +11,4 @@ val collect_annotations : 'a t -> ('a * annotation list)
 
 val map                 : f:('a -> 'b t) -> 'a list -> 'b list t
 val iter                : f:('a -> unit t) -> 'a list -> unit t
+val lift                : f:('a -> 'b) -> 'a t -> 'b t
