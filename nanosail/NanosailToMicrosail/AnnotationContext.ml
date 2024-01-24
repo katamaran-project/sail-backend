@@ -33,11 +33,16 @@ let create_annotation annotation =
   in
   Monad.return @@ List.length annotations'
 
-let not_yet_implemented (position : Lexing.position) =
+let not_yet_implemented ?(message = "") (position : Lexing.position) =
   let open Monads.Notations.Star(Monad)
   in
   let annotation_doc =
-    PPrint.string (Printf.sprintf "%s line %d" position.pos_fname position.pos_lnum)
+    let message_suffix =
+      if String.is_empty message
+      then ""
+      else Printf.sprintf " (%s)" message
+    in
+    PPrint.string (Printf.sprintf "%s line %d%s" position.pos_fname position.pos_lnum message_suffix)
   in
   let* id = create_annotation annotation_doc
   in
