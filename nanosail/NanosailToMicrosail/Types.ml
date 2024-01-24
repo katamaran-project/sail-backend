@@ -83,11 +83,10 @@ module Enums = struct
   let pp_definition (enum_definition : enum_definition) : AC.annotation AC.t =
     let identifier = pp_identifier enum_definition.identifier
     and typ = pp_identifier "Set"
-    in
-    AC.return @@ Coq.build_inductive_type identifier typ (fun add_constructor ->
-        List.iter ~f:add_constructor @@ List.map ~f:string enum_definition.cases
+    in    
+    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+        AC.iter ~f:add_constructor @@ List.map ~f:string enum_definition.cases
       )
-
 
   let generate_constructors_inductive_type (_sail_definition : sail_definition) (enum_definition : enum_definition) =
     let identifier = pp_identifier @@ enum_definition.identifier ^ "Constructor"
