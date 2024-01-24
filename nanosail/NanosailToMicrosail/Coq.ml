@@ -404,7 +404,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
     let generate_case
           ?(parameters : document = empty)
           ?(typ        : document = empty)
-          (identifier  : document) =
+          (identifier  : document        ) =
       result := (identifier, parameters, typ) :: !result;
       AC.return ()
     in
