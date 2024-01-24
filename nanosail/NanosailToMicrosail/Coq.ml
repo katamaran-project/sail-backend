@@ -196,17 +196,19 @@ let build_inductive_type identifier typ constructor_generator =
           )
     in
     let make_line (left, right) =
-      separate space (
-          build_list (fun { add; _ } ->
-              add @@ string "|";
-              add @@ Util.pad_right longest_left_part left;
-              if requirement right > 0
-              then (
-                add colon;
-                add right
-              )
+      (twice space) ^^ begin
+          separate space (
+              build_list (fun { add; _ } ->
+                  add @@ string "|";
+                  add @@ Util.pad_right longest_left_part left;
+                  if requirement right > 0
+                  then (
+                    add colon;
+                    add right
+                  )
+                )
             )
-        )
+        end
     in
     List.map ~f:make_line pairs
   in
