@@ -5,12 +5,20 @@ $include <prelude.sail>
 
 enum foo = A | B | C
 
-register R : foo
+union ast = {
+  Add : (int, int),
+  Lit : int
+}
+
+register R1 : foo
+register R2 : foo
+register R3 : foo
+register R4 : foo
 
 
 val bar : int -> int
 function bar(x) = {
-  match R {
+  match R1 {
     A => 0,
     B => 1,
     C => 2
