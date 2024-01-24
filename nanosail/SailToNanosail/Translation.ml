@@ -803,7 +803,12 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
   end
 
 let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
-  let (result, _context) = TC.run @@ TC.map ~f:translate_definition ast.defs
+  let translate =
+    let* () = Prelude.register_types ()
+    in
+    TC.map ~f:translate_definition ast.defs
+  in
+  let (result, _context) = TC.run translate
   in
   match result with
   | TC.Success definitions -> { program_name = name; definitions  = definitions }

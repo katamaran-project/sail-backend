@@ -72,6 +72,15 @@ let register_type (type_definition : type_definition) =
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> Monad.put Context.types types'
 
+let register (definition : definition) =
+  match definition with
+  | TypeDefinition type_definition       -> register_type type_definition
+  | TopLevelTypeConstraintDefinition _   -> return ()
+  | FunctionDefinition _                 -> return ()
+  | RegisterDefinition _                 -> return ()
+  | UntranslatedDefinition _             -> return ()
+  | IgnoredDefinition                    -> return ()
+
 let lookup_type (identifier : string) : type_definition option t =
   let* types = Monad.get Context.types
   in

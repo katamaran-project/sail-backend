@@ -19,9 +19,11 @@ val fail                : Lexing.position -> string -> 'a t
 val recover             : 'a t -> (error -> 'a t) -> 'a t
 val run                 : 'a t -> 'a result * Context.t
 
-val register_type       : Ast.type_definition -> unit t
+val register            : Ast.definition -> unit t
+val register_type       : Ast.type_definition -> unit t   (* todo remove this, only export register *)
 val lookup_type         : string -> Ast.type_definition option t
 
 val map                 : f:('a -> 'b t) -> 'a list -> 'b list t
 val fold_left           : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
+val iter                : f:('a -> unit t) -> 'a list -> unit t
 val lift                : f:('a -> 'b) -> 'a t -> 'b t
