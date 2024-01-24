@@ -155,7 +155,10 @@ module Enums = struct
 end
 
 
-let pp_type_definition (original : sail_definition) (type_definition : type_definition) : document =
+let pp_type_definition
+      (original        : sail_definition)
+      (type_definition : type_definition) : document
+  =
   let document =
     match type_definition with
     | TD_abbreviation abbrev -> TypeAbbreviations.pp_definition abbrev
