@@ -92,8 +92,8 @@ module Enums = struct
     let identifier = pp_identifier @@ enum_definition.identifier ^ "Constructor"
     and typ = pp_identifier "Set"
     in
-    Coq.build_inductive_type identifier typ (fun add_constructor ->
-        List.iter
+    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+        AC.iter
           ~f:(fun (case : string) ->
               add_constructor @@ string @@ "K" ^ case)
           enum_definition.cases
@@ -108,16 +108,19 @@ module Enums = struct
     and constructor_of_enum (enum_definition : enum_definition) =
       string @@ "E" ^ String.lowercase enum_definition.identifier
     in
-    Coq.build_inductive_type
+    let inductive_type =
+    Coq.mbuild_inductive_type
       identifier
       typ
       (fun add_constructor ->
-         List.iter
+         AC.iter
            ~f:(fun enum_identifier ->
                add_constructor (constructor_of_enum enum_identifier)
              )
            enum_definitions
       )
+    in
+    Coq.annotate inductive_type
 
   let generate_no_confusions (enum_definitions : (sail_definition * enum_definition) list) =
     let enum_definitions = List.map ~f:snd enum_definitions
