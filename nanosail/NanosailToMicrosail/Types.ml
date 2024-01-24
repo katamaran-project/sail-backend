@@ -65,7 +65,7 @@ end
 
 
 module TypeAbbreviations = struct
-  let pp_definition (type_abbreviation : type_abbreviation_definition) : AC.annotation AC.t =
+  let generate (type_abbreviation : type_abbreviation_definition) : AC.annotation AC.t =
     let { identifier; abbreviation } = type_abbreviation
     in
     match abbreviation with
@@ -169,7 +169,7 @@ let pp_type_definition
   =
   let document =
     match type_definition with
-    | TD_abbreviation abbrev -> TypeAbbreviations.pp_definition abbrev
+    | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | TD_enum enum           -> Enums.pp_definition enum
     | TD_variant variant     -> Variants.generate variant
   in
