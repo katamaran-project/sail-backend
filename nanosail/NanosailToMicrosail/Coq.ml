@@ -374,11 +374,11 @@ let annotate_with_original_definitions originals translation =
     Configuration.(get include_original_code)
   then
     concat @@
-        build_list (fun { add; _ } ->
+        build_list begin fun { add; _ } ->
             add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
             add hardline;
             add translation
-          )
+          end
   else
     translation
 
