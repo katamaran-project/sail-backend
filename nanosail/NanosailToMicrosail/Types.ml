@@ -8,7 +8,7 @@ module AC = AnnotationContext
 
 
 module Variants = struct
-  let pp_definition (variant_definition : variant_definition) : AC.annotation AC.t =
+  let generate_inductive_type (variant_definition : variant_definition) : AC.annotation AC.t =
     let { identifier; type_quantifier; constructors } = variant_definition
     in
     let inductive_type =
@@ -42,6 +42,25 @@ module Variants = struct
         end
     in
     inductive_type
+
+  let generate_constructors_inductive_type (variant_definition  : variant_definition) =
+    let identifier = pp_identifier @@ variant_definition.identifier ^ "Constructor"
+    and typ = pp_identifier "Set"
+    and constructor_names = List.map ~f:fst variant_definition.constructors
+    in
+    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+        AC.iter constructor_names
+          ~f:(fun (case : string) -> add_constructor @@ string @@ "K" ^ case)
+      )
+
+  let generate (variant_definition : variant_definition) =
+    let* inductive_type = generate_inductive_type variant_definition
+    and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
+    in
+    AC.return @@ PP.separate (twice hardline) [
+        inductive_type;
+        constructors_inductive_type
+      ]
 end
 
 
@@ -86,19 +105,6 @@ module Enums = struct
     in
     Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
         AC.iter ~f:add_constructor @@ List.map ~f:string enum_definition.cases
-      )
-
-  let generate_constructors_inductive_type
-        (_sail_definition : sail_definition)
-        (enum_definition  : enum_definition) =
-    let identifier = pp_identifier @@ enum_definition.identifier ^ "Constructor"
-    and typ = pp_identifier "Set"
-    in
-    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
-        AC.iter
-          ~f:(fun (case : string) ->
-              add_constructor @@ string @@ "K" ^ case)
-          enum_definition.cases
       )
 
   let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
@@ -165,6 +171,6 @@ let pp_type_definition
     match type_definition with
     | TD_abbreviation abbrev -> TypeAbbreviations.pp_definition abbrev
     | TD_enum enum           -> Enums.pp_definition enum
-    | TD_variant variant     -> Variants.pp_definition variant
+    | TD_variant variant     -> Variants.generate variant
   in
   Coq.annotate_with_original_definition original (Coq.annotate document)
