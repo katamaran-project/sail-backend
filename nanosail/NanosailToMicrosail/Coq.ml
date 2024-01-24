@@ -455,7 +455,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
           )
     in
     let make_line (left, right) =
-      separate space (
+      (twice space) ^^ separate space (
           build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ Util.pad_right longest_left_part left;
