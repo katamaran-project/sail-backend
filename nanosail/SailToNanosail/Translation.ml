@@ -808,4 +808,3 @@ let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.pr
   match result with
   | TC.Success definitions -> { program_name = name; definitions  = definitions }
   | TC.Failure _           -> failwith "Bug: failures should have been recovered from earlier"
-
