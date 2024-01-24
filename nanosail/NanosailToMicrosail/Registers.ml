@@ -37,6 +37,17 @@ let no_confusion_for_reg () =
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
+(*
+  Defines RegName inductive type enumerating all registers
+
+  Inductive RegName : Set :=
+  | R1
+  | R2
+  | R3
+  | R4
+.
+
+ *)
 let regnames (register_definitions : (sail_definition * register_definition) list) =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
