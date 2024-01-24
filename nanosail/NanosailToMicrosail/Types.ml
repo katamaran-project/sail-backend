@@ -88,7 +88,9 @@ module Enums = struct
         AC.iter ~f:add_constructor @@ List.map ~f:string enum_definition.cases
       )
 
-  let generate_constructors_inductive_type (_sail_definition : sail_definition) (enum_definition : enum_definition) =
+  let generate_constructors_inductive_type
+        (_sail_definition : sail_definition)
+        (enum_definition  : enum_definition) =
     let identifier = pp_identifier @@ enum_definition.identifier ^ "Constructor"
     and typ = pp_identifier "Set"
     in
