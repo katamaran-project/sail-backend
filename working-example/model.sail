@@ -3,7 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 
-enum foo = A | B | C
+enum foo = AAAA | BBBB | CCCC
 
 union ast = {
   Add : (int, int),
@@ -19,9 +19,9 @@ register R4 : foo
 val bar : int -> int
 function bar(x) = {
   match R1 {
-    A => 0,
-    B => 1,
-    C => 2
+    AAAA => 0,
+    BBBB => 1,
+    CCCC => 2
   }
 }
 
