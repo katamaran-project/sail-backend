@@ -99,7 +99,7 @@ end
 
 
 module Enums = struct
-  let pp_definition (enum_definition : enum_definition) : AC.annotation AC.t =
+  let generate (enum_definition : enum_definition) : AC.annotation AC.t =
     let identifier = pp_identifier enum_definition.identifier
     and typ = pp_identifier "Set"
     in
@@ -170,7 +170,7 @@ let pp_type_definition
   let document =
     match type_definition with
     | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
-    | TD_enum enum           -> Enums.pp_definition enum
+    | TD_enum enum           -> Enums.generate enum
     | TD_variant variant     -> Variants.generate variant
   in
   Coq.annotate_with_original_definition original (Coq.annotate document)
