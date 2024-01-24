@@ -62,9 +62,9 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_bitvector n       -> let* n' = pp_numeric_expression n in AC.return @@ string "bv" ^^ space ^^ n'
   | Ty_list t            -> let* t' = coq_type_of_nanotype t in AC.return @@ PP.(separate space [ string "list"; parens t' ])
   | Ty_custom id         -> AC.return @@ string id
+  | Ty_app (t, ts)       -> let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts in AC.return @@ string t ^^ space ^^ separate space ts'
   | Ty_tuple _ts         -> AC.not_yet_implemented [%here]
   | Ty_atom              -> AC.not_yet_implemented [%here]
-  | Ty_app (_t1, _t2)    -> AC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with
