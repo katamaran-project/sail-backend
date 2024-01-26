@@ -16,11 +16,7 @@ $files.each_cons(2).with_index do |(original, updated), index|
   rewrite_title = $1
 
   filename = "delta-#{(index+1).to_s.rjust(2, '0')}-#{rewrite_title}.diff"
-  command = "diff #{original} #{updated} >> #{filename}"
-
-  IO.write filename, <<~END
-  #{command}
-  END
+  command = "diff -U 1000 #{original} #{updated} > #{filename}"
 
   `#{command}`
 end
