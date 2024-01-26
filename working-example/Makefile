@@ -13,7 +13,7 @@ microsail.v:
 
 .PHONY: rename
 rename:
-	$(RUBY) ../rename-rewrites.rb
+	$(RUBY) ../process-rewrites.rb
 
 coq:
 	$(COQ) $(COQ_FILE)
