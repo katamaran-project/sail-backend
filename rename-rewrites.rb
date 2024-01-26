@@ -12,12 +12,15 @@ end
 $files.sort!
 
 $files.each_cons(2).with_index do |(original, updated), index|
-  filename = "delta-#{(index+1).to_s.rjust(2, '0')}.diff"
+  updated =~ /rewrite-\d+-(.*)\.sail/ or abort "could not parse #{updated}"
+  rewrite_title = $1
+
+  filename = "delta-#{(index+1).to_s.rjust(2, '0')}-#{rewrite_title}.diff"
   command = "diff #{original} #{updated} >> #{filename}"
-  
+
   IO.write filename, <<~END
   #{command}
   END
-  
+
   `#{command}`
 end
