@@ -825,10 +825,7 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
           let location_string =
             Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
           and pretty_printed_sail_code =
-            let buffer = Buffer.create 10000
-            in
-            PPrint.ToBuffer.pretty 1.0 100 buffer (pp_sail_definition sail_definition);
-            Buffer.contents buffer
+            string_of_sail_definition sail_definition
           in
           failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
         end
