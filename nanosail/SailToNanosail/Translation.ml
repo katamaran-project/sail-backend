@@ -385,7 +385,10 @@ and statement_of_match (location : S.l                                          
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
   =
   let rec match_list () =
-    let* () = TC.check [%here] (List.length cases = 2) "matching list; expected exactly two cases"
+    let* () =
+      let error_message = lazy "matching list; expected exactly two cases"
+      in
+      TC.check [%here] (List.length cases = 2) error_message
     in
     let* nil_case, cons_case =
       match cases with
@@ -425,7 +428,12 @@ and statement_of_match (location : S.l                                          
     | _ -> TC.fail [%here] "list cases do not have expected structure"
 
   and match_tuple () =
-    let* () = TC.check [%here] (List.length cases = 1) "match tuple; expected only one case"
+    let* () =
+      let n_cases = List.length cases
+      in
+      let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
+      in
+      TC.check [%here] (n_cases = 1) error_message
     in
     match cases with
     | [ (AP_aux (AP_tuple [
@@ -465,12 +473,13 @@ and statement_of_match (location : S.l                                          
       let n_match_cases = List.length cases
       and n_enum_cases = List.length enum_definition.cases
       in
-      let error_message =
-        Printf.sprintf
-          "expected as many match cases (%d) as there are enum values (%d)\nSail code location: %s"
-          n_match_cases
-          n_enum_cases
-          (string_of_location location)
+      let error_message = lazy begin
+                              Printf.sprintf
+                                "expected as many match cases (%d) as there are enum values (%d)\nSail code location: %s"
+                                n_match_cases
+                                n_enum_cases
+                                (string_of_location location)
+                            end
       in
       TC.check [%here] (n_match_cases = n_enum_cases) error_message
     in
@@ -484,10 +493,18 @@ and statement_of_match (location : S.l                                          
           match id with
           | S.Operator  _   -> TC.not_yet_implemented [%here] location
           | S.Id identifier -> begin
-              let* () = TC.check
+              let* () =
+                let error_message = lazy begin
+                                        Printf.sprintf
+                                          "encountered unknown case %s while matching an %s value"
+                                          identifier
+                                          enum_definition.identifier
+                                      end
+                in
+                TC.check
                           [%here]
                           (List.mem enum_definition.cases identifier ~equal:String.equal)
-                          (Printf.sprintf "encountered unknown case %s while matching an %s value" identifier enum_definition.identifier)
+                          error_message
               in
               let* body' = statement_of_aexp body
               in

@@ -55,7 +55,7 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
 
 let check ocaml_position condition message =
   if not condition
-  then Monad.fail @@ AssertionFailure (ocaml_position, message)
+  then Monad.fail @@ AssertionFailure (ocaml_position, Lazy.force message)
   else Monad.return ()
 
 let fail ocaml_position message =
