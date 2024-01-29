@@ -475,10 +475,9 @@ and statement_of_match (location : S.l                                          
       in
       let error_message = lazy begin
                               Printf.sprintf
-                                "expected as many match cases (%d) as there are enum values (%d)\nSail code location: %s"
+                                "expected as many match cases (%d) as there are enum values (%d)"
                                 n_match_cases
                                 n_enum_cases
-                                (string_of_location location)
                             end
       in
       TC.check [%here] (n_match_cases = n_enum_cases) error_message
