@@ -789,11 +789,35 @@ let translate_impl_definition
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
-      (value_specification : N.type_annotation S.val_spec)
+      (let_definition : N.type_annotation S.letbind)
   =
-  let S.VS_aux (S.VS_val_spec (S.TypSchm_aux (S.TypSchm_ts (_, _), _), _, _), (location, _type_annotation)) = value_specification
+  let S.LB_aux (S.LB_val (S.P_aux (pattern, (pattern_location, _)), _expression), (_location, _type_annotation)) = let_definition
   in
-  TC.not_yet_implemented [%here] location
+  match pattern with
+  | S.P_id identifier -> begin
+      match identifier with
+      | S.Id_aux (S.Id _, _)  -> begin
+          TC.not_yet_implemented [%here] pattern_location
+        end
+      | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
+    end
+  | S.P_lit _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_wild                       -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_or (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_not _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_as (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_typ (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_var (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_app (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector _                   -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector_concat _            -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector_subrange (_, _, _)  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_tuple _                    -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_list _                     -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_cons (_, _)                -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_string_append _            -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_struct (_, _)              -> TC.not_yet_implemented [%here] pattern_location
+  
 
 let translate_top_level_outcome_definition
       (_definition_annotation : S.def_annot)
