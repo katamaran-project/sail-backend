@@ -11,3 +11,6 @@ let rec string_of_location (location : Libsail.Parse_ast.l) =
   | Generated loc           -> Printf.sprintf "GeneratedLocation(%s)" (string_of_location loc)
   | Hint (hint, loc1, loc2) -> Printf.sprintf "HintLocation(%s, %s, %s)" hint (string_of_location loc1) (string_of_location loc2)
   | Range (pos1, pos2)      -> Printf.sprintf "Range(%s-%s)" (string_of_position pos1) (string_of_position pos2)
+
+let pp_sail_definition sail_definition =
+  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
