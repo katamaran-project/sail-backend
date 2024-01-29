@@ -854,10 +854,10 @@ let translate_value_definition
   match pattern with
   | S.P_id identifier -> begin
       match identifier with
-      | S.Id_aux (S.Id _, _)  -> begin
-          let* _expression' = translate_expression expression
+      | S.Id_aux (S.Id identifier, _identifier_location)  -> begin
+          let* value = translate_expression expression
           in
-          TC.not_yet_implemented [%here] pattern_location
+          TC.return @@ N.ValueDefinition { identifier; value }
         end
       | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
     end
