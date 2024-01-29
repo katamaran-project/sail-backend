@@ -129,6 +129,13 @@ let list_tests =
       ("(all? (lambda (x) (> x 2)) '(1 2 3))", Bool false);
       ("(all? (lambda (x) (> x 1)) '(1 2 3))", Bool false);
       ("(all? (lambda (x) (> x 0)) '(1 2 3))", Bool true);
+      ("(contains? '() 1)", Bool false);
+      ("(contains? '(1) 1)", Bool true);
+      ("(contains? '(1 2) 1)", Bool true);
+      ("(contains? '(1 2) 3)", Bool false);
+      ("(contains? '(#t 2) 3)", Bool false);
+      ("(contains? '(#t 2) #f)", Bool false);
+      ("(contains? '(#t 2) #t)", Bool true);
     ]
   in
   "lists" >::: List.map ~f:(uncurry test_run) test_cases
