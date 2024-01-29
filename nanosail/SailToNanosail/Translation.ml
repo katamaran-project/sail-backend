@@ -184,7 +184,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   | Typ_var _                       -> TC.not_yet_implemented [%here] location
   | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
   | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
-  | Typ_exist (_, _, _)             -> TC.not_yet_implemented [%here] location
+  | Typ_exist (ids, nc, typ)        -> begin
+      let ids' = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
+      and numeric_constraint' = Libsail.Ast_util.string_of_n_constraint nc
+      and typ' = Libsail.Ast_util.string_of_typ typ
+      in
+      Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ';
+      nanotype_of_sail_type typ
+    end
 
 
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
