@@ -58,6 +58,15 @@ let all args =
   M.mk_multimethod [ impl ] args
 
 
+let contains args =
+  let impl args =
+    let=? list, value = M.(map2 (list value) value) args
+    in
+    EC.return @@ Option.some @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
+  in
+  M.mk_multimethod [ impl ] args
+
+
 let library env =
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
       callable "cons" cons;
@@ -65,4 +74,5 @@ let library env =
       callable "cdr" cdr;
       callable "any?" any;
       callable "all?" all;
+      callable "contains?" contains
     )
