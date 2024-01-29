@@ -275,6 +275,10 @@ module Extract = struct
   let top_level_type_constraint_definition = function
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
+
+  let value_definition = function
+    | ValueDefinition x -> Some x
+    | _                 -> None
 end
 
 
