@@ -173,18 +173,18 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   in
 
   match typ with
+  | Typ_tuple items -> begin
+      let* items' = TC.map ~f:nanotype_of_sail_type items
+      in
+      TC.return @@ N.Ty_tuple items'
+    end
+  | Typ_id id                       -> type_of_identifier id
+  | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
   | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
   | Typ_var _                       -> TC.not_yet_implemented [%here] location
   | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
   | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
   | Typ_exist (_, _, _)             -> TC.not_yet_implemented [%here] location
-  | Typ_id id                       -> type_of_identifier id
-  | Typ_tuple items                 -> begin
-      let* items' = TC.map ~f:nanotype_of_sail_type items
-      in
-      TC.return @@ N.Ty_tuple items'
-    end
-  | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
 
 
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
