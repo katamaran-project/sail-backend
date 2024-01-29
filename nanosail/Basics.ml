@@ -1,12 +1,5 @@
 open Base
-open PPrint
-open Monads.Notations.Star(AnnotationContext)
 
-module AC = AnnotationContext
-module PP = PPrint
-
-
-let pp_identifier = string
 
 let string_of_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
   Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum

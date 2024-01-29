@@ -1,4 +1,5 @@
 open Base
+open Basics
 
 module Big_int = Nat_big_num
 
@@ -464,7 +465,12 @@ and statement_of_match (location : S.l                                          
       let n_match_cases = List.length cases
       and n_enum_cases = List.length enum_definition.cases
       in
-      let error_message = Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
+      let error_message =
+        Printf.sprintf
+          "expected as many match cases (%d) as there are enum values (%d)\nSail code location: %s"
+          n_match_cases
+          n_enum_cases
+          (string_of_location location)
       in
       TC.check [%here] (n_match_cases = n_enum_cases) error_message
     in

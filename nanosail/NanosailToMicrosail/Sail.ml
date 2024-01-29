@@ -1,5 +1,4 @@
 open Base
-open Basics
 open PPrint
 open Ast
 open Nanotype
@@ -8,6 +7,8 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 module PP = PPrint
 
+
+let pp_identifier = string
 
 let pp_bind (arg, t) =
   let* t' = pp_nanotype t in

@@ -1,10 +1,11 @@
 open Base
 open PPrint
 open Ast
-open Basics
+open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
+module PP = PPrint
 
 
 module Variants = struct

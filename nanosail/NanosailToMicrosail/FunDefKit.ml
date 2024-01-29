@@ -3,7 +3,7 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open Basics
+open Identifier
 open Statements
 open Monads.Notations.Star(AnnotationContext)
 
