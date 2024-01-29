@@ -80,6 +80,7 @@ let register (definition : definition) =
   | RegisterDefinition _                 -> return ()
   | UntranslatedDefinition _             -> return ()
   | IgnoredDefinition                    -> return ()
+  | ValueDefinition _                    -> return ()
 
 let lookup_type (identifier : string) : type_definition option t =
   let* types = Monad.get Context.types
