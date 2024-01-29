@@ -474,10 +474,12 @@ and statement_of_match (location : S.l                                          
       and n_enum_cases = List.length enum_definition.cases
       in
       let error_message = lazy begin
+                              let enum_values = String.concat ~sep:", " enum_definition.cases
+                              in
                               Printf.sprintf
-                                "expected as many match cases (%d) as there are enum values (%d)"
+                                "expected as many match cases (%d) as there are enum values (%s)"
                                 n_match_cases
-                                n_enum_cases
+                                enum_values
                             end
       in
       TC.check [%here] (n_match_cases = n_enum_cases) error_message
