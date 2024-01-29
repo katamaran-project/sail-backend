@@ -789,7 +789,10 @@ let translate_impl_definition
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
-      (S.LB_aux (_definition, (location, _value_def_annotation))) =
+      (value_specification : N.type_annotation S.val_spec)
+  =
+  let S.VS_aux (S.VS_val_spec (S.TypSchm_aux (S.TypSchm_ts (_, _), _), _, _), (location, _type_annotation)) = value_specification
+  in
   TC.not_yet_implemented [%here] location
 
 let translate_top_level_outcome_definition
