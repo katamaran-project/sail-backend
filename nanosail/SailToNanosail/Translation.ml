@@ -477,12 +477,13 @@ and statement_of_match (location : S.l                                          
                               let enum_values = String.concat ~sep:", " enum_definition.cases
                               in
                               Printf.sprintf
-                                "expected as many match cases (%d) as there are enum values (%s)"
+                                "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
                                 n_match_cases
+                                n_enum_cases
                                 enum_values
                             end
       in
-      TC.check [%here] (n_match_cases = n_enum_cases) error_message
+      TC.check [%here] (n_match_cases <= n_enum_cases) error_message
     in
     let process_case
           (table      : N.statement StringMap.t                     )
