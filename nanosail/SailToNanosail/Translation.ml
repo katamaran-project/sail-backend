@@ -457,11 +457,16 @@ and statement_of_match (location : S.l                                          
     | S.Operator _ -> TC.not_yet_implemented [%here] location
 
   and match_enum (enum_definition : N.enum_definition) =
+    (*
+      at this point we know that matched is a value of an enum described by the parameter enum_definition
+    *)
     let* () =
       let n_match_cases = List.length cases
       and n_enum_cases = List.length enum_definition.cases
       in
-      TC.check [%here] (n_match_cases = n_enum_cases) @@ Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
+      let error_message = Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
+      in
+      TC.check [%here] (n_match_cases = n_enum_cases) error_message
     in
     let process_case
           (table      : N.statement StringMap.t                     )
@@ -489,6 +494,7 @@ and statement_of_match (location : S.l                                          
               | `Ok table -> TC.return table
             end
         end
+      | S.AP_wild S.Typ_aux (_, loc) -> TC.not_yet_implemented [%here] loc
       | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
@@ -496,7 +502,6 @@ and statement_of_match (location : S.l                                          
       | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_wild _         -> TC.fail [%here] "unexpected case while matching on enum"
     in
     let* matched =
       let* expr = expression_of_aval location matched
