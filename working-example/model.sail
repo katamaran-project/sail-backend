@@ -34,6 +34,10 @@ function qux(xs : list(int)) = {
   }
 }
 
-
+mapping double_map : int <-> foo = {
+  1 <-> AAAA,
+  2 <-> BBBB,
+  3 <-> CCCC
+}
 
 // mapping clause instruction_mapping = ADD(n) <-> n @ 0b001
