@@ -516,10 +516,19 @@ and statement_of_match (location : S.l                                          
               | `Duplicate -> TC.fail
                                 [%here]
                                 (Printf.sprintf "duplicate case %s in enum match" identifier)
-              | `Ok table -> TC.return table
+              | `Ok table' -> TC.return table'
             end
         end
-      | S.AP_wild S.Typ_aux (_, loc) -> TC.not_yet_implemented [%here] loc
+      | S.AP_wild S.Typ_aux (_, _loc) -> begin
+          let* body' = statement_of_aexp body
+          in
+          let add_case table case =
+            match StringMap.add table ~key:case ~data:body' with
+            | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
+            | `Ok table' -> table'
+          in
+          TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
+        end
       | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
