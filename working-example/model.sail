@@ -3,17 +3,25 @@ default Order dec
 $include <prelude.sail>
 
 
-enum foo = A | B | C
+enum foo = AAAA | BBBB | CCCC
 
-register R : foo
+union ast = {
+  Add : (int, int),
+  Lit : int
+}
+
+register R1 : foo
+register R2 : foo
+register R3 : foo
+register R4 : foo
 
 
 val bar : int -> int
 function bar(x) = {
-  match R {
-    A => 0,
-    B => 1,
-    C => 2
+  match R1 {
+    AAAA => 0,
+    BBBB => 1,
+    CCCC => 2
   }
 }
 
@@ -26,6 +34,10 @@ function qux(xs : list(int)) = {
   }
 }
 
-
+mapping double_map : int <-> foo = {
+  1 <-> AAAA,
+  2 <-> BBBB,
+  3 <-> CCCC
+}
 
 // mapping clause instruction_mapping = ADD(n) <-> n @ 0b001

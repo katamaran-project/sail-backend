@@ -55,7 +55,7 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
 
 let check ocaml_position condition message =
   if not condition
-  then Monad.fail @@ AssertionFailure (ocaml_position, message)
+  then Monad.fail @@ AssertionFailure (ocaml_position, Lazy.force message)
   else Monad.return ()
 
 let fail ocaml_position message =
@@ -71,6 +71,16 @@ let register_type (type_definition : type_definition) =
   match add_result with
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> Monad.put Context.types types'
+
+let register (definition : definition) =
+  match definition with
+  | TypeDefinition type_definition       -> register_type type_definition
+  | TopLevelTypeConstraintDefinition _   -> return ()
+  | FunctionDefinition _                 -> return ()
+  | RegisterDefinition _                 -> return ()
+  | UntranslatedDefinition _             -> return ()
+  | IgnoredDefinition                    -> return ()
+  | ValueDefinition _                    -> return ()
 
 let lookup_type (identifier : string) : type_definition option t =
   let* types = Monad.get Context.types

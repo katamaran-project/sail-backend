@@ -23,9 +23,7 @@
                  sail
                  pprint
                  auxlib
-                 accessor_base
                  base
-                 ppx_accessor
                  ppx_here
                  configlib)
 	(allow_empty))

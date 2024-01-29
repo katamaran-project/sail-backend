@@ -152,11 +152,13 @@ and match_pattern_enum =
     cases      : statement StringMap.t
   }
 
+
 type function_definition = {
   function_name : string;
   function_type : function_type;
   function_body : statement;
 }
+
 
 type untranslated_definition =
   {
@@ -166,22 +168,26 @@ type untranslated_definition =
     message       : string option      ;
   }
 
+
 type register_definition =
   {
     identifier : string  ;
     typ        : nanotype;
   }
 
+
 type type_abbreviation =
   | TA_numeric_expression of type_quantifier * numeric_expression
   | TA_numeric_constraint of type_quantifier * numeric_constraint
   | TA_alias              of type_quantifier * nanotype
+
 
 type type_abbreviation_definition =
   {
     identifier   : string;
     abbreviation : type_abbreviation
   }
+
 
 type variant_definition =
   {
@@ -190,21 +196,31 @@ type variant_definition =
     constructors    : (string * nanotype) list;
   }
 
+
 type enum_definition =
   {
     identifier : string     ;
     cases      : string list;
   }
 
+
 type top_level_type_constraint_definition =
   {
     identifier : string;
   }
 
+
 type type_definition =
   | TD_abbreviation of type_abbreviation_definition
   | TD_variant      of variant_definition
   | TD_enum         of enum_definition
+
+
+type value_definition =
+  {
+    identifier : string   ;
+    value      : statement;
+  }
 
 
 type definition =
@@ -213,7 +229,9 @@ type definition =
   | TypeDefinition                   of type_definition
   | RegisterDefinition               of register_definition
   | UntranslatedDefinition           of untranslated_definition
+  | ValueDefinition                  of value_definition
   | IgnoredDefinition
+
 
 type program = {
     program_name : string;
@@ -257,6 +275,10 @@ module Extract = struct
   let top_level_type_constraint_definition = function
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
+
+  let value_definition = function
+    | ValueDefinition x -> Some x
+    | _                 -> None
 end
 
 

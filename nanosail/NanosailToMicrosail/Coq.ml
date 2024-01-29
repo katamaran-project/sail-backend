@@ -1,12 +1,13 @@
 open Base
 open PPrint
 open Auxlib
-open Basics
+open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
 
 module Big_int = Nat_big_num
+module PP = PPrint
 
 
 let eol = dot
@@ -144,79 +145,6 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   and last_line = line @@ separate space [ string "End"; string identifier ]
   in
   Util.pp_indented_enclosed_lines first_line contents last_line
-
-
-let build_inductive_type identifier typ constructor_generator =
-  let constructors =
-    let result = ref []
-    in
-    let generate_case
-          ?(parameters : document = empty)
-          ?(typ        : document = empty)
-          (identifier  : document) =
-      result := (identifier, parameters, typ) :: !result
-    in
-    constructor_generator generate_case;
-    List.rev !result
-  in
-  let first_line =
-    separate space (
-        build_list (fun { add; _ } ->
-            add @@ string "Inductive";
-            add identifier;
-            if requirement typ > 0
-            then
-              (
-                add colon;
-                add typ
-              );
-            add @@ string ":="
-          )
-      )
-  in
-  let constructor_lines =
-    let pairs =
-      List.map constructors ~f:(fun (id, params, typ) ->
-          separate space (
-              build_list (fun { add; _ } ->
-                  add id;
-                  if requirement params > 0
-                  then add params
-                )
-            ),
-          typ
-        )
-    in
-    let longest_left_part =
-      if List.is_empty pairs
-      then 0
-      else
-        maximum (
-            List.map ~f:(fun (left, _) -> requirement left) pairs
-          )
-    in
-    let make_line (left, right) =
-      separate space (
-          build_list (fun { add; _ } ->
-              add @@ string "|";
-              add @@ Util.pad_right longest_left_part left;
-              if requirement right > 0
-              then (
-                add colon;
-                add right
-              )
-            )
-        )
-    in
-    List.map ~f:make_line pairs
-  in
-  let lines =
-    build_list (fun { add; addall } ->
-        add first_line;
-        addall constructor_lines
-      )
-  in
-  separate hardline lines ^^ hardline ^^ eol
 
 let definition
       ~(identifier  : document)
@@ -372,11 +300,11 @@ let annotate_with_original_definitions originals translation =
     Configuration.(get include_original_code)
   then
     concat @@
-        build_list (fun { add; _ } ->
+        build_list begin fun { add; _ } ->
             add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
             add hardline;
             add translation
-          )
+          end
   else
     translation
 
@@ -400,9 +328,9 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
     let result = ref []
     in
     let generate_case
-          ?(parameters : document = empty)
-          ?(typ        : document = empty)
-          (identifier  : document) =
+          ?(parameters  : document = empty)
+          ?(typ         : document = empty)
+           (identifier  : document        ) =
       result := (identifier, parameters, typ) :: !result;
       AC.return ()
     in
@@ -453,7 +381,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
           )
     in
     let make_line (left, right) =
-      separate space (
+      (twice space) ^^ separate space (
           build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ Util.pad_right longest_left_part left;
@@ -475,9 +403,31 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
   in
   AC.return @@ separate hardline lines ^^ hardline ^^ eol
 
-let finite_instance ~(identifier : string) ~(type_name : string) ~(values : string list) =
+let finite_instance
+      ~(identifier : string )
+      ~(type_name : string  )
+      ~(values : string list)
+  =
+  let enum_values =
+    PP.(group (separate (semi ^^ break 1) (List.map ~f:string values)))
+  in
   PP.separate PP.hardline [
-    PP.string @@ Printf.sprintf "#[export,program] Instance %s_finite : Finite %s :=" identifier type_name;
-    PP.string @@ Printf.sprintf "  {| enum := [%s] |}." (String.concat ~sep:"; " values)
+      PP.separate space [
+          string "#[export,program]";
+          string "Instance";
+          string @@ identifier ^ "_finite";
+          colon;
+          string "Finite";
+          string type_name;
+          string ":=";
+        ];
+    twice space ^^ PP.separate space [
+                       string "{|";
+                       string "enum";
+                       string ":=";
+                       string "[";
+                       align @@ enum_values;
+                       string "]";
+                       string "|}"
+                     ]
   ]
-  

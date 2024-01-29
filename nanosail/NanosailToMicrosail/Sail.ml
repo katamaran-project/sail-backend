@@ -1,5 +1,4 @@
 open Base
-open Basics
 open PPrint
 open Ast
 open Nanotype
@@ -9,10 +8,11 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
+let pp_identifier = string
+
 let pp_bind (arg, t) =
   let* t' = pp_nanotype t in
   AC.return @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
-
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)

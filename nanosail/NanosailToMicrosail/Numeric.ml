@@ -2,7 +2,7 @@ open Base
 open PPrint
 open Ast
 open Monads.Notations.Star(AnnotationContext)
-open Basics
+open Identifier
 
 module AC = AnnotationContext
 module PP = PPrint

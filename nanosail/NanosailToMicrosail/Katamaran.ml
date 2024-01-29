@@ -20,7 +20,7 @@ let pp_program_module
       program_name
       base_name
       function_definitions
-      top_level_type_constraint_definitions =
+      (top_level_type_constraint_definitions : (sail_definition * top_level_type_constraint_definition) list)=
   let flag            = Coq.Import
   and identifier      = program_name ^ "Program"
   and base_identifier = base_name ^ "Base" in
@@ -80,6 +80,7 @@ let fromIR_pp ir =
       build_list (fun { add; addall } ->
           add    @@ pp_module_header "TYPES";
           add    @@ defaultBase;
+          add    @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
         )

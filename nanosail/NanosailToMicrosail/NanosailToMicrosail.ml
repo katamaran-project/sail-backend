@@ -1,6 +1,6 @@
 module AnnotationContext = AnnotationContext
-module Basics            = Basics
 module Coq               = Coq
+module Identifier        = Identifier
 module Sail              = Sail
 module Numeric           = Numeric
 module Nanotype          = Nanotype

@@ -3,8 +3,8 @@ open PPrint
 open Ast
 open Util
 open Numeric
-open Basics
 open Monads.Notations.Star(AnnotationContext)
+open Identifier
 
 module AC = AnnotationContext
 module PP = PPrint
@@ -60,11 +60,11 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_int               -> AC.return @@ string "Z"
   | Ty_string            -> AC.return @@ string "String.string"
   | Ty_bitvector n       -> let* n' = pp_numeric_expression n in AC.return @@ string "bv" ^^ space ^^ n'
+  | Ty_list t            -> let* t' = coq_type_of_nanotype t in AC.return @@ PP.(separate space [ string "list"; parens t' ])
+  | Ty_custom id         -> AC.return @@ string id
+  | Ty_app (t, ts)       -> let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts in AC.return @@ string t ^^ space ^^ separate space ts'
   | Ty_tuple _ts         -> AC.not_yet_implemented [%here]
   | Ty_atom              -> AC.not_yet_implemented [%here]
-  | Ty_list _t           -> AC.not_yet_implemented [%here]
-  | Ty_app (_t1, _t2)    -> AC.not_yet_implemented [%here]
-  | Ty_custom id         -> AC.return @@ string id
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with

@@ -3,7 +3,7 @@ open PPrint
 open Ast
 open Auxlib
 open Util
-open Basics
+open Identifier
 open Statements
 open Monads.Notations.Star(AnnotationContext)
 
@@ -53,7 +53,7 @@ let pp_function_definition
 
 let pp_function_definitions
       (function_definitions : (sail_definition * function_definition) list)
-      top_level_type_constraint_definitions =
+      (top_level_type_constraint_definitions : (sail_definition * top_level_type_constraint_definition) list) =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match

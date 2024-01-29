@@ -1,4 +1,5 @@
 open Base
+open Basics
 
 module Big_int = Nat_big_num
 
@@ -172,24 +173,89 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   in
 
   match typ with
-  | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
-  | Typ_var _                       -> TC.not_yet_implemented [%here] location
-  | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
-  | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
-  | Typ_exist (_, _, _)             -> TC.not_yet_implemented [%here] location
-  | Typ_id id                       -> type_of_identifier id
-  | Typ_tuple items                 -> begin
+  | Typ_tuple items -> begin
       let* items' = TC.map ~f:nanotype_of_sail_type items
       in
       TC.return @@ N.Ty_tuple items'
     end
+  | Typ_id id                       -> type_of_identifier id
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
+  | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
+  | Typ_var _                       -> TC.not_yet_implemented [%here] location
+  | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
+  | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
+  | Typ_exist (ids, nc, typ)        -> begin
+      let ids' = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
+      and numeric_constraint' = Libsail.Ast_util.string_of_n_constraint nc
+      and typ' = Libsail.Ast_util.string_of_typ typ
+      in
+      Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ';
+      nanotype_of_sail_type typ
+    end
 
 
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
   | Pat_when _       -> TC.not_yet_implemented [%here] location
+
+
+let translate_expression (expression : N.type_annotation S.exp) : N.statement TC.t =
+  let S.E_aux (expression, (location, _type_annotation)) = expression
+  in
+  match expression with
+  | S.E_lit literal -> begin
+     let S.L_aux (literal, _literal_location) = literal
+     in
+     match literal with
+      | S.L_unit     -> TC.not_yet_implemented [%here] location
+      | S.L_zero     -> TC.not_yet_implemented [%here] location
+      | S.L_one      -> TC.not_yet_implemented [%here] location
+      | S.L_true     -> TC.not_yet_implemented [%here] location
+      | S.L_false    -> TC.not_yet_implemented [%here] location
+      | S.L_num n    -> TC.return @@ N.Stm_exp (N.Exp_val (N.Val_int n))
+      | S.L_hex _    -> TC.not_yet_implemented [%here] location
+      | S.L_bin _    -> TC.not_yet_implemented [%here] location
+      | S.L_string _ -> TC.not_yet_implemented [%here] location
+      | S.L_undef    -> TC.not_yet_implemented [%here] location
+      | S.L_real _   -> TC.not_yet_implemented [%here] location
+    end
+  | S.E_block _                                -> TC.not_yet_implemented [%here] location
+  | S.E_id _                                   -> TC.not_yet_implemented [%here] location
+  | S.E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
+  | S.E_app (_, _)                             -> TC.not_yet_implemented [%here] location
+  | S.E_app_infix (_, _, _)                    -> TC.not_yet_implemented [%here] location
+  | S.E_tuple _                                -> TC.not_yet_implemented [%here] location
+  | S.E_if (_, _, _)                           -> TC.not_yet_implemented [%here] location
+  | S.E_loop (_, _, _, _)                      -> TC.not_yet_implemented [%here] location
+  | S.E_for (_, _, _, _, _, _)                 -> TC.not_yet_implemented [%here] location
+  | S.E_vector _                               -> TC.not_yet_implemented [%here] location
+  | S.E_vector_access (_, _)                   -> TC.not_yet_implemented [%here] location
+  | S.E_vector_subrange (_, _, _)              -> TC.not_yet_implemented [%here] location
+  | S.E_vector_update (_, _, _)                -> TC.not_yet_implemented [%here] location
+  | S.E_vector_update_subrange (_, _, _, _)    -> TC.not_yet_implemented [%here] location
+  | S.E_vector_append (_, _)                   -> TC.not_yet_implemented [%here] location
+  | S.E_list _                                 -> TC.not_yet_implemented [%here] location
+  | S.E_cons (_, _)                            -> TC.not_yet_implemented [%here] location
+  | S.E_struct _                               -> TC.not_yet_implemented [%here] location
+  | S.E_struct_update (_, _)                   -> TC.not_yet_implemented [%here] location
+  | S.E_field (_, _)                           -> TC.not_yet_implemented [%here] location
+  | S.E_match (_, _)                           -> TC.not_yet_implemented [%here] location
+  | S.E_let (_, _)                             -> TC.not_yet_implemented [%here] location
+  | S.E_assign (_, _)                          -> TC.not_yet_implemented [%here] location
+  | S.E_sizeof _                               -> TC.not_yet_implemented [%here] location
+  | S.E_return _                               -> TC.not_yet_implemented [%here] location
+  | S.E_exit _                                 -> TC.not_yet_implemented [%here] location
+  | S.E_ref _                                  -> TC.not_yet_implemented [%here] location
+  | S.E_throw _                                -> TC.not_yet_implemented [%here] location
+  | S.E_try (_, _)                             -> TC.not_yet_implemented [%here] location
+  | S.E_assert (_, _)                          -> TC.not_yet_implemented [%here] location
+  | S.E_var (_, _, _)                          -> TC.not_yet_implemented [%here] location
+  | S.E_internal_plet (_, _, _)                -> TC.not_yet_implemented [%here] location
+  | S.E_internal_return _                      -> TC.not_yet_implemented [%here] location
+  | S.E_internal_value _                       -> TC.not_yet_implemented [%here] location
+  | S.E_internal_assume (_, _)                 -> TC.not_yet_implemented [%here] location
+  | S.E_constraint _                           -> TC.not_yet_implemented [%here] location
 
 
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
@@ -384,7 +450,10 @@ and statement_of_match (location : S.l                                          
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
   =
   let rec match_list () =
-    let* () = TC.check [%here] (List.length cases = 2) "matching list; expected exactly two cases"
+    let* () =
+      let error_message = lazy "matching list; expected exactly two cases"
+      in
+      TC.check [%here] (List.length cases = 2) error_message
     in
     let* nil_case, cons_case =
       match cases with
@@ -424,7 +493,12 @@ and statement_of_match (location : S.l                                          
     | _ -> TC.fail [%here] "list cases do not have expected structure"
 
   and match_tuple () =
-    let* () = TC.check [%here] (List.length cases = 1) "match tuple; expected only one case"
+    let* () =
+      let n_cases = List.length cases
+      in
+      let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
+      in
+      TC.check [%here] (n_cases = 1) error_message
     in
     match cases with
     | [ (AP_aux (AP_tuple [
@@ -457,11 +531,24 @@ and statement_of_match (location : S.l                                          
     | S.Operator _ -> TC.not_yet_implemented [%here] location
 
   and match_enum (enum_definition : N.enum_definition) =
+    (*
+      at this point we know that matched is a value of an enum described by the parameter enum_definition
+    *)
     let* () =
       let n_match_cases = List.length cases
       and n_enum_cases = List.length enum_definition.cases
       in
-      TC.check [%here] (n_match_cases = n_enum_cases) @@ Printf.sprintf "expected as many match cases (%d) as there are enum values (%d)" n_match_cases n_enum_cases
+      let error_message = lazy begin
+                              let enum_values = String.concat ~sep:", " enum_definition.cases
+                              in
+                              Printf.sprintf
+                                "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
+                                n_match_cases
+                                n_enum_cases
+                                enum_values
+                            end
+      in
+      TC.check [%here] (n_match_cases <= n_enum_cases) error_message
     in
     let process_case
           (table      : N.statement StringMap.t                     )
@@ -473,10 +560,18 @@ and statement_of_match (location : S.l                                          
           match id with
           | S.Operator  _   -> TC.not_yet_implemented [%here] location
           | S.Id identifier -> begin
-              let* () = TC.check
+              let* () =
+                let error_message = lazy begin
+                                        Printf.sprintf
+                                          "encountered unknown case %s while matching an %s value"
+                                          identifier
+                                          enum_definition.identifier
+                                      end
+                in
+                TC.check
                           [%here]
                           (List.mem enum_definition.cases identifier ~equal:String.equal)
-                          (Printf.sprintf "encountered unknown case %s while matching an %s value" identifier enum_definition.identifier)
+                          error_message
               in
               let* body' = statement_of_aexp body
               in
@@ -486,8 +581,18 @@ and statement_of_match (location : S.l                                          
               | `Duplicate -> TC.fail
                                 [%here]
                                 (Printf.sprintf "duplicate case %s in enum match" identifier)
-              | `Ok table -> TC.return table
+              | `Ok table' -> TC.return table'
             end
+        end
+      | S.AP_wild S.Typ_aux (_, _loc) -> begin
+          let* body' = statement_of_aexp body
+          in
+          let add_case table case =
+            match StringMap.add table ~key:case ~data:body' with
+            | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
+            | `Ok table' -> table'
+          in
+          TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
         end
       | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
@@ -496,7 +601,6 @@ and statement_of_match (location : S.l                                          
       | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
       | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_wild _         -> TC.fail [%here] "unexpected case while matching on enum"
     in
     let* matched =
       let* expr = expression_of_aval location matched
@@ -743,8 +847,37 @@ let translate_impl_definition
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
-      (S.LB_aux (_definition, (location, _value_def_annotation))) =
-  TC.not_yet_implemented [%here] location
+      (let_definition : N.type_annotation S.letbind)
+  =
+  let S.LB_aux (S.LB_val (S.P_aux (pattern, (pattern_location, _)), expression), (_location, _type_annotation)) = let_definition
+  in
+  match pattern with
+  | S.P_id identifier -> begin
+      match identifier with
+      | S.Id_aux (S.Id identifier, _identifier_location)  -> begin
+          let* value = translate_expression expression
+          in
+          TC.return @@ N.ValueDefinition { identifier; value }
+        end
+      | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
+    end
+  | S.P_lit _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_wild                       -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_or (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_not _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_as (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_typ (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_var (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_app (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector _                   -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector_concat _            -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_vector_subrange (_, _, _)  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_tuple _                    -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_list _                     -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_cons (_, _)                -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_string_append _            -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_struct (_, _)              -> TC.not_yet_implemented [%here] pattern_location
+  
 
 let translate_top_level_outcome_definition
       (_definition_annotation : S.def_annot)
@@ -796,16 +929,22 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       | TC.AssertionFailure (ocaml_location, message) -> begin
           let location_string =
             Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
+          and pretty_printed_sail_code =
+            string_of_sail_definition sail_definition
           in
-          failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s" location_string message
+          failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
         end
     end
   end
 
 let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
-  let (result, _context) = TC.run @@ TC.map ~f:translate_definition ast.defs
+  let translate =
+    let* () = Prelude.register_types ()
+    in
+    TC.map ~f:translate_definition ast.defs
+  in
+  let (result, _context) = TC.run translate
   in
   match result with
   | TC.Success definitions -> { program_name = name; definitions  = definitions }
   | TC.Failure _           -> failwith "Bug: failures should have been recovered from earlier"
-

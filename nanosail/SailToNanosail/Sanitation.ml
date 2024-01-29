@@ -87,14 +87,13 @@ let coqify_identifiers (program : N.program) : N.program =
     (
       sail_definition,
       match definition with
+      | N.TypeDefinition def                 -> N.TypeDefinition (sanitize_type_definition def)
       | N.TopLevelTypeConstraintDefinition _ -> definition
       | N.FunctionDefinition _               -> definition
-      | N.TypeDefinition def                 -> N.TypeDefinition (sanitize_type_definition def)
       | N.RegisterDefinition _               -> definition
-      (* | N.VariantDefinition def              -> N.VariantDefinition (sanitize_variant_definition def) *)
-      (* | N.EnumDefinition _                   -> definition *)
       | N.UntranslatedDefinition _           -> definition
       | N.IgnoredDefinition                  -> definition
+      | N.ValueDefinition _                  -> definition
     )
   in
   {
