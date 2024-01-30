@@ -760,6 +760,7 @@ let translate_enum
 
 let translate_variant
       (_definition_annotation : S.def_annot      )
+      (_type_annotation       : 'a S.annot       )  (* todo specify 'a *)
       (identifier             : S.id             )
       (type_quantifier        : S.typquant       )
       (constructors           : S.type_union list)
@@ -783,6 +784,15 @@ let translate_variant
     }
 
 
+let translate_record
+      (_definition_annotation : S.def_annot        )
+      (_type_annotation       : 'a S.annot         )  (* todo specify 'a *)
+      (_identifier             : S.id               )
+      (_type_quantifier        : S.typquant         )
+      (_fields                 : (S.typ * S.id) list) =
+  TC.not_yet_implemented [%here] _definition_annotation.loc
+
+
 let translate_type_definition
       (definition_annotation     : S.def_annot                 )
       (annotated_type_definition : N.type_annotation S.type_def) : N.definition TC.t
@@ -798,9 +808,9 @@ let translate_type_definition
   in
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg)                      -> register @@ translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg
-  | TD_variant (identifier, type_quantifier, constructors, flag) -> register @@ translate_variant definition_annotation identifier type_quantifier constructors flag
+  | TD_variant (identifier, type_quantifier, constructors, flag) -> register @@ translate_variant definition_annotation type_annotation identifier type_quantifier constructors flag
   | TD_enum (identifier, cases, _)                               -> register @@ translate_enum definition_annotation type_annotation identifier cases
-  | TD_record (_, _, _, _)                                       -> TC.not_yet_implemented [%here] definition_annotation.loc
+  | TD_record (identifier, quantifier, fields, _)                -> register @@ translate_record definition_annotation type_annotation identifier quantifier fields
   | TD_bitfield (_, _, _)                                        -> TC.not_yet_implemented [%here] definition_annotation.loc
 
 let translate_top_level_type_constraint
