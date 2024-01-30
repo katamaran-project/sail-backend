@@ -21,7 +21,8 @@ let maximum ns =
 
 type 'a list_builder = {
     add : 'a -> unit;
-    addall : 'a list -> unit
+    addall : 'a list -> unit;
+    addopt : 'a option -> unit;
   }
 
 let build_list f =
@@ -30,8 +31,12 @@ let build_list f =
   let add_item item = list_under_construction := item :: !list_under_construction
   in
   let add_items items = List.iter ~f:add_item items
+  and add_optional item =
+    match item with
+    | Some item -> add_item item
+    | None      -> ()
   in
-  let context = { add = add_item; addall = add_items }
+  let context = { add = add_item; addall = add_items; addopt = add_optional }
   in
   f context;
   List.rev !list_under_construction
