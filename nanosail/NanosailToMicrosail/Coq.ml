@@ -436,6 +436,7 @@ let finite_instance
                      ]
   ]
 
+(* fields as (identifier, type) pairs *)
 let record
       ~(identifier  : document)
       ~(type_name   : document)
@@ -452,7 +453,10 @@ let record
       ]
   in
   let fields' =
-    List.map ~f:(fun (id, t) -> PP.separate space [ id; colon; t ]) fields
+    let longest_field_length =
+      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.requirement fst) fields
+    in
+    List.map ~f:(fun (id, t) -> PP.separate space [ PP.pad_right longest_field_length id; colon; t ]) fields
   in
   let body =
     PP.(separate hardline [
