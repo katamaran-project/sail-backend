@@ -5,11 +5,10 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 module PP = PPrint
 
-(* cleanup *)
-module Variants = Variants
+module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
-module Enums = Enums
-module Records = Records
+module Enums             = Enums
+module Records           = Records
 
 
 let pp_type_definition
