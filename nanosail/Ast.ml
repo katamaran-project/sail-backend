@@ -122,18 +122,18 @@ type binary_operator =
 
 type value =
   | Val_unit
-  | Val_bool of bool
-  | Val_int of Big_int.num
+  | Val_bool   of bool
+  | Val_int    of Big_int.num
   | Val_string of string
-  | Val_prod of value * value
+  | Val_prod   of value * value
 
 
 type expression =
-  | Exp_var of string
-  | Exp_val of value
-  | Exp_neg of expression     (* Not yet used by the sail to nanosail translator *)
-  | Exp_not of expression     (* Not yet used by the sail to nanosail translator *)
-  | Exp_list of expression list
+  | Exp_var   of string
+  | Exp_val   of value
+  | Exp_neg   of expression     (* Not yet used by the sail to nanosail translator *)
+  | Exp_not   of expression     (* Not yet used by the sail to nanosail translator *)
+  | Exp_list  of expression list
   | Exp_binop of binary_operator * expression * expression
 
 
