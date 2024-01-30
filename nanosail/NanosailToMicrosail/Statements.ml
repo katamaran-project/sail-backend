@@ -77,7 +77,7 @@ let rec pp_statement statement =
           let* matched' = pp_par_statement matched
           and* cases' = StringMap.fold cases ~init:(AC.return []) ~f:translate_case
           in
-          AC.return @@ separate hardline @@ build_list @@ fun { add; addall } -> begin
+          AC.return @@ separate hardline @@ build_list @@ fun { add; addall; _ } -> begin
             add @@ Coq.comment @@ string "TODO Fix this";
             add @@ separate space [ string "match"; matched'; string "with" ];
             addall cases'

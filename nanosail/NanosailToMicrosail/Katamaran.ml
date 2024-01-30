@@ -77,7 +77,7 @@ let fromIR_pp ir =
       ]
     in
     let segments =
-      build_list (fun { add; addall } ->
+      build_list (fun { add; addall; _ } ->
           add    @@ pp_module_header "TYPES";
           add    @@ defaultBase;
           add    @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
@@ -126,15 +126,16 @@ let fromIR_pp ir =
     Finite.generate ir.definitions
   in
   let sections =
-    [
-      prelude;
-      base;
-      program;
-      registers;
-      finite;
-      untranslated;
-      ignored
-    ]
+    build_list @@
+      fun { add; addopt; _ } -> begin
+          add    prelude;
+          add    base;
+          add    program;
+          add    registers;
+          addopt finite;
+          add    untranslated;
+          add    ignored
+        end
   in
   Util.separate_nonempty big_step sections
 

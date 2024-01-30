@@ -127,7 +127,7 @@ let line contents =
 
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
-    line @@ separate space @@ build_list (fun { add; addall } ->
+    line @@ separate space @@ build_list (fun { add; addall; _ } ->
         add @@ string "Module";
         begin
           match flag with
@@ -206,7 +206,7 @@ let match' expression cases =
     string "end"
   in
   let lines =
-    build_list (fun { add; addall } ->
+    build_list (fun { add; addall; _ } ->
         add    match_line;
         addall case_lines;
         add    final_line
@@ -345,7 +345,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
         )
     in
     separate space (
-        build_list (fun { add; addall } ->
+        build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
             addall parameters';
@@ -396,7 +396,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
     List.map ~f:make_line pairs
   in
   let lines =
-    build_list (fun { add; addall } ->
+    build_list (fun { add; addall; _ } ->
         add first_line;
         addall constructor_lines
       )

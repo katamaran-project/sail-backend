@@ -70,7 +70,7 @@ let instance_reg_eq_dec register_names =
         register_names
     and wildcard_case = ((string "_", string "_"), string "right _")
     in
-    Auxlib.build_list (fun { add; addall } ->
+    Auxlib.build_list (fun { add; addall; _ } ->
         addall cs;
         add wildcard_case
       )

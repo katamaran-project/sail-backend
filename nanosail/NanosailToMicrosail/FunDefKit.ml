@@ -99,7 +99,7 @@ let pp_function_definition_kit
   in
   let contents =
     separate small_step (
-        build_list (fun { add; addall } ->
+        build_list (fun { add; addall; _ } ->
             addall @@ pp_function_definitions function_definitions top_level_type_constraint_definitions;
             add fundef
           )

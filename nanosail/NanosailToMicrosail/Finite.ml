@@ -30,12 +30,26 @@ let generate (definitions : (sail_definition * definition) list) =
   and finite_registers =
     let register_definitions = select Extract.register_definition definitions
     in
-    generate_register_finiteness register_definitions
+    if List.is_empty register_definitions
+    then []
+    else [ generate_register_finiteness register_definitions ]
   in
-  let parts = build_list @@ fun { add; addall } -> begin
-                                add    @@ Coq.imports [ "stdpp.finite" ];
-                                add    @@ finite_registers;
-                                addall @@ finite_enums;
+  let finite_definitions =
+    build_list @@
+      fun { addall; _ } -> begin
+          addall finite_enums;
+          addall finite_registers;
+        end
+  in
+  if List.is_empty finite_definitions
+  then None
+  else begin
+      let parts =
+        build_list @@
+          fun { add; addall; _ } -> begin
+              add    @@ Coq.imports [ "stdpp.finite" ];
+              addall @@ finite_definitions;
+            end
+      in
+      Option.some @@ Coq.section "Finite" @@ PP.(separate (twice hardline) parts)
     end
-  in
-  Coq.section "Finite" @@ PP.(separate (twice hardline) parts)
