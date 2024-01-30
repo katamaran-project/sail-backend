@@ -19,10 +19,10 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let string_of_identifier (S.Id_aux (aux, _location)) : string =
+let string_of_identifier ocaml_location (S.Id_aux (aux, sail_location)) : string TC.t =
   match aux with
-  | Id x       -> x
-  | Operator x -> x
+  | Id x       -> TC.return x
+  | Operator _ -> TC.not_yet_implemented ocaml_location sail_location
 
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
@@ -799,14 +799,12 @@ let translate_record
   =
   let translate_field (field_type : S.typ) (field_identifier : S.id) =
     let* field_type'       = nanotype_of_sail_type field_type
-    in
-    let field_identifier' = string_of_identifier field_identifier
+    and* field_identifier' = string_of_identifier [%here] field_identifier
     in
     TC.return @@ (field_identifier', field_type')
   in
-  let identifier      = string_of_identifier identifier
-  in
-  let* type_quantifier = translate_type_quantifier type_quantifier
+  let* identifier      = string_of_identifier [%here] identifier
+  and* type_quantifier = translate_type_quantifier type_quantifier
   and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
   in
   TC.return @@ N.TD_record {
