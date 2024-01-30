@@ -49,17 +49,21 @@ let reg_definition () =
 
  *)
 let regnames (register_definitions : (sail_definition * register_definition) list) =
-  let register_names =
-    List.map ~f:(fun (_, def) -> def.identifier) register_definitions
-  in
-  let type_name = string "RegName"
-  and typ = string "Set"
-  in
-  let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
-                           AC.iter register_names ~f:(fun name -> add_constructor @@ string name)
-                         )
-  in
-  Coq.annotate inductive_type
+  if List.is_empty register_definitions
+  then None
+  else begin
+      let register_names =
+        List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+      in
+      let type_name = string "RegName"
+      and typ = string "Set"
+      in
+      let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
+                               AC.iter register_names ~f:(fun name -> add_constructor @@ string name)
+                             )
+      in
+      Option.some @@ Coq.annotate inductive_type
+    end
 
 let instance_reg_eq_dec register_names =
   let cases =

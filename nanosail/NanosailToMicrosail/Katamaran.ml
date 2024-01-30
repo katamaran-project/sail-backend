@@ -77,10 +77,10 @@ let fromIR_pp ir =
       ]
     in
     let segments =
-      build_list (fun { add; addall; _ } ->
+      build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
           add    @@ defaultBase;
-          add    @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
+          addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
         )

@@ -31,14 +31,14 @@ let generate (definitions : (sail_definition * definition) list) =
     let register_definitions = select Extract.register_definition definitions
     in
     if List.is_empty register_definitions
-    then []
-    else [ generate_register_finiteness register_definitions ]
+    then None
+    else Some (generate_register_finiteness register_definitions)
   in
   let finite_definitions =
     build_list @@
-      fun { addall; _ } -> begin
+      fun { addall; addopt; _ } -> begin
           addall finite_enums;
-          addall finite_registers;
+          addopt finite_registers;
         end
   in
   if List.is_empty finite_definitions
