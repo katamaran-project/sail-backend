@@ -82,7 +82,7 @@ let instance_reg_eq_dec register_names =
   separate hardline [
       utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
       utf8string "  fun '(existT σ x) '(existT τ y) =>";
-      Util.indent' (Coq.match_pair (string "x", string "y") cases) ^^ Coq.eol;
+      PP.indent' (Coq.match_pair (string "x", string "y") cases) ^^ Coq.eol;
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
 
@@ -100,7 +100,7 @@ let reg_finite register_names =
   separate hardline (
     [
       utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-      Util.indent' (
+      PP.indent' (
         Coq.record_value [
           (string "enum", enum_values)
         ]

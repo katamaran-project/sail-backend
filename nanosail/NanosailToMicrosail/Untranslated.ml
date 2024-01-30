@@ -1,9 +1,8 @@
 open Base
-open PPrint
+open PP
 open Ast
 open Auxlib
 open Basics
-open Util
 
 
 let generate untranslated_definitions =

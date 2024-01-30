@@ -1,8 +1,7 @@
 open Base
-open PPrint
+open PP
 open Ast
 open Auxlib
-open Util
 open Monads.Notations.Star(AnnotationContext)
 open FunDefKit
 open ForeignKit
@@ -137,7 +136,7 @@ let fromIR_pp ir =
           add    ignored
         end
   in
-  Util.separate_nonempty big_step sections
+  separate_nonempty big_step sections
 
 
 let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)

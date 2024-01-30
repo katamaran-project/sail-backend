@@ -1,5 +1,5 @@
 open Base
-open PPrint
+open PP
 open Auxlib
 open Identifier
 open Monads.Notations.Star(AnnotationContext)
@@ -8,10 +8,6 @@ module AC = AnnotationContext
 
 module Big_int = Nat_big_num
 
-module PP = struct
-  include PPrint
-  include Util
-end
 
 
 let eol = dot
@@ -32,7 +28,7 @@ let is_single_line string =
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
 let comment comment =
-  let str = Util.string_of_document comment
+  let str = string_of_document comment
   in
   if
     is_single_line str
@@ -48,13 +44,13 @@ let comment comment =
     concat [
         left_comment_delimiter;
         hardline;
-        Util.indent' comment;
+        indent' comment;
         hardline;
         right_comment_delimiter
       ]
 
 let original_sail_code source =
-  let str = Util.string_of_document source
+  let str = string_of_document source
   in
   if
     is_single_line str
@@ -70,7 +66,7 @@ let original_sail_code source =
     concat [
         left_comment_delimiter;
         twice hardline;
-        Util.indent' source;
+        indent' source;
         hardline;
         right_comment_delimiter
       ]
@@ -80,7 +76,7 @@ let original_sail_codes sources =
     separate hardline sources
   in
   let str =
-    Util.string_of_document combined_sources
+    string_of_document combined_sources
   in
   if
     is_single_line str
@@ -96,7 +92,7 @@ let original_sail_codes sources =
     concat [
         left_comment_delimiter;
         twice hardline;
-        Util.indent' combined_sources;
+        indent' combined_sources;
         hardline;
         right_comment_delimiter
       ]
@@ -107,7 +103,7 @@ let list items =
   then
     lbracket ^^ rbracket
   else
-    Util.pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
+    pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
 
 let product v1 v2 =
   soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
@@ -118,7 +114,7 @@ let section identifier contents =
   let first_line = string "Section" ^^ space ^^ pp_identifier identifier ^^ eol
   and last_line  = string "End" ^^ space ^^ pp_identifier identifier ^^ eol
   in
-  Util.pp_indented_enclosed_lines first_line contents last_line
+  pp_indented_enclosed_lines first_line contents last_line
 
 
 type module_flag =
@@ -148,7 +144,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
       )
   and last_line = line @@ separate space [ string "End"; string identifier ]
   in
-  Util.pp_indented_enclosed_lines first_line contents last_line
+  pp_indented_enclosed_lines first_line contents last_line
 
 let definition
       ~(identifier  : document)
@@ -177,7 +173,7 @@ let definition
                       add space;
                       add @@ string ":=";
                       add @@ break 1;
-                      add @@ ifflat body (Util.indent' body)
+                      add @@ ifflat body (indent' body)
                     )
     ) ^^ eol)
 
@@ -199,7 +195,7 @@ let match' expression cases =
     let generate_case (pattern, expression) =
       separate space [
           bar;
-          Util.pad_right longest_pattern_width pattern;
+          pad_right longest_pattern_width pattern;
           string "=>";
           expression
         ]
@@ -227,7 +223,7 @@ let match_pair matched_expressions cases =
     List.map cases ~f:(fun ((left, right), expression) ->
         (
           concat [
-              Util.pad_right left_patterns_max_width left;
+              pad_right left_patterns_max_width left;
               comma;
               space;
               right
@@ -255,10 +251,10 @@ let require_imports src names =
   let first = string src ^^ space ^^ string "Require Import"
   and rest = List.map ~f:string names
   in
-  line @@ Util.pp_hanging_list ~adaptive:false (string "From") (first :: rest)
+  line @@ pp_hanging_list ~adaptive:false (string "From") (first :: rest)
 
 let imports names =
-  line @@ Util.pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names)
+  line @@ pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names)
 
 let open_scopes scopes =
   let open_scope scope =
@@ -285,7 +281,7 @@ let record_value fields =
     in
     List.map ~f:item_of_field fields
   in
-  Util.pp_delimited_sequence ldelim rdelim semi items
+  pp_delimited_sequence ldelim rdelim semi items
 
 let annotate_with_original_definition original translation =
   if
@@ -388,7 +384,7 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
       (twice space) ^^ separate space (
           build_list (fun { add; _ } ->
               add @@ string "|";
-              add @@ Util.pad_right longest_left_part left;
+              add @@ pad_right longest_left_part left;
               if requirement right > 0
               then (
                 add colon;

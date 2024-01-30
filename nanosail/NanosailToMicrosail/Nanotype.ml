@@ -1,7 +1,6 @@
 open Base
-open PPrint
+open PP
 open Ast
-open Util
 open Numeric
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
