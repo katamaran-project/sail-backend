@@ -23,19 +23,44 @@ type kind =
   | Kind_int
   | Kind_bool
 
-(* should mirror theories/Syntax/TypeDecl.v *)
+(*
+  should mirror
+
+    Inductive Ty : Set :=
+    | int
+    | bool
+    | string
+    | list (σ : Ty)
+    | prod (σ τ : Ty)
+    | sum  (σ τ : Ty)
+    | unit
+    | enum (E : enumi)
+    | bvec (n : nat)
+    | tuple (σs : Ctx Ty)
+    | union (U : unioni)
+    | record (R : recordi)
+    .
+
+   defined in theories/Syntax/TypeDecl.v
+ *)
 type nanotype =
-  | Ty_unit
-  | Ty_bool
   | Ty_int
-  | Ty_nat
+  | Ty_bool
   | Ty_string
-  | Ty_atom
   | Ty_list      of nanotype
+  | Ty_prod      of nanotype * nanotype
+  | Ty_sum       of nanotype * nanotype
+  | Ty_unit
+  (* | Ty_enum *)                                (* TODO add *)
   | Ty_bitvector of numeric_expression
   | Ty_tuple     of nanotype list
-  | Ty_app       of string * type_argument list
-  | Ty_custom    of string
+  (* | Ty_union *)                               (* TODO add *)
+  | Ty_record                                    (* TODO complete *)
+
+  | Ty_nat                                       (* TODO remove *)
+  | Ty_atom                                      (* TODO remove *)
+  | Ty_app       of string * type_argument list  (* TODO remove *)
+  | Ty_custom    of string                       (* TODO remove *)
 
 and type_argument =
   | TA_type   of nanotype
