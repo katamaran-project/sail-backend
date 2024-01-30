@@ -2,24 +2,16 @@ open Base
 open Basics
 
 
-type annotation = PPrint.document
+type   annotation     = PPrint.document
+type   annotations    = annotation list
+type   state          = { annotations : annotations }
 
-type annotations = annotation list
+module Monad          = Monads.State.Make(struct type t = state end)
+type   'a t           = 'a Monad.t
 
-type state =
-  {
-    annotations : annotations
-  }
-
-module Monad = Monads.State.Make(struct type t = state end)
-
-type 'a t = 'a Monad.t
-
-let return = Monad.return
-
-let bind = Monad.bind
-
-let initial_state = { annotations = [] }
+let    return         = Monad.return
+let    bind           = Monad.bind
+let    initial_state  = { annotations = [] }
 
 let create_annotation annotation =
   let open Monads.Notations.Star(Monad)
