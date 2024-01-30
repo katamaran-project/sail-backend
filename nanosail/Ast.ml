@@ -23,6 +23,7 @@ type kind =
   | Kind_int
   | Kind_bool
 
+(* should mirror theories/Syntax/TypeDecl.v *)
 type nanotype =
   | Ty_unit
   | Ty_bool
@@ -223,6 +224,13 @@ type value_definition =
   }
 
 
+type record_definition =
+  {
+    identifier      : string;
+    type_quantifier : type_quantifier;
+    fields          : (string * nanotype) list;
+  }
+
 type definition =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition               of function_definition
@@ -230,6 +238,7 @@ type definition =
   | RegisterDefinition               of register_definition
   | UntranslatedDefinition           of untranslated_definition
   | ValueDefinition                  of value_definition
+  | RecordDefinition                 of record_definition
   | IgnoredDefinition
 
 
