@@ -794,15 +794,27 @@ let translate_variant
 let translate_record
       (_definition_annotation : S.def_annot              )
       (_type_annotation       : N.type_annotation S.annot)
-      (_identifier             : S.id                     )
+      (identifier             : S.id                     )
       (type_quantifier        : S.typquant               )
-      (_fields                 : (S.typ * S.id) list      ) : N.type_definition TC.t
+      (fields                 : (S.typ * S.id) list      ) : N.type_definition TC.t
   =
-  let S.TypQ_aux (type_quantifier, quantifier_location) = type_quantifier
+  let translate_field (field_type : S.typ) (field_identifier : S.id) =
+    let* field_type'       = nanotype_of_sail_type field_type
+    in
+    let field_identifier' = string_of_identifier field_identifier
+    in
+    TC.return @@ (field_identifier', field_type')
   in
-  match type_quantifier with
-  | S.TypQ_tq _      -> TC.not_yet_implemented [%here] quantifier_location
-  | S.TypQ_no_forall -> TC.not_yet_implemented [%here] quantifier_location
+  let identifier      = string_of_identifier identifier
+  in
+  let* type_quantifier = translate_type_quantifier type_quantifier
+  and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
+  in
+  TC.return @@ N.TD_record {
+                   identifier;
+                   type_quantifier;
+                   fields
+                 }
 
 
 let translate_type_definition
@@ -899,7 +911,7 @@ let translate_value_definition
   | S.P_cons (_, _)                -> TC.not_yet_implemented [%here] pattern_location
   | S.P_string_append _            -> TC.not_yet_implemented [%here] pattern_location
   | S.P_struct (_, _)              -> TC.not_yet_implemented [%here] pattern_location
-  
+
 
 let translate_top_level_outcome_definition
       (_definition_annotation : S.def_annot)
