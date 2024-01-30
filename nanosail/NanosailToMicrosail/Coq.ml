@@ -7,7 +7,11 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 module Big_int = Nat_big_num
-module PP = PPrint
+
+module PP = struct
+  include PPrint
+  include Util
+end
 
 
 let eol = dot
@@ -431,3 +435,31 @@ let finite_instance
                        string "|}"
                      ]
   ]
+
+let record
+      ~(identifier  : document)
+      ~(type_name   : document)
+      ~(constructor : document)
+      ~(fields      : (document * document) list) : document
+  =
+  let first_line =
+    PP.separate space [
+        string "Record";
+        identifier;
+        colon;
+        type_name;
+        string ":="
+      ]
+  in
+  let fields' =
+    List.map ~f:(fun (id, t) -> PP.separate space [ id; colon; t ]) fields
+  in
+  let body =
+    PP.(separate hardline [
+            lbrace;
+            twice space ^^ align (separate hardline fields');
+            rbrace
+          ]
+    )
+  in
+  line @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
