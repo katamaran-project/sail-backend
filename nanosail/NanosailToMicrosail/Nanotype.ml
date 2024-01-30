@@ -51,6 +51,10 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_tuple ts        -> pp_tuple ts
    | Ty_app (id, targs) -> pp_application id targs
    | Ty_bitvector nexpr -> pp_bitvector nexpr
+   | Ty_record          -> AC.not_yet_implemented [%here]
+   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
+   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
+
 
 and coq_type_of_nanotype (nanotype : nanotype) =
   match nanotype with
@@ -65,6 +69,9 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_app (t, ts)       -> let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts in AC.return @@ string t ^^ space ^^ separate space ts'
   | Ty_tuple _ts         -> AC.not_yet_implemented [%here]
   | Ty_atom              -> AC.not_yet_implemented [%here]
+  | Ty_record          -> AC.not_yet_implemented [%here]
+  | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
+  | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : type_argument) =
   match type_argument with

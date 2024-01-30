@@ -76,10 +76,16 @@ let coqify_identifiers (program : N.program) : N.program =
       (* no work to be done *)
       enum_definition
     in
+    let sanitize_record (record_definition : N.record_definition) : N.record_definition =
+      (* todo *)
+      Stdio.printf "WARNING: record %s may need to be sanitized\n" record_definition.identifier;
+      record_definition
+    in
     match (type_definition : N.type_definition) with
     | N.TD_abbreviation abbreviation -> N.TD_abbreviation (sanitize_type_abbreviation abbreviation)
-    | N.TD_variant variant           -> N.TD_variant (sanitize_variant variant)
-    | N.TD_enum enum                 -> N.TD_enum (sanitize_enum enum)
+    | N.TD_variant variant           -> N.TD_variant      (sanitize_variant variant               )
+    | N.TD_enum enum                 -> N.TD_enum         (sanitize_enum enum                     )
+    | N.TD_record record             -> N.TD_record       (sanitize_record record                 )
   in
   let sanitize_definition
       (sail_definition : N.sail_definition)

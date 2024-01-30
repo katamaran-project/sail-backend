@@ -30,6 +30,9 @@ module Subst = struct
       | Ty_tuple ts        -> Ty_tuple (List.map ~f:aux ts)
       | Ty_app (id, targs) -> Ty_app (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
       | Ty_custom id       -> Ty_custom id (* probably should not be substituted *)
+      | Ty_record          -> Ty_record (* todo *)
+      | Ty_prod (t1, t2)   -> Ty_prod (aux t1, aux t2)
+      | Ty_sum (t1, t2)    -> Ty_sum (aux t1, aux t2)
     in
     aux
 

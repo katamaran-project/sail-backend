@@ -230,9 +230,11 @@ type enum_definition =
   }
 
 
-type top_level_type_constraint_definition =
+type record_definition =
   {
-    identifier : string;
+    identifier      : string;
+    type_quantifier : type_quantifier;
+    fields          : (string * nanotype) list;
   }
 
 
@@ -240,6 +242,13 @@ type type_definition =
   | TD_abbreviation of type_abbreviation_definition
   | TD_variant      of variant_definition
   | TD_enum         of enum_definition
+  | TD_record       of record_definition
+
+
+type top_level_type_constraint_definition =
+  {
+    identifier : string;
+  }
 
 
 type value_definition =
@@ -249,13 +258,6 @@ type value_definition =
   }
 
 
-type record_definition =
-  {
-    identifier      : string;
-    type_quantifier : type_quantifier;
-    fields          : (string * nanotype) list;
-  }
-
 type definition =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition               of function_definition
@@ -263,7 +265,6 @@ type definition =
   | RegisterDefinition               of register_definition
   | UntranslatedDefinition           of untranslated_definition
   | ValueDefinition                  of value_definition
-  | RecordDefinition                 of record_definition
   | IgnoredDefinition
 
 
@@ -289,6 +290,10 @@ module Extract = struct
   let variant_definition = function
     | TypeDefinition (TD_variant x) -> Some x
     | _                             -> None
+
+  let record_definition = function
+    | TypeDefinition (TD_record x) -> Some x
+    | _                            -> None
 
   let abbreviation_definition = function
     | TypeDefinition (TD_abbreviation x) -> Some x
@@ -328,3 +333,4 @@ let type_identifier (type_definition : type_definition) =
   | TD_abbreviation x -> x.identifier
   | TD_variant x      -> x.identifier
   | TD_enum x         -> x.identifier
+  | TD_record x       -> x.identifier

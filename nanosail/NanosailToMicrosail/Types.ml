@@ -164,6 +164,12 @@ module Enums = struct
 end
 
 
+module Records = struct
+  let generate (_record_definition : record_definition) : document AC.t =
+    AC.return @@ PP.(string "TODO: RECORD")
+end
+
+
 let pp_type_definition
       (original        : sail_definition)
       (type_definition : type_definition) : document
@@ -173,5 +179,6 @@ let pp_type_definition
     | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | TD_enum enum           -> Enums.generate enum
     | TD_variant variant     -> Variants.generate variant
+    | TD_record record       -> Records.generate record
   in
   Coq.annotate_with_original_definition original (Coq.annotate document)

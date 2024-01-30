@@ -526,6 +526,7 @@ and statement_of_match (location : S.l                                          
         | Some (TD_abbreviation def)  -> match_abbreviation def
         | Some (TD_variant def)       -> match_variant def
         | Some (TD_enum def)          -> match_enum def
+        | Some (TD_record def)        -> match_record def
         | None                        -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
       end
     | S.Operator _ -> TC.not_yet_implemented [%here] location
@@ -617,6 +618,12 @@ and statement_of_match (location : S.l                                          
     TC.not_yet_implemented [%here] location
 
   and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
+    TC.not_yet_implemented [%here] location
+
+  and match_record (_record_definition : N.record_definition) =
+    (*
+      at this point we know that matched is a value of an enum described by the parameter enum_definition
+    *)
     TC.not_yet_implemented [%here] location
 
   (*
@@ -787,10 +794,15 @@ let translate_variant
 let translate_record
       (_definition_annotation : S.def_annot              )
       (_type_annotation       : N.type_annotation S.annot)
-      (_identifier             : S.id                    )
-      (_type_quantifier        : S.typquant              )
-      (_fields                 : (S.typ * S.id) list     ) : N.type_definition TC.t =
-  TC.not_yet_implemented [%here] _definition_annotation.loc
+      (_identifier             : S.id                     )
+      (type_quantifier        : S.typquant               )
+      (_fields                 : (S.typ * S.id) list      ) : N.type_definition TC.t
+  =
+  let S.TypQ_aux (type_quantifier, quantifier_location) = type_quantifier
+  in
+  match type_quantifier with
+  | S.TypQ_tq _      -> TC.not_yet_implemented [%here] quantifier_location
+  | S.TypQ_no_forall -> TC.not_yet_implemented [%here] quantifier_location
 
 
 let translate_type_definition
