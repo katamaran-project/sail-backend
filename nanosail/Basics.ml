@@ -1,7 +1,9 @@
 open Base
 
 
-let string_of_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
+type ocaml_source_location = Lexing.position
+
+let string_of_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : ocaml_source_location) =
   Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
 
 let rec string_of_location (location : Libsail.Parse_ast.l) =

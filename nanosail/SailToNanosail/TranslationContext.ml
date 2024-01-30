@@ -1,6 +1,7 @@
 open Base
 open Ast
 open Exception
+open Basics
 
 
 module Context = struct
@@ -26,8 +27,8 @@ module Context = struct
 end
 
 type error =
-  | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
-  | AssertionFailure of Lexing.position * string
+  | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
+  | AssertionFailure of ocaml_source_location * string
 
 module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
 module MonadUtil = Monads.Util.Make(Monad)

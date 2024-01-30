@@ -24,7 +24,6 @@ let string_of_identifier (S.Id_aux (aux, _location)) : string =
   | Id x       -> x
   | Operator x -> x
 
-
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
   | Id x       -> TC.return x

@@ -1,4 +1,5 @@
 open Base
+open Basics
 
 
 type annotation = PPrint.document
@@ -33,7 +34,7 @@ let create_annotation annotation =
   in
   Monad.return @@ List.length annotations'
 
-let not_yet_implemented ?(message = "") (position : Lexing.position) =
+let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
   let open Monads.Notations.Star(Monad)
   in
   let annotation_doc =
