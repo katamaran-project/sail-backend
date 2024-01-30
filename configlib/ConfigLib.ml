@@ -18,6 +18,10 @@ let register_script_function
   exported_functions := (identifier, callable) :: !exported_functions
 
 
+(*
+  Creates a Slang function named <export_as> that takes a boolean argument.
+  Calling this function causes a refcell to be set with this argument.
+*)
 let bool ?(init=false) export_as =
   let cell = ref init
   in
@@ -32,6 +36,11 @@ let bool ?(init=false) export_as =
   Setting (get, set)
 
 
+(*
+  Creates a Slang function named <export_as> that takes a list of strings as argument.
+  Calling this function causes a ref cell to be set to this list of strings.
+  Strings are not appended: the list overwrites the previously stored list.
+*)
 let strings export_as =
   let cell = ref []
   in
