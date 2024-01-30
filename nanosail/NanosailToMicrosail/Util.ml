@@ -2,9 +2,7 @@ open Base
 open PPrint
 
 
-module PP = struct
-  include PPrint
-end
+module PP = PPrint
 
 
 let indent' ?(level = 2) doc = blank level ^^ align doc
