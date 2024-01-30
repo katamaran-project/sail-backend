@@ -28,15 +28,15 @@ type 'a list_builder = {
 let build_list f =
   let list_under_construction = ref []
   in
-  let add_item item = list_under_construction := item :: !list_under_construction
+  let add item = list_under_construction := item :: !list_under_construction
   in
-  let add_items items = List.iter ~f:add_item items
-  and add_optional item =
+  let addall items = List.iter ~f:add items
+  and addopt item =
     match item with
-    | Some item -> add_item item
+    | Some item -> add item
     | None      -> ()
   in
-  let context = { add = add_item; addall = add_items; addopt = add_optional }
+  let context = { add; addall; addopt }
   in
   f context;
   List.rev !list_under_construction
