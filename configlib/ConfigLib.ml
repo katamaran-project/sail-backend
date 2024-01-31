@@ -18,15 +18,21 @@ let register_script_function
   exported_functions := (identifier, callable) :: !exported_functions
 
 
+let create_setting_cell initial_value =
+  let cell = ref initial_value
+  in
+  let get () = !cell
+  and set b  = cell := b
+  in
+  (get, set)
+
+
 (*
   Creates a Slang function named <export_as> that takes a boolean argument.
   Calling this function causes a refcell to be set with this argument.
 *)
 let bool ?(init=false) export_as =
-  let cell = ref init
-  in
-  let get () = !cell
-  and set b  = cell := b
+  let get, set = create_setting_cell init
   in
   let script_function _values =
     set true;
@@ -42,10 +48,7 @@ let bool ?(init=false) export_as =
   Strings are not appended: the list overwrites the previously stored list.
 *)
 let strings export_as =
-  let cell = ref []
-  in
-  let get () = !cell
-  and set xs = cell := xs
+  let get, set = create_setting_cell []
   in
   let script_function values =
     let open Slang in
@@ -58,6 +61,7 @@ let strings export_as =
   in
   register_script_function export_as script_function;
   Setting (get, set)
+
 
 
 module Exported = struct
