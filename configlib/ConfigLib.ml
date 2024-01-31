@@ -63,7 +63,6 @@ let strings export_as =
   Setting (get, set)
 
 
-
 module Exported = struct
   let get (Setting (getter, _)) =
     getter ()
