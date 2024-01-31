@@ -17,22 +17,30 @@ let ignored_types                    = ConfigLib.strings "ignore-types"         
 
 module Identifier = struct
   open Libsail.Ast
-  open NYI
 
+  (* extracts name as string; fails on operator name *) (* todo function already exists somewhere else *)
+  let string_of_id (id : id) : string =
+    let Id_aux (id, _loc) = id
+    in
+    match id with
+    | Id s       -> s
+    | Operator _ -> failwith "operator names not supported"
 
-  let of_function_definition (FD_aux (FD_function (_, _, x), (location, _))) =
+  (* determines the name of a function *)
+  let of_function_definition (function_definition : 'a fundef) =
+    let FD_aux (FD_function (_, _, x), (_location, _)) = function_definition
+    in
     match x with
     | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
-    | _ -> not_yet_implemented [%here] location
+    | _ -> failwith "wanted to extract funtion name from function definition; failed because I didn't recognize structure"
 
-  let of_type_definition (TD_aux (definition, (location, _))) =
+  let of_type_definition (TD_aux (definition, (_location, _))) =
     match definition with
-    | TD_abbrev (Id_aux (Id identifier, _), _, _)     -> identifier
-    | TD_record (Id_aux (Id identifier, _), _, _, _)  -> identifier
-    | TD_variant (Id_aux (Id identifier, _), _, _, _) -> identifier
-    | TD_enum (Id_aux (Id identifier, _), _, _)       -> identifier
-    | TD_bitfield (Id_aux (Id identifier, _), _, _)   -> identifier
-    | _                                               -> not_yet_implemented [%here] location
+    | TD_abbrev (id, _, _)     -> string_of_id id
+    | TD_record (id, _, _, _)  -> string_of_id id
+    | TD_variant (id, _, _, _) -> string_of_id id
+    | TD_enum (id, _, _)       -> string_of_id id
+    | TD_bitfield (id, _, _)   -> string_of_id id
 end
 
 
