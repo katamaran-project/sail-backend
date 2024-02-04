@@ -45,19 +45,6 @@ module Identifier = struct
 end
 
 
-(* let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) = *)
-(*   let open Libsail.Ast *)
-(*   in *)
-(*   let member setting item = *)
-(*     List.mem (get setting) item ~equal:String.equal *)
-(*   in *)
-(*   match definition with *)
-(*   | DEF_pragma (identifier, _, _)  -> member ignored_pragmas   @@ identifier *)
-(*   | DEF_fundef function_definition -> member ignored_functions @@ Identifier.of_function_definition function_definition *)
-(*   | DEF_type type_definition       -> member ignored_types     @@ Identifier.of_type_definition type_definition *)
-(*   | DEF_overload (_, _)            -> get (ignore_overloads) *)
-(*   | _                              -> false *)
-
 let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
   let open Libsail.Ast
   in
