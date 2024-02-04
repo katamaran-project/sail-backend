@@ -12,8 +12,7 @@ let include_ignored_definitions      = ConfigLib.bool     "include-ignored-defin
 let ignored_pragmas                  = ConfigLib.strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
 let ignored_functions                = ConfigLib.strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
 let ignore_overloads                 = ConfigLib.bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
-let ignored_types                    = ConfigLib.strings  "ignore-types"                     (* Types to be ignored                                                         *)
-let ignore_definition_callable       = ConfigLib.callable "ignore-definition"
+let ignore_definition_predicate      = ConfigLib.callable ~error_message:"missing ignore-definition-predicate" "ignore-definition-predicate"
 
 
 module Identifier = struct
@@ -58,7 +57,13 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
     member ignored_functions @@ Identifier.of_function_definition function_definition
       
   and should_ignore_type_definition type_definition =
-    member ignored_types @@ Identifier.of_type_definition type_definition
+    let identifier = Identifier.of_type_definition type_definition
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run (get ignore_definition_predicate arguments) Slang.Environment.empty
+    in
+    Slang.Value.truthy result
       
   in
   match definition with
