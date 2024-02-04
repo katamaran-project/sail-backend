@@ -1,8 +1,7 @@
 open OUnit2
 
 module V = Slang.Value
-module M = Slang.Multimethods
-
+module C = Slang.Converters
 
 
 let tests =
@@ -11,7 +10,7 @@ let tests =
       fun _ -> begin
           let value = V.Integer 5
           in
-          let actual = M.integer value
+          let actual = C.integer value
           in
           assert_equal (Some 5) actual
         end
@@ -20,7 +19,7 @@ let tests =
       fun _ -> begin
           let value = V.Symbol "a"
           in
-          let actual = M.symbol value
+          let actual = C.symbol value
           in
           assert_equal (Some "a") actual
         end
@@ -29,7 +28,7 @@ let tests =
       fun _ -> begin
           let value = V.Symbol "a"
           in
-          let actual = M.symbol value
+          let actual = C.symbol value
           in
           assert_equal (Some "a") actual
         end
@@ -38,7 +37,7 @@ let tests =
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Nil)
           in
-          let actual = M.cons M.integer M.nil value
+          let actual = C.cons C.integer C.nil value
           in
           assert_equal (Some (1, ())) actual
         end
@@ -47,7 +46,7 @@ let tests =
       fun _ -> begin
           let value = V.Nil
           in
-          let actual = M.list M.integer value
+          let actual = C.list C.integer value
           in
           assert_equal (Some []) actual
         end
@@ -56,7 +55,7 @@ let tests =
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Nil)
           in
-          let actual = M.list M.integer value
+          let actual = C.list C.integer value
           in
           assert_equal (Some [1]) actual
         end
@@ -65,7 +64,7 @@ let tests =
       fun _ -> begin
           let value = V.Cons (V.Integer 1, V.Cons (V.Integer 2, V.Cons (V.Integer 3, V.Nil)))
           in
-          let actual = M.list M.integer value
+          let actual = C.list C.integer value
           in
           assert_equal (Some [1; 2; 3]) actual
         end
@@ -74,7 +73,7 @@ let tests =
       fun _ -> begin
           let value = V.Cons (V.Symbol "a", V.Cons (V.Symbol "bc", V.Cons (V.Symbol "xyz", V.Nil)))
           in
-          let actual = M.list M.symbol value
+          let actual = C.list C.symbol value
           in
           assert_equal (Some ["a"; "bc"; "xyz"]) actual
         end

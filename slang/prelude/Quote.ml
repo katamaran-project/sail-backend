@@ -2,13 +2,13 @@ open Base
 open Monads.Notations.Star(EvaluationContext)
 
 module EV = EvaluationContext
-module M = Multimethods
+module C = Converters
 
 open Shared
 
 
 let quote (args : Value.t list) : Value.t EV.t =
-  let=! value = M.(map1 value) args
+  let=! value = C.(map1 value) args
   in
   EV.return value
 

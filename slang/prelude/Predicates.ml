@@ -1,10 +1,11 @@
 open Base
 open Evaluation
+open Multimethods
 open Monads.Notations.Star(EvaluationContext)
 
 
 module EV = EvaluationContext
-module M  = Multimethods
+module C = Converters
 module P  = Value.Predicate
 
 open Shared
@@ -12,11 +13,11 @@ open Shared
 
 let mk_predicate pred args =
   let impl args =
-    let=? v = M.(map1 value) args
+    let=? v = C.(map1 value) args
     in
     EC.return @@ Some (Value.Bool (pred v))
   in
-  M.mk_multimethod [ impl ] args
+  mk_multimethod [ impl ] args
 
 
 let library env =

@@ -1,9 +1,10 @@
 open Base
 open Exception
 open Monads.Notations.Star(EvaluationContext)
+open Multimethods
 
 module EV = EvaluationContext
-module M = Multimethods
+module C = Converters
 
 open Shared
 
@@ -14,8 +15,8 @@ let lambda (args : Value.t list) : Value.t EV.t =
   | [_]            -> raise @@ SlangError "ill-formed lambda"
   | params :: body -> begin
       let*   env    = EV.current_environment   in
-      let=!  params = M.list M.symbol params   in
-      let=!! body   = List.map ~f:M.value body
+      let=!  params = C.list C.symbol params   in
+      let=!! body   = List.map ~f:C.value body
       in
       EV.return @@ Value.Callable (Evaluation.mk_closure env params body)
     end
@@ -25,7 +26,7 @@ let define (args : Value.t list) : Value.t EV.t =
   let define_function (args : Value.t list) =
     match args with
     | form :: body -> begin
-        let=? function_name, parameters = M.(cons symbol (list symbol)) form
+        let=? function_name, parameters = C.(cons symbol (list symbol)) form
         in
         let* env      = EV.current_environment
         in
@@ -38,7 +39,7 @@ let define (args : Value.t list) : Value.t EV.t =
     | _ -> EV.return None
 
   and define_variable (args : Value.t list) =
-    let=? identifier, expression = M.(map2 symbol value) args
+    let=? identifier, expression = C.(map2 symbol value) args
     in
     let* value = Evaluation.evaluate expression
     in
@@ -47,7 +48,7 @@ let define (args : Value.t list) : Value.t EV.t =
     EV.return @@ Some (Value.Nil)
 
   in
-  M.mk_multimacro [ define_function; define_variable ] args
+  mk_multimacro [ define_function; define_variable ] args
 
 
 let library env =

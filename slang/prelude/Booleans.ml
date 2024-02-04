@@ -3,7 +3,7 @@ open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 
 module EV = EvaluationContext
-module M  = Multimethods
+module C  = Converters
 
 open Shared
 
@@ -34,7 +34,7 @@ let rec disjunction args =
 
 let negation args =
   let impl args =
-    let=? b = M.(map1 truthy) args
+    let=? b = C.(map1 truthy) args
     in
     EC.return @@ Some (Value.Bool (not b))
   in

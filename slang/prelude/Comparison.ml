@@ -3,8 +3,8 @@ open Evaluation
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
 
-module M = Multimethods
 module V = Value
+module C = Converters
 
 open Shared
 
@@ -34,8 +34,8 @@ let comparison converter comparator args =
 
 let int_string_comparison int_comparator string_comparator args =
   M.mk_multimethod [
-    comparison M.integer int_comparator;
-    comparison M.string string_comparator;
+    comparison C.integer int_comparator;
+    comparison C.string  string_comparator;
   ] args
 
 

@@ -54,7 +54,7 @@ let strings export_as =
     let open Slang in
     let open Slang.Prelude.Shared
     in
-    let=!! strings = List.map ~f:Multimethods.string values
+    let=!! strings = List.map ~f:Converters.string values
     in
     set strings;
     return @@ Value.Nil

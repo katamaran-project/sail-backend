@@ -2,9 +2,8 @@ open Base
 open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 
-
 module EV = EvaluationContext
-module M  = Multimethods
+module C  = Converters
 module P  = Value.Predicate
 
 open Shared
@@ -12,7 +11,7 @@ open Shared
 
 let conditional (args : Value.t list) : Value.t EV.t =
   let if_then args =
-    let=? condition, then_clause = M.(map2 value value) args
+    let=? condition, then_clause = C.(map2 value value) args
     in
     let* evaluated_condition = evaluate condition
     in
@@ -22,7 +21,7 @@ let conditional (args : Value.t list) : Value.t EV.t =
   in
 
   let if_then_else args =
-    let=? condition, then_clause, else_clause = M.(map3 value value value) args
+    let=? condition, then_clause, else_clause = C.(map3 value value value) args
     in
     let* evaluated_condition = evaluate condition
     in
