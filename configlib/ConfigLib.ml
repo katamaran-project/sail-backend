@@ -63,6 +63,22 @@ let strings export_as =
   Setting (get, set)
 
 
+let callable export_as =
+  let get, set = create_setting_cell (fun _ -> failwith "todo")
+  in
+  let script_function values =
+    let open Slang in
+    let open Slang.Prelude.Shared
+    in
+    let=! callable = Converters.(map1 callable) values
+    in
+    set callable;
+    return @@ Value.Nil
+  in
+  register_script_function export_as script_function;
+  Setting (get, set)
+
+
 module Exported = struct
   let get (Setting (getter, _)) =
     getter ()
