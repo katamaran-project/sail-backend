@@ -51,11 +51,13 @@ let bool ?(init=false) export_as =
 let strings export_as =
   let get, set = create_setting_cell []
   in
-  let script_function values =
+  let script_function arguments =
     let open Slang in
     let open Slang.Prelude.Shared
     in
-    let=!! strings = List.map ~f:Converters.string values
+    let* evaluated_arguments = map ~f:evaluate arguments
+    in
+    let=!! strings = List.map ~f:Converters.string evaluated_arguments
     in
     set strings;
     return @@ Value.Nil
