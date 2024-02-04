@@ -1,5 +1,6 @@
 open Base
 open Auxlib
+open Slang.Evaluation
 open Slang.EvaluationContext
 open Monads.Notations.Star(Slang.EvaluationContext)
 
@@ -66,11 +67,13 @@ let strings export_as =
 let callable ?(error_message = "missing setting") export_as =
   let get, set = create_setting_cell (fun _ -> failwith error_message)
   in
-  let script_function values =
+  let script_function arguments =
     let open Slang in
     let open Slang.Prelude.Shared
     in
-    let=! callable = Converters.(map1 callable) values
+    let* evaluated_arguments = map ~f:evaluate arguments
+    in
+    let=! callable = Converters.(map1 callable) evaluated_arguments
     in
     set callable;
     return @@ Value.Nil
