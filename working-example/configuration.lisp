@@ -23,3 +23,6 @@
                   "bit_of_regval"
                   "num_of_foo"
                   "__id")
+
+(ignore-definition-predicate (lambda (identifier)
+                               (contains? '("option") identifier)))

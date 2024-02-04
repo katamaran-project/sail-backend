@@ -25,4 +25,5 @@
 
 (ignore-all-overloads)
 
-(ignore-types "option")
+(ignore-definition-predicate (lambda (identifier)
+                               #f))
