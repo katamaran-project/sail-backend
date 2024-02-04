@@ -63,8 +63,8 @@ let strings export_as =
   Setting (get, set)
 
 
-let callable export_as =
-  let get, set = create_setting_cell (fun _ -> failwith "todo")
+let callable ?(error_message = "missing setting") export_as =
+  let get, set = create_setting_cell (fun _ -> failwith error_message)
   in
   let script_function values =
     let open Slang in
