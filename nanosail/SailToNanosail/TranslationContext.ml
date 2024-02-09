@@ -7,11 +7,17 @@ open Basics
 module Context = struct
   type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
 
-  type t = {
-    types : type_map
-  }
+  type t =
+    {
+      types         : type_map;        (* maps identifiers to type definitions         *)
+      next_id_index : int              (* counter used to generate unique identifiers  *)
+    }
 
-  let empty : t = { types = Map.empty(module String) }
+  let empty : t =
+    {
+      types         = Map.empty(module String);
+      next_id_index = 0;
+    }
 
   let lookup_type (type_map : type_map) identifier =
     Map.find type_map identifier
@@ -21,14 +27,22 @@ module Context = struct
   *)
   let types =
     let get (context : t) : type_map = context.types
-    and set (_context : t) (types : type_map) : t = { types }
+    and set (context : t) (types : type_map) : t = { context with types }
+    in
+    (get, set)
+
+  let next_id_index =
+    let get (context : t) : int = context.next_id_index
+    and set (context : t) (next_id_index : int) : t = { context with next_id_index }
     in
     (get, set)
 end
 
+
 type error =
   | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
   | AssertionFailure of ocaml_source_location * string
+
 
 module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
 module MonadUtil = Monads.Util.Make(Monad)
@@ -87,3 +101,12 @@ let lookup_type (identifier : string) : type_definition option t =
   let* types = Monad.get Context.types
   in
   return @@ Context.lookup_type types identifier
+
+let generate_unique_identifier ?(prefix = "_id") : string t =
+  let* index = Monad.get Context.next_id_index
+  in
+  let* () = Monad.put Context.next_id_index (index + 1)
+  in
+  let id = Printf.sprintf "%s%d" prefix index
+  in
+  return id
