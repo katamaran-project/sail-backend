@@ -11,12 +11,12 @@ type identifier = string
 
 type numeric_expression =
   | NE_constant of Z.t
-  | NE_add of numeric_expression * numeric_expression
-  | NE_minus of numeric_expression * numeric_expression
-  | NE_times of numeric_expression * numeric_expression
-  | NE_neg of numeric_expression
-  | NE_id of string
-  | NE_var of string
+  | NE_add      of numeric_expression * numeric_expression
+  | NE_minus    of numeric_expression * numeric_expression
+  | NE_times    of numeric_expression * numeric_expression
+  | NE_neg      of numeric_expression
+  | NE_id       of string
+  | NE_var      of string
 
 type kind =
   | Kind_type
