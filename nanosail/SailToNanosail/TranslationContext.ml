@@ -102,7 +102,7 @@ let lookup_type (identifier : string) : type_definition option t =
   in
   return @@ Context.lookup_type types identifier
 
-let generate_unique_identifier ?(prefix = "_id") : string t =
+let generate_unique_identifier prefix : string t =
   let* index = Monad.get Context.next_id_index
   in
   let* () = Monad.put Context.next_id_index (index + 1)

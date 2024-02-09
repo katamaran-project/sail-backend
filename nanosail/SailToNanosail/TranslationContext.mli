@@ -22,7 +22,7 @@ val run                        : 'a t -> 'a result * Context.t
 val register                   : Ast.definition -> unit t
 val register_type              : Ast.type_definition -> unit t   (* todo remove this, only export register *)
 val lookup_type                : string -> Ast.type_definition option t
-val generate_unique_identifier : ?prefix:string) -> string t
+val generate_unique_identifier : string -> string t
 
 val map                        : f:('a -> 'b t) -> 'a list -> 'b list t
 val fold_left                  : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
