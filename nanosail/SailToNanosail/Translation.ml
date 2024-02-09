@@ -276,7 +276,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
      end
   | P_id id -> begin
       let* x  = translate_identifier id in
-      let* ty = nanotype_of_sail_type (Libsail.Type_check.typ_of_annot annotation)
+      let* ty = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
       TC.return [(x, ty)]
     end
@@ -285,7 +285,11 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
       in
       TC.return @@ List.concat pats'
     end
-  | S.P_wild                      -> TC.not_yet_implemented [%here] location
+  | S.P_wild -> begin
+      let* typ = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      in
+      TC.return [("_", typ)]
+    end
   | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.P_not _                     -> TC.not_yet_implemented [%here] location
   | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
