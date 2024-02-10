@@ -41,10 +41,10 @@ end
 
 type error =
   | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
-  | AssertionFailure of ocaml_source_location * string
+  | AssertionFailure  of ocaml_source_location * string
 
 
-module Monad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
+module Monad     = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
 module MonadUtil = Monads.Util.Make(Monad)
 
 include MonadUtil
@@ -60,6 +60,7 @@ let bind       = Monad.bind
 let recover    = Monad.recover
 let run f      = Monad.run f Context.empty
 
+
 let not_yet_implemented ?(message = "") ocaml_position sail_position =
   let message =
     if String.is_empty message
@@ -68,13 +69,16 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
 
+
 let check ocaml_position condition message =
   if not condition
   then Monad.fail @@ AssertionFailure (ocaml_position, Lazy.force message)
   else Monad.return ()
 
+
 let fail ocaml_position message =
   Monad.fail @@ AssertionFailure (ocaml_position, message)
+
 
 let register_type (type_definition : type_definition) =
   let* types = Monad.get Context.types
@@ -87,6 +91,7 @@ let register_type (type_definition : type_definition) =
   | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
   | `Ok types' -> Monad.put Context.types types'
 
+
 let register (definition : definition) =
   match definition with
   | TypeDefinition type_definition       -> register_type type_definition
@@ -97,10 +102,15 @@ let register (definition : definition) =
   | IgnoredDefinition                    -> return ()
   | ValueDefinition _                    -> return ()
 
+
+(*
+   Looks up a type_definition based on the name of the type.
+*)
 let lookup_type (identifier : string) : type_definition option t =
   let* types = Monad.get Context.types
   in
   return @@ Context.lookup_type types identifier
+
 
 let generate_unique_identifier prefix : string t =
   let* index = Monad.get Context.next_id_index
