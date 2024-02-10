@@ -2,6 +2,7 @@ open Base
 open Ast
 open Exception
 open Basics
+open Monads.OptionNotation
 
 
 module Context = struct
@@ -104,12 +105,18 @@ let register (definition : definition) =
 
 
 (*
-   Looks up a type_definition based on the name of the type.
+   Looks up a type definition based on the name of the type.
+
+   The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
-let lookup_type (identifier : string) : type_definition option t =
+let lookup_type (extractor : type_definition -> 'a option) (identifier : string) : 'a option t =
   let* types = Monad.get Context.types
   in
-  return @@ Context.lookup_type types identifier
+  return @@ begin
+    let=? type_definition = Context.lookup_type types identifier
+    in
+    extractor type_definition
+  end
 
 
 let generate_unique_identifier prefix : string t =

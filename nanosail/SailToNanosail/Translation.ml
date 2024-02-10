@@ -467,15 +467,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
           | S.Typ_id record_type_name -> begin
               let* record_type_name = string_of_identifier [%here] record_type_name
               in
-              let* lookup_result = TC.lookup_type record_type_name (* todo make helper function lookup_record_type *)
+              let* lookup_result = TC.lookup_type N.Extract.of_record record_type_name
               in
               match lookup_result with
-              | Some record_type -> begin
-                  match record_type with
-                  | N.TD_record _ -> TC.not_yet_implemented [%here] location
-                  | _ -> TC.fail [%here] "Expected to find record type"
+              | Some _record_type_definition -> begin
+                  TC.not_yet_implemented [%here] location
                 end
-              | None -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s (should not happen)" record_type_name
+              | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_name
             end
           | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
           | S.Typ_var _            -> TC.not_yet_implemented [%here] location
@@ -580,7 +578,7 @@ and statement_of_match (location : S.l                                          
   and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
     match type_identifier with
     | S.Id id -> begin
-        let* lookup_result = TC.lookup_type id
+        let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
         in
         match lookup_result with
         | Some (TD_abbreviation def)  -> match_abbreviation def

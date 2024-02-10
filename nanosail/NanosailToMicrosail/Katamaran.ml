@@ -60,12 +60,12 @@ let fromIR_pp ir =
   in
   let base =
     let translated_type_definitions =
-      let type_definitions = select Extract.type_definition ir.definitions
+      let type_definitions = select Extract.(type_definition of_anything) ir.definitions
       in
       List.map ~f:(uncurry Types.pp_type_definition) type_definitions
     in
     let extra_enum_definitions =
-      let enum_definitions = select Extract.enum_definition ir.definitions
+      let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
       in
       if List.is_empty enum_definitions
       then []

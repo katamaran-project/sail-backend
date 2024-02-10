@@ -24,7 +24,7 @@ let generate_register_finiteness (register_definitions : (sail_definition * regi
 
 let generate (definitions : (sail_definition * definition) list) =
   let finite_enums =
-    let enum_definitions = select Extract.enum_definition definitions
+    let enum_definitions = select Extract.(type_definition of_enum) definitions
     in
     List.map ~f:(uncurry generate_enum_finiteness) enum_definitions
   and finite_registers =

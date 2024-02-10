@@ -21,7 +21,7 @@ val run                        : 'a t -> 'a result * Context.t
 
 val register                   : Ast.definition -> unit t
 val register_type              : Ast.type_definition -> unit t   (* todo remove this, only export register *)
-val lookup_type                : string -> Ast.type_definition option t
+val lookup_type                : (Ast.type_definition -> 'a option) -> string -> 'a option t
 val generate_unique_identifier : string -> string t
 
 val map                        : f:('a -> 'b t) -> 'a list -> 'b list t
