@@ -454,26 +454,40 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
        
   *)
   | S.AE_field (aval, field_identifier, typ) -> begin
-      let* _field_id = translate_identifier field_identifier
+      let* field_identifier = translate_identifier field_identifier
       in
       let _field_type = Libsail.Ast_util.string_of_typ typ
       in
       match aval with
-      | S.AV_id (id, lvar) -> begin
-          let* _id = translate_identifier id
+      | S.AV_id (record_identifier, lvar) -> begin
+          let* record_identifier = translate_identifier record_identifier
           and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
           in
           match t with
-          | S.Typ_id record_type_name -> begin
-              let* record_type_name = string_of_identifier [%here] record_type_name
+          | S.Typ_id record_type_identifier -> begin
+              let* record_type_identifier = string_of_identifier [%here] record_type_identifier
               in
-              let* lookup_result = TC.lookup_type N.Extract.of_record record_type_name
+              let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
               in
               match lookup_result with
-              | Some _record_type_definition -> begin
-                  TC.not_yet_implemented [%here] location
+              | Some record_type_definition -> begin
+                  let field_identifiers = List.map ~f:fst record_type_definition.fields
+                  in
+                  match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
+                  | Some selected_field_index -> begin
+                      let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
+                      in
+                      let expression = N.Exp_record_field_access {
+                        record_identifier;
+                        receiving_variables;
+                        selected_field_index;
+                      }
+                      in
+                      TC.return @@ N.Stm_exp expression
+                    end
+                  | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
                 end
-              | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_name
+              | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
             end
           | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
           | S.Typ_var _            -> TC.not_yet_implemented [%here] location

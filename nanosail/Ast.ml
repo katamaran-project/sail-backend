@@ -139,9 +139,9 @@ type expression =
 
 and record_field_access =
   {
-    record_identifier : string;
-    field_identifiers : string list;
-    selected_field    : int;
+    record_identifier    : string;
+    receiving_variables  : string list;
+    selected_field_index : int;
   }
 
 
@@ -283,29 +283,34 @@ type program = {
 
 
 module Extract = struct
+  let identity x = Some x
+
+  
   let function_definition = function
     | FunctionDefinition x -> Some x
     | _                    -> None
 
-  let type_definition = function
-    | TypeDefinition x -> Some x
+  let type_definition (of_kind : type_definition -> 'a option) = function
+    | TypeDefinition x -> of_kind x
     | _                -> None
 
-  let enum_definition = function
-    | TypeDefinition (TD_enum x) -> Some x
-    | _                          -> None
+  let of_anything = Option.some
+  
+  let of_enum = function
+    | TD_enum x -> Some x
+    | _         -> None
 
-  let variant_definition = function
-    | TypeDefinition (TD_variant x) -> Some x
-    | _                             -> None
+  let of_variant = function
+    | TD_variant x -> Some x
+    | _            -> None
 
-  let record_definition = function
-    | TypeDefinition (TD_record x) -> Some x
-    | _                            -> None
+  let of_record = function
+    | TD_record x -> Some x
+    | _           -> None
 
-  let abbreviation_definition = function
-    | TypeDefinition (TD_abbreviation x) -> Some x
-    | _                                  -> None
+  let of_abbreviation = function
+    | TD_abbreviation x -> Some x
+    | _                 -> None
 
   let register_definition = function
     | RegisterDefinition x -> Some x
