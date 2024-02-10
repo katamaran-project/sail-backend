@@ -129,12 +129,20 @@ type value =
 
 
 type expression =
-  | Exp_var   of string
-  | Exp_val   of value
-  | Exp_neg   of expression     (* Not yet used by the sail to nanosail translator *)
-  | Exp_not   of expression     (* Not yet used by the sail to nanosail translator *)
-  | Exp_list  of expression list
-  | Exp_binop of binary_operator * expression * expression
+  | Exp_var                 of string
+  | Exp_val                 of value
+  | Exp_neg                 of expression
+  | Exp_not                 of expression
+  | Exp_list                of expression list
+  | Exp_binop               of binary_operator * expression * expression
+  | Exp_record_field_access of record_field_access
+
+and record_field_access =
+  {
+    record_identifier : string;
+    field_identifiers : string list;
+    selected_field    : int;
+  }
 
 
 type statement =

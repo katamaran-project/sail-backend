@@ -24,11 +24,19 @@ let string_of_identifier ocaml_location (S.Id_aux (aux, sail_location)) : string
   | Id x       -> TC.return x
   | Operator _ -> TC.not_yet_implemented ocaml_location sail_location
 
+(* todo remove this function *)
 let translate_identifier (S.Id_aux (aux, location)) : N.identifier TC.t =
   match aux with
   | Id x       -> TC.return x
   | Operator x -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" x) [%here] location
 
+
+let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
+  match lvar with
+  | S.Ast_util.Register t   -> TC.return t
+  | S.Ast_util.Enum t       -> TC.return t
+  | S.Ast_util.Local (_, t) -> TC.return t
+  | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
 let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression TC.t =
   match numeric_expression with
@@ -207,12 +215,12 @@ let translate_expression (expression : N.type_annotation S.exp) : N.statement TC
      let S.L_aux (literal, _literal_location) = literal
      in
      match literal with
+      | S.L_num n    -> TC.return @@ N.Stm_exp (N.Exp_val (N.Val_int n))
       | S.L_unit     -> TC.not_yet_implemented [%here] location
       | S.L_zero     -> TC.not_yet_implemented [%here] location
       | S.L_one      -> TC.not_yet_implemented [%here] location
       | S.L_true     -> TC.not_yet_implemented [%here] location
       | S.L_false    -> TC.not_yet_implemented [%here] location
-      | S.L_num n    -> TC.return @@ N.Stm_exp (N.Exp_val (N.Val_int n))
       | S.L_hex _    -> TC.not_yet_implemented [%here] location
       | S.L_bin _    -> TC.not_yet_implemented [%here] location
       | S.L_string _ -> TC.not_yet_implemented [%here] location
@@ -287,8 +295,9 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
     end
   | S.P_wild -> begin
       let* typ = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      and* id  = TC.generate_unique_identifier "_"
       in
-      TC.return [("_", typ)]
+      TC.return [(id, typ)]
     end
   | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.P_not _                     -> TC.not_yet_implemented [%here] location
@@ -436,12 +445,60 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       make_sequence translated_statements location
     end
 
+  (*
+       record.field
+
+     gets translated into
+
+       let* ["field_1"; "field_2"; ...; "field_n"] = record in field_i
+       
+  *)
+  | S.AE_field (aval, field_identifier, typ) -> begin
+      let* _field_id = translate_identifier field_identifier
+      in
+      let _field_type = Libsail.Ast_util.string_of_typ typ
+      in
+      match aval with
+      | S.AV_id (id, lvar) -> begin
+          let* _id = translate_identifier id
+          and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
+          in
+          match t with
+          | S.Typ_id record_type_name -> begin
+              let* record_type_name = string_of_identifier [%here] record_type_name
+              in
+              let* lookup_result = TC.lookup_type record_type_name (* todo make helper function lookup_record_type *)
+              in
+              match lookup_result with
+              | Some record_type -> begin
+                  match record_type with
+                  | N.TD_record _ -> TC.not_yet_implemented [%here] location
+                  | _ -> TC.fail [%here] "Expected to find record type"
+                end
+              | None -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s (should not happen)" record_type_name
+            end
+          | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+          | S.Typ_var _            -> TC.not_yet_implemented [%here] location
+          | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+          | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+          | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
+          | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+          | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+        end
+      | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+      | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+      | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
+      | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+      | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+      | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+      | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+    end
+
   | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
   | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_exit (_, _)             -> TC.not_yet_implemented [%here] location
   | S.AE_throw (_, _)            -> TC.not_yet_implemented [%here] location
-  | S.AE_field (_, _, _)         -> TC.not_yet_implemented [%here] location
   | S.AE_try (_, _, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_struct_update (_, _, _) -> TC.not_yet_implemented [%here] location
   | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
@@ -635,18 +692,18 @@ and statement_of_match (location : S.l                                          
   and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
     match type_of_matched with
     | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-    | S.Typ_tuple _          -> match_tuple ()
-    | S.Typ_id id            -> match_type_by_identifier id
-    | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
-    | S.Typ_var _            -> TC.not_yet_implemented [%here] location
-    | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
-    | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
-    | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
-    | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+    | S.Typ_tuple _                        -> match_tuple ()
+    | S.Typ_id id                          -> match_type_by_identifier id
+    | S.Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
+    | S.Typ_var _                          -> TC.not_yet_implemented [%here] location
+    | S.Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
+    | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
+    | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
+    | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
   in
   match matched with
   | S.AV_id (_id, lvar) -> begin
-      match lvar with
+      match lvar with (* todo replace by type_from_lvar *)
       | S.Ast_util.Local (_mut, typ) -> match_typed typ
       | S.Ast_util.Register typ      -> match_typed typ
       | S.Ast_util.Enum typ          -> match_typed typ
