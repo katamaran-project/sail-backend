@@ -453,10 +453,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
        let* ["field_1"; "field_2"; ...; "field_n"] = record in field_i
        
   *)
-  | S.AE_field (aval, field_identifier, typ) -> begin
+  | S.AE_field (aval, field_identifier, _field_type) -> begin
       let* field_identifier = translate_identifier field_identifier
-      in
-      let _field_type = Libsail.Ast_util.string_of_typ typ
       in
       match aval with
       | S.AV_id (record_identifier, lvar) -> begin
@@ -506,13 +504,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
     end
 
+  | S.AE_struct_update (aval, bindings, typ) -> begin
+      TC.not_yet_implemented [%here] location
+    end
+
   | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
   | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_exit (_, _)             -> TC.not_yet_implemented [%here] location
   | S.AE_throw (_, _)            -> TC.not_yet_implemented [%here] location
   | S.AE_try (_, _, _)           -> TC.not_yet_implemented [%here] location
-  | S.AE_struct_update (_, _, _) -> TC.not_yet_implemented [%here] location
   | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
   | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
