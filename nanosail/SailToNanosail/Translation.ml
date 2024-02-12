@@ -504,7 +504,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
     end
 
-  | S.AE_struct_update (aval, bindings, typ) -> begin
+  | S.AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
     end
 
