@@ -14,32 +14,11 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
-open Nanotype
 open Expression
 open Function
 open TypeDefinition
 open TopLevelTypeConstraint
 open Register
-
-
-let translate_register
-      (_definition_annotation        : S.def_annot                 )
-      (annotated_register_definition : N.type_annotation S.dec_spec) : N.definition TC.t
-  =
-  let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
-  in
-  match expression with
-  | None -> begin
-      let* identifier' = translate_identifier [%here] identifier
-      and* nanotype    = nanotype_of_sail_type sail_type
-      in
-      TC.return @@ N.RegisterDefinition {
-          identifier = identifier';
-          typ        = nanotype   ;
-        }
-    end
-  | Some (E_aux (_expr, (location, _annotation))) -> TC.not_yet_implemented [%here] location
 
 
 let translate_mapping_definition
