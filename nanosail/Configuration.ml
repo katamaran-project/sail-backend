@@ -52,10 +52,10 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
   in
   let should_ignore_pragma identifier =
     member ignored_pragmas identifier
-      
+
   and should_ignore_function_definition function_definition =
     member ignored_functions @@ Identifier.of_function_definition function_definition
-      
+
   and should_ignore_type_definition type_definition =
     let identifier = Identifier.of_type_definition type_definition
     in
@@ -64,7 +64,7 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
     let result, _ = Slang.EvaluationContext.run (get ignore_definition_predicate arguments) Slang.Environment.empty
     in
     Slang.Value.truthy result
-      
+
   in
   match definition with
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier

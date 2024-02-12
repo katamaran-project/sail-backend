@@ -1,9 +1,11 @@
 open Nanosail.Ast
 
 
+let var s = Exp_var (s, Local)
+
 let fun_is_empty = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l");
+      matched   = Stm_exp (var "l");
       when_nil  = Stm_exp (Exp_val (Val_bool true));
       when_cons = ("h", "t", Stm_exp (Exp_val (Val_bool false)))
     }
@@ -17,16 +19,16 @@ let fun_onetwothree = Stm_exp (Exp_list [Exp_val (Val_int (Big_int.of_int 1));
 
 let fun_last = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l");
+      matched   = Stm_exp (var "l");
       when_nil  = Stm_exp (Exp_val (Val_prod (Val_int (Big_int.of_int 0), Val_bool false)));
       when_cons = (
         "h",
         "t",
         Stm_match begin
           MP_list {
-            matched   = Stm_exp (Exp_var "t");
-            when_nil  = Stm_exp (Exp_binop (Pair, Exp_var "h", Exp_val (Val_bool true)));
-            when_cons = ("h'", "t'", Stm_call ("last", [Exp_var "t"]))
+            matched   = Stm_exp (var "t");
+            when_nil  = Stm_exp (Exp_binop (Pair, var "h", Exp_val (Val_bool true)));
+            when_cons = ("h'", "t'", Stm_call ("last", [var "t"]))
           }
         end
       )
@@ -35,35 +37,35 @@ let fun_last = Stm_match begin
 
 let fun_append = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l1");
-      when_nil  = Stm_exp (Exp_var "l2");
-      when_cons = ("h", "t", Stm_let ("r", Stm_call ("append", [Exp_var "t"; Exp_var "l2"]), Stm_exp (Exp_binop (Cons, Exp_var "h", Exp_var "r"))))
+      matched   = Stm_exp (var "l1");
+      when_nil  = Stm_exp (var "l2");
+      when_cons = ("h", "t", Stm_let ("r", Stm_call ("append", [var "t"; var "l2"]), Stm_exp (Exp_binop (Cons, var "h", var "r"))))
     }
   end
 
 let fun_length = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l");
+      matched   = Stm_exp (var "l");
       when_nil  = Stm_exp (Exp_val (Val_int (Big_int.of_int 0)));
-      when_cons = ("h", "t", Stm_let ("n", Stm_call ("length", [Exp_var "t"]), Stm_exp (Exp_binop (Plus, Exp_var "n", Exp_val (Val_int (Big_int.of_int 1))))))
+      when_cons = ("h", "t", Stm_let ("n", Stm_call ("length", [var "t"]), Stm_exp (Exp_binop (Plus, var "n", Exp_val (Val_int (Big_int.of_int 1))))))
     }
   end
 
 let fun_reverse_aux = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l");
-      when_nil  = Stm_exp (Exp_var "acc");
-      when_cons = ("h", "t", Stm_call ("reverse_aux", [Exp_var "t"; Exp_binop (Cons, Exp_var "h", Exp_var "acc")]))
+      matched   = Stm_exp (var "l");
+      when_nil  = Stm_exp (var "acc");
+      when_cons = ("h", "t", Stm_call ("reverse_aux", [var "t"; Exp_binop (Cons, var "h", var "acc")]))
     }
   end
 
-let fun_reverse = Stm_call ("reverse_aux", [Exp_var "l"; Exp_list []])
+let fun_reverse = Stm_call ("reverse_aux", [var "l"; Exp_list []])
 
 let fun_reverse_bis = Stm_match begin
     MP_list {
-      matched   = Stm_exp (Exp_var "l");
+      matched   = Stm_exp (var "l");
       when_nil  = Stm_exp (Exp_list []);
-      when_cons = ("h", "t", Stm_let ("r", Stm_call ("reverse_bis", [Exp_var "t"]), Stm_exp (Exp_binop (Append, Exp_var "r", Exp_list [Exp_var "h"]))))
+      when_cons = ("h", "t", Stm_let ("r", Stm_call ("reverse_bis", [var "t"]), Stm_exp (Exp_binop (Append, var "r", Exp_list [var "h"]))))
     }
   end
 

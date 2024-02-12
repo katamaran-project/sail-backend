@@ -128,8 +128,13 @@ type value =
   | Val_prod   of value * value
 
 
+type variable_source =
+  | Local
+  | Register
+
+
 type expression =
-  | Exp_var                 of string
+  | Exp_var                 of string * variable_source
   | Exp_val                 of value
   | Exp_neg                 of expression
   | Exp_not                 of expression
@@ -285,7 +290,7 @@ type program = {
 module Extract = struct
   let identity x = Some x
 
-  
+
   let function_definition = function
     | FunctionDefinition x -> Some x
     | _                    -> None
@@ -295,7 +300,7 @@ module Extract = struct
     | _                -> None
 
   let of_anything = Option.some
-  
+
   let of_enum = function
     | TD_enum x -> Some x
     | _         -> None

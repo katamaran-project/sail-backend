@@ -1,5 +1,8 @@
 open Nanosail.Ast
 
+
+let var s = Exp_var (s, Local)
+
 (******************************************************************************)
 (* Functions bodies *)
 
@@ -11,10 +14,10 @@ let fun_ex_prod = Stm_exp (Exp_val (Val_prod (Val_prod (
 
 let fun_switch = Stm_match begin
     MP_product {
-      matched = Stm_exp (Exp_var "p");
+      matched = Stm_exp (var "p");
       id_fst  = "l";
       id_snd  = "r";
-      body    = Stm_exp (Exp_binop (Pair, Exp_var "r", Exp_var "l"));
+      body    = Stm_exp (Exp_binop (Pair, var "r", var "l"));
     }
   end
 
