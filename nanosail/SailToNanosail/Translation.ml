@@ -19,20 +19,8 @@ open Nanotype
 open Expression
 open Function
 open TypeDefinition
+open TopLevelTypeConstraint
 
-
-let translate_top_level_type_constraint
-      (_definition_annotation : S.def_annot)
-      (S.VS_aux (value_specification, _vspec_annotation)) : N.definition TC.t =
-  let VS_val_spec (
-          TypSchm_aux (
-              TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
-              _type_scheme_location),
-          identifier, _extern) = value_specification
-  in
-  let* identifier' = translate_identifier [%here] identifier
-  in
-  TC.return @@ N.TopLevelTypeConstraintDefinition { identifier = identifier' }
 
 let translate_register
       (_definition_annotation        : S.def_annot                 )
