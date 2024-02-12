@@ -16,6 +16,8 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
 open Numeric
+open Nanotype
+open Expression
 
 
 let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
@@ -26,70 +28,10 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
-
-
 let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
   match aux with
   | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
   | Pat_when _       -> TC.not_yet_implemented [%here] location
-
-
-let translate_expression (expression : N.type_annotation S.exp) : N.statement TC.t =
-  let S.E_aux (expression, (location, _type_annotation)) = expression
-  in
-  match expression with
-  | S.E_lit literal -> begin
-     let S.L_aux (literal, _literal_location) = literal
-     in
-     match literal with
-      | S.L_num n    -> TC.return @@ N.Stm_exp (N.Exp_val (N.Val_int n))
-      | S.L_unit     -> TC.not_yet_implemented [%here] location
-      | S.L_zero     -> TC.not_yet_implemented [%here] location
-      | S.L_one      -> TC.not_yet_implemented [%here] location
-      | S.L_true     -> TC.not_yet_implemented [%here] location
-      | S.L_false    -> TC.not_yet_implemented [%here] location
-      | S.L_hex _    -> TC.not_yet_implemented [%here] location
-      | S.L_bin _    -> TC.not_yet_implemented [%here] location
-      | S.L_string _ -> TC.not_yet_implemented [%here] location
-      | S.L_undef    -> TC.not_yet_implemented [%here] location
-      | S.L_real _   -> TC.not_yet_implemented [%here] location
-    end
-  | S.E_block _                                -> TC.not_yet_implemented [%here] location
-  | S.E_id _                                   -> TC.not_yet_implemented [%here] location
-  | S.E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_app (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_app_infix (_, _, _)                    -> TC.not_yet_implemented [%here] location
-  | S.E_tuple _                                -> TC.not_yet_implemented [%here] location
-  | S.E_if (_, _, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_loop (_, _, _, _)                      -> TC.not_yet_implemented [%here] location
-  | S.E_for (_, _, _, _, _, _)                 -> TC.not_yet_implemented [%here] location
-  | S.E_vector _                               -> TC.not_yet_implemented [%here] location
-  | S.E_vector_access (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_vector_subrange (_, _, _)              -> TC.not_yet_implemented [%here] location
-  | S.E_vector_update (_, _, _)                -> TC.not_yet_implemented [%here] location
-  | S.E_vector_update_subrange (_, _, _, _)    -> TC.not_yet_implemented [%here] location
-  | S.E_vector_append (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_list _                                 -> TC.not_yet_implemented [%here] location
-  | S.E_cons (_, _)                            -> TC.not_yet_implemented [%here] location
-  | S.E_struct _                               -> TC.not_yet_implemented [%here] location
-  | S.E_struct_update (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_field (_, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_match (_, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_let (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_assign (_, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_sizeof _                               -> TC.not_yet_implemented [%here] location
-  | S.E_return _                               -> TC.not_yet_implemented [%here] location
-  | S.E_exit _                                 -> TC.not_yet_implemented [%here] location
-  | S.E_ref _                                  -> TC.not_yet_implemented [%here] location
-  | S.E_throw _                                -> TC.not_yet_implemented [%here] location
-  | S.E_try (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_assert (_, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_var (_, _, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_internal_plet (_, _, _)                -> TC.not_yet_implemented [%here] location
-  | S.E_internal_return _                      -> TC.not_yet_implemented [%here] location
-  | S.E_internal_value _                       -> TC.not_yet_implemented [%here] location
-  | S.E_internal_assume (_, _)                 -> TC.not_yet_implemented [%here] location
-  | S.E_constraint _                           -> TC.not_yet_implemented [%here] location
 
 
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
