@@ -387,7 +387,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
   
-  and statement_of_field_access location aval field_identifier _field_type =
+  and statement_of_field_access
+        (location         : Libsail.Parse_ast.l             )
+        (aval             : Libsail.Ast.typ Libsail.Anf.aval)
+        (field_identifier : Libsail.Ast.id                  )
+        (_field_type      : Libsail.Ast.typ                 )
+    =
     let* field_identifier = translate_identifier [%here] field_identifier
     in
     match aval with
