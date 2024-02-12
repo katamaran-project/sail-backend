@@ -19,12 +19,6 @@ open Register
 open ValueDefinition
 
 
-let translate_top_level_outcome_definition
-      (_definition_annotation : S.def_annot)
-      (S.OV_aux (_outcome, location))
-      (_definitions : ('a S.def) list) =
-  TC.not_yet_implemented [%here] location
-
 let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) TC.t =
   if
     Configuration.ignore_definition sail_definition
@@ -37,9 +31,9 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_type type_definition                 -> translate_type_definition annotation type_definition
         | DEF_let let_definition                   -> translate_value_definition annotation let_definition
         | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
-        | DEF_outcome (outcome_spec, definitions)  -> translate_top_level_outcome_definition annotation outcome_spec definitions
         | DEF_register specification               -> translate_register annotation specification
         | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
+        | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
