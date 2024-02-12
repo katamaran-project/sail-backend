@@ -481,22 +481,27 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     in
     TC.return @@ N.Stm_let (id', s1, s2)
 
+  and statement_of_if
+        (condition   : S.typ S.aval)
+        (then_clause : S.typ S.aexp)
+        (else_clause : S.typ S.aexp)
+        (_typ        : S.typ       )
+    =
+    let* condition =
+      let* e = expression_of_aval location condition  (* todo use lift *)
+      in
+      TC.return @@ N.Stm_exp e
+    and* when_true = statement_of_aexp then_clause
+    and* when_false = statement_of_aexp else_clause
+    in
+    TC.return @@ N.Stm_match (MP_bool { condition; when_true; when_false })
+
   in
   match expression with
   | AE_val value -> statement_of_value value
   | AE_app (id, avals, typ) -> statement_of_application id avals typ
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
-  | AE_if (aval, aexp1, aexp2, _) -> begin
-      let* condition =
-        let* e = expression_of_aval location aval  (* todo use lift *)
-        in
-        TC.return @@ N.Stm_exp e
-      and* when_true = statement_of_aexp aexp1
-      and* when_false = statement_of_aexp aexp2
-      in
-      TC.return @@ N.Stm_match (MP_bool { condition; when_true; when_false })
-    end
-
+  | AE_if (condition, then_clause, else_clause, typ) -> statement_of_if condition then_clause else_clause typ
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
   | S.AE_block (statements, last_statement, _type) -> begin
       let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
