@@ -121,19 +121,23 @@ let rec expression_of_aval location (value : S.typ S.aval) =
       in
       TC.return @@ N.Exp_val lit'
 
+  and expression_of_identifier
+        (identifier : S.id        )
+        (lvar       : S.typ Libsail.Ast_util.lvar)
+    =
+    let* id' = translate_identifier [%here] identifier
+    in
+    match lvar with
+    | Libsail.Ast_util.Register _   -> TC.not_yet_implemented [%here] location (* todo *)
+    | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
+    | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
+    | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
+
   in
   match value with
   | AV_tuple elements     -> expression_of_tuple elements
   | AV_lit (literal, typ) -> expression_of_literal literal typ
-  | AV_id (id, lvar) -> begin
-      let* id' = translate_identifier [%here] id
-      in
-      match lvar with
-      | Libsail.Ast_util.Register _   -> TC.not_yet_implemented [%here] location (* todo *)
-      | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
-      | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
-      | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
-    end
+  | AV_id (id, lvar)      -> expression_of_identifier id lvar
   | AV_list (lst, _)  -> begin
       let* lst' = TC.map ~f:(expression_of_aval location) lst
       in
