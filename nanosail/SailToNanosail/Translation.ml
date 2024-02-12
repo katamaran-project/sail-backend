@@ -88,10 +88,12 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
     end
 
 
-let binds_of_pexp (S.Pat_aux (aux, (location, _annotation))) =
+let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
+  let S.Pat_aux (aux, (location, _annotation)) = pexp
+  in  
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _ -> TC.not_yet_implemented [%here] location
+  | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
 let value_of_lit (S.L_aux (literal, location)) =
