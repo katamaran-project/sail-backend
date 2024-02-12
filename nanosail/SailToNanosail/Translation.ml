@@ -30,7 +30,9 @@ let translate_kind (kind : S.kind) =
   | S.K_bool -> TC.return @@ Ast.Kind_bool
 
 
-let translate_kind_id (S.Kid_aux (Var kind_id, _id_loc)) : string TC.t =
+let translate_kind_id (kid : S.kid) : string TC.t =
+  let S.Kid_aux (Var kind_id, _id_loc) = kid
+  in
   TC.return @@ kind_id
 
 
