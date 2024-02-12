@@ -154,9 +154,222 @@ let make_sequence statements location =
   aux statements
 
 
-let rec statement_of_aexp (expression : S.typ S.aexp)  =
-  let S.AE_aux (expression, environment, location) =  expression
+let rec statement_of_aexp (expression : S.typ S.aexp) =
+  let S.AE_aux (expression, environment, location) = expression
   in
+  
+  let statement_of_match (location : S.l                                              )
+                         (matched  : S.typ S.aval                                     )
+                         (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
+    let rec match_list () =
+      let* () =
+        let error_message = lazy "matching list; expected exactly two cases"
+        in
+        TC.check [%here] (List.length cases = 2) error_message
+      in
+      
+      let* nil_case, cons_case =
+        match cases with
+        | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
+            (AP_aux (AP_cons _, _, _), _, _) as cons_case ] -> TC.return (nil_case, cons_case)
+        | [ (AP_aux (AP_cons _, _, _), _, _) as cons_case;
+            (AP_aux (AP_nil  _, _, _), _, _) as nil_case  ] -> TC.return (nil_case, cons_case)
+        | _                                                 -> TC.fail [%here] "unrecognized cases; should be nil and cons"
+      in
+      
+      match nil_case, cons_case with
+      | ( (AP_aux (AP_nil _, _, _), _, nil_clause),
+          (AP_aux (AP_cons (
+                       AP_aux (AP_id (id_h, _), _, _),
+                       AP_aux (AP_id (id_t, _), _, _)
+                     ), _, _), _, cons_clause) ) -> begin
+          let* matched =
+            let* expr = expression_of_aval location matched
+            in
+            TC.return @@ N.Stm_exp expr (* use lift *)
+          and* when_nil = statement_of_aexp nil_clause
+          and* when_cons =
+            let* id_head = translate_identifier [%here] id_h
+            and* id_tail = translate_identifier [%here] id_t
+            and* clause = statement_of_aexp cons_clause
+            in
+            TC.return (id_head, id_tail, clause)
+          in
+          let match_pattern =
+            N.MP_list {
+                matched;
+                when_cons;
+                when_nil;
+              }
+          in
+          TC.return @@ N.Stm_match match_pattern
+        end
+      | _ -> TC.fail [%here] "list cases do not have expected structure"
+
+    and match_tuple () =
+      let* () =
+        let n_cases = List.length cases
+        in
+        let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
+        in
+        TC.check [%here] (n_cases = 1) error_message
+      in
+      
+      match cases with
+      | [ (AP_aux (AP_tuple [
+                       AP_aux (AP_id (id_l, _), _, _);
+                       AP_aux (AP_id (id_r, _), _, _);
+                     ], _, _),_ , clause) ] -> begin
+          let* matched =
+            let* expr = expression_of_aval location matched
+            in
+            TC.return @@ N.Stm_exp expr (* use lift *)
+          and* id_fst = translate_identifier [%here] id_l
+          and* id_snd = translate_identifier [%here] id_r
+          and* body = statement_of_aexp clause
+          in
+          TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
+        end
+      | _ -> TC.not_yet_implemented [%here] location
+
+    and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
+      match type_identifier with
+      | S.Id id -> begin
+          let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
+          in
+          match lookup_result with
+          | Some (TD_abbreviation def)  -> match_abbreviation def
+          | Some (TD_variant def)       -> match_variant def
+          | Some (TD_enum def)          -> match_enum def
+          | Some (TD_record def)        -> match_record def
+          | None                        -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+        end
+      | S.Operator _ -> TC.not_yet_implemented [%here] location
+
+    and match_enum (enum_definition : N.enum_definition) =
+      (*
+        at this point we know that matched is a value of an enum described by the parameter enum_definition
+       *)
+      let* () =
+        let n_match_cases = List.length cases
+        and n_enum_cases = List.length enum_definition.cases
+        in
+        let error_message = lazy begin
+                                let enum_values = String.concat ~sep:", " enum_definition.cases
+                                in
+                                Printf.sprintf
+                                  "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
+                                  n_match_cases
+                                  n_enum_cases
+                                  enum_values
+                              end
+        in
+        TC.check [%here] (n_match_cases <= n_enum_cases) error_message
+      in
+      let process_case
+            (table      : N.statement StringMap.t                     )
+            (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
+        let (AP_aux (pattern, _, _), _, body) = match_case
+        in
+        match pattern with
+        | S.AP_id (S.Id_aux (id, location), _typ) -> begin
+            match id with
+            | S.Operator  _   -> TC.not_yet_implemented [%here] location
+            | S.Id identifier -> begin
+                let* () =
+                  let error_message = lazy begin
+                                          Printf.sprintf
+                                            "encountered unknown case %s while matching an %s value"
+                                            identifier
+                                            enum_definition.identifier
+                                        end
+                  in
+                  TC.check
+                    [%here]
+                    (List.mem enum_definition.cases identifier ~equal:String.equal)
+                    error_message
+                in
+                let* body' = statement_of_aexp body
+                in
+                let result = StringMap.add table ~key:identifier ~data:body'
+                in
+                match result with
+                | `Duplicate -> TC.fail
+                                  [%here]
+                                  (Printf.sprintf "duplicate case %s in enum match" identifier)
+                | `Ok table' -> TC.return table'
+              end
+          end
+        | S.AP_wild S.Typ_aux (_, _loc) -> begin
+            let* body' = statement_of_aexp body
+            in
+            let add_case table case =
+              match StringMap.add table ~key:case ~data:body' with
+              | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
+              | `Ok table' -> table'
+            in
+            TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
+          end
+        | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_cons (_, _)    -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+        | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
+      in
+      let* matched =
+        let* expr = expression_of_aval location matched
+        in
+        TC.return @@ N.Stm_exp expr (* use lift *)
+      and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
+      in
+      TC.return @@ N.Stm_match (N.MP_enum {
+                                    matched;
+                                    cases
+                     })
+
+    and match_variant (_variant_definition : N.variant_definition) =
+      TC.not_yet_implemented [%here] location
+
+    and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
+      TC.not_yet_implemented [%here] location
+
+    and match_record (_record_definition : N.record_definition) =
+      (* at this point we know that matched is a value of an enum described by the parameter enum_definition *)
+      TC.not_yet_implemented [%here] location
+
+    and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
+      match type_of_matched with
+      | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+      | S.Typ_tuple _                        -> match_tuple ()
+      | S.Typ_id id                          -> match_type_by_identifier id
+      | S.Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
+      | S.Typ_var _                          -> TC.not_yet_implemented [%here] location
+      | S.Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
+      | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
+      | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
+      | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
+    in
+    
+    match matched with
+    | S.AV_id (_id, lvar) -> begin
+        match lvar with (* todo replace by type_from_lvar *)
+        | S.Ast_util.Local (_mut, typ) -> match_typed typ
+        | S.Ast_util.Register typ      -> match_typed typ
+        | S.Ast_util.Enum typ          -> match_typed typ
+        | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
+      end
+    | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+    | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+    | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
+    | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+    | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+  in
+  
+  
   match expression with
   | AE_val aval -> begin
       let* aval' = expression_of_aval location aval
@@ -224,218 +437,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
   | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
-
-and statement_of_match (location : S.l                                              )
-                       (matched  : S.typ S.aval                                     )
-                       (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
-  =
-  let rec match_list () =
-    let* () =
-      let error_message = lazy "matching list; expected exactly two cases"
-      in
-      TC.check [%here] (List.length cases = 2) error_message
-    in
-    let* nil_case, cons_case =
-      match cases with
-      | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
-          (AP_aux (AP_cons _, _, _), _, _) as cons_case ] -> TC.return (nil_case, cons_case)
-      | [ (AP_aux (AP_cons _, _, _), _, _) as cons_case;
-          (AP_aux (AP_nil  _, _, _), _, _) as nil_case  ] -> TC.return (nil_case, cons_case)
-      | _                                                 -> TC.fail [%here] "unrecognized cases; should be nil and cons"
-    in
-    match nil_case, cons_case with
-    | ( (AP_aux (AP_nil _, _, _), _, nil_clause),
-        (AP_aux (AP_cons (
-                     AP_aux (AP_id (id_h, _), _, _),
-                     AP_aux (AP_id (id_t, _), _, _)
-                   ), _, _), _, cons_clause) ) -> begin
-        let* matched =
-          let* expr = expression_of_aval location matched
-          in
-          TC.return @@ N.Stm_exp expr (* use lift *)
-        and* when_nil = statement_of_aexp nil_clause
-        and* when_cons =
-          let* id_head = translate_identifier [%here] id_h
-          and* id_tail = translate_identifier [%here] id_t
-          and* clause = statement_of_aexp cons_clause
-          in
-          TC.return (id_head, id_tail, clause)
-        in
-        let match_pattern =
-          N.MP_list {
-              matched;
-              when_cons;
-              when_nil;
-            }
-        in
-        TC.return @@ N.Stm_match match_pattern
-      end
-    | _ -> TC.fail [%here] "list cases do not have expected structure"
-
-  and match_tuple () =
-    let* () =
-      let n_cases = List.length cases
-      in
-      let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
-      in
-      TC.check [%here] (n_cases = 1) error_message
-    in
-    match cases with
-    | [ (AP_aux (AP_tuple [
-                     AP_aux (AP_id (id_l, _), _, _);
-                     AP_aux (AP_id (id_r, _), _, _);
-                   ], _, _),_ , clause) ] -> begin
-        let* matched =
-          let* expr = expression_of_aval location matched
-          in
-          TC.return @@ N.Stm_exp expr (* use lift *)
-        and* id_fst = translate_identifier [%here] id_l
-        and* id_snd = translate_identifier [%here] id_r
-        and* body = statement_of_aexp clause
-        in
-        TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
-      end
-    | _ -> TC.not_yet_implemented [%here] location
-
-  and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
-    match type_identifier with
-    | S.Id id -> begin
-        let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
-        in
-        match lookup_result with
-        | Some (TD_abbreviation def)  -> match_abbreviation def
-        | Some (TD_variant def)       -> match_variant def
-        | Some (TD_enum def)          -> match_enum def
-        | Some (TD_record def)        -> match_record def
-        | None                        -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
-      end
-    | S.Operator _ -> TC.not_yet_implemented [%here] location
-
-  and match_enum (enum_definition : N.enum_definition) =
-    (*
-      at this point we know that matched is a value of an enum described by the parameter enum_definition
-    *)
-    let* () =
-      let n_match_cases = List.length cases
-      and n_enum_cases = List.length enum_definition.cases
-      in
-      let error_message = lazy begin
-                              let enum_values = String.concat ~sep:", " enum_definition.cases
-                              in
-                              Printf.sprintf
-                                "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
-                                n_match_cases
-                                n_enum_cases
-                                enum_values
-                            end
-      in
-      TC.check [%here] (n_match_cases <= n_enum_cases) error_message
-    in
-    let process_case
-          (table      : N.statement StringMap.t                     )
-          (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
-      let (AP_aux (pattern, _, _), _, body) = match_case
-      in
-      match pattern with
-      | S.AP_id (S.Id_aux (id, location), _typ) -> begin
-          match id with
-          | S.Operator  _   -> TC.not_yet_implemented [%here] location
-          | S.Id identifier -> begin
-              let* () =
-                let error_message = lazy begin
-                                        Printf.sprintf
-                                          "encountered unknown case %s while matching an %s value"
-                                          identifier
-                                          enum_definition.identifier
-                                      end
-                in
-                TC.check
-                          [%here]
-                          (List.mem enum_definition.cases identifier ~equal:String.equal)
-                          error_message
-              in
-              let* body' = statement_of_aexp body
-              in
-              let result = StringMap.add table ~key:identifier ~data:body'
-              in
-              match result with
-              | `Duplicate -> TC.fail
-                                [%here]
-                                (Printf.sprintf "duplicate case %s in enum match" identifier)
-              | `Ok table' -> TC.return table'
-            end
-        end
-      | S.AP_wild S.Typ_aux (_, _loc) -> begin
-          let* body' = statement_of_aexp body
-          in
-          let add_case table case =
-            match StringMap.add table ~key:case ~data:body' with
-            | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
-            | `Ok table' -> table'
-          in
-          TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
-        end
-      | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_cons (_, _)    -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-      | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
-    in
-    let* matched =
-      let* expr = expression_of_aval location matched
-      in
-      TC.return @@ N.Stm_exp expr (* use lift *)
-    and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
-    in
-    TC.return @@ N.Stm_match (N.MP_enum {
-        matched;
-        cases
-      })
-
-  and match_variant (_variant_definition : N.variant_definition) =
-    TC.not_yet_implemented [%here] location
-
-  and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
-    TC.not_yet_implemented [%here] location
-
-  and match_record (_record_definition : N.record_definition) =
-    (*
-      at this point we know that matched is a value of an enum described by the parameter enum_definition
-    *)
-    TC.not_yet_implemented [%here] location
-
-  (*
-     called after we determine what the type of matched is
-  *)
-  and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
-    match type_of_matched with
-    | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-    | S.Typ_tuple _                        -> match_tuple ()
-    | S.Typ_id id                          -> match_type_by_identifier id
-    | S.Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
-    | S.Typ_var _                          -> TC.not_yet_implemented [%here] location
-    | S.Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
-    | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
-    | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
-    | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
-  in
-  match matched with
-  | S.AV_id (_id, lvar) -> begin
-      match lvar with (* todo replace by type_from_lvar *)
-      | S.Ast_util.Local (_mut, typ) -> match_typed typ
-      | S.Ast_util.Register typ      -> match_typed typ
-      | S.Ast_util.Enum typ          -> match_typed typ
-      | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
-    end
-  | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-  | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-  | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
-  | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-  | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
 and statement_of_field_access _environment location aval field_identifier _field_type =
   let* field_identifier = translate_identifier [%here] field_identifier
