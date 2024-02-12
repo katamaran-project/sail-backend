@@ -442,7 +442,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
-  and statement_of_value (value : Libsail.Ast.typ Libsail.Anf.aval) =
+  and statement_of_value (value : S.typ S.aval) =
     let* aval' = expression_of_aval location value
     in
     TC.return @@ N.Stm_exp aval'
