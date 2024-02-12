@@ -163,19 +163,22 @@ let make_sequence statements location =
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) =
-  let S.AE_aux (expression, environment, location) = expression
+  let S.AE_aux (expression, _environment, location) = expression
   in
 
-  let statement_of_match (location : S.l                                              )
-                         (matched  : S.typ S.aval                                     )
-                         (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
+  let statement_of_match
+        (location : S.l                                              )
+        (matched  : S.typ S.aval                                     )
+        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
     let rec match_list () =
       let* () =
-        let error_message = lazy "matching list; expected exactly two cases"
+        let error_message =
+          lazy "matching list; expected exactly two cases"
         in
         TC.check [%here] (List.length cases = 2) error_message
-      in
 
+      in
+      
       let* nil_case, cons_case =
         match cases with
         | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
@@ -195,7 +198,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
             let* expr = expression_of_aval location matched
             in
             TC.return @@ N.Stm_exp expr (* use lift *)
+
           and* when_nil = statement_of_aexp nil_clause
+          
           and* when_cons =
             let* id_head = translate_identifier [%here] id_h
             and* id_tail = translate_identifier [%here] id_t
@@ -240,7 +245,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         end
       | _ -> TC.not_yet_implemented [%here] location
 
-    and match_type_by_identifier (S.Id_aux (type_identifier, location) : S.id) =
+    and match_type_by_identifier (type_identifier : S.id) =
+      let S.Id_aux (type_identifier, location) = type_identifier
+      in
+      
       match type_identifier with
       | S.Id id -> begin
           let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
@@ -272,6 +280,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         in
         TC.check [%here] (n_match_cases <= n_enum_cases) error_message
       in
+      
       let process_case
             (table      : N.statement StringMap.t                     )
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
@@ -325,12 +334,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
         | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
       in
+      
       let* matched =
         let* expr = expression_of_aval location matched
         in
         TC.return @@ N.Stm_exp expr (* use lift *)
+
       and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
       in
+      
       TC.return @@ N.Stm_match (N.MP_enum {
                                     matched;
                                     cases
@@ -374,8 +386,58 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
-  in
+  
+  and statement_of_field_access location aval field_identifier _field_type =
+    let* field_identifier = translate_identifier [%here] field_identifier
+    in
+    match aval with
+    | S.AV_id (record_identifier, lvar) -> begin
+        let* record_identifier = translate_identifier [%here] record_identifier
+        and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
+        in
+        match t with
+        | S.Typ_id record_type_identifier -> begin
+            let* record_type_identifier = translate_identifier [%here] record_type_identifier
+            in
+            let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
+            in
+            match lookup_result with
+            | Some record_type_definition -> begin
+                let field_identifiers = List.map ~f:fst record_type_definition.fields
+                in
+                match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
+                | Some selected_field_index -> begin
+                    let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
+                    in
+                    let expression = N.Exp_record_field_access {
+                                         record_identifier;
+                                         receiving_variables;
+                                         selected_field_index;
+                                       }
+                    in
+                    TC.return @@ N.Stm_exp expression
+                  end
+                | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
+              end
+            | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
+          end
+        | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+        | S.Typ_var _            -> TC.not_yet_implemented [%here] location
+        | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+        | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+        | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
+        | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+        | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+      end
+    | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+    | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+    | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
+    | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+    | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+    | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
+  in
   match expression with
   | AE_val aval -> begin
       let* aval' = expression_of_aval location aval
@@ -420,7 +482,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     end
 
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
-
   | S.AE_block (statements, last_statement, _type) -> begin
       let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
       in
@@ -428,7 +489,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     end
 
   | S.AE_field (aval, field_identifier, field_type) ->
-     statement_of_field_access environment location aval field_identifier field_type
+     statement_of_field_access location aval field_identifier field_type
 
   | S.AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
@@ -443,56 +504,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
   | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
   | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
-
-and statement_of_field_access _environment location aval field_identifier _field_type =
-  let* field_identifier = translate_identifier [%here] field_identifier
-  in
-  match aval with
-  | S.AV_id (record_identifier, lvar) -> begin
-      let* record_identifier = translate_identifier [%here] record_identifier
-      and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
-      in
-      match t with
-      | S.Typ_id record_type_identifier -> begin
-          let* record_type_identifier = translate_identifier [%here] record_type_identifier
-          in
-          let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
-          in
-          match lookup_result with
-          | Some record_type_definition -> begin
-              let field_identifiers = List.map ~f:fst record_type_definition.fields
-              in
-              match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
-              | Some selected_field_index -> begin
-                  let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
-                  in
-                  let expression = N.Exp_record_field_access {
-                                       record_identifier;
-                                       receiving_variables;
-                                       selected_field_index;
-                                     }
-                  in
-                  TC.return @@ N.Stm_exp expression
-                end
-              | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
-            end
-          | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
-        end
-      | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
-      | S.Typ_var _            -> TC.not_yet_implemented [%here] location
-      | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
-      | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
-      | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
-      | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
-      | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
-    end
-  | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-  | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-  | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
-  | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-  | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
 
 let body_of_pexp pexp =
