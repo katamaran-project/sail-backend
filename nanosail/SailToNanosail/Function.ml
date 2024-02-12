@@ -508,8 +508,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
       in
       make_sequence translated_statements location
     end
-  | AE_field (aval, field_identifier, field_type) ->
-     statement_of_field_access location aval field_identifier field_type
+  | AE_field (aval, field_identifier, field_type) -> statement_of_field_access location aval field_identifier field_type
   | AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
     end
