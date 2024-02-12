@@ -23,7 +23,7 @@ open Function
 open TypeQuantifier
 open TypeAbbreviation
 open Enum
-
+open Record
 
 
 let translate_record
