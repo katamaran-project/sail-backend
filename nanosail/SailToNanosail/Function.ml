@@ -133,20 +133,24 @@ let rec expression_of_aval location (value : S.typ S.aval) =
     | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
     | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
 
+  and expression_of_list
+        (list : S.typ S.aval list)
+        (_typ : S.typ            )
+    =
+    let* list' = TC.map ~f:(expression_of_aval location) list
+    in
+    TC.return @@ N.Exp_list list'
+
   in
   match value with
   | AV_tuple elements     -> expression_of_tuple elements
   | AV_lit (literal, typ) -> expression_of_literal literal typ
   | AV_id (id, lvar)      -> expression_of_identifier id lvar
-  | AV_list (lst, _)  -> begin
-      let* lst' = TC.map ~f:(expression_of_aval location) lst
-      in
-      TC.return @@ N.Exp_list lst'
-    end
-  | AV_ref (_, _)     -> TC.not_yet_implemented [%here] location
-  | AV_vector (_, _)  -> TC.not_yet_implemented [%here] location
-  | AV_record (_, _)  -> TC.not_yet_implemented [%here] location
-  | AV_cval (_, _)    -> TC.not_yet_implemented [%here] location
+  | AV_list (list, typ)   -> expression_of_list list typ      
+  | AV_ref (_, _)         -> TC.not_yet_implemented [%here] location
+  | AV_vector (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_record (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_cval (_, _)        -> TC.not_yet_implemented [%here] location
 
 
 let make_sequence statements location =
