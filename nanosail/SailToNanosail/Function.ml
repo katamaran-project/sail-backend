@@ -60,6 +60,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
       in
       TC.return [(id, typ)]
     end
+  | S.P_typ (_typ, pattern)       -> binds_of_pat pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
   | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.P_not _                     -> TC.not_yet_implemented [%here] location
   | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
@@ -72,12 +73,6 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   | S.P_cons (_, _)               -> TC.not_yet_implemented [%here] location
   | S.P_string_append _           -> TC.not_yet_implemented [%here] location
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
-  | S.P_typ (_typ, pattern)       -> begin
-      (*
-         parameter is annotated with type, e.g., function foo(x : int) = { }
-      *)
-      binds_of_pat pattern
-    end
 
 
 let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
