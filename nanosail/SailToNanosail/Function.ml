@@ -6,6 +6,7 @@ module S = struct
   include Libsail
   include Libsail.Ast
   include Libsail.Ast_defs
+  include Libsail.Ast_util
   include Libsail.Anf
 end
 
@@ -178,7 +179,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         TC.check [%here] (List.length cases = 2) error_message
 
       in
-      
+
       let* nil_case, cons_case =
         match cases with
         | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
@@ -200,7 +201,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
             TC.return @@ N.Stm_exp expr (* use lift *)
 
           and* when_nil = statement_of_aexp nil_clause
-          
+
           and* when_cons =
             let* id_head = translate_identifier [%here] id_h
             and* id_tail = translate_identifier [%here] id_t
@@ -248,7 +249,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     and match_type_by_identifier (type_identifier : S.id) =
       let S.Id_aux (type_identifier, location) = type_identifier
       in
-      
+
       match type_identifier with
       | S.Id id -> begin
           let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
@@ -280,7 +281,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         in
         TC.check [%here] (n_match_cases <= n_enum_cases) error_message
       in
-      
+
       let process_case
             (table      : N.statement StringMap.t                     )
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
@@ -334,7 +335,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
         | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
       in
-      
+
       let* matched =
         let* expr = expression_of_aval location matched
         in
@@ -342,7 +343,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
 
       and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
       in
-      
+
       TC.return @@ N.Stm_match (N.MP_enum {
                                     matched;
                                     cases
@@ -386,7 +387,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
-  
+
   and statement_of_field_access
         (location         : S.l         )
         (aval             : S.typ S.aval)
@@ -464,20 +465,27 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         let* args = TC.map ~f:(expression_of_aval location) arguments
         in
         TC.return @@ N.Stm_call (id', args)
-      end                      
+      end
+
+  and statement_of_let
+        (_mutability : Libsail.Ast_util.mut)
+        (identifier  : S.id                )
+        (_typ1       : S.typ               )
+        (expression  : S.typ S.aexp        )
+        (body        : S.typ S.aexp        )
+        (_typ2       : S.typ               )
+    =
+    let* id' = translate_identifier [%here] identifier
+    and* s1 = statement_of_aexp expression
+    and* s2 = statement_of_aexp body
+    in
+    TC.return @@ N.Stm_let (id', s1, s2)
 
   in
   match expression with
   | AE_val value -> statement_of_value value
   | AE_app (id, avals, typ) -> statement_of_application id avals typ
-  | AE_let (_, id, _, aexp1, aexp2, _) -> begin
-      let* id' = translate_identifier [%here] id
-      and* s1 = statement_of_aexp aexp1
-      and* s2 = statement_of_aexp aexp2
-      in
-      TC.return @@ N.Stm_let (id', s1, s2)
-    end
-
+  | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
   | AE_if (aval, aexp1, aexp2, _) -> begin
       let* condition =
         let* e = expression_of_aval location aval  (* todo use lift *)
