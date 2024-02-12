@@ -88,7 +88,7 @@ let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
   | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
-let value_of_lit (S.L_aux (literal, location)) =
+let value_of_literal (S.L_aux (literal, location)) =
   match literal with
   | L_true     -> TC.return @@ N.Val_bool true
   | L_false    -> TC.return @@ N.Val_bool false
@@ -120,7 +120,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
          end
      end
   | AV_lit (lit, _)   -> begin
-      let* lit' = value_of_lit lit
+      let* lit' = value_of_literal lit
       in
       TC.return @@ N.Exp_val lit'
     end
