@@ -155,7 +155,7 @@ let make_sequence statements location =
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp)  =
-  let S.AE_aux (expression, _environment, location) =  expression
+  let S.AE_aux (expression, environment, location) =  expression
   in
   match expression with
   | AE_val aval -> begin
@@ -216,56 +216,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
        let* ["field_1"; "field_2"; ...; "field_n"] = record in field_i
        
   *)
-  | S.AE_field (aval, field_identifier, _field_type) -> begin
-      let* field_identifier = translate_identifier [%here] field_identifier
-      in
-      match aval with
-      | S.AV_id (record_identifier, lvar) -> begin
-          let* record_identifier = translate_identifier [%here] record_identifier
-          and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
-          in
-          match t with
-          | S.Typ_id record_type_identifier -> begin
-              let* record_type_identifier = translate_identifier [%here] record_type_identifier
-              in
-              let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
-              in
-              match lookup_result with
-              | Some record_type_definition -> begin
-                  let field_identifiers = List.map ~f:fst record_type_definition.fields
-                  in
-                  match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
-                  | Some selected_field_index -> begin
-                      let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
-                      in
-                      let expression = N.Exp_record_field_access {
-                        record_identifier;
-                        receiving_variables;
-                        selected_field_index;
-                      }
-                      in
-                      TC.return @@ N.Stm_exp expression
-                    end
-                  | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
-                end
-              | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
-            end
-          | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
-          | S.Typ_var _            -> TC.not_yet_implemented [%here] location
-          | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
-          | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
-          | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
-          | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
-          | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
-        end
-      | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-      | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-      | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
-      | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-      | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-      | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-      | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
-    end
+  | S.AE_field (aval, field_identifier, field_type) ->
+     statement_of_field_access environment location aval field_identifier field_type
 
   | S.AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
@@ -487,6 +439,56 @@ and statement_of_match (location : S.l                                          
       | S.Ast_util.Register typ      -> match_typed typ
       | S.Ast_util.Enum typ          -> match_typed typ
       | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
+    end
+  | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+  | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+  | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
+  | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+  | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+  | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+  | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+
+and statement_of_field_access _environment location aval field_identifier _field_type =
+  let* field_identifier = translate_identifier [%here] field_identifier
+  in
+  match aval with
+  | S.AV_id (record_identifier, lvar) -> begin
+      let* record_identifier = translate_identifier [%here] record_identifier
+      and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
+      in
+      match t with
+      | S.Typ_id record_type_identifier -> begin
+          let* record_type_identifier = translate_identifier [%here] record_type_identifier
+          in
+          let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
+          in
+          match lookup_result with
+          | Some record_type_definition -> begin
+              let field_identifiers = List.map ~f:fst record_type_definition.fields
+              in
+              match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
+              | Some selected_field_index -> begin
+                  let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
+                  in
+                  let expression = N.Exp_record_field_access {
+                                       record_identifier;
+                                       receiving_variables;
+                                       selected_field_index;
+                                     }
+                  in
+                  TC.return @@ N.Stm_exp expression
+                end
+              | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
+            end
+          | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
+        end
+      | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+      | S.Typ_var _            -> TC.not_yet_implemented [%here] location
+      | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+      | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+      | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
+      | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+      | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
   | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
   | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
