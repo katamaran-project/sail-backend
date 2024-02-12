@@ -155,9 +155,9 @@ let make_sequence statements location =
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp)  =
-  let S.AE_aux (aux, _environment, location) =  expression
+  let S.AE_aux (expression, _environment, location) =  expression
   in
-  match aux with
+  match expression with
   | AE_val aval -> begin
       let* aval' = expression_of_aval location aval
       in
