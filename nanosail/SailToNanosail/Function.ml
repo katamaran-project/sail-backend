@@ -503,19 +503,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
   | AE_if (condition, then_clause, else_clause, typ) -> statement_of_if condition then_clause else_clause typ
   | AE_match (aval, cases, _) -> statement_of_match location aval cases
-  | S.AE_block (statements, last_statement, _type) -> begin
+  | AE_block (statements, last_statement, _type) -> begin
       let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
       in
       make_sequence translated_statements location
     end
-
-  | S.AE_field (aval, field_identifier, field_type) ->
+  | AE_field (aval, field_identifier, field_type) ->
      statement_of_field_access location aval field_identifier field_type
-
-  | S.AE_struct_update (_aval, _bindings, _typ) -> begin
+  | AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
     end
-
   | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
   | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
   | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
