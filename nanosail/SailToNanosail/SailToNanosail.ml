@@ -15,6 +15,7 @@ module Variant                = Variant
 module Record                 = Record
 module TypeDefinition         = TypeDefinition
 module TopLevelTypeConstraint = TopLevelTypeConstraint
+module Register               = Register
 
 
 let translate             = Translation.translate

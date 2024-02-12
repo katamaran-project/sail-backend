@@ -20,6 +20,7 @@ open Expression
 open Function
 open TypeDefinition
 open TopLevelTypeConstraint
+open Register
 
 
 let translate_register
