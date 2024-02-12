@@ -28,12 +28,6 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
-let ty_of_pexp (S.Pat_aux (aux, (location, _annot))) =
-  match aux with
-  | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
-  | Pat_when _       -> TC.not_yet_implemented [%here] location
-
-
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   match aux with
   | P_lit (L_aux (lit, _loc)) ->
@@ -507,6 +501,14 @@ let body_of_pexp pexp =
   in
   match aux with
   | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
+  | Pat_when _       -> TC.not_yet_implemented [%here] location
+
+
+let ty_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
+  let S.Pat_aux (aux, (location, _annot)) = pexp
+  in
+  match aux with
+  | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
   | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
