@@ -13,6 +13,7 @@ module TypeAbbreviation   = TypeAbbreviation
 module Enum               = Enum
 module Variant            = Variant
 module Record             = Record
+module TypeDefinition     = TypeDefinition
 
 
 let translate             = Translation.translate
