@@ -9,6 +9,7 @@ module C = Converters
 open Shared
 
 
+(* (cons x y) creates a pair with values x and y *)
 let cons (args : Value.t list) =
   let impl args =
     let=? car, cdr = C.(map2 value value) args
@@ -18,6 +19,7 @@ let cons (args : Value.t list) =
   mk_multimethod [ impl ] args
 
 
+(* (car pair) returns the first element of the given pair *)
 let car args =
   let impl args =
     let=? (car, _) = C.(map1 (cons value value)) args
@@ -27,6 +29,7 @@ let car args =
   mk_multimethod [ impl ] args
 
 
+(* (cdr pair) returns the second element of the given pair *)
 let cdr args =
   let impl args =
     let=? (_, cdr) = C.(map1 (cons value value)) args
@@ -36,6 +39,7 @@ let cdr args =
   mk_multimethod [ impl ] args
 
 
+(* (any? predicate list) *)
 let any args =
   let impl args =
     let=? predicate, items = C.(map2 callable (list value)) args
@@ -47,6 +51,7 @@ let any args =
   mk_multimethod [ impl ] args
 
 
+(* (all? predicate list) *)
 let all args =
   let impl args =
     let=? predicate, items = C.(map2 callable (list value)) args
@@ -58,6 +63,7 @@ let all args =
   mk_multimethod [ impl ] args
 
 
+(* (contains? list value) *)
 let contains args =
   let impl args =
     let=? list, value = C.(map2 (list value) value) args
