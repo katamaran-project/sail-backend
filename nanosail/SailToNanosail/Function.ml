@@ -281,6 +281,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
 
+(*
+  Translates a match expression
+*)
 and statement_of_match (location : S.l                                              )
                        (matched  : S.typ S.aval                                     )
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
