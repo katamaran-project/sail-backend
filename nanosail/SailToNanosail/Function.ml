@@ -442,26 +442,29 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     in
     TC.return @@ N.Stm_exp aval'
 
+  and statement_of_application
+           (receiver_identifier : S.id                                 )
+           (arguments           : Libsail.Ast.typ Libsail.Anf.aval list)
+           (_typ                : Libsail.Ast.typ                      ) =
+    let* id' = translate_identifier [%here] receiver_identifier
+    in
+    match arguments with
+    | [aval1; aval2] when String.equal id' "sail_cons" -> begin
+        let* e1 = expression_of_aval location aval1
+        and* e2 = expression_of_aval location aval2
+        in
+        TC.return @@ N.Stm_exp (Exp_binop (Cons, e1, e2))
+      end
+    | _ -> begin
+        let* args = TC.map ~f:(expression_of_aval location) arguments
+        in
+        TC.return @@ N.Stm_call (id', args)
+      end                      
+
   in
   match expression with
   | AE_val value -> statement_of_value value
-  | AE_app (id, avals, _) -> begin
-      let* id' = translate_identifier [%here] id
-      in
-      match avals with
-      | [aval1; aval2] when String.equal id' "sail_cons" -> begin
-          let* e1 = expression_of_aval location aval1
-          and* e2 = expression_of_aval location aval2
-          in
-          TC.return @@ N.Stm_exp (Exp_binop (Cons, e1, e2))
-        end
-      | _ -> begin
-          let* args = TC.map ~f:(expression_of_aval location) avals
-          in
-          TC.return @@ N.Stm_call (id', args)
-        end
-    end
-
+  | AE_app (id, avals, typ) -> statement_of_application id avals typ
   | AE_let (_, id, _, aexp1, aexp2, _) -> begin
       let* id' = translate_identifier [%here] id
       and* s1 = statement_of_aexp aexp1
