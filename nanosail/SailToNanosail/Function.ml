@@ -127,16 +127,12 @@ let rec expression_of_aval location (value : S.typ S.aval) =
     end
   | AV_id (id, lvar) -> begin
       let* id' = translate_identifier [%here] id
-
-      and* source =
-        match lvar with
-         | Libsail.Ast_util.Register _   -> TC.return N.Register
-         | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
-         | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
-         | Libsail.Ast_util.Local (_, _) -> TC.return N.Local
       in
-
-      TC.return @@ N.Exp_var (id', source)
+      match lvar with
+      | Libsail.Ast_util.Register _   -> TC.not_yet_implemented [%here] location (* todo *)
+      | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
+      | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
+      | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
     end
   | AV_list (lst, _)  -> begin
       let* lst' = TC.map ~f:(expression_of_aval location) lst

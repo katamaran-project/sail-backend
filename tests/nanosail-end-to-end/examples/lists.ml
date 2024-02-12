@@ -1,7 +1,7 @@
 open Nanosail.Ast
 
 
-let var s = Exp_var (s, Local)
+let var s = Exp_var s
 
 let fun_is_empty = Stm_match begin
     MP_list {

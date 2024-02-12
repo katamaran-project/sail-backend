@@ -107,6 +107,9 @@ let rec pp_statement statement =
      in
      AC.return @@ simple_app [ string "stm_seq"; s1'; s2' ]
 
+  | Stm_read_register register_identifier ->
+     AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
+
 and pp_par_statement s =
   let* s' = pp_statement s
   in

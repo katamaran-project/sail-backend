@@ -1,7 +1,7 @@
 open Nanosail.Ast
 
 
-let var s = Exp_var (s, Local)
+let var s = Exp_var s
 
 (******************************************************************************)
 (* Functions bodies *)
@@ -61,5 +61,4 @@ let ir : program = {
     program_name = program_name;
     definitions  = List.map (fun x -> (Util.dummy_sail_def, FunctionDefinition x)) funDefList;
   }
-
 

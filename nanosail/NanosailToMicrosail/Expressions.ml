@@ -107,11 +107,7 @@ let rec pp_expression e =
       AC.return @@ infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var (v, source) -> begin
-      match source with
-      | Local    -> AC.return @@ simple_app [string "exp_var"; dquotes (string v)]
-      | Register -> AC.return @@ simple_app [string "stm_read_register"; string v] (* todo fix this *)
-    end
+  | Exp_var v              -> AC.return @@ simple_app [string "exp_var"; dquotes (string v)]
   | Exp_val v              -> pp_exp_val v
   | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ string "- " ^^ e'
   | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ simple_app [string "exp_not"; e']

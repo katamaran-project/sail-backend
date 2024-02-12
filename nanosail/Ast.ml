@@ -128,13 +128,8 @@ type value =
   | Val_prod   of value * value
 
 
-type variable_source =
-  | Local
-  | Register
-
-
 type expression =
-  | Exp_var                 of string * variable_source
+  | Exp_var                 of string
   | Exp_val                 of value
   | Exp_neg                 of expression
   | Exp_not                 of expression
@@ -151,11 +146,12 @@ and record_field_access =
 
 
 type statement =
-  | Stm_match of match_pattern
-  | Stm_exp   of expression
-  | Stm_call  of string * expression list    (* AST already in A-normal form *)
-  | Stm_let   of string * statement * statement
-  | Stm_seq   of statement * statement
+  | Stm_match         of match_pattern
+  | Stm_exp           of expression
+  | Stm_call          of string * expression list
+  | Stm_let           of string * statement * statement
+  | Stm_seq           of statement * statement
+  | Stm_read_register of string
 
 and match_pattern =
   | MP_list    of match_pattern_list
