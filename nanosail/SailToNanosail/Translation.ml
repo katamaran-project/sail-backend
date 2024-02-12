@@ -21,7 +21,9 @@ open Expression
 open Function
 
 
-let translate_kind (S.K_aux (kind, _location)) : Ast.kind TC.t =
+let translate_kind (kind : S.kind) =
+  let S.K_aux (kind, _location) = kind
+  in
   match kind with
   | S.K_type -> TC.return @@ Ast.Kind_type
   | S.K_int  -> TC.return @@ Ast.Kind_int
