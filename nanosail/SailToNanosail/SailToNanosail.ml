@@ -11,6 +11,7 @@ module Function           = Function
 module TypeQuantifier     = TypeQuantifier
 module TypeAbbreviation   = TypeAbbreviation
 module Enum               = Enum
+module Variant            = Variant
 
 let translate             = Translation.translate
 let coqify_identifiers    = Sanitation.coqify_identifiers
