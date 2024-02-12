@@ -10,6 +10,7 @@ module Expression         = Expression
 module Function           = Function
 module TypeQuantifier     = TypeQuantifier
 module TypeAbbreviation   = TypeAbbreviation
+module Enum               = Enum
 
 let translate             = Translation.translate
 let coqify_identifiers    = Sanitation.coqify_identifiers

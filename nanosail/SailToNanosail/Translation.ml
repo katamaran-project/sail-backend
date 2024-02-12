@@ -20,21 +20,7 @@ open Expression
 open Function
 open TypeQuantifier
 open TypeAbbreviation
-
-
-let translate_enum
-      (_definition_annotation : S.def_annot)
-      (_type_annotation       : 'a S.annot )
-      (identifier             : S.id       )
-      (cases                  : S.id list  ) : N.type_definition TC.t
-  =
-  let* identifier' = translate_identifier [%here] identifier
-  and* cases'      = TC.map ~f:(translate_identifier [%here]) cases
-  in
-  TC.return @@ N.TD_enum {
-      identifier = identifier';
-      cases      = cases'     ;
-    }
+open Enum
 
 
 let translate_variant
