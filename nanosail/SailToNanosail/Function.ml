@@ -113,14 +113,18 @@ let rec expression_of_aval location (value : S.typ S.aval) =
         TC.fold_left ~f:f ~init:e_h t
       end
 
-  in
-  match value with
-  | AV_tuple elements -> expression_of_tuple elements
-  | AV_lit (lit, _)   -> begin
-      let* lit' = value_of_literal lit
+  and expression_of_literal
+        (literal : S.lit)
+        (_typ    : S.typ)
+    =
+      let* lit' = value_of_literal literal
       in
       TC.return @@ N.Exp_val lit'
-    end
+
+  in
+  match value with
+  | AV_tuple elements     -> expression_of_tuple elements
+  | AV_lit (literal, typ) -> expression_of_literal literal typ
   | AV_id (id, lvar) -> begin
       let* id' = translate_identifier [%here] id
       in
