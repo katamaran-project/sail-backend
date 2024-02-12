@@ -1,8 +1,3 @@
-open Base
-open Basics
-
-module Big_int = Nat_big_num
-
 module S = struct
   include Libsail
   include Libsail.Ast
@@ -10,10 +5,13 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-
+module Big_int = Nat_big_num
+module N  = Ast
 module TC = TranslationContext
+
 open Monads.Notations.Star(TC)
+open Base
+open Basics
 open Function
 open TypeDefinition
 open TopLevelTypeConstraint
