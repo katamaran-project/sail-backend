@@ -19,8 +19,9 @@ open Monads.Notations.Star(TC)
 open Identifier
 
 
-
-let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression TC.t =
+let rec translate_numeric_expression (nexp : Libsail.Ast.nexp) : N.numeric_expression TC.t =
+  let S.Nexp_aux (numeric_expression, numexp_location) = nexp
+  in
   match numeric_expression with
   | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
   | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var string
