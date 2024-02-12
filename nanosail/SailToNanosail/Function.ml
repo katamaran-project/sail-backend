@@ -437,14 +437,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
+  and statement_of_value (value : Libsail.Ast.typ Libsail.Anf.aval) =
+    let* aval' = expression_of_aval location value
+    in
+    TC.return @@ N.Stm_exp aval'
+
   in
   match expression with
-  | AE_val aval -> begin
-      let* aval' = expression_of_aval location aval
-      in
-      TC.return @@ N.Stm_exp aval'
-    end
-
+  | AE_val value -> statement_of_value value
   | AE_app (id, avals, _) -> begin
       let* id' = translate_identifier [%here] id
       in
