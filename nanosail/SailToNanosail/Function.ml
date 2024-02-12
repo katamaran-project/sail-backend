@@ -191,7 +191,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
 
   | AE_if (aval, aexp1, aexp2, _) -> begin
       let* condition =
-        let* e = expression_of_aval location aval  (* use lift *)
+        let* e = expression_of_aval location aval  (* todo use lift *)
         in
         TC.return @@ N.Stm_exp e
       and* when_true = statement_of_aexp aexp1
@@ -208,14 +208,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
       make_sequence translated_statements location
     end
 
-  (*
-       record.field
-
-     gets translated into
-
-       let* ["field_1"; "field_2"; ...; "field_n"] = record in field_i
-       
-  *)
   | S.AE_field (aval, field_identifier, field_type) ->
      statement_of_field_access environment location aval field_identifier field_type
 
@@ -233,9 +225,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp)  =
   | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
   | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
 
-(*
-  Translates a match expression
-*)
 and statement_of_match (location : S.l                                              )
                        (matched  : S.typ S.aval                                     )
                        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t
