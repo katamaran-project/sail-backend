@@ -26,4 +26,5 @@
 (ignore-all-overloads)
 
 (ignore-definition-predicate (lambda (identifier)
-                               #f))
+                               (contains? '("option")
+                                          identifier)))
