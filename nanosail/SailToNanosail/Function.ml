@@ -443,9 +443,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     TC.return @@ N.Stm_exp aval'
 
   and statement_of_application
-           (receiver_identifier : S.id                                 )
-           (arguments           : Libsail.Ast.typ Libsail.Anf.aval list)
-           (_typ                : Libsail.Ast.typ                      ) =
+          (receiver_identifier : S.id                                 )
+          (arguments           : Libsail.Ast.typ Libsail.Anf.aval list)
+          (_typ                : Libsail.Ast.typ                      ) =
     let* id' = translate_identifier [%here] receiver_identifier
     in
     match arguments with
