@@ -7,6 +7,7 @@ module Numeric            = Numeric
 module Basics             = Basics
 module Nanotype           = Nanotype
 module Expression         = Expression
+module Function           = Function
 
 let translate             = Translation.translate
 let coqify_identifiers    = Sanitation.coqify_identifiers
