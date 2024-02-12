@@ -98,21 +98,24 @@ let value_of_literal (S.L_aux (literal, location)) =
 
 
 let rec expression_of_aval location (value : S.typ S.aval) =
+  let expression_of_tuple
+        (elements : S.typ S.aval list)
+    =
+    match elements with
+    | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
+    | h::t -> begin
+        let* e_h = expression_of_aval location h
+        in
+        let f e1 aval2 =
+          let* e2 = expression_of_aval location aval2
+          in
+          TC.return @@ N.Exp_binop (Pair, e1, e2) in
+        TC.fold_left ~f:f ~init:e_h t
+      end
+
+  in
   match value with
-  | AV_tuple elts ->
-     begin
-       match elts with
-       | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
-       | h::t -> begin
-           let* e_h = expression_of_aval location h
-           in
-           let f e1 aval2 =
-             let* e2 = expression_of_aval location aval2
-             in
-             TC.return @@ N.Exp_binop (Pair, e1, e2) in
-           TC.fold_left ~f:f ~init:e_h t
-         end
-     end
+  | AV_tuple elements -> expression_of_tuple elements
   | AV_lit (lit, _)   -> begin
       let* lit' = value_of_literal lit
       in
