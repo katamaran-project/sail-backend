@@ -507,25 +507,25 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
 
   in
   match expression with
-  | AE_val value -> statement_of_value value
-  | AE_app (id, avals, typ) -> statement_of_application id avals typ
+  | AE_val value                                                  -> statement_of_value value
+  | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
-  | AE_if (condition, then_clause, else_clause, typ) -> statement_of_if condition then_clause else_clause typ
-  | AE_match (aval, cases, _) -> statement_of_match location aval cases
-  | AE_block (statements, last_statement, typ) -> statement_of_block statements last_statement typ
-  | AE_field (aval, field_identifier, field_type) -> statement_of_field_access location aval field_identifier field_type
+  | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
+  | AE_match (aval, cases, _)                                     -> statement_of_match location aval cases
+  | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
+  | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
   | AE_struct_update (_aval, _bindings, _typ) -> begin
       TC.not_yet_implemented [%here] location
     end
-  | S.AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
-  | S.AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
-  | S.AE_return (_, _)           -> TC.not_yet_implemented [%here] location
-  | S.AE_exit (_, _)             -> TC.not_yet_implemented [%here] location
-  | S.AE_throw (_, _)            -> TC.not_yet_implemented [%here] location
-  | S.AE_try (_, _, _)           -> TC.not_yet_implemented [%here] location
-  | S.AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
-  | S.AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
-  | S.AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
+  | S.AE_typ (_, _)                                               -> TC.not_yet_implemented [%here] location
+  | S.AE_assign (_, _)                                            -> TC.not_yet_implemented [%here] location
+  | S.AE_return (_, _)                                            -> TC.not_yet_implemented [%here] location
+  | S.AE_exit (_, _)                                              -> TC.not_yet_implemented [%here] location
+  | S.AE_throw (_, _)                                             -> TC.not_yet_implemented [%here] location
+  | S.AE_try (_, _, _)                                            -> TC.not_yet_implemented [%here] location
+  | S.AE_for (_, _, _, _, _, _)                                   -> TC.not_yet_implemented [%here] location
+  | S.AE_loop (_, _, _)                                           -> TC.not_yet_implemented [%here] location
+  | S.AE_short_circuit (_, _, _)                                  -> TC.not_yet_implemented [%here] location
 
 
 let body_of_pexp pexp =
