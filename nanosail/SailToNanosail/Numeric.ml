@@ -19,8 +19,8 @@ open Monads.Notations.Star(TC)
 open Identifier
 
 
-let rec translate_numeric_expression (nexp : Libsail.Ast.nexp) : N.numeric_expression TC.t =
-  let S.Nexp_aux (numeric_expression, numexp_location) = nexp
+let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N.numeric_expression TC.t =
+  let S.Nexp_aux (numeric_expression, numexp_location) = numeric_expression
   in
   match numeric_expression with
   | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
@@ -56,7 +56,9 @@ let rec translate_numeric_expression (nexp : Libsail.Ast.nexp) : N.numeric_expre
   | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
   | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
-and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.numeric_constraint TC.t =
+and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : N.numeric_constraint TC.t =
+  let S.NC_aux (numeric_constraint, location) = numeric_constraint
+  in
   match numeric_constraint with
   | S.NC_equal (x, y) -> begin
       let* x' = translate_numeric_expression x
