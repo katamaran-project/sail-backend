@@ -3,9 +3,6 @@ open Basics
 
 module Big_int = Nat_big_num
 
-module Translation = Translation
-module Sanitation = Sanitation
-
 module S = struct
   include Libsail
   include Libsail.Ast
@@ -17,12 +14,8 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-
-
-let translate_identifier ocaml_location (S.Id_aux (aux, sail_location)) : string TC.t =
-  match aux with
-  | Id id       -> TC.return id
-  | Operator op -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" op) ocaml_location sail_location
+open Identifier
+open Numeric
 
 
 let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
@@ -32,96 +25,6 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   | S.Ast_util.Local (_, t) -> TC.return t
   | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
-let rec translate_numeric_expression (S.Nexp_aux (numeric_expression, numexp_location)) : N.numeric_expression TC.t =
-  match numeric_expression with
-  | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
-  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var string
-  | Nexp_times (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_times (x', y')
-    end
-  | Nexp_sum (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_add (x', y')
-    end
-  | Nexp_minus (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_minus (x', y')
-    end
-  | Nexp_neg x  -> begin
-      let* x' = translate_numeric_expression x
-      in
-      TC.return @@ N.NE_neg x'
-    end
-  | Nexp_id identifier -> begin
-      let* identifier' = translate_identifier [%here] identifier
-      in
-      TC.return @@ N.NE_id identifier'
-    end
-  | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
-  | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
-
-and translate_numeric_constraint (S.NC_aux (numeric_constraint, location)) : N.numeric_constraint TC.t =
-  match numeric_constraint with
-  | S.NC_equal (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_equal (x', y')
-    end
-  | S.NC_bounded_ge (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_ge (x', y')
-    end
-  | S.NC_bounded_gt (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_gt (x', y')
-    end
-  | S.NC_bounded_le (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_le (x', y')
-    end
-  | S.NC_bounded_lt (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_lt (x', y')
-    end
-  | S.NC_not_equal (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_not_equal (x', y')
-    end
-  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (kind_id, ns)
-  | S.NC_or (x, y) -> begin
-      let* x' = translate_numeric_constraint x
-      and* y' = translate_numeric_constraint y
-      in
-      TC.return @@ N.NC_or (x', y')
-    end
-  | S.NC_and (x, y) -> begin
-      let* x' = translate_numeric_constraint x
-      and* y' = translate_numeric_constraint y
-      in
-      TC.return @@ N.NC_and (x', y')
-    end
-  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var kind_id
-  | S.NC_true                                  -> TC.return @@ N.NC_true
-  | S.NC_false                                 -> TC.return @@ N.NC_false
-  | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] location
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =

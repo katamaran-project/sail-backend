@@ -1,7 +1,7 @@
 open OUnit2
 module S = Libsail
 
-open Nanosail.SailToNanosail.Translation
+open Nanosail.SailToNanosail.Numeric
 open Nanosail.NanosailToMicrosail.AnnotationContext
 
 module TC = Nanosail.SailToNanosail.TranslationContext
