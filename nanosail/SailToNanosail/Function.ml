@@ -82,7 +82,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
 
 let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
   let S.Pat_aux (aux, (location, _annotation)) = pexp
-  in  
+  in
   match aux with
   | Pat_exp (pat, _) -> binds_of_pat pat
   | Pat_when _       -> TC.not_yet_implemented [%here] location
@@ -157,7 +157,7 @@ let make_sequence statements location =
 let rec statement_of_aexp (expression : S.typ S.aexp) =
   let S.AE_aux (expression, environment, location) = expression
   in
-  
+
   let statement_of_match (location : S.l                                              )
                          (matched  : S.typ S.aval                                     )
                          (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
@@ -167,7 +167,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         in
         TC.check [%here] (List.length cases = 2) error_message
       in
-      
+
       let* nil_case, cons_case =
         match cases with
         | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
@@ -176,7 +176,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
             (AP_aux (AP_nil  _, _, _), _, _) as nil_case  ] -> TC.return (nil_case, cons_case)
         | _                                                 -> TC.fail [%here] "unrecognized cases; should be nil and cons"
       in
-      
+
       match nil_case, cons_case with
       | ( (AP_aux (AP_nil _, _, _), _, nil_clause),
           (AP_aux (AP_cons (
@@ -214,7 +214,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         in
         TC.check [%here] (n_cases = 1) error_message
       in
-      
+
       match cases with
       | [ (AP_aux (AP_tuple [
                        AP_aux (AP_id (id_l, _), _, _);
@@ -247,9 +247,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
     and match_enum (enum_definition : N.enum_definition) =
-      (*
-        at this point we know that matched is a value of an enum described by the parameter enum_definition
-       *)
+      (* at this point we know that matched is a value of an enum described by the parameter enum_definition *)
       let* () =
         let n_match_cases = List.length cases
         and n_enum_cases = List.length enum_definition.cases
@@ -271,6 +269,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
         let (AP_aux (pattern, _, _), _, body) = match_case
         in
+
         match pattern with
         | S.AP_id (S.Id_aux (id, location), _typ) -> begin
             match id with
@@ -350,8 +349,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
       | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
       | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
       | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
+
     in
-    
     match matched with
     | S.AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
@@ -368,8 +367,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
   in
-  
-  
+
   match expression with
   | AE_val aval -> begin
       let* aval' = expression_of_aval location aval
