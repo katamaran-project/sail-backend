@@ -21,10 +21,6 @@ open TopLevelTypeConstraint
 open Register
 
  
-let translate_impl_definition
-      (_definition_annotation : S.def_annot)
-      (S.FCL_aux (_definition, (annot, _))) =
-  TC.not_yet_implemented [%here] annot.loc
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
@@ -76,12 +72,12 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
       let* result =
         match def with
         | DEF_type type_definition                 -> translate_type_definition annotation type_definition
-        | DEF_impl impl_definition                 -> translate_impl_definition annotation impl_definition
         | DEF_let let_definition                   -> translate_value_definition annotation let_definition
         | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
         | DEF_outcome (outcome_spec, definitions)  -> translate_top_level_outcome_definition annotation outcome_spec definitions
         | DEF_register specification               -> translate_register annotation specification
         | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
+        | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_fixity (_, _, _)                     -> TC.not_yet_implemented [%here] annotation.loc
