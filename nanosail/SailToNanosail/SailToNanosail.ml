@@ -6,7 +6,6 @@ module Identifier             = Identifier
 module Numeric                = Numeric
 module Basics                 = Basics
 module Nanotype               = Nanotype
-module Expression             = Expression
 module Function               = Function
 module TypeQuantifier         = TypeQuantifier
 module TypeAbbreviation       = TypeAbbreviation

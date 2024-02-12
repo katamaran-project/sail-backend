@@ -16,7 +16,6 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
 open Nanotype
-open Expression
 
 
 let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
