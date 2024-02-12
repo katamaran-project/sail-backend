@@ -1,5 +1,3 @@
-open Base
-
 module Big_int = Nat_big_num
 
 module S = struct
@@ -11,8 +9,9 @@ module S = struct
 end
 
 module N = Ast
-
 module TC = TranslationContext
+
+open Base
 open Monads.Notations.Star(TC)
 open Identifier
 open Nanotype
