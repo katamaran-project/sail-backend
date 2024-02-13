@@ -97,6 +97,17 @@ let value_of_literal (S.L_aux (literal, location)) =
   | S.L_real _ -> TC.not_yet_implemented [%here] location
 
 
+let flatten_named_statements
+      (named_statements : (string * N.statement) list list) : (string * N.statement) list =
+  let flattened = List.concat named_statements
+  in
+  let statement_names = List.map ~f:fst flattened
+  in
+  if List.contains_dup statement_names ~compare:String.compare
+  then failwith "BUG: two statements bear the same name"
+  else flattened
+
+
 (*
   Sail has only expressions, microSail makes the distinction between statements and expressions.
   Also, microSail statements can evaluate to a value, just like expressions do.
@@ -122,33 +133,32 @@ let value_of_literal (S.L_aux (literal, location)) =
 *)
 let rec expression_of_aval
           (location : S.l         )
-          (value    : S.typ S.aval) (* : (N.expression * (string * N.statement) list) TC.t *)
+          (value    : S.typ S.aval) : (N.expression * (string * N.statement) list) TC.t
   =
   let expression_of_tuple
         (elements : S.typ S.aval list)
     =
-    match elements with
-    | head::tail -> begin
-        let* head' = expression_of_aval location head
+    if List.is_empty elements
+    then TC.not_yet_implemented ~message:"Encountered empty tuple; should not occur" [%here] location
+    else begin
+        let* translation_pairs = TC.map ~f:(expression_of_aval location) elements
         in
-        let f e1 aval2 =
-          let* e2 = expression_of_aval location aval2
-          in
-          TC.return @@ N.Exp_binop (Pair, e1, e2)
+        let translation_expressions = List.map ~f:fst translation_pairs
+        and translation_statements  = List.map ~f:snd translation_pairs
+        and make_pair x y           = N.Exp_binop (Pair, x, y)
         in
-        let* result = TC.fold_left ~f:f ~init:head' tail
+        let resulting_expression    = Auxlib.reduce ~f:make_pair translation_expressions
         in
-        TC.return result
+        TC.return (resulting_expression, flatten_named_statements translation_statements)
       end
-    | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
 
   and expression_of_literal
         (literal : S.lit)
         (_typ    : S.typ)
     =
-      let* lit' = value_of_literal literal
-      in
-      TC.return @@ N.Exp_val lit'
+    let* lit' = value_of_literal literal
+    in
+    TC.return @@ (N.Exp_val lit', [])
 
   and expression_of_identifier
         (identifier : S.id                       )
@@ -157,8 +167,8 @@ let rec expression_of_aval
     let* id' = translate_identifier [%here] identifier
     in
     match lvar with
-    | Local (_, _) -> TC.return @@ N.Exp_var id'
-    | Register _   -> TC.not_yet_implemented [%here] location (* todo *)
+    | Local (_, _) -> TC.return @@ (N.Exp_var id', [])
+    | Register _   -> TC.not_yet_implemented [%here] location (* todo return named statement *)
     | Enum _       -> TC.not_yet_implemented [%here] location
     | Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -166,9 +176,12 @@ let rec expression_of_aval
         (list : S.typ S.aval list)
         (_typ : S.typ            )
     =
-    let* list' = TC.map ~f:(expression_of_aval location) list
+    let* translation_pairs = TC.map ~f:(expression_of_aval location) list
     in
-    TC.return @@ N.Exp_list list'
+    let translation_expressions, translation_statements =
+      List.unzip translation_pairs
+    in
+    TC.return @@ (N.Exp_list translation_expressions, flatten_named_statements translation_statements)
 
   in
   match value with
@@ -196,6 +209,29 @@ let make_sequence statements location =
   aux statements
 
 
+(*
+  Given a list of named statements (i.e., pairs of strings and statements)
+  and a statement, generates nested let bindings for each of the named statements
+  and puts statement in the center.
+
+  For example, say
+  - named_statements = [("a", s1), ("b", s2)]
+  - statement        = stm
+  
+  This function then returns
+
+    let a = s1 in
+    let b = s2 in
+    stm
+*)
+let rec wrap_in_named_statements_context
+      (named_statements : (string * N.statement) list)
+      (statement        : N.statement                ) : N.statement =
+  match named_statements with
+  | (name, stm)::rest -> Stm_let (name, stm, wrap_in_named_statements_context rest statement)
+  | []                -> statement
+
+
 let rec statement_of_aexp (expression : S.typ S.aexp) =
   let S.AE_aux (expression, _environment, location) = expression
   in
@@ -210,9 +246,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
           lazy "matching list; expected exactly two cases"
         in
         TC.check [%here] (List.length cases = 2) error_message
-
       in
-
+      
       let* nil_case, cons_case =
         match cases with
         | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
@@ -229,9 +264,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
                        AP_aux (AP_id (id_t, _), _, _)
                      ), _, _), _, cons_clause) ) -> begin
           let* matched =
-            let* expr = expression_of_aval location matched
+            let* expression, named_statements = expression_of_aval location matched
             in
-            TC.return @@ N.Stm_exp expr (* use lift *)
+            TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp expression
 
           and* when_nil = statement_of_aexp nil_clause
 
@@ -267,15 +302,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
                        AP_aux (AP_id (id_l, _), _, _);
                        AP_aux (AP_id (id_r, _), _, _);
                      ], _, _),_ , clause) ] -> begin
-          let* matched =
-            let* expr = expression_of_aval location matched
+          let* (matched, named_statements) =
+            let* expr, named_statements = expression_of_aval location matched
             in
-            TC.return @@ N.Stm_exp expr (* use lift *)
+            TC.return (N.Stm_exp expr, named_statements)
           and* id_fst = translate_identifier [%here] id_l
           and* id_snd = translate_identifier [%here] id_r
-          and* body = statement_of_aexp clause
+          and* body   = statement_of_aexp clause
           in
-          TC.return @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
+          TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_match (N.MP_product { matched; id_fst; id_snd; body })
         end
       | _ -> TC.not_yet_implemented [%here] location
 
@@ -288,11 +323,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
           let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
           in
           match lookup_result with
-          | Some (TD_abbreviation def)  -> match_abbreviation def
-          | Some (TD_variant def)       -> match_variant def
-          | Some (TD_enum def)          -> match_enum def
-          | Some (TD_record def)        -> match_record def
-          | None                        -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+          | Some (TD_abbreviation def) -> match_abbreviation def
+          | Some (TD_variant def)      -> match_variant def
+          | Some (TD_enum def)         -> match_enum def
+          | Some (TD_record def)       -> match_record def
+          | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
@@ -368,19 +403,19 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
         | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
       in
-
-      let* matched =
-        let* expr = expression_of_aval location matched
+      let* (matched, named_statements) =
+        let* matched_expression, named_statements = expression_of_aval location matched
         in
-        TC.return @@ N.Stm_exp expr (* use lift *)
+        TC.return @@ (N.Stm_exp matched_expression, named_statements)
 
       and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
       in
-
-      TC.return @@ N.Stm_match (N.MP_enum {
-                                    matched;
-                                    cases
-                     })
+      let match_statement = N.Stm_match (N.MP_enum {
+                                             matched;
+                                             cases
+                              })
+      in
+      TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
     and match_variant (_variant_definition : N.variant_definition) =
       TC.not_yet_implemented [%here] location
@@ -478,9 +513,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
 
   and statement_of_value
         (value : S.typ S.aval) =
-    let* aval' = expression_of_aval location value
+    let* expression, named_statements = expression_of_aval location value
     in
-    TC.return @@ N.Stm_exp aval'
+    TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp expression
 
   and statement_of_application
           (receiver_identifier : S.id             )
@@ -489,16 +524,22 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     let* id' = translate_identifier [%here] receiver_identifier
     in
     match arguments with
-    | [aval1; aval2] when String.equal id' "sail_cons" -> begin
-        let* e1 = expression_of_aval location aval1
-        and* e2 = expression_of_aval location aval2
+    | [car; cdr] when String.equal id' "sail_cons" -> begin
+        let* car', car_named_statements = expression_of_aval location car
+        and* cdr', cdr_named_statements = expression_of_aval location cdr
         in
-        TC.return @@ N.Stm_exp (Exp_binop (Cons, e1, e2))
+        let named_statements = flatten_named_statements [ car_named_statements; cdr_named_statements ]
+        in
+        TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp (Exp_binop (Cons, car', cdr'))
       end
     | _ -> begin
-        let* args = TC.map ~f:(expression_of_aval location) arguments
+        let* pairs = TC.map ~f:(expression_of_aval location) arguments
         in
-        TC.return @@ N.Stm_call (id', args)
+        let argument_expressions, named_statements_list = List.unzip pairs
+        in
+        let named_statements = flatten_named_statements named_statements_list
+        in
+        TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (id', argument_expressions)
       end
 
   and statement_of_let
@@ -510,8 +551,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         (_typ2       : S.typ               )
     =
     let* id' = translate_identifier [%here] identifier
-    and* s1 = statement_of_aexp expression
-    and* s2 = statement_of_aexp body
+    and* s1  = statement_of_aexp expression
+    and* s2  = statement_of_aexp body
     in
     TC.return @@ N.Stm_let (id', s1, s2)
 
@@ -521,14 +562,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
         (else_clause : S.typ S.aexp)
         (_typ        : S.typ       )
     =
-    let* condition =
-      let* e = expression_of_aval location condition  (* todo use lift *)
+    let* (condition, condition_named_statements) =
+      let* condition_expression, named_statements = expression_of_aval location condition
       in
-      TC.return @@ N.Stm_exp e
+      TC.return (N.Stm_exp condition_expression, named_statements)
     and* when_true = statement_of_aexp then_clause
     and* when_false = statement_of_aexp else_clause
     in
-    TC.return @@ N.Stm_match (MP_bool { condition; when_true; when_false })
+    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ N.Stm_match (MP_bool { condition; when_true; when_false })
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
