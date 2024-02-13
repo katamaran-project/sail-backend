@@ -167,8 +167,18 @@ let rec expression_of_aval
     let* id' = translate_identifier [%here] identifier
     in
     match lvar with
-    | Local (_, _) -> TC.return @@ (N.Exp_var id', [])
-    | Register _   -> TC.not_yet_implemented [%here] location (* todo return named statement *)
+    | Local (_, _) -> TC.return (N.Exp_var id', [])
+    | Register _   -> begin
+        let* unique_id =
+          let prefix = Printf.sprintf "reg_%s_" id'
+          in
+          TC.generate_unique_identifier prefix
+        in
+        let named_statements =
+          [(unique_id, N.Stm_read_register id')]
+        in
+        TC.return (N.Exp_var unique_id, named_statements)
+      end
     | Enum _       -> TC.not_yet_implemented [%here] location
     | Unbound _    -> TC.not_yet_implemented [%here] location
 
