@@ -7,8 +7,8 @@ $include <prelude.sail>
 register R1 : int
 
 
-val foo : unit -> int
-function foo() = {
+val foo : int -> int
+function foo(x) = {
   R1
 }
 
