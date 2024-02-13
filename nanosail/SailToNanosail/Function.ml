@@ -122,7 +122,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
       TC.return @@ N.Exp_val lit'
 
   and expression_of_identifier
-        (identifier : S.id        )
+        (identifier : S.id                       )
         (lvar       : S.typ Libsail.Ast_util.lvar)
     =
     let* id' = translate_identifier [%here] identifier
