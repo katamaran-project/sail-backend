@@ -99,19 +99,23 @@ let value_of_literal (S.L_aux (literal, location)) =
 
 let rec expression_of_aval
           (location : S.l         )
-          (value    : S.typ S.aval) : N.expression TC.t =
+          (value    : S.typ S.aval) (* : (N.expression * (string * N.statement) list) TC.t *)
+  =
   let expression_of_tuple
         (elements : S.typ S.aval list)
     =
     match elements with
-    | h::t -> begin
-        let* e_h = expression_of_aval location h
+    | head::tail -> begin
+        let* head' = expression_of_aval location head
         in
         let f e1 aval2 =
           let* e2 = expression_of_aval location aval2
           in
-          TC.return @@ N.Exp_binop (Pair, e1, e2) in
-        TC.fold_left ~f:f ~init:e_h t
+          TC.return @@ N.Exp_binop (Pair, e1, e2)
+        in
+        let* result = TC.fold_left ~f:f ~init:head' tail
+        in
+        TC.return result
       end
     | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
 
