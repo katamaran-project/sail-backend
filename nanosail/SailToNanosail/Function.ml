@@ -97,6 +97,29 @@ let value_of_literal (S.L_aux (literal, location)) =
   | S.L_real _ -> TC.not_yet_implemented [%here] location
 
 
+(*
+  Sail has only expressions, microSail makes the distinction between statements and expressions.
+  Also, microSail statements can evaluate to a value, just like expressions do.
+
+  Some Sail expressions need to be translated into microSail statements (e.g., reading from a register).
+
+  This function returns a pair:
+
+  - The first element, of type N.expression, is the part of the Sail expression that fits in a microSail expression
+  - The second element, a list of "named statements" (i.e., pairs of identifiers and statements), are the parts of the Sail expression
+  that were translated into microSail statements. Since the evaluation result of a statement can be referred in the resulting microSail expression,
+  we also name each statement.
+
+  For example, a result
+
+  (expr, [("a", s1); ("b"; s2)])
+
+  should be interpreted as
+
+    let a = s1 in
+    let b = s2 in
+    expr
+*)
 let rec expression_of_aval
           (location : S.l         )
           (value    : S.typ S.aval) (* : (N.expression * (string * N.statement) list) TC.t *)
@@ -152,7 +175,7 @@ let rec expression_of_aval
   | AV_tuple elements     -> expression_of_tuple elements
   | AV_lit (literal, typ) -> expression_of_literal literal typ
   | AV_id (id, lvar)      -> expression_of_identifier id lvar
-  | AV_list (list, typ)   -> expression_of_list list typ      
+  | AV_list (list, typ)   -> expression_of_list list typ
   | AV_ref (_, _)         -> TC.not_yet_implemented [%here] location
   | AV_vector (_, _)      -> TC.not_yet_implemented [%here] location
   | AV_record (_, _)      -> TC.not_yet_implemented [%here] location
