@@ -99,7 +99,7 @@ let value_of_literal (S.L_aux (literal, location)) =
 
 let rec expression_of_aval
           (location : S.l         )
-          (value    : S.typ S.aval) =
+          (value    : S.typ S.aval) : N.expression TC.t =
   let expression_of_tuple
         (elements : S.typ S.aval list)
     =
