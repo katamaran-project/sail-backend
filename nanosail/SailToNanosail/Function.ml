@@ -102,7 +102,6 @@ let rec expression_of_aval location (value : S.typ S.aval) =
         (elements : S.typ S.aval list)
     =
     match elements with
-    | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
     | h::t -> begin
         let* e_h = expression_of_aval location h
         in
@@ -112,6 +111,7 @@ let rec expression_of_aval location (value : S.typ S.aval) =
           TC.return @@ N.Exp_binop (Pair, e1, e2) in
         TC.fold_left ~f:f ~init:e_h t
       end
+    | [] -> TC.not_yet_implemented ~message:"Should not occur" [%here] location
 
   and expression_of_literal
         (literal : S.lit)
