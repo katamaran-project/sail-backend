@@ -3,7 +3,17 @@ default Order dec
 $include <prelude.sail>
 
 
-enum foo = AAAA | BBBB | CCCC
+
+register R1 : int
+
+
+val foo : unit -> int
+function foo() = {
+  R1
+}
+
+
+/* enum foo = AAAA | BBBB | CCCC */
 
 /* union ast = { */
 /*   Add : (int, int), */
