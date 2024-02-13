@@ -128,10 +128,10 @@ let rec expression_of_aval location (value : S.typ S.aval) =
     let* id' = translate_identifier [%here] identifier
     in
     match lvar with
+    | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
     | Libsail.Ast_util.Register _   -> TC.not_yet_implemented [%here] location (* todo *)
     | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
     | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
-    | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Exp_var id'
 
   and expression_of_list
         (list : S.typ S.aval list)
