@@ -83,3 +83,10 @@ let rec consecutive_overlapping_pairs xs =
   match xs with
   | x::y::xs -> (x, y) :: consecutive_overlapping_pairs (y :: xs)
   | _        -> []
+
+
+(* performs a left fold using first element as init *)
+let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
+  match list with
+  | []    -> failwith "cannot reduce empty list"
+  | x::xs -> List.fold_left xs ~init:x ~f
