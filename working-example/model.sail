@@ -15,10 +15,16 @@ struct Capability = {
 
 register PC : Capability
 
-val nextPC : unit -> Capability
+/* val nextPC : unit -> Capability */
+/* function nextPC() = { */
+/*   let cursor = PC.cap_cursor in */
+/*   {PC with cap_cursor = cursor + 4} */
+/* } */
+
+val nextPC : unit -> address
 function nextPC() = {
   let cursor = PC.cap_cursor in
-  {PC with cap_cursor = cursor + 4}
+  cursor
 }
 
 
