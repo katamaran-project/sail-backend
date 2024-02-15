@@ -2,14 +2,23 @@ default Order dec
 
 $include <prelude.sail>
 
+enum Permission = O | R | RW | E
 
+type address     = bits(64)
 
-register R1 : int
+struct Capability = {
+  cap_permission: Permission,
+  cap_begin:      address,
+  cap_end:        address,
+  cap_cursor:     address,
+}
 
+register PC : Capability
 
-val foo : int -> int
-function foo(x) = {
-  R1
+val nextPC : unit -> Capability
+function nextPC() = {
+  let cursor = PC.cap_cursor in
+  {PC with cap_cursor = cursor + 4}
 }
 
 
