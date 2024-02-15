@@ -18,6 +18,8 @@ open Identifier
 open Nanotype
 
 
+(* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
+
 let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   match lvar with
   | S.Ast_util.Register t   -> TC.return t
@@ -259,7 +261,7 @@ let with_destructured_record
       (body_generator : with_destructured_record_data -> N.statement TC.t) : N.statement TC.t
   =
   match value with
-  | S.AV_id (record_identifier, lvar) -> begin (* todo check where record is stored - local vs register *)
+  | S.AV_id (record_identifier, lvar) -> begin
       let* record_identifier = translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
       in
@@ -282,7 +284,12 @@ let with_destructured_record
                               variable_identifiers
                             }
               in
-              let destructured_record = N.Stm_exp (N.Exp_var record_identifier)
+              let* destructured_record =
+                match lvar with
+                 | Libsail.Ast_util.Register _   -> TC.return @@ N.Stm_read_register record_identifier
+                 | Libsail.Ast_util.Enum _       -> TC.fail [%here] "Should never happen: Cannot treat an enum as a record"
+                 | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (N.Exp_var record_identifier)
+                 | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
               in
               TC.return @@ N.Stm_destructure_record {
                                variable_identifiers;
