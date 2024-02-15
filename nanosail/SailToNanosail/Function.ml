@@ -553,43 +553,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
           end
         | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
       )
-    (* let* field_identifier = translate_identifier [%here] field_identifier *)
-    (* in *)
-    (* match value with *)
-    (* | S.AV_id (record_identifier, lvar) -> begin *)
-    (*     let* record_identifier = translate_identifier [%here] record_identifier *)
-    (*     and* S.Typ_aux (t, _loc) = type_from_lvar lvar location *)
-    (*     in *)
-    (*     match t with *)
-    (*     | S.Typ_id record_type_identifier -> begin *)
-    (*         let* record_type_identifier = translate_identifier [%here] record_type_identifier *)
-    (*         in *)
-    (*         let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier *)
-    (*         in *)
-    (*         match lookup_result with *)
-    (*         | Some record_type_definition -> begin *)
-    (*             let field_identifiers = List.map ~f:fst record_type_definition.fields *)
-    (*             in *)
-
-
-    (*           end *)
-    (*         | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier *)
-    (*       end *)
-    (*     | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_var _            -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location *)
-    (*     | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location *)
-    (*   end *)
-    (* | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_tuple _       -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location *)
-    (* | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location *)
 
   and statement_of_value
         (value : S.typ S.aval) =
