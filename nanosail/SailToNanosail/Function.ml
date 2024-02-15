@@ -282,11 +282,13 @@ let with_destructured_record
                               variable_identifiers
                             }
               in
-              TC.return @@ N.Stm_destructure_record (
-                               variable_identifiers,
-                               N.Stm_exp (N.Exp_var record_identifier),
+              let destructured_record = N.Stm_exp (N.Exp_var record_identifier)
+              in
+              TC.return @@ N.Stm_destructure_record {
+                               variable_identifiers;
+                               destructured_record;
                                body
-                             )
+                             }
             end
           | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
         end

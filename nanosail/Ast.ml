@@ -140,18 +140,19 @@ type expression =
 and record_field_access =
   {
     record_identifier    : string;
-    receiving_variables  : string list;
+    variable_identifiers : string list;
     selected_field_index : int;
   }
 
 
 type statement =
-  | Stm_match         of match_pattern
-  | Stm_exp           of expression
-  | Stm_call          of string * expression list
-  | Stm_let           of string * statement * statement
-  | Stm_seq           of statement * statement
-  | Stm_read_register of string
+  | Stm_match              of match_pattern
+  | Stm_exp                of expression
+  | Stm_call               of string * expression list
+  | Stm_let                of string * statement * statement
+  | Stm_destructure_record of destructure_record
+  | Stm_seq                of statement * statement
+  | Stm_read_register      of string
 
 and match_pattern =
   | MP_list    of match_pattern_list
@@ -185,6 +186,13 @@ and match_pattern_enum =
   {
     matched    : statement;
     cases      : statement StringMap.t
+  }
+
+and destructure_record =
+  {
+    variable_identifiers : string list;
+    destructured_record : statement;
+    body : statement;
   }
 
 

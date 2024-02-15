@@ -110,6 +110,15 @@ let rec pp_statement statement =
   | Stm_read_register register_identifier ->
      AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
 
+  | Stm_destructure_record { variable_identifiers; destructured_record; body } ->
+     begin (* todo *)
+       let _ = variable_identifiers
+       and _ = destructured_record
+       and _ = body
+       in
+       AC.return @@ string "todo"
+     end
+
 and pp_par_statement s =
   let* s' = pp_statement s
   in
