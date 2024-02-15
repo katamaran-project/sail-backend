@@ -16,6 +16,7 @@ module TypeDefinition         = TypeDefinition
 module TopLevelTypeConstraint = TopLevelTypeConstraint
 module Register               = Register
 module ValueDefinition        = ValueDefinition
+module StringOf               = StringOf
 
 let translate             = Translation.translate
 let coqify_identifiers    = Sanitation.coqify_identifiers
