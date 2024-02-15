@@ -135,7 +135,7 @@ type expression =
   | Exp_not                 of expression
   | Exp_list                of expression list
   | Exp_binop               of binary_operator * expression * expression
-  | Exp_record_field_access of record_field_access
+  | Exp_record_field_access of record_field_access  (* todo remove this case *)
 
 and record_field_access =
   {
@@ -190,9 +190,11 @@ and match_pattern_enum =
 
 and destructure_record =
   {
-    variable_identifiers : string list;
-    destructured_record : statement;
-    body : statement;
+    record_type_identifier : string     ;   (* name of the record                                              *)
+    field_identifiers      : string list;   (* names of the record's fields                                    *)
+    variable_identifiers   : string list;   (* names of the variables receiving the record's fields' values    *)
+    destructured_record    : statement  ;   (* statement yield the record object                               *)
+    body                   : statement  ;   (* body that can refer to record fields using variable_identifiers *)
   }
 
 

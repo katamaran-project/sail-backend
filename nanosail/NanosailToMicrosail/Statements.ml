@@ -110,14 +110,31 @@ let rec pp_statement statement =
   | Stm_read_register register_identifier ->
      AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
 
-  | Stm_destructure_record { variable_identifiers; destructured_record; body } ->
-     begin (* todo *)
-       let _ = variable_identifiers
-       and _ = destructured_record
-       and _ = body
-       in
-       AC.return @@ string "todo"
-     end
+  | Stm_destructure_record { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
+      let pattern =
+        let pairs = List.zip_exn field_identifiers variable_identifiers
+        in
+        let build acc (field_identifier, variable_identifier) =
+          PP.(parens (simple_app [
+                          string "recordpat_snoc";
+                          acc;
+                          dquotes @@ string field_identifier;
+                          string variable_identifier
+                        ]))
+        in
+        List.fold_left pairs ~init:(string "recordpat_nil") ~f:build
+      in
+      let* destructured_record' = pp_statement destructured_record
+      and* body' = pp_statement body
+      in
+      AC.return @@ simple_app [
+                       string "stm_match_record";
+                       string record_type_identifier;
+                       PP.parens destructured_record';
+                       pattern;
+                       body'
+                    ]
+    end
 
 and pp_par_statement s =
   let* s' = pp_statement s

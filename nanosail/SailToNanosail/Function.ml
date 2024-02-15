@@ -292,6 +292,8 @@ let with_destructured_record
                  | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
               in
               TC.return @@ N.Stm_destructure_record {
+                               record_type_identifier;
+                               field_identifiers;
                                variable_identifiers;
                                destructured_record;
                                body
