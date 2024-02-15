@@ -8,8 +8,9 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-module TC = TranslationContext
+module N        = Ast
+module TC       = TranslationContext
+module Bindings = Libsail.Ast_util.Bindings
 
 open Base
 open Monads.Notations.Star(TC)
@@ -130,7 +131,7 @@ let flatten_named_statements
     let a = s1 in
     let b = s2 in
     expr
-*)
+ *)
 let rec expression_of_aval
           (location : S.l         )
           (value    : S.typ S.aval) : (N.expression * (string * N.statement) list) TC.t
@@ -233,7 +234,7 @@ let make_sequence statements location =
     let a = s1 in
     let b = s2 in
     stm
-*)
+ *)
 let rec wrap_in_named_statements_context
       (named_statements : (string * N.statement) list)
       (statement        : N.statement                ) : N.statement =
@@ -242,7 +243,68 @@ let rec wrap_in_named_statements_context
   | []                -> statement
 
 
-let rec statement_of_aexp (expression : S.typ S.aexp) =
+(*
+  Given a record, todo
+ *)
+let with_destructured_record
+      (location       : S.l                                                                  )
+      (value          : S.typ S.aval                                                         )
+      (body_generator : (string, string, String.comparator_witness) Map.t -> N.statement TC.t) : N.statement TC.t
+  =
+  match value with
+  | S.AV_id (record_identifier, lvar) -> begin
+      let* record_identifier = translate_identifier [%here] record_identifier
+      and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
+      in
+      match t with
+      | S.Typ_id record_type_identifier -> begin
+          let* record_type_identifier = translate_identifier [%here] record_type_identifier
+          in
+          let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
+          in
+          match lookup_result with
+          | Some record_type_definition -> begin
+              let field_identifiers = List.map ~f:fst record_type_definition.fields
+              in
+              let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
+              in
+              match List.zip field_identifiers receiving_variables with
+              | List.Or_unequal_lengths.Ok pairs -> begin
+                  match Map.of_alist (module String) pairs with
+                  | `Ok map -> begin
+                      let* body = body_generator map
+                      in
+                      TC.return @@ N.Stm_destructure_record (
+                                       receiving_variables,
+                                       N.Stm_exp (N.Exp_var record_identifier),
+                                       body
+                                     )
+                    end
+                  | `Duplicate_key _ -> TC.fail [%here] "Apparently the struct contains duplicate fields"
+                end
+              | List.Or_unequal_lengths.Unequal_lengths -> TC.fail [%here] "Bug: there should be as many fields as generated variable identifiers"
+            end
+          | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
+        end
+      | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+      | S.Typ_var _            -> TC.not_yet_implemented [%here] location
+      | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+      | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+      | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
+      | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+      | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+    end
+  | Libsail.Anf.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_tuple _       -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+
+
+let rec statement_of_aexp
+          (expression : S.typ S.aexp) : N.statement TC.t =
   let S.AE_aux (expression, _environment, location) = expression
   in
 
@@ -468,13 +530,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
 
   and statement_of_field_access
         (location         : S.l         )
-        (aval             : S.typ S.aval)
+        (value            : S.typ S.aval)
         (field_identifier : S.id        )
         (_field_type      : S.typ       )
     =
     let* field_identifier = translate_identifier [%here] field_identifier
     in
-    match aval with
+    match value with
     | S.AV_id (record_identifier, lvar) -> begin
         let* record_identifier = translate_identifier [%here] record_identifier
         and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
@@ -590,6 +652,28 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
     in
     make_sequence translated_statements location
 
+  and statement_of_struct_update
+        (aval     : S.typ S.aval           )
+        (bindings : S.typ S.aval Bindings.t)
+        (_typ     : S.typ                  )
+    =
+    match aval with
+    | Libsail.Anf.AV_id (id, _lvar) -> begin
+        Stdio.printf "*************** %s\n" (S.Ast_util.string_of_id id);
+        Bindings.iter (fun (key : S.id) value ->
+            Stdio.printf "%s => %s\n"
+              (StringOf.id key)
+              (StringOf.aval value);
+          ) bindings;
+        TC.not_yet_implemented [%here] location
+      end
+    | Libsail.Anf.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_tuple _       -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_record (_, _) -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
@@ -599,18 +683,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) =
   | AE_match (aval, cases, _)                                     -> statement_of_match location aval cases
   | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
   | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
-  | AE_struct_update (_aval, _bindings, _typ) -> begin
-      TC.not_yet_implemented [%here] location
-    end
-  | S.AE_typ (_, _)                                               -> TC.not_yet_implemented [%here] location
-  | S.AE_assign (_, _)                                            -> TC.not_yet_implemented [%here] location
-  | S.AE_return (_, _)                                            -> TC.not_yet_implemented [%here] location
-  | S.AE_exit (_, _)                                              -> TC.not_yet_implemented [%here] location
-  | S.AE_throw (_, _)                                             -> TC.not_yet_implemented [%here] location
-  | S.AE_try (_, _, _)                                            -> TC.not_yet_implemented [%here] location
-  | S.AE_for (_, _, _, _, _, _)                                   -> TC.not_yet_implemented [%here] location
-  | S.AE_loop (_, _, _)                                           -> TC.not_yet_implemented [%here] location
-  | S.AE_short_circuit (_, _, _)                                  -> TC.not_yet_implemented [%here] location
+  | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
+  | AE_typ (_, _)                                                 -> TC.not_yet_implemented [%here] location
+  | AE_assign (_, _)                                              -> TC.not_yet_implemented [%here] location
+  | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
+  | AE_exit (_, _)                                                -> TC.not_yet_implemented [%here] location
+  | AE_throw (_, _)                                               -> TC.not_yet_implemented [%here] location
+  | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
+  | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
+  | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
+  | AE_short_circuit (_, _, _)                                    -> TC.not_yet_implemented [%here] location
 
 
 let body_of_pexp pexp =
