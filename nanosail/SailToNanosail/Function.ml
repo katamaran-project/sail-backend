@@ -243,16 +243,23 @@ let rec wrap_in_named_statements_context
   | []                -> statement
 
 
+type with_destructured_record_data = {
+    record_identifier      : string;
+    record_type_identifier : string;
+    field_identifiers      : string list;
+    variable_identifiers   : string list;
+  }
+
 (*
   Given a record, todo
  *)
 let with_destructured_record
-      (location       : S.l                                                                  )
-      (value          : S.typ S.aval                                                         )
-      (body_generator : (string, string, String.comparator_witness) Map.t -> N.statement TC.t) : N.statement TC.t
+      (location       : S.l                                                 )
+      (value          : S.typ S.aval                                        )
+      (body_generator : with_destructured_record_data -> N.statement TC.t) : N.statement TC.t
   =
   match value with
-  | S.AV_id (record_identifier, lvar) -> begin
+  | S.AV_id (record_identifier, lvar) -> begin (* todo check where record is stored - local vs register *)
       let* record_identifier = translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
       in
@@ -266,23 +273,20 @@ let with_destructured_record
           | Some record_type_definition -> begin
               let field_identifiers = List.map ~f:fst record_type_definition.fields
               in
-              let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
+              let* variable_identifiers = TC.map ~f:TC.generate_unique_identifier field_identifiers
               in
-              match List.zip field_identifiers receiving_variables with
-              | List.Or_unequal_lengths.Ok pairs -> begin
-                  match Map.of_alist (module String) pairs with
-                  | `Ok map -> begin
-                      let* body = body_generator map
-                      in
-                      TC.return @@ N.Stm_destructure_record (
-                                       receiving_variables,
-                                       N.Stm_exp (N.Exp_var record_identifier),
-                                       body
-                                     )
-                    end
-                  | `Duplicate_key _ -> TC.fail [%here] "Apparently the struct contains duplicate fields"
-                end
-              | List.Or_unequal_lengths.Unequal_lengths -> TC.fail [%here] "Bug: there should be as many fields as generated variable identifiers"
+              let* body = body_generator {
+                              record_identifier;
+                              record_type_identifier;
+                              field_identifiers;
+                              variable_identifiers
+                            }
+              in
+              TC.return @@ N.Stm_destructure_record (
+                               variable_identifiers,
+                               N.Stm_exp (N.Exp_var record_identifier),
+                               body
+                             )
             end
           | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
         end
@@ -303,8 +307,7 @@ let with_destructured_record
   | Libsail.Anf.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
 
 
-let rec statement_of_aexp
-          (expression : S.typ S.aexp) : N.statement TC.t =
+let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   let S.AE_aux (expression, _environment, location) = expression
   in
 
@@ -536,52 +539,57 @@ let rec statement_of_aexp
     =
     let* field_identifier = translate_identifier [%here] field_identifier
     in
-    match value with
-    | S.AV_id (record_identifier, lvar) -> begin
-        let* record_identifier = translate_identifier [%here] record_identifier
-        and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
-        in
-        match t with
-        | S.Typ_id record_type_identifier -> begin
-            let* record_type_identifier = translate_identifier [%here] record_type_identifier
+    with_destructured_record location value @@
+      fun { record_identifier; record_type_identifier; field_identifiers; variable_identifiers } -> (
+        match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
+        | Some selected_field_index -> begin
+            let expression = N.Exp_record_field_access {
+                                 record_identifier;
+                                 variable_identifiers;
+                                 selected_field_index;
+                               }
             in
-            let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
-            in
-            match lookup_result with
-            | Some record_type_definition -> begin
-                let field_identifiers = List.map ~f:fst record_type_definition.fields
-                in
-                match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
-                | Some selected_field_index -> begin
-                    let* receiving_variables = TC.map ~f:TC.generate_unique_identifier field_identifiers
-                    in
-                    let expression = N.Exp_record_field_access {
-                                         record_identifier;
-                                         receiving_variables;
-                                         selected_field_index;
-                                       }
-                    in
-                    TC.return @@ N.Stm_exp expression
-                  end
-                | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
-              end
-            | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
+            TC.return @@ N.Stm_exp expression
           end
-        | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
-        | S.Typ_var _            -> TC.not_yet_implemented [%here] location
-        | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
-        | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
-        | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
-        | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
-        | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
-      end
-    | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-    | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-    | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
-    | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-    | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+        | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
+      )
+    (* let* field_identifier = translate_identifier [%here] field_identifier *)
+    (* in *)
+    (* match value with *)
+    (* | S.AV_id (record_identifier, lvar) -> begin *)
+    (*     let* record_identifier = translate_identifier [%here] record_identifier *)
+    (*     and* S.Typ_aux (t, _loc) = type_from_lvar lvar location *)
+    (*     in *)
+    (*     match t with *)
+    (*     | S.Typ_id record_type_identifier -> begin *)
+    (*         let* record_type_identifier = translate_identifier [%here] record_type_identifier *)
+    (*         in *)
+    (*         let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier *)
+    (*         in *)
+    (*         match lookup_result with *)
+    (*         | Some record_type_definition -> begin *)
+    (*             let field_identifiers = List.map ~f:fst record_type_definition.fields *)
+    (*             in *)
+
+
+    (*           end *)
+    (*         | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier *)
+    (*       end *)
+    (*     | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_var _            -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location *)
+    (*     | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location *)
+    (*   end *)
+    (* | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_tuple _       -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location *)
+    (* | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location *)
 
   and statement_of_value
         (value : S.typ S.aval) =
