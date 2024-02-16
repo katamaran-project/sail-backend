@@ -24,7 +24,6 @@ let pp_infix_binOp (binary_operator : binary_operator) =
   | Append -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
-(* Having a separate aux function is completely redundant, but it allows us to easily modify ty_of_val's name *) (* TODO remove this *)
 let ty_of_val =
   let rec aux = function
     | Val_unit          -> Ty_unit
@@ -36,7 +35,6 @@ let ty_of_val =
   aux
 
 
-(* Having a separate aux function is completely redundant, but it allows us to easily modify pp_value's name *) (* TODO remove this *)
 let pp_value =
   let rec aux = function
     | Val_unit          -> string "tt"
