@@ -124,6 +124,12 @@ let rec pp_expression e =
       in
       AC.return @@ simple_app [string "exp_list"; lst']
     end
+  | Exp_record { type_identifier; variable_identifiers } -> begin
+      let _ = type_identifier
+      and _ = variable_identifiers
+      in
+      AC.not_yet_implemented [%here]
+    end
 
 and pp_par_expression e =
   let* e' = pp_expression e

@@ -129,12 +129,13 @@ type value =
 
 
 type expression =
-  | Exp_var                 of string
-  | Exp_val                 of value
-  | Exp_neg                 of expression
-  | Exp_not                 of expression
-  | Exp_list                of expression list
-  | Exp_binop               of binary_operator * expression * expression
+  | Exp_var    of string
+  | Exp_val    of value
+  | Exp_neg    of expression
+  | Exp_not    of expression
+  | Exp_list   of expression list
+  | Exp_binop  of binary_operator * expression * expression
+  | Exp_record of { type_identifier : string; variable_identifiers : string list }
 
 
 type statement =

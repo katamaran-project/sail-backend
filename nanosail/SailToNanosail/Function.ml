@@ -28,6 +28,18 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
+let statement_of_lvar
+    (identifier : string               )
+    (lvar       : S.typ S.Ast_util.lvar)
+    (location   : S.l                  ) : N.statement TC.t =
+  match lvar with
+  | Libsail.Ast_util.Register _   -> TC.return @@ N.Stm_read_register identifier
+  | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (N.Exp_var identifier)
+  | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
+  | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
+
+
+
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   match aux with
   | P_lit (L_aux (lit, _loc)) ->
@@ -262,34 +274,37 @@ let with_destructured_record
   =
   match value with
   | S.AV_id (record_identifier, lvar) -> begin
-      let* record_identifier = translate_identifier [%here] record_identifier
-      and* S.Typ_aux (t, _loc) = type_from_lvar lvar location
+      let* record_identifier =
+        translate_identifier [%here] record_identifier
+      and* S.Typ_aux (t, _loc) =
+        type_from_lvar lvar location
       in
       match t with
       | S.Typ_id record_type_identifier -> begin
-          let* record_type_identifier = translate_identifier [%here] record_type_identifier
+          let* record_type_identifier =
+            translate_identifier [%here] record_type_identifier
           in
-          let* lookup_result = TC.lookup_type N.Extract.of_record record_type_identifier
+          let* lookup_result =
+            TC.lookup_type N.Extract.of_record record_type_identifier
           in
           match lookup_result with
           | Some record_type_definition -> begin
-              let field_identifiers = List.map ~f:fst record_type_definition.fields
+              let field_identifiers =
+                List.map ~f:fst record_type_definition.fields
               in
-              let* variable_identifiers = TC.map ~f:TC.generate_unique_identifier field_identifiers
+              let* variable_identifiers =
+                TC.map ~f:TC.generate_unique_identifier field_identifiers
               in
-              let* body = body_generator {
-                              record_identifier;
-                              record_type_identifier;
-                              field_identifiers;
-                              variable_identifiers
-                            }
+              let* body =
+                body_generator {
+                  record_identifier;
+                  record_type_identifier;
+                  field_identifiers;
+                  variable_identifiers
+                }
               in
               let* destructured_record =
-                match lvar with
-                 | Libsail.Ast_util.Register _   -> TC.return @@ N.Stm_read_register record_identifier
-                 | Libsail.Ast_util.Enum _       -> TC.fail [%here] "Should never happen: Cannot treat an enum as a record"
-                 | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (N.Exp_var record_identifier)
-                 | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
+                statement_of_lvar record_identifier lvar location
               in
               TC.return @@ N.Stm_destructure_record {
                                record_type_identifier;
@@ -636,23 +651,48 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         (bindings : S.typ S.aval Bindings.t)
         (_typ     : S.typ                  )
     =
-    match aval with
-    | Libsail.Anf.AV_id (id, _lvar) -> begin
-        Stdio.printf "*************** %s\n" (S.Ast_util.string_of_id id);
-        Bindings.iter (fun (key : S.id) value ->
-            Stdio.printf "%s => %s\n"
-              (StringOf.id key)
-              (StringOf.aval value);
-          ) bindings;
-        TC.not_yet_implemented [%here] location
-      end
-    | Libsail.Anf.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_tuple _       -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+    let process_binding
+        (acc  : string StringMap.t * (string * N.statement) list)
+        (pair : S.id * S.typ S.aval                                  )
+      =
+      let field_map       , named_statements = acc
+      and field_identifier, value            = pair
+      in
+      let* field_identifier =
+        translate_identifier [%here] field_identifier
+      in
+      let* variable_identifier =
+        TC.generate_unique_identifier field_identifier
+      in
+      let* named_statement =
+        let* expression, named_statements = expression_of_aval location value
+        in
+        TC.return @@ wrap_in_named_statements_context named_statements (N.Stm_exp expression)
+      in
+      let named_statements' =
+        (variable_identifier, named_statement) :: named_statements
+      in
+      let field_map' =
+        StringMap.overwrite ~key:field_identifier ~data:variable_identifier field_map
+      in
+      TC.return @@ (field_map', named_statements')
+    in
+    with_destructured_record location aval @@ fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> begin
+      let* field_map, named_statements =
+        let initial_field_map : string StringMap.t =
+          StringMap.of_alist_exn @@ List.zip_exn field_identifiers variable_identifiers
+        in
+        TC.fold_left ~f:process_binding ~init:(initial_field_map, []) (Bindings.bindings bindings)
+      in
+      let record_expression =
+        let type_identifier = record_type_identifier
+        and variable_identifiers =
+          List.map field_identifiers ~f:(StringMap.find_exn field_map)
+        in
+        N.Exp_record { type_identifier; variable_identifiers }
+      in
+      TC.return @@ wrap_in_named_statements_context named_statements (Stm_exp record_expression)
+    end
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
