@@ -551,14 +551,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     let* field_identifier = translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_identifier; record_type_identifier; field_identifiers; variable_identifiers } -> (
+      fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> (
         match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
         | Some selected_field_index -> begin
-            let expression = N.Exp_record_field_access {
-                                 record_identifier;
-                                 variable_identifiers;
-                                 selected_field_index;
-                               }
+            let expression =
+              N.Exp_var (List.nth_exn variable_identifiers selected_field_index)
             in
             TC.return @@ N.Stm_exp expression
           end
