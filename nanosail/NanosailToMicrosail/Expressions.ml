@@ -126,7 +126,6 @@ let rec pp_expression e =
       in
       AC.return @@ simple_app [string "exp_list"; lst']
     end
-  | Exp_record_field_access _ -> AC.not_yet_implemented [%here]
 
 and pp_par_expression e =
   let* e' = pp_expression e

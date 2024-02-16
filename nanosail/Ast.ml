@@ -135,14 +135,6 @@ type expression =
   | Exp_not                 of expression
   | Exp_list                of expression list
   | Exp_binop               of binary_operator * expression * expression
-  | Exp_record_field_access of record_field_access  (* todo remove this case *)
-
-and record_field_access =
-  {
-    record_identifier    : string;
-    variable_identifiers : string list;
-    selected_field_index : int;
-  }
 
 
 type statement =
