@@ -452,7 +452,7 @@ let record
     let longest_field_length =
       Auxlib.maximum @@ List.map ~f:(Fn.compose PP.requirement fst) fields
     in
-    List.map ~f:(fun (id, t) -> PP.separate space [ PP.pad_right longest_field_length id; colon; t ]) fields
+    List.map ~f:(fun (id, t) -> PP.separate space [ PP.pad_right longest_field_length id; colon; t ] ^^ semi) fields
   in
   let body =
     PP.(separate hardline [
