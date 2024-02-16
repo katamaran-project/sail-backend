@@ -24,7 +24,7 @@ register PC : Capability
 val nextPC : unit -> address
 function nextPC() = {
   let cursor = PC.cap_cursor in
-  cursor
+  cursor + 4
 }
 
 

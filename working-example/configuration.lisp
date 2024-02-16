@@ -22,7 +22,11 @@
                   "is_some"
                   "bit_of_regval"
                   "num_of_foo"
-                  "__id")
+                  "__id"
+                  "Capability_of_regval")
 
 (ignore-definition-predicate (lambda (identifier)
-                               (contains? '("option") identifier)))
+                               (contains? '(
+                                            "option"
+                                            "register_value")
+                                          identifier)))
