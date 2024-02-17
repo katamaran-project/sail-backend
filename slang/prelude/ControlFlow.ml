@@ -9,7 +9,7 @@ module P  = Value.Predicate
 open Shared
 
 
-let conditional (args : Value.t list) : Value.t EV.t =
+let conditional =
   let if_then args =
     let=? condition, then_clause = C.(map2 value value) args
     in
@@ -30,10 +30,10 @@ let conditional (args : Value.t list) : Value.t EV.t =
     else EV.lift ~f:Option.some @@ evaluate else_clause
   in
 
-  M.mk_multimacro [ if_then_else; if_then ] args
+  ("if", M.mk_multimacro [ if_then_else; if_then ])
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      callable "if" conditional
-    )
+  EnvironmentBuilder.extend_environment env @@ fun { callable; _ } -> begin
+      List.iter ~f:(Auxlib.uncurry callable) [ conditional ] 
+    end
