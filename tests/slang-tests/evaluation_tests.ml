@@ -415,7 +415,7 @@ let predicate_tests =
   "predicate" >::: List.map ~f:(uncurry test_run) test_cases
 
 
-let conditional_tests =
+let if_then_else_tests =
   let open Slang.Value
   in
   let test_cases =
@@ -655,5 +655,5 @@ let tests =
     comparison_tests;
     list_tests;
     predicate_tests;
-    conditional_tests;
+    if_then_else_tests;
   ]
