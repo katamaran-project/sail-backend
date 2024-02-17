@@ -30,7 +30,7 @@ let if_then_else =
     else EV.lift ~f:Option.some @@ evaluate else_clause
   in
 
-  ("if", M.mk_multimacro [ if_then_else; if_then ])
+  ("if", M.mk_multi_special_form [ if_then_else; if_then ])
 
 
 let cond =
@@ -50,7 +50,7 @@ let cond =
     in
     evaluate_cond clauses
   in
-  ("cond", M.mk_multimacro [ impl ])
+  ("cond", M.mk_multi_special_form [ impl ])
 
 
 let library env =

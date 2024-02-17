@@ -9,7 +9,7 @@ open Monads.Notations.Star(EC)
 type method_definition = Value.t list -> Value.t option EvaluationContext.t
 
 
-let mk_multimacro methods arguments =
+let mk_multi_special_form methods arguments =
   let rec call_matching_method methods =
     match methods with
     | []    -> raise @@ Exception.SlangError "no method found"
@@ -29,4 +29,4 @@ let mk_multimacro methods arguments =
 let mk_multimethod (methods : method_definition list) arguments =
   let* evaluated_arguments = EC.map ~f:evaluate arguments
   in
-  mk_multimacro methods evaluated_arguments
+  mk_multi_special_form methods evaluated_arguments

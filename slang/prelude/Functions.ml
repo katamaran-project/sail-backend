@@ -48,7 +48,7 @@ let define (args : Value.t list) : Value.t EV.t =
     EV.return @@ Some (Value.Nil)
 
   in
-  mk_multimacro [ define_function; define_variable ] args
+  mk_multi_special_form [ define_function; define_variable ] args
 
 
 let library env =
