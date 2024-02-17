@@ -8,6 +8,7 @@ open Monads.Notations.Star(EC)
 
 type method_definition = Value.t list -> Value.t option EvaluationContext.t
 
+
 let mk_multimacro methods arguments =
   let rec call_matching_method methods =
     match methods with
@@ -23,6 +24,7 @@ let mk_multimacro methods arguments =
       end
   in
   call_matching_method methods
+
 
 let mk_multimethod (methods : method_definition list) arguments =
   let* evaluated_arguments = EC.map ~f:evaluate arguments
