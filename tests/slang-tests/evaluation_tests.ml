@@ -640,6 +640,65 @@ let comparison_tests =
   "comparisons" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let cond_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+           (cond (#t 5))
+        |},
+        Integer 5
+      );
+      (
+        {|
+           (cond (#f 5)
+                 (#t 6))
+        |},
+        Integer 6
+      );
+      (
+        {|
+           (cond ((= 1 2) 5)
+                 ((= 2 2) 6))
+        |},
+        Integer 6
+      );
+      (
+        {|
+           (cond ((= 1 2) (* 2 5))
+                 ((= 2 2) (* 3 5)))
+        |},
+        Integer 15
+      );
+      (
+        {|
+           (cond ((< 1 2) (* 2 5))
+                 ((= 2 2) (* 3 5)))
+        |},
+        Integer 10
+      );
+      (
+        {|
+           (cond ((> 1 2) (* 2 5))
+                 ((= 1 2) (* 3 5))
+                 ((< 1 2) (+ 9 9)))
+        |},
+        Integer 18
+      );
+      (
+        {|
+           (cond ((> 1 2) (* 2 5))
+                 ((= 1 2) (* 3 5))
+                 ((< 5 2) (+ 9 9)))
+        |},
+        Nil
+      );
+    ]
+  in
+  "cond" >::: List.map ~f:(uncurry test_run) test_cases
+
 
 let tests =
   "evaluation tests" >::: [
@@ -656,4 +715,5 @@ let tests =
     list_tests;
     predicate_tests;
     if_then_else_tests;
+    cond_tests;
   ]
