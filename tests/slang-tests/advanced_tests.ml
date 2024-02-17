@@ -16,7 +16,7 @@ let test_run input expected =
     end
 
 
-let arithmetic_tests =
+let modulo_tests =
   let open Slang.Value
   in
   let test_cases =
@@ -37,7 +37,16 @@ let arithmetic_tests =
           Integer (x % y)
         ];
       end;
+    end
+  in
+  "modulo tests" >::: List.map ~f:(uncurry test_run) test_cases
 
+
+let filter_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    build_list begin fun { addall; _ } ->
       addall begin
         let* xs, expected = [
           ("()", []);
@@ -72,5 +81,6 @@ let arithmetic_tests =
 
 let tests =
   "evaluation tests" >::: [
-    arithmetic_tests;
+    modulo_tests;
+    filter_tests;
   ]
