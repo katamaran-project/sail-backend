@@ -25,6 +25,15 @@ let tokenizer_tests =
       ("1+", [ T.Symbol "1+" ]);
       ("; 1", [ ]);
       ("1 ; 2\n3", [ T.Integer 1; T.Integer 3 ]);
+      ("'((1 2))", T.([
+           Quote;
+           LeftParenthesis;
+           LeftParenthesis;
+           Integer 1;
+           Integer 2;
+           RightParenthesis;
+           RightParenthesis
+         ]));
       ("(= (1+ x) (foo 1))", [
           T.LeftParenthesis;
           T.Symbol "=";
