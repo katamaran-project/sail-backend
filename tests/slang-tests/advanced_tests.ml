@@ -74,9 +74,7 @@ let filter_tests =
       end;
     end
   in
-  "advanced" >::: List.map ~f:(uncurry test_run) test_cases
-
-
+  "filter" >::: List.map ~f:(uncurry test_run) test_cases
 
 
 let tests =
