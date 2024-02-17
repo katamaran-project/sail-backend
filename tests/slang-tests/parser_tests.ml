@@ -29,19 +29,19 @@ let parse_string_tests =
              Integer 5;
            ]
       ]);
-      (* ("(a '(b c) d)", [ *)
-      (*     make_list [ *)
-      (*       Symbol "a"; *)
-      (*       make_list [ *)
-      (*         Symbol "quote"; *)
-      (*         make_list [ *)
-      (*           Symbol "b"; *)
-      (*           Symbol "c"; *)
-      (*         ]; *)
-      (*       ]; *)
-      (*       Symbol "d"; *)
-      (*     ] *)
-      (*   ]); *)
+      ("(a '(b c) d)", [
+          make_list [
+            Symbol "a";
+            make_list [
+              Symbol "quote";
+              make_list [
+                Symbol "b";
+                Symbol "c";
+              ];
+            ];
+            Symbol "d";
+          ]
+        ]);
     ]
   in
   let test_parse_string (input, expected) =
