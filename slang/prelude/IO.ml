@@ -2,7 +2,7 @@ open Base
 open Monads.Notations.Star(EvaluationContext)
 open Multimethods
 
-module EV = EvaluationContext
+module EC = EvaluationContext
 module C = Converters
 
 open Shared
@@ -19,6 +19,23 @@ let print =
 
 
 let library env =
+  let definitions = [
+    print;
+  ]
+  in
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter ~f:(Auxlib.uncurry callable) [ print ];
+      List.iter
+        ~f:(Auxlib.uncurry callable)
+        definitions
     )
+
+
+let initialize =
+  let definitions = [
+    print;
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

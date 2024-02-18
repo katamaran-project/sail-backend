@@ -1,3 +1,4 @@
+module P = Parsing
 open Base
 open Auxlib
 open Exception
@@ -86,3 +87,8 @@ let mk_closure environment parameters body : Value.callable =
     end
   in
   callable
+
+let evaluate_string (s : string) : Value.t EC.t =
+  let asts = P.parse_string s
+  in
+  evaluate_many asts

@@ -110,8 +110,30 @@ let modulo =
 
 
 let library env =
+  let definitions = [
+    addition;
+    subtraction;
+    multiplication;
+    division;
+    modulo;
+  ]
+  in
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
       List.iter
         ~f:(Auxlib.uncurry callable)
-        [addition; subtraction; multiplication; division; modulo]
+        definitions
     )
+
+let initialize =
+  let definitions = [
+    addition;
+    subtraction;
+    multiplication;
+    division;
+    modulo;
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

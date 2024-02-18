@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Slang.Evaluation
 open Slang.EvaluationContext
 open Monads.Notations.Star(Slang.EvaluationContext)
@@ -96,8 +95,16 @@ module Exported = struct
     in
     let contents = Stdio.In_channel.read_all path
     in
-    let environment =
-      extend_environment prelude @@ fun { callable; _ } -> List.iter ~f:(uncurry callable) !exported_functions
+    let program =
+      let* () = Prelude.initialize
+      in
+      let* _ = Evaluation.evaluate_string contents
+      in
+      EvaluationContext.return ()
     in
-    ignore @@ run_string environment contents
+    ignore @@ EvaluationContext.run program
+    (* let environment = *)
+    (*   extend_environment prelude @@ fun { callable; _ } -> List.iter ~f:(uncurry callable) !exported_functions *)
+    (* in *)
+    (* ignore @@ run_string environment contents *)
 end

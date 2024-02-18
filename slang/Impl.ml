@@ -206,10 +206,13 @@ and EvaluationContext : sig
 
   type 'a t
 
+  val empty_state             : state
+
   val return                  : 'a -> 'a t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val lift                    : f:('a -> 'b) -> 'a t -> 'b t
-  val run                     : 'a t -> state -> 'a * state
+  val run_with_state          : 'a t -> state -> 'a * state
+  val run                     : 'a t -> 'a * state                                                  
 
   val current_environment     : Value.t Environment.t t
   val set_current_environment : Value.t Environment.t -> unit t
@@ -233,6 +236,8 @@ struct
 
 
   type 'a t = 'a Monad.t
+
+  let empty_state             = Environment.empty
 
   let return                  = Monad.return
   let bind                    = Monad.bind
@@ -258,5 +263,7 @@ struct
     in
     return @@ Environment.lookup env identifier
 
-  let run = Monad.run
+  let run_with_state = Monad.run
+
+  let run p = run_with_state p empty_state
 end

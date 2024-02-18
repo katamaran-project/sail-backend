@@ -9,46 +9,77 @@ module C = Converters
 open Shared
 
 
-let equality_check args =
-  let* evaluated_args = map ~f:evaluate args
+let equality_check =
+  let id = "="
   in
-  let rec aux values =
-    match values with
-    | []       -> return @@ V.Bool true
-    | [_]      -> return @@ V.Bool true
-    | x::y::xs ->
-      if not (V.equal x y)
-      then return @@ V.Bool false
-      else aux @@ y::xs
+  let impl args =
+    let* evaluated_args = map ~f:evaluate args
+    in
+    let rec aux values =
+      match values with
+      | []       -> return @@ V.Bool true
+      | [_]      -> return @@ V.Bool true
+      | x::y::xs ->
+        if not (V.equal x y)
+        then return @@ V.Bool false
+        else aux @@ y::xs
+    in
+    aux evaluated_args
   in
-  aux evaluated_args
+  (id, impl)
 
 
-let comparison converter comparator args =
-  let=?? ns = List.map ~f:converter args
+let comparison converter comparator =
+  let impl args =
+    let=?? ns = List.map ~f:converter args
+    in
+    let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
+    in
+    EC.return @@ Some result
   in
-  let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
+  impl
+
+
+let int_string_comparison id int_comparator string_comparator =
+  let mm = M.mk_multimethod "string equality" [
+      comparison C.integer int_comparator;
+      comparison C.string  string_comparator;
+    ]
   in
-  EC.return @@ Some result
+  (id, mm)
 
 
-let int_string_comparison int_comparator string_comparator args =
-  M.mk_multimethod "string equality" [
-    comparison C.integer int_comparator;
-    comparison C.string  string_comparator;
-  ] args
+let less_than                = int_string_comparison "<"  (<)  String.(<)
+let less_than_or_equal_to    = int_string_comparison "<=" (<=) String.(<=)
+let greater_than             = int_string_comparison ">"  (>)  String.(>)
+let greater_than_or_equal_to = int_string_comparison ">=" (>=) String.(>=)
 
-
-let less_than                = int_string_comparison (<)  String.(<)
-let less_than_or_equal_to    = int_string_comparison (<=) String.(<=)
-let greater_than             = int_string_comparison (>)  String.(>)
-let greater_than_or_equal_to = int_string_comparison (>=) String.(>=)
 
 let library env =
+  let definitions = [
+    equality_check;
+    less_than;
+    less_than_or_equal_to;
+    greater_than;
+    greater_than_or_equal_to;
+  ]
+  in
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      callable "="  equality_check;
-      callable "<"  less_than;
-      callable "<=" less_than_or_equal_to;
-      callable ">"  greater_than;
-      callable ">=" greater_than_or_equal_to;
+      List.iter
+        ~f:(Auxlib.uncurry callable)
+        definitions
     )
+
+let initialize =
+  let definitions = [
+    equality_check;
+    less_than;
+    less_than_or_equal_to;
+    greater_than;
+    greater_than_or_equal_to;
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

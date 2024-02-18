@@ -3,28 +3,33 @@ open Exception
 open Monads.Notations.Star(EvaluationContext)
 open Multimethods
 
-module EV = EvaluationContext
+module EC = EvaluationContext
 module C = Converters
 
 open Shared
 
 
-let lambda (args : Value.t list) : Value.t EV.t =
-  match args with
-  | []             -> raise @@ SlangError "ill-formed lambda"
-  | [_]            -> raise @@ SlangError "ill-formed lambda"
-  | params :: body -> begin
-      let*   env    = EV.current_environment   in
-      let=!  params = C.list C.symbol params   in
-      let=!! body   = List.map ~f:C.value body
-      in
-      EV.return @@ Value.Callable (Evaluation.mk_closure env params body)
-    end
+let lambda =
+  let id = "lambda"
+  in
+  let impl args =
+    match args with
+    | []             -> raise @@ SlangError "ill-formed lambda"
+    | [_]            -> raise @@ SlangError "ill-formed lambda"
+    | params :: body -> begin
+        let*   env    = EC.current_environment   in
+        let=!  params = C.list C.symbol params   in
+        let=!! body   = List.map ~f:C.value body
+        in
+        EV.return @@ Value.Callable (Evaluation.mk_closure env params body)
+      end
+  in
+  (id, impl)
 
 
-let define (args : Value.t list) : Value.t EV.t =
+let define =
   let id = "define"
-
+    
   and define_function (args : Value.t list) =
     match args with
     | form :: body -> begin
@@ -36,25 +41,44 @@ let define (args : Value.t list) : Value.t EV.t =
         in
         let* ()       = EV.add_binding function_name callable
         in
-        EV.return @@ Some (Value.Nil)
+        EC.return @@ Some (Value.Nil)
       end
-    | _ -> EV.return None
+    | _ -> EC.return None
 
   and define_variable (args : Value.t list) =
     let=? identifier, expression = C.(map2 symbol value) args
     in
     let* value = Evaluation.evaluate expression
     in
-    let* () = EV.add_binding identifier value
+    let* () = EC.add_binding identifier value
     in
-    EV.return @@ Some (Value.Nil)
+    EC.return @@ Some (Value.Nil)
 
   in
-  mk_multi_special_form id [ define_function; define_variable ] args
+  (id, mk_multi_special_form id [ define_function; define_variable ])
+    
 
 
 let library env =
+  let definitions = [
+    lambda;
+    define;
+  ]
+  in
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      callable "lambda" lambda;
-      callable "define" define;
+      List.iter
+        ~f:(Auxlib.uncurry callable)
+        definitions
     )
+
+
+let initialize =
+  let definitions = [
+    lambda;
+    define;
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

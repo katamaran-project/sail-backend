@@ -17,7 +17,7 @@ let prelude = Prelude.prelude
 let extend_environment = EnvironmentBuilder.extend_environment
 
 let run_asts environment asts =
-  EvaluationContext.run (Evaluation.evaluate_many asts) environment
+  EvaluationContext.run_with_state (Evaluation.evaluate_many asts) environment
 
 let run_string environment string =
   let asts = Parser.parse_string string

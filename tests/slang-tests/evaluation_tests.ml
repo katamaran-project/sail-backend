@@ -4,17 +4,6 @@ open OUnit2
 open Shared
 
 
-let test_run input expected =
-  input >:: fun _ -> begin
-      let (actual, _)  = Slang.run_string Slang.prelude input
-      in
-      let msg =
-        Printf.sprintf "expected = %s != %s = actual" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
-      in
-      assert_equal ~msg expected actual
-    end
-
-
 let arithmetic_tests =
   let open Slang.Value
   in

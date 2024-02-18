@@ -54,13 +54,28 @@ let cond =
     in
     evaluate_cond clauses
   in
+  
   (id, M.mk_multi_special_form id [ impl ])
 
 
 let library env =
+  let definitions = [
+    if_then_else;
+    cond
+  ]
+  in
   EnvironmentBuilder.extend_environment env @@ fun { callable; _ } -> begin
-    List.iter ~f:(Auxlib.uncurry callable) [
-      if_then_else;
-      cond;
-    ] 
+    List.iter ~f:(Auxlib.uncurry callable) definitions
   end
+
+
+let initialize =
+  let definitions = [
+    if_then_else;
+    cond
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

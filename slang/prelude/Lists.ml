@@ -85,8 +85,32 @@ let contains =
 
 
 let library env =
+  let definitions = [
+    cons;
+    car;
+    cdr;
+    any;
+    all;
+    contains;
+  ]
+  in
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
       List.iter
         ~f:(Auxlib.uncurry callable)
-        [ cons; car; cdr; any; all; contains ]
+        definitions
     )
+
+let initialize =
+  let definitions = [
+    cons;
+    car;
+    cdr;
+    any;
+    all;
+    contains;
+  ]
+  in
+  let pairs =
+    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+  in
+  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs

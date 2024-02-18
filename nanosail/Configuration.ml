@@ -61,7 +61,7 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
     in
     let arguments = [ Slang.Value.String identifier ]
     in
-    let result, _ = Slang.EvaluationContext.run (get ignore_definition_predicate arguments) Slang.Environment.empty
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_definition_predicate arguments
     in
     Slang.Value.truthy result
 

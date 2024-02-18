@@ -1,4 +1,5 @@
 open Base
+open OUnit2
 
 
 module ListMonadNotations = struct
@@ -6,3 +7,21 @@ module ListMonadNotations = struct
   let (and*) x y = let* x in let* y in List.return (x, y)
   let return     = List.return
 end
+
+
+let test_run input expected =
+  let open Monads.Notations.Star(Slang.EvaluationContext)
+  in
+  input >:: fun _ -> begin
+      let program =
+        let* _ = Slang.Prelude.initialize
+        in
+        Slang.Evaluation.evaluate_string input
+      in
+      let (actual, _)  = Slang.EvaluationContext.run program
+      in
+      let msg =
+        Printf.sprintf "expected = %s != %s = actual" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
+      in
+      assert_equal ~msg expected actual
+    end
