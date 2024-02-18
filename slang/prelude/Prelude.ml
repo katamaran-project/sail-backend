@@ -7,11 +7,11 @@ let initialize : unit EvaluationContext.t =
       Booleans.initialize;
       Functions.initialize;
       Comparison.initialize;
-      Lists.initialize;
+      ControlFlow.initialize;
       Predicates.initialize;
       Quote.initialize;
-      ControlFlow.initialize;
       IO.initialize;
+      Lists.initialize;
   ]
   in
   EvaluationContext.iter ~f:(fun f -> f) libraries
