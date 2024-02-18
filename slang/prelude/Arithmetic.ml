@@ -9,7 +9,7 @@ module C  = Converters
 open Shared
 
 
-let addition args =
+let addition =
   let id = "+"
   
   and add_integers evaluated_args =
@@ -27,23 +27,28 @@ let addition args =
     EV.return @@ Some (Value.String result)
 
   in
-  mk_multimethod id [ add_integers; add_strings ] args
+  (id, mk_multimethod id [ add_integers; add_strings ])
 
 
-let subtraction args =
-  let* evaluated_args = EV.map ~f:evaluate args
+let subtraction =
+  let id = "-"
+    
+  and impl args =
+    let* evaluated_args = EV.map ~f:evaluate args
+    in
+    let=!! ns = List.map ~f:C.integer evaluated_args
+    in
+    let result = match ns with
+      | []    -> 0
+      | [n]   -> -n
+      | n::ns -> List.fold_left ~f:Int.(-) ~init:n ns
+    in
+    EV.return @@ Value.Integer result
   in
-  let=!! ns = List.map ~f:C.integer evaluated_args
-  in
-  let result = match ns with
-    | []    -> 0
-    | [n]   -> -n
-    | n::ns -> List.fold_left ~f:Int.(-) ~init:n ns
-  in
-  EV.return @@ Value.Integer result
+  (id, impl)
 
 
-let multiplication args =
+let multiplication =
   let id = "*"
     
   and multiply_integers evaluated_args =
@@ -68,27 +73,32 @@ let multiplication args =
     EV.return @@ Some (Value.String result)
 
   in
-  mk_multimethod id [
-    multiply_integers;
-    multiply_string_with_int;
-    multiply_int_with_string;
-  ] args
+  (id, mk_multimethod id [
+      multiply_integers;
+      multiply_string_with_int;
+      multiply_int_with_string;
+    ])
 
 
-let division args =
-  let* evaluated_args = EV.map ~f:evaluate args
+let division =
+  let id = "/"
+    
+  and impl args =
+    let* evaluated_args = EV.map ~f:evaluate args
+    in
+    let=!! ns = List.map ~f:C.integer evaluated_args
+    in
+    let result = match ns with
+      | []
+      | [_]   -> raise @@ Exception.SlangError "invalid division"
+      | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
+    in
+    EV.return @@ Value.Integer result
   in
-  let=!! ns = List.map ~f:C.integer evaluated_args
-  in
-  let result = match ns with
-    | []
-    | [_]   -> raise @@ Exception.SlangError "invalid division"
-    | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
-  in
-  EV.return @@ Value.Integer result
+  (id, impl)
 
 
-let modulo args =
+let modulo =
   let id = "%"
   in
   let impl args =
@@ -96,14 +106,12 @@ let modulo args =
     in
     EV.return @@ Some (Value.Integer (x % y))
   in
-  mk_multimethod id [ impl ] args
+  (id, mk_multimethod id [ impl ])
 
 
 let library env =
   EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      callable "+" addition;
-      callable "-" subtraction;
-      callable "*" multiplication;
-      callable "/" division;
-      callable "%" modulo;
+      List.iter
+        ~f:(Auxlib.uncurry callable)
+        [addition; subtraction; multiplication; division; modulo]
     )
