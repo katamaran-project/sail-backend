@@ -50,13 +50,6 @@ let filter_tests =
         [
           Printf.sprintf
           {|
-            (define (filter pick? xs)
-              (if (nil? xs)
-                  ()
-                  (if (pick? (car xs))
-                      (cons (car xs) (recurse pick? (cdr xs)))
-                      (recurse pick? (cdr xs)))))
-
             (filter (lambda (x) (> x 0)) '%s)
           |} xs,
           list_to_cons @@ List.map expected ~f:Mk.integer
