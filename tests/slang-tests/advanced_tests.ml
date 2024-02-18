@@ -77,8 +77,57 @@ let filter_tests =
   "filter" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let mapping_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* alist, value, expected = [
+          (
+            {|()|},
+            {|"a"|},
+            Nil
+          );
+          (
+            {|(("a" 1))|},
+            {|"a"|},
+            Integer 1
+          );
+          (
+            {|(("a" 1))|},
+            {|"b"|},
+            Nil
+          );
+        ]
+        in
+        [
+          Printf.sprintf
+            {|
+              (define (caar x) (car (car x)))
+              (define (cadar x) (car (cdr (car x))))
+
+              (define (lookup value alist)
+                (cond ((nil? alist)
+                         ())
+                      ((= (caar alist) value)
+                         (cadar alist))
+                      (#t
+                         (recurse value (cdr alist)))))
+
+              (lookup %s '%s)
+            |} value alist,
+            expected
+        ];
+      end;
+    end
+  in
+  "mapping" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
-  "evaluation tests" >::: [
+  "advanced tests" >::: [
     modulo_tests;
     filter_tests;
+    mapping_tests;
   ]
