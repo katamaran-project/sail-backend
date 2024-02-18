@@ -86,12 +86,25 @@ let contains =
 let caar =
   EC.ignore @@ Evaluation.evaluate_string "(define (caar x) (car (car x)))"
 
+let cadr =
+  EC.ignore @@ Evaluation.evaluate_string "(define (cadr x) (car (cdr x)))"
+
+let cdar =
+  EC.ignore @@ Evaluation.evaluate_string "(define (cdar x) (cdr (car x)))"
+
+let cadar =
+  EC.ignore @@ Evaluation.evaluate_string "(define (cadar x) (car (cdr (car x))))"
+
 
 let initialize =
   let definitions = [
     cons;
     car;
     cdr;
+    caar;
+    cadr;
+    cdar;
+    cadar;
     any;
     all;
     contains;
