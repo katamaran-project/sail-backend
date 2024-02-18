@@ -155,7 +155,49 @@ let nth_tests =
     end
   in
   "mapping" >::: List.map ~f:(uncurry test_run) test_cases
-  
+
+
+let last_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* list, expected = [
+          (
+            {|(1)|},
+            Integer 1
+          );
+          (
+            {|(1 2)|},
+            Integer 2
+          );
+          (
+            {|(1 2 3)|},
+            Integer 3
+          );
+          (
+            {|("a" "bc" "def" "xyzw")|},
+            String "xyzw"
+          );
+          (
+            {|("a" "bc" "def" "xyzw" #f)|},
+            Bool false
+          );
+        ]
+        in
+        [
+          Printf.sprintf
+            {|
+              (last '%s)
+            |} list,
+            expected
+        ];
+      end;
+    end
+  in
+  "mapping" >::: List.map ~f:(uncurry test_run) test_cases
+
 
 let tests =
   "advanced tests" >::: [
@@ -163,4 +205,5 @@ let tests =
     filter_tests;
     mapping_tests;
     nth_tests;
+    last_tests;
   ]
