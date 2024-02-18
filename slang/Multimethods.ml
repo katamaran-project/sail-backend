@@ -18,10 +18,10 @@ type method_definition = Value.t list -> Value.t option EvaluationContext.t
    A special form is not a macro: the result is considered the end result, whereas
    a macro 
  *)
-let mk_multi_special_form methods arguments =
+let mk_multi_special_form id methods arguments =
   let rec call_matching_method methods =
     match methods with
-    | []    -> raise @@ Exception.SlangError "no method found"
+    | []    -> raise @@ Exception.SlangError (Printf.sprintf "no method found for %s" id)
     | m::ms -> begin
         let* state = EC.current_state
         in
@@ -39,7 +39,7 @@ let mk_multi_special_form methods arguments =
    A multimethod is a function that receives its arguments after they have been evaluated,
    i.e., strict evaluation.   
  *)
-let mk_multimethod (methods : method_definition list) arguments =
+let mk_multimethod id (methods : method_definition list) arguments =
   let* evaluated_arguments = EC.map ~f:evaluate arguments
   in
-  mk_multi_special_form methods evaluated_arguments
+  mk_multi_special_form id methods evaluated_arguments

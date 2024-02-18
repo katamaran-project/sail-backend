@@ -10,7 +10,9 @@ open Shared
 
 
 let if_then_else =
-  let if_then args =
+  let id = "if"
+    
+  and if_then args =
     let=? condition, then_clause = C.(map2 value value) args
     in
     let* evaluated_condition = evaluate condition
@@ -30,11 +32,13 @@ let if_then_else =
     else EV.lift ~f:Option.some @@ evaluate else_clause
   in
 
-  ("if", M.mk_multi_special_form [ if_then_else; if_then ])
+  (id, M.mk_multi_special_form id [ if_then_else; if_then ])
 
 
 let cond =
-  let impl (args : Value.t list) =
+  let id = "cond"
+    
+  and impl (args : Value.t list) =
     let=?? clauses = List.map ~f:C.(tuple2 value value) args
     in
     let rec evaluate_cond (clauses : (Value.t * Value.t) list) : Value.t Option.t EC.t =
@@ -50,7 +54,7 @@ let cond =
     in
     evaluate_cond clauses
   in
-  ("cond", M.mk_multi_special_form [ impl ])
+  (id, M.mk_multi_special_form id [ impl ])
 
 
 let library env =

@@ -33,7 +33,7 @@ let comparison converter comparator args =
 
 
 let int_string_comparison int_comparator string_comparator args =
-  M.mk_multimethod [
+  M.mk_multimethod "string equality" [
     comparison C.integer int_comparator;
     comparison C.string  string_comparator;
   ] args

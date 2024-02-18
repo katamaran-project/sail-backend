@@ -33,12 +33,14 @@ let rec disjunction args =
 
 
 let negation args =
+  let id = "not"
+  in
   let impl args =
     let=? b = C.(map1 truthy) args
     in
     EC.return @@ Some (Value.Bool (not b))
   in
-  M.mk_multimethod [ impl ] args
+  M.mk_multimethod id [ impl ] args
 
 
 let library env =

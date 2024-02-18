@@ -23,7 +23,9 @@ let lambda (args : Value.t list) : Value.t EV.t =
 
 
 let define (args : Value.t list) : Value.t EV.t =
-  let define_function (args : Value.t list) =
+  let id = "define"
+
+  and define_function (args : Value.t list) =
     match args with
     | form :: body -> begin
         let=? function_name, parameters = C.(cons symbol (list symbol)) form
@@ -48,7 +50,7 @@ let define (args : Value.t list) : Value.t EV.t =
     EV.return @@ Some (Value.Nil)
 
   in
-  mk_multi_special_form [ define_function; define_variable ] args
+  mk_multi_special_form id [ define_function; define_variable ] args
 
 
 let library env =

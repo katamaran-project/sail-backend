@@ -10,7 +10,9 @@ open Shared
 
 
 let addition args =
-  let add_integers evaluated_args =
+  let id = "+"
+  
+  and add_integers evaluated_args =
     let=?? ns = List.map ~f:C.integer evaluated_args
     in
     let result = List.fold_left ~f:Int.(+) ~init:0 ns
@@ -25,7 +27,7 @@ let addition args =
     EV.return @@ Some (Value.String result)
 
   in
-  mk_multimethod [ add_integers; add_strings ] args
+  mk_multimethod id [ add_integers; add_strings ] args
 
 
 let subtraction args =
@@ -42,7 +44,9 @@ let subtraction args =
 
 
 let multiplication args =
-  let multiply_integers evaluated_args =
+  let id = "*"
+    
+  and multiply_integers evaluated_args =
     let=?? ns = List.map ~f:C.integer evaluated_args
     in
     let result = List.fold_left ~f:Int.( * ) ~init:1 ns
@@ -64,7 +68,7 @@ let multiplication args =
     EV.return @@ Some (Value.String result)
 
   in
-  mk_multimethod [
+  mk_multimethod id [
     multiply_integers;
     multiply_string_with_int;
     multiply_int_with_string;
@@ -85,12 +89,14 @@ let division args =
 
 
 let modulo args =
+  let id = "%"
+  in
   let impl args =
     let=! (x, y) = C.(map2 integer integer) args
     in
     EV.return @@ Some (Value.Integer (x % y))
   in
-  mk_multimethod [ impl ] args
+  mk_multimethod id [ impl ] args
 
 
 let library env =

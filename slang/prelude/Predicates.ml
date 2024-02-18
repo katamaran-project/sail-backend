@@ -11,22 +11,25 @@ module P  = Value.Predicate
 open Shared
 
 
-let mk_predicate pred args =
+let mk_predicate id pred args =
   let impl args =
     let=? v = C.(map1 value) args
     in
     EC.return @@ Some (Value.Bool (pred v))
   in
-  mk_multimethod [ impl ] args
+  mk_multimethod id [ impl ] args
 
 
 let library env =
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      callable "cons?"     @@ mk_predicate P.is_cons;
-      callable "integer?"  @@ mk_predicate P.is_integer;
-      callable "symbol?"   @@ mk_predicate P.is_symbol;
-      callable "string?"   @@ mk_predicate P.is_string;
-      callable "bool?"     @@ mk_predicate P.is_bool;
-      callable "nil?"      @@ mk_predicate P.is_nil;
-      callable "callable?" @@ mk_predicate P.is_callable;
-    )
+  EnvironmentBuilder.extend_environment env @@ fun { callable; _ } -> begin
+      let predicate id func =
+        callable id @@ mk_predicate id func
+      in
+      predicate "cons?"     P.is_cons;
+      predicate "integer?"  P.is_integer;
+      predicate "symbol?"   P.is_symbol;
+      predicate "string?"   P.is_string;
+      predicate "bool?"     P.is_bool;
+      predicate "nil?"      P.is_nil;
+      predicate "callable?" P.is_callable;
+    end

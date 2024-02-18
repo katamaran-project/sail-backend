@@ -9,6 +9,7 @@ module EvaluationContext   = EvaluationContext
 module Converters          = Converters
 module Multimethods        = Multimethods
 module Prelude             = Prelude
+module Exception           = Exception
 
 
 let prelude = Prelude.prelude
