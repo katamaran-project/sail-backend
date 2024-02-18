@@ -51,7 +51,7 @@ let negation =
     in
     EC.return @@ Some (Value.Bool (not b))
   in
-  (id, M.mk_multimethod [ impl ])
+  (id, M.mk_multimethod [ impl; error id ])
 
 
 let initialize =

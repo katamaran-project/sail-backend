@@ -14,7 +14,7 @@ let print =
     Stdio.printf "%s\n" @@ String.concat ~sep:" " @@ List.map ~f:Value.to_string args;
     EC.return @@ Option.some @@ Value.Nil
   in
-  (id, mk_multimethod [ impl ])
+  (id, mk_multimethod [ impl; error id ])
 
 
 let initialize =

@@ -31,3 +31,13 @@ let (let=!!) xs f =
 
 let bind_callable id callable =
   EC.add_binding id @@ Value.Callable callable
+
+
+let error identifier args =
+  let error_message =
+    let formatted_args =
+      String.concat ~sep:" " @@ List.map ~f:Value.to_string args
+    in
+    Printf.sprintf "error evaluating (%s %s)" identifier formatted_args
+  in
+  raise @@ Exception.SlangError error_message

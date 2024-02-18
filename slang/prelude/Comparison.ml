@@ -44,6 +44,7 @@ let int_string_comparison id int_comparator string_comparator =
   let mm = M.mk_multimethod [
       comparison C.integer int_comparator;
       comparison C.string  string_comparator;
+      error id;
     ]
   in
   (id, mm)
