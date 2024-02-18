@@ -94,9 +94,6 @@ let mapping_tests =
         [
           Printf.sprintf
             {|
-              (define (caar x) (car (car x)))
-              (define (cadar x) (car (cdr (car x))))
-
               (define (lookup value alist)
                 (cond ((nil? alist)
                          ())
