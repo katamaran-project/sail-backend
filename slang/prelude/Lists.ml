@@ -90,6 +90,17 @@ let cdar =
 let cadar =
   EC.ignore @@ Evaluation.evaluate_string "(define (cadar x) (car (cdr (car x))))"
 
+let filter =
+  EC.ignore @@ Evaluation.evaluate_string {|
+      (define (filter pick? xs)
+        (cond ((nil? xs)
+                  ())
+              ((pick? (car xs))
+                  (cons (car xs)
+                        (recurse pick? (cdr xs))))
+              (#t
+                  (recurse pick? (cdr xs)))))
+    |}
 
 let initialize =
   let definitions = [
@@ -103,6 +114,7 @@ let initialize =
     any;
     all;
     contains;
+    filter;
   ]
   in
   EC.sequence definitions
