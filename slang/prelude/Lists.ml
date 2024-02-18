@@ -1,9 +1,8 @@
 open Base
-open Evaluation
 open Multimethods
 open Monads.Notations.Star(EvaluationContext)
 
-module EV = EvaluationContext
+module EC = EvaluationContext
 module C = Converters
 
 open Shared
@@ -17,7 +16,7 @@ let cons =
     in
     EC.return @@ Option.some @@ Value.Cons (car, cdr)
   in
-  (id, mk_multimethod id [ impl ])
+  bind_callable id @@ mk_multimethod id [ impl ]
 
 
 (* (car pair) returns the first element of the given pair *)
@@ -33,7 +32,7 @@ let car =
     in
     raise @@ Exception.SlangError error_message
   in
-  (id, mk_multimethod id [ impl; error ])
+  bind_callable id @@ mk_multimethod id [ impl; error ]
 
 
 (* (cdr pair) returns the second element of the given pair *)
@@ -44,7 +43,7 @@ let cdr =
     in
     EC.return @@ Some cdr
   in
-  (id, mk_multimethod id [ impl ])
+  bind_callable id @@ mk_multimethod id [ impl ]
 
 
 (* (any? predicate list) *)
@@ -57,7 +56,7 @@ let any =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.exists ~f:predicate items
   in
-  (id, mk_multimethod id [ impl ])
+  bind_callable id @@ mk_multimethod id [ impl ]
 
 
 (* (all? predicate list) *)
@@ -70,7 +69,7 @@ let all =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.forall ~f:predicate items
   in
-  (id, mk_multimethod id [ impl ])
+  bind_callable id @@ mk_multimethod id [ impl ]
 
 
 (* (contains? list value) *)
@@ -81,7 +80,11 @@ let contains =
     in
     EC.return @@ Option.some @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
   in
-  (id, mk_multimethod id [ impl ])
+  bind_callable id @@ mk_multimethod id [ impl ]
+
+
+let caar =
+  EC.ignore @@ Evaluation.evaluate_string "(define (caar x) (car (car x)))"
 
 
 let initialize =
@@ -94,7 +97,4 @@ let initialize =
     contains;
   ]
   in
-  let pairs =
-    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
-  in
-  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs
+  EC.sequence definitions

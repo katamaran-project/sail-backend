@@ -209,6 +209,7 @@ and EvaluationContext : sig
   val empty_state             : state
 
   val return                  : 'a -> 'a t
+  val ignore                  : 'a t -> unit t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val lift                    : f:('a -> 'b) -> 'a t -> 'b t
   val run_with_state          : 'a t -> state -> 'a * state
@@ -225,6 +226,7 @@ and EvaluationContext : sig
   val iter                    : f:('a -> unit t) -> 'a list -> unit t
   val exists                  : f:('a -> bool t) -> 'a list -> bool t
   val forall                  : f:('a -> bool t) -> 'a list -> bool t
+  val sequence                : 'a t list -> unit t
 end
 =
 struct
@@ -241,6 +243,7 @@ struct
 
   let return                  = Monad.return
   let bind                    = Monad.bind
+  let ignore x                = bind x @@ fun _ -> return ()
 
   let current_environment     = Monad.get
   let set_current_environment = Monad.put

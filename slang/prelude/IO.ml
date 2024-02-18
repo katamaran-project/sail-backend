@@ -12,7 +12,7 @@ let print =
   let id = "print"
   and impl args =
     Stdio.printf "%s\n" @@ String.concat ~sep:" " @@ List.map ~f:Value.to_string args;
-    EV.return @@ Option.some @@ Value.Nil
+    EC.return @@ Option.some @@ Value.Nil
   in
   (id, mk_multimethod id [ impl ])
 

@@ -21,7 +21,7 @@ let lambda =
         let=!  params = C.list C.symbol params   in
         let=!! body   = List.map ~f:C.value body
         in
-        EV.return @@ Value.Callable (Evaluation.mk_closure env params body)
+        EC.return @@ Value.Callable (Evaluation.mk_closure env params body)
       end
   in
   (id, impl)
@@ -35,11 +35,11 @@ let define =
     | form :: body -> begin
         let=? function_name, parameters = C.(cons symbol (list symbol)) form
         in
-        let* env      = EV.current_environment
+        let* env      = EC.current_environment
         in
         let  callable = Value.Callable (Evaluation.mk_closure env parameters body)
         in
-        let* ()       = EV.add_binding function_name callable
+        let* ()       = EC.add_binding function_name callable
         in
         EC.return @@ Some (Value.Nil)
       end

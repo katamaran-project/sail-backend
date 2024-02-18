@@ -1,11 +1,10 @@
 open Base
-open Evaluation
 open Multimethods
 open Monads.Notations.Star(EvaluationContext)
 
 
-module EV = EvaluationContext
-module C = Converters
+module EC = EvaluationContext
+module C  = Converters
 module P  = Value.Predicate
 
 open Shared

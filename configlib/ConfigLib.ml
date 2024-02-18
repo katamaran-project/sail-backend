@@ -1,7 +1,8 @@
 open Base
 open Slang.Evaluation
-open Slang.EvaluationContext
 open Monads.Notations.Star(Slang.EvaluationContext)
+
+module EC = Slang.EvaluationContext
 
 
 (* List of native functions to be made accessible in configuration script *)
@@ -36,7 +37,7 @@ let bool ?(init=false) export_as =
   in
   let script_function _values =
     set true;
-    return Slang.Value.Nil
+    EC.return Slang.Value.Nil
   in
   register_script_function export_as script_function;
   Setting (get, set)
@@ -54,12 +55,12 @@ let strings export_as =
     let open Slang in
     let open Slang.Prelude.Shared
     in
-    let* evaluated_arguments = map ~f:evaluate arguments
+    let* evaluated_arguments = EC.map ~f:evaluate arguments
     in
     let=!! strings = List.map ~f:Converters.string evaluated_arguments
     in
     set strings;
-    return @@ Value.Nil
+    EC.return @@ Value.Nil
   in
   register_script_function export_as script_function;
   Setting (get, set)
@@ -72,12 +73,12 @@ let callable ?(error_message = "missing setting") export_as =
     let open Slang in
     let open Slang.Prelude.Shared
     in
-    let* evaluated_arguments = map ~f:evaluate arguments
+    let* evaluated_arguments = EC.map ~f:evaluate arguments
     in
     let=! callable = Converters.(map1 callable) evaluated_arguments
     in
     set callable;
-    return @@ Value.Nil
+    EC.return @@ Value.Nil
   in
   register_script_function export_as script_function;
   Setting (get, set)

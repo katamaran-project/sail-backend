@@ -1,20 +1,20 @@
 open Base
 open Monads.Notations.Star(EvaluationContext)
 
-module EV = EvaluationContext
+module EC = EvaluationContext
 module M  = Multimethods
 
 
 let (let=?) x f =
   match x with
   | Some r -> f r
-  | None   -> EV.return None
+  | None   -> EC.return None
 
 
 let (let=??) xs f =
   match Option.all xs with
   | Some r -> f r
-  | None   -> EV.return None
+  | None   -> EC.return None
 
 
 let (let=!) x f =
@@ -27,3 +27,7 @@ let (let=!!) xs f =
   match Option.all xs with
   | Some r -> f r
   | None   -> raise @@ Exception.SlangError "invalid types"
+
+
+let bind_callable id callable =
+  EC.add_binding id @@ Value.Callable callable

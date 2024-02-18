@@ -13,7 +13,7 @@ let quote =
   let impl args =
     let=! value = C.(map1 value) args
     in
-    EV.return value
+    EC.return value
   in
   (id, impl)
 
