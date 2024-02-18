@@ -12,8 +12,6 @@ module Prelude             = Prelude
 module Exception           = Exception
 
 
-let prelude = Prelude.prelude
-
 let extend_environment = EnvironmentBuilder.extend_environment
 
 let run_asts environment asts =

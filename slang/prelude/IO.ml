@@ -17,19 +17,6 @@ let print =
   (id, mk_multimethod id [ impl ])
 
 
-
-let library env =
-  let definitions = [
-    print;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
-
 let initialize =
   let definitions = [
     print;

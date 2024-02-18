@@ -109,21 +109,6 @@ let modulo =
   (id, mk_multimethod id [ impl ])
 
 
-let library env =
-  let definitions = [
-    addition;
-    subtraction;
-    multiplication;
-    division;
-    modulo;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
 let initialize =
   let definitions = [
     addition;

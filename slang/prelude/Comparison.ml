@@ -55,21 +55,6 @@ let greater_than             = int_string_comparison ">"  (>)  String.(>)
 let greater_than_or_equal_to = int_string_comparison ">=" (>=) String.(>=)
 
 
-let library env =
-  let definitions = [
-    equality_check;
-    less_than;
-    less_than_or_equal_to;
-    greater_than;
-    greater_than_or_equal_to;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
 let initialize =
   let definitions = [
     equality_check;

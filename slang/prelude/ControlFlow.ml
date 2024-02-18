@@ -58,17 +58,6 @@ let cond =
   (id, M.mk_multi_special_form id [ impl ])
 
 
-let library env =
-  let definitions = [
-    if_then_else;
-    cond
-  ]
-  in
-  EnvironmentBuilder.extend_environment env @@ fun { callable; _ } -> begin
-    List.iter ~f:(Auxlib.uncurry callable) definitions
-  end
-
-
 let initialize =
   let definitions = [
     if_then_else;

@@ -58,20 +58,6 @@ let define =
   (id, mk_multi_special_form id [ define_function; define_variable ])
     
 
-
-let library env =
-  let definitions = [
-    lambda;
-    define;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
-
 let initialize =
   let definitions = [
     lambda;

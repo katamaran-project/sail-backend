@@ -18,17 +18,6 @@ let quote =
   (id, impl)
 
 
-let library env =
-  let definitions = [
-    quote;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
 let initialize =
   let definitions = [
     quote;

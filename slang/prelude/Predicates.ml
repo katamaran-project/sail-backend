@@ -29,23 +29,6 @@ let is_nil      = mk_predicate "nil?" P.is_nil
 let is_callable = mk_predicate "callable?" P.is_callable
 
 
-let library env =
-  let definitions = [
-    is_cons;
-    is_integer;
-    is_symbol;
-    is_string;
-    is_bool;
-    is_nil;
-    is_callable;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
 let initialize =
   let definitions = [
     is_cons;

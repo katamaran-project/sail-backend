@@ -84,22 +84,6 @@ let contains =
   (id, mk_multimethod id [ impl ])
 
 
-let library env =
-  let definitions = [
-    cons;
-    car;
-    cdr;
-    any;
-    all;
-    contains;
-  ]
-  in
-  EnvironmentBuilder.extend_environment env (fun { callable; _ } ->
-      List.iter
-        ~f:(Auxlib.uncurry callable)
-        definitions
-    )
-
 let initialize =
   let definitions = [
     cons;
