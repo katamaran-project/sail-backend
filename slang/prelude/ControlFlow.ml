@@ -32,7 +32,7 @@ let if_then_else =
     else EV.lift ~f:Option.some @@ evaluate else_clause
   in
 
-  (id, M.mk_multi_special_form id [ if_then_else; if_then ])
+  (id, M.mk_multi_special_form [ if_then_else; if_then ])
 
 
 let cond =
@@ -55,7 +55,7 @@ let cond =
     evaluate_cond clauses
   in
   
-  (id, M.mk_multi_special_form id [ impl ])
+  (id, M.mk_multi_special_form [ impl ])
 
 
 let initialize =

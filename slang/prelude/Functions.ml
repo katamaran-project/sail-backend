@@ -55,7 +55,7 @@ let define =
     EC.return @@ Some (Value.Nil)
 
   in
-  (id, mk_multi_special_form id [ define_function; define_variable ])
+  (id, mk_multi_special_form [ define_function; define_variable ])
     
 
 let initialize =

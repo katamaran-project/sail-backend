@@ -16,7 +16,7 @@ let cons =
     in
     EC.return @@ Option.some @@ Value.Cons (car, cdr)
   in
-  bind_callable id @@ mk_multimethod id [ impl ]
+  bind_callable id @@ mk_multimethod [ impl ]
 
 
 (* (car pair) returns the first element of the given pair *)
@@ -32,7 +32,7 @@ let car =
     in
     raise @@ Exception.SlangError error_message
   in
-  bind_callable id @@ mk_multimethod id [ impl; error ]
+  bind_callable id @@ mk_multimethod [ impl; error ]
 
 
 (* (cdr pair) returns the second element of the given pair *)
@@ -43,7 +43,7 @@ let cdr =
     in
     EC.return @@ Some cdr
   in
-  bind_callable id @@ mk_multimethod id [ impl ]
+  bind_callable id @@ mk_multimethod [ impl ]
 
 
 (* (any? predicate list) *)
@@ -56,7 +56,7 @@ let any =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.exists ~f:predicate items
   in
-  bind_callable id @@ mk_multimethod id [ impl ]
+  bind_callable id @@ mk_multimethod [ impl ]
 
 
 (* (all? predicate list) *)
@@ -69,7 +69,7 @@ let all =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.forall ~f:predicate items
   in
-  bind_callable id @@ mk_multimethod id [ impl ]
+  bind_callable id @@ mk_multimethod [ impl ]
 
 
 (* (contains? list value) *)
@@ -80,7 +80,7 @@ let contains =
     in
     EC.return @@ Option.some @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
   in
-  bind_callable id @@ mk_multimethod id [ impl ]
+  bind_callable id @@ mk_multimethod [ impl ]
 
 
 let caar =

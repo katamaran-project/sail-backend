@@ -16,7 +16,7 @@ let mk_predicate id pred =
     in
     EC.return @@ Some (Value.Bool (pred v))
   in
-  (id, mk_multimethod id [ impl ])
+  (id, mk_multimethod [ impl ])
 
 
 let is_cons     = mk_predicate "cons?" P.is_cons

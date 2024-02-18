@@ -27,7 +27,7 @@ let addition =
     EV.return @@ Some (Value.String result)
 
   in
-  (id, mk_multimethod id [ add_integers; add_strings ])
+  (id, mk_multimethod [ add_integers; add_strings ])
 
 
 let subtraction =
@@ -73,7 +73,7 @@ let multiplication =
     EV.return @@ Some (Value.String result)
 
   in
-  (id, mk_multimethod id [
+  (id, mk_multimethod [
       multiply_integers;
       multiply_string_with_int;
       multiply_int_with_string;
@@ -106,7 +106,7 @@ let modulo =
     in
     EV.return @@ Some (Value.Integer (x % y))
   in
-  (id, mk_multimethod id [ impl ])
+  (id, mk_multimethod [ impl ])
 
 
 let initialize =
