@@ -10,4 +10,5 @@ let prelude =
       extend Predicates.library;
       extend Quote.library;
       extend ControlFlow.library;
+      extend IO.library;
     )
