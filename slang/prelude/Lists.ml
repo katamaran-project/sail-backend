@@ -102,6 +102,16 @@ let filter =
                   (recurse pick? (cdr xs)))))
     |}
 
+let nth =
+  EC.ignore @@ Evaluation.evaluate_string {|
+      (define (nth index xs)
+        (if (= index 0)
+            (car xs)
+            (recurse (- index 1)
+                     (cdr xs))))
+    |}
+
+
 let initialize =
   let definitions = [
     cons;
@@ -115,6 +125,7 @@ let initialize =
     all;
     contains;
     filter;
+    nth;
   ]
   in
   EC.sequence definitions
