@@ -6,7 +6,7 @@ module EC = Slang.EvaluationContext
 
 
 (* List of native functions to be made accessible in configuration script *)
-let exported_functions = ref []
+let exported_functions : (string * Slang.Value.callable) list ref = ref []
 
 type 'a getter  = unit -> 'a
 type 'a setter  = 'a -> unit
@@ -99,13 +99,14 @@ module Exported = struct
     let program =
       let* () = Prelude.initialize
       in
+      let* () =
+        EC.iter !exported_functions ~f:(fun (id, callable) -> begin
+          EC.add_binding id (Slang.Value.Callable callable)
+        end)
+      in
       let* _ = Evaluation.evaluate_string contents
       in
-      EvaluationContext.return ()
+      EC.return ()
     in
     ignore @@ EvaluationContext.run program
-    (* let environment = *)
-    (*   extend_environment prelude @@ fun { callable; _ } -> List.iter ~f:(uncurry callable) !exported_functions *)
-    (* in *)
-    (* ignore @@ run_string environment contents *)
 end
