@@ -111,6 +111,13 @@ let nth =
                      (cdr xs))))
     |}
 
+let last =
+  EC.ignore @@ Evaluation.evaluate_string {|
+      (define (last xs)
+        (if (nil? (cdr xs))
+            (car xs)
+            (recurse (cdr xs))))
+    |}
 
 let initialize =
   let definitions = [
@@ -126,6 +133,7 @@ let initialize =
     contains;
     filter;
     nth;
+    last;
   ]
   in
   EC.sequence definitions
