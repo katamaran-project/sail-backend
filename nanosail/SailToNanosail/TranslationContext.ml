@@ -135,7 +135,9 @@ let register (definition : definition) =
 
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
-let lookup_type (extractor : type_definition -> 'a option) (identifier : string) : 'a option t =
+let lookup_type
+      (extractor  : type_definition -> 'a option)
+      (identifier : string                      ) : 'a option t =
   let* types = Monad.get Context.types
   in
   return @@ begin
