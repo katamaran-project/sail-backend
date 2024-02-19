@@ -125,10 +125,13 @@ let rec pp_expression e =
       AC.return @@ simple_app [string "exp_list"; lst']
     end
   | Exp_record { type_identifier; variable_identifiers } -> begin
-      let _ = type_identifier
-      and _ = variable_identifiers
-      in
-      AC.not_yet_implemented [%here]
+      AC.return @@ simple_app [
+                       string "exp_record";
+                       string type_identifier;
+                       Coq.list @@ List.map
+                                     variable_identifiers
+                                     ~f:(fun id -> simple_app [ string "exp_var"; string id ])
+                     ]
     end
 
 and pp_par_expression e =
