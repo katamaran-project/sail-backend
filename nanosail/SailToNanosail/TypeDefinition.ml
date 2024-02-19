@@ -29,8 +29,6 @@ let translate_type_definition
   let register translation =
     let* result = translation
     in
-    let* () = TC.register_type result
-    in
     TC.return @@ N.TypeDefinition result
   in
   match type_definition with

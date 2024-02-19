@@ -22,7 +22,6 @@ val run                        : 'a t -> 'a result * Context.t
 
 
 val register                   : Ast.definition -> unit t
-val register_type              : Ast.type_definition -> unit t   (* todo remove this, only export register *)
 val lookup_type                : (Ast.type_definition -> 'a option) -> string -> 'a option t
 val lookup_register_type       : string -> Ast.nanotype option t
 val generate_unique_identifier : string -> string t

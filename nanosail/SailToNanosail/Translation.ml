@@ -46,6 +46,8 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
         | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
         | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
       in
+      let* () = TC.register result
+      in
       TC.return (sail_definition, result)
     in
     TC.recover translation begin fun error ->
