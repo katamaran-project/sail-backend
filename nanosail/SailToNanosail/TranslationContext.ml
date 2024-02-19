@@ -147,6 +147,12 @@ let lookup_type
   end
 
 
+let lookup_register_type (identifier : string) : nanotype option t =
+  let* registers = Monad.get Context.registers
+  in
+  return @@ StringMap.find registers identifier
+  
+
 let generate_unique_identifier prefix : string t =
   let* index = Monad.get Context.next_id_index
   in
