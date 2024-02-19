@@ -39,7 +39,6 @@ let statement_of_lvar
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
 
-
 let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   match aux with
   | P_lit (L_aux (lit, _loc)) ->
@@ -264,9 +263,6 @@ type with_destructured_record_data = {
     variable_identifiers   : string list;
   }
 
-(*
-  Given a record, todo
- *)
 let with_destructured_record
       (location       : S.l                                                 )
       (value          : S.typ S.aval                                        )
