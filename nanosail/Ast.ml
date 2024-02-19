@@ -136,6 +136,7 @@ type expression =
   | Exp_list   of expression list
   | Exp_binop  of binary_operator * expression * expression
   | Exp_record of { type_identifier : string; variable_identifiers : string list }
+  | Exp_enum   of string
 
 
 type statement =

@@ -194,7 +194,7 @@ let rec expression_of_aval
         in
         TC.return (N.Exp_var unique_id, named_statements)
       end
-    | Enum _       -> TC.not_yet_implemented [%here] location
+    | Enum _       -> TC.return (Ast.Exp_enum id', [])
     | Unbound _    -> TC.not_yet_implemented [%here] location
 
   and expression_of_list

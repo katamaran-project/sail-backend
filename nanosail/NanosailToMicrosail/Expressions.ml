@@ -110,8 +110,7 @@ let rec pp_expression e =
   | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ string "- " ^^ e'
   | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ simple_app [string "exp_not"; e']
   | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
-  | Exp_list lst           ->
-    begin
+  | Exp_list lst           -> begin
       let* lst' =
         if
           Configuration.(get use_list_notations)
@@ -133,6 +132,7 @@ let rec pp_expression e =
                                      ~f:(fun id -> simple_app [ string "exp_var"; string id ])
                      ]
     end
+  | Exp_enum identifier -> AC.return @@ string identifier
 
 and pp_par_expression e =
   let* e' = pp_expression e
