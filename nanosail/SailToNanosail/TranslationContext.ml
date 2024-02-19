@@ -151,6 +151,10 @@ let lookup_register_type (identifier : string) : nanotype option t =
   let* registers = Monad.get Context.registers
   in
   return @@ StringMap.find registers identifier
+
+
+let is_register (identifier : string) : bool t =
+  MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
   
 
 let generate_unique_identifier prefix : string t =

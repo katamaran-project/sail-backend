@@ -11,6 +11,7 @@ type error =
 type 'a result =
   | Success of 'a | Failure of error
 
+
 val bind                       : 'a t -> ('a -> 'b t) -> 'b t
 val return                     : 'a -> 'a t
 val not_yet_implemented        : ?message : string -> Lexing.position -> Libsail.Ast.l -> 'a t
@@ -19,10 +20,14 @@ val fail                       : Lexing.position -> string -> 'a t
 val recover                    : 'a t -> (error -> 'a t) -> 'a t
 val run                        : 'a t -> 'a result * Context.t
 
+
 val register                   : Ast.definition -> unit t
 val register_type              : Ast.type_definition -> unit t   (* todo remove this, only export register *)
 val lookup_type                : (Ast.type_definition -> 'a option) -> string -> 'a option t
+val lookup_register_type       : string -> Ast.nanotype option t
 val generate_unique_identifier : string -> string t
+val is_register                : string -> bool t
+
 
 val map                        : f:('a -> 'b t) -> 'a list -> 'b list t
 val fold_left                  : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
