@@ -689,6 +689,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Stm_exp record_expression)
     end
+
+  and statement_of_assignment
+        (_lhs : Libsail.Ast.typ Libsail.Anf.alexp)
+        (_rhs : Libsail.Ast.typ Libsail.Anf.aexp )
+    =
+    TC.not_yet_implemented [%here] location
+
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
@@ -699,8 +706,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
   | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
+  | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
   | AE_typ (_, _)                                                 -> TC.not_yet_implemented [%here] location
-  | AE_assign (_, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_exit (_, _)                                                -> TC.not_yet_implemented [%here] location
   | AE_throw (_, _)                                               -> TC.not_yet_implemented [%here] location
