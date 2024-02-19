@@ -6,8 +6,7 @@ open Monads.OptionNotation
 
 
 module Context = struct
-  (* todo use StringMap *)
-  type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
+  type type_map = Ast.type_definition StringMap.t
 
   type register_map = nanotype StringMap.t
 
@@ -20,13 +19,13 @@ module Context = struct
 
   let empty : t =
     {
-      types         = Map.empty(module String);
+      types         = StringMap.empty;
       next_id_index = 0;
       registers     = StringMap.empty;
     }
 
   let lookup_type (type_map : type_map) identifier =
-    Map.find type_map identifier
+    StringMap.find type_map identifier
 
   (*
      Accessors
@@ -99,7 +98,7 @@ let register_type (type_definition : type_definition) =
     let key = type_identifier type_definition
     and data = type_definition
     in
-    match Map.add types ~key ~data with
+    match StringMap.add types ~key ~data with
     | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" key)
     | `Ok result -> result
   in
