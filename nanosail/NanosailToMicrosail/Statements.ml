@@ -133,7 +133,11 @@ let rec pp_statement statement =
         ]
     end
 
-  | Stm_destructure_record { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
+  | Stm_destructure_record { record_type_identifier;
+                             field_identifiers;
+                             variable_identifiers;
+                             destructured_record;
+                             body } -> begin
       let pattern =
         let pairs = List.zip_exn field_identifiers variable_identifiers
         in
