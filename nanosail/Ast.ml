@@ -146,6 +146,7 @@ type statement =
   | Stm_destructure_record of destructure_record
   | Stm_seq                of statement * statement
   | Stm_read_register      of string
+  | Stm_write_register     of string * statement
 
 and match_pattern =
   | MP_list    of match_pattern_list

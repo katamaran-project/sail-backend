@@ -13,9 +13,10 @@ module TC       = TranslationContext
 module Bindings = Libsail.Ast_util.Bindings
 
 open Base
-open Monads.Notations.Star(TC)
 open Identifier
 open Nanotype
+open Monads.Notations.Star(TC)
+
 
 
 (* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
@@ -692,10 +693,24 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
   and statement_of_assignment
         (lhs : Libsail.Ast.typ Libsail.Anf.alexp)
-        (_rhs : Libsail.Ast.typ Libsail.Anf.aexp )
+        (rhs : Libsail.Ast.typ Libsail.Anf.aexp )
     =
     match lhs with
-    | Libsail.Anf.AL_id (_, _)    -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AL_id (id, _loc) -> begin
+        let* id_in_lhs = translate_identifier [%here] id
+        in
+        let* is_register = TC.is_register id_in_lhs
+        in
+        if is_register
+        then begin
+            let* translated_rhs = statement_of_aexp rhs
+            in
+            TC.return @@ Ast.Stm_write_register (id_in_lhs, translated_rhs)
+          end
+        else begin
+            TC.not_yet_implemented ~message:"assignment to local variable" [%here] location
+          end
+      end
     | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
     | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location
 

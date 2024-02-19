@@ -123,6 +123,16 @@ let rec pp_statement statement =
       AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
     end
 
+  | Stm_write_register (register_identifier, rhs) -> begin
+      let* rhs' = pp_statement rhs
+      in
+      AC.return @@ simple_app [
+          string "stm_write_register";
+          string register_identifier;
+          rhs'
+        ]
+    end
+
   | Stm_destructure_record { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
       let pattern =
         let pairs = List.zip_exn field_identifiers variable_identifiers
