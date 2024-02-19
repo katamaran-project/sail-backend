@@ -95,25 +95,27 @@ let fail ocaml_position message =
 let register_type (type_definition : type_definition) =
   let* types = Monad.get Context.types
   in
-  let identifier = type_identifier type_definition
+  let updated_types =
+    let key = type_identifier type_definition
+    and data = type_definition
+    in
+    match Map.add types ~key ~data with
+    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" key)
+    | `Ok result -> result
   in
-  let add_result = Map.add types ~key:identifier ~data:type_definition
-  in
-  match add_result with
-  | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" identifier)
-  | `Ok types' -> Monad.put Context.types types'
+  Monad.put Context.types updated_types
 
 
 let register_register (register_definition : register_definition) =
   let* register_map = Monad.get Context.registers
   in
-  let* updated_register_map =
+  let updated_register_map =
     let key = register_definition.identifier
     and data = register_definition.typ
     in
     match StringMap.add register_map ~key ~data with
-    | `Duplicate -> fail [%here] "Two registers with the same name"
-    | `Ok result -> return result
+    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "register %s defined multiple times" key)
+    | `Ok result -> result
   in
   Monad.put Context.registers updated_register_map
 
