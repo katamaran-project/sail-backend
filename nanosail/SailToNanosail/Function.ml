@@ -691,10 +691,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     end
 
   and statement_of_assignment
-        (_lhs : Libsail.Ast.typ Libsail.Anf.alexp)
+        (lhs : Libsail.Ast.typ Libsail.Anf.alexp)
         (_rhs : Libsail.Ast.typ Libsail.Anf.aexp )
     =
-    TC.not_yet_implemented [%here] location
+    match lhs with
+    | Libsail.Anf.AL_id (_, _)    -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
+    | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location
 
   in
   match expression with
