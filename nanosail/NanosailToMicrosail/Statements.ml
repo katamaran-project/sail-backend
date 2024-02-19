@@ -88,7 +88,14 @@ let rec pp_statement statement =
       let* arg_list' = AC.map ~f:pp_par_expression arg_list
       in
       let default_translation () =
-        AC.return @@ simple_app @@ string "call" :: string function_identifier :: arg_list'
+        let terms =
+          build_list @@ fun { add; addall; _ } -> begin
+                            add @@ string "call";
+                            add @@ string function_identifier;
+                            addall @@ arg_list'
+                          end
+        in
+        AC.return @@ simple_app terms
       in
       match function_identifier with
       | "add_bits_int" -> begin
