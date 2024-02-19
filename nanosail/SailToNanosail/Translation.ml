@@ -28,23 +28,40 @@ let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.s
     let translation =
       let* result =
         match def with
-        | DEF_type type_definition                 -> translate_type_definition annotation type_definition
-        | DEF_let let_definition                   -> translate_value_definition annotation let_definition
-        | DEF_val value_specification              -> translate_top_level_type_constraint annotation value_specification
-        | DEF_register specification               -> translate_register annotation specification
-        | DEF_fundef function_definition           -> translate_function_definition annotation function_definition
-        | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_fixity (_, _, _)                     -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_overload (_, _)                      -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_default _                            -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_scattered _                          -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_measure (_, _, _)                    -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_loop_measures (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
-        | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
+        | DEF_type type_definition ->
+           translate_type_definition annotation type_definition
+        | DEF_let let_definition ->
+           translate_value_definition annotation let_definition
+        | DEF_val value_specification ->
+           translate_top_level_type_constraint annotation value_specification
+        | DEF_register specification ->
+           translate_register annotation specification
+        | DEF_fundef function_definition ->
+           translate_function_definition annotation function_definition
+        | DEF_outcome (_, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_impl _ ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_mapdef _ ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_instantiation (_, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_fixity (_, _, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_overload (_, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_default _ ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_scattered _ ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_measure (_, _, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_loop_measures (_, _) ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_internal_mutrec _ ->
+           TC.not_yet_implemented [%here] annotation.loc
+        | DEF_pragma (pragma, _argument, location) ->
+           TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
       in
       let* () = TC.register result
       in
