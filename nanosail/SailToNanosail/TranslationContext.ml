@@ -6,18 +6,23 @@ open Monads.OptionNotation
 
 
 module Context = struct
+  (* todo use StringMap *)
   type type_map = (string, Ast.type_definition, String.comparator_witness) Map.t
+
+  type register_map = nanotype StringMap.t
 
   type t =
     {
-      types         : type_map;        (* maps identifiers to type definitions         *)
-      next_id_index : int              (* counter used to generate unique identifiers  *)
+      types         : type_map;     (* maps identifiers to type definitions         *)
+      next_id_index : int;          (* counter used to generate unique identifiers  *)
+      registers     : register_map; (* list of registers                            *)
     }
 
   let empty : t =
     {
       types         = Map.empty(module String);
       next_id_index = 0;
+      registers     = StringMap.empty;
     }
 
   let lookup_type (type_map : type_map) identifier =
@@ -35,6 +40,12 @@ module Context = struct
   let next_id_index =
     let get (context : t) : int = context.next_id_index
     and set (context : t) (next_id_index : int) : t = { context with next_id_index }
+    in
+    (get, set)
+
+  let registers =
+    let get (context : t) : register_map = context.registers
+    and set (context : t) (registers : register_map) : t = { context with registers }
     in
     (get, set)
 end
@@ -93,15 +104,29 @@ let register_type (type_definition : type_definition) =
   | `Ok types' -> Monad.put Context.types types'
 
 
+let register_register (register_definition : register_definition) =
+  let* register_map = Monad.get Context.registers
+  in
+  let* updated_register_map =
+    let key = register_definition.identifier
+    and data = register_definition.typ
+    in
+    match StringMap.add register_map ~key ~data with
+    | `Duplicate -> fail [%here] "Two registers with the same name"
+    | `Ok result -> return result
+  in
+  Monad.put Context.registers updated_register_map
+
+
 let register (definition : definition) =
   match definition with
-  | TypeDefinition type_definition       -> register_type type_definition
-  | TopLevelTypeConstraintDefinition _   -> return ()
-  | FunctionDefinition _                 -> return ()
-  | RegisterDefinition _                 -> return ()
-  | UntranslatedDefinition _             -> return ()
-  | IgnoredDefinition                    -> return ()
-  | ValueDefinition _                    -> return ()
+  | TypeDefinition type_definition         -> register_type type_definition
+  | RegisterDefinition register_definition -> register_register register_definition
+  | TopLevelTypeConstraintDefinition _     -> return ()
+  | FunctionDefinition _                   -> return ()
+  | UntranslatedDefinition _               -> return ()
+  | IgnoredDefinition                      -> return ()
+  | ValueDefinition _                      -> return ()
 
 
 (*
