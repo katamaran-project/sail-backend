@@ -658,7 +658,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         translate_identifier [%here] field_identifier
       in
       let* variable_identifier =
-        TC.generate_unique_identifier field_identifier
+        TC.generate_unique_identifier @@ "updated_" ^ field_identifier
       in
       let* named_statement =
         let* expression, named_statements = expression_of_aval location value
