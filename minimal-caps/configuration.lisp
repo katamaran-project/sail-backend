@@ -21,10 +21,17 @@
                   "fmod_int"
                   "is_none"
                   "is_some"
+                  "read_kind_of_num"
+                  "write_kind_of_num"
                   )
 
 (ignore-all-overloads)
 
-(ignore-definition-predicate (lambda (identifier)
-                               (contains? '("option")
-                                          identifier)))
+(ignore-definition-predicate
+ (lambda (identifier)
+   (contains? '(
+                "option"
+                "regfp"
+                "niafp"
+                )
+              identifier)))
