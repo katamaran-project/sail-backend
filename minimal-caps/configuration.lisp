@@ -23,6 +23,9 @@
                   "is_some"
                   "read_kind_of_num"
                   "write_kind_of_num"
+                  "a64_barrier_domain_of_num"
+                  "a64_barrier_type_of_num arg#"
+                  "trans_kind_of_num"
                   )
 
 (ignore-all-overloads)
