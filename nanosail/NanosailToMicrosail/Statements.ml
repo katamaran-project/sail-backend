@@ -99,26 +99,29 @@ let rec pp_statement statement =
       | _ -> default_translation ()
     end
 
-  | Stm_let (v, s1, s2) ->
-     let* s1' = pp_statement s1
-     and* s2' = pp_statement s2
-     in
-     AC.return @@
-         simple_app [
-             string ("let: \"" ^ v ^ "\" :=");
-             s1';
-             string "in";
-             s2'
-           ]
+  | Stm_let (v, s1, s2) -> begin
+      let* s1' = pp_statement s1
+      and* s2' = pp_statement s2
+      in
+      AC.return @@
+        simple_app [
+            string ("let: \"" ^ v ^ "\" :=");
+            s1';
+            string "in";
+            s2'
+          ]
+    end
 
-  | Stm_seq (s1, s2) ->
-     let* s1' = pp_par_statement s1
-     and* s2' = pp_par_statement s2
-     in
-     AC.return @@ simple_app [ string "stm_seq"; s1'; s2' ]
+  | Stm_seq (s1, s2) -> begin
+      let* s1' = pp_par_statement s1
+      and* s2' = pp_par_statement s2
+      in
+      AC.return @@ simple_app [ string "stm_seq"; s1'; s2' ]
+    end
 
-  | Stm_read_register register_identifier ->
-     AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
+  | Stm_read_register register_identifier -> begin
+      AC.return @@ simple_app [ string "stm_read_register"; string register_identifier ]
+    end
 
   | Stm_destructure_record { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
       let pattern =
