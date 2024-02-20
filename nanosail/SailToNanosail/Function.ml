@@ -779,6 +779,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     
     (* TC.not_yet_implemented [%here] location *)
 
+  and statement_of_cast
+        (_expression  : Libsail.Ast.typ Libsail.Anf.aexp)
+        (_target_type : Libsail.Ast.typ                 )
+    =
+    TC.not_yet_implemented [%here] location
+    
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
@@ -791,7 +797,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
   | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
   | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
-  | AE_typ (_, _)                                                 -> TC.not_yet_implemented [%here] location
+  | AE_typ (expression, target_type)                              -> statement_of_cast expression target_type
   | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_exit (_, _)                                                -> TC.not_yet_implemented [%here] location
   | AE_throw (_, _)                                               -> TC.not_yet_implemented [%here] location
