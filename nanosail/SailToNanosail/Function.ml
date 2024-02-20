@@ -714,6 +714,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
     | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location
 
+  and statement_of_short_circuit
+        (_logical_operator : Libsail.Anf.sc_op               )
+        (_lhs              : Libsail.Ast.typ Libsail.Anf.aval)
+        (_rhs              : Libsail.Ast.typ Libsail.Anf.aexp)
+    =
+    TC.not_yet_implemented [%here] location
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
@@ -725,6 +731,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
   | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
+  | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
   | AE_typ (_, _)                                                 -> TC.not_yet_implemented [%here] location
   | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_exit (_, _)                                                -> TC.not_yet_implemented [%here] location
@@ -732,7 +739,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
   | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
-  | AE_short_circuit (_, _, _)                                    -> TC.not_yet_implemented [%here] location
 
 
 let body_of_pexp pexp =
