@@ -29,6 +29,12 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
   | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
+let create_if_statement
+      ~(condition  : Ast.statement)
+      ~(when_true  : Ast.statement)
+      ~(when_false : Ast.statement) =
+  N.Stm_match (MP_bool { condition; when_true; when_false })
+
 let statement_of_lvar
     (identifier : string               )
     (lvar       : S.typ S.Ast_util.lvar)
@@ -715,11 +721,63 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location
 
   and statement_of_short_circuit
-        (_logical_operator : Libsail.Anf.sc_op               )
-        (_lhs              : Libsail.Ast.typ Libsail.Anf.aval)
-        (_rhs              : Libsail.Ast.typ Libsail.Anf.aexp)
+        (logical_operator : S.sc_op     )
+        (lhs              : S.typ S.aval)
+        (rhs              : S.typ S.aexp)
     =
-    TC.not_yet_implemented [%here] location
+    let* lhs_expression, lhs_named_statements = expression_of_aval location lhs
+    and* rhs_statement = statement_of_aexp rhs
+    in
+    let lhs_expr_as_statement = Ast.Stm_exp lhs_expression
+    in
+    let if_statement =
+      match logical_operator with
+      | Libsail.Anf.SC_and -> begin
+          (*
+            Translate
+
+              x && y
+
+            to
+
+              if ( x ) { y } else { false }
+           *)
+          let condition  = lhs_expr_as_statement
+          and when_true  = rhs_statement
+          and when_false = Ast.(Stm_exp (Exp_val (Val_bool false)))
+          in
+          create_if_statement ~condition ~when_true ~when_false          
+        end
+      | Libsail.Anf.SC_or -> begin
+          (*
+            Translate
+
+              x || y
+
+            to
+
+              if ( x ) { true } else { y }
+           *)
+          let condition  = lhs_expr_as_statement
+          and when_true  = Ast.(Stm_exp (Exp_val (Val_bool true)))
+          and when_false = rhs_statement
+          in
+          create_if_statement ~condition ~when_true ~when_false
+        end
+    in
+    TC.return @@ wrap_in_named_statements_context lhs_named_statements if_statement
+    
+    (* let* (condition, condition_named_statements) = *)
+    (*   let* condition_expression, named_statements = expression_of_aval location condition *)
+    (*   in *)
+    (*   TC.return (N.Stm_exp condition_expression, named_statements) *)
+    (* and* when_true = statement_of_aexp then_clause *)
+    (* and* when_false = statement_of_aexp else_clause *)
+    (* in *)
+    (* TC.return @@ wrap_in_named_statements_context condition_named_statements @@ N.Stm_match (MP_bool { condition; when_true; when_false }) *)
+    
+    (* TC.not_yet_implemented [%here] location *)
+
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
