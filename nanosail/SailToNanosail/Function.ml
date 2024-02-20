@@ -780,9 +780,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     (* TC.not_yet_implemented [%here] location *)
 
   and statement_of_cast
-        (_expression  : Libsail.Ast.typ Libsail.Anf.aexp)
+        (expression  : Libsail.Ast.typ Libsail.Anf.aexp)
         (_target_type : Libsail.Ast.typ                 )
     =
+    let S.AE_aux (expression, _env, _location) = expression
+    in
     TC.not_yet_implemented [%here] location
     
   in
