@@ -29,7 +29,7 @@ let lambda =
 
 let define =
   let id = "define"
-    
+
   and define_function (args : Value.t list) =
     match args with
     | form :: body -> begin
@@ -56,7 +56,7 @@ let define =
 
   in
   (id, mk_multi_special_form [ define_function; define_variable; error id ])
-    
+
 
 let initialize =
   let definitions = [

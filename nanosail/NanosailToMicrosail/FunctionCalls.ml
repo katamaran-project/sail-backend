@@ -36,7 +36,7 @@ let translate_as_binary_operator
       in
       AC.return @@ PP.separate space [ translation; Coq.inline_comment (string @@ Int.to_string annotation_index) ]
     end
-  
+
 
 let translate
     (function_identifier : string       )

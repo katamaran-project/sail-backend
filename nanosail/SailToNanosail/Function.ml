@@ -467,7 +467,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin        
+        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
             match pattern with
             | S.AP_id (S.Id_aux (id, location), _typ) -> begin
                 match id with

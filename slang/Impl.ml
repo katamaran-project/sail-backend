@@ -213,7 +213,7 @@ and EvaluationContext : sig
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val lift                    : f:('a -> 'b) -> 'a t -> 'b t
   val run_with_state          : 'a t -> state -> 'a * state
-  val run                     : 'a t -> 'a * state                                                  
+  val run                     : 'a t -> 'a * state
 
   val current_environment     : Value.t Environment.t t
   val set_current_environment : Value.t Environment.t -> unit t

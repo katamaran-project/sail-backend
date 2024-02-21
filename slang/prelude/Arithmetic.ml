@@ -11,7 +11,7 @@ open Shared
 
 let addition =
   let id = "+"
-  
+
   and add_integers evaluated_args =
     let=?? ns = List.map ~f:C.integer evaluated_args
     in
@@ -32,7 +32,7 @@ let addition =
 
 let subtraction =
   let id = "-"
-    
+
   and impl args =
     let* evaluated_args = EV.map ~f:evaluate args
     in
@@ -50,7 +50,7 @@ let subtraction =
 
 let multiplication =
   let id = "*"
-    
+
   and multiply_integers evaluated_args =
     let=?? ns = List.map ~f:C.integer evaluated_args
     in
@@ -83,7 +83,7 @@ let multiplication =
 
 let division =
   let id = "/"
-    
+
   and impl args =
     let* evaluated_args = EV.map ~f:evaluate args
     in

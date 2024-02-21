@@ -155,7 +155,7 @@ let lookup_register_type (identifier : string) : nanotype option t =
 
 let is_register (identifier : string) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
-  
+
 
 let generate_unique_identifier prefix : string t =
   let* index = Monad.get Context.next_id_index

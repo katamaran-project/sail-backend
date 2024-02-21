@@ -11,7 +11,7 @@ open Shared
 
 let if_then_else =
   let id = "if"
-    
+
   and if_then args =
     let=? condition, then_clause = C.(map2 value value) args
     in
@@ -37,7 +37,7 @@ let if_then_else =
 
 let cond =
   let id = "cond"
-    
+
   and impl (args : Value.t list) =
     let=?? clauses = List.map ~f:C.(tuple2 value value) args
     in
@@ -54,7 +54,7 @@ let cond =
     in
     evaluate_cond clauses
   in
-  
+
   (id, M.mk_multi_special_form [ impl; error id ])
 
 

@@ -3,18 +3,9 @@ default Order dec
 $include <prelude.sail>
 
 
-enum foo = AAAA | BBBB | CCCC
-
 union plumbus = {
   A : int,
   B : int,
-}
-
-
-mapping double_map : int <-> foo = {
-  1 <-> AAAA,
-  2 <-> BBBB,
-  3 <-> CCCC
 }
 
 
