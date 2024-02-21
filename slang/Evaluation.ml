@@ -88,6 +88,22 @@ let mk_closure environment parameters body : Value.callable =
   in
   callable
 
+let mk_macro environment parameters body : Value.callable =
+  let rec callable arguments =
+    let open EC
+    in
+    with_environment environment begin
+      let* () = bind_parameters parameters arguments
+      in
+      let* () = add_binding "recurse" (Value.Callable callable)
+      in
+      let* result = evaluate_many body
+      in
+      evaluate result
+    end
+  in
+  callable
+
 let evaluate_string (s : string) : Value.t EC.t =
   let asts = P.parse_string s
   in

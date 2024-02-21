@@ -6,6 +6,7 @@ let initialize : unit EvaluationContext.t =
       Arithmetic.initialize;
       Booleans.initialize;
       Functions.initialize;
+      Macros.initialize;
       Comparison.initialize;
       ControlFlow.initialize;
       Predicates.initialize;

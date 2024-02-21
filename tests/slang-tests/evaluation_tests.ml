@@ -692,6 +692,30 @@ let cond_tests =
   "cond" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let define_macro_tests =
+  let open Slang.Value in
+  let open ListMonadNotations
+  in
+  let test_cases =
+    build_list begin fun { addall; _ } ->
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (define-macro (foo x)
+              (cons '+ (cons 'x (cons x ()))))
+
+            (foo %d)
+          |} k,
+          Integer (2 * k)
+        ];
+      end;
+    end
+  in
+  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
   "evaluation tests" >::: [
     arithmetic_tests;
@@ -708,4 +732,5 @@ let tests =
     predicate_tests;
     if_then_else_tests;
     cond_tests;
+    define_macro_tests;
   ]
