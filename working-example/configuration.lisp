@@ -30,3 +30,12 @@
                                             "option"
                                             "register_value")
                                           identifier)))
+
+(ignore-value-definition-predicate
+ (lambda (identifier)
+   (contains? '(
+                "default_capability"
+                "initial_regstate"
+                "initial_Capability"
+                )
+              identifier)))
