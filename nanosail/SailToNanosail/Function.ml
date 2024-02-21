@@ -346,6 +346,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         (matched  : S.typ S.aval                                     )
         (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
     let rec match_list () =
+      (* matched is a list *)
       let* () =
         let error_message =
           lazy "matching list; expected exactly two cases"
@@ -394,6 +395,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       | _ -> TC.fail [%here] "list cases do not have expected structure"
 
     and match_tuple () =
+      (* the matched variable is a tuple *)
       let* () =
         let n_cases = List.length cases
         in
@@ -437,7 +439,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
     and match_enum (enum_definition : N.enum_definition) =
-      (* at this point we know that matched is a value of an enum described by the parameter enum_definition *)
+      (* the matched variable has type enum as described by enum_definition *)
       let* () =
         let n_match_cases = List.length cases
         and n_enum_cases = List.length enum_definition.cases
@@ -522,14 +524,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       in
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
-    and match_variant (_variant_definition : N.variant_definition) =
+    and match_variant (variant_definition : N.variant_definition) =
       TC.not_yet_implemented [%here] location
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
       TC.not_yet_implemented [%here] location
 
     and match_record (_record_definition : N.record_definition) =
-      (* at this point we know that matched is a value of an enum described by the parameter enum_definition *)
       TC.not_yet_implemented [%here] location
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
