@@ -345,6 +345,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         (location : S.l                                              )
         (matched  : S.typ S.aval                                     )
         (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : N.statement TC.t =
+
+    (*
+        MATCHING LISTS
+    *)
     let rec match_list () =
       (* matched is a list *)
       let* () =
@@ -394,6 +398,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         end
       | _ -> TC.fail [%here] "list cases do not have expected structure"
 
+    (*
+        MATCHING TUPLES
+    *)
     and match_tuple () =
       (* the matched variable is a tuple *)
       let* () =
@@ -438,6 +445,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
+    (*
+        MATCHING ENUMS
+    *)
     and match_enum (enum_definition : N.enum_definition) =
       (* the matched variable has type enum as described by enum_definition *)
       let* () =
@@ -460,7 +470,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       let process_case
             (table      : N.statement StringMap.t                     )
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
-        let (AP_aux (pattern, _environemnt, _location), condition, body) = match_case
+        let (AP_aux (pattern, _environment, _location), condition, body) = match_case
         in
         (*
            condition is an extra condition that needs to be satisfied for the branch to be taken;
@@ -530,17 +540,30 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       in
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
+    (*
+        MATCHING VARIANTS
+    *)
     and match_variant (_variant_definition : N.variant_definition) =
       let process_case
           (_acc : unit                                      )
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp)
         =
-        let pattern, something, clause = case
+        let (pattern, condition, clause) = case
         in
-        Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n\n" (StringOf.apat pattern) (StringOf.aexp something) (StringOf.aexp clause);
-        ()
+        (*
+           condition is an extra condition that needs to be satisfied for the branch to be taken;
+           if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
+        *)
+        match condition with
+        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
+            Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n\n" (StringOf.apat pattern) (StringOf.aexp condition) (StringOf.aexp clause);
+            let AP_aux (pattern, _environment, location) = pattern
+            in
+            TC.not_yet_implemented [%here] location
+          end
+        | _ -> TC.fail [%here] "list cases do not have expected structure"
       in
-      ignore @@ List.fold_left ~f:process_case ~init:() cases;
+      ignore @@ TC.fold_left ~f:process_case ~init:() cases;
       TC.not_yet_implemented [%here] location
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
