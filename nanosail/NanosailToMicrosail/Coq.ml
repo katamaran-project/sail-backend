@@ -27,6 +27,13 @@ let is_single_line string =
   in
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
+let inline_comment comment =
+  separate space @@ [
+    left_comment_delimiter;
+    comment;
+    right_comment_delimiter
+  ]
+
 let comment comment =
   let str = string_of_document comment
   in
