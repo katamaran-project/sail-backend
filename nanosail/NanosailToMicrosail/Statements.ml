@@ -82,6 +82,12 @@ let rec pp_statement statement =
             addall cases'
           end
         end
+
+      | MP_variant { matched } -> begin
+          let _ = matched
+          in
+          AC.not_yet_implemented [%here]
+        end
     end
 
   | Stm_call (function_identifier, arguments) -> begin

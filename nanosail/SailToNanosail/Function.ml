@@ -522,8 +522,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       in
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
-    and match_variant (variant_definition : N.variant_definition) =
-
+    and match_variant (_variant_definition : N.variant_definition) =
+      let process_case
+          (_acc : unit                                      )
+          (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp)
+        =
+        let pattern, something, clause = case
+        in
+        Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n\n" (StringOf.apat pattern) (StringOf.aexp something) (StringOf.aexp clause);
+        ()
+      in
+      ignore @@ List.fold_left ~f:process_case ~init:() cases;
       TC.not_yet_implemented [%here] location
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
