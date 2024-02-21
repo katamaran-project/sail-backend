@@ -44,8 +44,10 @@ module Identifier = struct
 end
 
 
-let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
+let ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast.def) : bool =
   let open Libsail.Ast
+  in
+  let Libsail.Ast.DEF_aux (definition, _annotation) = definition
   in
   let member setting item =
     List.mem (get setting) item ~equal:String.equal
@@ -65,10 +67,33 @@ let ignore_definition (Libsail.Ast.DEF_aux (definition, _annotation)) =
     in
     Slang.Value.truthy result
 
+  and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
+    let LB_aux (LB_val (P_aux (pattern, (_location1, _)), E_aux (_, _)), (_location2, _type_annotation)) = value_definition
+    in
+    match pattern with
+     | P_id _ -> failwith "unsupported pattern"
+     | P_var (_, _) -> failwith "unsupported pattern"
+     | P_lit _ -> failwith "unsupported pattern"
+     | P_wild -> failwith "unsupported pattern"
+     | P_or (_, _) -> failwith "unsupported pattern"
+     | P_not _ -> failwith "unsupported pattern"
+     | P_as (_, _) -> failwith "unsupported pattern"
+     | P_typ (_, _) -> failwith "unsupported pattern"
+     | P_app (_, _) -> failwith "unsupported pattern"
+     | P_vector _ -> failwith "unsupported pattern"
+     | P_vector_concat _ -> failwith "unsupported pattern"
+     | P_vector_subrange (_, _, _) -> failwith "unsupported pattern"
+     | P_tuple _ -> failwith "unsupported pattern"
+     | P_list _ -> failwith "unsupported pattern"
+     | P_cons (_, _) -> failwith "unsupported pattern"
+     | P_string_append _ -> failwith "unsupported pattern"
+     | P_struct (_, _) -> failwith "unsupported pattern"
+
   in
   match definition with
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
   | DEF_fundef function_definition -> should_ignore_function_definition function_definition
   | DEF_type type_definition       -> should_ignore_type_definition type_definition
+  | DEF_let value_definition       -> should_ignore_value_definition value_definition
   | DEF_overload (_, _)            -> get (ignore_overloads)
   | _                              -> false
