@@ -82,7 +82,7 @@ and numeric_constraint =
   | NC_true
   | NC_false
 
-type type_quantifier_item = (string * kind)
+type type_quantifier_item = string * kind
 
 type type_quantifier = type_quantifier_item list
 
