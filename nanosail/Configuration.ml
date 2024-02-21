@@ -42,6 +42,92 @@ module Identifier = struct
     | TD_variant (id, _, _, _) -> string_of_id id
     | TD_enum (id, _, _)       -> string_of_id id
     | TD_bitfield (id, _, _)   -> string_of_id id
+
+  let of_pattern (pattern : 'a pat) : string =
+    let P_aux (pattern, _) = pattern
+    in
+    match pattern with
+     | P_id identifier -> string_of_id identifier
+     | P_lit _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_wild -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_or (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_not _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_as (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_typ (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_var (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_app (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_vector _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_vector_concat _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_vector_subrange (_, _, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_tuple _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_list _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_cons (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_string_append _ -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
+     | P_struct (_, _) -> begin
+         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         in
+         failwith error_message
+       end
 end
 
 
@@ -69,31 +155,13 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     Slang.Value.truthy result
 
   and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
-    let LB_aux (LB_val (P_aux (pattern, (_location1, _)), E_aux (_, _)), (_location2, _type_annotation)) = value_definition
+    let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
     in
-    let identifier =
-      match pattern with
-      | P_id identifier             -> Identifier.string_of_id identifier
-      | P_var (_, _)                -> failwith "unsupported pattern"
-      | P_lit _                     -> failwith "unsupported pattern"
-      | P_wild                      -> failwith "unsupported pattern"
-      | P_or (_, _)                 -> failwith "unsupported pattern"
-      | P_not _                     -> failwith "unsupported pattern"
-      | P_as (_, _)                 -> failwith "unsupported pattern"
-      | P_typ (_, _)                -> failwith "unsupported pattern"
-      | P_app (_, _)                -> failwith "unsupported pattern"
-      | P_vector _                  -> failwith "unsupported pattern"
-      | P_vector_concat _           -> failwith "unsupported pattern"
-      | P_vector_subrange (_, _, _) -> failwith "unsupported pattern"
-      | P_tuple _                   -> failwith "unsupported pattern"
-      | P_list _                    -> failwith "unsupported pattern"
-      | P_cons (_, _)               -> failwith "unsupported pattern"
-      | P_string_append _           -> failwith "unsupported pattern"
-      | P_struct (_, _)             -> failwith "unsupported pattern"
+    let identifier = Identifier.of_pattern pattern
     in
-    let arguments = [ Slang.Value.String identifier ]
+    let arguments  = [ Slang.Value.String identifier ]
     in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
+    let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
     in
     Slang.Value.truthy result
 
