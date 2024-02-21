@@ -159,7 +159,6 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     in
     let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
     in
-    Stdio.printf "VALUE DEFINITION %s\n" identifier;
     Slang.Value.truthy result
 
   in
