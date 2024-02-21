@@ -460,54 +460,62 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       let process_case
             (table      : N.statement StringMap.t                     )
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
-        let (AP_aux (pattern, _, _), _, body) = match_case
+        let (AP_aux (pattern, _environemnt, _location), condition, body) = match_case
         in
-        match pattern with
-        | S.AP_id (S.Id_aux (id, location), _typ) -> begin
-            match id with
-            | S.Operator  _   -> TC.not_yet_implemented [%here] location
-            | S.Id identifier -> begin
-                let* () =
-                  let error_message = lazy begin
-                                          Printf.sprintf
-                                            "encountered unknown case %s while matching an %s value"
-                                            identifier
-                                            enum_definition.identifier
-                                        end
-                  in
-                  TC.check
-                    [%here]
-                    (List.mem enum_definition.cases identifier ~equal:String.equal)
-                    error_message
-                in
+        (*
+           condition is an extra condition that needs to be satisfied for the branch to be taken;
+           if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
+        *)
+        match condition with
+        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin        
+            match pattern with
+            | S.AP_id (S.Id_aux (id, location), _typ) -> begin
+                match id with
+                | S.Operator  _   -> TC.not_yet_implemented [%here] location
+                | S.Id identifier -> begin
+                    let* () =
+                      let error_message = lazy begin
+                        Printf.sprintf
+                          "encountered unknown case %s while matching an %s value"
+                          identifier
+                          enum_definition.identifier
+                      end
+                      in
+                      TC.check
+                        [%here]
+                        (List.mem enum_definition.cases identifier ~equal:String.equal)
+                        error_message
+                    in
+                    let* body' = statement_of_aexp body
+                    in
+                    let result = StringMap.add table ~key:identifier ~data:body'
+                    in
+                    match result with
+                    | `Duplicate -> TC.fail
+                                      [%here]
+                                      (Printf.sprintf "duplicate case %s in enum match" identifier)
+                    | `Ok table' -> TC.return table'
+                  end
+              end
+            | S.AP_wild S.Typ_aux (_, _loc) -> begin
                 let* body' = statement_of_aexp body
                 in
-                let result = StringMap.add table ~key:identifier ~data:body'
+                let add_case table case =
+                  match StringMap.add table ~key:case ~data:body' with
+                  | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
+                  | `Ok table' -> table'
                 in
-                match result with
-                | `Duplicate -> TC.fail
-                                  [%here]
-                                  (Printf.sprintf "duplicate case %s in enum match" identifier)
-                | `Ok table' -> TC.return table'
+                TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
               end
+            | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_cons (_, _)    -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
+            | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
           end
-        | S.AP_wild S.Typ_aux (_, _loc) -> begin
-            let* body' = statement_of_aexp body
-            in
-            let add_case table case =
-              match StringMap.add table ~key:case ~data:body' with
-              | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
-              | `Ok table' -> table'
-            in
-            TC.return @@ List.fold_left enum_definition.cases ~init:table ~f:add_case
-          end
-        | S.AP_tuple _        -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_global (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_app (_, _, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_cons (_, _)    -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_as (_, _, _)   -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_struct (_, _)  -> TC.fail [%here] "unexpected case while matching on enum"
-        | S.AP_nil _          -> TC.fail [%here] "unexpected case while matching on enum"
+        | _ -> TC.fail [%here] "no conditions supported on matches"
       in
       let* (matched, named_statements) =
         let* matched_expression, named_statements = expression_of_aval location matched
