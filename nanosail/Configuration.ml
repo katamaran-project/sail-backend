@@ -5,14 +5,15 @@ include ConfigLib.Exported
 
 type sail_definition = Ast.sail_definition
 
-let use_list_notations               = ConfigLib.bool     "use-list-notations"               (* Use list notations                                                          *)
-let include_untranslated_definitions = ConfigLib.bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
-let include_original_code            = ConfigLib.bool     "include-original-code"            (* Annotate all Microsail definitions with their corresponding Sail definition *)
-let include_ignored_definitions      = ConfigLib.bool     "include-ignored-definitions"      (* Output ignored definitions                                                  *)
-let ignored_pragmas                  = ConfigLib.strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
-let ignored_functions                = ConfigLib.strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
-let ignore_overloads                 = ConfigLib.bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
-let ignore_definition_predicate      = ConfigLib.callable ~error_message:"missing ignore-definition-predicate" "ignore-definition-predicate"
+let use_list_notations                = ConfigLib.bool     "use-list-notations"               (* Use list notations                                                          *)
+let include_untranslated_definitions  = ConfigLib.bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
+let include_original_code             = ConfigLib.bool     "include-original-code"            (* Annotate all Microsail definitions with their corresponding Sail definition *)
+let include_ignored_definitions       = ConfigLib.bool     "include-ignored-definitions"      (* Output ignored definitions                                                  *)
+let ignored_pragmas                   = ConfigLib.strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
+let ignored_functions                 = ConfigLib.strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
+let ignore_overloads                  = ConfigLib.bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
+let ignore_definition_predicate       = ConfigLib.callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
+let ignore_value_definition_predicate = ConfigLib.callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
 
 
 module Identifier = struct
@@ -70,24 +71,31 @@ let ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast.def) :
   and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
     let LB_aux (LB_val (P_aux (pattern, (_location1, _)), E_aux (_, _)), (_location2, _type_annotation)) = value_definition
     in
-    match pattern with
-     | P_id _ -> failwith "unsupported pattern"
-     | P_var (_, _) -> failwith "unsupported pattern"
-     | P_lit _ -> failwith "unsupported pattern"
-     | P_wild -> failwith "unsupported pattern"
-     | P_or (_, _) -> failwith "unsupported pattern"
-     | P_not _ -> failwith "unsupported pattern"
-     | P_as (_, _) -> failwith "unsupported pattern"
-     | P_typ (_, _) -> failwith "unsupported pattern"
-     | P_app (_, _) -> failwith "unsupported pattern"
-     | P_vector _ -> failwith "unsupported pattern"
-     | P_vector_concat _ -> failwith "unsupported pattern"
-     | P_vector_subrange (_, _, _) -> failwith "unsupported pattern"
-     | P_tuple _ -> failwith "unsupported pattern"
-     | P_list _ -> failwith "unsupported pattern"
-     | P_cons (_, _) -> failwith "unsupported pattern"
-     | P_string_append _ -> failwith "unsupported pattern"
-     | P_struct (_, _) -> failwith "unsupported pattern"
+    let identifier =
+      match pattern with
+      | P_id identifier             -> Identifier.string_of_id identifier
+      | P_var (_, _)                -> failwith "unsupported pattern"
+      | P_lit _                     -> failwith "unsupported pattern"
+      | P_wild                      -> failwith "unsupported pattern"
+      | P_or (_, _)                 -> failwith "unsupported pattern"
+      | P_not _                     -> failwith "unsupported pattern"
+      | P_as (_, _)                 -> failwith "unsupported pattern"
+      | P_typ (_, _)                -> failwith "unsupported pattern"
+      | P_app (_, _)                -> failwith "unsupported pattern"
+      | P_vector _                  -> failwith "unsupported pattern"
+      | P_vector_concat _           -> failwith "unsupported pattern"
+      | P_vector_subrange (_, _, _) -> failwith "unsupported pattern"
+      | P_tuple _                   -> failwith "unsupported pattern"
+      | P_list _                    -> failwith "unsupported pattern"
+      | P_cons (_, _)               -> failwith "unsupported pattern"
+      | P_string_append _           -> failwith "unsupported pattern"
+      | P_struct (_, _)             -> failwith "unsupported pattern"
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
+    in
+    Slang.Value.truthy result
 
   in
   match definition with
