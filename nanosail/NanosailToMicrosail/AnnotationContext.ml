@@ -13,6 +13,7 @@ let    return         = Monad.return
 let    bind           = Monad.bind
 let    initial_state  = { annotations = [] }
 
+
 let create_annotation annotation =
   let open Monads.Notations.Star(Monad)
   in
@@ -25,6 +26,7 @@ let create_annotation annotation =
   let* () = Monad.put state'
   in
   Monad.return @@ List.length annotations'
+
 
 let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
   let open Monads.Notations.Star(Monad)
@@ -45,5 +47,6 @@ let collect_annotations f =
   let result, state = Monad.run f initial_state
   in
   (result, List.rev state.annotations)
+
 
 include Monads.Util.Make(Monad)
