@@ -157,6 +157,7 @@ and match_pattern =
   | MP_product of match_pattern_product
   | MP_bool    of match_pattern_bool
   | MP_enum    of match_pattern_enum
+  | MP_variant of match_pattern_variant
 
 and match_pattern_list =
   {
@@ -184,6 +185,12 @@ and match_pattern_enum =
   {
     matched    : statement;
     cases      : statement StringMap.t
+  }
+
+and match_pattern_variant =
+  {
+    matched    : statement;
+    (* todo *)
   }
 
 and destructure_record =
