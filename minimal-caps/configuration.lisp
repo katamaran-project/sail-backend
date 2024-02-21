@@ -38,5 +38,6 @@
                 "option"
                 "regfp"
                 "niafp"
+                "default_capability"
                 )
               identifier)))
