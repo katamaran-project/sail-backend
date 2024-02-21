@@ -30,6 +30,9 @@
                   "cache_op_kind_of_num"
                   "perm_bits_forwards"
                   "perm_bits_backwards"
+                  "Capability_of_regval"
+                  "bit_of_regval"
+                  "word_of_regval"
                   )
 
 (ignore-all-overloads)
@@ -47,5 +50,7 @@
  (lambda (identifier)
    (contains? '(
                 "default_capability"
+                "initial_regstate"
+                "initial_Capability"
                 )
               identifier)))
