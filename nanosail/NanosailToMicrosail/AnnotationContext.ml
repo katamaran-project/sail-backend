@@ -17,13 +17,13 @@ let    initial_state  = { annotations = [] }
 let create_annotation annotation =
   let open Monads.Notations.Star(Monad)
   in
-  let* state = Monad.get
+  let* state       = Monad.get
   in
   let annotations' = annotation :: state.annotations
   in
-  let state' = { annotations = annotations' }
+  let state'       = { annotations = annotations' }
   in
-  let* () = Monad.put state'
+  let* ()          = Monad.put state'
   in
   Monad.return @@ List.length annotations'
 
@@ -42,6 +42,7 @@ let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
   let* id = create_annotation annotation_doc
   in
   return @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
+
 
 let collect_annotations f =
   let result, state = Monad.run f initial_state
