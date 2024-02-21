@@ -1,3 +1,4 @@
+open Base
 open Libsail.Ast_util
 
 
@@ -34,3 +35,37 @@ let aval (aval : 'a Libsail.Anf.aval) =
   | Libsail.Anf.AV_vector (_, _) -> Printf.sprintf "AV_vector(_, _)"
   | Libsail.Anf.AV_record (_, _) -> Printf.sprintf "AV_record(_, _)"
   | Libsail.Anf.AV_cval (_, _)   -> Printf.sprintf "AV_cval(_, _)"
+
+
+let list ~(f:'a -> string) (xs : 'a list) =
+  "[" ^ String.concat ~sep:"; " (List.map ~f xs) ^ "]"
+
+
+let rec alexp (location_expression : 'a Libsail.Anf.alexp) =
+  match location_expression with
+  | Libsail.Anf.AL_id (_, _) -> Printf.sprintf "AL_id (_, _)"
+  | Libsail.Anf.AL_addr (_, _) -> Printf.sprintf "AL_addr (_, _)"
+  | Libsail.Anf.AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
+
+
+let rec aexp (expression : 'a Libsail.Anf.aexp) =
+  let AE_aux (expression, _env, _loc) = expression
+  in
+  match expression with
+   | Libsail.Anf.AE_val value -> Printf.sprintf "AE_val(%s)" (StringOf.aval value)
+   | Libsail.Anf.AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (StringOf.id identifier) (list ~f:StringOf.aval values)
+   | Libsail.Anf.AE_typ (expression, _) -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
+   | Libsail.Anf.AE_assign (_, _) -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
+   | Libsail.Anf.AE_let (_, _, _, _, _, _) -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
+   | Libsail.Anf.AE_block (_, _, _) -> Printf.sprintf "AE_block (_, _, _)"
+   | Libsail.Anf.AE_return (_, _) -> Printf.sprintf "AE_return (_, _)"
+   | Libsail.Anf.AE_exit (_, _) -> Printf.sprintf "AE_exit (_, _)"
+   | Libsail.Anf.AE_throw (_, _) -> Printf.sprintf "AE_throw (_, _)"
+   | Libsail.Anf.AE_if (_, _, _, _) -> Printf.sprintf "AE_if (_, _, _, _)"
+   | Libsail.Anf.AE_field (_, _, _) -> Printf.sprintf "AE_field (_, _, _)"
+   | Libsail.Anf.AE_match (_, _, _) -> Printf.sprintf "AE_match (_, _, _)"
+   | Libsail.Anf.AE_try (_, _, _) -> Printf.sprintf "AE_try (_, _, _)"
+   | Libsail.Anf.AE_struct_update (_, _, _) -> Printf.sprintf "AE_struct_update (_, _, _)"
+   | Libsail.Anf.AE_for (_, _, _, _, _, _) -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
+   | Libsail.Anf.AE_loop (_, _, _) -> Printf.sprintf "AE_loop (_, _, _)"
+   | Libsail.Anf.AE_short_circuit (_, _, _) -> Printf.sprintf "AE_short_circuit (_, _, _)"
