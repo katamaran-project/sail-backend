@@ -19,7 +19,9 @@ open Register
 open ValueDefinition
 
 
-let translate_definition (S.DEF_aux (def, annotation) as sail_definition) : (N.sail_definition * N.definition) TC.t =
+let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) : (N.sail_definition * N.definition) TC.t =
+  let S.DEF_aux (def, annotation) = sail_definition
+  in
   if
     Configuration.ignore_definition sail_definition
   then
