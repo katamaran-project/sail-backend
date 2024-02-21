@@ -23,7 +23,7 @@ let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) :
   let S.DEF_aux (def, annotation) = sail_definition
   in
   if
-    Configuration.ignore_definition sail_definition
+    Configuration.should_ignore_definition sail_definition
   then
     TC.return (sail_definition, N.IgnoredDefinition)
   else begin

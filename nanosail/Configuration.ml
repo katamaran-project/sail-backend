@@ -45,7 +45,7 @@ module Identifier = struct
 end
 
 
-let ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast.def) : bool =
+let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast.def) : bool =
   let open Libsail.Ast
   in
   let Libsail.Ast.DEF_aux (definition, _annotation) = definition
