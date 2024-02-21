@@ -32,8 +32,8 @@ let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) :
         match def with
         | DEF_type type_definition ->
            translate_type_definition annotation type_definition
-        | DEF_let let_definition ->
-           translate_value_definition annotation let_definition
+        | DEF_let value_definition ->
+           translate_value_definition annotation value_definition
         | DEF_val value_specification ->
            translate_top_level_type_constraint annotation value_specification
         | DEF_register specification ->
