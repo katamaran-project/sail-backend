@@ -1,4 +1,4 @@
-type annotation = PPrint.document
+type annotation = PPrint.document (* todo add wrapper *)
 
 type 'a t
 
