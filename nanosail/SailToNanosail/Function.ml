@@ -557,7 +557,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         match condition with
         | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
             Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n\n" (StringOf.apat pattern) (StringOf.aexp condition) (StringOf.aexp clause);
-            let AP_aux (pattern, _environment, location) = pattern
+            let AP_aux (_pattern, _environment, location) = pattern
             in
             TC.not_yet_implemented [%here] location
           end
