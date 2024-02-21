@@ -249,7 +249,7 @@ let make_sequence statements location =
   For example, say
   - named_statements = [("a", s1), ("b", s2)]
   - statement        = stm
-  
+
   This function then returns
 
     let a = s1 in
@@ -353,7 +353,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         in
         TC.check [%here] (List.length cases = 2) error_message
       in
-      
+
       let* nil_case, cons_case =
         match cases with
         | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
@@ -462,7 +462,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
             (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
         let (AP_aux (pattern, _, _), _, body) = match_case
         in
-
         match pattern with
         | S.AP_id (S.Id_aux (id, location), _typ) -> begin
             match id with
@@ -514,7 +513,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         let* matched_expression, named_statements = expression_of_aval location matched
         in
         TC.return @@ (N.Stm_exp matched_expression, named_statements)
-
       and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
       in
       let match_statement = N.Stm_match (N.MP_enum {
@@ -525,6 +523,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
     and match_variant (variant_definition : N.variant_definition) =
+
       TC.not_yet_implemented [%here] location
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
@@ -748,7 +747,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
           and when_true  = rhs_statement
           and when_false = Ast.(Stm_exp (Exp_val (Val_bool false)))
           in
-          create_if_statement ~condition ~when_true ~when_false          
+          create_if_statement ~condition ~when_true ~when_false
         end
       | Libsail.Anf.SC_or -> begin
           (*
@@ -777,7 +776,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     and* translated_type       = nanotype_of_sail_type target_type
     in
     TC.return @@ Ast.Stm_cast (translated_expression, translated_type)
-    
+
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
