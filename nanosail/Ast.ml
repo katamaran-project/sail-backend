@@ -3,8 +3,10 @@ open Base
 module Big_int = Nat_big_num
 
 
+(* todo find better location for this definition *)
 type type_annotation = Libsail.Type_check.tannot
 
+(* todo find better location for this definition *)
 type sail_definition = type_annotation Libsail.Ast.def
 
 type identifier = string
