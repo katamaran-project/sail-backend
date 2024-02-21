@@ -43,11 +43,12 @@ module Identifier = struct
     | TD_enum (id, _, _)       -> string_of_id id
     | TD_bitfield (id, _, _)   -> string_of_id id
 
-  let of_pattern (pattern : 'a pat) : string =
+  let rec of_pattern (pattern : 'a pat) : string =
     let P_aux (pattern, _) = pattern
     in
     match pattern with
-     | P_id identifier -> string_of_id identifier
+     | P_id identifier    -> string_of_id identifier
+     | P_typ (_, pattern) -> of_pattern pattern
      | P_lit _ -> begin
          let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
          in
@@ -69,11 +70,6 @@ module Identifier = struct
          failwith error_message
        end
      | P_as (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
-         in
-         failwith error_message
-       end
-     | P_typ (_, _) -> begin
          let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
          in
          failwith error_message
@@ -163,6 +159,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     in
     let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
     in
+    Stdio.printf "VALUE DEFINITION %s\n" identifier;
     Slang.Value.truthy result
 
   in
