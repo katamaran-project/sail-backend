@@ -170,6 +170,11 @@ let rec pp_statement statement =
                     ]
     end
 
+  | Stm_cast (statement_to_be_cast, _target_type) -> begin
+      Stdio.printf "Warning: ignored cast\n";
+      pp_statement statement_to_be_cast
+    end
+
 and pp_par_statement s =
   let* s' = pp_statement s
   in

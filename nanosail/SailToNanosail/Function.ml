@@ -769,12 +769,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     TC.return @@ wrap_in_named_statements_context lhs_named_statements if_statement
 
   and statement_of_cast
-        (expression  : Libsail.Ast.typ Libsail.Anf.aexp)
-        (_target_type : Libsail.Ast.typ                 )
+        (expression  : S.typ S.aexp)
+        (target_type : S.typ       )
     =
-    let S.AE_aux (expression, _env, _location) = expression
+    let* translated_expression = statement_of_aexp expression
+    and* translated_type       = nanotype_of_sail_type target_type
     in
-    TC.not_yet_implemented [%here] location
+    TC.return @@ Ast.Stm_cast (translated_expression, translated_type)
     
   in
   match expression with

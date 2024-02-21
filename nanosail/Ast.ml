@@ -148,6 +148,7 @@ type statement =
   | Stm_seq                of statement * statement
   | Stm_read_register      of string
   | Stm_write_register     of string * statement
+  | Stm_cast               of statement * nanotype
 
 and match_pattern =
   | MP_list    of match_pattern_list
