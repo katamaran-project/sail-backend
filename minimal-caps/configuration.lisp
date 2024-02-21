@@ -28,6 +28,8 @@
                   "trans_kind_of_num"
                   "a64_barrier_type_of_num"
                   "cache_op_kind_of_num"
+                  "perm_bits_forwards"
+                  "perm_bits_backwards"
                   )
 
 (ignore-all-overloads)
@@ -38,7 +40,6 @@
                 "option"
                 "regfp"
                 "niafp"
-                "default_capability"
                 )
               identifier)))
 
