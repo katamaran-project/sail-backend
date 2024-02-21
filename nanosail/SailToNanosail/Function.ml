@@ -767,17 +767,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         end
     in
     TC.return @@ wrap_in_named_statements_context lhs_named_statements if_statement
-    
-    (* let* (condition, condition_named_statements) = *)
-    (*   let* condition_expression, named_statements = expression_of_aval location condition *)
-    (*   in *)
-    (*   TC.return (N.Stm_exp condition_expression, named_statements) *)
-    (* and* when_true = statement_of_aexp then_clause *)
-    (* and* when_false = statement_of_aexp else_clause *)
-    (* in *)
-    (* TC.return @@ wrap_in_named_statements_context condition_named_statements @@ N.Stm_match (MP_bool { condition; when_true; when_false }) *)
-    
-    (* TC.not_yet_implemented [%here] location *)
 
   and statement_of_cast
         (expression  : Libsail.Ast.typ Libsail.Anf.aexp)
