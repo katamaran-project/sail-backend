@@ -38,11 +38,11 @@ let translate_as_binary_operator
     end
   
 
-
 let translate
     (function_identifier : string       )
     (arguments           : document list) : document AC.t
   =
   match function_identifier with
   | "add_bits_int" -> translate_as_binary_operator function_identifier "+" arguments
+  | "lteq_int"     -> translate_as_binary_operator function_identifier "<=" arguments
   | _ -> default_translation function_identifier arguments
