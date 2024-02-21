@@ -48,7 +48,7 @@ let alexp (location_expression : 'a Libsail.Anf.alexp) =
   | Libsail.Anf.AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
 
 
-let rec apat (pattern : 'a Libsail.Anf.apat) =
+let apat (pattern : 'a Libsail.Anf.apat) =
   let AP_aux (pattern, _env, _location) = pattern
   in
   match pattern with
