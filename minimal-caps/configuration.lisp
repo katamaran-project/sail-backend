@@ -41,3 +41,10 @@
                 "default_capability"
                 )
               identifier)))
+
+(ignore-value-definition-predicate
+ (lambda (identifier)
+   (contains? '(
+                "default_capability"
+                )
+              identifier)))
