@@ -84,26 +84,10 @@ let rec pp_statement statement =
         end
     end
 
-  | Stm_call (function_identifier, arg_list) -> begin
-      let* arg_list' = AC.map ~f:pp_par_expression arg_list
+  | Stm_call (function_identifier, arguments) -> begin
+      let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
       in
-      let default_translation () =
-        let terms =
-          build_list @@ fun { add; addall; _ } -> begin
-                            add @@ string "call";
-                            add @@ string function_identifier;
-                            addall @@ arg_list'
-                          end
-        in
-        AC.return @@ simple_app terms
-      in
-      match function_identifier with
-      | "add_bits_int" -> begin
-          match arg_list' with
-          | [x; y] -> AC.return @@ PP.parens (x ^^ string "+" ^^ y)
-          | _      -> default_translation ()
-        end
-      | _ -> default_translation ()
+      FunctionCalls.translate function_identifier pretty_printed_arguments
     end
 
   | Stm_let (v, s1, s2) -> begin
