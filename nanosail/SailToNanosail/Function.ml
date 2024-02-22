@@ -561,7 +561,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
             in
             TC.not_yet_implemented [%here] location
           end
-        | _ -> TC.fail [%here] "list cases do not have expected structure"
+        | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
       ignore @@ TC.fold_left ~f:process_case ~init:() cases;
       TC.not_yet_implemented [%here] location
