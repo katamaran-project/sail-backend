@@ -4,8 +4,9 @@ $include <prelude.sail>
 
 
 union plumbus = {
-  A : int,
+  A : (int, int),
   B : int,
+  C : unit
 }
 
 
@@ -13,5 +14,6 @@ union plumbus = {
 val bar : plumbus -> int
 scattered function bar
 
-function clause bar(A(n)) = { 0 }
+function clause bar(A(x, y)) = { 0 }
 function clause bar(B(n)) = { 0 }
+function clause bar(C()) = { 0 }
