@@ -556,10 +556,33 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         *)
         match condition with
         | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
-            Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n\n" (StringOf.apat pattern) (StringOf.aexp condition) (StringOf.aexp clause);
-            let AP_aux (_pattern, _environment, location) = pattern
+            Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n" (StringOf.apat pattern) (StringOf.aexp condition) (StringOf.aexp clause);
+            let AP_aux (case_pattern, _environment, location) = pattern
             in
-            TC.not_yet_implemented [%here] location
+            match case_pattern with
+            | S.AP_app (identifier, p, _type) -> begin
+                let S.AP_aux (pattern, _env, _loc) = p
+                in
+                Stdio.printf "identifier %s\nsubpattern: %s\n\n" (StringOf.id identifier) (StringOf.apat p);
+                match pattern with
+                 | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
+                 | S.AP_id (_, _)     -> TC.not_yet_implemented [%here] location
+                 | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
+                 | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
+                 | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
+                 | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
+                 | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
+                 | S.AP_nil _         -> TC.not_yet_implemented [%here] location
+                 | S.AP_wild _        -> TC.not_yet_implemented [%here] location
+              end
+            | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
+            | S.AP_id (_, _)     -> TC.not_yet_implemented [%here] location
+            | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
+            | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
+            | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
+            | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
+            | S.AP_nil _         -> TC.not_yet_implemented [%here] location
+            | S.AP_wild _        -> TC.not_yet_implemented [%here] location
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
