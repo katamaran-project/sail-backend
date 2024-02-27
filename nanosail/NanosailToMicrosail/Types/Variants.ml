@@ -15,8 +15,8 @@ let generate_inductive_type (variant_definition : variant_definition) : AC.annot
     let identifier' =
       pp_identifier identifier
     in
-    let pp_constructor_type (nanotype : nanotype) =
-      let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype @@ Ast.tuple_to_list nanotype
+    let pp_constructor_types (field_nanotypes : nanotype list) =
+      let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype field_nanotypes
       in
       let ts = ts @ [ identifier' ]
       in
@@ -36,7 +36,7 @@ let generate_inductive_type (variant_definition : variant_definition) : AC.annot
       begin
         fun add_constructor ->
         AC.iter constructors ~f:(fun (constructor, typ) ->
-            let* typ' = pp_constructor_type typ
+            let* typ' = pp_constructor_types typ
             in
             add_constructor ~typ:typ' (string constructor))
       end

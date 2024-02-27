@@ -243,8 +243,10 @@ type variant_definition =
   {
     identifier      : string                  ;
     type_quantifier : type_quantifier         ;
-    constructors    : (string * nanotype) list;
+    constructors    : variant_constructor list;
   }
+
+and variant_constructor = (string * nanotype list)
 
 
 type enum_definition =
