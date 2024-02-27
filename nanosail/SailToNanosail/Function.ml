@@ -633,9 +633,18 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
-      let* _processed_cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
+      let* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
       in
-      TC.not_yet_implemented [%here] location
+      let* statement =
+        let* matched_expression, named_statements = expression_of_aval location matched
+        in
+        let matched = Ast.Stm_exp matched_expression
+        in
+        let match_pattern : Ast.match_pattern_variant = { matched; cases }
+        in
+        TC.return @@ wrap_in_named_statements_context named_statements @@ Stm_match (MP_variant match_pattern)
+      in
+      TC.return statement
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
       TC.not_yet_implemented [%here] location
