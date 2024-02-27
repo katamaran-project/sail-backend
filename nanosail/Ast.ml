@@ -190,7 +190,7 @@ and match_pattern_enum =
 and match_pattern_variant =
   {
     matched    : statement;
-    (* todo *)
+    cases      : (string list * statement) StringMap.t
   }
 
 and destructure_record =
