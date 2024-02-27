@@ -48,39 +48,41 @@ let alexp (location_expression : 'a Libsail.Anf.alexp) =
   | Libsail.Anf.AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
 
 
-let apat (pattern : 'a Libsail.Anf.apat) =
+let rec apat (pattern : 'a Libsail.Anf.apat) =
   let AP_aux (pattern, _env, _location) = pattern
   in
   match pattern with
-   | Libsail.Anf.AP_tuple _       -> Printf.sprintf "AP_tuple _"
-   | Libsail.Anf.AP_id (_, _)     -> Printf.sprintf "AP_id (_, _)"
-   | Libsail.Anf.AP_global (_, _) -> Printf.sprintf "AP_global (_, _)"
-   | Libsail.Anf.AP_app (_, _, _) -> Printf.sprintf "AP_app (_, _, _)"
-   | Libsail.Anf.AP_cons (_, _)   -> Printf.sprintf "AP_cons (_, _)"
-   | Libsail.Anf.AP_as (_, _, _)  -> Printf.sprintf "AP_as (_, _, _)"
-   | Libsail.Anf.AP_struct (_, _) -> Printf.sprintf "AP_struct (_, _)"
-   | Libsail.Anf.AP_nil _         -> Printf.sprintf "AP_nil _"
-   | Libsail.Anf.AP_wild _        -> Printf.sprintf "AP_wild _"
+  | Libsail.Anf.AP_app (identifier, subpattern, _) -> begin
+      Printf.sprintf "AP_app (%s, %s, _)" (id identifier) (apat subpattern)
+    end
+  | Libsail.Anf.AP_tuple _       -> Printf.sprintf "AP_tuple _"
+  | Libsail.Anf.AP_id (_, _)     -> Printf.sprintf "AP_id (_, _)"
+  | Libsail.Anf.AP_global (_, _) -> Printf.sprintf "AP_global (_, _)"
+  | Libsail.Anf.AP_cons (_, _)   -> Printf.sprintf "AP_cons (_, _)"
+  | Libsail.Anf.AP_as (_, _, _)  -> Printf.sprintf "AP_as (_, _, _)"
+  | Libsail.Anf.AP_struct (_, _) -> Printf.sprintf "AP_struct (_, _)"
+  | Libsail.Anf.AP_nil _         -> Printf.sprintf "AP_nil _"
+  | Libsail.Anf.AP_wild _        -> Printf.sprintf "AP_wild _"
 
 
 let rec aexp (expression : 'a Libsail.Anf.aexp) =
   let AE_aux (expression, _env, _location) = expression
   in
   match expression with
-   | Libsail.Anf.AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)
-   | Libsail.Anf.AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id identifier) (list ~f:aval values)
-   | Libsail.Anf.AE_typ (expression, _)         -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
-   | Libsail.Anf.AE_assign (_, _)               -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
-   | Libsail.Anf.AE_let (_, _, _, _, _, _)      -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
-   | Libsail.Anf.AE_block (_, _, _)             -> Printf.sprintf "AE_block (_, _, _)"
-   | Libsail.Anf.AE_return (_, _)               -> Printf.sprintf "AE_return (_, _)"
-   | Libsail.Anf.AE_exit (_, _)                 -> Printf.sprintf "AE_exit (_, _)"
-   | Libsail.Anf.AE_throw (_, _)                -> Printf.sprintf "AE_throw (_, _)"
-   | Libsail.Anf.AE_if (_, _, _, _)             -> Printf.sprintf "AE_if (_, _, _, _)"
-   | Libsail.Anf.AE_field (_, _, _)             -> Printf.sprintf "AE_field (_, _, _)"
-   | Libsail.Anf.AE_match (_, _, _)             -> Printf.sprintf "AE_match (_, _, _)"
-   | Libsail.Anf.AE_try (_, _, _)               -> Printf.sprintf "AE_try (_, _, _)"
-   | Libsail.Anf.AE_struct_update (_, _, _)     -> Printf.sprintf "AE_struct_update (_, _, _)"
-   | Libsail.Anf.AE_for (_, _, _, _, _, _)      -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
-   | Libsail.Anf.AE_loop (_, _, _)              -> Printf.sprintf "AE_loop (_, _, _)"
-   | Libsail.Anf.AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
+  | Libsail.Anf.AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)
+  | Libsail.Anf.AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id identifier) (list ~f:aval values)
+  | Libsail.Anf.AE_typ (expression, _)         -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
+  | Libsail.Anf.AE_assign (_, _)               -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
+  | Libsail.Anf.AE_let (_, _, _, _, _, _)      -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
+  | Libsail.Anf.AE_block (_, _, _)             -> Printf.sprintf "AE_block (_, _, _)"
+  | Libsail.Anf.AE_return (_, _)               -> Printf.sprintf "AE_return (_, _)"
+  | Libsail.Anf.AE_exit (_, _)                 -> Printf.sprintf "AE_exit (_, _)"
+  | Libsail.Anf.AE_throw (_, _)                -> Printf.sprintf "AE_throw (_, _)"
+  | Libsail.Anf.AE_if (_, _, _, _)             -> Printf.sprintf "AE_if (_, _, _, _)"
+  | Libsail.Anf.AE_field (_, _, _)             -> Printf.sprintf "AE_field (_, _, _)"
+  | Libsail.Anf.AE_match (_, _, _)             -> Printf.sprintf "AE_match (_, _, _)"
+  | Libsail.Anf.AE_try (_, _, _)               -> Printf.sprintf "AE_try (_, _, _)"
+  | Libsail.Anf.AE_struct_update (_, _, _)     -> Printf.sprintf "AE_struct_update (_, _, _)"
+  | Libsail.Anf.AE_for (_, _, _, _, _, _)      -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
+  | Libsail.Anf.AE_loop (_, _, _)              -> Printf.sprintf "AE_loop (_, _, _)"
+  | Libsail.Anf.AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
