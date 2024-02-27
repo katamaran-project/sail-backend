@@ -543,7 +543,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (_variant_definition : N.variant_definition) =
+    and match_variant (variant_definition : N.variant_definition) =
       let process_case
           (acc : (string list * N.statement) StringMap.t    )
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp)
@@ -620,11 +620,26 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                   | Libsail.Ast.Typ_app (_, _)       -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
                   | Libsail.Ast.Typ_exist (_, _, _)  -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
                 in
-                let* enum_definition = Ast.Extract.(TC.lookup_type of_variant variant_type_identifier)
+                let* enum_definition = Ast.Extract.(TC.lookup_type of_variant variant_type_identifier) (* todo remove this *)
                 in
                 match enum_definition with
-                | Some _enum_definition -> begin
-                    TC.not_yet_implemented [%here] location
+                | Some enum_definition -> begin
+                    (* only adds to table if constructor is missing *)
+                    let add_missing_case
+                        (acc                 : (string list * N.statement) StringMap.t)
+                        (variant_constructor : Ast.variant_constructor                ) =
+                      let (constructor_tag, fields) = variant_constructor
+                      in
+                      let* field_vars =
+                        TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
+                      in
+                      let acc' = match StringMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
+                      | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
+                      | `Ok acc'   -> acc'  (* missing case found                                                      *)
+                      in
+                      TC.return acc'
+                    in
+                    TC.fold_left ~f:add_missing_case ~init:acc enum_definition.constructors
                   end
                 | None -> TC.fail [%here] @@ Printf.sprintf "expected %s to be a known variant type" variant_type_identifier
               end
