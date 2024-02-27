@@ -592,8 +592,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                     in
                     TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
                   end
-                | S.AP_id (_identifier, _typ) -> begin
-                    TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_id (identifier, _typ) -> begin
+                    let* identifier = translate_identifier [%here] identifier
+                    in
+                    TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
                 | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] subpattern_location
@@ -603,6 +605,29 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                 | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_wild _        -> TC.not_yet_implemented [%here] subpattern_location
               end
+            | S.AP_wild typ -> begin
+                let S.Typ_aux (typ, _typ_loc) = typ
+                in
+                (* determine the name of the variant type *)
+                let* variant_type_identifier =
+                  match typ with
+                  | Libsail.Ast.Typ_id identifier    -> translate_identifier [%here] identifier
+                  | Libsail.Ast.Typ_internal_unknown -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_var _            -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_fn (_, _)        -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_bidir (_, _)     -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_tuple _          -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_app (_, _)       -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                  | Libsail.Ast.Typ_exist (_, _, _)  -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
+                in
+                let* enum_definition = Ast.Extract.(TC.lookup_type of_variant variant_type_identifier)
+                in
+                match enum_definition with
+                | Some _enum_definition -> begin
+                    TC.not_yet_implemented [%here] location
+                  end
+                | None -> TC.fail [%here] @@ Printf.sprintf "expected %s to be a known variant type" variant_type_identifier
+              end
             | S.AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
             | S.AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
             | S.AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
@@ -610,7 +635,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
             | S.AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
             | S.AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
             | S.AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_wild _        -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
