@@ -605,43 +605,23 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                 | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_wild _        -> TC.not_yet_implemented [%here] subpattern_location
               end
-            | S.AP_wild typ -> begin
-                let S.Typ_aux (typ, _typ_loc) = typ
+            | S.AP_wild _ -> begin
+                (* only adds to table if constructor is missing *)
+                let add_missing_case
+                    (acc                 : (string list * N.statement) StringMap.t)
+                    (variant_constructor : Ast.variant_constructor                ) =
+                  let (constructor_tag, fields) = variant_constructor
+                  in
+                  let* field_vars =
+                    TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
+                  in
+                  let acc' = match StringMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
+                    | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
+                    | `Ok acc'   -> acc'  (* missing case found                                                      *)
+                  in
+                  TC.return acc'
                 in
-                (* determine the name of the variant type *)
-                let* variant_type_identifier =
-                  match typ with
-                  | Libsail.Ast.Typ_id identifier    -> translate_identifier [%here] identifier
-                  | Libsail.Ast.Typ_internal_unknown -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_var _            -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_fn (_, _)        -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_bidir (_, _)     -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_tuple _          -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_app (_, _)       -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                  | Libsail.Ast.Typ_exist (_, _, _)  -> TC.fail [%here] "we're matching a variant; its type should simply be its name"
-                in
-                let* enum_definition = Ast.Extract.(TC.lookup_type of_variant variant_type_identifier) (* todo remove this *)
-                in
-                match enum_definition with
-                | Some enum_definition -> begin
-                    (* only adds to table if constructor is missing *)
-                    let add_missing_case
-                        (acc                 : (string list * N.statement) StringMap.t)
-                        (variant_constructor : Ast.variant_constructor                ) =
-                      let (constructor_tag, fields) = variant_constructor
-                      in
-                      let* field_vars =
-                        TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
-                      in
-                      let acc' = match StringMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
-                      | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
-                      | `Ok acc'   -> acc'  (* missing case found                                                      *)
-                      in
-                      TC.return acc'
-                    in
-                    TC.fold_left ~f:add_missing_case ~init:acc enum_definition.constructors
-                  end
-                | None -> TC.fail [%here] @@ Printf.sprintf "expected %s to be a known variant type" variant_type_identifier
+                TC.fold_left ~f:add_missing_case ~init:acc variant_definition.constructors
               end
             | S.AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
             | S.AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
