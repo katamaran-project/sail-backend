@@ -33,7 +33,7 @@ module Identifier = struct
     in
     match x with
     | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
-    | _ -> failwith "wanted to extract funtion name from function definition; failed because I didn't recognize structure"
+    | _ -> failwith "wanted to extract function name from function definition; failed because I didn't recognize structure"
 
   let of_type_definition (TD_aux (definition, (_location, _))) =
     match definition with
