@@ -38,19 +38,19 @@ let generate_inductive_type (variant_definition : variant_definition) : AC.annot
         AC.iter constructors ~f:(fun (constructor, typ) ->
             let* typ' = pp_constructor_types typ
             in
-            add_constructor ~typ:typ' (string constructor))
+            add_constructor ~typ:typ' (pp_identifier constructor))
       end
   in
   inductive_type
 
 let generate_constructors_inductive_type (variant_definition  : variant_definition) =
-  let identifier = pp_identifier @@ variant_definition.identifier ^ "Constructor"
-  and typ = pp_identifier "Set"
+  let identifier = pp_identifier @@ Id.add_suffix "Constructor" variant_definition.identifier
+  and typ = pp_identifier @@ Id.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
   Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
       AC.iter constructor_names
-        ~f:(fun (case : string) -> add_constructor @@ string @@ "K" ^ case)
+        ~f:(fun case -> add_constructor @@ pp_identifier @@ Id.add_prefix "K" case)
     )
 
 let generate (variant_definition : variant_definition) =

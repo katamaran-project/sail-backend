@@ -13,3 +13,18 @@ end
 
 include T
 include Comparator.Make(T)
+
+let equal (Id x) (Id y) =
+  String.equal x y
+
+let mk x = Id x
+
+let string_of (Id x) = x
+
+let update f (Id x) = Id (f x)
+
+let add_prefix prefix =
+  update (fun x -> prefix ^ x)
+
+let add_suffix suffix =
+  update (fun x -> x ^ suffix)

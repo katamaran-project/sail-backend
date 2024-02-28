@@ -11,7 +11,7 @@ module PP = PPrint
 
 let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
-    parens @@ simple_app [ pp_identifier "ty.prod"; x; y ]
+    parens @@ simple_app [ pp_identifier @@ Id.mk "ty.prod"; x; y ]
   in
   let pp_tuple elts =
     let* elts' = AnnotationContext.map ~f:pp_nanotype elts
@@ -23,7 +23,7 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    AC.return @@ parens @@ simple_app [ string "ty.list"; element_type' ]
+    AC.return @@ parens @@ simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
   in
   let pp_application id type_arguments =
     let id' = pp_identifier id
@@ -36,15 +36,15 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
-    AC.return @@ simple_app [ string "ty.bitvector"; nexpr' ]
+    AC.return @@ simple_app [ pp_identifier @@ Id.mk "ty.bitvector"; nexpr' ]
   in
   match typ with
-   | Ty_unit            -> AC.return @@ string "ty.unit"
-   | Ty_bool            -> AC.return @@ string "ty.bool"
-   | Ty_int             -> AC.return @@ string "ty.int"
-   | Ty_nat             -> AC.return @@ string "ty.nat"
-   | Ty_string          -> AC.return @@ string "ty.string"
-   | Ty_atom            -> AC.return @@ string "ty.atom"
+   | Ty_unit            -> AC.return @@ pp_identifier @@ Id.mk "ty.unit"
+   | Ty_bool            -> AC.return @@ pp_identifier @@ Id.mk "ty.bool"
+   | Ty_int             -> AC.return @@ pp_identifier @@ Id.mk "ty.int"
+   | Ty_nat             -> AC.return @@ pp_identifier @@ Id.mk "ty.nat"
+   | Ty_string          -> AC.return @@ pp_identifier @@ Id.mk "ty.string"
+   | Ty_atom            -> AC.return @@ pp_identifier @@ Id.mk "ty.atom"
    | Ty_custom id       -> AC.return @@ pp_identifier id
    | Ty_list typ        -> pp_list typ
    | Ty_tuple ts        -> pp_tuple ts
@@ -57,17 +57,29 @@ let rec pp_nanotype (typ : nanotype) =
 
 and coq_type_of_nanotype (nanotype : nanotype) =
   match nanotype with
-  | Ty_unit              -> AC.return @@ string "Datatypes.unit"
-  | Ty_bool              -> AC.return @@ string "Datatypes.bool"
-  | Ty_nat               -> AC.return @@ string "nat"
-  | Ty_int               -> AC.return @@ string "Z"
-  | Ty_string            -> AC.return @@ string "String.string"
-  | Ty_bitvector n       -> let* n' = pp_numeric_expression n in AC.return @@ string "bv" ^^ space ^^ n'
-  | Ty_list t            -> let* t' = coq_type_of_nanotype t in AC.return @@ PP.(separate space [ string "list"; parens t' ])
-  | Ty_custom id         -> AC.return @@ string id
-  | Ty_app (t, ts)       -> let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts in AC.return @@ string t ^^ space ^^ separate space ts'
-  | Ty_tuple _ts         -> AC.not_yet_implemented [%here]
-  | Ty_atom              -> AC.not_yet_implemented [%here]
+  | Ty_unit            -> AC.return @@ string "Datatypes.unit"
+  | Ty_bool            -> AC.return @@ string "Datatypes.bool"
+  | Ty_nat             -> AC.return @@ string "nat"
+  | Ty_int             -> AC.return @@ string "Z"
+  | Ty_string          -> AC.return @@ string "String.string"
+  | Ty_custom id       -> AC.return @@ pp_identifier id
+  | Ty_bitvector n     -> begin
+      let* n' = pp_numeric_expression n
+      in
+      AC.return @@ string "bv" ^^ space ^^ n'
+    end
+  | Ty_list t          -> begin
+      let* t' = coq_type_of_nanotype t
+      in
+      AC.return @@ PP.(separate space [ string "list"; parens t' ])
+    end
+  | Ty_app (t, ts)     -> begin
+      let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
+      in
+      AC.return @@ pp_identifier t ^^ space ^^ separate space ts'
+    end
+  | Ty_tuple _ts       -> AC.not_yet_implemented [%here]
+  | Ty_atom            -> AC.not_yet_implemented [%here]
   | Ty_record          -> AC.not_yet_implemented [%here]
   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]

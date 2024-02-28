@@ -73,23 +73,25 @@ let sanitizing_substitution =
   remove_apostrophes_at_start
 
 let sanitize_identifier (identifier : identifier) : identifier option =
-  if String.is_prefix ~prefix:"'" identifier
-  then Some (remove_apostrophes_at_start identifier)
+  let Id s = identifier
+  in
+  if String.is_prefix ~prefix:"'" s
+  then Some (Id (remove_apostrophes_at_start s))
   else None
 
 
 module SubstitutionMonad = struct
-  module SubstitutionMap = struct
+  module SubstitutionMap = struct (* todo replace with IdentifierMap *)
     type t = (identifier, identifier, String.comparator_witness) Map.t
 
-    let empty = Map.empty (module String)
+    let empty = Map.empty (module Id)
 
     let add = Map.add_exn
 
     let find = Map.find
 
     let contains_value map identifier =
-      Map.exists map ~f:(String.equal identifier)
+      Map.exists map ~f:(Id.equal identifier)
   end
 
   include Monads.State.Make(SubstitutionMap)
