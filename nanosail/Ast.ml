@@ -9,7 +9,7 @@ type type_annotation = Libsail.Type_check.tannot
 (* todo find better location for this definition *)
 type sail_definition = type_annotation Libsail.Ast.def
 
-type identifier = Id of string
+type identifier = Id.t
 
 type numeric_expression =
   | NE_constant of Z.t
