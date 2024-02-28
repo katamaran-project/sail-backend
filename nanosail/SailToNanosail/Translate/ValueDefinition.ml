@@ -82,7 +82,9 @@ let translate_value_definition
   match pattern with
   | S.P_id identifier -> begin
       match identifier with
-      | S.Id_aux (S.Id identifier, _identifier_location)  -> begin
+      | S.Id_aux (S.Id identifier, _identifier_location) -> begin
+          let identifier = Id.mk identifier
+          in
           let* value = translate_expression expression
           in
           TC.return @@ N.ValueDefinition { identifier; value }

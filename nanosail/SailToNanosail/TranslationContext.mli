@@ -22,10 +22,10 @@ val run                        : 'a t -> 'a result * Context.t
 
 
 val register                   : Ast.definition -> unit t
-val lookup_type                : (Ast.type_definition -> 'a option) -> string -> 'a option t
-val lookup_register_type       : string -> Ast.nanotype option t
-val generate_unique_identifier : string -> string t
-val is_register                : string -> bool t
+val lookup_type                : (Ast.type_definition -> 'a option) -> Ast.identifier -> 'a option t
+val lookup_register_type       : Ast.identifier -> Ast.nanotype option t
+val generate_unique_identifier : string -> Ast.identifier t
+val is_register                : Ast.identifier -> bool t
 
 
 val map                        : f:('a -> 'b t) -> 'a list -> 'b list t

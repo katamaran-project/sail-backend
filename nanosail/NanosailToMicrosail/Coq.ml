@@ -411,21 +411,21 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
   AC.return @@ separate hardline lines ^^ hardline ^^ eol
 
 let finite_instance
-      ~(identifier : string )
-      ~(type_name : string  )
-      ~(values : string list)
+      ~(identifier : document     )
+      ~(type_name  : document     )
+      ~(values     : document list)
   =
   let enum_values =
-    PP.(group (separate (semi ^^ break 1) (List.map ~f:string values)))
+    PP.(group (separate (semi ^^ break 1) values))
   in
   PP.separate PP.hardline [
       PP.separate space [
           string "#[export,program]";
           string "Instance";
-          string @@ identifier ^ "_finite";
+          identifier ^^ string "_finite";
           colon;
           string "Finite";
-          string type_name;
+          type_name;
           string ":=";
         ];
     twice space ^^ PP.separate space [

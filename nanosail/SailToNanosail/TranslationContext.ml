@@ -6,9 +6,9 @@ open Monads.OptionNotation
 
 
 module Context = struct
-  type type_map = Ast.type_definition StringMap.t
+  type type_map = Ast.type_definition IdentifierMap.t
 
-  type register_map = nanotype StringMap.t
+  type register_map = nanotype IdentifierMap.t
 
   type t =
     {
@@ -19,9 +19,9 @@ module Context = struct
 
   let empty : t =
     {
-      types         = StringMap.empty;
+      types         = IdentifierMap.empty;
       next_id_index = 0;
-      registers     = StringMap.empty;
+      registers     = IdentifierMap.empty;
     }
 
   let lookup_type (type_map : type_map) identifier =
@@ -98,8 +98,8 @@ let register_type (type_definition : type_definition) =
     let key = type_identifier type_definition
     and data = type_definition
     in
-    match StringMap.add types ~key ~data with
-    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" key)
+    match IdentifierMap.add types ~key ~data with
+    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" (Id.string_of key))
     | `Ok result -> result
   in
   Monad.put Context.types updated_types
@@ -112,8 +112,8 @@ let register_register (register_definition : register_definition) =
     let key = register_definition.identifier
     and data = register_definition.typ
     in
-    match StringMap.add register_map ~key ~data with
-    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "register %s defined multiple times" key)
+    match IdentifierMap.add register_map ~key ~data with
+    | `Duplicate -> raise @@ TranslationError (Printf.sprintf "register %s defined multiple times" (Id.string_of key))
     | `Ok result -> result
   in
   Monad.put Context.registers updated_register_map
@@ -137,7 +137,7 @@ let register (definition : definition) =
 *)
 let lookup_type
       (extractor  : type_definition -> 'a option)
-      (identifier : string                      ) : 'a option t =
+      (identifier : identifier                  ) : 'a option t =
   let* types = Monad.get Context.types
   in
   return @@ begin
@@ -148,21 +148,21 @@ let lookup_type
 
 
 (* Looks up type of register with given name *)
-let lookup_register_type (identifier : string) : nanotype option t =
+let lookup_register_type (identifier : identifier) : nanotype option t =
   let* registers = Monad.get Context.registers
   in
-  return @@ StringMap.find registers identifier
+  return @@ IdentifierMap.find registers identifier
 
 
-let is_register (identifier : string) : bool t =
+let is_register (identifier : identifier) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
 
 
-let generate_unique_identifier prefix : string t =
+let generate_unique_identifier prefix : identifier t =
   let* index = Monad.get Context.next_id_index
   in
   let* () = Monad.put Context.next_id_index (index + 1)
   in
   let id = Printf.sprintf "%s%d" prefix index
   in
-  return id
+  return (Id.mk id)

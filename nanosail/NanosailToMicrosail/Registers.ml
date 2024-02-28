@@ -2,6 +2,7 @@ open Base
 open PPrint
 open Ast
 open Monads.Notations.Star(AnnotationContext)
+open Identifier
 
 module AC = AnnotationContext
 
@@ -13,7 +14,7 @@ let reg_inductive_type register_definitions =
   let inductive_type =
     Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
         let make_constructor (register_definition : register_definition) =
-          let identifier = string register_definition.identifier
+          let identifier = pp_identifier register_definition.identifier
           in
           let* register_type = Nanotype.pp_nanotype register_definition.typ
           in
@@ -27,7 +28,7 @@ let reg_inductive_type register_definitions =
   Coq.annotate inductive_type
 
 let no_confusion_for_reg () =
-  Coq.section "TransparentObligations" (
+  Coq.section (Id.mk "TransparentObligations") (
       separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion (* NoConfusionHom *) for Reg."
@@ -59,7 +60,7 @@ let regnames (register_definitions : (sail_definition * register_definition) lis
       and typ = string "Set"
       in
       let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
-                               AC.iter register_names ~f:(fun name -> add_constructor @@ string name)
+                               AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier name)
                              )
       in
       Option.some @@ Coq.annotate inductive_type
@@ -117,7 +118,7 @@ let obligation_tactic =
 let generate (register_definitions : (sail_definition * register_definition) list) : document =
   let register_names =
     let extract_identifier (pair : sail_definition * register_definition) =
-      string (snd pair).identifier
+      pp_identifier (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
   in
@@ -131,4 +132,4 @@ let generate (register_definitions : (sail_definition * register_definition) lis
       reg_finite register_names
     ]
   in
-  Coq.section "RegDeclKit" section_contents
+  Coq.section (Id.mk "RegDeclKit") section_contents

@@ -8,8 +8,6 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let pp_identifier = string
-
 let pp_bind (arg, t) =
   let* t' = pp_nanotype t in
   AC.return @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
@@ -25,7 +23,7 @@ let pp_kind (kind : kind) =
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = pp_identifier identifier
+    let identifier' = Identifier.pp_identifier identifier
     in
     let* kind' = pp_kind kind
     in
