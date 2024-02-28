@@ -12,11 +12,6 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Base
 open Basics
-open Function
-open TypeDefinition
-open TopLevelTypeConstraint
-open Register
-open ValueDefinition
 
 
 let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) : (N.sail_definition * N.definition) TC.t =
@@ -31,15 +26,15 @@ let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) :
       let* result =
         match def with
         | DEF_type type_definition ->
-           translate_type_definition annotation type_definition
+           Translate.TypeDefinition.translate_type_definition annotation type_definition
         | DEF_let value_definition ->
-           translate_value_definition annotation value_definition
+           Translate.ValueDefinition.translate_value_definition annotation value_definition
         | DEF_val value_specification ->
-           translate_top_level_type_constraint annotation value_specification
+           Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
         | DEF_register specification ->
-           translate_register annotation specification
+           Translate.Register.translate_register annotation specification
         | DEF_fundef function_definition ->
-           translate_function_definition annotation function_definition
+           Translate.Function.translate_function_definition annotation function_definition
         | DEF_outcome (_, _) ->
            TC.not_yet_implemented [%here] annotation.loc
         | DEF_impl _ ->
