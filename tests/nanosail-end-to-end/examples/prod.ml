@@ -1,7 +1,9 @@
 open Nanosail.Ast
 
+module Id = Nanosail.Id
 
-let var s = Exp_var s
+
+let var s = Exp_var (Id.mk s)
 
 (******************************************************************************)
 (* Functions bodies *)
@@ -15,8 +17,8 @@ let fun_ex_prod = Stm_exp (Exp_val (Val_prod (Val_prod (
 let fun_switch = Stm_match begin
     MP_product {
       matched = Stm_exp (var "p");
-      id_fst  = "l";
-      id_snd  = "r";
+      id_fst  = Id.mk "l";
+      id_snd  = Id.mk "r";
       body    = Stm_exp (Exp_binop (Pair, var "r", var "l"));
     }
   end
@@ -31,9 +33,9 @@ let product_of ts =
 
 let funDefList = [
   {
-    function_name = "ex_prod";
+    function_name = Id.mk "ex_prod";
     function_type = {
-        arg_types = [ ("tt", Ty_unit); ("tt", Ty_unit) ];
+        arg_types = [ (Id.mk "tt", Ty_unit); (Id.mk "tt", Ty_unit) ];
         ret_type  = product_of
             [
               product_of [
@@ -46,9 +48,9 @@ let funDefList = [
     function_body = fun_ex_prod;
   };
   {
-    function_name = "switch";
+    function_name = Id.mk "switch";
     function_type = {
-      arg_types   = [ ("p", product_of [Ty_int; Ty_bool]) ];
+      arg_types   = [ (Id.mk "p", product_of [Ty_int; Ty_bool]) ];
       ret_type    =  product_of [Ty_bool; Ty_int];
     };
     function_body = fun_switch;
