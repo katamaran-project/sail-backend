@@ -6,4 +6,5 @@ module Auxlib              = Auxlib
 module Substitute          = Substitute
 module SailToNanosail      = SailToNanosail
 module StringMap           = StringMap
+module IdentifierMap       = IdentifierMap
 
