@@ -24,14 +24,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   let rec type_of_identifier identifier : N.nanotype TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
-    match identifier' with
+    match Id.string_of identifier' with
     | "bool"      -> TC.return @@ N.Ty_bool
     | "nat"       -> TC.return @@ N.Ty_nat
     | "int"       -> TC.return @@ N.Ty_int
     | "unit"      -> TC.return @@ N.Ty_unit
     | "string"    -> TC.return @@ N.Ty_string
     | "atom"      -> TC.return @@ N.Ty_atom
-    | id          -> TC.return @@ N.Ty_custom id
+    | _           -> TC.return @@ N.Ty_custom identifier'
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -43,9 +43,9 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
     and* identifier'     = translate_identifier [%here] identifier
     in
-    match identifier', type_arguments' with
+    match (Id.string_of identifier'), type_arguments' with
     | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
-    | id     , _                -> TC.return @@ N.Ty_app (id, type_arguments')
+    | id     , _                -> TC.return @@ N.Ty_app (Id.mk id, type_arguments')
 
   and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument TC.t =
     match type_argument with

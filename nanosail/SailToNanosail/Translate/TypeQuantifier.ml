@@ -25,10 +25,10 @@ let translate_kind (kind : S.kind) : N.kind TC.t =
   | S.K_bool -> TC.return @@ Ast.Kind_bool
 
 
-let translate_kind_id (kid : S.kid) : string TC.t =
+let translate_kind_id (kid : S.kid) : N.identifier TC.t =
   let S.Kid_aux (Var kind_id, _id_loc) = kid
   in
-  TC.return @@ kind_id
+  TC.return @@ Id.mk kind_id
 
 
 let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =

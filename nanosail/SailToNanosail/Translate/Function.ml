@@ -37,7 +37,7 @@ let create_if_statement
 
 
 let statement_of_lvar
-    (identifier : string               )
+    (identifier : N.identifier         )
     (lvar       : S.typ S.Ast_util.lvar)
     (location   : S.l                  ) : N.statement TC.t =
   match lvar with
@@ -52,7 +52,7 @@ let rec binds_of_pat (S.P_aux (aux, ((location, _annotation) as annotation))) =
   | P_lit (L_aux (lit, _loc)) ->
      begin
        match lit with
-       | S.L_unit     -> TC.return @@ [("()", N.Ty_unit)]
+       | S.L_unit     -> TC.return @@ [(Id.mk "()", N.Ty_unit)] (* todo rather ugly *)
        | S.L_zero     -> TC.not_yet_implemented [%here] location
        | S.L_one      -> TC.not_yet_implemented [%here] location
        | S.L_true     -> TC.not_yet_implemented [%here] location
@@ -120,12 +120,12 @@ let value_of_literal (S.L_aux (literal, location)) =
 
 
 let flatten_named_statements
-      (named_statements : (string * N.statement) list list) : (string * N.statement) list =
+      (named_statements : (N.identifier * N.statement) list list) : (N.identifier * N.statement) list =
   let flattened = List.concat named_statements
   in
   let statement_names = List.map ~f:fst flattened
   in
-  if List.contains_dup statement_names ~compare:String.compare
+  if List.contains_dup statement_names ~compare:Id.compare
   then failwith "BUG: two statements bear the same name"
   else flattened
 
@@ -155,7 +155,7 @@ let flatten_named_statements
  *)
 let rec expression_of_aval
           (location : S.l         )
-          (value    : S.typ S.aval) : (N.expression * (string * N.statement) list) TC.t
+          (value    : S.typ S.aval) : (N.expression * (N.identifier * N.statement) list) TC.t
   =
   let expression_of_tuple
         (elements : S.typ S.aval list)
@@ -163,7 +163,7 @@ let rec expression_of_aval
     if List.is_empty elements
     then TC.not_yet_implemented ~message:"Encountered empty tuple; should not occur" [%here] location
     else begin
-        let* translation_pairs = TC.map ~f:(expression_of_aval location) elements
+        let* translation_pairs      = TC.map ~f:(expression_of_aval location) elements
         in
         let translation_expressions = List.map ~f:fst translation_pairs
         and translation_statements  = List.map ~f:snd translation_pairs
@@ -192,7 +192,7 @@ let rec expression_of_aval
     | Local (_, _) -> TC.return (N.Exp_var id', [])
     | Register _   -> begin
         let* unique_id =
-          let prefix = Printf.sprintf "reg_%s_" id'
+          let prefix = Printf.sprintf "reg_%s_" (Id.string_of id')
           in
           TC.generate_unique_identifier prefix
         in
@@ -257,7 +257,7 @@ let make_sequence statements location =
     stm
  *)
 let rec wrap_in_named_statements_context
-      (named_statements : (string * N.statement) list)
+      (named_statements : (N.identifier * N.statement) list)
       (statement        : N.statement                ) : N.statement =
   match named_statements with
   | (name, stm)::rest -> Stm_let (name, stm, wrap_in_named_statements_context rest statement)
@@ -265,10 +265,10 @@ let rec wrap_in_named_statements_context
 
 
 type with_destructured_record_data = {
-    record_identifier      : string;
-    record_type_identifier : string;
-    field_identifiers      : string list;
-    variable_identifiers   : string list;
+    record_identifier      : N.identifier;
+    record_type_identifier : N.identifier;
+    field_identifiers      : N.identifier list;
+    variable_identifiers   : N.identifier list;
   }
 
 let with_destructured_record
@@ -297,7 +297,7 @@ let with_destructured_record
                 List.map ~f:fst record_type_definition.fields
               in
               let* variable_identifiers =
-                TC.map ~f:TC.generate_unique_identifier field_identifiers
+                TC.map ~f:(fun x -> TC.generate_unique_identifier @@ Id.string_of x) field_identifiers
               in
               let* body =
                 body_generator {
@@ -318,7 +318,12 @@ let with_destructured_record
                                body
                              }
             end
-          | None -> TC.fail [%here] @@ Printf.sprintf "Tried looking up %s; expected to find record type definition" record_type_identifier
+          | None -> begin
+              let error_message =
+                Printf.sprintf "Tried looking up %s; expected to find record type definition" (Id.string_of record_type_identifier)
+              in
+              TC.fail [%here] error_message
+            end
         end
       | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | S.Typ_var _            -> TC.not_yet_implemented [%here] location
@@ -434,7 +439,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
       match type_identifier with
       | S.Id id -> begin
-          let* lookup_result = TC.lookup_type Ast.Extract.of_anything id
+          let* lookup_result = TC.lookup_type Ast.Extract.of_anything @@ Id.mk id
           in
           match lookup_result with
           | Some (TD_abbreviation def) -> match_abbreviation def
@@ -455,7 +460,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         and n_enum_cases = List.length enum_definition.cases
         in
         let error_message = lazy begin
-                                let enum_values = String.concat ~sep:", " enum_definition.cases
+                                let enum_values = String.concat ~sep:", " (List.map ~f:Id.string_of enum_definition.cases)
                                 in
                                 Printf.sprintf
                                   "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
@@ -468,8 +473,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       in
 
       let process_case
-            (table      : N.statement StringMap.t                     )
-            (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement StringMap.t TC.t =
+            (table      : N.statement IdentifierMap.t                 )
+            (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement IdentifierMap.t TC.t =
         let (AP_aux (pattern, _environment, _location), condition, body) = match_case
         in
         (*
@@ -488,22 +493,24 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                         Printf.sprintf
                           "encountered unknown case %s while matching an %s value"
                           identifier
-                          enum_definition.identifier
+                          (Id.string_of enum_definition.identifier)
                       end
                       in
                       TC.check
                         [%here]
-                        (List.mem enum_definition.cases identifier ~equal:String.equal)
+                        (List.mem enum_definition.cases (Id.mk identifier) ~equal:Id.equal)
                         error_message
                     in
                     let* body' = statement_of_aexp body
                     in
-                    let result = StringMap.add table ~key:identifier ~data:body'
+                    let result = IdentifierMap.add table ~key:(Id.mk identifier) ~data:body'
                     in
                     match result with
-                    | `Duplicate -> TC.fail
-                                      [%here]
-                                      (Printf.sprintf "duplicate case %s in enum match" identifier)
+                    | `Duplicate -> begin
+                        let error_message = Printf.sprintf "duplicate case %s in enum match" identifier
+                        in
+                        TC.fail [%here] error_message
+                      end                                      
                     | `Ok table' -> TC.return table'
                   end
               end
@@ -511,7 +518,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                 let* body' = statement_of_aexp body
                 in
                 let add_case table case =
-                  match StringMap.add table ~key:case ~data:body' with
+                  match IdentifierMap.add table ~key:case ~data:body' with
                   | `Duplicate -> table   (* wildcard only fills in missing cases, so ignore if there's already an entry for this enum case *)
                   | `Ok table' -> table'
                 in
@@ -531,7 +538,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         let* matched_expression, named_statements = expression_of_aval location matched
         in
         TC.return @@ (N.Stm_exp matched_expression, named_statements)
-      and* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
+      and* cases = TC.fold_left ~f:process_case ~init:IdentifierMap.empty cases
       in
       let match_statement = N.Stm_match (N.MP_enum {
                                              matched;
@@ -545,8 +552,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     *)
     and match_variant (variant_definition : N.variant_definition) =
       let process_case
-          (acc : (string list * N.statement) StringMap.t    )
-          (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp)
+          (acc  : (N.identifier list * N.statement) IdentifierMap.t)
+          (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp       )
         =
         let (pattern, condition, clause) = case
         in
@@ -590,12 +597,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                     in
                     let* identifiers = TC.map ~f:extract_identifiers tuple_patterns
                     in
-                    TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
+                    TC.return @@ IdentifierMap.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
                   end
                 | S.AP_id (identifier, _typ) -> begin
                     let* identifier = translate_identifier [%here] identifier
                     in
-                    TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
+                    TC.return @@ IdentifierMap.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
                 | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] subpattern_location
@@ -608,14 +615,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
             | S.AP_wild _ -> begin
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
-                    (acc                 : (string list * N.statement) StringMap.t)
-                    (variant_constructor : Ast.variant_constructor                ) =
+                    (acc                 : (N.identifier list * N.statement) IdentifierMap.t)
+                    (variant_constructor : Ast.variant_constructor                          ) =
                   let (constructor_tag, fields) = variant_constructor
                   in
                   let* field_vars =
                     TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
                   in
-                  let acc' = match StringMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
+                  let acc' = match IdentifierMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
                     | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
                     | `Ok acc'   -> acc'  (* missing case found                                                      *)
                   in
@@ -633,7 +640,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
-      let* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
+      let* cases = TC.fold_left ~f:process_case ~init:IdentifierMap.empty cases
       in
       let* statement =
         let* matched_expression, named_statements = expression_of_aval location matched
@@ -691,14 +698,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     in
     with_destructured_record location value @@
       fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> (
-        match Auxlib.find_index_of ~f:(String.equal field_identifier) field_identifiers with
+        match Auxlib.find_index_of ~f:(Id.equal field_identifier) field_identifiers with
         | Some selected_field_index -> begin
             let expression =
               N.Exp_var (List.nth_exn variable_identifiers selected_field_index)
             in
             TC.return @@ N.Stm_exp expression
           end
-        | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" record_type_identifier field_identifier
+        | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Id.string_of record_type_identifier) (Id.string_of field_identifier)
       )
 
   and statement_of_value
@@ -714,7 +721,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     let* id' = translate_identifier [%here] receiver_identifier
     in
     match arguments with
-    | [car; cdr] when String.equal id' "sail_cons" -> begin
+    | [car; cdr] when String.equal (Id.string_of id') "sail_cons" -> begin
         let* car', car_named_statements = expression_of_aval location car
         and* cdr', cdr_named_statements = expression_of_aval location cdr
         in
@@ -776,7 +783,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         (_typ     : S.typ                  )
     =
     let process_binding
-        (acc  : string StringMap.t * (string * N.statement) list)
+        (acc  : N.identifier IdentifierMap.t * (N.identifier * N.statement) list)
         (pair : S.id * S.typ S.aval                                  )
       =
       let field_map       , named_statements = acc
@@ -786,7 +793,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         translate_identifier [%here] field_identifier
       in
       let* variable_identifier =
-        TC.generate_unique_identifier @@ "updated_" ^ field_identifier
+        TC.generate_unique_identifier @@ "updated_" ^ (Id.string_of field_identifier)
       in
       let* named_statement =
         let* expression, named_statements = expression_of_aval location value
@@ -803,8 +810,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     in
     with_destructured_record location aval @@ fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> begin
       let* field_map, named_statements =
-        let initial_field_map : string StringMap.t =
-          StringMap.of_alist_exn @@ List.zip_exn field_identifiers variable_identifiers
+        let initial_field_map : N.identifier IdentifierMap.t =
+          IdentifierMap.of_alist_exn @@ List.zip_exn field_identifiers variable_identifiers
         in
         TC.fold_left ~f:process_binding ~init:(initial_field_map, []) (Bindings.bindings bindings)
       in

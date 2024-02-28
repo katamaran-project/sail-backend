@@ -81,17 +81,17 @@ let sanitize_identifier (identifier : identifier) : identifier option =
 
 
 module SubstitutionMonad = struct
-  module SubstitutionMap = struct (* todo replace with IdentifierMap *)
-    type t = (identifier, identifier, String.comparator_witness) Map.t
+  module SubstitutionMap = struct
+    type t = identifier IdentifierMap.t
 
-    let empty = Map.empty (module Id)
+    let empty = IdentifierMap.empty
 
-    let add = Map.add_exn
+    let add = IdentifierMap.add_exn
 
-    let find = Map.find
+    let find = IdentifierMap.find
 
     let contains_value map identifier =
-      Map.exists map ~f:(Id.equal identifier)
+      IdentifierMap.exists map ~f:(Id.equal identifier)
   end
 
   include Monads.State.Make(SubstitutionMap)
