@@ -190,7 +190,7 @@ and match_pattern_enum =
 and match_pattern_variant =
   {
     matched    : statement;
-    (* todo *)
+    cases      : (string list * statement) StringMap.t
   }
 
 and destructure_record =
@@ -243,8 +243,10 @@ type variant_definition =
   {
     identifier      : string                  ;
     type_quantifier : type_quantifier         ;
-    constructors    : (string * nanotype) list;
+    constructors    : variant_constructor list;
   }
+
+and variant_constructor = (string * nanotype list)
 
 
 type enum_definition =

@@ -3,17 +3,17 @@ default Order dec
 $include <prelude.sail>
 
 
-union plumbus = {
+union foo = {
   A : (int, int),
   B : int,
-  C : unit
+  C : int,
 }
 
 
 // Scattered functions
-val bar : plumbus -> int
-scattered function bar
+val qux : foo -> int
+scattered function qux
 
-function clause bar(A(x, y)) = { 0 }
-function clause bar(B(n)) = { 0 }
-function clause bar(C()) = { 0 }
+function clause qux(A(a, b)) = { a + b }
+function clause qux(B(a))    = { a }
+function clause qux(_)       = { 0 }

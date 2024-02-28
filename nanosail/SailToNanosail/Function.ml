@@ -543,12 +543,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (_variant_definition : N.variant_definition) =
+    and match_variant (variant_definition : N.variant_definition) =
       let process_case
-          (_acc : unit                                      )
+          (acc : (string list * N.statement) StringMap.t    )
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp)
         =
         let (pattern, condition, clause) = case
+        in
+        let* translated_clause = statement_of_aexp clause
         in
         (*
            condition is an extra condition that needs to be satisfied for the branch to be taken;
@@ -556,38 +558,93 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         *)
         match condition with
         | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
-            Stdio.printf "pattern=%s\nsomething=%s\nclause=%s\n" (StringOf.apat pattern) (StringOf.aexp condition) (StringOf.aexp clause);
-            let AP_aux (case_pattern, _environment, location) = pattern
+            let AP_aux (pattern, _environment, _pattern_location) = pattern
             in
-            match case_pattern with
-            | S.AP_app (identifier, p, _type) -> begin
-                let S.AP_aux (pattern, _env, _loc) = p
+            match pattern with
+            | Libsail.Anf.AP_app (variant_tag_identifier, subpattern, _typ) -> begin
+                (*
+                   deals with case TAG(x, y, z, ...)
+
+                   x, y, z must all be simple identifiers, no nested patterns are supported
+                 *)
+                let* variant_tag_identifier = translate_identifier [%here] variant_tag_identifier
                 in
-                Stdio.printf "identifier %s\nsubpattern: %s\n\n" (StringOf.id identifier) (StringOf.apat p);
-                match pattern with
-                 | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
-                 | S.AP_id (_, _)     -> TC.not_yet_implemented [%here] location
-                 | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
-                 | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
-                 | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
-                 | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
-                 | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
-                 | S.AP_nil _         -> TC.not_yet_implemented [%here] location
-                 | S.AP_wild _        -> TC.not_yet_implemented [%here] location
+                let AP_aux (subpattern, _environment, subpattern_location) = subpattern
+                in
+                match subpattern with
+                | S.AP_tuple tuple_patterns -> begin
+                    (* assumes tuple patterns are all identifiers *)
+                    let extract_identifiers (tuple_pattern : S.typ S.apat) =
+                      let S.AP_aux (tuple_pattern, _env, tuple_pattern_location) = tuple_pattern
+                      in
+                      match tuple_pattern with
+                      | Libsail.Anf.AP_id (identifier, _typ) -> translate_identifier [%here] identifier
+                      | Libsail.Anf.AP_tuple _               -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_global (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_app (_, _, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_cons (_, _)           -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_as (_, _, _)          -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_struct (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_nil _                 -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | Libsail.Anf.AP_wild _                -> TC.not_yet_implemented [%here] tuple_pattern_location
+                    in
+                    let* identifiers = TC.map ~f:extract_identifiers tuple_patterns
+                    in
+                    TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
+                  end
+                | S.AP_id (identifier, _typ) -> begin
+                    let* identifier = translate_identifier [%here] identifier
+                    in
+                    TC.return @@ StringMap.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
+                  end
+                | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
+                | S.AP_wild _        -> TC.not_yet_implemented [%here] subpattern_location
               end
-            | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
-            | S.AP_id (_, _)     -> TC.not_yet_implemented [%here] location
-            | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
-            | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] location
-            | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
-            | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
-            | S.AP_nil _         -> TC.not_yet_implemented [%here] location
-            | S.AP_wild _        -> TC.not_yet_implemented [%here] location
+            | S.AP_wild _ -> begin
+                (* only adds to table if constructor is missing *)
+                let add_missing_case
+                    (acc                 : (string list * N.statement) StringMap.t)
+                    (variant_constructor : Ast.variant_constructor                ) =
+                  let (constructor_tag, fields) = variant_constructor
+                  in
+                  let* field_vars =
+                    TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
+                  in
+                  let acc' = match StringMap.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
+                    | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
+                    | `Ok acc'   -> acc'  (* missing case found                                                      *)
+                  in
+                  TC.return acc'
+                in
+                TC.fold_left ~f:add_missing_case ~init:acc variant_definition.constructors
+              end
+            | S.AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_cons (_, _)   -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | S.AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
-      ignore @@ TC.fold_left ~f:process_case ~init:() cases;
-      TC.not_yet_implemented [%here] location
+      let* cases = TC.fold_left ~f:process_case ~init:StringMap.empty cases
+      in
+      let* statement =
+        let* matched_expression, named_statements = expression_of_aval location matched
+        in
+        let matched = Ast.Stm_exp matched_expression
+        in
+        let match_pattern : Ast.match_pattern_variant = { matched; cases }
+        in
+        TC.return @@ wrap_in_named_statements_context named_statements @@ Stm_match (MP_variant match_pattern)
+      in
+      TC.return statement
 
     and match_abbreviation (_type_abbreviation : N.type_abbreviation_definition) =
       TC.not_yet_implemented [%here] location

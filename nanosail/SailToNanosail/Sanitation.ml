@@ -57,10 +57,10 @@ let coqify_identifiers (program : N.program) : N.program =
       in
       let type_quantifier', subst = Substitute.process_type_quantifier Substitute.sanitize_identifier type_quantifier
       in
-      let sanitize_constructor (constructor_identifier, constructor_nanotype) =
+      let sanitize_constructor (constructor_identifier, constructor_fields) =
         (
           constructor_identifier,
-          Substitute.Subst.nanotype subst constructor_nanotype
+          List.map ~f:(Substitute.Subst.nanotype subst) constructor_fields
         )
       in
       let constructors' =

@@ -34,7 +34,11 @@ let translate_variant
       let* identifier' = translate_identifier [%here] identifier
       and* typ' = nanotype_of_sail_type typ
       in
-      TC.return @@ (identifier', typ')
+      let field_nanotypes = match typ' with
+        | N.Ty_tuple ts -> ts
+        | _             -> [ typ' ]
+      in
+      TC.return @@ (identifier', field_nanotypes)
     in
     TC.map ~f:translate_constructor constructors
   in

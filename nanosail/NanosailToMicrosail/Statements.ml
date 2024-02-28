@@ -83,8 +83,9 @@ let rec pp_statement statement =
           end
         end
 
-      | MP_variant { matched } -> begin
+      | MP_variant { matched; cases } -> begin
           let _ = matched
+          and _ = cases
           in
           AC.not_yet_implemented [%here]
         end

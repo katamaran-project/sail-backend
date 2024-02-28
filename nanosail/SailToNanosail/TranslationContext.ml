@@ -147,6 +147,7 @@ let lookup_type
   end
 
 
+(* Looks up type of register with given name *)
 let lookup_register_type (identifier : string) : nanotype option t =
   let* registers = Monad.get Context.registers
   in
