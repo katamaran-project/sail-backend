@@ -13,7 +13,12 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let translate_identifier ocaml_location (S.Id_aux (aux, sail_location)) : string TC.t =
+let translate_identifier
+      (ocaml_location : Lexing.position)
+      (identifier     : S.id           ) : string TC.t
+  =
+  let S.Id_aux (aux, sail_location) = identifier
+  in
   match aux with
   | Id id       -> TC.return id
   | Operator op -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" op) ocaml_location sail_location
