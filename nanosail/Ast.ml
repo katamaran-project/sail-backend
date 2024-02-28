@@ -9,7 +9,7 @@ type type_annotation = Libsail.Type_check.tannot
 (* todo find better location for this definition *)
 type sail_definition = type_annotation Libsail.Ast.def
 
-type identifier = string
+type identifier = Id of string
 
 type numeric_expression =
   | NE_constant of Z.t
@@ -17,8 +17,8 @@ type numeric_expression =
   | NE_minus    of numeric_expression * numeric_expression
   | NE_times    of numeric_expression * numeric_expression
   | NE_neg      of numeric_expression
-  | NE_id       of string
-  | NE_var      of string
+  | NE_id       of identifier
+  | NE_var      of identifier
 
 type kind =
   | Kind_type
@@ -61,8 +61,8 @@ type nanotype =
 
   | Ty_nat                                       (* TODO remove *)
   | Ty_atom                                      (* TODO remove *)
-  | Ty_app       of string * type_argument list  (* TODO remove *)
-  | Ty_custom    of string                       (* TODO remove *)
+  | Ty_app       of identifier * type_argument list  (* TODO remove *)
+  | Ty_custom    of identifier                       (* TODO remove *)
 
 and type_argument =
   | TA_type   of nanotype
@@ -76,19 +76,19 @@ and numeric_constraint =
   | NC_bounded_le of numeric_expression * numeric_expression
   | NC_bounded_lt of numeric_expression * numeric_expression
   | NC_not_equal  of numeric_expression * numeric_expression
-  | NC_set        of string             * Z.t list
+  | NC_set        of identifier         * Z.t list
   | NC_or         of numeric_constraint * numeric_constraint
   | NC_and        of numeric_constraint * numeric_constraint
-  | NC_app        of string             * type_argument list
-  | NC_var        of string
+  | NC_app        of identifier         * type_argument list
+  | NC_var        of identifier
   | NC_true
   | NC_false
 
-type type_quantifier_item = string * kind
+type type_quantifier_item = identifier * kind
 
 type type_quantifier = type_quantifier_item list
 
-type bind = string * nanotype
+type bind = identifier * nanotype
 
 type function_type = {
   arg_types : bind list;
@@ -131,25 +131,25 @@ type value =
 
 
 type expression =
-  | Exp_var    of string
+  | Exp_var    of identifier
   | Exp_val    of value
   | Exp_neg    of expression
   | Exp_not    of expression
   | Exp_list   of expression list
   | Exp_binop  of binary_operator * expression * expression
-  | Exp_record of { type_identifier : string; variable_identifiers : string list }
-  | Exp_enum   of string
+  | Exp_record of { type_identifier : identifier; variable_identifiers : identifier list }
+  | Exp_enum   of identifier
 
 
 type statement =
   | Stm_match              of match_pattern
   | Stm_exp                of expression
-  | Stm_call               of string * expression list
-  | Stm_let                of string * statement * statement
+  | Stm_call               of identifier * expression list
+  | Stm_let                of identifier * statement * statement
   | Stm_destructure_record of destructure_record
   | Stm_seq                of statement * statement
-  | Stm_read_register      of string
-  | Stm_write_register     of string * statement
+  | Stm_read_register      of identifier
+  | Stm_write_register     of identifier * statement
   | Stm_cast               of statement * nanotype
 
 and match_pattern =
@@ -162,15 +162,15 @@ and match_pattern =
 and match_pattern_list =
   {
     matched   : statement;
-    when_cons : string * string * statement;
+    when_cons : identifier * identifier * statement;
     when_nil  : statement;
   }
 
 and match_pattern_product =
   {
     matched   : statement;
-    id_fst    : string;
-    id_snd    : string;
+    id_fst    : identifier;
+    id_snd    : identifier;
     body      : statement;
   }
 
@@ -184,27 +184,27 @@ and match_pattern_bool =
 and match_pattern_enum =
   {
     matched    : statement;
-    cases      : statement StringMap.t
+    cases      : statement IdentifierMap.t
   }
 
 and match_pattern_variant =
   {
     matched    : statement;
-    cases      : (string list * statement) StringMap.t
+    cases      : (identifier list * statement) IdentifierMap.t
   }
 
 and destructure_record =
   {
-    record_type_identifier : string     ;   (* name of the record                                              *)
-    field_identifiers      : string list;   (* names of the record's fields                                    *)
-    variable_identifiers   : string list;   (* names of the variables receiving the record's fields' values    *)
-    destructured_record    : statement  ;   (* statement yield the record object                               *)
-    body                   : statement  ;   (* body that can refer to record fields using variable_identifiers *)
+    record_type_identifier : identifier     ;   (* name of the record                                              *)
+    field_identifiers      : identifier list;   (* names of the record's fields                                    *)
+    variable_identifiers   : identifier list;   (* names of the variables receiving the record's fields' values    *)
+    destructured_record    : statement      ;   (* statement yield the record object                               *)
+    body                   : statement      ;   (* body that can refer to record fields using variable_identifiers *)
   }
 
 
 type function_definition = {
-  function_name : string;
+  function_name : identifier;
   function_type : function_type;
   function_body : statement;
 }
@@ -221,8 +221,8 @@ type untranslated_definition =
 
 type register_definition =
   {
-    identifier : string  ;
-    typ        : nanotype;
+    identifier : identifier;
+    typ        : nanotype  ;
   }
 
 
@@ -234,33 +234,33 @@ type type_abbreviation =
 
 type type_abbreviation_definition =
   {
-    identifier   : string;
-    abbreviation : type_abbreviation
+    identifier   : identifier       ;
+    abbreviation : type_abbreviation;
   }
 
 
 type variant_definition =
   {
-    identifier      : string                  ;
+    identifier      : identifier              ;
     type_quantifier : type_quantifier         ;
     constructors    : variant_constructor list;
   }
 
-and variant_constructor = (string * nanotype list)
+and variant_constructor = (identifier * nanotype list)
 
 
 type enum_definition =
   {
-    identifier : string     ;
-    cases      : string list;
+    identifier : identifier;
+    cases      : identifier list;
   }
 
 
 type record_definition =
   {
-    identifier      : string;
+    identifier      : identifier;
     type_quantifier : type_quantifier;
-    fields          : (string * nanotype) list;
+    fields          : (identifier * nanotype) list;
   }
 
 
@@ -273,14 +273,14 @@ type type_definition =
 
 type top_level_type_constraint_definition =
   {
-    identifier : string;
+    identifier : identifier;
   }
 
 
 type value_definition =
   {
-    identifier : string   ;
-    value      : statement;
+    identifier : identifier;
+    value      : statement ;
   }
 
 
