@@ -12,7 +12,7 @@ module AC = AnnotationContext
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier = pp_identifier @@ "fun_" ^ function_definition.function_name in
+  let identifier = pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name in
   let parameters = [] in
   let coq_definition =
     let* result_type =
@@ -57,7 +57,7 @@ let pp_function_definitions
     let find_type_constraint function_name =
       match
         List.filter
-          ~f:(fun (_, type_constraint) -> String.equal type_constraint.identifier function_name)
+          ~f:(fun (_, type_constraint) -> Id.equal type_constraint.identifier function_name)
           top_level_type_constraint_definitions
       with
       | [x] -> Some x
@@ -74,7 +74,7 @@ let pp_function_definition_kit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
-    let identifier = pp_identifier "FunDef"
+    let identifier = pp_identifier @@ Id.mk "FunDef"
     and parameters = [
         utf8string "{Δ τ}";
         utf8string "(f : Fun Δ τ)"
@@ -86,8 +86,8 @@ let pp_function_definition_kit
       and cases =
         let case_of_function_definition function_definition =
           (
-            string function_definition.function_name,
-            string (Printf.sprintf "fun_%s" function_definition.function_name)
+            pp_identifier function_definition.function_name,
+            pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name
           )
         in
         List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
@@ -104,4 +104,4 @@ let pp_function_definition_kit
           )
       )
   in
-  Coq.section "FunDefKit" contents
+  Coq.section (Id.mk "FunDefKit") contents

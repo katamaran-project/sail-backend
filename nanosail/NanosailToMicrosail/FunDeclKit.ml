@@ -2,13 +2,14 @@ open Base
 open PP
 open Ast
 open Monads.Notations.Star(AnnotationContext)
+open Identifier
 
 module AC = AnnotationContext
 
 
 let generate function_definitions =
   let pp_function_declaration function_definition =
-    let name = string function_definition.function_name in
+    let name = pp_identifier function_definition.function_name in
     let* function_type =
       let* parameter_types =
         let* ps = AC.map ~f:Sail.pp_bind function_definition.function_type.arg_types
@@ -56,4 +57,4 @@ let generate function_definitions =
           ]
       ]
   in
-  Coq.section "FunDeclKit" contents
+  Coq.section (Id.mk "FunDeclKit") contents

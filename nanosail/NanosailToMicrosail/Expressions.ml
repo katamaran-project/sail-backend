@@ -2,6 +2,7 @@ open Base
 open PP
 open Ast
 open Monads.Notations.Star(AnnotationContext)
+open Identifier
 
 module AC = AnnotationContext
 
@@ -105,7 +106,7 @@ let rec pp_expression e =
       AC.return @@ infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var v              -> AC.return @@ simple_app [string "exp_var"; dquotes (string v)]
+  | Exp_var v              -> AC.return @@ simple_app [string "exp_var"; dquotes (pp_identifier v)]
   | Exp_val v              -> pp_exp_val v
   | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ string "- " ^^ e'
   | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ simple_app [string "exp_not"; e']
@@ -126,13 +127,13 @@ let rec pp_expression e =
   | Exp_record { type_identifier; variable_identifiers } -> begin
       AC.return @@ simple_app [
                        string "exp_record";
-                       string type_identifier;
+                       pp_identifier type_identifier;
                        Coq.list @@ List.map
                                      variable_identifiers
-                                     ~f:(fun id -> simple_app [ string "exp_var"; string id ])
+                                     ~f:(fun id -> simple_app [ string "exp_var"; pp_identifier id ])
                      ]
     end
-  | Exp_enum identifier -> AC.return @@ string identifier
+  | Exp_enum identifier -> AC.return @@ pp_identifier identifier
 
 and pp_par_expression e =
   let* e' = pp_expression e

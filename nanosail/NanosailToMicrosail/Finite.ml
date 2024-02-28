@@ -1,23 +1,26 @@
 open Base
 open Ast
 open Auxlib
+open Identifier
 
 module PP = PPrint
 
 
 
-let generate_enum_finiteness (_sail_definition : sail_definition) (enum_definition : enum_definition) =
-  let identifier = enum_definition.identifier
-  and type_name = enum_definition.identifier
-  and values = enum_definition.cases
+let generate_enum_finiteness
+      (_sail_definition : sail_definition)
+      (enum_definition  : enum_definition) =
+  let identifier = pp_identifier @@ enum_definition.identifier
+  and type_name  = pp_identifier @@ enum_definition.identifier
+  and values     = List.map ~f:pp_identifier enum_definition.cases
   in
   Coq.finite_instance ~identifier ~type_name ~values
 
 
 let generate_register_finiteness (register_definitions : (sail_definition * register_definition) list) =
-  let identifier = "RegName"
-  and type_name = "RegName"
-  and values = List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+  let identifier = pp_identifier @@ Id.mk "RegName"
+  and type_name  = pp_identifier @@ Id.mk "RegName"
+  and values     = List.map ~f:(fun (_, def) -> pp_identifier def.identifier) register_definitions
   in
   Coq.finite_instance ~identifier ~type_name ~values
 
@@ -51,5 +54,5 @@ let generate (definitions : (sail_definition * definition) list) =
               addall @@ finite_definitions;
             end
       in
-      Option.some @@ Coq.section "Finite" @@ PP.(separate (twice hardline) parts)
+      Option.some @@ Coq.section (Id.mk "Finite") @@ PP.(separate (twice hardline) parts)
     end

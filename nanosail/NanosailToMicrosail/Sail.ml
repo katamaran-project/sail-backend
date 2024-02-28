@@ -10,7 +10,7 @@ module PP = PPrint
 
 let pp_bind (arg, t) =
   let* t' = pp_nanotype t in
-  AC.return @@ utf8string ("\"" ^ arg ^ "\" ∷ " ) ^^ t'
+  AC.return @@ utf8string ("\"" ^ (Id.string_of arg) ^ "\" ∷ " ) ^^ t'
 
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
