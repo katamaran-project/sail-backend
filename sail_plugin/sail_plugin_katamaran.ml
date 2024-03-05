@@ -6,7 +6,6 @@ let print_check_message () =
   Stdio.print_endline("Katamaran plugin is functioning correctly")
 
 
-
 let rewrite_count () =
   match Sys.getenv "REWRITES" with
   | None     -> List.length Rewrites.katamaran_rewrites
@@ -59,7 +58,14 @@ let with_stdout func =
 
 
 (** Katamaran target action. *)
-let katamaran_target _ _ filename ast _ _ =
+let katamaran_target
+      (_        : Yojson.Basic.t option                         )
+      (_        : string                                        )
+      (filename : string option                                 )
+      (ast      : Libsail.Type_check.tannot Libsail.Ast_defs.ast)
+      (_        : Libsail.Effects.side_effect_info              )
+      (_        : Libsail.Type_check.env                        )
+  =
   if !Options.print_rewrites
   then begin
       List.iteri ~f:(fun index (rewrite_name, _) ->
