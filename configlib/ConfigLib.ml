@@ -3,6 +3,7 @@ open Slang.Evaluation
 open Monads.Notations.Star(Slang.EvaluationContext)
 
 module EC = Slang.EvaluationContext
+module C  = Slang.Converters
 
 
 (* List of native functions to be made accessible in configuration script *)
@@ -57,9 +58,39 @@ let strings export_as =
     in
     let* evaluated_arguments = EC.map ~f:evaluate arguments
     in
-    let=!! strings = List.map ~f:Converters.string evaluated_arguments
+    let=!! strings = List.map ~f:C.string evaluated_arguments
     in
     set strings;
+    EC.return @@ Value.Nil
+  in
+  register_script_function export_as script_function;
+  Setting (get, set)
+
+
+(*
+  Creates a Slang function named <export_as> that takes
+  two arguments. Every time it is called, it adds this
+  pair of values to a map.
+ *)
+let string_to_string export_as =
+  let get, set = create_setting_cell @@ Map.empty(module String)
+  in
+  let script_function arguments =
+    let open Slang in
+    let open Slang.Prelude.Shared
+    in
+    let* evaluated_arguments = EC.map ~f:evaluate arguments
+    in
+    let=! pair = C.map2 C.string C.string evaluated_arguments
+    in
+    let updated_map =
+      let key, data = pair
+      in
+      let map = get ()
+      in
+      Map.add_exn map ~key ~data
+    in
+    set updated_map;
     EC.return @@ Value.Nil
   in
   register_script_function export_as script_function;
