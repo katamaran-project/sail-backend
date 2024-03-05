@@ -88,7 +88,6 @@ let string_to_string export_as =
       in
       let map = get ()
       in
-      Stdio.printf "SET %s => %s" key data;
       map @ [ (key, data) ]
     in
     set updated_map;
