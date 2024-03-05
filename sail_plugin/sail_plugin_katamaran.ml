@@ -16,86 +16,95 @@ let rewrites () =
   List.take Rewrites.katamaran_rewrites (rewrite_count ())
 
 
+module CLI = struct
+  module Arg = struct
+    let mk_option s =
+      let words = String.split s ~on:' '
+      in
+      String.concat ~sep:"_" ("-katamaran" :: words)
+    
+    let check                = mk_option "check"
+    let list_notations       = mk_option "list notations"
+    let width                = mk_option "width"
+    let program_name         = mk_option "program name"
+    let include_original     = mk_option "add original"
+    let include_untranslated = mk_option "include untranslated"
+    let include_ignored      = mk_option "include ignored"
+    let print_rewrites       = mk_option "print rewrites"
+    let config_file          = mk_option "config"
+  end
+end
+
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
-  ("-katamaran_check",
+  (CLI.Arg.check,
     Stdlib.Arg.Unit print_check_message,
     "(debug) check if Katamaran plugin is correctly installed");
-  ("-katamaran_list_notations",
+  (CLI.Arg.list_notations,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set use_list_notations true)),
     "use list notations");
-  ("-katamaran_width",
+  (CLI.Arg.width,
     Stdlib.Arg.Set_int Options.width,
     "set a custom width for the output");
-  ("-katamaran_add_original",
+  (CLI.Arg.program_name,
+   Stdlib.Arg.Set_string Options.program_name,
+    "set a custom width for the output");
+  (CLI.Arg.include_original,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
    "show original Sail code in output");
-  ("-katamaran_include_untranslated",
+  (CLI.Arg.include_untranslated,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_untranslated_definitions true)),
    "include information about untranslated Sail code");
-  ("-katamaran_include_ignored",
+  (CLI.Arg.include_ignored,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_ignored_definitions true)),
    "include ignored Sail definitions");
-  ("-katamaran_print_rewrites",
+  (CLI.Arg.print_rewrites,
    Stdlib.Arg.Set Options.print_rewrites,
    "Prints the list of rewrites");
-  ("-katamaran_config",
-   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration_file s),
+  (CLI.Arg.config_file,
+   Stdlib.Arg.String (fun s -> Options.config_file := Some s),
    "Specify configuration file");
 ]
 
 
-let with_open_file filename func =
-  Auxlib.using
-    ~resource:(Stdio.Out_channel.create filename)
-    ~close:Stdio.Out_channel.close
-    ~body:func
+(* let with_open_file filename func = *)
+(*   Auxlib.using *)
+(*     ~resource:(Stdio.Out_channel.create filename) *)
+(*     ~close:Stdio.Out_channel.close *)
+(*     ~body:func *)
 
 
-let with_stdout func =
-  func Stdio.stdout
+(* let with_stdout func = *)
+(*   func Stdio.stdout *)
 
 
-(** Katamaran target action. *)
+
+let print_rewrites () =
+  List.iteri ~f:(fun index (rewrite_name, _) ->
+      Stdio.printf "[%02d] %s\n" (index + 1) rewrite_name
+    )
+    (rewrites ())
+
+
+(* Entry point for Katamaran target *)
 let katamaran_target
-      (_        : Yojson.Basic.t option                         )
-      (_        : string                                        )
-      (filename : string option                                 )
-      (ast      : Libsail.Type_check.tannot Libsail.Ast_defs.ast)
-      (_        : Libsail.Effects.side_effect_info              )
-      (_        : Libsail.Type_check.env                        )
+      (_                : Yojson.Basic.t option                         )
+      (_                : string                                        )
+      (_output_filename : string option                                 )
+      (ast              : Libsail.Type_check.tannot Libsail.Ast_defs.ast)
+      (_                : Libsail.Effects.side_effect_info              )
+      (_                : Libsail.Type_check.env                        )
   =
-  if !Options.print_rewrites
-  then begin
-      List.iteri ~f:(fun index (rewrite_name, _) ->
-          Stdio.printf "[%02d] %s\n" (index + 1) rewrite_name
-        )
-        (rewrites ())
-    end;
-  let add_extension filename =
-    if Stdlib.Filename.check_suffix filename ".v"
-    then filename
-    else filename ^ ".v"
+  if !Options.print_rewrites then print_rewrites ();
+  let translation = Nanosail.SailToNanosail.translate ast !Options.program_name
   in
-  let program_name_from_filename filename =
-    String.capitalize (Stdlib.Filename.chop_extension filename)
-  in
-  let context, program_name =
-    match filename with
-    | Some filename -> (with_open_file (add_extension filename), program_name_from_filename filename)
-    | None          -> (with_stdout, "NoName")
-  in
-  let nanosail_representation = Nanosail.SailToNanosail.translate ast program_name
-  in
-  let sanitized_nanosail_representation = Nanosail.SailToNanosail.coqify_identifiers nanosail_representation
-  in
-  let document = Nanosail.NanosailToMicrosail.Katamaran.fromIR_pp sanitized_nanosail_representation
-  in
-  context (fun output_channel -> Nanosail.NanosailToMicrosail.Katamaran.pretty_print !Options.width output_channel document)
+  match !Options.config_file with
+  | None             -> Stdio.printf "No config file specified; use %s" CLI.Arg.config_file
+  | Some config_file -> Nanosail.Templates.process config_file translation
 
 
-(** Registering of the katamaran target. *)
+(* Tell Sail about new Katamaran target *)
 let _ =
   Libsail.Target.register
     ~name:"katamaran"

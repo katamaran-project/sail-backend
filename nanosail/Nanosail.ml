@@ -8,3 +8,4 @@ module SailToNanosail      = SailToNanosail
 module StringMap           = StringMap
 module Id                  = Id
 module IdentifierMap       = IdentifierMap
+module Templates           = Templates
