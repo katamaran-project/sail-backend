@@ -63,7 +63,7 @@ let katamaran_options = [
    Stdlib.Arg.Set Options.print_rewrites,
    "Prints the list of rewrites");
   (CLI.Arg.config_file,
-   Stdlib.Arg.String (fun s -> Options.config_file := Some s),
+   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration_file s),
    "Specify configuration file");
 ]
 
@@ -77,8 +77,6 @@ let katamaran_options = [
 
 (* let with_stdout func = *)
 (*   func Stdio.stdout *)
-
-
 
 let print_rewrites () =
   List.iteri ~f:(fun index (rewrite_name, _) ->
@@ -99,9 +97,7 @@ let katamaran_target
   if !Options.print_rewrites then print_rewrites ();
   let translation = Nanosail.SailToNanosail.translate ast !Options.program_name
   in
-  match !Options.config_file with
-  | None             -> Stdio.printf "No config file specified; use %s" CLI.Arg.config_file
-  | Some config_file -> Nanosail.Templates.process config_file translation
+  Nanosail.Templates.process translation
 
 
 (* Tell Sail about new Katamaran target *)

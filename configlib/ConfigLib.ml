@@ -73,7 +73,7 @@ let strings export_as =
   pair of values to a map.
  *)
 let string_to_string export_as =
-  let get, set = create_setting_cell @@ Map.empty(module String)
+  let get, set = create_setting_cell []
   in
   let script_function arguments =
     let open Slang in
@@ -88,7 +88,8 @@ let string_to_string export_as =
       in
       let map = get ()
       in
-      Map.add_exn map ~key ~data
+      Stdio.printf "SET %s => %s" key data;
+      map @ [ (key, data) ]
     in
     set updated_map;
     EC.return @@ Value.Nil
