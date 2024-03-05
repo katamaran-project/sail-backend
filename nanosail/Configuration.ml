@@ -15,6 +15,7 @@ let ignore_overloads                  = ConfigLib.bool     "ignore-all-overloads
 let ignore_definition_predicate       = ConfigLib.callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
 let ignore_value_definition_predicate = ConfigLib.callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
 let template_files                    = ConfigLib.string_to_string "template"
+let print_warnings                    = ConfigLib.bool      "print-warnings"
 
 
 module Identifier = struct

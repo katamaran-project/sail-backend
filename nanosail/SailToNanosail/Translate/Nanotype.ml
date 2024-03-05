@@ -83,6 +83,6 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
       and numeric_constraint' = Libsail.Ast_util.string_of_n_constraint nc
       and typ' = Libsail.Ast_util.string_of_typ typ
       in
-      Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ';
+      if Configuration.(get print_warnings) then Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ';
       nanotype_of_sail_type typ
     end
