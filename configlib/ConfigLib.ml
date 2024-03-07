@@ -2,31 +2,24 @@ open Base
 open Slang.Evaluation
 open Monads.Notations.Star(Slang.EvaluationContext)
 
+module Functions = Functions
+module Setting   = Setting
+
 module EC = Slang.EvaluationContext
 module C  = Slang.Converters
+
+open Setting
 
 
 (* List of native functions to be made accessible in configuration script *)
 let exported_functions : (string * Slang.Value.callable) list ref = ref []
 
-type 'a getter  = unit -> 'a
-type 'a setter  = 'a -> unit
-type 'a setting = Setting of 'a getter * 'a setter
 
 
 let register_script_function
       (identifier : string              )
       (callable   : Slang.Value.callable) =
   exported_functions := (identifier, callable) :: !exported_functions
-
-
-let create_setting_cell initial_value =
-  let cell = ref initial_value
-  in
-  let get () = !cell
-  and set b  = cell := b
-  in
-  (get, set)
 
 
 (*
