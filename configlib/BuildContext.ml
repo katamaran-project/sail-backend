@@ -41,6 +41,27 @@ module M (_ : sig end) = struct
   
 
   module Setting = struct
+    let generic_strict
+        ~init
+        (translate : Slang.Value.t list -> 'a)
+        (export_as : string                  )
+      =
+      let get, set = Setting.create_setting_cell init
+      in
+      let script_function arguments =
+        let open Slang in
+        let open Slang.Prelude.Shared
+        in
+        let* evaluated_arguments = EC.map ~f:evaluate arguments
+        in
+        let strings = translate evaluated_arguments
+        in
+        set strings;
+        EC.return @@ Value.Nil
+      in
+      export export_as script_function;
+      Setting.mk get set
+    
     (*
       Exports a Slang function named <export_as> that takes a boolean argument.
       Calling this function causes a refcell to be set with this argument.
