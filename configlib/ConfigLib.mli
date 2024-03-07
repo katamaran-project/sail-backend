@@ -2,6 +2,7 @@ type 'a setting
 
 val bool             : ?init:bool -> string -> bool setting
 val strings          : string -> string list setting
+val generic_strict   : init:'a -> (Slang.Value.t list -> 'a) -> string -> 'a setting
 val string_to_string : string -> (string * string) list setting
 val callable         : ?error_message:string -> string -> (Slang.Value.t list -> Slang.Value.t Slang.EvaluationContext.t) setting
 
