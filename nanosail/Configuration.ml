@@ -1,22 +1,32 @@
 open Base
 
-include ConfigLib.Exported
-
 
 type sail_definition = Ast.sail_definition
 
-let use_list_notations                = ConfigLib.bool     "use-list-notations"               (* Use list notations                                                          *)
-let include_untranslated_definitions  = ConfigLib.bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
-let include_original_code             = ConfigLib.bool     "include-original-code"            (* Annotate all Microsail definitions with their corresponding Sail definition *)
-let include_ignored_definitions       = ConfigLib.bool     "include-ignored-definitions"      (* Output ignored definitions                                                  *)
-let ignored_pragmas                   = ConfigLib.strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
-let ignored_functions                 = ConfigLib.strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
-let ignore_overloads                  = ConfigLib.bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
-let ignore_definition_predicate       = ConfigLib.callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
-let ignore_value_definition_predicate = ConfigLib.callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
-let template_files                    = ConfigLib.string_to_string "template"
-let print_warnings                    = ConfigLib.bool      "print-warnings"
 
+module C = struct
+  include ConfigLib.BuildContext.M(struct end)
+
+  module S = struct
+    let use_list_notations                = Setting.bool     "use-list-notations"               (* Use list notations                                                          *)
+    let include_untranslated_definitions  = Setting.bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
+    let include_original_code             = Setting.bool     "include-original-code"            (* Annotate all Microsail definitions with their corresponding Sail definition *)
+    let include_ignored_definitions       = Setting.bool     "include-ignored-definitions"      (* Output ignored definitions                                                  *)
+    let ignored_pragmas                   = Setting.strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
+    let ignored_functions                 = Setting.strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
+    let ignore_overloads                  = Setting.bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
+    let ignore_definition_predicate       = Setting.callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
+    let ignore_value_definition_predicate = Setting.callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
+    let template_files                    = Setting.string_to_string "template"
+    let print_warnings                    = Setting.bool      "print-warnings"
+  end
+end
+
+include C.S
+
+let load_configuration = C.load_configuration
+let get                = ConfigLib.Setting.get
+let set                = ConfigLib.Setting.set
 
 module Identifier = struct
   open Libsail.Ast
@@ -137,6 +147,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
   let member setting item =
     List.mem (get setting) item ~equal:String.equal
   in
+  
   let should_ignore_pragma identifier =
     member ignored_pragmas identifier
 

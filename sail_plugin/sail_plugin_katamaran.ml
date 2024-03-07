@@ -63,7 +63,7 @@ let katamaran_options = [
    Stdlib.Arg.Set Options.print_rewrites,
    "Prints the list of rewrites");
   (CLI.Arg.config_file,
-   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration_file s),
+   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
 ]
 
