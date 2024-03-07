@@ -3,6 +3,7 @@ open Base
 module EC = Slang.EvaluationContext
 
 
+
 let is_template_block_start line =
   String.equal (String.rstrip line) "(*<"
 
@@ -11,10 +12,11 @@ let is_template_block_end line =
   String.equal (String.rstrip line) ">*)"
 
 
+(* Processes a single template, given the input and output as channels *)
 let process_template_streams
     (_translation   : Ast.program        )
-    (input_stream  : Stdio.In_channel.t )
-    (output_stream : Stdio.Out_channel.t)
+    (input_channel  : Stdio.In_channel.t )
+    (output_channel : Stdio.Out_channel.t)
   =
   let inside_template_block = ref false
   and block_acc = ref []
@@ -22,7 +24,7 @@ let process_template_streams
   let accumulate_line line =
     block_acc := line :: !block_acc
   and output_line line =
-    Stdio.Out_channel.output_lines output_stream [line]
+    Stdio.Out_channel.output_lines output_channel [line]
   and process_block () =
     () (* todo *)
   in
@@ -43,7 +45,7 @@ let process_template_streams
     then accumulate_line line
     else output_line line
   in
-  Stdio.In_channel.iter_lines input_stream ~f:begin fun line ->
+  Stdio.In_channel.iter_lines input_channel ~f:begin fun line ->
     if is_template_block_start line
     then start_new_block ()
     else if is_template_block_end line
@@ -52,6 +54,7 @@ let process_template_streams
   end
 
 
+(* Processes a single template, given the names of the input and output files *)
 let process_template
     (translation : Ast.program)
     (input_file  : string     )
@@ -64,6 +67,7 @@ let process_template
   end
 
 
+(* Processes all templates defined in the configuration *)
 let process (translation : Ast.program) =
   let templates = Configuration.(get template_files)
   in
