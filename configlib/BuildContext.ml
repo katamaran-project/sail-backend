@@ -41,12 +41,14 @@ module M (_ : sig end) = struct
   
 
   module Setting = struct
+    let mk_cell = Setting.create_setting_cell
+    
     let generic_strict
         ~init
         (translate : Slang.Value.t list -> 'a)
         (export_as : string                  )
       =
-      let get, set = Setting.create_setting_cell init
+      let get, set = mk_cell init
       in
       let script_function arguments =
         let open Slang in
@@ -67,7 +69,7 @@ module M (_ : sig end) = struct
       Calling this function causes a refcell to be set with this argument.
     *)
     let bool ?(init=false) export_as =
-      let get, set = Setting.create_setting_cell init
+      let get, set = mk_cell init
       in
       let script_function _values =
         set true;
@@ -83,7 +85,7 @@ module M (_ : sig end) = struct
       Strings are not appended: the list overwrites the previously stored list.
     *)
     let strings export_as =
-      let get, set = Setting.create_setting_cell []
+      let get, set = mk_cell []
       in
       let script_function arguments =
         let open Slang in
@@ -106,7 +108,7 @@ module M (_ : sig end) = struct
       pair of values to a map.
      *)
     let string_to_string export_as =
-      let get, set = Setting.create_setting_cell []
+      let get, set = mk_cell []
       in
       let script_function arguments =
         let open Slang in
@@ -131,7 +133,7 @@ module M (_ : sig end) = struct
 
 
     let callable ?(error_message = "missing setting") export_as =
-      let get, set = Setting.create_setting_cell (fun _ -> failwith error_message)
+      let get, set = mk_cell (fun _ -> failwith error_message)
       in
       let script_function arguments =
         let open Slang in
