@@ -28,7 +28,7 @@ let load_configuration = C.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
 
-module Identifier = struct
+module Identifier = struct (* move somewhere else *)
   open Libsail.Ast
 
   (* extracts name as string; fails on operator name *) (* todo function already exists somewhere else *)
