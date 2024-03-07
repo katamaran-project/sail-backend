@@ -15,9 +15,6 @@ module M (_ : sig end) = struct
     ref []
 
 
-  let mk_cell = Setting.create_setting_cell
-
-  
   let export_callable
       (identifier : string              )
       (callable   : Slang.Value.callable)
@@ -46,23 +43,24 @@ module M (_ : sig end) = struct
 
 
   let export_strict_function
-      (process   : Slang.Value.t list -> 'a)
       (export_as : string                  )
-    =
+      (process   : Slang.Value.t list -> 'a)
+     =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
-      EC.return @@ process evaluated_arguments
+      process evaluated_arguments;
+      EC.return Slang.Value.Nil
     in
     export_callable export_as script_function
-  
 
-  let generic_strict
+
+   let generic_strict
+      (export_as : string                  )
       ~init
       (translate : Slang.Value.t list -> 'a)
-      (export_as : string                  )
     =
-    let get, set = mk_cell init
+    let setting = Setting.mk init
     in
     let script_function arguments =
       let open Slang in
@@ -72,25 +70,25 @@ module M (_ : sig end) = struct
       in
       let strings = translate evaluated_arguments
       in
-      set strings;
+      Setting.set setting strings;
       EC.return @@ Value.Nil
     in
     export_callable export_as script_function;
-    Setting.mk get set
+    setting
 
     (*
       Exports a Slang function named <export_as> that takes a boolean argument.
       Calling this function causes a refcell to be set with this argument.
     *)
   let bool ?(init=false) export_as =
-    let get, set = mk_cell init
+    let setting = Setting.mk init
     in
     let script_function _values =
-      set true;
+      Setting.set setting true;
       EC.return Slang.Value.Nil
     in
     export_callable export_as script_function;
-    Setting.mk get set
+    setting
 
 
     (*
@@ -99,7 +97,7 @@ module M (_ : sig end) = struct
       Strings are not appended: the list overwrites the previously stored list.
     *)
   let strings export_as =
-    let get, set = mk_cell []
+    let setting = Setting.mk []
     in
     let script_function arguments =
       let open Slang in
@@ -109,11 +107,11 @@ module M (_ : sig end) = struct
       in
       let=!! strings = List.map ~f:C.string evaluated_arguments
       in
-      set strings;
+      Setting.set setting strings;
       EC.return @@ Value.Nil
     in
     export_callable export_as script_function;
-    Setting.mk get set
+    setting
 
 
     (*
@@ -122,7 +120,7 @@ module M (_ : sig end) = struct
       pair of values to a map.
      *)
   let string_to_string export_as =
-    let get, set = mk_cell []
+    let setting = Setting.mk []
     in
     let script_function arguments =
       let open Slang in
@@ -135,19 +133,19 @@ module M (_ : sig end) = struct
       let updated_map =
         let key, data = pair
         in
-        let map = get ()
+        let map = Setting.get setting
         in
         map @ [ (key, data) ]
       in
-      set updated_map;
+      Setting.set setting updated_map;
       EC.return @@ Value.Nil
     in
     export_callable export_as script_function;
-    Setting.mk get set
+    setting
 
 
   let callable ?(error_message = "missing setting") export_as =
-    let get, set = mk_cell (fun _ -> failwith error_message)
+    let setting = Setting.mk (fun _ -> failwith error_message)
     in
     let script_function arguments =
       let open Slang in
@@ -157,9 +155,9 @@ module M (_ : sig end) = struct
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
-      set callable;
+      Setting.set setting callable;
       EC.return @@ Value.Nil
     in
     export_callable export_as script_function;
-    Setting.mk get set
+    setting
 end

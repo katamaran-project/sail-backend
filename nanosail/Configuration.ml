@@ -7,6 +7,11 @@ type sail_definition = Ast.sail_definition
 module C = struct
   include ConfigLib.BuildContext.M(struct end)
 
+  module EC = Slang.EvaluationContext
+  module C  = Slang.Converters
+
+  open Slang.Prelude.Shared
+  
   module S = struct
     let use_list_notations                = bool     "use-list-notations"               (* Use list notations                                                          *)
     let include_untranslated_definitions  = bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
@@ -20,10 +25,15 @@ module C = struct
     let template_files                    = string_to_string "template"
     let print_warnings                    = bool      "print-warnings"
 
-    let template_block_left_delimiter     = mk_cell "(*<"
-    let template_block_right_delimiter    = mk_cell ">*)"
-
-   
+    let template_block_left_delimiter     = ConfigLib.Setting.mk "(*<"
+    let template_block_right_delimiter    = ConfigLib.Setting.mk ">*)"
+        
+    let _ = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
+          let=! left, right = C.(map2 C.string C.string) evaluated_arguments
+          in
+          ConfigLib.Setting.set template_block_left_delimiter left;
+          ConfigLib.Setting.set template_block_right_delimiter right
+        end
   end
 end
 
