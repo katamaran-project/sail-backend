@@ -8,6 +8,5 @@ TESTED_FILE=microsail.v
 $SAIL -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 DIFF=$(diff $TESTED_FILE expected/$TESTED_FILE)
 if [ "$DIFF" ]; then
-    echo "TEMPLATE TEST $(basename `pwd`) FAILED"
     exit -1;
 fi
