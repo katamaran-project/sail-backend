@@ -5,11 +5,18 @@ module EC = Slang.EvaluationContext
 
 
 let is_template_block_start line =
-  String.equal (String.rstrip line) "(*<"
+  let left_delimiter =
+    Configuration.(get template_block_left_delimiter)
+  in
+  String.equal (String.rstrip line) left_delimiter
 
 
 let is_template_block_end line =
-  String.equal (String.rstrip line) ">*)"
+  let right_delimiter =
+    Configuration.(get template_block_right_delimiter)
+  in
+  String.equal (String.rstrip line) right_delimiter
+
 
 
 (* Processes a single template, given the input and output as channels *)
