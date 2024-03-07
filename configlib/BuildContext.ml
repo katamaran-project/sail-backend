@@ -14,11 +14,16 @@ module M (_ : sig end) = struct
   let exported_functions : (string * Slang.Value.callable) list ref =
     ref []
 
-  let export
+
+  let mk_cell = Setting.create_setting_cell
+
+  
+  let export_callable
       (identifier : string              )
       (callable   : Slang.Value.callable)
     =
     exported_functions := (identifier, callable) :: !exported_functions
+
 
   let load_configuration path =
     let open Slang
@@ -38,45 +43,54 @@ module M (_ : sig end) = struct
       EC.return ()
     in
     ignore @@ EvaluationContext.run program
+
+
+  let export_strict_function
+      (process   : Slang.Value.t list -> 'a)
+      (export_as : string                  )
+    =
+    let script_function arguments =
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      in
+      EC.return @@ process evaluated_arguments
+    in
+    export_callable export_as script_function
   
 
-  module Setting = struct
-    let mk_cell = Setting.create_setting_cell
-    
-    let generic_strict
-        ~init
-        (translate : Slang.Value.t list -> 'a)
-        (export_as : string                  )
-      =
-      let get, set = mk_cell init
+  let generic_strict
+      ~init
+      (translate : Slang.Value.t list -> 'a)
+      (export_as : string                  )
+    =
+    let get, set = mk_cell init
+    in
+    let script_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
       in
-      let script_function arguments =
-        let open Slang in
-        let open Slang.Prelude.Shared
-        in
-        let* evaluated_arguments = EC.map ~f:evaluate arguments
-        in
-        let strings = translate evaluated_arguments
-        in
-        set strings;
-        EC.return @@ Value.Nil
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
-      export export_as script_function;
-      Setting.mk get set
-    
+      let strings = translate evaluated_arguments
+      in
+      set strings;
+      EC.return @@ Value.Nil
+    in
+    export_callable export_as script_function;
+    Setting.mk get set
+
     (*
       Exports a Slang function named <export_as> that takes a boolean argument.
       Calling this function causes a refcell to be set with this argument.
     *)
-    let bool ?(init=false) export_as =
-      let get, set = mk_cell init
-      in
-      let script_function _values =
-        set true;
-        EC.return Slang.Value.Nil
-      in
-      export export_as script_function;
-      Setting.mk get set
+  let bool ?(init=false) export_as =
+    let get, set = mk_cell init
+    in
+    let script_function _values =
+      set true;
+      EC.return Slang.Value.Nil
+    in
+    export_callable export_as script_function;
+    Setting.mk get set
 
 
     (*
@@ -84,22 +98,22 @@ module M (_ : sig end) = struct
       Calling this function causes a ref cell to be set to this list of strings.
       Strings are not appended: the list overwrites the previously stored list.
     *)
-    let strings export_as =
-      let get, set = mk_cell []
+  let strings export_as =
+    let get, set = mk_cell []
+    in
+    let script_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
       in
-      let script_function arguments =
-        let open Slang in
-        let open Slang.Prelude.Shared
-        in
-        let* evaluated_arguments = EC.map ~f:evaluate arguments
-        in
-        let=!! strings = List.map ~f:C.string evaluated_arguments
-        in
-        set strings;
-        EC.return @@ Value.Nil
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
-      export export_as script_function;
-      Setting.mk get set
+      let=!! strings = List.map ~f:C.string evaluated_arguments
+      in
+      set strings;
+      EC.return @@ Value.Nil
+    in
+    export_callable export_as script_function;
+    Setting.mk get set
 
 
     (*
@@ -107,46 +121,45 @@ module M (_ : sig end) = struct
       two arguments. Every time it is called, it adds this
       pair of values to a map.
      *)
-    let string_to_string export_as =
-      let get, set = mk_cell []
+  let string_to_string export_as =
+    let get, set = mk_cell []
+    in
+    let script_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
       in
-      let script_function arguments =
-        let open Slang in
-        let open Slang.Prelude.Shared
-        in
-        let* evaluated_arguments = EC.map ~f:evaluate arguments
-        in
-        let=! pair = C.map2 C.string C.string evaluated_arguments
-        in
-        let updated_map =
-          let key, data = pair
-          in
-          let map = get ()
-          in
-          map @ [ (key, data) ]
-        in
-        set updated_map;
-        EC.return @@ Value.Nil
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
-      export export_as script_function;
-      Setting.mk get set
+      let=! pair = C.map2 C.string C.string evaluated_arguments
+      in
+      let updated_map =
+        let key, data = pair
+        in
+        let map = get ()
+        in
+        map @ [ (key, data) ]
+      in
+      set updated_map;
+      EC.return @@ Value.Nil
+    in
+    export_callable export_as script_function;
+    Setting.mk get set
 
 
-    let callable ?(error_message = "missing setting") export_as =
-      let get, set = mk_cell (fun _ -> failwith error_message)
+  let callable ?(error_message = "missing setting") export_as =
+    let get, set = mk_cell (fun _ -> failwith error_message)
+    in
+    let script_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
       in
-      let script_function arguments =
-        let open Slang in
-        let open Slang.Prelude.Shared
-        in
-        let* evaluated_arguments = EC.map ~f:evaluate arguments
-        in
-        let=! callable = Converters.(map1 callable) evaluated_arguments
-        in
-        set callable;
-        EC.return @@ Value.Nil
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
-      export export_as script_function;
-      Setting.mk get set
-  end
+      let=! callable = Converters.(map1 callable) evaluated_arguments
+      in
+      set callable;
+      EC.return @@ Value.Nil
+    in
+    export_callable export_as script_function;
+    Setting.mk get set
 end
