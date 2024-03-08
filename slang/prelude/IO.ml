@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(EvaluationContext)
-open Multimethods
 
 module EC = EvaluationContext
 module C = Converters
@@ -14,7 +13,7 @@ let print =
     Stdio.printf "%s\n" @@ String.concat ~sep:" " @@ List.map ~f:Value.to_string args;
     EC.return @@ Option.some @@ Value.Nil
   in
-  (id, mk_multimethod [ impl; error id ])
+  (id, Functions.mk_multimethod [ impl; error id ])
 
 
 let initialize =

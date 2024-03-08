@@ -1,5 +1,4 @@
 open Base
-open Multimethods
 open Monads.Notations.Star(EvaluationContext)
 
 module EC = EvaluationContext
@@ -16,7 +15,7 @@ let cons =
     in
     EC.return @@ Option.some @@ Value.Cons (car, cdr)
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 (* (car pair) returns the first element of the given pair *)
@@ -27,7 +26,7 @@ let car =
     in
     EC.return @@ Some car
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 (* (cdr pair) returns the second element of the given pair *)
@@ -38,7 +37,7 @@ let cdr =
     in
     EC.return @@ Some cdr
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 (* (any? predicate list) *)
@@ -51,7 +50,7 @@ let any =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.exists ~f:predicate items
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 (* (all? predicate list) *)
@@ -64,7 +63,7 @@ let all =
     in
     EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.forall ~f:predicate items
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 (* (contains? list value) *)
@@ -75,7 +74,7 @@ let contains =
     in
     EC.return @@ Option.some @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
   in
-  bind_callable id @@ mk_multimethod [ impl; error id ]
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 let caar =

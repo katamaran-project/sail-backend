@@ -2,7 +2,6 @@ open Base
 open Monads.Notations.Star(EvaluationContext)
 
 module EC = EvaluationContext
-module M  = Multimethods
 
 
 let (let=?) x f =

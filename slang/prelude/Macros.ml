@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(EvaluationContext)
-open Multimethods
 
 module EC = EvaluationContext
 module C = Converters
@@ -27,7 +26,7 @@ let define_macro =
     | _ -> EC.return None
 
   in
-  (id, mk_multi_special_form [ define_macro; error id ])
+  (id, Functions.mk_multi_special_form [ define_macro; error id ])
 
 
 let initialize =

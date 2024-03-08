@@ -7,7 +7,6 @@ module EnvironmentBuilder  = EnvironmentBuilder
 module Evaluation          = Evaluation
 module EvaluationContext   = EvaluationContext
 module Converters          = Converters
-module Multimethods        = Multimethods
 module Prelude             = Prelude
 module Exception           = Exception
 module Functions           = Functions

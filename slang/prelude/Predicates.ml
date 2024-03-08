@@ -1,5 +1,4 @@
 open Base
-open Multimethods
 open Monads.Notations.Star(EvaluationContext)
 
 
@@ -16,7 +15,7 @@ let mk_predicate id pred =
     in
     EC.return @@ Some (Value.Bool (pred v))
   in
-  (id, mk_multimethod [ impl; error id ])
+  (id, Functions.mk_multimethod [ impl; error id ])
 
 
 let is_cons     = mk_predicate "cons?" P.is_cons
