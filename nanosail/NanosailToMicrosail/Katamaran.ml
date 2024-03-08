@@ -139,5 +139,4 @@ let fromIR_pp ir =
   separate_nonempty big_step sections
 
 
-(* todo remove this *)
 let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)
