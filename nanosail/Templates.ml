@@ -32,9 +32,7 @@ let template_prelude (translation : Ast.program) =
       full_translation;
     ]
   in
-  EC.iter exported ~f:(fun (id, callable) ->
-      EC.add_binding id callable
-    )
+  EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
 
 
 let is_template_block_start line =
