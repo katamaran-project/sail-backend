@@ -11,7 +11,7 @@ module C = struct
   module C  = Slang.Converters
 
   open Slang.Prelude.Shared
-  
+
   module S = struct
     let use_list_notations                = bool     "use-list-notations"               (* Use list notations                                                          *)
     let include_untranslated_definitions  = bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
@@ -27,7 +27,7 @@ module C = struct
 
     let template_block_left_delimiter     = ConfigLib.Setting.mk "(*<"
     let template_block_right_delimiter    = ConfigLib.Setting.mk ">*)"
-        
+
     let _ = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
           let=! left, right = C.(map2 C.string C.string) evaluated_arguments
           in
@@ -162,7 +162,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
   let member setting item =
     List.mem (get setting) item ~equal:String.equal
   in
-  
+
   let should_ignore_pragma identifier =
     member ignored_pragmas identifier
 

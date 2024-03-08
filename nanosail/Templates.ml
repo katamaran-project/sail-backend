@@ -5,7 +5,7 @@ module EC = Slang.EvaluationContext
 
 
 (* let template_prelude (translation : Ast.program) = *)
-(*   let full_translation (arguments : *) 
+(*   let full_translation (arguments : *)
 
 
 
@@ -52,7 +52,7 @@ let process_template_streams
   and output_line line =
     Stdio.Out_channel.output_lines output_channel [line]
   in
-  
+
   let process_block () =
     let code = String.concat ~sep:"\n" @@ List.rev !block_acc
     in
@@ -61,7 +61,7 @@ let process_template_streams
     in
     output_line generated_output
   in
-  
+
   let start_new_block () =
     if !inside_template_block
     then failwith "Nested template blocks are not allowed"
@@ -81,7 +81,7 @@ let process_template_streams
     then accumulate_line line
     else output_line line
   in
-  
+
   Stdio.In_channel.iter_lines input_channel ~f:begin fun line ->
     if is_template_block_start line
     then start_new_block ()

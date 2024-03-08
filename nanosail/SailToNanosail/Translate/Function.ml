@@ -510,7 +510,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
                         let error_message = Printf.sprintf "duplicate case %s in enum match" identifier
                         in
                         TC.fail [%here] error_message
-                      end                                      
+                      end
                     | `Ok table' -> TC.return table'
                   end
               end

@@ -22,7 +22,7 @@ module CLI = struct
       let words = String.split s ~on:' '
       in
       String.concat ~sep:"_" ("-katamaran" :: words)
-    
+
     let check                = mk_option "check"
     let list_notations       = mk_option "list notations"
     let width                = mk_option "width"
