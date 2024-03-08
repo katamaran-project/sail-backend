@@ -4,9 +4,26 @@ open Monads.Notations.Star(Slang.EvaluationContext)
 module EC = Slang.EvaluationContext
 
 
-(* let template_prelude (translation : Ast.program) = *)
-(*   let full_translation (arguments : *)
-
+let template_prelude (_translation : Ast.program) =
+  let full_translation =
+    let id = "full-translation"
+    in
+    let f (arguments : Slang.Value.t list) =
+      match arguments with
+      | [] -> begin
+          EC.return @@ Slang.Value.String "this is the full translation"
+        end
+      | _  -> failwith @@ Printf.sprintf "%s does not expect arguments" id
+    in
+    (id, Slang.Functions.strict_function f)
+  in
+  let exported = [
+      full_translation;
+    ]
+  in
+  EC.iter exported ~f:(fun (id, callable) ->
+      EC.add_binding id callable
+    )
 
 
 let is_template_block_start line =
@@ -24,10 +41,11 @@ let is_template_block_end line =
 
 
 let run_code
-      (_translation : Ast.program)
+      (translation : Ast.program)
       (source      : string     ) : string =
   let program =
     let* () = Slang.Prelude.initialize
+    and* () = template_prelude translation
     in
     Slang.Evaluation.evaluate_string source
   in
