@@ -16,7 +16,7 @@ type method_definition = Value.t list -> Value.t option EvaluationContext.t
 
    receives the list (+ 1 2) as argument, not 3.
    A special form is not a macro: the result is considered the end result, whereas
-   a macro
+   a macro will evaluate it
  *)
 let mk_multi_special_form methods arguments =
   let rec call_matching_method methods =
