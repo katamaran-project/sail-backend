@@ -18,6 +18,9 @@ let is_template_block_end line =
   String.equal (String.rstrip line) right_delimiter
 
 
+let run_code (_source : string) =
+  "TODO"
+
 
 (* Processes a single template, given the input and output as channels *)
 let process_template_streams
@@ -32,13 +35,22 @@ let process_template_streams
     block_acc := line :: !block_acc
   and output_line line =
     Stdio.Out_channel.output_lines output_channel [line]
-  and process_block () =
-    () (* todo *)
   in
+  
+  let process_block () =
+    let code = String.concat ~sep:"\n" @@ List.rev !block_acc
+    in
+    let generated_output =
+      run_code code
+    in
+    output_line generated_output
+  in
+  
   let start_new_block () =
     if !inside_template_block
     then failwith "Nested template blocks are not allowed"
     else inside_template_block := true
+
   and finish_block () =
     if !inside_template_block
     then begin
@@ -47,11 +59,13 @@ let process_template_streams
       block_acc := []
     end
     else failwith "Unexpected end of template block"
+
   and process_line line =
     if !inside_template_block
     then accumulate_line line
     else output_line line
   in
+  
   Stdio.In_channel.iter_lines input_channel ~f:begin fun line ->
     if is_template_block_start line
     then start_new_block ()
