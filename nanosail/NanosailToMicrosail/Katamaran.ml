@@ -51,7 +51,7 @@ let pp_module_header title =
 let _generate_module_header title =
   AC.return @@ string @@ Printf.sprintf "(*** %s ***)" title
 
-let fromIR_pp ir =
+let pretty_print ir =
   let prelude =
     Prelude.generate ()
   in
@@ -139,4 +139,4 @@ let fromIR_pp ir =
   separate_nonempty big_step sections
 
 
-let pretty_print len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)
+let output_document_to_channel len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)

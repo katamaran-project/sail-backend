@@ -4,4 +4,4 @@ open Examples
 
 let () =
   Nanosail.Configuration.(set use_list_notations true);
-  pretty_print 80 Out_channel.stdout (fromIR_pp (find_ir "lists"))
+  output_document_to_channel 80 Out_channel.stdout (pretty_print (find_ir "lists"))

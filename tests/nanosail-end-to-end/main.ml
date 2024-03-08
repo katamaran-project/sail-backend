@@ -37,4 +37,4 @@ let () =
   let ir = match find_ir_opt !input_name with
     | Some ir -> ir
     | _       -> raise (Arg.Bad "Unknown input")
-  in pretty_print !width Out_channel.stdout (fromIR_pp ir)
+  in output_document_to_channel !width Out_channel.stdout (pretty_print ir)
