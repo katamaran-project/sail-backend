@@ -31,9 +31,9 @@ module M (_ : sig end) = struct
       let* () = Prelude.initialize
       in
       let* () =
-        EC.iter !exported_functions ~f:(fun (id, callable) -> begin
-          EC.add_binding id (Slang.Value.Callable callable)
-        end)
+        EC.iter !exported_functions ~f:(fun (id, callable) ->
+            EC.add_binding id (Slang.Value.Callable callable)
+          )
       in
       let* _ = Evaluation.evaluate_string contents
       in
