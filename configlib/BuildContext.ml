@@ -16,8 +16,8 @@ module M (_ : sig end) = struct
 
 
   let export_callable
-      (identifier : string              )
-      (callable   : Slang.Value.callable)
+        (identifier : string              )
+        (callable   : Slang.Value.callable)
     =
     exported_functions := (identifier, callable) :: !exported_functions
 
@@ -43,9 +43,9 @@ module M (_ : sig end) = struct
 
 
   let export_strict_function
-      (export_as : string                  )
-      (process   : Slang.Value.t list -> 'a)
-     =
+        (export_as : string                  )
+        (process   : Slang.Value.t list -> 'a)
+    =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
       in
@@ -55,10 +55,10 @@ module M (_ : sig end) = struct
     export_callable export_as script_function
 
 
-   let generic_strict
-      (export_as : string                  )
-      ~init
-      (translate : Slang.Value.t list -> 'a)
+  let generic_strict
+        (export_as : string                  )
+        ~init
+        (translate : Slang.Value.t list -> 'a)
     =
     let setting = Setting.mk init
     in
@@ -76,11 +76,11 @@ module M (_ : sig end) = struct
     export_callable export_as script_function;
     setting
 
-    (*
-      Exports a Slang function named <export_as> that takes a boolean argument.
-      Calling this function causes a refcell to be set with this argument.
-    *)
-  let bool ?(init=false) export_as =
+  (*
+    Exports a Slang function named <export_as> that takes a boolean argument.
+    Calling this function causes a refcell to be set with this argument.
+   *)
+  let bool export_as init =
     let setting = Setting.mk init
     in
     let script_function _values =
@@ -91,11 +91,29 @@ module M (_ : sig end) = struct
     setting
 
 
-    (*
-      Creates a Slang function named <export_as> that takes a list of strings as argument.
-      Calling this function causes a ref cell to be set to this list of strings.
-      Strings are not appended: the list overwrites the previously stored list.
-    *)
+  (*
+    Exports a Slang function named <export_as> that takes a integer argument.
+    Calling this function causes a refcell to be set with this argument.
+   *)
+  let integer export_as init =
+    let setting = Setting.mk init
+    in
+    let script_function evaluated_arguments =
+      let open Slang.Prelude.Shared
+      in
+      let=! value = C.(map1 integer) evaluated_arguments
+      in
+      Setting.set setting value
+    in
+    export_strict_function export_as script_function;
+    setting
+
+
+  (*
+    Creates a Slang function named <export_as> that takes a list of strings as argument.
+    Calling this function causes a ref cell to be set to this list of strings.
+    Strings are not appended: the list overwrites the previously stored list.
+   *)
   let strings export_as =
     let setting = Setting.mk []
     in
@@ -114,11 +132,11 @@ module M (_ : sig end) = struct
     setting
 
 
-    (*
-      Creates a Slang function named <export_as> that takes
-      two arguments. Every time it is called, it adds this
-      pair of values to a map.
-     *)
+  (*
+    Creates a Slang function named <export_as> that takes
+    two arguments. Every time it is called, it adds this
+    pair of values to a map.
+   *)
   let string_to_string export_as =
     let setting = Setting.mk []
     in
