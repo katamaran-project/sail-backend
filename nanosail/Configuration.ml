@@ -13,17 +13,18 @@ module C = struct
   open Slang.Prelude.Shared
 
   module S = struct
-    let use_list_notations                = bool     "use-list-notations"               (* Use list notations                                                          *)
-    let include_untranslated_definitions  = bool     "include-untranslated-definitions" (* Output definitions for which no translation is available yet                *)
-    let include_original_code             = bool     "include-original-code"            (* Annotate all Microsail definitions with their corresponding Sail definition *)
-    let include_ignored_definitions       = bool     "include-ignored-definitions"      (* Output ignored definitions                                                  *)
-    let ignored_pragmas                   = strings  "ignore-pragmas"                   (* Pragmas to be ignored                                                       *)
-    let ignored_functions                 = strings  "ignore-functions"                 (* Functions to be ignored                                                     *)
-    let ignore_overloads                  = bool     "ignore-all-overloads"             (* Ignore all overloads                                                        *)
+    let output_width                      = integer  "output-width"                     80
+    let use_list_notations                = bool     "use-list-notations"               false (* Use list notations                                                          *)
+    let include_untranslated_definitions  = bool     "include-untranslated-definitions" false (* Output definitions for which no translation is available yet                *)
+    let include_original_code             = bool     "include-original-code"            false (* Annotate all Microsail definitions with their corresponding Sail definition *)
+    let include_ignored_definitions       = bool     "include-ignored-definitions"      false (* Output ignored definitions                                                  *)
+    let ignore_overloads                  = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
+    let print_warnings                    = bool      "print-warnings"                  false
+    let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
+    let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let ignore_definition_predicate       = callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
     let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
     let template_files                    = string_to_string "template"
-    let print_warnings                    = bool      "print-warnings"
 
     let template_block_left_delimiter     = ConfigLib.Setting.mk "(*<"
     let template_block_right_delimiter    = ConfigLib.Setting.mk ">*)"
