@@ -13,6 +13,13 @@ install:
 test:
 	dune test
 
+.PHONY: template-tests tt
+template-tests:
+	make -C tests/template-tests
+
+tt: template-tests
+
+
 example: build install
 	make -C working-example
 
