@@ -5,7 +5,8 @@ let initialize : unit EvaluationContext.t =
   let libraries = [
       Arithmetic.initialize;
       Booleans.initialize;
-      Functions.initialize;
+      Lambda.initialize;
+      Define.initialize;
       Macros.initialize;
       Comparison.initialize;
       ControlFlow.initialize;

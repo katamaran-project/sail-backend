@@ -21,12 +21,12 @@ module rec Value : sig
   val truthy       : t -> bool
 
   module Mk : sig
-    val cons      : t -> t   -> t
-    val integer   : int      -> t
-    val symbol    : string   -> t
-    val string    : string   -> t
-    val bool      : bool     -> t
-    val callable  : callable -> t
+    val cons            : t -> t   -> t
+    val integer         : int      -> t
+    val symbol          : string   -> t
+    val string          : string   -> t
+    val bool            : bool     -> t
+    val callable        : callable -> t
   end
 
   module Predicate : sig

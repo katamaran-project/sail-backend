@@ -10,6 +10,7 @@ module Converters          = Converters
 module Multimethods        = Multimethods
 module Prelude             = Prelude
 module Exception           = Exception
+module Functions           = Functions
 
 
 let extend_environment = EnvironmentBuilder.extend_environment
