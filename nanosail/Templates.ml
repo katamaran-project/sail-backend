@@ -13,14 +13,16 @@ let string_of_document document =
   Stdlib.Buffer.contents buffer
 
 
-let template_prelude (_translation : Ast.program) =
+let template_prelude (translation : Ast.program) =
   let full_translation =
     let id = "full-translation"
     in
     let f (arguments : Slang.Value.t list) =
       match arguments with
       | [] -> begin
-          EC.return @@ Slang.Value.String "this is the full translation"
+          let string_representation = string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+          in
+          EC.return @@ Slang.Value.Mk.string string_representation
         end
       | _  -> failwith @@ Printf.sprintf "%s does not expect arguments" id
     in
