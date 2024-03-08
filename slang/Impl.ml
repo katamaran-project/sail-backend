@@ -113,7 +113,7 @@ struct
         | String _                 -> false
         | Bool _                   -> false
         | Nil                      -> false
-        | Callable _              -> false
+        | Callable _               -> false
       end
     | String s1 -> begin
         match v2 with
@@ -133,7 +133,7 @@ struct
         | String _                 -> false
         | Bool b2                  -> Bool.equal b1 b2
         | Nil                      -> false
-        | Callable _              -> false
+        | Callable _               -> false
       end
     | Nil -> begin
         match v2 with
