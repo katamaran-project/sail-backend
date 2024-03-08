@@ -32,7 +32,7 @@ module M (_ : sig end) = struct
       in
       let* () =
         EC.iter !exported_functions ~f:(fun (id, callable) ->
-            EC.add_binding id @@ Slang.Value.Callable callable
+            EC.add_binding id @@ Slang.Value.Mk.callable callable
           )
       in
       let* _ = Evaluation.evaluate_string contents
