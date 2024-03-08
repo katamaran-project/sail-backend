@@ -1,4 +1,5 @@
 open Base
+open Monads.Notations.Star(Slang.EvaluationContext)
 
 module EC = Slang.EvaluationContext
 
@@ -18,8 +19,17 @@ let is_template_block_end line =
   String.equal (String.rstrip line) right_delimiter
 
 
-let run_code (_source : string) =
-  "TODO"
+let run_code (source : string) : string =
+  let program =
+    let* () = Slang.Prelude.initialize
+    in
+    Slang.Evaluation.evaluate_string source
+  in
+  let value, _state = Slang.EvaluationContext.run program
+  in
+  match value with
+   | Slang.Value.String string -> string
+   | _                         -> failwith "Code should produce string"
 
 
 (* Processes a single template, given the input and output as channels *)
