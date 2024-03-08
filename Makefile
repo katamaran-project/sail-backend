@@ -14,7 +14,7 @@ test:
 	dune test
 
 .PHONY: template-tests tt
-template-tests:
+template-tests: build install
 	make -C tests/template-tests
 
 tt: template-tests
