@@ -4,6 +4,10 @@ open Monads.Notations.Star(Slang.EvaluationContext)
 module EC = Slang.EvaluationContext
 
 
+(* let template_prelude (translation : Ast.program) = *)
+(*   let full_translation (arguments : *) 
+
+
 
 let is_template_block_start line =
   let left_delimiter =
@@ -19,7 +23,9 @@ let is_template_block_end line =
   String.equal (String.rstrip line) right_delimiter
 
 
-let run_code (source : string) : string =
+let run_code
+      (_translation : Ast.program)
+      (source      : string     ) : string =
   let program =
     let* () = Slang.Prelude.initialize
     in
@@ -34,7 +40,7 @@ let run_code (source : string) : string =
 
 (* Processes a single template, given the input and output as channels *)
 let process_template_streams
-    (_translation   : Ast.program        )
+    (translation    : Ast.program        )
     (input_channel  : Stdio.In_channel.t )
     (output_channel : Stdio.Out_channel.t)
   =
@@ -51,7 +57,7 @@ let process_template_streams
     let code = String.concat ~sep:"\n" @@ List.rev !block_acc
     in
     let generated_output =
-      run_code code
+      run_code translation code
     in
     output_line generated_output
   in
