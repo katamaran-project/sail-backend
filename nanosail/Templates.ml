@@ -2,6 +2,15 @@ open Base
 open Monads.Notations.Star(Slang.EvaluationContext)
 
 module EC = Slang.EvaluationContext
+module PP = PPrint
+
+
+let string_of_document document =
+  let text_width = Configuration.(get output_width)
+  and buffer     = Stdlib.Buffer.create 1000
+  in
+  PPrint.ToBuffer.pretty 1.0 text_width buffer document;
+  Stdlib.Buffer.contents buffer
 
 
 let template_prelude (_translation : Ast.program) =
