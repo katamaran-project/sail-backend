@@ -1,7 +1,7 @@
 Require Import Nat.
 
 (*<
-
+  "test"
 >*)
-(* Done *)
 
+(* Done *)
