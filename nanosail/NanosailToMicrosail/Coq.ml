@@ -1,5 +1,4 @@
 open Base
-open PP
 open Auxlib
 open Identifier
 open Monads.Notations.Star(AnnotationContext)
@@ -10,10 +9,10 @@ module Big_int = Nat_big_num
 
 
 
-let eol = dot
+let eol = PP.dot
 
-let left_comment_delimiter = string "(*"
-let right_comment_delimiter = string "*)"
+let left_comment_delimiter = PP.string "(*"
+let right_comment_delimiter = PP.string "*)"
 
 
 let ends_on_newline string =
@@ -28,100 +27,110 @@ let is_single_line string =
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
 let inline_comment comment =
-  separate space @@ [
-    left_comment_delimiter;
-    comment;
-    right_comment_delimiter
-  ]
+  PP.(separate space @@ [
+      left_comment_delimiter;
+      comment;
+      right_comment_delimiter
+    ])
 
 let comment comment =
-  let str = string_of_document comment
+  let str = PP.string_of_document comment
   in
   if
     is_single_line str
   then
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         space;
         string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
+    )
   else
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         hardline;
         indent' comment;
         hardline;
         right_comment_delimiter
       ]
+    )
 
 let original_sail_code source =
-  let str = string_of_document source
+  let str = PP.string_of_document source
   in
   if
     is_single_line str
   then
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         space;
         string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
+    )
   else
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         twice hardline;
         indent' source;
         hardline;
         right_comment_delimiter
       ]
+    )
 
 let original_sail_codes sources =
   let combined_sources =
-    separate hardline sources
+    PP.(separate hardline sources)
   in
   let str =
-    string_of_document combined_sources
+    PP.string_of_document combined_sources
   in
   if
     is_single_line str
   then
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         space;
         string (String.rstrip str);
         space;
         right_comment_delimiter
       ]
+    )
   else
-    concat [
+    PP.(
+      concat [
         left_comment_delimiter;
         twice hardline;
         indent' combined_sources;
         hardline;
         right_comment_delimiter
       ]
+    )
 
 let list items =
   if
     List.is_empty items
   then
-    lbracket ^^ rbracket
+    PP.(lbracket ^^ rbracket)
   else
-    pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items
+    PP.(pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
 
 let product v1 v2 =
-  soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen
+  PP.(soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen)
 
 let section identifier contents =
-  let open PPrint
+  let first_line = PP.(string "Section" ^^ space ^^ pp_identifier identifier ^^ eol)
+  and last_line  = PP.(string "End" ^^ space ^^ pp_identifier identifier ^^ eol)
   in
-  let first_line = string "Section" ^^ space ^^ pp_identifier identifier ^^ eol
-  and last_line  = string "End" ^^ space ^^ pp_identifier identifier ^^ eol
-  in
-  pp_indented_enclosed_lines first_line contents last_line
+  PP.pp_indented_enclosed_lines first_line contents last_line
 
 
 type module_flag =
@@ -130,96 +139,108 @@ type module_flag =
   | NoFlag
 
 let line contents =
-  contents ^^ eol
+  PP.(contents ^^ eol)
 
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
-    line @@ separate space @@ build_list (fun { add; addall; _ } ->
-        add @@ string "Module";
-        begin
-          match flag with
-          | Import -> add @@ string "Import"
-          | Export -> add @@ string "Export"
-          | NoFlag -> ()
-        end;
-        add @@ string identifier;
-        if not (List.is_empty includes)
-        then begin
-          add @@ string "<:";
-          addall @@ List.map ~f:string includes
-        end;
-      )
-  and last_line = line @@ separate space [ string "End"; string identifier ]
+    PP.(
+      line @@ separate space @@ build_list (fun { add; addall; _ } ->
+          add @@ string "Module";
+          begin
+            match flag with
+            | Import -> add @@ string "Import"
+            | Export -> add @@ string "Export"
+            | NoFlag -> ()
+          end;
+          add @@ string identifier;
+          if not (List.is_empty includes)
+          then begin
+            add @@ string "<:";
+            addall @@ List.map ~f:string includes
+          end;
+        )
+    )
+  and last_line = PP.(line @@ separate space [ string "End"; string identifier ])
   in
-  pp_indented_enclosed_lines first_line contents last_line
+  PP.pp_indented_enclosed_lines first_line contents last_line
+
 
 let definition
-      ~(identifier  : document)
-      ~(parameters  : document list)
-      ~(result_type : document option)
-      ~(body        : document)        : document =
-  group (concat (build_list (fun { add; _ } ->
-                     add @@ string "Definition";
-                     add space;
-                     add identifier;
-                     begin
-                       if not (List.is_empty parameters)
-                       then
-                         add space;
-                         add @@ align (separate space parameters)
-                      end;
-                      begin
-                        match result_type with
-                        | None    -> ()
-                        | Some rt ->
-                           add space;
-                           add colon;
-                           add space;
-                           add rt
-                      end;
-                      add space;
-                      add @@ string ":=";
-                      add @@ break 1;
-                      add @@ ifflat body (indent' body)
-                    )
-    ) ^^ eol)
+      ~(identifier  : PP.document       )
+      ~(parameters  : PP.document list  )
+      ~(result_type : PP.document option)
+      ~(body        : PP.document       ) : PP.document =
+  PP.(
+    group begin
+      concat begin
+        build_list begin fun { add; _ } ->
+          add @@ string "Definition";
+          add space;
+          add identifier;
+          begin
+            if not (List.is_empty parameters)
+            then
+              add space;
+            add @@ align (separate space parameters)
+          end;
+          begin
+            match result_type with
+            | None    -> ()
+            | Some rt ->
+              add space;
+              add colon;
+              add space;
+              add rt
+          end;
+          add space;
+          add @@ string ":=";
+          add @@ break 1;
+          add @@ ifflat body (indent' body)
+        end
+      end ^^ eol
+    end
+  )
 
 
 let match' expression cases =
   let match_line =
-    separate space [
+    PP.(
+      separate space [
         string "match";
         expression;
         string "with"
       ]
+    )
   in
   let case_lines =
     let longest_pattern_width =
-      let widths = List.map ~f:(fun pattern -> requirement pattern) (List.map ~f:fst cases)
+      let widths = List.map ~f:(fun pattern -> PP.requirement pattern) (List.map ~f:fst cases)
       in
       maximum (0 :: widths)
     in
     let generate_case (pattern, expression) =
-      separate space [
+      PP.(
+        separate space [
           bar;
           pad_right longest_pattern_width pattern;
           string "=>";
           expression
         ]
+      )
     in
     List.map ~f:generate_case cases
   in
   let final_line =
-    string "end"
+    PP.(string "end")
   in
-  let lines =
+  let result_lines =
     build_list (fun { add; addall; _ } ->
         add    match_line;
         addall case_lines;
         add    final_line
       )
   in
-  separate hardline lines
+  PP.(separate hardline result_lines)
 
 let match_pair matched_expressions cases =
   let left_patterns = List.map ~f:(Fn.compose fst fst) cases
@@ -228,77 +249,89 @@ let match_pair matched_expressions cases =
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
-        (
+        PP.(
           concat [
-              pad_right left_patterns_max_width left;
-              comma;
-              space;
-              right
-            ],
+            pad_right left_patterns_max_width left;
+            comma;
+            space;
+            right
+          ],
           expression
-      ))
+        )
+      )
   in
   let matched_expression =
     let left, right = matched_expressions
     in
-    concat [
+    PP.(
+      concat [
         left;
         comma;
         space;
         right
       ]
+    )
   in
   match' matched_expression aligned_cases
 
 let integer i =
-  let pp_i = string (Big_int.to_string i ^ "%Z") in
-  if Big_int.less i Z.zero then parens pp_i else pp_i
+  let pp_i = PP.(string (Big_int.to_string i ^ "%Z"))
+  in
+  if Big_int.less i Z.zero
+  then PP.parens pp_i
+  else pp_i
 
 let require_imports src names =
-  let first = string src ^^ space ^^ string "Require Import"
-  and rest = List.map ~f:string names
+  let first = PP.(string src ^^ space ^^ string "Require Import")
+  and rest = List.map ~f:PP.string names
   in
-  line @@ pp_hanging_list ~adaptive:false (string "From") (first :: rest)
+  PP.(line @@ pp_hanging_list ~adaptive:false (string "From") (first :: rest))
 
 let imports names =
-  line @@ pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names)
+  PP.(line @@ pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 let open_scopes scopes =
   let open_scope scope =
-    line @@ concat [
-                string "Local Open Scope";
-                space;
-                string scope;
-              ]
+    PP.(
+      line @@ concat [
+        string "Local Open Scope";
+        space;
+        string scope;
+      ]
+    )
   in
-  separate hardline (List.map ~f:open_scope scopes)
+  PP.(separate hardline (List.map ~f:open_scope scopes))
 
 let record_value fields =
-  let ldelim = string "{| "
-  and rdelim = string " |}"
+  let ldelim = PP.string "{| "
+  and rdelim = PP.string " |}"
   and items =
     let item_of_field (field_name, field_value) =
-      group (
-        concat [
-          field_name ^^ space ^^ string ":=";
-          break 1;
-          align field_value
-        ]
+      PP.(
+        group begin
+          concat [
+            field_name ^^ space ^^ string ":=";
+            break 1;
+            align field_value
+          ]
+        end
       )
     in
     List.map ~f:item_of_field fields
   in
-  pp_delimited_sequence ldelim rdelim semi items
+  PP.(pp_delimited_sequence ldelim rdelim semi items)
 
 let annotate_with_original_definition original translation =
   if
     Configuration.(get include_original_code)
   then
-    concat [
+    PP.(
+      concat [
         original_sail_code (Sail.pp_sail_definition original);
         hardline;
         translation
-    ]
+      ]
+    )
   else
     translation
 
@@ -306,12 +339,15 @@ let annotate_with_original_definitions originals translation =
   if
     Configuration.(get include_original_code)
   then
-    concat @@
+    PP.(
+      concat begin
         build_list begin fun { add; _ } ->
-            add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
-            add hardline;
-            add translation
-          end
+          add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
+          add hardline;
+          add translation
+        end
+      end
+    )
   else
     translation
 
@@ -335,9 +371,9 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
     let result = ref []
     in
     let generate_case
-          ?(parameters  : document = empty)
-          ?(typ         : document = empty)
-           (identifier  : document        ) =
+          ?(parameters  : PP.document = PP.empty)
+          ?(typ         : PP.document = PP.empty)
+           (identifier  : PP.document           ) =
       result := (identifier, parameters, typ) :: !result;
       AC.return ()
     in
@@ -348,10 +384,11 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
     let parameters' =
       List.map parameters ~f:(
           fun (identifier, typ) ->
-          parens @@ separate space [ identifier; colon; typ ]
+            PP.(parens @@ separate space [ identifier; colon; typ ])
         )
     in
-    separate space (
+    PP.(
+      separate space (
         build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
@@ -365,18 +402,21 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
             add @@ string ":="
           )
       )
+    )
   in
   let constructor_lines =
     let pairs =
       List.map constructors ~f:(fun (id, params, typ) ->
-          separate space (
+          PP.(
+            separate space (
               build_list (fun { add; _ } ->
                   add id;
                   if requirement params > 0
                   then add params
                 )
             ),
-          typ
+            typ
+          )
         )
     in
     let longest_left_part =
@@ -384,11 +424,12 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
       then 0
       else
         maximum (
-            List.map ~f:(fun (left, _) -> requirement left) pairs
+            List.map ~f:(fun (left, _) -> PP.requirement left) pairs
           )
     in
     let make_line (left, right) =
-      (twice space) ^^ separate space (
+      PP.(
+        (twice space) ^^ separate space (
           build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ pad_right longest_left_part left;
@@ -399,67 +440,75 @@ let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generato
               )
             )
         )
+      )
     in
     List.map ~f:make_line pairs
   in
-  let lines =
+  let result_lines =
     build_list (fun { add; addall; _ } ->
         add first_line;
         addall constructor_lines
       )
   in
-  AC.return @@ separate hardline lines ^^ hardline ^^ eol
+  AC.return @@ PP.(separate hardline result_lines ^^ hardline ^^ eol)
 
 let finite_instance
-      ~(identifier : document     )
-      ~(type_name  : document     )
-      ~(values     : document list)
+      ~(identifier : PP.document     )
+      ~(type_name  : PP.document     )
+      ~(values     : PP.document list)
   =
   let enum_values =
     PP.(group (separate (semi ^^ break 1) values))
   in
-  PP.separate PP.hardline [
-      PP.separate space [
-          string "#[export,program]";
-          string "Instance";
-          identifier ^^ string "_finite";
-          colon;
-          string "Finite";
-          type_name;
-          string ":=";
-        ];
-    twice space ^^ PP.separate space [
-                       string "{|";
-                       string "enum";
-                       string ":=";
-                       string "[";
-                       align @@ enum_values;
-                       string "]";
-                       string "|}"
-                     ]
-  ]
+  PP.(
+    separate hardline [
+      separate space [
+        string "#[export,program]";
+        string "Instance";
+        identifier ^^ string "_finite";
+        colon;
+        string "Finite";
+        type_name;
+        string ":=";
+      ];
+      twice space ^^ PP.separate space [
+        string "{|";
+        string "enum";
+        string ":=";
+        string "[";
+        align @@ enum_values;
+        string "]";
+        string "|}"
+      ]
+    ]
+  )
 
 (* fields as (identifier, type) pairs *)
 let record
-      ~(identifier  : document)
-      ~(type_name   : document)
-      ~(constructor : document)
-      ~(fields      : (document * document) list) : document
+      ~(identifier  : PP.document                     )
+      ~(type_name   : PP.document                     )
+      ~(constructor : PP.document                     )
+      ~(fields      : (PP.document * PP.document) list) : PP.document
   =
   let first_line =
-    PP.separate space [
+    PP.(
+      separate space [
         string "Record";
         identifier;
         colon;
         type_name;
         string ":="
       ]
+    )
   in
   let fields' =
     let longest_field_length =
       Auxlib.maximum @@ List.map ~f:(Fn.compose PP.requirement fst) fields
     in
-    List.map ~f:(fun (id, t) -> PP.separate space [ PP.pad_right longest_field_length id; colon; t ] ^^ semi) fields
+    List.map fields ~f:(
+      fun (id, t) -> 
+        PP.(separate space [ PP.pad_right longest_field_length id; colon; t ] ^^ semi)
+    )
   in
   let body =
     PP.(separate hardline [
