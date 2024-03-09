@@ -26,7 +26,7 @@ let template_prelude (translation : Ast.program) =
         end
       | _  -> failwith @@ Printf.sprintf "%s does not expect arguments" id
     in
-    (id, Slang.Functions.strict_function f)
+    (id, Slang.Functions.mk_strict_function f)
   in
   let exported = [
       full_translation;
