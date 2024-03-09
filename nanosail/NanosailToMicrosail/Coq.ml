@@ -285,10 +285,10 @@ let require_imports src names =
   let first = PP.(string src ^^ space ^^ string "Require Import")
   and rest = List.map ~f:PP.string names
   in
-  PP.(line @@ pp_hanging_list ~adaptive:false (string "From") (first :: rest))
+  PP.(line @@ hanging_list ~adaptive:false (string "From") (first :: rest))
 
 let imports names =
-  PP.(line @@ pp_hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
+  PP.(line @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 let open_scopes scopes =
   let open_scope scope =

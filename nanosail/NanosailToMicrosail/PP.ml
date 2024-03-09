@@ -28,7 +28,7 @@ let pp_delimited_sequence left_delimiter right_delimiter separator items =
       xs[1]
       xs[2]
 *)
-let pp_hanging_list ?(adaptive = true) x xs =
+let hanging_list ?(adaptive = true) x xs =
   if
     adaptive
   then

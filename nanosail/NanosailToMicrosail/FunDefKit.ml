@@ -25,7 +25,7 @@ let pp_function_definition
         Nanotype.pp_nanotype function_definition.function_type.ret_type
       in
       AC.return @@ Some (
-                      pp_hanging_list (PP.string "Stm") [
+                      hanging_list (PP.string "Stm") [
                           bindings;
                           result_type
                         ]
