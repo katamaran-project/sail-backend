@@ -18,3 +18,4 @@ val tuple3         : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 
 val map1           : 'a converter -> 'a multiconverter
 val map2           : 'a converter -> 'b converter -> ('a * 'b) multiconverter
 val map3           : 'a converter -> 'b converter -> 'c converter -> ('a * 'b * 'c) multiconverter
+val map4           : 'a converter -> 'b converter -> 'c converter -> 'd converter -> ('a * 'b * 'c * 'd) multiconverter
