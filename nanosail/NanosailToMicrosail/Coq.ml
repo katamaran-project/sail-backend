@@ -8,7 +8,6 @@ module AC = AnnotationContext
 module Big_int = Nat_big_num
 
 
-
 let eol = PP.dot
 
 let left_comment_delimiter = PP.string "(*"
@@ -121,7 +120,7 @@ let list items =
   then
     PP.(lbracket ^^ rbracket)
   else
-    PP.(pp_delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
+    PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
 
 let product v1 v2 =
   PP.(soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen)
@@ -319,7 +318,7 @@ let record_value fields =
     in
     List.map ~f:item_of_field fields
   in
-  PP.(pp_delimited_sequence ldelim rdelim semi items)
+  PP.(delimited_sequence ldelim rdelim semi items)
 
 let annotate_with_original_definition original translation =
   if
