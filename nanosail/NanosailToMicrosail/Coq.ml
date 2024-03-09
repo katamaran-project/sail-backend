@@ -130,7 +130,7 @@ let section identifier contents =
   let first_line = PP.(string "Section" ^^ space ^^ pp_identifier identifier ^^ eol)
   and last_line  = PP.(string "End" ^^ space ^^ pp_identifier identifier ^^ eol)
   in
-  PP.pp_indented_enclosed_lines first_line contents last_line
+  PP.indented_enclosed_lines first_line contents last_line
 
 
 type module_flag =
@@ -162,7 +162,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
     )
   and last_line = PP.(line @@ separate space [ string "End"; string identifier ])
   in
-  PP.pp_indented_enclosed_lines first_line contents last_line
+  PP.indented_enclosed_lines first_line contents last_line
 
 
 let definition

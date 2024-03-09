@@ -60,7 +60,7 @@ let simple_app terms =
     in
     group @@ ifflat single_line multi_line
 
-let pp_indented_enclosed_lines starting_line indented ending_line =
+let indented_enclosed_lines starting_line indented ending_line =
   separate hardline [
     starting_line;
     indent' indented;
