@@ -38,12 +38,44 @@ let define =
   (id, Functions.mk_multi_special_form [ define_function; define_variable; error id ])
 
 
+let destructuring_bind =
+  let id = "destructuring-bind"
+
+  and destructuring_bind (args : Value.t list) =
+    match args with
+    | pattern :: values :: body -> begin
+        let patterns = match Value.cons_to_list pattern with
+          | Some patterns -> patterns
+          | None          -> raise @@ Exception.SlangError "invalid use of destructuring-bind"
+        in
+        let* values =
+          let* evaluated_values = Evaluation.evaluate values
+          in
+          match Value.cons_to_list evaluated_values with
+          | Some values -> EC.return values
+          | None        -> raise @@ Exception.SlangError "invalid use of destructuring-bind"
+        in
+        let* () = Destructuring.destructure patterns values
+        in
+        let* evaluation_results = EC.map ~f:Evaluation.evaluate body
+        in
+        match List.last evaluation_results with
+        | Some x -> EC.return x
+        | None   -> EC.return Value.Nil
+      end
+    | _ -> raise @@ Exception.SlangError "invalid use of destructuring-bind"
+  in
+
+  (id, destructuring_bind)
+
+
 let initialize =
   let definitions = [
     define;
+    destructuring_bind;
   ]
   in
   let pairs =
-    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+    List.map ~f:(fun (id, c) -> (id, Value.Mk.callable c)) definitions
   in
   EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs
