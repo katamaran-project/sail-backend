@@ -727,7 +727,7 @@ let destructuring_tests =
         in
         [
           Printf.sprintf {|
-            (destructuring-bind (a b c) (%d 2 3)
+            (destructuring-bind (a b c) '(%d 2 3)
               a)
           |} k,
           Integer k
