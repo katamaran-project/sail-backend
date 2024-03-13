@@ -82,5 +82,6 @@
                  base
                  stdio
                  pprint
-                 auxlib)
+                 auxlib
+                 slang)
 	(allow_empty))
