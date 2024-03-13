@@ -1,5 +1,3 @@
-Require Import Nat.
-
 (*<
   (full-translation)
 >*)
