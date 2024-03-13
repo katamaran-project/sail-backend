@@ -10,47 +10,47 @@ type optional   = { target : string; default_value : Value.t }
 type keyword    = { target : string; keyword : string; default_value : Value.t }
 
 
-let rec process_pattern (pattern : Value.t list) =
-  let rec gather_positional
-      ~(positional : positional list)
-      (pattern     : Value.t list   )
+let gather_patterns (patterns : Value.t list) =
+  let rec gather_positionals
+      ~(positionals : positional list)
+      (patterns     : Value.t list   ) : (positional list * optional list * keyword list)
     =
-    match pattern with
+    match patterns with
     | first :: rest -> begin
         match C.(symbol first) with
-        | Some target -> gather_positional ~positional:({ target } :: positional) rest
-        | None        -> gather_optional ~positional ~optional:[] pattern
+        | Some target -> gather_positionals ~positionals:({ target } :: positionals) rest
+        | None        -> gather_optionals ~positionals ~optionals:[] patterns
       end
-    | [] -> (positional, [], [])
+    | [] -> (positionals, [], [])
             
-  and gather_optional
-      ~(positional : positional list)
-      ~(optional   : optional list  )
-       (pattern    : Value.t list   )
+  and gather_optionals
+      ~(positionals : positional list)
+      ~(optionals   : optional list  )
+       (patterns    : Value.t list   ) : (positional list * optional list * keyword list)
     =
-    match pattern with
+    match patterns with
     | first :: rest -> begin
         match C.(tuple2 symbol value first) with
-        | Some (target, default_value) -> gather_optional ~positional ~optional:({ target; default_value } :: optional) rest
-        | None -> gather_keyword ~positional ~optional ~keyword:[] pattern
+        | Some (target, default_value) -> gather_optionals ~positionals ~optionals:({ target; default_value } :: optionals) rest
+        | None -> gather_keywords ~positionals ~optionals ~keywords:[] patterns
       end
-    | [] -> (positional, optional, [])
+    | [] -> (positionals, optionals, [])
             
-  and gather_keyword
-      ~(positional : positional list)
-      ~(optional   : optional list  )
-      ~(keyword    : keyword list   )
-       (pattern    : Value.t list   )
+  and gather_keywords
+      ~(positionals : positional list)
+      ~(optionals   : optional list  )
+      ~(keywords    : keyword list   )
+       (patterns    : Value.t list   ) : (positional list * optional list * keyword list)
     =
-    match pattern with
+    match patterns with
     | first :: rest -> begin
         match C.(tuple3 symbol symbol value first) with
-        | Some (keyword, target, default_value) -> gather_keyword ~positional ~optional ~keyword:({ target; keyword; default_value } :: keyword) rest
+        | Some (keyword, target, default_value) -> gather_keywords ~positionals ~optionals ~keywords:({ target; keyword; default_value } :: keywords) rest
         | None -> raise @@ Exception.SlangError "invalid pattern in destructuring bind"
       end
-    | [] -> (positional, optional, keyword)
+    | [] -> (positionals, optionals, keywords)
   in
-  let positional, optional, keyword = gather_positional ~positional:[] pattern
+  let positional, optional, keyword = gather_positionals ~positionals:[] patterns
   in
   (
     List.rev positional,
@@ -63,25 +63,65 @@ let destructure
     (pattern : Value.t list)
     (values  : Value.t list) : unit EC.t
   =
-  let positional, optional, keyword = process_pattern pattern
+  let positionals, optionals, keywords = gather_patterns pattern
   in
-  let rec bind_positional (positional : positional list) values =
-    match positional with
+  let rec bind_positionals (positionals : positional list) values =
+    match positionals with
     | { target } :: rest_positional -> begin
         match values with
         | first :: rest_values -> begin
             let* () = EC.add_binding target first
             in
-            bind_positional rest_positional rest_values
+            bind_positionals rest_positional rest_values
           end
         | [] -> raise @@ Exception.SlangError "insufficient positionals"
       end
-    | [] -> bind_optional optional values
+    | [] -> bind_optionals optionals values
 
-  and bind_optional optional values =
-    match optional with
-    | { target; default_value } :: rest -> begin
+  and bind_optionals optionals values =
+    match optionals with
+    | { target; default_value } :: rest_optionals -> begin
         match values with
-        | first ::
+        | value :: rest_values -> begin
+            let* () = EC.add_binding target value
+            in
+            bind_optionals rest_optionals rest_values
+          end
+        | [] -> begin
+            let* () = EC.add_binding target default_value
+            in
+            bind_optionals rest_optionals []
+          end
       end
-    | [] -> bind_keyword keyword values
+    | [] -> bind_keywords keywords values
+
+  and bind_keywords keywords values =
+    match keywords with
+    | { target; keyword; default_value } :: rest_keywords -> begin
+        match values with
+        | v1 :: v2 :: rest_values -> begin
+            if
+              Value.equal (Value.Symbol keyword) v1
+            then
+              let* () = EC.add_binding target v2
+              in
+              bind_keywords rest_keywords rest_values
+            else
+              let* () = EC.add_binding target default_value
+              in
+              bind_keywords rest_keywords values
+          end
+        | _ -> begin
+            let* () = EC.add_binding target default_value
+            in
+            bind_keywords rest_keywords values
+          end
+      end
+    | [] -> begin
+        (* add this point, we don't expect any more values *)
+        match values with
+        | [] -> EC.return ()
+        | _  -> raise @@ Exception.SlangError "too many values for given pattern"
+      end
+  in
+  bind_positionals positionals values
