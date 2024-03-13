@@ -45,7 +45,11 @@ let gather_patterns (patterns : Value.t list) =
     match patterns with
     | first :: rest -> begin
         match C.(tuple3 symbol symbol value first) with
-        | Some (keyword, target, default_value) -> gather_keywords ~positionals ~optionals ~keywords:({ target; keyword; default_value } :: keywords) rest
+        | Some (keyword, target, default_value) -> begin
+            if Value.is_keyword keyword
+            then gather_keywords ~positionals ~optionals ~keywords:({ target; keyword; default_value } :: keywords) rest
+            else raise @@ Exception.SlangError "keyword symbol expected"
+          end
         | None -> raise @@ Exception.SlangError "invalid pattern in destructuring bind"
       end
     | [] -> (positionals, optionals, keywords)
