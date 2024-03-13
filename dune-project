@@ -69,7 +69,8 @@
 		"Monad Library")
 	(depends ocaml
                  dune
-                 base)
+                 base
+                 auxlib)
 	(allow_empty))
 
 (package
