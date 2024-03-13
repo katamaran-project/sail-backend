@@ -2,8 +2,8 @@
 opam-version: "2.0"
 version: "0.1"
 synopsis: "Sail to µSail translation"
-maintainer: ["Marius Goyet"]
-authors: ["Marius Goyet"]
+maintainer: ["Frederic Vogels"]
+authors: ["Marius Goyet" "Frederic Vogels"]
 homepage: "https://github.com/katamaran-project/sail-backend"
 bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
 depends: [
