@@ -745,6 +745,245 @@ let destructuring_tests =
           Integer k
         ];
       end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b c) '(1 %d 3)
+              b)
+          |} k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b c) '(1 2 %d)
+              c)
+          |} k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c %d)) '(1 2)
+              a)
+          |} k,
+          Integer 1
+        ];
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c %d)) '(1 2)
+              2)
+          |} k,
+          Integer 2
+        ];
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c %d)) '(1 2)
+              c)
+          |} k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* k = List.range (-10) 10
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c %d)) '(1 2)
+              c)
+          |} k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '()
+              a)
+          |} i j k n,
+          Integer i
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '()
+              b)
+          |} i j k n,
+          Integer j
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '()
+              c)
+          |} i j k n,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '()
+              d)
+          |} i j k n,
+          Integer n
+        ];
+      end;
+      
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9)
+              a)
+          |} i j k n,
+          Integer 9
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8)
+              a)
+          |} i j k n,
+          Integer 9
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8)
+              b)
+          |} i j k n,
+          Integer 8
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8)
+              c)
+          |} i j k n,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8 7 6)
+              a)
+          |} i j k n,
+          Integer 9
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8 7 6)
+              c)
+          |} i j k n,
+          Integer 7
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-9; 0; 3]
+        and* k = [-5; 0; 6]
+        and* n = [-3; 0; 8]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((a %d) (b %d) (c %d) (d %d)) '(9 8 7 6)
+              d)
+          |} i j k n,
+          Integer 6
+        ];
+      end;
+
+      
     end
   in
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
