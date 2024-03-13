@@ -12,6 +12,7 @@ depends: [
   "base"
   "stdio"
   "pprint"
+  "monads"
   "auxlib"
   "odoc" {with-doc}
 ]

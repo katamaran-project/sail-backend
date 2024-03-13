@@ -23,6 +23,7 @@
                  base
                  stdio
                  pprint
+                 monads
                  auxlib)
 	(allow_empty))
 
