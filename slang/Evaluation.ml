@@ -15,6 +15,7 @@ let bind_parameters parameters arguments =
   | List.Or_unequal_lengths.Ok pairs        -> EC.iter ~f:(uncurry EC.add_binding) pairs
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ SlangError "wrong number of parameters"
 
+
 let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =
   let open EC
   in
