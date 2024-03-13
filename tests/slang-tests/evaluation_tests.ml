@@ -983,7 +983,240 @@ let destructuring_tests =
         ];
       end;
 
+      addall begin
+        let* i = [-4; 0; 10]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d)) ()
+              a)
+          |} i,
+          Integer i
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d)) '(:a %d)
+              a)
+          |} i j,
+          Integer j
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '()
+              a)
+          |} i j,
+          Integer i
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '()
+              b)
+          |} i j,
+          Integer j
+        ];
+      end;
       
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        and* k = [-1; 0; 2]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '(:a %d)
+              a)
+          |} i j k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        and* k = [-1; 0; 2]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '(:a %d)
+              b)
+          |} i j k,
+          Integer j
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        and* k = [-1; 0; 2]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '(:a %d)
+              b)
+          |} i j k,
+          Integer j
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        and* k = [-1; 0; 2]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '(:b %d)
+              a)
+          |} i j k,
+          Integer i
+        ];
+      end;
+
+      addall begin
+        let* i = [-4; 0; 10]
+        and* j = [-2; 0; 5]
+        and* k = [-1; 0; 2]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind ((:a a %d) (:b b %d)) '(:b %d)
+              b)
+          |} i j k,
+          Integer k
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Bool true);
+          ("d", String "hello");
+          ("x", Symbol ":foo");
+          ("y", Integer 8);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1")
+              %s)
+          |} variable,
+          value
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Integer 2);
+          ("d", String "hello");
+          ("x", Symbol ":foo");
+          ("y", Integer 8);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1" 2)
+              %s)
+          |} variable,
+          value
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Integer 2);
+          ("d", Bool false);
+          ("x", Symbol ":foo");
+          ("y", Integer 8);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1" 2 #f)
+              %s)
+          |} variable,
+          value
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Integer 2);
+          ("d", Bool false);
+          ("x", Symbol ":qux");
+          ("y", Integer 8);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1" 2 #f :foo :qux)
+              %s)
+          |} variable,
+          value
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Integer 2);
+          ("d", Bool false);
+          ("x", Symbol ":qux");
+          ("y", Integer 100);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1" 2 #f :foo :qux :bar 100)
+              %s)
+          |} variable,
+          value
+        ];
+      end;
+
+      addall begin
+        let* variable, value = [
+          ("a", Integer 0);
+          ("b", String "1");
+          ("c", Integer 2);
+          ("d", Bool false);
+          ("x", Symbol ":foo");
+          ("y", Integer 100);
+        ]
+        in
+        [
+          Printf.sprintf {|
+            (destructuring-bind (a b (c #t) (d "hello") (:foo x :foo) (:bar y 8)) '(0 "1" 2 #f :bar 100)
+              %s)
+          |} variable,
+          value
+        ];
+      end;      
     end
   in
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
