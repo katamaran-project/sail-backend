@@ -9,6 +9,7 @@
  (public_name nanosail)
  (preprocess (pps ppx_here))
  (libraries base
+            stdio
             libsail
             pprint
             monads

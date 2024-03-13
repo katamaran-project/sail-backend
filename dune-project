@@ -21,6 +21,7 @@
 	(depends ocaml
                  dune
                  base
+                 stdio
                  pprint
                  auxlib)
 	(allow_empty))
@@ -32,6 +33,7 @@
 	(depends ocaml
                  dune
                  base
+                 stdio
                  slang)
 	(allow_empty))
 
@@ -44,6 +46,7 @@
                  sail
                  pprint
                  base
+                 stdio
                  auxlib
                  ppx_here
                  ConfigLib)
@@ -65,8 +68,7 @@
 		"Monad Library")
 	(depends ocaml
                  dune
-                 base
-                 pprint)
+                 base)
 	(allow_empty))
 
 (package
@@ -76,6 +78,7 @@
                  dune
                  sail
                  base
+                 stdio
                  pprint
                  auxlib)
 	(allow_empty))

@@ -1,4 +1,4 @@
 (library
  (name ConfigLib)
  (public_name ConfigLib)
- (libraries base auxlib monads slang))
+ (libraries base stdio auxlib monads slang))

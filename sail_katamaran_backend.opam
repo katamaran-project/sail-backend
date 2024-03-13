@@ -11,6 +11,7 @@ depends: [
   "dune" {>= "3.8"}
   "sail"
   "base"
+  "stdio"
   "pprint"
   "auxlib"
   "odoc" {with-doc}
