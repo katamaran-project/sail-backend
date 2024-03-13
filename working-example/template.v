@@ -1,5 +1,5 @@
+(*
 (*<
-  (full-translation)
+  (untranslated-definitions)
 >*)
-
-(* Done *)
+*)
