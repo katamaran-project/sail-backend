@@ -37,7 +37,7 @@ let template_prelude (translation : Ast.program) =
   in
 
   let ignored_definitions =
-    let id = "untranslated-definitions"
+    let id = "ignored-definitions"
     in
     let f () =
       let ignored_definitions =
