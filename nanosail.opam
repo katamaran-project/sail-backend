@@ -12,8 +12,8 @@ depends: [
   "dune" {>= "3.8"}
   "sail"
   "pprint"
-  "auxlib"
   "base"
+  "auxlib"
   "ppx_here"
   "ConfigLib"
   "odoc" {with-doc}

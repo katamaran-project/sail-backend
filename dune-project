@@ -20,6 +20,7 @@
 		"S-Expression Language")
 	(depends ocaml
                  dune
+                 base
                  pprint
                  auxlib)
 	(allow_empty))
@@ -42,8 +43,8 @@
                  dune
                  sail
                  pprint
-                 auxlib
                  base
+                 auxlib
                  ppx_here
                  ConfigLib)
 	(allow_empty))
@@ -54,6 +55,7 @@
 		"Auxlib")
 	(depends ocaml
                  dune
+                 base
                  pprint)
 	(allow_empty))
 
@@ -63,6 +65,7 @@
 		"Monad Library")
 	(depends ocaml
                  dune
+                 base
                  pprint)
 	(allow_empty))
 
@@ -72,6 +75,7 @@
 	(depends ocaml
                  dune
                  sail
+                 base
                  pprint
                  auxlib)
 	(allow_empty))

@@ -9,6 +9,7 @@ bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.8"}
+  "base"
   "pprint"
   "auxlib"
   "odoc" {with-doc}
