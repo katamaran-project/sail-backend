@@ -105,14 +105,6 @@ let pretty_print ir =
     else
       generate_section "REGISTERS" @@ Registers.generate @@ select Extract.register_definition ir.definitions
   in
-  let untranslated =
-    if
-      Configuration.(get include_untranslated_definitions)
-    then
-      generate_section "UNTRANSLATED" @@ Untranslated.generate @@ select Extract.untranslated_definition ir.definitions
-    else
-      empty
-  in
   let finite =
     Finite.generate ir.definitions
   in
