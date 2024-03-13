@@ -23,8 +23,8 @@
                  base
                  stdio
                  pprint
-                 monads
-                 auxlib)
+                 auxlib
+                 monads)
 	(allow_empty))
 
 (package
