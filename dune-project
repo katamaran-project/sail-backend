@@ -10,9 +10,9 @@
 (source
 	(github katamaran-project/sail-backend))
 
-(authors "Marius Goyet")
+(authors "Marius Goyet" "Frederic Vogels")
 
-(maintainers "Marius Goyet")
+(maintainers "Frederic Vogels")
 
 (package
 	(name slang)
@@ -25,7 +25,7 @@
 	(allow_empty))
 
 (package
-	(name configlib)
+	(name ConfigLib)
 	(synopsis
 		"Configuration library")
 	(depends ocaml
