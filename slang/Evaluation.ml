@@ -39,11 +39,18 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
       | _       -> raise @@ SlangError "invalid call: expected well-formed list"
     end
   | Value.Symbol identifier -> begin
-      let* lookup_result = lookup identifier
-      in
-      match lookup_result with
-      | Some value          -> return value
-      | None                -> raise @@ SlangError ("unbound identifier " ^ identifier)
+      if
+        Value.is_keyword identifier
+      then
+        (* keywords evaluate to themselves *)
+        return ast
+      else begin
+        let* lookup_result = lookup identifier
+        in
+        match lookup_result with
+        | Some value          -> return value
+        | None                -> raise @@ SlangError ("unbound identifier " ^ identifier)
+      end
     end
   | Value.Integer _      -> return ast
   | Value.String _       -> return ast

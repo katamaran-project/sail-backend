@@ -19,6 +19,7 @@ module rec Value : sig
   val list_to_cons : t list -> t
   val to_string    : t -> string
   val truthy       : t -> bool
+  val is_keyword   : string -> bool
 
   module Mk : sig
     val cons            : t -> t   -> t
@@ -30,13 +31,14 @@ module rec Value : sig
   end
 
   module Predicate : sig
-    val is_cons      : t -> bool
-    val is_integer   : t -> bool
-    val is_symbol    : t -> bool
-    val is_string    : t -> bool
-    val is_bool      : t -> bool
-    val is_nil       : t -> bool
-    val is_callable  : t -> bool
+    val is_cons           : t -> bool
+    val is_integer        : t -> bool
+    val is_symbol         : t -> bool
+    val is_keyword_symbol : t -> bool
+    val is_string         : t -> bool
+    val is_bool           : t -> bool
+    val is_nil            : t -> bool
+    val is_callable       : t -> bool
   end
 end
 =
@@ -154,6 +156,9 @@ struct
   let truthy (value : t) =
     not @@ falsey value
 
+  let is_keyword (id : string) =
+    String.is_prefix ~prefix:":" id
+
   module Mk = struct
     let symbol   s   = Symbol s
     let string   s   = String s
@@ -178,6 +183,11 @@ struct
       match value with
       | Symbol _         -> true
       | _                -> false
+
+    let is_keyword_symbol value =
+      match value with
+      | Symbol id -> is_keyword id
+      | _         -> false
 
     let is_string value =
       match value with
