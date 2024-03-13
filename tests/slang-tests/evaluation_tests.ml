@@ -716,6 +716,18 @@ let define_macro_tests =
   "define function" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let keyword_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ( ":a", Symbol ":a" );
+      ( ":abc", Symbol ":abc" );
+    ]
+  in
+  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let destructuring_tests =
   let open Slang.Value in
   let open ListMonadNotations
@@ -756,4 +768,5 @@ let tests =
     cond_tests;
     define_macro_tests;
     destructuring_tests;
+    keyword_tests;
   ]
