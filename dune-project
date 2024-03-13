@@ -45,7 +45,7 @@
                  auxlib
                  base
                  ppx_here
-                 configlib)
+                 ConfigLib)
 	(allow_empty))
 
 (package
