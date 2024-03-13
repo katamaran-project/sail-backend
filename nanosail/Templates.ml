@@ -50,10 +50,26 @@ let template_prelude (translation : Ast.program) =
     in
     nullary_function id f
   in
+
+  let untranslated_definitions =
+    let id = "untranslated-definitions"
+    in
+    let f () =
+      let untranslated_definitions =
+        Ast.(select Extract.untranslated_definition translation.definitions)
+      in
+      let formatted_untranslated_definitions =
+        NanosailToMicrosail.Untranslated.generate untranslated_definitions
+      in
+      string_of_document formatted_untranslated_definitions
+    in
+    nullary_function id f
+  in
       
   let exported = [
     full_translation;
     ignored_definitions;
+    untranslated_definitions;
   ]
   in
   EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)

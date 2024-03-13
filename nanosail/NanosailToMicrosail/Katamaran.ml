@@ -113,14 +113,6 @@ let pretty_print ir =
     else
       empty
   in
-  let ignored =
-    if
-      Configuration.(get include_ignored_definitions)
-    then
-      generate_section "IGNORED" @@ Ignored.generate @@ List.map ~f:fst @@ select Extract.ignored_definition ir.definitions
-    else
-      empty
-  in
   let finite =
     Finite.generate ir.definitions
   in
@@ -132,8 +124,6 @@ let pretty_print ir =
           add    program;
           add    registers;
           addopt finite;
-          add    untranslated;
-          add    ignored
         end
   in
   separate_nonempty big_step sections
