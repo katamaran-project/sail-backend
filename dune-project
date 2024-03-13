@@ -25,7 +25,7 @@
 	(allow_empty))
 
 (package
-	(name ConfigLib)
+	(name configlib)
 	(synopsis
 		"Configuration library")
 	(depends ocaml
@@ -45,7 +45,7 @@
                  auxlib
                  base
                  ppx_here
-                 ConfigLib)
+                 configlib)
 	(allow_empty))
 
 (package
