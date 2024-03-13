@@ -15,6 +15,26 @@
 (maintainers "Marius Goyet")
 
 (package
+	(name slang)
+	(synopsis
+		"S-Expression Language")
+	(depends ocaml
+                 dune
+                 pprint
+                 auxlib)
+	(allow_empty))
+
+(package
+	(name ConfigLib)
+	(synopsis
+		"Configuration library")
+	(depends ocaml
+                 dune
+                 base
+                 slang)
+	(allow_empty))
+
+(package
 	(name nanosail)
 	(synopsis
 		"Intermediate representation language for the Sail to µSail translation")
@@ -26,16 +46,6 @@
                  base
                  ppx_here
                  configlib)
-	(allow_empty))
-
-(package
-	(name slang)
-	(synopsis
-		"S-Expression Language")
-	(depends ocaml
-                 dune
-                 pprint
-                 auxlib)
 	(allow_empty))
 
 (package
@@ -54,16 +64,6 @@
 	(depends ocaml
                  dune
                  pprint)
-	(allow_empty))
-
-(package
-	(name ConfigLib)
-	(synopsis
-		"Configuration library")
-	(depends ocaml
-                 dune
-                 base
-                 slang)
 	(allow_empty))
 
 (package
