@@ -13,4 +13,5 @@ module FunDefKit         = FunDefKit
 module ForeignKit        = ForeignKit
 module Finite            = Finite
 module Katamaran         = Katamaran
+module Ignored           = Ignored
 

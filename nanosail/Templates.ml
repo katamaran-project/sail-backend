@@ -14,23 +14,47 @@ let string_of_document document =
 
 
 let template_prelude (translation : Ast.program) =
-  let full_translation =
-    let id = "full-translation"
-    in
+  let nullary_function id func =
     let f (arguments : Slang.Value.t list) =
       match arguments with
       | [] -> begin
-          let string_representation = string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+          let string = func ()
           in
-          EC.return @@ Slang.Value.Mk.string string_representation
+          EC.return @@ Slang.Value.Mk.string string
         end
       | _  -> failwith @@ Printf.sprintf "%s does not expect arguments" id
     in
     (id, Slang.Functions.mk_strict_function f)
   in
+  
+  let full_translation =
+    let id = "full-translation"
+    in
+    let f () =
+      string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+    in
+    nullary_function id f
+  in
+
+  let ignored_definitions =
+    let id = "untranslated-definitions"
+    in
+    let f () =
+      let ignored_definitions =
+        List.map ~f:fst @@ Ast.(select Extract.ignored_definition translation.definitions)
+      in
+      let formatted_ignored_definitions =
+        NanosailToMicrosail.Ignored.generate ignored_definitions
+      in
+      string_of_document formatted_ignored_definitions
+    in
+    nullary_function id f
+  in
+      
   let exported = [
-      full_translation;
-    ]
+    full_translation;
+    ignored_definitions;
+  ]
   in
   EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
 
