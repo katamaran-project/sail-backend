@@ -59,7 +59,7 @@ let template_prelude (translation : Ast.program) =
         Ast.(select Extract.untranslated_definition translation.definitions)
       in
       let formatted_untranslated_definitions =
-        NanosailToMicrosail.Untranslated.generate untranslated_definitions
+        PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
       in
       string_of_document formatted_untranslated_definitions
     in
