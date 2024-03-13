@@ -28,8 +28,6 @@ module CLI = struct
     let width                = mk_option "width"
     let program_name         = mk_option "program name"
     let include_original     = mk_option "add original"
-    let include_untranslated = mk_option "include untranslated"
-    let include_ignored      = mk_option "include ignored"
     let print_rewrites       = mk_option "print rewrites"
     let config_file          = mk_option "config"
   end
@@ -53,12 +51,6 @@ let katamaran_options = [
   (CLI.Arg.include_original,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
    "show original Sail code in output");
-  (CLI.Arg.include_untranslated,
-   Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_untranslated_definitions true)),
-   "include information about untranslated Sail code");
-  (CLI.Arg.include_ignored,
-   Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_ignored_definitions true)),
-   "include ignored Sail definitions");
   (CLI.Arg.print_rewrites,
    Stdlib.Arg.Set Options.print_rewrites,
    "Prints the list of rewrites");
