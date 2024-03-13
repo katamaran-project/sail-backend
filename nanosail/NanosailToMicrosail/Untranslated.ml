@@ -1,11 +1,13 @@
 open Base
 open PP
 open Ast
-open Auxlib
 open Basics
 
 
-let generate untranslated_definitions =
+let generate
+    (sail_definition         : sail_definition        )
+    (untranslated_definition : untranslated_definition)
+  =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with
     | Libsail.Parse_ast.Range (start, stop) ->
@@ -29,25 +31,19 @@ let generate untranslated_definitions =
        else string_of_location location
     | _ -> string_of_location location
   in
-  let pp_untranslated_definition (original : sail_definition) (untranslated_definition : untranslated_definition) =
-    let { filename; line_number; sail_location; message } = untranslated_definition in
-    let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
-    let sail_location_string = Printf.sprintf "Sail location: %s" (pp_sail_location sail_location) in
-    let message_string =
-      match message with
-      | Some message -> Printf.sprintf "Message: %s" message
-      | None         -> Printf.sprintf "No message"
-    in
-    concat [
-        Sail.pp_sail_definition original;
-        string ocaml_location_string;
-        hardline;
-        string sail_location_string;
-        hardline;
-        string message_string
-      ]
+  let { filename; line_number; sail_location; message } = untranslated_definition in
+  let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
+  let sail_location_string = Printf.sprintf "Sail location: %s" (pp_sail_location sail_location) in
+  let message_string =
+    match message with
+    | Some message -> Printf.sprintf "Message: %s" message
+    | None         -> Printf.sprintf "No message"
   in
-  Coq.comment (
-      separate small_step (
-          List.map ~f:(uncurry pp_untranslated_definition) untranslated_definitions
-    ))
+  concat [
+    Sail.pp_sail_definition sail_definition;
+    string ocaml_location_string;
+    hardline;
+    string sail_location_string;
+    hardline;
+    string message_string
+  ]
