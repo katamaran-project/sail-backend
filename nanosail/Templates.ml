@@ -44,7 +44,7 @@ let template_prelude (translation : Ast.program) =
         List.map ~f:fst @@ Ast.(select Extract.ignored_definition translation.definitions)
       in
       let formatted_ignored_definitions =
-        NanosailToMicrosail.Ignored.generate ignored_definitions
+        PPrint.(separate (twice hardline) @@ List.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions)
       in
       string_of_document formatted_ignored_definitions
     in
