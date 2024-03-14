@@ -3,4 +3,7 @@
 (library
  (name slang)
  (public_name slang)
- (libraries base stdio auxlib monads))
+ (libraries base
+            stdio
+            auxlib
+            monads))

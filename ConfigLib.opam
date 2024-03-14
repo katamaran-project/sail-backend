@@ -10,6 +10,7 @@ depends: [
   "ocaml"
   "dune" {>= "3.8"}
   "base"
+  "monads"
   "stdio"
   "slang"
   "odoc" {with-doc}

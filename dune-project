@@ -22,7 +22,6 @@
                  dune
                  base
                  stdio
-                 pprint
                  auxlib
                  monads)
 	(allow_empty))
@@ -34,6 +33,7 @@
 	(depends ocaml
                  dune
                  base
+                 monads
                  stdio
                  slang)
 	(allow_empty))
@@ -45,11 +45,12 @@
 	(depends ocaml
                  dune
                  sail
+                 ppx_here
                  pprint
                  base
                  stdio
                  auxlib
-                 ppx_here
+                 slang
                  ConfigLib)
 	(allow_empty))
 
