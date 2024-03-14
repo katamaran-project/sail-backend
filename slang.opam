@@ -11,7 +11,6 @@ depends: [
   "dune" {>= "3.8"}
   "base"
   "stdio"
-  "pprint"
   "auxlib"
   "monads"
   "odoc" {with-doc}
