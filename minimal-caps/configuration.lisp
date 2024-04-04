@@ -53,3 +53,5 @@
                 "initial_Capability"
                 )
               identifier)))
+
+(template "template.v" "microsail.v")
