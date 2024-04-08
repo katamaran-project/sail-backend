@@ -108,7 +108,7 @@ let pretty_print ir =
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
   let no_confusion =
-    None
+    NoConfusion.generate ()
   in
   let finite =
     Finite.generate ir.definitions

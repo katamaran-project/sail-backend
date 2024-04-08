@@ -27,13 +27,13 @@ let reg_inductive_type register_definitions =
   in
   Coq.annotate inductive_type
 
-let no_confusion_for_reg () =
-  Coq.section (Id.mk "TransparentObligations") (
-      separate hardline [
-          string "Local Set Transparent Obligations.";
-          string "Derive Signature NoConfusion (* NoConfusionHom *) for Reg."
-        ]
-    )
+(* let no_confusion_for_reg () = *)
+(*   Coq.section (Id.mk "TransparentObligations") ( *)
+(*       separate hardline [ *)
+(*           string "Local Set Transparent Obligations."; *)
+(*           string "Derive Signature NoConfusion (\* NoConfusionHom *\) for Reg." *)
+(*         ] *)
+(*     ) *)
 
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
@@ -129,7 +129,7 @@ let generate (register_definitions : (sail_definition * register_definition) lis
   let section_contents =
     Coq.line @@ separate (twice hardline) [
       reg_inductive_type @@ List.map ~f:snd register_definitions;
-      no_confusion_for_reg ();
+      (* no_confusion_for_reg (); *)
       reg_definition ();
       instance_reg_eq_dec register_names;
       obligation_tactic;
