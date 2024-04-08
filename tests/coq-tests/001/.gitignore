@@ -1,0 +1,6 @@
+/microsail.v
+*.glob
+*.vo
+*.vok
+*.vos
+*.aux
