@@ -42,26 +42,30 @@ let reg_definition () =
   Defines RegName inductive type enumerating all registers
 
   Inductive RegName : Set :=
-  | R1
-  | R2
-  | R3
-  | R4
-.
+  | prefixR1
+  | prefixR2
+  | prefixR3
+  | prefixR4
+  .
 
  *)
-let regnames (register_definitions : (sail_definition * register_definition) list) =
+let regnames ?(prefix = "RegName_") (register_definitions : (sail_definition * register_definition) list) =
   if List.is_empty register_definitions
   then None
   else begin
       let register_names =
         List.map ~f:(fun (_, def) -> def.identifier) register_definitions
       in
+      let build_constructor_identifier (register_identifier : identifier) : identifier =
+        Id.mk @@ Printf.sprintf "%s%s" prefix (Id.string_of register_identifier)
+      in
       let type_name = string "RegName"
       and typ = string "Set"
       in
-      let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
-                               AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier name)
-                             )
+      let inductive_type =
+        Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
+            AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier @@ build_constructor_identifier name)
+          )
       in
       Option.some @@ Coq.annotate inductive_type
     end
