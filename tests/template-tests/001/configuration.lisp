@@ -1,6 +1,4 @@
 (use-list-notations)
-(include-untranslated-definitions)
-(include-original-code)
 
 (ignore-all-overloads)
 (ignore-pragmas "include_start"
