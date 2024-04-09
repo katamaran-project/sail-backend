@@ -41,7 +41,11 @@
    (contains? '(
                 "option"
                 "regfp"
+                "regfps"
                 "niafp"
+                "niafps"
+                "diafp"
+                "diafpConstructor"
                 )
               identifier)))
 

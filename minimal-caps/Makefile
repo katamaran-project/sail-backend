@@ -6,12 +6,16 @@ C_OUT_DIR:=./build
 SAIL_SOURCES = main.sail
 COQ_FILE = microsail.v
 
-all: microsail.v rename coq
+all: microsail.v rename coqtranslation coq
 
 .PHONY: microsail.v
 microsail.v:
-	$(SAIL) -katamaran -katamaran_config configuration.lisp -ddump_rewrite_ast intermediate $(SAIL_SOURCES)
-#	$(SAIL) -katamaran -katamaran_config configuration.lisp $(SAIL_SOURCES)
+#	$(SAIL) -katamaran -katamaran_config configuration.lisp -ddump_rewrite_ast intermediate $(SAIL_SOURCES)
+	$(SAIL) -katamaran -katamaran_config configuration.lisp $(SAIL_SOURCES)
+
+.PHONY: coqtranslation
+coqtranslation:
+	$(SAIL) -coq -o coq.v $(SAIL_SOURCES)
 
 .PHONY: rename
 rename:
