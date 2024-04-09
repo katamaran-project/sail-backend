@@ -103,10 +103,18 @@ let pretty_print ir =
     then
       empty
     else
-      generate_section "REGISTERS" @@ Registers.generate @@ select Extract.register_definition ir.definitions
+      let register_definitions = select Extract.register_definition ir.definitions
+      in
+      generate_section "REGISTERS" @@ Registers.generate register_definitions
+  in
+  let no_confusion =
+    NoConfusion.generate ir.definitions
   in
   let finite =
     Finite.generate ir.definitions
+  in
+  let eqdecs =
+    EqDec.generate ir.definitions
   in
   let sections =
     build_list @@
@@ -115,6 +123,8 @@ let pretty_print ir =
           add    base;
           add    program;
           add    registers;
+          addopt no_confusion;
+          addopt eqdecs;
           addopt finite;
         end
   in

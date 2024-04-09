@@ -27,26 +27,34 @@ let reg_inductive_type register_definitions =
   in
   Coq.annotate inductive_type
 
+
 let no_confusion_for_reg () =
   Coq.section (Id.mk "TransparentObligations") (
       separate hardline [
           string "Local Set Transparent Obligations.";
-          string "Derive Signature NoConfusion (* NoConfusionHom *) for Reg."
+          string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
         ]
     )
 
+
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+
+
+let translate_regname (register_identifier : identifier) : identifier =
+  let prefix = "RegName_"
+  in
+  Id.mk @@ Printf.sprintf "%s%s" prefix (Id.string_of register_identifier)
 
 (*
   Defines RegName inductive type enumerating all registers
 
   Inductive RegName : Set :=
-  | R1
-  | R2
-  | R3
-  | R4
-.
+  | translate_regname(R1)
+  | translate_regname(R2)
+  | translate_regname(R3)
+  | translate_regname(R4)
+  .
 
  *)
 let regnames (register_definitions : (sail_definition * register_definition) list) =
@@ -59,9 +67,10 @@ let regnames (register_definitions : (sail_definition * register_definition) lis
       let type_name = string "RegName"
       and typ = string "Set"
       in
-      let inductive_type = Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
-                               AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier name)
-                             )
+      let inductive_type =
+        Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
+            AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier @@ translate_regname name)
+          )
       in
       Option.some @@ Coq.annotate inductive_type
     end
@@ -77,7 +86,8 @@ let instance_reg_eq_dec register_names =
     in
     Auxlib.build_list (fun { add; addall; _ } ->
         addall cs;
-        add wildcard_case
+        if List.length cs > 1
+        then add wildcard_case;
       )
   in
   separate hardline [
@@ -99,15 +109,15 @@ let reg_finite register_names =
     Coq.list (List.map ~f:enum_value_of_register_name register_names)
   in
   separate hardline (
-    [
-      utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-      PP.indent' (
-        Coq.record_value [
-          (string "enum", enum_values)
-        ]
-      )
-    ]
-  )
+      [
+        utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
+        PP.indent' (
+            Coq.record_value [
+                (string "enum", enum_values)
+              ]
+          )
+      ]
+    )
 
 let obligation_tactic =
   separate hardline [

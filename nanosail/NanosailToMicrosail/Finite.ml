@@ -18,9 +18,15 @@ let generate_enum_finiteness
 
 
 let generate_register_finiteness (register_definitions : (sail_definition * register_definition) list) =
+  let register_identifiers =
+    List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+  in
+  let translated_register_identifiers =
+    List.map ~f:Registers.translate_regname register_identifiers
+  in
   let identifier = pp_identifier @@ Id.mk "RegName"
   and type_name  = pp_identifier @@ Id.mk "RegName"
-  and values     = List.map ~f:(fun (_, def) -> pp_identifier def.identifier) register_definitions
+  and values     = List.map ~f:pp_identifier translated_register_identifiers
   in
   Coq.finite_instance ~identifier ~type_name ~values
 
@@ -51,6 +57,7 @@ let generate (definitions : (sail_definition * definition) list) =
         build_list @@
           fun { add; addall; _ } -> begin
               add    @@ Coq.imports [ "stdpp.finite" ];
+              add    @@ Coq.local_obligation_tactic (Id.mk "finite_from_eqdec");
               addall @@ finite_definitions;
             end
       in
