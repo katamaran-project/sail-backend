@@ -86,7 +86,8 @@ let instance_reg_eq_dec register_names =
     in
     Auxlib.build_list (fun { add; addall; _ } ->
         addall cs;
-        add wildcard_case
+        if List.length cs > 1
+        then add wildcard_case;
       )
   in
   separate hardline [
