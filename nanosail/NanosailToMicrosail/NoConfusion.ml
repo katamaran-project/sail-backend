@@ -10,6 +10,7 @@ let generate () =
     build_list (fun { add; _ } ->
         add @@ PP.string "Local Set Transparent Obligations.";
         add @@ PP.string "";
+        add @@ PP.string "Derive NoConfusion for RegName.";
       )  
   in
   let section =

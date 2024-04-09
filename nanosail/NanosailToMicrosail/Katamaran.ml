@@ -113,6 +113,9 @@ let pretty_print ir =
   let finite =
     Finite.generate ir.definitions
   in
+  let eqdecs =
+    EqDec.generate ir.definitions
+  in
   let sections =
     build_list @@
       fun { add; addopt; _ } -> begin
@@ -121,6 +124,7 @@ let pretty_print ir =
           add    program;
           add    registers;
           addopt no_confusion;
+          addopt eqdecs;
           addopt finite;
         end
   in
