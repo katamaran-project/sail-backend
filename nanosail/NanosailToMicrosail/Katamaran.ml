@@ -116,11 +116,15 @@ let pretty_print ir =
   let eqdecs =
     EqDec.generate ir.definitions
   in
+  let value_definitions =
+    ValueDefinitions.generate ir.definitions
+  in
   let sections =
     build_list @@
       fun { add; addopt; _ } -> begin
           add    prelude;
           add    base;
+          add    value_definitions;
           add    program;
           add    registers;
           addopt no_confusion;

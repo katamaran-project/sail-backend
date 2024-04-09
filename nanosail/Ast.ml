@@ -280,7 +280,7 @@ type top_level_type_constraint_definition =
 type value_definition =
   {
     identifier : identifier;
-    value      : statement ;
+    value      : value;
   }
 
 

@@ -16,3 +16,4 @@ module Katamaran         = Katamaran
 module Ignored           = Ignored
 module Untranslated      = Untranslated
 module NoConfusion       = NoConfusion
+module ValueDefinitions  = ValueDefinitions
