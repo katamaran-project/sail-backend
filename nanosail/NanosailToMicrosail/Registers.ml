@@ -27,13 +27,15 @@ let reg_inductive_type register_definitions =
   in
   Coq.annotate inductive_type
 
+
 let no_confusion_for_reg () =
   Coq.section (Id.mk "TransparentObligations") (
       separate hardline [
           string "Local Set Transparent Obligations.";
-          string "Derive Signature NoConfusion NoConfusionHom (* EqDec *) for Reg."
+          string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
         ]
     )
+
 
 let reg_definition () =
   utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
