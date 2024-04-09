@@ -48,10 +48,10 @@ let translate_regname (register_identifier : identifier) : identifier =
   Defines RegName inductive type enumerating all registers
 
   Inductive RegName : Set :=
-  | prefixR1
-  | prefixR2
-  | prefixR3
-  | prefixR4
+  | translate_regname(R1)
+  | translate_regname(R2)
+  | translate_regname(R3)
+  | translate_regname(R4)
   .
 
  *)
