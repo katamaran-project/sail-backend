@@ -71,8 +71,8 @@ let pretty_print ir =
       then []
       else [
         Types.Enums.generate_enum_of_enums enum_definitions;
-        Types.Enums.generate_eqdecs enum_definitions;
         Types.Enums.generate_no_confusions enum_definitions;
+        Types.Enums.generate_eqdecs enum_definitions;
       ]
     in
     let segments =
