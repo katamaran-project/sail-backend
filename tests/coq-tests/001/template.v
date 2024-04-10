@@ -2,16 +2,5 @@
   (full-translation)
 >*)
 
-(*
-  UNTRANSLATED
-(*<
-  (untranslated-definitions)
->*)
-*)
-
-(*
-  IGNORED
-(*<
-  (ignored-definitions)
->*)
-*)
+Theorem imm_size_correct : imm_size = 12.
+Proof. trivial. Qed.
