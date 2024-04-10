@@ -5,6 +5,12 @@ COQ=coqc
 SAIL_SOURCES=model.sail
 TESTED_FILE=microsail.v
 
-# $SAIL -ddump_rewrite_ast intermediate -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
-$SAIL -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+if [ -n "$1" ]
+then
+    OPT="-ddump_rewrite_ast intermediate"
+else
+    OPT=
+fi
+
+$SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 $COQ microsail.v
