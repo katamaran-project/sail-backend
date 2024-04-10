@@ -151,6 +151,7 @@ type statement =
   | Stm_read_register      of identifier
   | Stm_write_register     of identifier * statement
   | Stm_cast               of statement * nanotype
+  | Stm_fail               of string
 
 and match_pattern =
   | MP_list    of match_pattern_list
