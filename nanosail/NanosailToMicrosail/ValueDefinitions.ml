@@ -1,12 +1,13 @@
 open Base
 (* open Auxlib *)
 open Ast
+open Identifier
 
 module PP = PPrint
 
 
 
-let pp_value (value : value) -> PP.document =
+let pp_value (value : value) : PP.document =
   match value with
   | Val_unit -> PP.(string "tt")
   | Val_bool b -> begin
@@ -14,19 +15,29 @@ let pp_value (value : value) -> PP.document =
       then PP.(string "true")
       else PP.(string "false")
     end
-  | Val_int n -> PP.(string string_of_int n)
-  | Val_string _ -> _
-  | Val_prod (_, _) -> _
+  | Val_int n -> PP.(string @@ Z.to_string n)
+  | Val_string _ -> PP.string "not yet implemented" (* todo *)
+  | Val_prod (_, _) -> PP.string "not yet implemented" (* todo *)
 
 
-let pp_value_definition (value_definition : value_definition) -> PP.document =
+let pp_value_definition (value_definition : value_definition) : PP.document =
   let { identifier; value } = value_definition
   in
-  
+  let definition =
+    let identifier = pp_identifier identifier
+    and parameters = []
+    and result_type = None
+    and body = pp_value value
+    in
+    Coq.definition ~identifier ~parameters ~result_type ~body
+  in
+  definition
 
 
 let generate (definitions : (sail_definition * definition) list) =
   let value_definitions =
-    select Extract.value_definition definitions
+    List.map ~f:snd @@ select Extract.value_definition definitions
   in
-  
+  let coq_lines = List.map ~f:pp_value_definition value_definitions
+  in
+  PP.(separate hardline coq_lines)
