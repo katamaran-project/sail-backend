@@ -904,6 +904,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     in
     TC.return @@ Ast.Stm_cast (translated_expression, translated_type)
 
+  and statement_of_throw
+        (_aval : Libsail.Ast.typ Libsail.Anf.aval)
+        (_typ  : Libsail.Ast.typ                 )
+    =
+    TC.return @@ Ast.Stm_fail "\"failure\"" (* todo *)
+
   in
   match expression with
   | AE_val value                                                  -> statement_of_value value
@@ -917,9 +923,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
   | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
   | AE_typ (expression, target_type)                              -> statement_of_cast expression target_type
+  | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
   | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_exit (_, _)                                                -> TC.not_yet_implemented [%here] location
-  | AE_throw (_, _)                                               -> TC.not_yet_implemented [%here] location
   | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
   | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
