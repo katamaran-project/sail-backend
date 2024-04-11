@@ -3,13 +3,13 @@ default Order dec
 $include <prelude.sail>
 
 
-type regname = bits(2)
-type dst     = regname
-type src     = regname
-type imm     = bits(12)
-type imm_ext = bits(20)
-type address = bits(64)
-type integer = bits(64)
+type regname  = bits(2)
+type dst      = regname
+type src      = regname
+type imm      = bits(12)
+type imm_ext  = bits(20)
+type address  = bits(64)
+type integer  = bits(64)
 type cap_bits = bits(194)
 
 
