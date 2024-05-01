@@ -22,7 +22,6 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     Types are representing as strings in Sail.
   *)
   let rec type_of_identifier (identifier : S.id) : N.nanotype TC.t =
-    Stdio.printf "type_of_identifier %s\n" (StringOf.Sail.id identifier); (* todo remove this *)
     let* identifier' = translate_identifier [%here] identifier
     in
     match Id.string_of identifier' with
@@ -31,14 +30,8 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     | "int"       -> TC.return @@ N.Ty_int
     | "unit"      -> TC.return @@ N.Ty_unit
     | "string"    -> TC.return @@ N.Ty_string
-    | "atom"      -> begin
-        Stdio.printf "Encountered atom\n"; (* todo remove this *)
-        TC.return @@ N.Ty_atom
-      end
-    | _           -> begin
-        Stdio.printf "Encountered custom\n"; (* todo remove this *)
-        TC.return @@ N.Ty_custom identifier'
-      end
+    | "atom"      -> TC.return @@ N.Ty_atom
+    | _           -> TC.return @@ N.Ty_custom identifier'
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -52,6 +45,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     in
     match (Id.string_of identifier'), type_arguments' with
     | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
+    | "atom", _                 -> TC.return @@ N.Ty_int
     | id     , _                -> TC.return @@ N.Ty_app (Id.mk id, type_arguments')
 
   and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument TC.t =
