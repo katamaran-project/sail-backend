@@ -22,7 +22,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     Types are representing as strings in Sail.
   *)
   let rec type_of_identifier (identifier : S.id) : N.nanotype TC.t =
-    Stdio.printf "type_of_identifier %s\n" (StringOf.id identifier); (* todo remove this *)
+    Stdio.printf "type_of_identifier %s\n" (StringOf.Sail.id identifier); (* todo remove this *)
     let* identifier' = translate_identifier [%here] identifier
     in
     match Id.string_of identifier' with
