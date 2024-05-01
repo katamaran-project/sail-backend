@@ -7,7 +7,7 @@ full: clean all
 build:
 	dune build
 
-install:
+install: build
 	dune install
 
 test:
