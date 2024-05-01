@@ -17,8 +17,14 @@ test:
 template-tests: build install
 	make -C tests/template-tests
 
+.PHONY: coq-tests ct
+coq-tests: build install
+	make -C tests/coq-tests
+
+
 tt: template-tests
 
+ct: coq-tests
 
 example: build install
 	make -C working-example
