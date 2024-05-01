@@ -70,6 +70,7 @@ let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) =
       let* x  = translate_identifier [%here] id in
       let* ty = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
+      Stdio.printf "%s : %s\n" (Id.string_of x) "something"; (* todo remove this *)
       TC.return [(x, ty)]
     end
   | P_tuple pats -> begin
