@@ -3,8 +3,8 @@ default Order dec
 $include <prelude.sail>
 
 
-val double : int -> int
-function double(x) = {
+val sign : int -> int
+function sign(x) = {
   if x > 0 then { 1 }
   else { -1 }
 }
