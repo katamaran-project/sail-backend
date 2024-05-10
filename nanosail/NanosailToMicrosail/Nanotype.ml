@@ -50,13 +50,13 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_string                   -> AC.return @@ pp_identifier @@ Id.mk "ty.string"
    | Ty_atom                     -> AC.return @@ pp_identifier @@ Id.mk "ty.atom"
    | Ty_custom id                -> AC.return @@ pp_identifier id
-   | Ty_list typ                 -> pp_list typ
-   | Ty_tuple ts                 -> pp_tuple ts
-   | Ty_bitvector nexpr          -> pp_bitvector nexpr
    | Ty_record                   -> AC.not_yet_implemented [%here]
    | Ty_prod (_, _)              -> AC.not_yet_implemented [%here]
    | Ty_sum (_, _)               -> AC.not_yet_implemented [%here]
    | Ty_app (constructor, targs) -> pp_application constructor targs
+   | Ty_list typ                 -> pp_list typ
+   | Ty_tuple ts                 -> pp_tuple ts
+   | Ty_bitvector nexpr          -> pp_bitvector nexpr
 
 
 and coq_type_of_nanotype (nanotype : nanotype) =
