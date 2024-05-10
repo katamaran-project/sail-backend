@@ -18,11 +18,11 @@ let rec nanotype (t : Ast.nanotype) =
   | Ast.Ty_nat              -> "Ty_nat"
   | Ast.Ty_atom             -> "Ty_atom"
   | Ast.Ty_custom id        -> Printf.sprintf "Ty_custom(%s)" (identifier id)
-  | Ast.Ty_app (id, targs)  -> begin
-      let id' = identifier id
+  | Ast.Ty_app (constructor, targs) -> begin
+      let constructor' = nanotype constructor
       and targs' = List.map ~f:type_argument targs
       in
-      Printf.sprintf "%s(%s)" id' (String.concat ~sep:"," targs')
+      Printf.sprintf "%s(%s)" constructor' (String.concat ~sep:"," targs')
     end
   | Ast.Ty_tuple ts -> begin
       let ts' = List.map ~f:nanotype ts

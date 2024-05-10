@@ -13,6 +13,7 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
     parens @@ simple_app [ pp_identifier @@ Id.mk "ty.prod"; x; y ]
   in
+  
   let pp_tuple elts =
     let* elts' = AnnotationContext.map ~f:pp_nanotype elts
     in
@@ -20,39 +21,42 @@ let rec pp_nanotype (typ : nanotype) =
     | Some (xs, last) -> AC.return @@ List.fold_right ~f:pp_product ~init:last xs
     | None            -> AC.not_yet_implemented [%here]
   in
+  
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
     AC.return @@ parens @@ simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
   in
-  let pp_application id type_arguments =
-    let id' = pp_identifier id
+  
+  let pp_application constructor type_arguments =
+    let* constructor' = pp_nanotype constructor
     in
     let* type_arguments' =
       AC.map ~f:pp_type_argument type_arguments
     in
-    AC.return @@ parens @@ simple_app (id' :: type_arguments')
+    AC.return @@ parens @@ simple_app (constructor' :: type_arguments')
   in
+  
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
     AC.return @@ simple_app [ pp_identifier @@ Id.mk "ty.bitvector"; nexpr' ]
   in
   match typ with
-   | Ty_unit            -> AC.return @@ pp_identifier @@ Id.mk "ty.unit"
-   | Ty_bool            -> AC.return @@ pp_identifier @@ Id.mk "ty.bool"
-   | Ty_int             -> AC.return @@ pp_identifier @@ Id.mk "ty.int"
-   | Ty_nat             -> AC.return @@ pp_identifier @@ Id.mk "ty.nat"
-   | Ty_string          -> AC.return @@ pp_identifier @@ Id.mk "ty.string"
-   | Ty_atom            -> AC.return @@ pp_identifier @@ Id.mk "ty.atom"
-   | Ty_custom id       -> AC.return @@ pp_identifier id
-   | Ty_list typ        -> pp_list typ
-   | Ty_tuple ts        -> pp_tuple ts
-   | Ty_app (id, targs) -> pp_application id targs
-   | Ty_bitvector nexpr -> pp_bitvector nexpr
-   | Ty_record          -> AC.not_yet_implemented [%here]
-   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
-   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
+   | Ty_unit                     -> AC.return @@ pp_identifier @@ Id.mk "ty.unit"
+   | Ty_bool                     -> AC.return @@ pp_identifier @@ Id.mk "ty.bool"
+   | Ty_int                      -> AC.return @@ pp_identifier @@ Id.mk "ty.int"
+   | Ty_nat                      -> AC.return @@ pp_identifier @@ Id.mk "ty.nat"
+   | Ty_string                   -> AC.return @@ pp_identifier @@ Id.mk "ty.string"
+   | Ty_atom                     -> AC.return @@ pp_identifier @@ Id.mk "ty.atom"
+   | Ty_custom id                -> AC.return @@ pp_identifier id
+   | Ty_list typ                 -> pp_list typ
+   | Ty_tuple ts                 -> pp_tuple ts
+   | Ty_bitvector nexpr          -> pp_bitvector nexpr
+   | Ty_record                   -> AC.not_yet_implemented [%here]
+   | Ty_prod (_, _)              -> AC.not_yet_implemented [%here]
+   | Ty_sum (_, _)               -> AC.not_yet_implemented [%here]
+   | Ty_app (constructor, targs) -> pp_application constructor targs
 
 
 and coq_type_of_nanotype (nanotype : nanotype) =
@@ -74,9 +78,10 @@ and coq_type_of_nanotype (nanotype : nanotype) =
       AC.return @@ PP.(separate space [ string "list"; parens t' ])
     end
   | Ty_app (t, ts)     -> begin
-      let* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
+      let* t   = coq_type_of_nanotype t
+      and* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
       in
-      AC.return @@ pp_identifier t ^^ space ^^ separate space ts'
+      AC.return @@ separate space (t :: ts')
     end
   | Ty_tuple _ts       -> AC.not_yet_implemented [%here]
   | Ty_atom            -> AC.not_yet_implemented [%here]

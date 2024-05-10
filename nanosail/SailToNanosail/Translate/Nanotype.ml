@@ -46,7 +46,11 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     match (Id.string_of identifier'), type_arguments' with
     | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
     | "atom", _                 -> TC.return @@ N.Ty_int
-    | id     , _                -> TC.return @@ N.Ty_app (Id.mk id, type_arguments')
+    | _, _                      -> begin
+        let* constructor = type_of_identifier identifier
+        in
+        TC.return @@ N.Ty_app (constructor, type_arguments')
+      end
 
   and translate_type_argument (S.A_aux (type_argument, _location)) : N.type_argument TC.t =
     match type_argument with

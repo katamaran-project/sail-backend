@@ -61,7 +61,7 @@ type nanotype =
 
   | Ty_nat                                       (* TODO remove *)
   | Ty_atom                                      (* TODO remove *)
-  | Ty_app       of identifier * type_argument list  (* TODO remove *)
+  | Ty_app       of nanotype * type_argument list  (* TODO remove *)
   | Ty_custom    of identifier                       (* TODO remove *)
 
 and type_argument =
