@@ -60,6 +60,23 @@ let rec pp_nanotype (typ : nanotype) =
 
 
 and coq_type_of_nanotype (nanotype : nanotype) =
+  let coq_type_of_bitvector_type n =
+    let* n' = pp_numeric_expression n
+    in
+    AC.return @@ string "bv" ^^ space ^^ n'
+
+  and coq_type_of_list_type t =
+    let* t' = coq_type_of_nanotype t
+    in
+    AC.return @@ PP.(separate space [ string "list"; parens t' ])
+
+  and coq_type_of_application t ts =
+    let* t   = coq_type_of_nanotype t
+    and* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
+    in
+    AC.return @@ separate space (t :: ts')
+
+  in
   match nanotype with
   | Ty_unit            -> AC.return @@ string "Datatypes.unit"
   | Ty_bool            -> AC.return @@ string "Datatypes.bool"
@@ -67,22 +84,9 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_int             -> AC.return @@ string "Z"
   | Ty_string          -> AC.return @@ string "String.string"
   | Ty_custom id       -> AC.return @@ pp_identifier id
-  | Ty_bitvector n     -> begin
-      let* n' = pp_numeric_expression n
-      in
-      AC.return @@ string "bv" ^^ space ^^ n'
-    end
-  | Ty_list t          -> begin
-      let* t' = coq_type_of_nanotype t
-      in
-      AC.return @@ PP.(separate space [ string "list"; parens t' ])
-    end
-  | Ty_app (t, ts)     -> begin
-      let* t   = coq_type_of_nanotype t
-      and* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
-      in
-      AC.return @@ separate space (t :: ts')
-    end
+  | Ty_bitvector n     -> coq_type_of_bitvector_type n
+  | Ty_list t          -> coq_type_of_list_type t
+  | Ty_app (t, ts)     -> coq_type_of_application t ts
   | Ty_tuple _ts       -> AC.not_yet_implemented [%here]
   | Ty_atom            -> AC.not_yet_implemented [%here]
   | Ty_record          -> AC.not_yet_implemented [%here]
