@@ -3,9 +3,6 @@ open Ast
 open Auxlib
 open Identifier
 
-module PP = PPrint
-
-
 
 let generate_enum_finiteness
       (_sail_definition : sail_definition)
