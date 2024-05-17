@@ -6,15 +6,11 @@ open Identifier
 
 let pp_value (value : value) : PP.document =
   match value with
-  | Val_unit -> PP.(string "tt")
-  | Val_bool b -> begin
-      if b
-      then PP.(string "true")
-      else PP.(string "false")
-    end
-  | Val_int n -> PP.(string @@ Z.to_string n)
-  | Val_string _ -> PP.string "not yet implemented" (* todo *)
+  | Val_unit        -> PP.(string "tt")
+  | Val_int n       -> PP.(string @@ Z.to_string n)
+  | Val_string _    -> PP.string "not yet implemented" (* todo *)
   | Val_prod (_, _) -> PP.string "not yet implemented" (* todo *)
+  | Val_bool b      -> PP.string @@ if b then "true" else "false"
 
 
 let pp_value_definition (value_definition : value_definition) : PP.document =
