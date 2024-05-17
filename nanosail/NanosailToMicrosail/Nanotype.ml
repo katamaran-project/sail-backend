@@ -93,7 +93,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
 
-and pp_type_argument (type_argument : type_argument) =
+and pp_type_argument (type_argument : type_argument) : document AC.t =
   match type_argument with
   | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e
