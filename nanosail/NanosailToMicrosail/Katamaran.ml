@@ -8,7 +8,7 @@ open ForeignKit
 module AC = AnnotationContext
 
 
-let defaultBase = string "Import DefaultBase."
+let defaultBase = PP.string "Import DefaultBase."
 
 
 (******************************************************************************)
