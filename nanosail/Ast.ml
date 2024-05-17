@@ -304,7 +304,6 @@ type program = {
 module Extract = struct
   let identity x = Some x
 
-
   let function_definition = function
     | FunctionDefinition x -> Some x
     | _                    -> None
