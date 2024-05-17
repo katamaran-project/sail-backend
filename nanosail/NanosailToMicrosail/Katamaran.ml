@@ -30,7 +30,7 @@ let pp_program_module
       Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
       Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
-      pp_foreignKit;
+      pp_foreign_kit;
       Coq.line @@ string @@ "Include ProgramMixin " ^ base_identifier;
     ]
   in

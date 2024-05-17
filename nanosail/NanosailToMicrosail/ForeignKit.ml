@@ -3,7 +3,7 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
-let pp_foreignKit = (* todo *)
+let pp_foreign_kit =
   let title = Id.mk "ForeignKit"
   and contents =
     PP.(separate_map hardline utf8string [
