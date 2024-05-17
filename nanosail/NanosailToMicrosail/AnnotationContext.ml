@@ -13,7 +13,6 @@ let    return         = Monad.return
 let    bind           = Monad.bind
 let    initial_state  = { annotations = [] }
 
-
 let create_annotation annotation =
   let open Monads.Notations.Star(Monad)
   in

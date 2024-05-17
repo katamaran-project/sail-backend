@@ -4,6 +4,7 @@ type 'a t
 
 val return              : 'a -> 'a t
 val bind                : 'a t -> ('a -> 'b t) -> 'b t
+val compose             : ('b -> 'c t) -> ('a -> 'b t) -> 'a -> 'c t
 
 val create_annotation   : PPrint.document -> int t
 val not_yet_implemented : ?message:string -> Lexing.position -> annotation t
