@@ -59,4 +59,7 @@ module Make (M : Sig.Monad) = struct
     match xs with
     | [] -> M.return ()
     | x::xs -> M.bind x (fun _ -> sequence xs)
+
+  let compose (g : 'b -> 'c M.t) (f : 'a -> 'b M.t) (x : 'a) =
+    M.bind (f x) g
 end
