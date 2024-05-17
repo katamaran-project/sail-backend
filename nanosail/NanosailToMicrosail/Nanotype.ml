@@ -28,11 +28,14 @@ let rec pp_nanotype (typ : nanotype) =
     AC.return @@ parens @@ simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
   in
   
-  let pp_application constructor type_arguments =
+  let pp_application
+      (constructor    : nanotype          )
+      (type_arguments : type_argument list) : document AC.t
+    =
     let* constructor' = pp_nanotype constructor
     in
     let* type_arguments' =
-      AC.map ~f:pp_type_argument type_arguments
+      AC.map ~f:(AC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
     in
     AC.return @@ parens @@ simple_app (constructor' :: type_arguments')
   in
