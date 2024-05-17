@@ -88,10 +88,8 @@ type type_quantifier_item = identifier * kind
 
 type type_quantifier = type_quantifier_item list
 
-type bind = identifier * nanotype
-
 type function_type = {
-  arg_types : bind list;
+  arg_types : (identifier * nanotype) list;
   ret_type  : nanotype
 }
 
