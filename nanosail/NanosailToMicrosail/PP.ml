@@ -6,7 +6,9 @@ include PPrint
 let indent' ?(level = 2) doc = blank level ^^ align doc
 
 let small_step = twice hardline
+
 let big_step   = twice small_step
+
 
 let delimited_sequence left_delimiter right_delimiter separator items =
   concat [
@@ -16,6 +18,7 @@ let delimited_sequence left_delimiter right_delimiter separator items =
     );
     right_delimiter
   ]
+
 
 (*
    Formats elements as
@@ -44,6 +47,7 @@ let hanging_list ?(adaptive = true) x xs =
       align (separate hardline xs)
     ]
 
+
 let simple_app terms =
   match terms with
   | []    -> empty
@@ -60,12 +64,14 @@ let simple_app terms =
     in
     group @@ ifflat single_line multi_line
 
+
 let indented_enclosed_lines starting_line indented ending_line =
   separate hardline [
     starting_line;
     indent' indented;
     ending_line
   ]
+
 
 let pad_right width document =
   let document_width =
@@ -78,11 +84,13 @@ let pad_right width document =
   else
     document
 
+
 let string_of_document ?(page_width = 80) document =
   let buffer = Stdlib.Buffer.create 1000
   in
   PPrint.ToBuffer.pretty 1.0 page_width buffer document;
   Stdlib.Buffer.contents buffer
+
 
 let separate_nonempty separator items =
   let is_nonempty item =
