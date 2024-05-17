@@ -43,6 +43,7 @@ let generate_inductive_type (variant_definition : variant_definition) : PP.docum
   in
   inductive_type
 
+
 let generate_constructors_inductive_type (variant_definition  : variant_definition) =
   let identifier = pp_identifier @@ Id.add_suffix "Constructor" variant_definition.identifier
   and typ = pp_identifier @@ Id.mk "Set"
@@ -53,6 +54,7 @@ let generate_constructors_inductive_type (variant_definition  : variant_definiti
         ~f:(fun case -> add_constructor @@ pp_identifier @@ Id.add_prefix "K" case)
     )
 
+
 let generate (variant_definition : variant_definition) =
   let* inductive_type = generate_inductive_type variant_definition
   and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
@@ -61,4 +63,3 @@ let generate (variant_definition : variant_definition) =
                    inductive_type;
                    constructors_inductive_type
                  ]
-
