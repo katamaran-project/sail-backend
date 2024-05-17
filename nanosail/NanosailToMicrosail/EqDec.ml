@@ -2,8 +2,6 @@ open Base
 open Auxlib
 open Ast
 
-module PP = PPrint
-
 
 let generate (definitions : (sail_definition * definition) list) =
   let has_registers =
