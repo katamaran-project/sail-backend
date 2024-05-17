@@ -3,9 +3,6 @@ open Base
 open Ast
 open Identifier
 
-module PP = PPrint
-
-
 
 let pp_value (value : value) : PP.document =
   match value with
