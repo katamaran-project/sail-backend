@@ -7,7 +7,7 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate (type_abbreviation : type_abbreviation_definition) : AC.annotation AC.t =
+let generate (type_abbreviation : type_abbreviation_definition) : PP.document AC.t =
   let { identifier; abbreviation } = type_abbreviation
   in
   match abbreviation with

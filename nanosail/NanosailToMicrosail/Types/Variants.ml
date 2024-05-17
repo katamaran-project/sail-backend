@@ -8,7 +8,7 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate_inductive_type (variant_definition : variant_definition) : AC.annotation AC.t =
+let generate_inductive_type (variant_definition : variant_definition) : PP.document AC.t =
   let { identifier; type_quantifier; constructors } = variant_definition
   in
   let inductive_type =

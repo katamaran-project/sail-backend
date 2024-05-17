@@ -354,8 +354,14 @@ let annotate f =
   let (document, annotations) = AC.collect_annotations f
   in
   let pp_annotations =
-    let pp_annotation index doc =
-      PPrint.(string (Int.to_string index) ^^ string " : " ^^ align doc)
+    let pp_annotation index annotation =
+      PP.(concat [
+          string (Int.to_string index);
+          space;
+          colon;
+          space;
+          align (AC.document_of_annotation annotation)
+        ])
     in
     List.mapi ~f:pp_annotation annotations
   in

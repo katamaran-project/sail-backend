@@ -2,7 +2,7 @@ open Base
 open Basics
 
 
-type   annotation     = PPrint.document
+type   annotation     = Annotation of PPrint.document
 type   annotations    = annotation list
 type   state          = { annotations : annotations }
 
@@ -13,18 +13,18 @@ let    return         = Monad.return
 let    bind           = Monad.bind
 let    initial_state  = { annotations = [] }
 
-let create_annotation annotation =
+
+let create_annotation (annotation_document : PP.document) : int t =
   let open Monads.Notations.Star(Monad)
   in
-  let* state       = Monad.get
+  let annotation        = Annotation annotation_document  in
+  let* state            = Monad.get                       in
+  let  annotations'     = annotation :: state.annotations in
+  let  state'           = { annotations = annotations' }  in
+  let* ()               = Monad.put state'                in
+  let  annotation_index = List.length annotations'
   in
-  let annotations' = annotation :: state.annotations
-  in
-  let state'       = { annotations = annotations' }
-  in
-  let* ()          = Monad.put state'
-  in
-  Monad.return @@ List.length annotations'
+  return annotation_index
 
 
 let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
@@ -50,3 +50,7 @@ let collect_annotations f =
 
 
 include Monads.Util.Make(Monad)
+
+
+let document_of_annotation (Annotation d) = d
+

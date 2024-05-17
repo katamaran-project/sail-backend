@@ -8,7 +8,7 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate (enum_definition : enum_definition) : AC.annotation AC.t =
+let generate (enum_definition : enum_definition) : PP.document AC.t =
   let identifier = pp_identifier enum_definition.identifier
   and typ = pp_identifier @@ Id.mk "Set"
   in
