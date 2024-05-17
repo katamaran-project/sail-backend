@@ -1,17 +1,15 @@
 open Base
-open PP
 open Ast
 open Numeric
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
 
 module AC = AnnotationContext
-module PP = PPrint
 
 
 let rec pp_nanotype (typ : nanotype) =
   let pp_product x y =
-    parens @@ simple_app [ pp_identifier @@ Id.mk "ty.prod"; x; y ]
+    PP.parens @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.prod"; x; y ]
   in
   
   let pp_tuple elts =
@@ -25,25 +23,25 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    AC.return @@ parens @@ simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
+    AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
   in
   
   let pp_application
       (constructor    : nanotype          )
-      (type_arguments : type_argument list) : document AC.t
+      (type_arguments : type_argument list) : PP.document AC.t
     =
     let* constructor' = pp_nanotype constructor
     in
     let* type_arguments' =
       AC.map ~f:(AC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
     in
-    AC.return @@ parens @@ simple_app (constructor' :: type_arguments')
+    AC.return @@ PP.parens @@ PP.simple_app (constructor' :: type_arguments')
   in
   
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
-    AC.return @@ simple_app [ pp_identifier @@ Id.mk "ty.bitvector"; nexpr' ]
+    AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.bitvector"; nexpr' ]
   in
   match typ with
    | Ty_unit                     -> AC.return @@ pp_identifier @@ Id.mk "ty.unit"
@@ -66,7 +64,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   let coq_type_of_bitvector_type n =
     let* n' = pp_numeric_expression n
     in
-    AC.return @@ string "bv" ^^ space ^^ n'
+    AC.return @@ PP.(string "bv" ^^ space ^^ n')
 
   and coq_type_of_list_type t =
     let* t' = coq_type_of_nanotype t
@@ -75,17 +73,17 @@ and coq_type_of_nanotype (nanotype : nanotype) =
 
   and coq_type_of_application t ts =
     let* t   = coq_type_of_nanotype t
-    and* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:parens) pp_type_argument) ts
+    and* ts' = AC.map ~f:(Fn.compose (AC.lift ~f:PP.parens) pp_type_argument) ts
     in
-    AC.return @@ separate space (t :: ts')
+    AC.return @@ PP.separate PP.space (t :: ts')
 
   in
   match nanotype with
-  | Ty_unit            -> AC.return @@ string "Datatypes.unit"
-  | Ty_bool            -> AC.return @@ string "Datatypes.bool"
-  | Ty_nat             -> AC.return @@ string "nat"
-  | Ty_int             -> AC.return @@ string "Z"
-  | Ty_string          -> AC.return @@ string "String.string"
+  | Ty_unit            -> AC.return @@ PP.string "Datatypes.unit"
+  | Ty_bool            -> AC.return @@ PP.string "Datatypes.bool"
+  | Ty_nat             -> AC.return @@ PP.string "nat"
+  | Ty_int             -> AC.return @@ PP.string "Z"
+  | Ty_string          -> AC.return @@ PP.string "String.string"
   | Ty_custom id       -> AC.return @@ pp_identifier id
   | Ty_bitvector n     -> coq_type_of_bitvector_type n
   | Ty_list t          -> coq_type_of_list_type t
@@ -96,7 +94,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
 
-and pp_type_argument (type_argument : type_argument) : document AC.t =
+and pp_type_argument (type_argument : type_argument) : PP.document AC.t =
   match type_argument with
   | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e
