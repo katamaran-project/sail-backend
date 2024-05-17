@@ -1,5 +1,4 @@
 open Base
-open PP
 open Ast
 open Auxlib
 open Monads.Notations.Star(AnnotationContext)
@@ -25,14 +24,14 @@ let pp_program_module
   and base_identifier = base_name ^ "Base" in
   let includes        = [ "Program"; base_identifier ]
   and contents =
-    separate (twice hardline) [
+    PP.(separate (twice hardline) [
       FunDeclKit.generate @@ List.map ~f:snd function_definitions;
       Coq.line @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
       Coq.line @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
       pp_foreign_kit;
       Coq.line @@ string @@ "Include ProgramMixin " ^ base_identifier;
-    ]
+    ])
   in
   Coq.module'
     ~flag:flag
@@ -46,17 +45,17 @@ let pp_program_module
 (* Full pretty printing *)
 
 let pp_module_header title =
-  string (Printf.sprintf "(*** %s ***)" title)
+  PP.string (Printf.sprintf "(*** %s ***)" title)
 
 let _generate_module_header title =
-  AC.return @@ string @@ Printf.sprintf "(*** %s ***)" title
+  AC.return @@ PP.string @@ Printf.sprintf "(*** %s ***)" title
 
 let pretty_print ir =
   let prelude =
     Prelude.generate ()
   in
   let generate_section title contents =
-    string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents
+    PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
   in
   let base =
     let translated_type_definitions =
@@ -84,7 +83,7 @@ let pretty_print ir =
           addall @@ extra_enum_definitions;
         )
     in
-    separate small_step segments
+    PP.(separate small_step segments)
   in
   let program =
     generate_section
@@ -101,7 +100,7 @@ let pretty_print ir =
     if
       List.is_empty @@ select Extract.register_definition ir.definitions
     then
-      empty
+      PP.empty
     else
       let register_definitions = select Extract.register_definition ir.definitions
       in
@@ -132,7 +131,8 @@ let pretty_print ir =
           addopt finite;
         end
   in
-  separate_nonempty big_step sections
+  PP.(separate_nonempty big_step sections)
 
 
-let output_document_to_channel len out doc = ToChannel.pretty 1. len out (doc ^^ small_step)
+let output_document_to_channel len out doc =
+  PP.(ToChannel.pretty 1. len out (doc ^^ small_step))
