@@ -1,5 +1,4 @@
 open Base
-open PP
 open Ast
 open Basics
 
@@ -39,11 +38,13 @@ let generate
     | Some message -> Printf.sprintf "Message: %s" message
     | None         -> Printf.sprintf "No message"
   in
-  concat [
-    Sail.pp_sail_definition sail_definition;
-    string ocaml_location_string;
-    hardline;
-    string sail_location_string;
-    hardline;
-    string message_string
-  ]
+  PP.(
+    concat [
+      Sail.pp_sail_definition sail_definition;
+      string ocaml_location_string;
+      hardline;
+      string sail_location_string;
+      hardline;
+      string message_string
+    ]
+  )
