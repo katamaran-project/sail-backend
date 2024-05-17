@@ -11,7 +11,7 @@ let reg_inductive_type register_definitions =
   and typ = PP.string "Ty -> Set"
   in
   let inductive_type =
-    Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+    Coq.build_inductive_type identifier typ (fun add_constructor ->
         let make_constructor (register_definition : register_definition) =
           let identifier = pp_identifier register_definition.identifier
           in
@@ -67,7 +67,7 @@ let regnames (register_definitions : (sail_definition * register_definition) lis
       and typ = PP.string "Set"
       in
       let inductive_type =
-        Coq.mbuild_inductive_type type_name typ (fun add_constructor ->
+        Coq.build_inductive_type type_name typ (fun add_constructor ->
             AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier @@ translate_regname name)
           )
       in

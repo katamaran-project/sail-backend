@@ -371,7 +371,7 @@ let annotate f =
                  then add @@ comment (separate hardline pp_annotations);
                  add document)))
 
-let mbuild_inductive_type identifier ?(parameters = []) typ constructor_generator =
+let build_inductive_type identifier ?(parameters = []) typ constructor_generator =
   let* constructors =
     let result = ref []
     in

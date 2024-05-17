@@ -29,7 +29,7 @@ let generate_inductive_type (variant_definition : variant_definition) : PP.docum
           AC.return (pp_identifier id, kind')
         )
     in
-    Coq.mbuild_inductive_type
+    Coq.build_inductive_type
       identifier'
       ~parameters: type_quantifier'
       (string "Set")
@@ -48,7 +48,7 @@ let generate_constructors_inductive_type (variant_definition  : variant_definiti
   and typ = pp_identifier @@ Id.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
-  Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+  Coq.build_inductive_type identifier typ (fun add_constructor ->
       AC.iter constructor_names
         ~f:(fun case -> add_constructor @@ pp_identifier @@ Id.add_prefix "K" case)
     )

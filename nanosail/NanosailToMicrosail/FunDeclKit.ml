@@ -39,7 +39,7 @@ let generate function_definitions =
     let name = string "Fun"
     and typ = string "PCtx -> Ty -> Set"
     in
-    Coq.mbuild_inductive_type name typ @@ fun add_constructor -> begin
+    Coq.build_inductive_type name typ @@ fun add_constructor -> begin
         AC.iter function_definitions ~f:(fun function_definition ->
             let* name, function_type = pp_function_declaration function_definition
             in

@@ -12,7 +12,7 @@ let generate (enum_definition : enum_definition) : PP.document AC.t =
   let identifier = pp_identifier enum_definition.identifier
   and typ = pp_identifier @@ Id.mk "Set"
   in
-  Coq.mbuild_inductive_type identifier typ (fun add_constructor ->
+  Coq.build_inductive_type identifier typ (fun add_constructor ->
       AC.iter ~f:add_constructor @@ List.map ~f:pp_identifier enum_definition.cases
     )
 
@@ -28,7 +28,7 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
     pp_identifier id
   in
   let inductive_type =
-    Coq.mbuild_inductive_type
+    Coq.build_inductive_type
       identifier
       typ
       (fun add_constructor ->
