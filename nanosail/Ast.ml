@@ -350,7 +350,10 @@ module Extract = struct
 end
 
 
-let select (extractor : definition -> 'a option) (definitions : (sail_definition * definition) list) =
+let select
+    (extractor   : definition -> 'a option            )
+    (definitions : (sail_definition * definition) list)
+  =
   let lift_extractor extractor (sail_definition, definition) =
     Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
   in
