@@ -53,15 +53,15 @@ type nanotype =
   | Ty_prod      of nanotype * nanotype
   | Ty_sum       of nanotype * nanotype
   | Ty_unit
-  (* | Ty_enum *)                                (* TODO add *)
+  (* | Ty_enum *)                                    (* TODO add *)
   | Ty_bitvector of numeric_expression
   | Ty_tuple     of nanotype list
-  (* | Ty_union *)                               (* TODO add *)
-  | Ty_record                                    (* TODO complete *)
+  (* | Ty_union *)                                   (* TODO add *)
+  | Ty_record                                        (* TODO complete *)
 
-  | Ty_nat                                       (* TODO remove *)
-  | Ty_atom                                      (* TODO remove *)
-  | Ty_app       of nanotype * type_argument list  (* TODO remove *)
+  | Ty_nat                                           (* TODO remove *)
+  | Ty_atom                                          (* TODO remove *)
+  | Ty_app       of nanotype * type_argument list    (* TODO remove *)
   | Ty_custom    of identifier                       (* TODO remove *)
 
 and type_argument =
