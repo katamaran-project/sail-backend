@@ -128,6 +128,7 @@ let collect_parameter_types (pattern_expression : N.type_annotation Libsail.Ast.
      | Libsail.Ast.Typ_tuple _          -> TC.not_yet_implemented [%here] location
      | Libsail.Ast.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
      | Libsail.Ast.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+
   in
   match pattern_expression with
   | Libsail.Ast.Pat_when (_, _, _) -> TC.not_yet_implemented [%here] pattern_expression_location
