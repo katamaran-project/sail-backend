@@ -977,7 +977,7 @@ let translate_function_definition
       in
       let* function_name   = translate_identifier [%here] id
       and* parameter_types = binds_of_pexp pexp
-      and* ret_type        = ty_of_pexp pexp
+      and* return_type     = ty_of_pexp pexp
       and* function_body   = body_of_pexp pexp
           
       in
@@ -985,7 +985,7 @@ let translate_function_definition
         function_name;
         function_type = {
             parameter_types;
-            ret_type;
+            ret_type=return_type;
           };
         function_body;
       }
