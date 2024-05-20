@@ -47,7 +47,11 @@ let statement_of_lvar
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
 
-let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier * N.nanotype) list TC.t  =
+let translate_return_type (sail_type : Libsail.Ast.typ) : N.nanotype TC.t =
+  nanotype_of_sail_type sail_type
+
+
+let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier * N.nanotype) list TC.t  =
   let S.P_aux (aux, ((location, _annotation) as annotation)) = pattern
   in
   match aux with
@@ -73,7 +77,7 @@ let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier
       TC.return [(x, ty)]
     end
   | P_tuple pats -> begin (* todo correction: only top level tuple should be turned into a list *)
-      let* pats' = TC.map ~f:binds_of_pat pats
+      let* pats' = TC.map ~f:translate_parameter_bindings pats
       in
       TC.return @@ List.concat pats'
     end
@@ -83,7 +87,7 @@ let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier
       in
       TC.return [(id, typ)]
     end
-  | S.P_typ (_typ, pattern)       -> binds_of_pat pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
+  | S.P_typ (_typ, pattern)       -> translate_parameter_bindings pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
   | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.P_not _                     -> TC.not_yet_implemented [%here] location
   | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
@@ -135,12 +139,12 @@ let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier
 (*   | Libsail.Ast.Pat_exp (pattern, _expression) -> collect pattern *)
 
 
-let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
-  let S.Pat_aux (aux, (location, _annotation)) = pexp
-  in
-  match aux with
-  | Pat_exp (pat, _) -> binds_of_pat pat
-  | Pat_when _       -> TC.not_yet_implemented [%here] location
+(* let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) = *)
+(*   let S.Pat_aux (aux, (location, _annotation)) = pexp *)
+(*   in *)
+(*   match aux with *)
+(*   | Pat_exp (pat, _) -> binds_of_pat pat *)
+(*   | Pat_when _       -> TC.not_yet_implemented [%here] location *)
 
 
 let value_of_literal (S.L_aux (literal, location)) =
@@ -986,6 +990,37 @@ let ty_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
   | Pat_when _       -> TC.not_yet_implemented [%here] location
 
 
+
+type sail_function_parts = {
+  identifier         : S.id;
+  parameter_bindings : N.type_annotation Libsail.Ast.pat;
+  body               : Libsail.Ast.typ Libsail.Anf.aexp;
+  return_type        : Libsail.Ast.typ;
+}
+
+let extract_function_parts (function_clause : N.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
+  let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
+  in
+  let S.Pat_aux (unwrapped_clause, (location, _annotation)) = clause
+  in
+  match unwrapped_clause with
+   | Libsail.Ast.Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
+   | Libsail.Ast.Pat_exp (parameter_bindings, raw_body) -> begin
+       let body = S.anf raw_body in
+       let return_type = Libsail.Type_check.typ_of raw_body
+       in
+       TC.return @@ {
+         identifier;
+         parameter_bindings;
+         body;
+         return_type
+       }         
+     end
+
+
+let translate_body = statement_of_aexp
+
+
 let translate_function_definition
       (definition_annotation : S.def_annot               )
       (function_definition   : N.type_annotation S.fundef)
@@ -993,14 +1028,13 @@ let translate_function_definition
   let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
   in
   match funcls with
-  | [funcl] -> begin
-      let S.FCL_aux (S.FCL_funcl (id, pexp), (_def_annot, _type_annotation)) = funcl
+  | [function_clause] -> begin
+      let* parts = extract_function_parts function_clause
       in
-      let* function_name = translate_identifier [%here] id
-      and* parameters    = binds_of_pexp pexp
-      and* return_type   = ty_of_pexp pexp
-      and* function_body = body_of_pexp pexp
-      (* and* _parameter_types = collect_parameter_types pexp *)
+      let* function_name = translate_identifier [%here] parts.identifier
+      and* parameters    = translate_parameter_bindings parts.parameter_bindings
+      and* return_type   = translate_return_type parts.return_type
+      and* function_body = translate_body parts.body
       in
       TC.return @@ N.FunctionDefinition {
         function_name;
