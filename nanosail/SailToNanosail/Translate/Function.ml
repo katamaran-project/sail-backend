@@ -139,14 +139,6 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
 (*   | Libsail.Ast.Pat_exp (pattern, _expression) -> collect pattern *)
 
 
-(* let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) = *)
-(*   let S.Pat_aux (aux, (location, _annotation)) = pexp *)
-(*   in *)
-(*   match aux with *)
-(*   | Pat_exp (pat, _) -> binds_of_pat pat *)
-(*   | Pat_when _       -> TC.not_yet_implemented [%here] location *)
-
-
 let value_of_literal (S.L_aux (literal, location)) =
   match literal with
   | L_true     -> TC.return @@ N.Val_bool true
@@ -972,23 +964,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
   | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
   | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
-
-
-let body_of_pexp pexp =
-  let S.Pat_aux (aux, (location, _annot)) = pexp
-  in
-  match aux with
-  | Pat_exp (_, exp) -> statement_of_aexp (S.anf exp)
-  | Pat_when _       -> TC.not_yet_implemented [%here] location
-
-
-let ty_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
-  let S.Pat_aux (aux, (location, _annot)) = pexp
-  in
-  match aux with
-  | Pat_exp (_, exp) -> nanotype_of_sail_type (Libsail.Type_check.typ_of exp)
-  | Pat_when _       -> TC.not_yet_implemented [%here] location
-
 
 
 type sail_function_parts = {
