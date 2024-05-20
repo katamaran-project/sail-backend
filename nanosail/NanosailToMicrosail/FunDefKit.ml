@@ -22,7 +22,7 @@ let pp_function_definition
         AC.return @@ Coq.list docs
       in
       let* result_type =
-        Nanotype.pp_nanotype function_definition.function_type.ret_type
+        Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       AC.return @@ Some (
                       hanging_list (PP.string "Stm") [

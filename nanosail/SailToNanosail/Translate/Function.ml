@@ -985,7 +985,7 @@ let translate_function_definition
         function_name;
         function_type = {
             parameter_types;
-            ret_type=return_type;
+            return_type;
           };
         function_body;
       }

@@ -36,7 +36,7 @@ let funDefList = [
     function_name = Id.mk "ex_prod";
     function_type = {
         parameter_types = [ (Id.mk "tt", Ty_unit); (Id.mk "tt", Ty_unit) ];
-        ret_type        = product_of
+        return_type     = product_of
             [
               product_of [
                 product_of [Ty_int; Ty_string];
@@ -51,7 +51,7 @@ let funDefList = [
     function_name = Id.mk "switch";
     function_type = {
       parameter_types = [ (Id.mk "p", product_of [Ty_int; Ty_bool]) ];
-      ret_type        =  product_of [Ty_bool; Ty_int];
+      return_type     =  product_of [Ty_bool; Ty_int];
     };
     function_body = fun_switch;
   };

@@ -90,7 +90,7 @@ type type_quantifier = type_quantifier_item list
 
 type function_type = {
   parameter_types : (identifier * nanotype) list;
-  ret_type        : nanotype
+  return_type     : nanotype
 }
 
 (*
