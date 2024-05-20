@@ -19,7 +19,6 @@ let lit          = string_of_lit
 let exp          = string_of_exp
 let pexp         = string_of_pexp
 let lexp         = string_of_lexp
-(* let pat          = string_of_pat *)
 let mpat         = string_of_mpat
 let letbind      = string_of_letbind
 let index_range  = string_of_index_range
