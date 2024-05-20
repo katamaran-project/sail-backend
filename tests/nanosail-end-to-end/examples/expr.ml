@@ -47,18 +47,20 @@ let fun_arith_expr = Stm_exp (Exp_binop (Plus,
 let funDefList = [
   {
     function_name = Id.mk "bool_expr";
-    function_type = {
-      parameter_types = [ (Id.mk "tt", Ty_unit) ];
-      return_type     = Ty_bool
-    };
+    function_type =
+      {
+        parameters  = [ (Id.mk "tt", Ty_unit) ];
+        return_type = Ty_bool
+      };
     function_body = fun_bool_expr
   };
   {
     function_name = Id.mk "arith_expr";
-    function_type = {
-      parameter_types = [ (Id.mk "tt", Ty_unit) ];
-      return_type     = Ty_int
-    };
+    function_type =
+      {
+        parameters  = [ (Id.mk "tt", Ty_unit) ];
+        return_type = Ty_int
+      };
     function_body = fun_arith_expr
   };
 ]

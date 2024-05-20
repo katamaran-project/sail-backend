@@ -12,7 +12,7 @@ let generate function_definitions =
     let name = pp_identifier function_definition.function_name in
     let* function_type =
       let* parameter_types =
-        let* ps = AC.map ~f:Sail.pp_bind function_definition.function_type.parameter_types
+        let* ps = AC.map ~f:Sail.pp_bind function_definition.function_type.parameters
         in
         AC.return @@ Coq.list ps
       in
