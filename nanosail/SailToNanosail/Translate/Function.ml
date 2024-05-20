@@ -98,6 +98,22 @@ let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
+let collect_parameter_types (pattern : Libsail.Type_check.tannot S.pat) =
+  let S.P_aux (_aux, ((_location, _annotation) as annotation)) = pattern
+  in
+  let Typ_aux (sail_type, sail_type_location) = Libsail.Type_check.typ_of_annot annotation
+  in
+  match sail_type with
+   | Libsail.Ast.Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_id _             -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_tuple _          -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_app (_, _)       -> TC.not_yet_implemented [%here] sail_type_location
+   | Libsail.Ast.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location
+
+
 let binds_of_pexp (pexp : N.type_annotation Libsail.Ast.pexp) =
   let S.Pat_aux (aux, (location, _annotation)) = pexp
   in
