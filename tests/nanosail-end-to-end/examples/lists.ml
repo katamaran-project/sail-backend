@@ -86,71 +86,71 @@ let funDefList = [
   {
     function_name = Id.mk "is_empty";
     function_type = {
-      arg_types   = [(Id.mk "l", list_of Ty_int)];
-      ret_type    = Ty_bool
+      parameter_types = [(Id.mk "l", list_of Ty_int)];
+      ret_type        = Ty_bool
     };
     function_body = fun_is_empty
   };
   {
     function_name = Id.mk "empty";
     function_type = {
-      arg_types   = [(Id.mk "tt", Ty_unit)];
-      ret_type    = list_of Ty_int
+      parameter_types = [(Id.mk "tt", Ty_unit)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_empty
   };
   {
     function_name = Id.mk "onetwothree";
     function_type = {
-      arg_types   = [(Id.mk "tt", Ty_unit)];
-      ret_type    = list_of Ty_int
+      parameter_types = [(Id.mk "tt", Ty_unit)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_onetwothree
   };
   {
     function_name = Id.mk "last";
     function_type = {
-      arg_types   = [(Id.mk "l", list_of Ty_int)];
-      ret_type    = product_of [Ty_int; Ty_bool]
+      parameter_types = [(Id.mk "l", list_of Ty_int)];
+      ret_type        = product_of [Ty_int; Ty_bool]
     };
     function_body = fun_last
   };
   {
     function_name = Id.mk "append";
     function_type = {
-      arg_types   = [(Id.mk "l1", list_of Ty_int); (Id.mk "l2", list_of Ty_int)];
-      ret_type    = list_of Ty_int
+      parameter_types = [(Id.mk "l1", list_of Ty_int); (Id.mk "l2", list_of Ty_int)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_append
   };
   { function_name = Id.mk "length";
     function_type = {
-      arg_types   = [(Id.mk "l", list_of Ty_int)];
-      ret_type    = Ty_int
+      parameter_types = [(Id.mk "l", list_of Ty_int)];
+      ret_type        = Ty_int
     };
     function_body = fun_length
   };
   {
     function_name = Id.mk "reverse_aux";
     function_type = {
-      arg_types   = [(Id.mk "l", list_of Ty_int); (Id.mk "acc", list_of Ty_int)];
-      ret_type    = list_of Ty_int
+      parameter_types = [(Id.mk "l", list_of Ty_int); (Id.mk "acc", list_of Ty_int)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_reverse_aux
   };
   {
     function_name = Id.mk "reverse";
     function_type = {
-      arg_types = [(Id.mk "l", list_of Ty_int)];
-      ret_type = list_of Ty_int
+      parameter_types = [(Id.mk "l", list_of Ty_int)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_reverse
   };
   {
     function_name = Id.mk "reverse_bis";
     function_type = {
-      arg_types   = [(Id.mk "l", list_of Ty_int)];
-      ret_type    = list_of Ty_int
+      parameter_types = [(Id.mk "l", list_of Ty_int)];
+      ret_type        = list_of Ty_int
     };
     function_body = fun_reverse_bis
   };

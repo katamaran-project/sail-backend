@@ -48,16 +48,16 @@ let funDefList = [
   {
     function_name = Id.mk "bool_expr";
     function_type = {
-      arg_types   = [ (Id.mk "tt", Ty_unit) ];
-      ret_type    = Ty_bool
+      parameter_types = [ (Id.mk "tt", Ty_unit) ];
+      ret_type        = Ty_bool
     };
     function_body = fun_bool_expr
   };
   {
     function_name = Id.mk "arith_expr";
     function_type = {
-      arg_types   = [ (Id.mk "tt", Ty_unit) ];
-      ret_type    = Ty_int
+      parameter_types = [ (Id.mk "tt", Ty_unit) ];
+      ret_type        = Ty_int
     };
     function_body = fun_arith_expr
   };

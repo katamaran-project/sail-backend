@@ -17,7 +17,7 @@ let pp_function_definition
   let coq_definition =
     let* result_type =
       let* bindings =
-        let* docs = AC.map ~f:Sail.pp_bind function_definition.function_type.arg_types
+        let* docs = AC.map ~f:Sail.pp_bind function_definition.function_type.parameter_types
         in
         AC.return @@ Coq.list docs
       in

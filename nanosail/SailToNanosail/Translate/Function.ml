@@ -976,14 +976,15 @@ let translate_function_definition
       let S.FCL_aux (S.FCL_funcl (id, pexp), (_def_annot, _type_annotation)) = funcl
       in
       let* function_name = translate_identifier [%here] id
-      and* arg_types     = binds_of_pexp pexp
+      and* parameter_types     = binds_of_pexp pexp
       and* ret_type      = ty_of_pexp pexp
       and* function_body = body_of_pexp pexp
+          
       in
       TC.return @@ N.FunctionDefinition {
         function_name;
         function_type = {
-            arg_types;
+            parameter_types;
             ret_type;
           };
         function_body;

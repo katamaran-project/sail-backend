@@ -32,10 +32,10 @@ let fun_very_long_naaaaaaaaaaaaaaaaame = Stm_exp (
 let funDefList = [
   { function_name = Id.mk "very_long_naaaaaaaaaaaaaaaaame";
     function_type = {
-      arg_types = [(Id.mk "l", Ty_list Ty_int);
-                   (Id.mk "b", Ty_bool);
-                   (Id.mk "n", Ty_int)];
-      ret_type = Ty_list (Ty_list (Ty_list Ty_bool))
+      parameter_types = [(Id.mk "l", Ty_list Ty_int);
+                         (Id.mk "b", Ty_bool);
+                         (Id.mk "n", Ty_int)];
+      ret_type        = Ty_list (Ty_list (Ty_list Ty_bool))
     };
     function_body = fun_very_long_naaaaaaaaaaaaaaaaame
   }
