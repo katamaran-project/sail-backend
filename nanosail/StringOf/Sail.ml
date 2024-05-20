@@ -19,7 +19,7 @@ let lit          = string_of_lit
 let exp          = string_of_exp
 let pexp         = string_of_pexp
 let lexp         = string_of_lexp
-let pat          = string_of_pat
+(* let pat          = string_of_pat *)
 let mpat         = string_of_mpat
 let letbind      = string_of_letbind
 let index_range  = string_of_index_range
@@ -86,3 +86,11 @@ let rec aexp (expression : 'a Libsail.Anf.aexp) =
   | Libsail.Anf.AE_for (_, _, _, _, _, _)      -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
   | Libsail.Anf.AE_loop (_, _, _)              -> Printf.sprintf "AE_loop (_, _, _)"
   | Libsail.Anf.AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
+
+
+let pat (pattern : Libsail.Type_check.tannot Libsail.Ast.pat) : string =
+  let Libsail.Ast.P_aux (_raw_pattern, annotation) = pattern
+  in
+  let typ = Libsail.Type_check.typ_of_annot annotation
+  in
+  Printf.sprintf "(%s : %s)" (string_of_pat pattern) (string_of_typ typ)
