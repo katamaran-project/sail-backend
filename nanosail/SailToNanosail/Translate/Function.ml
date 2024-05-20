@@ -47,7 +47,7 @@ let statement_of_lvar
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
 
-let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) =
+let rec binds_of_pat (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier * N.nanotype) list TC.t  =
   let S.P_aux (aux, ((location, _annotation) as annotation)) = pattern
   in
   match aux with
