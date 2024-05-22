@@ -92,3 +92,15 @@ let pat (pattern : Libsail.Type_check.tannot Libsail.Ast.pat) : string =
   let typ = Libsail.Type_check.typ_of_annot annotation
   in
   Printf.sprintf "(%s : %s)" (Libsail.Ast_util.string_of_pat pattern) (Libsail.Ast_util.string_of_typ typ)
+
+
+let location (location : Libsail.Parse_ast.l) : string =
+  let rec aux (location : Libsail.Parse_ast.l) =
+    match location with
+    | Unknown                 -> "UnknownLocation"
+    | Unique (k, loc)         -> Printf.sprintf "UniqueLocation(%d, %s)" k (aux loc)
+    | Generated loc           -> Printf.sprintf "GeneratedLocation(%s)" (aux loc)
+    | Hint (hint, loc1, loc2) -> Printf.sprintf "HintLocation(%s, %s, %s)" hint (aux loc1) (aux loc2)
+    | Range (pos1, pos2)      -> Printf.sprintf "Range(%s-%s)" (OCaml.position pos1) (OCaml.position pos2)
+  in
+  aux location
