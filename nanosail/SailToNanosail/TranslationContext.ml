@@ -50,9 +50,39 @@ type 'a result = 'a Monad.result = Success of 'a     (* explicitly enumerating c
                                  | Failure of error
 
 let return     = Monad.return
+let error      = Monad.fail
 let bind       = Monad.bind
 let recover    = Monad.recover
 let run f      = Monad.run f Context.empty
+
+
+let string_of_error (error : error) : string =
+  let string_of_ocaml_location (ocaml_location : ocaml_source_location) =
+    Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
+  in
+  match error with
+  | NotYetImplemented (ocaml_position, sail_location, message) -> begin
+      let message =
+        match message with
+        | Some message -> message
+        | None         -> "<no message>"
+      in
+      Printf.sprintf "NotYetImplemented(%s, ocaml:%s, sail:%s)" message (StringOf.OCaml.position ocaml_position) (StringOf.Sail.location sail_location)
+    end
+  | AssertionFailure (ocaml_location, message) -> Printf.sprintf "AssertionFailure(%s at %s)" message (string_of_ocaml_location ocaml_location)
+
+
+(*
+  If an error occurs while executing f, print it out and 'reraise' it.
+  In other words, this function has no impact on the execution,
+  except that it might print out an error.
+*)
+let debug_error f =
+  let show e =
+    Stdio.printf "%s\n" (string_of_error e);
+    error e
+  in
+  recover f show
 
 
 let not_yet_implemented ?(message = "") ocaml_position sail_position =
