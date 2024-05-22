@@ -74,34 +74,6 @@ let fail ocaml_position message =
   Monad.fail @@ AssertionFailure (ocaml_position, message)
 
 
-(* let register_type (type_definition : type_definition) = *)
-(*   let* types = Monad.get Context.types *)
-(*   in *)
-(*   let updated_types = *)
-(*     let key = type_identifier type_definition *)
-(*     and data = type_definition *)
-(*     in *)
-(*     match IdentifierMap.add types ~key ~data with *)
-(*     | `Duplicate -> raise @@ TranslationError (Printf.sprintf "type %s defined multiple times" (Id.string_of key)) *)
-(*     | `Ok result -> result *)
-(*   in *)
-(*   Monad.put Context.types updated_types *)
-
-
-(* let register_register (register_definition : register_definition) = *)
-(*   let* register_map = Monad.get Context.registers *)
-(*   in *)
-(*   let updated_register_map = *)
-(*     let key = register_definition.identifier *)
-(*     and data = register_definition.typ *)
-(*     in *)
-(*     match IdentifierMap.add register_map ~key ~data with *)
-(*     | `Duplicate -> raise @@ TranslationError (Printf.sprintf "register %s defined multiple times" (Id.string_of key)) *)
-(*     | `Ok result -> result *)
-(*   in *)
-(*   Monad.put Context.registers updated_register_map *)
-
-
 let register (definition : definition) =
   let* old_definitions = Monad.get Context.definitions
   in
