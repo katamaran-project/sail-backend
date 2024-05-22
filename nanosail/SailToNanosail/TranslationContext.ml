@@ -124,10 +124,16 @@ let is_register (identifier : identifier) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
 
 
-let generate_unique_identifier prefix : identifier t =
+let generate_unique_int : int t =
   let* index = Monad.get Context.next_id_index
   in
   let* () = Monad.put Context.next_id_index (index + 1)
+  in
+  return index
+
+
+let generate_unique_identifier prefix : identifier t =
+  let* index = generate_unique_int
   in
   let id = Printf.sprintf "%s%d" prefix index
   in
