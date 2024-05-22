@@ -2,6 +2,7 @@ module Basics              = Basics
 module StringMap           = StringMap
 module Id                  = Id
 module IdentifierMap       = IdentifierMap
+module IntegerMap          = IntegerMap
 module Ast                 = Ast
 module Configuration       = Configuration
 module Auxlib              = Auxlib
