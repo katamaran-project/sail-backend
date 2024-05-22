@@ -11,3 +11,4 @@ module TypeDefinition         = TypeDefinition
 module TypeQuantifier         = TypeQuantifier
 module ValueDefinition        = ValueDefinition
 module Variant                = Variant
+module ExtendedType           = ExtendedType

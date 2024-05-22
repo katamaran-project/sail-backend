@@ -15,6 +15,7 @@ module Bindings = Libsail.Ast_util.Bindings
 open Base
 open Identifier
 open Nanotype
+open ExtendedType
 open Monads.Notations.Star(TC)
 
 
@@ -102,41 +103,6 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
-(* let collect_parameter_types (pattern_expression : N.type_annotation Libsail.Ast.pexp) = *)
-(*   let Pat_aux (pattern_expression, (pattern_expression_location, _pattern_expression_type_annotation)) = pattern_expression *)
-(*   in *)
-(*   let rec collect (pattern : N.type_annotation Libsail.Ast.pat) : N.nanotype list TC.t = *)
-(*     let S.P_aux (_aux, ((_location, _annotation) as annotation)) = pattern *)
-(*     in *)
-(*     let Typ_aux (sail_type, sail_type_location) = Libsail.Type_check.typ_of_annot annotation *)
-(*     in *)
-(*     match sail_type with *)
-(*     | Libsail.Ast.Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_id _             -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_app (_, _)       -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location *)
-(*     | Libsail.Ast.Typ_tuple types      -> translate_types types *)
-
-(*   and translate_types (typ : Libsail.Ast.typ list) : N.nanotype TC.t = *)
-(*     let Typ_aux (typ, location) = typ *)
-(*     in *)
-(*     match typ with *)
-(*      | Libsail.Ast.Typ_internal_unknown -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_id _             -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_var _            -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_tuple _          -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location *)
-(*      | Libsail.Ast.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location *)
-
-(*   in *)
-(*   match pattern_expression with *)
-(*   | Libsail.Ast.Pat_when (_, _, _) -> TC.not_yet_implemented [%here] pattern_expression_location *)
-(*   | Libsail.Ast.Pat_exp (pattern, _expression) -> collect pattern *)
 
 
 let value_of_literal (S.L_aux (literal, location)) =
@@ -1010,6 +976,7 @@ let translate_function_definition
       and* parameters    = translate_parameter_bindings parts.parameter_bindings
       and* return_type   = translate_return_type parts.return_type
       and* function_body = translate_body parts.body
+      and* _ts = collect_extended_parameter_types parts.parameter_bindings
       in
       TC.return @@ N.FunctionDefinition {
         function_name;
