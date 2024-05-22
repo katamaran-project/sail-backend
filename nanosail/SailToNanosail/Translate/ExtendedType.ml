@@ -68,7 +68,7 @@ let collect_extended_parameter_types (pattern : N.type_annotation Libsail.Ast.pa
                 in
                 TC.return @@ ExtendedType.Int metavar
               end
-            | "bool" -> begin
+            | "atom_bool" -> begin
                 let* metavar = TC.generate_unique_int
                 in
                 TC.return @@ ExtendedType.Bool metavar
