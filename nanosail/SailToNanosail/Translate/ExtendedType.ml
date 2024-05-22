@@ -8,11 +8,36 @@ module S = struct
   include Libsail.Anf
 end
 
-module N        = Ast
-module TC       = TranslationContext
+module N  = Ast
+module TC = TranslationContext
 
 open Base
+open Basics
 open Monads.Notations.Star(TC)
+
+
+
+module Context = struct
+  type t =
+    {
+      equalities : S.typ_arg list;
+    }
+end
+
+module Error = struct
+  type t =
+    | NotYetImplemented of ocaml_source_location * Libsail.Ast.l
+end
+
+
+module ExtendedTypeMonad = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = Error.t end)
+module ExtendedTypeMonadUtil = Monads.Util.Make(ExtendedTypeMonad)
+open Monads.Notations.Plus(ExtendedTypeMonad)
+
+
+let not_yet_implemented ocaml_position sail_position =
+  ExtendedTypeMonad.fail @@ NotYetImplemented (ocaml_position, sail_position)
+
 
 
 module ExtendedType = struct
@@ -27,6 +52,8 @@ module ExtendedType = struct
     | Int k    -> Printf.sprintf "Int(#%d)" k
     | Bool k   -> Printf.sprintf "Bool(#%d)" k
 end
+
+
 
 
 let collect_extended_parameter_types (pattern : N.type_annotation Libsail.Ast.pat) =
@@ -81,8 +108,7 @@ let collect_extended_parameter_types (pattern : N.type_annotation Libsail.Ast.pa
               end
           end
       end
-  in
-  
+  in  
   let P_aux (_unwrapped_pattern, pattern_annotation) = pattern
   in
   let typ = Libsail.Type_check.typ_of_annot pattern_annotation
