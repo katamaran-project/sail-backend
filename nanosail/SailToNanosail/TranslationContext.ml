@@ -105,7 +105,6 @@ let lookup_type
   return @@ Option.bind type_definition ~f:extractor
 
 
-
 (* Looks up type of register with given name *)
 let lookup_register_type (identifier : identifier) : nanotype option t =
   let predicate (definition : definition) : register_definition option =
