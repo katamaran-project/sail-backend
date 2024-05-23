@@ -976,7 +976,7 @@ let translate_function_definition
       and* parameters    = translate_parameter_bindings parts.parameter_bindings
       and* return_type   = translate_return_type parts.return_type
       and* function_body = translate_body parts.body
-      and* _ts = collect_extended_parameter_types parts.parameter_bindings
+      and* _ = determine_extended_type parts.parameter_bindings parts.return_type
       in
       TC.return @@ N.FunctionDefinition {
         function_name;
