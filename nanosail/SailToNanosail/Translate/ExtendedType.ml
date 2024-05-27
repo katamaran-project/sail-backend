@@ -18,15 +18,15 @@ open Monads.Notations.Star(TC)
 module ExtendedType = struct
   type t =
     | Tuple of t list
-    | Int   of int
-    | Bool  of int
+    | Int   of string
+    | Bool  of string
     | Other of string
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
     | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-    | Int k    -> Printf.sprintf "Int(#%d)" k
-    | Bool k   -> Printf.sprintf "Bool(#%d)" k
+    | Int k    -> Printf.sprintf "Int(#%s)" k
+    | Bool k   -> Printf.sprintf "Bool(#%s)" k
     | Other s  -> s
 end
 
@@ -75,7 +75,6 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : ExtendedType.t TC
                     in
                     match unwrapped_numerical_expression with
                      | S.Nexp_id _         -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_var _        -> TC.not_yet_implemented [%here] numerical_expression_location
                      | S.Nexp_constant _   -> TC.not_yet_implemented [%here] numerical_expression_location
                      | S.Nexp_app (_, _)   -> TC.not_yet_implemented [%here] numerical_expression_location
                      | S.Nexp_times (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
@@ -83,6 +82,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : ExtendedType.t TC
                      | S.Nexp_minus (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
                      | S.Nexp_exp _        -> TC.not_yet_implemented [%here] numerical_expression_location
                      | S.Nexp_neg _        -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | S.Nexp_var kid      -> begin
+                         let S.Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                         in
+                         TC.return @@ ExtendedType.Int unwrapped_kid
+                       end
                   end
              end
            | _ -> TC.not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
