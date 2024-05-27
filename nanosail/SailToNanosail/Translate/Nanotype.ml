@@ -30,7 +30,8 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     | "int"       -> TC.return @@ N.Ty_int
     | "unit"      -> TC.return @@ N.Ty_unit
     | "string"    -> TC.return @@ N.Ty_string
-    | "atom"      -> TC.return @@ N.Ty_atom
+    | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
+    | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
     | _           -> TC.return @@ N.Ty_custom identifier'
 
   (*
@@ -45,6 +46,8 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     in
     match (Id.string_of identifier'), type_arguments' with
     | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
+    | "atom", [ _ ]             -> TC.return N.Ty_int
+    | "atom_bool", [ _ ]        -> TC.return N.Ty_bool
     | _, _                      -> begin
         let* constructor = type_of_identifier identifier
         in
