@@ -15,21 +15,6 @@ open Base
 open Monads.Notations.Star(TC)
 
 
-module ExtendedType = struct
-  type t =
-    | Tuple of t list
-    | Int   of string
-    | Bool  of string
-    | Other of string
-
-  let rec string_of (extended_type : t) : string =
-    match extended_type with
-    | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-    | Int k    -> Printf.sprintf "Int(#%s)" k
-    | Bool k   -> Printf.sprintf "Bool(#%s)" k
-    | Other s  -> s
-end
-
 
 let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.pat) : S.typ list TC.t =
   let S.P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
@@ -47,7 +32,7 @@ let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.p
   Focuses on parameter types.
   Atoms must only contain a single identifier as their type argument.
 *)
-let extended_parameter_type_of_sail_type (sail_type : S.typ) : ExtendedType.t TC.t =
+let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.t TC.t =
   let S.Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
   match unwrapped_sail_type with
@@ -85,7 +70,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : ExtendedType.t TC
                      | S.Nexp_var kid      -> begin
                          let S.Kid_aux (Var unwrapped_kid, _kid_location) = kid
                          in
-                         TC.return @@ ExtendedType.Int unwrapped_kid
+                         TC.return @@ N.ExtendedType.Int unwrapped_kid
                        end
                   end
              end
@@ -101,12 +86,18 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : ExtendedType.t TC
      end
 
 
+let extended_return_type_of_sail_type (_sail_type : S.typ) : N.ExtendedType.t TC.t =
+  TC.return @@ N.ExtendedType.Bool "x"
+
+
 let determine_extended_type
       (parameter_bindings : N.type_annotation Libsail.Ast.pat)
-      (_return_type        : Libsail.Ast.typ                  )
+      (return_type        : Libsail.Ast.typ                  ) : N.ExtendedFunctionType.t TC.t
   =
   let* parameter_types = unpack_parameter_types parameter_bindings
   in
-  let* _extended_parameter_types = TC.map ~f:extended_parameter_type_of_sail_type parameter_types
+  let open N.ExtendedFunctionType in
+  let* extended_parameter_types = TC.map ~f:extended_parameter_type_of_sail_type parameter_types
+  and* extended_return_type     = extended_return_type_of_sail_type return_type
   in
-  TC.return ()
+  TC.return { extended_parameter_types; extended_return_type }

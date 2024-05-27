@@ -976,7 +976,7 @@ let translate_function_definition
       and* parameters    = translate_parameter_bindings parts.parameter_bindings
       and* return_type   = translate_return_type parts.return_type
       and* function_body = translate_body parts.body
-      and* _ = determine_extended_type parts.parameter_bindings parts.return_type
+      and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
       in
       TC.return @@ N.FunctionDefinition {
         function_name;
@@ -984,6 +984,7 @@ let translate_function_definition
             parameters;
             return_type;
           };
+        extended_function_type;
         function_body;
       }
     end
