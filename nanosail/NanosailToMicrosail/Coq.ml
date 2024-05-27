@@ -17,13 +17,16 @@ let right_comment_delimiter = PP.string "*)"
 let ends_on_newline string =
   String.is_suffix string ~suffix:"\n"
 
+
 let count_newlines string =
   String.count string ~f:(Char.equal '\n')
+
 
 let is_single_line string =
   let newline_count = count_newlines string
   in
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
+
 
 let inline_comment comment =
   PP.(separate space @@ [
@@ -31,6 +34,7 @@ let inline_comment comment =
       comment;
       right_comment_delimiter
     ])
+
 
 let comment comment =
   let str = PP.string_of_document comment
@@ -58,6 +62,7 @@ let comment comment =
       ]
     )
 
+
 let original_sail_code source =
   let str = PP.string_of_document source
   in
@@ -83,6 +88,7 @@ let original_sail_code source =
         right_comment_delimiter
       ]
     )
+
 
 let original_sail_codes sources =
   let combined_sources =
@@ -114,6 +120,7 @@ let original_sail_codes sources =
       ]
     )
 
+
 let list items =
   if
     List.is_empty items
@@ -122,8 +129,10 @@ let list items =
   else
     PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
 
+
 let product v1 v2 =
   PP.(soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen)
+
 
 let section identifier contents =
   let first_line = PP.(string "Section" ^^ space ^^ pp_identifier identifier ^^ eol)
@@ -137,8 +146,10 @@ type module_flag =
   | Export
   | NoFlag
 
+
 let line contents =
   PP.(contents ^^ eol)
+
 
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
@@ -241,6 +252,7 @@ let match' expression cases =
   in
   PP.(separate hardline result_lines)
 
+
 let match_pair matched_expressions cases =
   let left_patterns = List.map ~f:(Fn.compose fst fst) cases
   in
@@ -273,6 +285,7 @@ let match_pair matched_expressions cases =
   in
   match' matched_expression aligned_cases
 
+
 let integer i =
   let pp_i = PP.(string (Big_int.to_string i ^ "%Z"))
   in
@@ -280,14 +293,17 @@ let integer i =
   then PP.parens pp_i
   else pp_i
 
+
 let require_imports src names =
   let first = PP.(string src ^^ space ^^ string "Require Import")
   and rest = List.map ~f:PP.string names
   in
   PP.(line @@ hanging_list ~adaptive:false (string "From") (first :: rest))
 
+
 let imports names =
   PP.(line @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
+
 
 let open_scopes scopes =
   let open_scope scope =
@@ -300,6 +316,7 @@ let open_scopes scopes =
     )
   in
   PP.(separate hardline (List.map ~f:open_scope scopes))
+
 
 let record_value fields =
   let ldelim = PP.string "{| "
@@ -320,6 +337,7 @@ let record_value fields =
   in
   PP.(delimited_sequence ldelim rdelim semi items)
 
+
 let annotate_with_original_definition original translation =
   if
     Configuration.(get include_original_code)
@@ -333,6 +351,7 @@ let annotate_with_original_definition original translation =
     )
   else
     translation
+
 
 let annotate_with_original_definitions originals translation =
   if
@@ -349,6 +368,7 @@ let annotate_with_original_definitions originals translation =
     )
   else
     translation
+
 
 let annotate f =
   let (document, annotations) = AC.collect_annotations f
@@ -370,6 +390,7 @@ let annotate f =
                  if not (List.is_empty annotations)
                  then add @@ comment (separate hardline pp_annotations);
                  add document)))
+
 
 let build_inductive_type identifier ?(parameters = []) typ constructor_generator =
   let* constructors =
@@ -457,6 +478,7 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
   in
   AC.return @@ PP.(separate hardline result_lines ^^ hardline ^^ eol)
 
+
 let finite_instance
       ~(identifier : PP.document     )
       ~(type_name  : PP.document     )
@@ -490,6 +512,7 @@ let finite_instance
   )
   in
   line declaration
+
 
 (* fields as (identifier, type) pairs *)
 let record
