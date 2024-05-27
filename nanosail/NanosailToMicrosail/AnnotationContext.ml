@@ -14,7 +14,7 @@ let    bind           = Monad.bind
 let    initial_state  = { annotations = [] }
 
 
-let create_annotation (annotation_document : PP.document) : int t =
+let create_annotation_from_document (annotation_document : PP.document) : int t =
   let open Monads.Notations.Star(Monad)
   in
   let annotation        = Annotation annotation_document  in
@@ -25,6 +25,10 @@ let create_annotation (annotation_document : PP.document) : int t =
   let  annotation_index = List.length annotations'
   in
   return annotation_index
+
+
+let create_annotation_from_string (annotation_string : string) : int t =
+  create_annotation_from_document (PP.string annotation_string)
 
 
 let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
@@ -38,7 +42,7 @@ let not_yet_implemented ?(message = "") (position : ocaml_source_location) =
     in
     PPrint.string (Printf.sprintf "%s line %d%s" position.pos_fname position.pos_lnum message_suffix)
   in
-  let* id = create_annotation annotation_doc
+  let* id = create_annotation_from_document annotation_doc
   in
   return @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
 
