@@ -12,9 +12,11 @@ module AC = AnnotationContext
 let pp_function_definition
       ((sail_function_definition : sail_definition), (function_definition : function_definition))
       type_constraint =
-  let identifier = pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name in
-  let parameters = [] in
+  let identifier = pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name
+  in
   let coq_definition =
+    let parameters = []
+    in
     let* result_type =
       let* bindings =
         let* docs = AC.map ~f:Sail.pp_bind function_definition.function_type.parameters
