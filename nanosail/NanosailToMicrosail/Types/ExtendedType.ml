@@ -33,7 +33,10 @@ let pp_extended_function_type
       AC.return @@ PP.(string id ^^ colon ^^ space ^^ ext_type')
     in
     AC.map ~f:(Auxlib.uncurry pp_pair) named_extended_parameter_types
-  and* return_type = pp_extended_type eft.extended_return_type
+  and* return_type =
+    let* ert' = pp_extended_type eft.extended_return_type
+    in
+    AC.return PP.(string "RV" ^^ colon ^^ space ^^ ert')
   in
   let types = List.append parameter_types [return_type]
   in
