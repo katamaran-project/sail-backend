@@ -36,6 +36,10 @@ let pp_function_definition
     let* body =
       pp_statement function_definition.function_body
     in
+    let* extended_function_type' = Types.ExtendedType.pp_extended_function_type function_definition.extended_function_type
+    in
+    let* _ = AC.create_annotation_from_document extended_function_type'
+    in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body
   in
   let original_sail_code =
