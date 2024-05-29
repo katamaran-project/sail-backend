@@ -94,25 +94,41 @@ type function_type = {
   }
 
 module ExtendedType = struct
-  type t =
-    | Tuple of t list
-    | Int   of string
-    | Bool  of string
-    | Other of string
+  module Parameter = struct
+    type t =
+      | Tuple of t list
+      | Int   of string
+      | Bool  of string
+      | Other of string
 
-  let rec string_of (extended_type : t) : string =
-    match extended_type with
-    | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-    | Int k    -> Printf.sprintf "Int(#%s)" k
-    | Bool k   -> Printf.sprintf "Bool(#%s)" k
-    | Other s  -> s
+    let rec string_of (extended_type : t) : string =
+      match extended_type with
+      | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
+      | Int k    -> Printf.sprintf "Int(#%s)" k
+      | Bool k   -> Printf.sprintf "Bool(#%s)" k
+      | Other s  -> s
+  end
+
+  module IntExpression = struct
+    type t =
+      | Var      of string
+      | Constant of Z.t
+      | Add      of t * t
+      | Sub      of t * t
+      | Mul      of t * t
+      | Neg      of t
+  end
+
+  module ReturnValue = struct
+    type t =
+      | Int of IntExpression.t
+  end
 end
-
 
 module ExtendedFunctionType = struct
   type t = {
-      extended_parameter_types : ExtendedType.t list;
-      extended_return_type     : ExtendedType.t
+      extended_parameter_types : ExtendedType.Parameter.t list;
+      extended_return_type     : ExtendedType.ReturnValue.t
     }
 end
 
