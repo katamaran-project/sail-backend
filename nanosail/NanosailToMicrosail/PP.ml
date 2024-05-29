@@ -100,3 +100,18 @@ let separate_nonempty separator items =
     List.filter ~f:is_nonempty items
   in
   separate separator nonempty_items
+
+
+(*
+  Renders [(header1, description1), (header2, description2)] as
+
+  header1
+    description1
+  header2
+    description2
+*)
+let description_list (items : (document * document) list) : document =
+  let render_item (header, description) =
+    separate hardline [ header; indent' description ]
+  in
+  separate hardline @@ List.map ~f:render_item items
