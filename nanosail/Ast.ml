@@ -111,8 +111,8 @@ end
 
 module ExtendedFunctionType = struct
   type t = {
-      extended_parameter_types: ExtendedType.t list;
-      extended_return_type    : ExtendedType.t
+      extended_parameter_types : ExtendedType.t list;
+      extended_return_type     : ExtendedType.t
     }
 end
 
