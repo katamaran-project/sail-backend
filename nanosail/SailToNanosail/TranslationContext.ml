@@ -33,12 +33,14 @@ module Context = struct
 end
 
 
-type error =
-  | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
-  | AssertionFailure  of ocaml_source_location * string
+module Error = struct
+  type t =
+    | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
+    | AssertionFailure  of ocaml_source_location * string
+end
 
 
-module Monad     = Monads.StateResult.Make (struct type t = Context.t end) (struct type t = error end)
+module Monad     = Monads.StateResult.Make(Context)(Error)
 module MonadUtil = Monads.Util.Make(Monad)
 
 include MonadUtil
@@ -47,7 +49,7 @@ open Monads.Notations.Star(Monad)
 
 type 'a t      = 'a Monad.t
 type 'a result = 'a Monad.result = Success of 'a     (* explicitly enumerating cases here prevents result from becoming abstract *)
-                                 | Failure of error
+                                 | Failure of Error.t
 
 let return     = Monad.return
 let error      = Monad.fail
@@ -56,7 +58,7 @@ let recover    = Monad.recover
 let run f      = Monad.run f Context.empty
 
 
-let string_of_error (error : error) : string =
+let string_of_error (error : Error.t) : string =
   let string_of_ocaml_location (ocaml_location : ocaml_source_location) =
     Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
   in

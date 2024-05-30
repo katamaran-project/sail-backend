@@ -66,7 +66,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     in
     TC.recover translation begin fun error ->
       match error with
-      | TC.NotYetImplemented (ocaml_location, sail_location, message) -> begin
+      | NotYetImplemented (ocaml_location, sail_location, message) -> begin
           let untranslated_definition = N.UntranslatedDefinition {
               filename = ocaml_location.pos_fname;
               line_number = ocaml_location.pos_lnum;
@@ -76,7 +76,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
           in
           TC.return (sail_definition, untranslated_definition)
         end
-      | TC.AssertionFailure (ocaml_location, message) -> begin
+      | AssertionFailure (ocaml_location, message) -> begin
           let location_string =
             Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
           and pretty_printed_sail_code =
