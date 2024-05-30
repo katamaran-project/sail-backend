@@ -16,6 +16,85 @@ open Base
 open Monads.Notations.Star(TC)
 
 
+module State = struct
+  type mapping = int StringMap.t
+  
+  type t =
+    {
+      next_id : int;
+      mapping : mapping
+    }
+
+  let initial : t =
+    {
+      next_id = 0;
+      mapping = StringMap.empty;
+    }
+
+  let next_id =
+    let get (state : t) : int = state.next_id
+    and set (state : t) (next_id : int) : t = { state with next_id }
+    in
+    (get, set)
+
+  let mapping =
+    let get (state : t) : mapping = state.mapping
+    and set (state : t) (mapping : mapping) : t = { state with mapping }
+    in
+    (get, set)
+end
+
+module Error = struct
+  type t = unit
+end
+
+module Monad = Monads.StateResult.Make(State)(Error)
+open Monads.Notations.Plus(Monad)
+
+module MonadUtil = Monads.Util.Make(Monad)
+include MonadUtil
+
+
+let next_id : int Monad.t =
+  let+ id = Monad.get State.next_id
+  in
+  let+ () = Monad.put State.next_id (id + 1)
+  in
+  Monad.return id
+
+
+let add_mapping key data : unit Monad.t =
+  let+ mapping = Monad.get State.mapping
+  in
+  let+ () = Monad.put State.mapping @@ StringMap.add_exn mapping ~key ~data
+  in
+  Monad.return ()
+
+
+let lookup key : int option Monad.t =
+  let+ mapping = Monad.get State.mapping
+  in
+  Monad.return @@ StringMap.find mapping key
+
+
+(* Forces a fresh binding; error if s is already bound *)
+let fresh_binding (s : string) : int Monad.t =
+  let+ id = next_id
+  in
+  let+ () = add_mapping s id
+  in
+  Monad.return id
+
+
+(* Returns old binding if it exists, creates new one if necessary *)
+let binding (s : string) : int Monad.t =
+  let+ id = lookup s
+  in
+  match id with
+  | None    -> fresh_binding s
+  | Some id -> Monad.return id
+
+
 (*
   Returns the parameter types as a list
 *)
