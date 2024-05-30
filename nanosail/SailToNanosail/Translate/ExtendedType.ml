@@ -10,6 +10,7 @@ end
 
 module N  = Ast
 module TC = TranslationContext
+module StringMap = Map.String
 
 open Base
 open Monads.Notations.Star(TC)

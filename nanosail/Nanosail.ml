@@ -1,8 +1,6 @@
 module Basics              = Basics
-module StringMap           = StringMap
 module Id                  = Id
 module IdentifierMap       = IdentifierMap
-module IntegerMap          = IntegerMap
 module Ast                 = Ast
 module Configuration       = Configuration
 module Auxlib              = Auxlib
@@ -10,3 +8,4 @@ module Substitute          = Substitute
 module SailToNanosail      = SailToNanosail
 module NanosailToMicrosail = NanosailToMicrosail
 module Templates           = Templates
+module Map                 = Map

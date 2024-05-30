@@ -1,12 +1,12 @@
 open Base
 
-include Map
+include Base.Map
 
-type 'a t = (Id.t, 'a, Id.comparator_witness) Map.t
+type 'a t = (Id.t, 'a, Id.comparator_witness) Base.Map.t
 
-let of_alist_exn (pairs : (Id.t * 'a) list) = Map.of_alist_exn (module Id) pairs
+let of_alist_exn (pairs : (Id.t * 'a) list) = Base.Map.of_alist_exn (module Id) pairs
 
-let empty = Map.empty(module Id)
+let empty = Base.Map.empty(module Id)
 
 let overwrite map ~key ~data =
-  Map.update map key ~f:(fun _ -> data)
+  Base.Map.update map key ~f:(fun _ -> data)
