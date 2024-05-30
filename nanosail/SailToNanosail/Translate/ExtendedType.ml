@@ -28,7 +28,6 @@ let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.p
   | _              -> TC.return [ parameter_bundle_type ]
 
 
-
 (*
   Focuses on parameter types.
   Atoms must only contain a single identifier as their type argument.
