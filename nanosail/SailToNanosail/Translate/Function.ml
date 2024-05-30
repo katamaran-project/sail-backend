@@ -8,9 +8,10 @@ module S = struct
   include Libsail.Anf
 end
 
-module N        = Ast
-module TC       = TranslationContext
-module Bindings = Libsail.Ast_util.Bindings
+module N             = Ast
+module TC            = TranslationContext
+module Bindings      = Libsail.Ast_util.Bindings
+module IdentifierMap = Map.Identifier
 
 open Base
 open Identifier

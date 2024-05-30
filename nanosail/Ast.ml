@@ -1,6 +1,7 @@
-open Base
+module Big_int       = Nat_big_num
+module IdentifierMap = Map.Identifier
 
-module Big_int = Nat_big_num
+open Base
 
 
 (* todo find better location for this definition *)

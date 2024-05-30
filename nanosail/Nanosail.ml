@@ -1,6 +1,5 @@
 module Basics              = Basics
 module Id                  = Id
-module IdentifierMap       = IdentifierMap
 module Ast                 = Ast
 module Configuration       = Configuration
 module Auxlib              = Auxlib
