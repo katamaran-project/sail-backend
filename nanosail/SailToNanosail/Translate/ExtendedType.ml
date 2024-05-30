@@ -183,12 +183,16 @@ let collect_variable_names_in_int_expression (int_expression : N.ExtendedType.In
   remove_string_duplicates @@ collect int_expression
 
 
+let simple_name_from_index (index : int) : string =
+  Printf.sprintf "#%d" index
+
+
 let generate_simpler_names (names : string list) : string StringMap.t =
   let rec generate (index : int) (names : string list) (map : string StringMap.t) =
     match names with
     | []          -> map
     | name::names -> begin
-        let simplified_name = Printf.sprintf "'%d" index
+        let simplified_name = simple_name_from_index index
         in
         let map' = StringMap.add_exn map ~key:name ~data:simplified_name
         in
