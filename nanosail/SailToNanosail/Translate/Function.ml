@@ -973,10 +973,10 @@ let translate_function_definition
   | [function_clause] -> begin
       let* parts = extract_function_parts function_clause
       in
-      let* function_name = translate_identifier [%here] parts.identifier
-      and* parameters    = translate_parameter_bindings parts.parameter_bindings
-      and* return_type   = translate_return_type parts.return_type
-      and* function_body = translate_body parts.body
+      let* function_name          = translate_identifier [%here] parts.identifier
+      and* parameters             = translate_parameter_bindings parts.parameter_bindings
+      and* return_type            = translate_return_type parts.return_type
+      and* function_body          = translate_body parts.body
       and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
       in
       TC.return @@ N.FunctionDefinition {
