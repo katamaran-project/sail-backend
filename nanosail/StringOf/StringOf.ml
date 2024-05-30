@@ -1,3 +1,3 @@
 module OCaml    = OCaml
-module Sail     = Sail
+module Sail     = SailToString
 module Nanosail = Nanosail

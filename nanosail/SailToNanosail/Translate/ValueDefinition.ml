@@ -15,7 +15,7 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let translate_expression (expression : N.type_annotation S.exp) : N.value TC.t =
+let translate_expression (expression : Sail.type_annotation S.exp) : N.value TC.t =
   let S.E_aux (expression, (location, _type_annotation)) = expression
   in
   match expression with
@@ -75,7 +75,7 @@ let translate_expression (expression : N.type_annotation S.exp) : N.value TC.t =
 
 let translate_value_definition
       (_definition_annotation : S.def_annot)
-      (let_definition : N.type_annotation S.letbind)
+      (let_definition : Sail.type_annotation S.letbind)
   =
   let S.LB_aux (S.LB_val (S.P_aux (pattern, (pattern_location, _)), expression), (_location, _type_annotation)) = let_definition
   in

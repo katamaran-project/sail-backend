@@ -8,3 +8,5 @@ module SailToNanosail      = SailToNanosail
 module NanosailToMicrosail = NanosailToMicrosail
 module Templates           = Templates
 module Map                 = Map
+module Sail                = Sail
+

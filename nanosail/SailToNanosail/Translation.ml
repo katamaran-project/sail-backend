@@ -14,7 +14,7 @@ open Base
 open Basics
 
 
-let translate_definition (sail_definition : N.type_annotation Libsail.Ast.def) : (N.sail_definition * N.definition) TC.t =
+let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * N.definition) TC.t =
   let S.DEF_aux (def, annotation) = sail_definition
   in
   if

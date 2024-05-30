@@ -10,7 +10,7 @@ module AC = AnnotationContext
 
 
 let pp_function_definition
-      ((sail_function_definition : sail_definition), (function_definition : function_definition))
+      ((sail_function_definition : Sail.sail_definition), (function_definition : function_definition))
       type_constraint =
   let identifier = pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name
   in
@@ -19,7 +19,7 @@ let pp_function_definition
     in
     let* result_type =
       let* bindings =
-        let* docs = AC.map ~f:Sail.pp_bind function_definition.function_type.parameters
+        let* docs = AC.map ~f:PPSail.pp_bind function_definition.function_type.parameters
         in
         AC.return @@ Coq.list docs
       in
@@ -58,8 +58,8 @@ let pp_function_definition
 
 
 let pp_function_definitions
-      (function_definitions : (sail_definition * function_definition) list)
-      (top_level_type_constraint_definitions : (sail_definition * top_level_type_constraint_definition) list) =
+      (function_definitions : (Sail.sail_definition * function_definition) list)
+      (top_level_type_constraint_definitions : (Sail.sail_definition * top_level_type_constraint_definition) list) =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match

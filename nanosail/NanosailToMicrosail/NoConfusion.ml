@@ -3,7 +3,7 @@ open Ast
 open Auxlib
 
 
-let generate (definitions : (sail_definition * definition) list) =
+let generate (definitions : (Sail.sail_definition * definition) list) =
   let has_registers =
     let register_definitions =
       select Extract.register_definition definitions

@@ -16,7 +16,7 @@ let generate (enum_definition : enum_definition) : PP.document AC.t =
     )
 
 
-let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definition) list) =
+let generate_enum_of_enums (enum_definitions : (Sail.sail_definition * enum_definition) list) =
   let enum_definitions =
     List.map ~f:snd enum_definitions
   in
@@ -42,7 +42,7 @@ let generate_enum_of_enums (enum_definitions : (sail_definition * enum_definitio
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (enum_definitions : (sail_definition * enum_definition) list) =
+let generate_no_confusions (enum_definitions : (Sail.sail_definition * enum_definition) list) =
   let enum_definitions = List.map ~f:snd enum_definitions
   in
   let contents =
@@ -63,7 +63,7 @@ let generate_no_confusions (enum_definitions : (sail_definition * enum_definitio
   Coq.section (Id.mk "TransparentObligations") contents
 
 
-let generate_eqdecs (enum_definitions : (sail_definition * enum_definition) list) =
+let generate_eqdecs (enum_definitions : (Sail.sail_definition * enum_definition) list) =
   let enum_definitions = List.map ~f:snd enum_definitions (* todo cleanup *)
   in
   let generate_eqdec (enum_definition : enum_definition) =

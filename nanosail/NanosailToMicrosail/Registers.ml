@@ -56,7 +56,7 @@ let translate_regname (register_identifier : identifier) : identifier =
   .
 
  *)
-let regnames (register_definitions : (sail_definition * register_definition) list) =
+let regnames (register_definitions : (Sail.sail_definition * register_definition) list) =
   if List.is_empty register_definitions
   then None
   else begin
@@ -132,9 +132,9 @@ let obligation_tactic =
     ]
   )
 
-let generate (register_definitions : (sail_definition * register_definition) list) : PP.document =
+let generate (register_definitions : (Sail.sail_definition * register_definition) list) : PP.document =
   let register_names =
-    let extract_identifier (pair : sail_definition * register_definition) =
+    let extract_identifier (pair : Sail.sail_definition * register_definition) =
       pp_identifier (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions

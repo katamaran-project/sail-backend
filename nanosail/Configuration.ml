@@ -1,7 +1,7 @@
 open Base
 
 
-type sail_definition = Ast.sail_definition
+type sail_definition = Sail.sail_definition
 
 
 module C = struct

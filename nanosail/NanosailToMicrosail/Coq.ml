@@ -344,7 +344,7 @@ let annotate_with_original_definition original translation =
   then
     PP.(
       concat [
-        original_sail_code (Sail.pp_sail_definition original);
+        original_sail_code (PPSail.pp_sail_definition original);
         hardline;
         translation
       ]
@@ -360,7 +360,7 @@ let annotate_with_original_definitions originals translation =
     PP.(
       concat begin
         build_list begin fun { add; _ } ->
-          add @@ original_sail_codes (List.map ~f:Sail.pp_sail_definition originals);
+          add @@ original_sail_codes (List.map ~f:PPSail.pp_sail_definition originals);
           add hardline;
           add translation
         end

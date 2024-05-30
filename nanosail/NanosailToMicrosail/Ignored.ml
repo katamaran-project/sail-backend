@@ -1,5 +1,5 @@
 open! Base
 
 
-let generate (ignored_definition : Ast.sail_definition) =
-  Sail.pp_sail_definition ignored_definition
+let generate (ignored_definition : Sail.sail_definition) =
+  PPSail.pp_sail_definition ignored_definition

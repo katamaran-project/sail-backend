@@ -20,12 +20,12 @@ open Enum
 
 
 let translate_variant
-      (_definition_annotation : S.def_annot              )
-      (_type_annotation       : N.type_annotation S.annot)
-      (identifier             : S.id                     )
-      (type_quantifier        : S.typquant               )
-      (constructors           : S.type_union list        )
-      (_flag                  : bool                     ) : N.type_definition TC.t
+      (_definition_annotation : S.def_annot                 )
+      (_type_annotation       : Sail.type_annotation S.annot)
+      (identifier             : S.id                        )
+      (type_quantifier        : S.typquant                  )
+      (constructors           : S.type_union list           )
+      (_flag                  : bool                        ) : N.type_definition TC.t
   =
   let* identifier' = translate_identifier [%here] identifier
   and* type_quantifier' = translate_type_quantifier type_quantifier

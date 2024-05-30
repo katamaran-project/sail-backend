@@ -19,7 +19,7 @@ open Monads.Notations.Star(TC)
 (*
   Returns the parameter types as a list
 *)
-let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.pat) : S.typ list TC.t =
+let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.Ast.pat) : S.typ list TC.t =
   let P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
   in
   let parameter_bundle_type = Libsail.Type_check.typ_of_annot parameter_bindings_annotation
@@ -274,8 +274,8 @@ let simplify (extended_function_type : N.ExtendedFunctionType.t) : N.ExtendedFun
   
 
 let determine_extended_type
-      (parameter_bindings : N.type_annotation Libsail.Ast.pat)
-      (return_type        : Libsail.Ast.typ                  ) : N.ExtendedFunctionType.t TC.t
+      (parameter_bindings : Sail.type_annotation Libsail.Ast.pat)
+      (return_type        : Libsail.Ast.typ                     ) : N.ExtendedFunctionType.t TC.t
   =
   let* parameter_types = unpack_parameter_types parameter_bindings
   in

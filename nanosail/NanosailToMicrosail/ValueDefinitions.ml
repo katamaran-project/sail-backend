@@ -27,7 +27,7 @@ let pp_value_definition (value_definition : value_definition) : PP.document =
   definition
 
 
-let generate (definitions : (sail_definition * definition) list) =
+let generate (definitions : (Sail.sail_definition * definition) list) =
   let value_definitions =
     List.map ~f:snd @@ select Extract.value_definition definitions
   in

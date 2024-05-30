@@ -88,8 +88,8 @@ let coqify_identifiers (program : N.program) : N.program =
     | N.TD_record record             -> N.TD_record       (sanitize_record record                 )
   in
   let sanitize_definition
-      (sail_definition : N.sail_definition)
-      (definition      : N.definition     ) : N.sail_definition * N.definition =
+      (sail_definition : Sail.sail_definition)
+      (definition      : N.definition        ) : Sail.sail_definition * N.definition =
     (
       sail_definition,
       match definition with

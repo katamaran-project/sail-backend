@@ -12,8 +12,8 @@ module ExtendedType      = ExtendedType
 
 
 let pp_type_definition
-      (original        : Ast.sail_definition)
-      (type_definition : Ast.type_definition) : document
+      (original        : Sail.sail_definition)
+      (type_definition : Ast.type_definition ) : document
   =
   let document =
     match type_definition with

@@ -21,8 +21,8 @@ open Record
 
 
 let translate_type_definition
-      (definition_annotation     : S.def_annot                 )
-      (annotated_type_definition : N.type_annotation S.type_def) : N.definition TC.t
+      (definition_annotation     : S.def_annot                    )
+      (annotated_type_definition : Sail.type_annotation S.type_def) : N.definition TC.t
   =
   let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
   in

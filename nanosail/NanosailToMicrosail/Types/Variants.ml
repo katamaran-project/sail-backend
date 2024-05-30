@@ -24,7 +24,7 @@ let generate_inductive_type (variant_definition : variant_definition) : PP.docum
     in
     let* type_quantifier' =
       AC.map type_quantifier ~f:(fun (id, kind) ->
-          let* kind' = Sail.pp_kind kind
+          let* kind' = PPSail.pp_kind kind
           in
           AC.return (pp_identifier id, kind')
         )

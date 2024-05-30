@@ -20,11 +20,11 @@ open Enum
 
 
 let translate_record
-      (_definition_annotation : S.def_annot              )
-      (_type_annotation       : N.type_annotation S.annot)
-      (identifier             : S.id                     )
-      (type_quantifier        : S.typquant               )
-      (fields                 : (S.typ * S.id) list      ) : N.type_definition TC.t
+      (_definition_annotation : S.def_annot                 )
+      (_type_annotation       : Sail.type_annotation S.annot)
+      (identifier             : S.id                        )
+      (type_quantifier        : S.typquant                  )
+      (fields                 : (S.typ * S.id) list         ) : N.type_definition TC.t
   =
   let translate_field (field_type : S.typ) (field_identifier : S.id) =
     let* field_type'       = nanotype_of_sail_type field_type

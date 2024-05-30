@@ -4,7 +4,7 @@ open Basics
 
 
 let generate
-    (sail_definition         : sail_definition        )
+    (sail_definition         : Sail.sail_definition   )
     (untranslated_definition : untranslated_definition)
   =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
@@ -40,7 +40,7 @@ let generate
   in
   PP.(
     concat [
-      Sail.pp_sail_definition sail_definition;
+      PPSail.pp_sail_definition sail_definition;
       string ocaml_location_string;
       hardline;
       string sail_location_string;

@@ -935,12 +935,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
 type sail_function_parts = {
   identifier         : S.id;
-  parameter_bindings : N.type_annotation Libsail.Ast.pat;
+  parameter_bindings : Sail.type_annotation Libsail.Ast.pat;
   body               : Libsail.Ast.typ Libsail.Anf.aexp;
   return_type        : Libsail.Ast.typ;
 }
 
-let extract_function_parts (function_clause : N.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
+let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
   let S.Pat_aux (unwrapped_clause, (location, _annotation)) = clause
@@ -964,8 +964,8 @@ let translate_body = statement_of_aexp
 
 
 let translate_function_definition
-      (definition_annotation : S.def_annot               )
-      (function_definition   : N.type_annotation S.fundef)
+      (definition_annotation : S.def_annot                  )
+      (function_definition   : Sail.type_annotation S.fundef)
   =
   let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
   in

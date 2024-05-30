@@ -4,11 +4,6 @@ module IdentifierMap = Map.Identifier
 open Base
 
 
-(* todo find better location for this definition *)
-type type_annotation = Libsail.Type_check.tannot
-
-(* todo find better location for this definition *)
-type sail_definition = type_annotation Libsail.Ast.def
 
 type identifier = Id.t
 
@@ -338,7 +333,7 @@ type definition =
 
 type program = {
     program_name : string;
-    definitions  : (sail_definition * definition) list   (* All translated definitions; original order preserved *)
+    definitions  : (Sail.sail_definition * definition) list   (* All translated definitions; original order preserved *)
   }
 
 
@@ -395,7 +390,7 @@ end
 
 let select
     (extractor   : definition -> 'a option            )
-    (definitions : (sail_definition * definition) list)
+    (definitions : (Sail.sail_definition * definition) list)
   =
   let lift_extractor extractor (sail_definition, definition) =
     Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
