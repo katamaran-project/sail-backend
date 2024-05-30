@@ -20,15 +20,15 @@ open Monads.Notations.Star(TC)
   Returns the parameter types as a list
 *)
 let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.pat) : S.typ list TC.t =
-  let S.P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
+  let P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
   in
   let parameter_bundle_type = Libsail.Type_check.typ_of_annot parameter_bindings_annotation
   in
   let Typ_aux (unwrapped_parameter_bundle_type, _parameter_bundle_type_location) = parameter_bundle_type
   in
   match unwrapped_parameter_bundle_type with
-  | S.Typ_tuple ts -> TC.return ts
-  | _              -> TC.return [ parameter_bundle_type ]
+  | Typ_tuple ts -> TC.return ts
+  | _            -> TC.return [ parameter_bundle_type ]
 
 
 (*
@@ -36,42 +36,42 @@ let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.p
   Atoms must only contain a single identifier as their type argument.
 *)
 let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Parameter.t TC.t =
-  let S.Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
+  let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
   match unwrapped_sail_type with
-   | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_tuple _          -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_id _             -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_app (identifier, type_arguments) -> begin
+   | Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_tuple _          -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_id _             -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
        | Id "atom" -> begin
            match type_arguments with
            | [ type_argument ] -> begin
-               let S.A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
                in
                match unwrapped_type_argument with
-                | S.A_typ _                     -> TC.not_yet_implemented [%here] type_argument_location
-                | S.A_bool _                    -> TC.not_yet_implemented [%here] type_argument_location
-                | S.A_nexp numerical_expression -> begin
-                    let S.Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
+                | A_typ _                     -> TC.not_yet_implemented [%here] type_argument_location
+                | A_bool _                    -> TC.not_yet_implemented [%here] type_argument_location
+                | A_nexp numerical_expression -> begin
+                    let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
                     in
                     match unwrapped_numerical_expression with
-                     | S.Nexp_id _         -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_constant _   -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_app (_, _)   -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_times (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_sum (_, _)   -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_minus (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_exp _        -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_neg _        -> TC.not_yet_implemented [%here] numerical_expression_location
-                     | S.Nexp_var kid      -> begin
-                         let S.Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                     | Nexp_id _         -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_constant _   -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_app (_, _)   -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_times (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_sum (_, _)   -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_minus (_, _) -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_exp _        -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_neg _        -> TC.not_yet_implemented [%here] numerical_expression_location
+                     | Nexp_var kid      -> begin
+                         let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                          in
                          TC.return @@ N.ExtendedType.Parameter.Int (Some unwrapped_kid)
                        end
@@ -100,48 +100,48 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
     in
     TC.return @@ factory left' right'
   in
-  let S.Nexp_aux (unwrapped_numeric_expression, numeric_expression_location) = numeric_expression
+  let Nexp_aux (unwrapped_numeric_expression, numeric_expression_location) = numeric_expression
   in
   match unwrapped_numeric_expression with
-   | S.Nexp_id _                -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_app (_, _)          -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_exp _               -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_neg _               -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_constant n          -> TC.return @@ N.ExtendedType.IntExpression.Constant n
-   | S.Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
-   | S.Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
-   | S.Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
-   | S.Nexp_var id              -> begin
-       let S.Kid_aux (Var unwrapped_id, _id_location) = id
+   | Nexp_id _                -> TC.not_yet_implemented [%here] numeric_expression_location
+   | Nexp_app (_, _)          -> TC.not_yet_implemented [%here] numeric_expression_location
+   | Nexp_exp _               -> TC.not_yet_implemented [%here] numeric_expression_location
+   | Nexp_neg _               -> TC.not_yet_implemented [%here] numeric_expression_location
+   | Nexp_constant n          -> TC.return @@ N.ExtendedType.IntExpression.Constant n
+   | Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
+   | Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
+   | Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
+   | Nexp_var id              -> begin
+       let Kid_aux (Var unwrapped_id, _id_location) = id
        in
        TC.return @@ N.ExtendedType.IntExpression.Var unwrapped_id
      end
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t TC.t =
-  let S.Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
+  let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
   match unwrapped_sail_type with
-   | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_id _id           -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_tuple _          -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_app (identifier, type_arguments) -> begin
+   | Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_id _id           -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_tuple _          -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] sail_type_location
+   | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
        | Id "atom" -> begin
            match type_arguments with
            | [ type_argument ] -> begin
-               let S.A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
                in
                match unwrapped_type_argument with
-                | S.A_typ _                   -> TC.not_yet_implemented [%here] type_argument_location
-                | S.A_bool _                  -> TC.not_yet_implemented [%here] type_argument_location
-                | S.A_nexp numeric_expression -> begin
+                | A_typ _                   -> TC.not_yet_implemented [%here] type_argument_location
+                | A_bool _                  -> TC.not_yet_implemented [%here] type_argument_location
+                | A_nexp numeric_expression -> begin
                     let* int_expression = int_expression_of_sail_numeric_expression numeric_expression
                     in
                     TC.return @@ N.ExtendedType.ReturnValue.Int int_expression
