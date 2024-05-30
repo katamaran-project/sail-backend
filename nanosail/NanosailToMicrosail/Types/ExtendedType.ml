@@ -9,10 +9,11 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
   let open Ast.ExtendedType.Parameter
   in
   match extended_type with
-  | Int k    -> AC.return @@ PP.(string "int" ^^ space ^^ string k)
-  | Bool k   -> AC.return @@ PP.(string "bool" ^^ space ^^ string k)
-  | Other s  -> AC.return @@ PP.string s
-  | Tuple ts -> begin
+  | Int (Some k) -> AC.return @@ PP.(string "int" ^^ space ^^ string k)
+  | Int None     -> AC.return @@ PP.(string "int")
+  | Bool k       -> AC.return @@ PP.(string "bool" ^^ space ^^ string k)
+  | Other s      -> AC.return @@ PP.string s
+  | Tuple ts     -> begin
       let* ts' = AC.map ~f:pp_extended_parameter_type ts (* add parentheses around each t of ts *)
       in
       AC.return @@ PP.(separate (string " * ") ts')

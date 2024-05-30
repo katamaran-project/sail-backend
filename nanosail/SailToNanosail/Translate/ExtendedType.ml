@@ -69,7 +69,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
                      | S.Nexp_var kid      -> begin
                          let S.Kid_aux (Var unwrapped_kid, _kid_location) = kid
                          in
-                         TC.return @@ N.ExtendedType.Parameter.Int unwrapped_kid
+                         TC.return @@ N.ExtendedType.Parameter.Int (Some unwrapped_kid)
                        end
                   end
              end
@@ -119,7 +119,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
   in
   match unwrapped_sail_type with
    | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] sail_type_location
-   | S.Typ_id _             -> TC.not_yet_implemented [%here] sail_type_location
+   | S.Typ_id _id           -> TC.not_yet_implemented [%here] sail_type_location
    | S.Typ_var _            -> TC.not_yet_implemented [%here] sail_type_location
    | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] sail_type_location
    | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] sail_type_location
@@ -163,10 +163,11 @@ let remove_string_duplicates (strings : string list) : string list =
 let collect_variable_names_in_parameter_type (parameter_type : N.ExtendedType.Parameter.t) : string list =
   let rec collect parameter_type =
     match parameter_type with
-    | N.ExtendedType.Parameter.Tuple ts -> List.concat @@ List.map ~f:collect ts
-    | N.ExtendedType.Parameter.Int k    -> [ k ]
-    | N.ExtendedType.Parameter.Bool k   -> [ k ]
-    | N.ExtendedType.Parameter.Other _  -> []
+    | N.ExtendedType.Parameter.Tuple ts     -> List.concat @@ List.map ~f:collect ts
+    | N.ExtendedType.Parameter.Int (Some k) -> [ k ]
+    | N.ExtendedType.Parameter.Int None     -> [ ]
+    | N.ExtendedType.Parameter.Bool k       -> [ k ]
+    | N.ExtendedType.Parameter.Other _      -> []
   in
   remove_string_duplicates @@ collect parameter_type
 
@@ -214,10 +215,11 @@ let substitute_in_parameter_type
   in
   let rec subst (parameter_type : t) =
     match parameter_type with
-    | Tuple ts -> Tuple (List.map ~f:subst ts)
-    | Int k    -> Int (StringMap.find_exn map k)
-    | Bool k   -> Bool (StringMap.find_exn map k)
-    | Other _  -> parameter_type
+    | Tuple ts     -> Tuple (List.map ~f:subst ts)
+    | Int (Some k) -> Int (Some (StringMap.find_exn map k))
+    | Int None     -> Int None
+    | Bool k       -> Bool (StringMap.find_exn map k)
+    | Other _      -> parameter_type
   in
   subst parameter_type
 
