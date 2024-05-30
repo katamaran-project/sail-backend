@@ -15,7 +15,6 @@ open Base
 open Monads.Notations.Star(TC)
 
 
-
 let unpack_parameter_types (parameter_bindings : N.type_annotation Libsail.Ast.pat) : S.typ list TC.t =
   let S.P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
   in
