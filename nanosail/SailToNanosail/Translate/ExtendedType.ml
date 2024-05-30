@@ -94,8 +94,18 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
   match unwrapped_numeric_expression with
    | S.Nexp_id _         -> TC.not_yet_implemented [%here] numeric_expression_location
    | S.Nexp_app (_, _)   -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_sum (_, _)   -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_minus (_, _) -> TC.not_yet_implemented [%here] numeric_expression_location
+   | S.Nexp_sum (left, right) -> begin
+       let* left'  = int_expression_of_sail_numeric_expression left
+       and* right' = int_expression_of_sail_numeric_expression right
+       in
+       TC.return @@ N.ExtendedType.IntExpression.Add (left', right')
+     end
+   | S.Nexp_minus (left, right) -> begin
+       let* left'  = int_expression_of_sail_numeric_expression left
+       and* right' = int_expression_of_sail_numeric_expression right
+       in
+       TC.return @@ N.ExtendedType.IntExpression.Sub (left', right')
+     end
    | S.Nexp_exp _        -> TC.not_yet_implemented [%here] numeric_expression_location
    | S.Nexp_neg _        -> TC.not_yet_implemented [%here] numeric_expression_location
    | S.Nexp_constant n   -> TC.return @@ N.ExtendedType.IntExpression.Constant n
