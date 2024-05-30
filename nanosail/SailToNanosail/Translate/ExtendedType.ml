@@ -86,36 +86,31 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
 
 
 let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) : N.ExtendedType.IntExpression.t TC.t =
+  let binary_operation
+        (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t)
+        (left    : S.nexp                                                                                            )
+        (right   : S.nexp                                                                                            ) : N.ExtendedType.IntExpression.t TC.t
+    =
+    let* left'  = int_expression_of_sail_numeric_expression left
+    and* right' = int_expression_of_sail_numeric_expression right
+    in
+    TC.return @@ factory left' right'
+  in
   let S.Nexp_aux (unwrapped_numeric_expression, numeric_expression_location) = numeric_expression
   in
   match unwrapped_numeric_expression with
-   | S.Nexp_id _         -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_app (_, _)   -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_sum (left, right) -> begin
-       let* left'  = int_expression_of_sail_numeric_expression left
-       and* right' = int_expression_of_sail_numeric_expression right
-       in
-       TC.return @@ N.ExtendedType.IntExpression.Add (left', right')
-     end
-   | S.Nexp_minus (left, right) -> begin
-       let* left'  = int_expression_of_sail_numeric_expression left
-       and* right' = int_expression_of_sail_numeric_expression right
-       in
-       TC.return @@ N.ExtendedType.IntExpression.Sub (left', right')
-     end
-   | S.Nexp_exp _        -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_neg _        -> TC.not_yet_implemented [%here] numeric_expression_location
-   | S.Nexp_constant n   -> TC.return @@ N.ExtendedType.IntExpression.Constant n
-   | S.Nexp_var id       -> begin
+   | S.Nexp_id _                -> TC.not_yet_implemented [%here] numeric_expression_location
+   | S.Nexp_app (_, _)          -> TC.not_yet_implemented [%here] numeric_expression_location
+   | S.Nexp_exp _               -> TC.not_yet_implemented [%here] numeric_expression_location
+   | S.Nexp_neg _               -> TC.not_yet_implemented [%here] numeric_expression_location
+   | S.Nexp_constant n          -> TC.return @@ N.ExtendedType.IntExpression.Constant n
+   | S.Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
+   | S.Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
+   | S.Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
+   | S.Nexp_var id              -> begin
        let S.Kid_aux (Var unwrapped_id, _id_location) = id
        in
        TC.return @@ N.ExtendedType.IntExpression.Var unwrapped_id
-     end
-   | S.Nexp_times (left, right) -> begin
-       let* left'  = int_expression_of_sail_numeric_expression left
-       and* right' = int_expression_of_sail_numeric_expression right
-       in
-       TC.return @@ N.ExtendedType.IntExpression.Mul (left', right')
      end
 
 
