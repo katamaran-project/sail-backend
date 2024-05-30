@@ -1,1 +1,0 @@
-exception TranslationError of string
