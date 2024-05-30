@@ -10,14 +10,17 @@ let pp_bind (arg, t) =
   let* t' = pp_nanotype t in
   AC.return @@ PP.(utf8string ("\"" ^ (Id.string_of arg) ^ "\" ∷ " ) ^^ t')
 
+
 let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+
 
 let pp_kind (kind : kind) =
   match kind with
   | Kind_type -> AC.not_yet_implemented [%here]
   | Kind_int  -> AC.return @@ PP.string @@ "nat"
   | Kind_bool -> AC.not_yet_implemented [%here]
+
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
