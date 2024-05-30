@@ -87,7 +87,6 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
      end
 
 
-
 let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) : N.ExtendedType.IntExpression.t TC.t =
   let S.Nexp_aux (unwrapped_numeric_expression, numeric_expression_location) = numeric_expression
   in
