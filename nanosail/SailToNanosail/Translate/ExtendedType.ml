@@ -255,7 +255,6 @@ let substitute_in_return_type
   | N.ExtendedType.ReturnValue.Int int_expression -> N.ExtendedType.ReturnValue.Int (substitute_in_int_expression map int_expression)
   
 
-
 (*
    Gives variables simpler names
 *)
