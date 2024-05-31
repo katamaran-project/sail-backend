@@ -107,7 +107,7 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
 
 
 (*
-  Returns the parameter types as a list
+  Returns the parameter types as a list of sail types
 *)
 let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.Ast.pat) : S.typ list Monad.t =
   let P_aux (_unwrapped_parameter_bindings, parameter_bindings_annotation) = parameter_bindings
