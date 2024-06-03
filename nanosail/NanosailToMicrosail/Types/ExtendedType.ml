@@ -31,12 +31,12 @@ let rec pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
     AC.return @@ PP.(separate space [parens left'; string operator; parens right'])
   in
   match integer_expression with
-   | Ast.ExtendedType.IntExpression.Var identifier -> AC.return @@ PP.string @@ Printf.sprintf "$%d" identifier
-   | Ast.ExtendedType.IntExpression.Constant k -> AC.return @@ PP.string @@ Z.to_string k
+   | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ PP.string @@ Printf.sprintf "$%d" identifier
+   | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ PP.string @@ Z.to_string k
    | Ast.ExtendedType.IntExpression.Add (left, right) -> pp_binary_operation left "+" right
    | Ast.ExtendedType.IntExpression.Sub (left, right) -> pp_binary_operation left "-" right
    | Ast.ExtendedType.IntExpression.Mul (left, right) -> pp_binary_operation left "*" right
-   | Ast.ExtendedType.IntExpression.Neg operand -> pp_unary_operation "-" operand
+   | Ast.ExtendedType.IntExpression.Neg operand       -> pp_unary_operation "-" operand
 
 
 let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
