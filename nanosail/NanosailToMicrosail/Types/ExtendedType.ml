@@ -9,9 +9,9 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
   let open Ast.ExtendedType.Parameter
   in
   match extended_type with
-  | Int (Some k) -> AC.return @@ PP.(string "int" ^^ space ^^ string k)
+  | Int (Some k) -> AC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
   | Int None     -> AC.return @@ PP.(string "int")
-  | Bool k       -> AC.return @@ PP.(string "bool" ^^ space ^^ string k)
+  | Bool k       -> AC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
   | Other s      -> AC.return @@ PP.string s
   | Tuple ts     -> begin
       let* ts' = AC.map ~f:pp_extended_parameter_type ts (* add parentheses around each t of ts *)
@@ -32,7 +32,7 @@ let rec pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
     AC.return @@ PP.(separate space [parens left'; string operator; parens right'])
   in
   match integer_expression with
-   | Ast.ExtendedType.IntExpression.Var identifier -> AC.return @@ PP.string identifier
+   | Ast.ExtendedType.IntExpression.Var identifier -> AC.return @@ PP.string @@ Printf.sprintf "$%d" identifier
    | Ast.ExtendedType.IntExpression.Constant k -> AC.return @@ PP.string @@ Z.to_string k
    | Ast.ExtendedType.IntExpression.Add (left, right) -> pp_binary_operation left "+" right
    | Ast.ExtendedType.IntExpression.Sub (left, right) -> pp_binary_operation left "-" right

@@ -163,7 +163,9 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
                      | Nexp_var kid      -> begin
                          let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                          in
-                         Monad.return @@ N.ExtendedType.Parameter.Int (Some unwrapped_kid)
+                         let+ translated_id = fresh_binding unwrapped_kid
+                         in
+                         Monad.return @@ N.ExtendedType.Parameter.Int (Some translated_id)
                        end
                   end
              end
@@ -204,7 +206,9 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
    | Nexp_var id              -> begin
        let Kid_aux (Var unwrapped_id, _id_location) = id
        in
-       Monad.return @@ N.ExtendedType.IntExpression.Var unwrapped_id
+       let+ translated_id = binding unwrapped_id
+       in
+       Monad.return @@ N.ExtendedType.IntExpression.Var translated_id
      end
 
 
@@ -254,113 +258,113 @@ let remove_string_duplicates (strings : string list) : string list =
   List.dedup_and_sort strings ~compare:String.compare
 
 
-let collect_variable_names_in_parameter_type (parameter_type : N.ExtendedType.Parameter.t) : string list =
-  let rec collect parameter_type =
-    match parameter_type with
-    | N.ExtendedType.Parameter.Tuple ts     -> List.concat @@ List.map ~f:collect ts
-    | N.ExtendedType.Parameter.Int (Some k) -> [ k ]
-    | N.ExtendedType.Parameter.Int None     -> [ ]
-    | N.ExtendedType.Parameter.Bool k       -> [ k ]
-    | N.ExtendedType.Parameter.Other _      -> []
-  in
-  remove_string_duplicates @@ collect parameter_type
+(* let collect_variable_names_in_parameter_type (parameter_type : N.ExtendedType.Parameter.t) : string list = *)
+(*   let rec collect parameter_type = *)
+(*     match parameter_type with *)
+(*     | N.ExtendedType.Parameter.Tuple ts     -> List.concat @@ List.map ~f:collect ts *)
+(*     | N.ExtendedType.Parameter.Int (Some k) -> [ k ] *)
+(*     | N.ExtendedType.Parameter.Int None     -> [ ] *)
+(*     | N.ExtendedType.Parameter.Bool k       -> [ k ] *)
+(*     | N.ExtendedType.Parameter.Other _      -> [] *)
+(*   in *)
+(*   remove_string_duplicates @@ collect parameter_type *)
 
 
-(* Returned list can contain duplicates *)
-let collect_variable_names_in_int_expression (int_expression : N.ExtendedType.IntExpression.t) : string list =
-  let rec collect int_expression =
-    match int_expression with
-    | N.ExtendedType.IntExpression.Var k             -> [ k ]
-    | N.ExtendedType.IntExpression.Constant _        -> []
-    | N.ExtendedType.IntExpression.Add (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Sub (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Mul (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Neg operand       -> collect operand
-  in
-  remove_string_duplicates @@ collect int_expression
+(* (\* Returned list can contain duplicates *\) *)
+(* let collect_variable_names_in_int_expression (int_expression : N.ExtendedType.IntExpression.t) : string list = *)
+(*   let rec collect int_expression = *)
+(*     match int_expression with *)
+(*     | N.ExtendedType.IntExpression.Var k             -> [ k ] *)
+(*     | N.ExtendedType.IntExpression.Constant _        -> [] *)
+(*     | N.ExtendedType.IntExpression.Add (left, right) -> collect left @ collect right *)
+(*     | N.ExtendedType.IntExpression.Sub (left, right) -> collect left @ collect right *)
+(*     | N.ExtendedType.IntExpression.Mul (left, right) -> collect left @ collect right *)
+(*     | N.ExtendedType.IntExpression.Neg operand       -> collect operand *)
+(*   in *)
+(*   remove_string_duplicates @@ collect int_expression *)
 
 
-let simple_name_from_index (index : int) : string =
-  Printf.sprintf "#%d" index
+(* let simple_name_from_index (index : int) : string = *)
+(*   Printf.sprintf "#%d" index *)
 
 
-let generate_simpler_names (names : string list) : string StringMap.t =
-  let rec generate (index : int) (names : string list) (map : string StringMap.t) =
-    match names with
-    | []          -> map
-    | name::names -> begin
-        let simplified_name = simple_name_from_index index
-        in
-        let map' = StringMap.add_exn map ~key:name ~data:simplified_name
-        in
-        generate (index + 1) names map'
-      end
-  in
-  let empty : string StringMap.t = StringMap.empty
-  in
-  generate 0 names empty
+(* let generate_simpler_names (names : string list) : string StringMap.t = *)
+(*   let rec generate (index : int) (names : string list) (map : string StringMap.t) = *)
+(*     match names with *)
+(*     | []          -> map *)
+(*     | name::names -> begin *)
+(*         let simplified_name = simple_name_from_index index *)
+(*         in *)
+(*         let map' = StringMap.add_exn map ~key:name ~data:simplified_name *)
+(*         in *)
+(*         generate (index + 1) names map' *)
+(*       end *)
+(*   in *)
+(*   let empty : string StringMap.t = StringMap.empty *)
+(*   in *)
+(*   generate 0 names empty *)
 
 
-let substitute_in_parameter_type
-    (map            : string StringMap.t        )
-    (parameter_type : N.ExtendedType.Parameter.t) : N.ExtendedType.Parameter.t
-  =
-  let open N.ExtendedType.Parameter
-  in
-  let rec subst (parameter_type : t) =
-    match parameter_type with
-    | Tuple ts     -> Tuple (List.map ~f:subst ts)
-    | Int (Some k) -> Int (Some (StringMap.find_exn map k))
-    | Int None     -> Int None
-    | Bool k       -> Bool (StringMap.find_exn map k)
-    | Other _      -> parameter_type
-  in
-  subst parameter_type
+(* let substitute_in_parameter_type *)
+(*     (map            : string StringMap.t        ) *)
+(*     (parameter_type : N.ExtendedType.Parameter.t) : N.ExtendedType.Parameter.t *)
+(*   = *)
+(*   let open N.ExtendedType.Parameter *)
+(*   in *)
+(*   let rec subst (parameter_type : t) = *)
+(*     match parameter_type with *)
+(*     | Tuple ts     -> Tuple (List.map ~f:subst ts) *)
+(*     | Int (Some k) -> Int (Some (StringMap.find_exn map k)) *)
+(*     | Int None     -> Int None *)
+(*     | Bool k       -> Bool (StringMap.find_exn map k) *)
+(*     | Other _      -> parameter_type *)
+(*   in *)
+(*   subst parameter_type *)
 
 
-let substitute_in_int_expression
-    (map            : string StringMap.t            )
-    (int_expression : N.ExtendedType.IntExpression.t) : N.ExtendedType.IntExpression.t
-  =
-  let open N.ExtendedType.IntExpression
-  in
-  let rec subst (int_expression : t) =
-    match int_expression with
-    | Var k             -> Var (StringMap.find_exn map k)
-    | Constant _        -> int_expression
-    | Add (left, right) -> Add (subst left, subst right)
-    | Sub (left, right) -> Sub (subst left, subst right)
-    | Mul (left, right) -> Mul (subst left, subst right)
-    | Neg expr          -> Neg (subst expr)
-  in
-  subst int_expression
+(* let substitute_in_int_expression *)
+(*     (map            : string StringMap.t            ) *)
+(*     (int_expression : N.ExtendedType.IntExpression.t) : N.ExtendedType.IntExpression.t *)
+(*   = *)
+(*   let open N.ExtendedType.IntExpression *)
+(*   in *)
+(*   let rec subst (int_expression : t) = *)
+(*     match int_expression with *)
+(*     | Var k             -> Var (StringMap.find_exn map k) *)
+(*     | Constant _        -> int_expression *)
+(*     | Add (left, right) -> Add (subst left, subst right) *)
+(*     | Sub (left, right) -> Sub (subst left, subst right) *)
+(*     | Mul (left, right) -> Mul (subst left, subst right) *)
+(*     | Neg expr          -> Neg (subst expr) *)
+(*   in *)
+(*   subst int_expression *)
 
 
-let substitute_in_return_type
-    (map         : string StringMap.t          )
-    (return_type : N.ExtendedType.ReturnValue.t) : N.ExtendedType.ReturnValue.t
-  =
-  match return_type with
-  | N.ExtendedType.ReturnValue.Int int_expression -> N.ExtendedType.ReturnValue.Int (substitute_in_int_expression map int_expression)
+(* let substitute_in_return_type *)
+(*     (map         : string StringMap.t          ) *)
+(*     (return_type : N.ExtendedType.ReturnValue.t) : N.ExtendedType.ReturnValue.t *)
+(*   = *)
+(*   match return_type with *)
+(*   | N.ExtendedType.ReturnValue.Int int_expression -> N.ExtendedType.ReturnValue.Int (substitute_in_int_expression map int_expression) *)
   
 
 (*
    Gives variables simpler names
 *)
-let simplify (extended_function_type : N.ExtendedFunctionType.t) : N.ExtendedFunctionType.t =
-  let variable_names = remove_string_duplicates @@ List.concat @@ List.map ~f:collect_variable_names_in_parameter_type extended_function_type.extended_parameter_types
-  in
-  let variable_mapping = generate_simpler_names variable_names
-  in
-  let extended_parameter_types =
-    List.map ~f:(substitute_in_parameter_type variable_mapping) extended_function_type.extended_parameter_types
-  and extended_return_type =
-    substitute_in_return_type variable_mapping extended_function_type.extended_return_type
-  in
-  {
-    extended_parameter_types;
-    extended_return_type
-  }
+(* let simplify (extended_function_type : N.ExtendedFunctionType.t) : N.ExtendedFunctionType.t = *)
+(*   let variable_names = remove_string_duplicates @@ List.concat @@ List.map ~f:collect_variable_names_in_parameter_type extended_function_type.extended_parameter_types *)
+(*   in *)
+(*   let variable_mapping = generate_simpler_names variable_names *)
+(*   in *)
+(*   let extended_parameter_types = *)
+(*     List.map ~f:(substitute_in_parameter_type variable_mapping) extended_function_type.extended_parameter_types *)
+(*   and extended_return_type = *)
+(*     substitute_in_return_type variable_mapping extended_function_type.extended_return_type *)
+(*   in *)
+(*   { *)
+(*     extended_parameter_types; *)
+(*     extended_return_type *)
+(*   } *)
   
 
 let determine_extended_type
@@ -376,7 +380,7 @@ let determine_extended_type
     let extended_function_type : N.ExtendedFunctionType.t =
       { extended_parameter_types; extended_return_type }
     in
-    Monad.return @@ simplify extended_function_type
+    Monad.return extended_function_type
   in
   let (result, _final_state) = Monad.run monad State.initial
   in
