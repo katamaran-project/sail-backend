@@ -93,17 +93,16 @@ module ExtendedType = struct
   module Parameter = struct
     type t =
       | Tuple of t list
-      | Int   of int option
+      | Int   of int
       | Bool  of int
       | Other of string
 
     let rec string_of (extended_type : t) : string =
       match extended_type with
-      | Tuple ts     -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-      | Int (Some k) -> Printf.sprintf "int(#%d)" k
-      | Int None     -> "int"
-      | Bool k       -> Printf.sprintf "bool(#%d)" k
-      | Other s      -> s
+      | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
+      | Int k    -> Printf.sprintf "int(#%d)" k
+      | Bool k   -> Printf.sprintf "bool(#%d)" k
+      | Other s  -> s
   end
 
   module IntExpression = struct

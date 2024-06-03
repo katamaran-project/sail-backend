@@ -165,7 +165,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
                          in
                          let+ translated_id = fresh_binding unwrapped_kid
                          in
-                         Monad.return @@ N.ExtendedType.Parameter.Int (Some translated_id)
+                         Monad.return @@ N.ExtendedType.Parameter.Int translated_id
                        end
                   end
              end

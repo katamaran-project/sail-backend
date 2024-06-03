@@ -9,8 +9,7 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
   let open Ast.ExtendedType.Parameter
   in
   match extended_type with
-  | Int (Some k) -> AC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
-  | Int None     -> AC.return @@ PP.(string "int")
+  | Int k        -> AC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
   | Bool k       -> AC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
   | Other s      -> AC.return @@ PP.string s
   | Tuple ts     -> begin
