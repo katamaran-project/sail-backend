@@ -217,12 +217,22 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
   in
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
-   | Typ_id _id           -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
    | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
    | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
    | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
+   | Typ_id id            -> begin
+       let Id_aux (unwrapped_id, id_location) = id
+       in
+       match unwrapped_id with
+       | S.Operator _ -> not_yet_implemented [%here] id_location
+       | S.Id name    -> begin
+           match name with
+           | "int" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
+           | _     -> not_yet_implemented [%here] id_location
+         end
+     end
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
