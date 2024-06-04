@@ -42,6 +42,12 @@ let test_formatting =
       (add (int 1) (int 2), "1 + 2");
       (add (int 1) (add (int 2) (int 3)), "1 + 2 + 3");
       (add (add (int 1) (int 2)) (int 3), "1 + 2 + 3");
+      (sub (int 4) (int 2), "4 - 2");
+      (mul (int 1) (int 2), "1 * 2");
+      (div (int 8) (int 4), "8 / 4");
+      (mul (add (int 1) (int 2)) (int 3), "(1 + 2) * 3");
+      (div (add (int 1) (int 2)) (int 3), "(1 + 2) / 3");
+      (mul (add (int 1) (int 2)) (add (int 3) (int 4)), "(1 + 2) * (3 + 4)");
     ]
   in
   "formatting" >::: List.map ~f:test test_cases
