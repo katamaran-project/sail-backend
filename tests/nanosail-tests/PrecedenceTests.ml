@@ -1,16 +1,16 @@
 open Base
 open OUnit2
 
-module PP = Nanosail.NanosailToMicrosail.PP
+module PF = Nanosail.PrecedenceFormatter
 
-module StringOutput : PP.Output with type t = string = struct
+module StringOutput : PF.Output with type t = string = struct
   type t = string
 
   let parenthesize = Printf.sprintf "(%s)"
 end
 
 module Prec = struct
-  include PP.PrecedenceFormatter(StringOutput)
+  include PF.Make(StringOutput)
 
   let int = Fn.compose define_atom Int.to_string
   let add = define_binary_operator 1 (fun x y -> Printf.sprintf "%s + %s" x y)
@@ -48,6 +48,7 @@ let test_formatting =
       (mul (add (int 1) (int 2)) (int 3), "(1 + 2) * 3");
       (div (add (int 1) (int 2)) (int 3), "(1 + 2) / 3");
       (mul (add (int 1) (int 2)) (add (int 3) (int 4)), "(1 + 2) * (3 + 4)");
+      (sub (int 3) (sub (int 2) (int 1)), "3 - (2 - 1)");
     ]
   in
   "formatting" >::: List.map ~f:test test_cases
