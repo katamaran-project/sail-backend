@@ -18,25 +18,31 @@ module Prec = struct
     let pp x y =
       PP.(separate space [ x; string "+"; y ])
     in
-    define_left_associative_binary_operator 1 pp
+    define_left_associative_binary_operator 10 pp
 
   let subtraction =
     let pp x y =
       PP.(separate space [ x; string "-"; y ])
     in
-    define_left_associative_binary_operator 1 pp
+    define_left_associative_binary_operator 10 pp
 
   let multiplication =
     let pp x y =
       PP.(separate space [ x; string "*"; y ])
     in
-    define_left_associative_binary_operator 2 pp
+    define_left_associative_binary_operator 20 pp
 
   let variable id =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
 
   let constant k =
     define_atom @@ PP.string @@ Z.to_string k
+
+  let negation =
+    let pp x =
+      PP.(string "-" ^^ x)
+    in
+    define_unary_prefix_operator 50 pp
 end
 
 
@@ -62,7 +68,12 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
     | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
     | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
     | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
-    | Ast.ExtendedType.IntExpression.Neg operand       -> subtraction operand operand (* todo *)
+    | Ast.ExtendedType.IntExpression.Neg operand       -> negation operand
+
+  and unary_operation f operand =
+    let* operand' = pp_int_expression operand
+    in
+    AC.return @@ f operand'
 
   and binary_operation f left right =
     let* left'  = pp_int_expression left
@@ -73,6 +84,7 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
   and addition       l r = binary_operation Prec.addition l r
   and subtraction    l r = binary_operation Prec.subtraction l r
   and multiplication l r = binary_operation Prec.multiplication l r
+  and negation       o   = unary_operation Prec.negation o
 
   in  
   let* result = pp_int_expression integer_expression
