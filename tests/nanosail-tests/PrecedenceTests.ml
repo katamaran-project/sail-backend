@@ -40,6 +40,8 @@ let test_formatting =
       (int 1, "1");
       (int 5, "5");
       (add (int 1) (int 2), "1 + 2");
+      (add (int 1) (add (int 2) (int 3)), "1 + 2 + 3");
+      (add (add (int 1) (int 2)) (int 3), "1 + 2 + 3");
     ]
   in
   "formatting" >::: List.map ~f:test test_cases
