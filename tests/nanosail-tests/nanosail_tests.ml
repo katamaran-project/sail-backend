@@ -4,8 +4,8 @@ open OUnit2
 let tests =
   "all tests" >::: [
     ConversionTests.test_suite;
-    Substitution_tests.test_suite;
-    Precedence_tests.test_suite;
+    SubstitutionTests.test_suite;
+    PrecedenceTests.test_suite;
     ExtendedIntegerTests.test_suite;
   ]
 
