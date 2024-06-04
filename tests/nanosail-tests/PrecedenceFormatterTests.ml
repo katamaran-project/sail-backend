@@ -13,11 +13,12 @@ module Prec = struct
   include PF.Make(StringOutput)
 
   let int = Fn.compose define_atom Int.to_string
-  let add = define_left_associative_binary_operator  1 (fun x y -> Printf.sprintf "%s + %s" x y)
-  let sub = define_left_associative_binary_operator  1 (fun x y -> Printf.sprintf "%s - %s" x y)
-  let mul = define_left_associative_binary_operator  2 (fun x y -> Printf.sprintf "%s * %s" x y)
-  let div = define_left_associative_binary_operator  2 (fun x y -> Printf.sprintf "%s / %s" x y)
-  let pow = define_right_associative_binary_operator 3 (fun x y -> Printf.sprintf "%s ^ %s" x y)
+  let add = define_left_associative_binary_operator  10 (fun x y -> Printf.sprintf "%s + %s" x y)
+  let sub = define_left_associative_binary_operator  10 (fun x y -> Printf.sprintf "%s - %s" x y)
+  let mul = define_left_associative_binary_operator  20 (fun x y -> Printf.sprintf "%s * %s" x y)
+  let div = define_left_associative_binary_operator  20 (fun x y -> Printf.sprintf "%s / %s" x y)
+  let pow = define_right_associative_binary_operator 30 (fun x y -> Printf.sprintf "%s ^ %s" x y)
+  let neg = define_unary_prefix_operator             50 (fun x   -> Printf.sprintf "-%s"     x  )
   
   let to_string = output_of
 end
@@ -51,6 +52,11 @@ let test_formatting =
       (sub (int 3) (sub (int 2) (int 1)), "3 - (2 - 1)");
       (pow (int 1) (pow (int 2) (int 3)), "1 ^ 2 ^ 3");
       (pow (pow (int 1) (int 2)) (int 3), "(1 ^ 2) ^ 3");
+      (neg (int 1), "-1");
+      (neg (neg (int 1)), "--1");
+      (neg (add (int 1) (int 2)), "-(1 + 2)");
+      (neg (div (int 3) (int 2)), "-(3 / 2)");
+      (neg (pow (int 3) (int 2)), "-(3 ^ 2)");
     ]
   in
   "formatting" >::: List.map ~f:test test_cases
