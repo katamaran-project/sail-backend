@@ -5,6 +5,41 @@ module AC = AnnotationContext
 module Big_int = Nat_big_num
 
 
+module PPOutput = struct
+  type t = PP.document
+
+  let parenthesize = PP.parens
+end
+
+module Prec = struct
+  include PrecedenceFormatter.Make(PPOutput)
+
+  let addition =
+    let pp x y =
+      PP.(separate space [ x; string "+"; y ])
+    in
+    define_left_associative_binary_operator 1 pp
+
+  let subtraction =
+    let pp x y =
+      PP.(separate space [ x; string "-"; y ])
+    in
+    define_left_associative_binary_operator 1 pp
+
+  let multiplication =
+    let pp x y =
+      PP.(separate space [ x; string "*"; y ])
+    in
+    define_left_associative_binary_operator 2 pp
+
+  let variable id =
+    define_atom @@ PP.string @@ Printf.sprintf "$%d" id
+
+  let constant k =
+    define_atom @@ PP.string @@ Z.to_string k
+end
+
+
 let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t) : PP.document AC.t =
   let open Ast.ExtendedType.Parameter
   in
@@ -19,24 +54,30 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
     end
 
 
-let rec pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document AC.t =
-  let pp_unary_operation operator operand =
-    let* operand' = pp_int_expression operand
-    in
-    AC.return @@ PP.(string operator ^^ parens operand')
-  and pp_binary_operation left operator right =
+let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document AC.t =
+  let rec pp_int_expression integer_expression =
+    match integer_expression with
+    | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ Prec.variable identifier
+    | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ Prec.constant k
+    | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
+    | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
+    | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
+    | Ast.ExtendedType.IntExpression.Neg operand       -> subtraction operand operand (* todo *)
+
+  and binary_operation f left right =
     let* left'  = pp_int_expression left
     and* right' = pp_int_expression right
     in
-    AC.return @@ PP.(separate space [parens left'; string operator; parens right'])
+    AC.return @@ f left' right'
+
+  and addition       l r = binary_operation Prec.addition l r
+  and subtraction    l r = binary_operation Prec.subtraction l r
+  and multiplication l r = binary_operation Prec.multiplication l r
+
+  in  
+  let* result = pp_int_expression integer_expression
   in
-  match integer_expression with
-   | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ PP.string @@ Printf.sprintf "$%d" identifier
-   | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ PP.string @@ Z.to_string k
-   | Ast.ExtendedType.IntExpression.Add (left, right) -> pp_binary_operation left "+" right
-   | Ast.ExtendedType.IntExpression.Sub (left, right) -> pp_binary_operation left "-" right
-   | Ast.ExtendedType.IntExpression.Mul (left, right) -> pp_binary_operation left "*" right
-   | Ast.ExtendedType.IntExpression.Neg operand       -> pp_unary_operation "-" operand
+  AC.return @@ Prec.output_of result
 
 
 let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
