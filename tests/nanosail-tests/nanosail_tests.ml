@@ -3,8 +3,10 @@ open OUnit2
 
 let tests =
   "all tests" >::: [
-    Conversion_tests.test_suite;
+    ConversionTests.test_suite;
     Substitution_tests.test_suite;
+    Precedence_tests.test_suite;
+    ExtendedIntegerTests.test_suite;
   ]
 
 
