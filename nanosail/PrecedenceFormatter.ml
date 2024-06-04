@@ -77,4 +77,24 @@ module Make(O : Output) = struct
   
   let define_atom (output : output) : ast =
     Ast (output, ExtendedInteger.PositiveInfinity)
+
+  let define_unary_prefix_operator
+        (precedence : int             )
+        (formatter  : output -> output) : ast -> ast
+    =
+    let open ExtendedIntegerNotations
+    in
+    let precedence = ExtendedInteger.Int precedence
+    in
+    let format (operand : ast) : ast =
+      let operand' =
+        output_of begin
+            if level_of operand << precedence
+            then parenthesize operand
+            else operand
+          end
+      in
+      Ast (formatter operand', precedence)
+    in
+    format
 end
