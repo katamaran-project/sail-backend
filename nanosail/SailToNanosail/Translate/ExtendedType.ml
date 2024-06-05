@@ -271,6 +271,10 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
   in
 
+  let extended_return_type_of_atom_bool (_type_arguments : S.typ_arg list) =
+    not_yet_implemented [%here] sail_type_location
+
+  in 
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -295,6 +299,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        in
        match unwrapped_identifier with
        | Id "atom" -> extended_return_type_of_atom type_arguments
+       | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
