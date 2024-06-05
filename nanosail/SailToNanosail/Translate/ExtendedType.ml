@@ -252,8 +252,8 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
-  in
 
+  in
   let extended_return_type_of_atom (type_arguments : S.typ_arg list) =
     match type_arguments with
     | [ type_argument ] -> begin
@@ -269,10 +269,19 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-  in
 
-  let extended_return_type_of_atom_bool (_type_arguments : S.typ_arg list) =
-    not_yet_implemented [%here] sail_type_location
+  in
+  let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                   -> not_yet_implemented [%here] type_argument_location
+        | A_bool _                  -> not_yet_implemented [%here] type_argument_location
+        | A_nexp _                  -> not_yet_implemented [%here] type_argument_location
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
 
   in 
   match unwrapped_sail_type with
