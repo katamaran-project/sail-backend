@@ -62,6 +62,26 @@ module Prec = struct
       PP.(separate space [ x; string "="; y ])
     in
     define_left_associative_binary_operator 5 pp
+
+  let less_than =
+    let pp x y =
+      PP.(separate space [ x; string "<"; y ])
+    in define_left_associative_binary_operator 5 pp
+
+  let greater_than =
+    let pp x y =
+      PP.(separate space [ x; string ">"; y ])
+    in define_left_associative_binary_operator 5 pp
+
+  let less_than_or_equal_to =
+    let pp x y =
+      PP.(separate space [ x; string "<="; y ])
+    in define_left_associative_binary_operator 5 pp
+
+  let greater_than_or_equal_to =
+    let pp x y =
+      PP.(separate space [ x; string ">="; y ])
+    in define_left_associative_binary_operator 5 pp
 end
 
 
@@ -117,28 +137,37 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
 
 let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : Prec.ast AC.t =
   let rec binary_operation f left right =
-    let* left'  = ast_bool_expression left
-    and* right' = ast_bool_expression right
+    let* left'  = ast_of_bool_expression left
+    and* right' = ast_of_bool_expression right
+    in
+    AC.return @@ f left' right'
+
+  and comparison f left right =
+    let* left'  = ast_of_int_expression left
+    and* right' = ast_of_int_expression right
     in
     AC.return @@ f left' right'
   
-  and conjunction l r = binary_operation Prec.conjunction l r
-  and disjunction l r = binary_operation Prec.disjunction l r
+  and conjunction l r  = binary_operation Prec.conjunction l r
+  and disjunction l r  = binary_operation Prec.disjunction l r
+  and equality    l r  = comparison       Prec.equality    l r
+  and less_than   l r  = comparison       Prec.less_than   l r
+  and greater_than l r = comparison       Prec.greater_than l r
+  and less_than_or_equal_to l r = comparison Prec.less_than_or_equal_to l r
+  and greater_than_or_equal_to l r = comparison Prec.greater_than_or_equal_to l r
 
-  and ast_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
+  and ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
     match bool_expression with
     | Var identifier      -> AC.return @@ Prec.variable identifier
     | And (left, right)   -> conjunction left right
     | Or  (left, right)   -> disjunction left right
-    | Equal (left, right) -> begin
-        let* left'  = ast_of_int_expression left
-        and* right' = ast_of_int_expression right
-        in
-        AC.return @@ Prec.equality left' right'
-      end
-
+    | Equal (left, right) -> equality    left right
+    | LessThan (left, right) -> less_than left right
+    | GreaterThan (left, right) -> greater_than left right
+    | LessThanOrEqualTo (left, right) -> less_than_or_equal_to left right
+    | GreaterThanOrEqualTo (left, right) -> greater_than_or_equal_to left right
   in
-  ast_bool_expression bool_expression
+  ast_of_bool_expression bool_expression
 
 
 let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
