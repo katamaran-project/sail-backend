@@ -264,8 +264,9 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        | S.Operator _ -> not_yet_implemented [%here] id_location
        | S.Id name    -> begin
            match name with
-           | "int" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
-           | _     -> not_yet_implemented ~message:name [%here] id_location
+           | "int"  -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
+           | "bool" -> Monad.return @@ N.ExtendedType.ReturnValue.Bool
+           | _      -> not_yet_implemented ~message:name [%here] id_location
          end
      end
    | Typ_app (identifier, type_arguments) -> begin

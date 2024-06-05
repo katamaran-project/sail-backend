@@ -92,12 +92,16 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
   AC.return @@ Prec.output_of result
 
 
+let pp_bool_expression () =
+  AC.return @@ PP.string "bool"
+
+
 let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
   let open Ast.ExtendedType.ReturnValue
   in
   match extended_type with
   | Int expression -> pp_int_expression expression
-
+  | Bool           -> pp_bool_expression ()
 
 let pp_extended_function_type
       (ft  : Ast.function_type         )
