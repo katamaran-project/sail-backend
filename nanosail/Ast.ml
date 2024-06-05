@@ -115,10 +115,16 @@ module ExtendedType = struct
       | Neg      of t
   end
 
+  module BoolExpression = struct
+    type t =
+      | Var of int
+      | And of t * t
+  end
+
   module ReturnValue = struct
     type t =
-      | Int of IntExpression.t
-      | Bool
+      | Int  of IntExpression.t
+      | Bool of BoolExpression.t
   end
 end
 

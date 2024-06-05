@@ -43,6 +43,12 @@ module Prec = struct
       PP.(string "-" ^^ x)
     in
     define_unary_prefix_operator 50 pp
+
+  let conjunction =
+    let pp x y =
+      PP.(separate space [ x; string "&&"; y ])
+    in
+    define_left_associative_binary_operator 40 pp
 end
 
 
@@ -92,16 +98,30 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
   AC.return @@ Prec.output_of result
 
 
-let pp_bool_expression () =
-  AC.return @@ PP.string "bool"
+let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
+  let rec conjunction left right =
+    let* left'  = pp_bool_expression left
+    and* right' = pp_bool_expression right
+    in
+    AC.return @@ Prec.conjunction left' right'
+
+  and pp_bool_expression bool_expression =
+    match bool_expression with
+    | Ast.ExtendedType.BoolExpression.Var identifier    -> AC.return @@ Prec.variable identifier
+    | Ast.ExtendedType.BoolExpression.And (left, right) -> conjunction left right
+
+  in
+  let* result = pp_bool_expression bool_expression
+  in
+  AC.return @@ Prec.output_of result
 
 
 let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
   let open Ast.ExtendedType.ReturnValue
   in
   match extended_type with
-  | Int expression -> pp_int_expression expression
-  | Bool           -> pp_bool_expression ()
+  | Int int_expression   -> pp_int_expression int_expression
+  | Bool bool_expression -> pp_bool_expression bool_expression
 
 let pp_extended_function_type
       (ft  : Ast.function_type         )

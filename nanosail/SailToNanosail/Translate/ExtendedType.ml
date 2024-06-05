@@ -241,13 +241,43 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
    | Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
    | Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
    | Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
-   | Nexp_var id              -> begin
-       let Kid_aux (Var unwrapped_id, _id_location) = id
+   | Nexp_var kid             -> begin
+       let Kid_aux (Var unwrapped_id, _id_location) = kid
        in
        let+ translated_id = binding unwrapped_id
        in
        Monad.return @@ N.ExtendedType.IntExpression.Var translated_id
      end
+
+
+let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
+  let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+  in
+  match unwrapped_numeric_constraint with
+  | NC_equal (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_true              -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_var kid           -> begin
+       let Kid_aux (Var unwrapped_id, _id_location) = kid
+       in
+       let+ translated_id = binding unwrapped_id
+       in
+       Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
+    end
+  | NC_and (left, right) -> begin
+      let+ left'  = bool_expression_of_sail_numeric_constraint left
+      and+ right' = bool_expression_of_sail_numeric_constraint right
+      in
+      Monad.return @@ N.ExtendedType.BoolExpression.And (left', right')
+    end
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
@@ -278,8 +308,12 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
         in
         match unwrapped_type_argument with
         | A_typ _                   -> not_yet_implemented [%here] type_argument_location
-        | A_bool _                  -> not_yet_implemented [%here] type_argument_location
         | A_nexp _                  -> not_yet_implemented [%here] type_argument_location
+        | A_bool numeric_constraint -> begin
+            let+ bool_expression = bool_expression_of_sail_numeric_constraint numeric_constraint
+            in
+            Monad.return @@ N.ExtendedType.ReturnValue.Bool bool_expression
+          end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
 
@@ -299,7 +333,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        | S.Id name    -> begin
            match name with
            | "int"  -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
-           | "bool" -> Monad.return @@ N.ExtendedType.ReturnValue.Bool
+           | "bool" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Bool (N.ExtendedType.BoolExpression.Var k)
            | _      -> not_yet_implemented ~message:name [%here] id_location
          end
      end
