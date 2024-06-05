@@ -264,7 +264,7 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | NC_equal (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_equal (_, _)      -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
