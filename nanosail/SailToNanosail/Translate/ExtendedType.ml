@@ -171,6 +171,41 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
              end
            | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
          end
+       | Id "atom_bool" -> begin
+           match type_arguments with
+           | [ type_argument ] -> begin
+               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+               in
+               match unwrapped_type_argument with
+                | A_typ _                     -> not_yet_implemented [%here] type_argument_location
+                | A_nexp _                    -> not_yet_implemented [%here] type_argument_location
+                | A_bool numeric_constraint   -> begin
+                    let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+                    in
+                    match unwrapped_numeric_constraint with
+                     | S.NC_equal (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_and (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_true              -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+                     | S.NC_var kid           -> begin
+                         let Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                         in
+                         let+ translated_id = fresh_binding unwrapped_kid
+                         in
+                         Monad.return @@ N.ExtendedType.Parameter.Bool translated_id
+                       end
+                  end
+             end
+           | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+         end
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
@@ -230,7 +265,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        | S.Id name    -> begin
            match name with
            | "int" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
-           | _     -> not_yet_implemented [%here] id_location
+           | _     -> not_yet_implemented ~message:name [%here] id_location
          end
      end
    | Typ_app (identifier, type_arguments) -> begin
