@@ -1,0 +1,11 @@
+(*<
+  (full-translation)
+>*)
+
+(*
+
+(*<
+  (untranslated-definitions)
+>*)
+
+*)
