@@ -285,7 +285,6 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
   | NC_or  (left, right) -> binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
 
 
-
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
 
