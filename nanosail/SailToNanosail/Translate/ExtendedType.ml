@@ -261,7 +261,6 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
   | NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
   | NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
   | NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
   | NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
   | NC_true              -> not_yet_implemented [%here] numeric_constraint_location
   | NC_false             -> not_yet_implemented [%here] numeric_constraint_location
@@ -277,6 +276,12 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
       and+ right' = bool_expression_of_sail_numeric_constraint right
       in
       Monad.return @@ N.ExtendedType.BoolExpression.And (left', right')
+    end
+  | NC_or (left, right)  -> begin
+      let+ left'  = bool_expression_of_sail_numeric_constraint left
+      and+ right' = bool_expression_of_sail_numeric_constraint right
+      in
+      Monad.return @@ N.ExtendedType.BoolExpression.Or (left', right')
     end
 
 

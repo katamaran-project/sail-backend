@@ -49,6 +49,12 @@ module Prec = struct
       PP.(separate space [ x; string "&&"; y ])
     in
     define_left_associative_binary_operator 40 pp
+
+  let disjunction =
+    let pp x y =
+      PP.(separate space [ x; string "||"; y ])
+    in
+    define_left_associative_binary_operator 30 pp
 end
 
 
@@ -99,16 +105,20 @@ let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : 
 
 
 let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
-  let rec conjunction left right =
+  let rec binary_operation f left right =
     let* left'  = pp_bool_expression left
     and* right' = pp_bool_expression right
     in
-    AC.return @@ Prec.conjunction left' right'
+    AC.return @@ f left' right'
+  
+  and conjunction l r = binary_operation Prec.conjunction l r
+  and disjunction l r = binary_operation Prec.disjunction l r
 
   and pp_bool_expression bool_expression =
     match bool_expression with
     | Ast.ExtendedType.BoolExpression.Var identifier    -> AC.return @@ Prec.variable identifier
     | Ast.ExtendedType.BoolExpression.And (left, right) -> conjunction left right
+    | Ast.ExtendedType.BoolExpression.Or  (left, right) -> disjunction left right
 
   in
   let* result = pp_bool_expression bool_expression

@@ -119,6 +119,7 @@ module ExtendedType = struct
     type t =
       | Var of int
       | And of t * t
+      | Or  of t * t
   end
 
   module ReturnValue = struct
