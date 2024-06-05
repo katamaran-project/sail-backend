@@ -11,6 +11,7 @@ module PPOutput = struct
   let parenthesize = PP.parens
 end
 
+
 module Prec = struct
   include PrecedenceFormatter.Make(PPOutput)
 
@@ -55,7 +56,43 @@ module Prec = struct
       PP.(separate space [ x; string "||"; y ])
     in
     define_left_associative_binary_operator 30 pp
+
+  let equality =
+    let pp x y =
+      PP.(separate space [ x; string "="; y ])
+    in
+    define_left_associative_binary_operator 5 pp
 end
+
+
+let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : Prec.ast AC.t =
+  let rec ast_of_int_expression integer_expression =
+    match integer_expression with
+    | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ Prec.variable identifier
+    | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ Prec.constant k
+    | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
+    | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
+    | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
+    | Ast.ExtendedType.IntExpression.Neg operand       -> negation operand
+
+  and unary_operation f operand =
+    let* operand' = ast_of_int_expression operand
+    in
+    AC.return @@ f operand'
+
+  and binary_operation f left right =
+    let* left'  = ast_of_int_expression left
+    and* right' = ast_of_int_expression right
+    in
+    AC.return @@ f left' right'
+
+  and addition       l r = binary_operation Prec.addition l r
+  and subtraction    l r = binary_operation Prec.subtraction l r
+  and multiplication l r = binary_operation Prec.multiplication l r
+  and negation       o   = unary_operation Prec.negation o
+
+  in  
+  ast_of_int_expression integer_expression
 
 
 let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t) : PP.document AC.t =
@@ -73,55 +110,39 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
 
 
 let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document AC.t =
-  let rec pp_int_expression integer_expression =
-    match integer_expression with
-    | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ Prec.variable identifier
-    | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ Prec.constant k
-    | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
-    | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
-    | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
-    | Ast.ExtendedType.IntExpression.Neg operand       -> negation operand
-
-  and unary_operation f operand =
-    let* operand' = pp_int_expression operand
-    in
-    AC.return @@ f operand'
-
-  and binary_operation f left right =
-    let* left'  = pp_int_expression left
-    and* right' = pp_int_expression right
-    in
-    AC.return @@ f left' right'
-
-  and addition       l r = binary_operation Prec.addition l r
-  and subtraction    l r = binary_operation Prec.subtraction l r
-  and multiplication l r = binary_operation Prec.multiplication l r
-  and negation       o   = unary_operation Prec.negation o
-
-  in  
-  let* result = pp_int_expression integer_expression
+  let* result = ast_of_int_expression integer_expression
   in
   AC.return @@ Prec.output_of result
 
 
-let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
+let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : Prec.ast AC.t =
   let rec binary_operation f left right =
-    let* left'  = pp_bool_expression left
-    and* right' = pp_bool_expression right
+    let* left'  = ast_bool_expression left
+    and* right' = ast_bool_expression right
     in
     AC.return @@ f left' right'
   
   and conjunction l r = binary_operation Prec.conjunction l r
   and disjunction l r = binary_operation Prec.disjunction l r
 
-  and pp_bool_expression bool_expression =
+  and ast_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
     match bool_expression with
-    | Ast.ExtendedType.BoolExpression.Var identifier    -> AC.return @@ Prec.variable identifier
-    | Ast.ExtendedType.BoolExpression.And (left, right) -> conjunction left right
-    | Ast.ExtendedType.BoolExpression.Or  (left, right) -> disjunction left right
+    | Var identifier      -> AC.return @@ Prec.variable identifier
+    | And (left, right)   -> conjunction left right
+    | Or  (left, right)   -> disjunction left right
+    | Equal (left, right) -> begin
+        let* left'  = ast_of_int_expression left
+        and* right' = ast_of_int_expression right
+        in
+        AC.return @@ Prec.equality left' right'
+      end
 
   in
-  let* result = pp_bool_expression bool_expression
+  ast_bool_expression bool_expression
+
+
+let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
+  let* result = ast_of_bool_expression bool_expression
   in
   AC.return @@ Prec.output_of result
 

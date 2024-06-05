@@ -127,11 +127,13 @@ module ExtendedType = struct
       | Var of int
       | And of t * t
       | Or  of t * t
+      | Equal of IntExpression.t * IntExpression.t
   end = struct
     type t =
-      | Var of int
-      | And of t * t
-      | Or  of t * t
+      | Var   of int
+      | And   of t * t
+      | Or    of t * t
+      | Equal of IntExpression.t * IntExpression.t
   end
 
   module ReturnValue = struct

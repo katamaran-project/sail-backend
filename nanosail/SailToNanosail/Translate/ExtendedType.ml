@@ -249,8 +249,7 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
        Monad.return @@ N.ExtendedType.IntExpression.Var translated_id
      end
 
-
-let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
+and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
   let bool_expression_of_binary_operation
         (factory : N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t)
         (left    : S.n_constraint                                                                                       )
@@ -264,7 +263,6 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | NC_equal (_, _)      -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
@@ -283,6 +281,12 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
     end
   | NC_and (left, right) -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.And (a, b)) left right
   | NC_or  (left, right) -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
+  | NC_equal (lhs, rhs)  -> begin
+      let+ lhs' = int_expression_of_sail_numeric_expression lhs
+      and+ rhs' = int_expression_of_sail_numeric_expression rhs
+      in
+      Monad.return @@ N.ExtendedType.BoolExpression.Equal (lhs', rhs')
+    end
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
