@@ -260,6 +260,16 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     in
     Monad.return @@ factory left' right'
   in
+  let bool_expression_of_comparison
+        (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.BoolExpression.t)
+        (left    : S.nexp                                                                                             )
+        (right   : S.nexp                                                                                             ) : N.ExtendedType.BoolExpression.t Monad.t
+    =
+      let+ left'  = int_expression_of_sail_numeric_expression left
+      and+ right' = int_expression_of_sail_numeric_expression right
+      in
+      Monad.return @@ factory left' right'
+  in    
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
@@ -279,14 +289,9 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
        in
        Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
     end
-  | NC_and (left, right) -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.And (a, b)) left right
-  | NC_or  (left, right) -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
-  | NC_equal (lhs, rhs)  -> begin
-      let+ lhs' = int_expression_of_sail_numeric_expression lhs
-      and+ rhs' = int_expression_of_sail_numeric_expression rhs
-      in
-      Monad.return @@ N.ExtendedType.BoolExpression.Equal (lhs', rhs')
-    end
+  | NC_and (left, right)   -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.And (a, b)) left right
+  | NC_or  (left, right)   -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
+  | NC_equal (left, right) -> bool_expression_of_comparison (fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)) left right
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
