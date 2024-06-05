@@ -15,23 +15,9 @@ end
 module Prec = struct
   include PrecedenceFormatter.Make(PPOutput)
 
-  let addition =
-    let pp x y =
-      PP.(separate space [ x; string "+"; y ])
-    in
-    define_left_associative_binary_operator 10 pp
-
-  let subtraction =
-    let pp x y =
-      PP.(separate space [ x; string "-"; y ])
-    in
-    define_left_associative_binary_operator 10 pp
-
-  let multiplication =
-    let pp x y =
-      PP.(separate space [ x; string "*"; y ])
-    in
-    define_left_associative_binary_operator 20 pp
+  let pp_binary operator x y =
+    PP.(separate space [ x; string operator; y ])
+  
 
   let variable id =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
@@ -45,11 +31,13 @@ module Prec = struct
     in
     define_unary_prefix_operator 50 pp
 
-  let pp_binary operator x y =
-    PP.(separate space [ x; string operator; y ])
-  
+  let addition                 = define_left_associative_binary_operator 10 @@ pp_binary "+"
+  let subtraction              = define_left_associative_binary_operator 10 @@ pp_binary "-"
+  let multiplication           = define_left_associative_binary_operator 20 @@ pp_binary "*"
+
   let conjunction              = define_left_associative_binary_operator 40 @@ pp_binary "&&"
   let disjunction              = define_left_associative_binary_operator 30 @@ pp_binary "||"
+
   let equality                 = define_left_associative_binary_operator 5  @@ pp_binary "="
   let less_than                = define_left_associative_binary_operator 5  @@ pp_binary "<"
   let greater_than             = define_left_associative_binary_operator 5  @@ pp_binary ">"
