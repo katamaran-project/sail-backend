@@ -250,6 +250,24 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
+
+  let extended_return_type_of_atom (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                   -> not_yet_implemented [%here] type_argument_location
+        | A_bool _                  -> not_yet_implemented [%here] type_argument_location
+        | A_nexp numeric_expression -> begin
+            let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
+            in
+            Monad.return @@ N.ExtendedType.ReturnValue.Int int_expression
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+  in
+  
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -273,22 +291,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
-       | Id "atom" -> begin
-           match type_arguments with
-           | [ type_argument ] -> begin
-               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
-               in
-               match unwrapped_type_argument with
-                | A_typ _                   -> not_yet_implemented [%here] type_argument_location
-                | A_bool _                  -> not_yet_implemented [%here] type_argument_location
-                | A_nexp numeric_expression -> begin
-                    let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
-                    in
-                    Monad.return @@ N.ExtendedType.ReturnValue.Int int_expression
-                  end
-             end
-           | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-         end
+       | Id "atom" -> extended_return_type_of_atom type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
