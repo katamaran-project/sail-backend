@@ -19,7 +19,7 @@ open Monads.Notations.Star(TC)
 
 module State = struct
   type mapping = int StringMap.t
-  
+
   type t =
     {
       next_id : int;
@@ -267,7 +267,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
   in
-  
+
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
