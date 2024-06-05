@@ -128,6 +128,38 @@ let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.As
 let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Parameter.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
+  let extended_parameter_type_of_atom (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                     -> not_yet_implemented [%here] type_argument_location
+        | A_bool _                    -> not_yet_implemented [%here] type_argument_location
+        | A_nexp numerical_expression -> begin
+            let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
+            in
+            match unwrapped_numerical_expression with
+            | Nexp_id _         -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_constant _   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_app (_, _)   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_times (_, _) -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_sum (_, _)   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_var kid      -> begin
+                let Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                in
+                let+ translated_id = fresh_binding unwrapped_kid
+                in
+                Monad.return @@ N.ExtendedType.Parameter.Int translated_id
+              end
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    
+  in  
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -140,37 +172,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
-       | Id "atom" -> begin
-           match type_arguments with
-           | [ type_argument ] -> begin
-               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
-               in
-               match unwrapped_type_argument with
-                | A_typ _                     -> not_yet_implemented [%here] type_argument_location
-                | A_bool _                    -> not_yet_implemented [%here] type_argument_location
-                | A_nexp numerical_expression -> begin
-                    let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
-                    in
-                    match unwrapped_numerical_expression with
-                     | Nexp_id _         -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_constant _   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_app (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_times (_, _) -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_sum (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_var kid      -> begin
-                         let Kid_aux (Var unwrapped_kid, _kid_location) = kid
-                         in
-                         let+ translated_id = fresh_binding unwrapped_kid
-                         in
-                         Monad.return @@ N.ExtendedType.Parameter.Int translated_id
-                       end
-                  end
-             end
-           | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-         end
+       | Id "atom" -> extended_parameter_type_of_atom type_arguments
        | Id "atom_bool" -> begin
            match type_arguments with
            | [ type_argument ] -> begin
