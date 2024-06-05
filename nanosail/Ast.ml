@@ -105,7 +105,8 @@ module ExtendedType = struct
       | Other s  -> s
   end
 
-  module IntExpression = struct
+  (* OCaml requires this duplication for recursive modules *)
+  module rec IntExpression : sig
     type t =
       | Var      of int
       | Constant of Z.t
@@ -113,9 +114,20 @@ module ExtendedType = struct
       | Sub      of t * t
       | Mul      of t * t
       | Neg      of t
-  end
-
-  module BoolExpression = struct
+  end = struct
+    type t =
+      | Var      of int
+      | Constant of Z.t
+      | Add      of t * t
+      | Sub      of t * t
+      | Mul      of t * t
+      | Neg      of t
+  end and BoolExpression : sig
+    type t =
+      | Var of int
+      | And of t * t
+      | Or  of t * t
+  end = struct
     type t =
       | Var of int
       | And of t * t
