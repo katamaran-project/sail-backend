@@ -129,9 +129,9 @@ module ExtendedType = struct
       | Or                   of t * t
       | Equal                of IntExpression.t * IntExpression.t
       | LessThan             of IntExpression.t * IntExpression.t
-      | LessThanOrEqualTo    of IntExpression.t * IntExpression.t    
-      | GreaterThan          of IntExpression.t * IntExpression.t    
-      | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t    
+      | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
+      | GreaterThan          of IntExpression.t * IntExpression.t
+      | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
   end = struct
     type t =
       | Var                  of int
@@ -139,9 +139,9 @@ module ExtendedType = struct
       | Or                   of t * t
       | Equal                of IntExpression.t * IntExpression.t
       | LessThan             of IntExpression.t * IntExpression.t
-      | LessThanOrEqualTo    of IntExpression.t * IntExpression.t    
-      | GreaterThan          of IntExpression.t * IntExpression.t    
-      | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t    
+      | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
+      | GreaterThan          of IntExpression.t * IntExpression.t
+      | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
   end
 
   module ReturnValue = struct
