@@ -45,43 +45,16 @@ module Prec = struct
     in
     define_unary_prefix_operator 50 pp
 
-  let conjunction =
-    let pp x y =
-      PP.(separate space [ x; string "&&"; y ])
-    in
-    define_left_associative_binary_operator 40 pp
-
-  let disjunction =
-    let pp x y =
-      PP.(separate space [ x; string "||"; y ])
-    in
-    define_left_associative_binary_operator 30 pp
-
-  let equality =
-    let pp x y =
-      PP.(separate space [ x; string "="; y ])
-    in
-    define_left_associative_binary_operator 5 pp
-
-  let less_than =
-    let pp x y =
-      PP.(separate space [ x; string "<"; y ])
-    in define_left_associative_binary_operator 5 pp
-
-  let greater_than =
-    let pp x y =
-      PP.(separate space [ x; string ">"; y ])
-    in define_left_associative_binary_operator 5 pp
-
-  let less_than_or_equal_to =
-    let pp x y =
-      PP.(separate space [ x; string "<="; y ])
-    in define_left_associative_binary_operator 5 pp
-
-  let greater_than_or_equal_to =
-    let pp x y =
-      PP.(separate space [ x; string ">="; y ])
-    in define_left_associative_binary_operator 5 pp
+  let pp_binary operator x y =
+    PP.(separate space [ x; string operator; y ])
+  
+  let conjunction              = define_left_associative_binary_operator 40 @@ pp_binary "&&"
+  let disjunction              = define_left_associative_binary_operator 30 @@ pp_binary "||"
+  let equality                 = define_left_associative_binary_operator 5  @@ pp_binary "="
+  let less_than                = define_left_associative_binary_operator 5  @@ pp_binary "<"
+  let greater_than             = define_left_associative_binary_operator 5  @@ pp_binary ">"
+  let less_than_or_equal_to    = define_left_associative_binary_operator 5  @@ pp_binary "<="
+  let greater_than_or_equal_to = define_left_associative_binary_operator 5  @@ pp_binary ">="
 end
 
 
