@@ -26,11 +26,7 @@
                   "sail_ones"
                   "concat_str_bits"
                   "concat_str_dec"
-                  "regval_of_bit"
-                  "MyEnum_of_num"
-                  "num_of_MyEnum"
-                  "MyOtherEnum_of_num"
-                  "num_of_MyOtherEnum")
+                  "regval_of_bit")
 
 (ignore-definition-predicate (lambda (identifier)
                                (contains? '(
