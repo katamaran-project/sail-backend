@@ -251,6 +251,16 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
 
 
 let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
+  let binary_operation
+        (factory : N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t)
+        (left    : S.n_constraint                                                                                       )
+        (right   : S.n_constraint                                                                                       ) : N.ExtendedType.BoolExpression.t Monad.t
+    =
+    let+ left'  = bool_expression_of_sail_numeric_constraint left
+    and+ right' = bool_expression_of_sail_numeric_constraint right
+    in
+    Monad.return @@ factory left' right'
+  in
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
@@ -271,18 +281,9 @@ let rec bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_con
        in
        Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
     end
-  | NC_and (left, right) -> begin
-      let+ left'  = bool_expression_of_sail_numeric_constraint left
-      and+ right' = bool_expression_of_sail_numeric_constraint right
-      in
-      Monad.return @@ N.ExtendedType.BoolExpression.And (left', right')
-    end
-  | NC_or (left, right)  -> begin
-      let+ left'  = bool_expression_of_sail_numeric_constraint left
-      and+ right' = bool_expression_of_sail_numeric_constraint right
-      in
-      Monad.return @@ N.ExtendedType.BoolExpression.Or (left', right')
-    end
+  | NC_and (left, right) -> binary_operation (fun a b -> N.ExtendedType.BoolExpression.And (a, b)) left right
+  | NC_or  (left, right) -> binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
+
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
