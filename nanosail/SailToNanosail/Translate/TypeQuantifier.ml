@@ -26,9 +26,9 @@ let translate_kind (kind : S.kind) : N.kind TC.t =
 
 
 let translate_kind_id (kid : S.kid) : N.identifier TC.t =
-  let S.Kid_aux (Var kind_id, _id_loc) = kid
+  let S.Kid_aux (Var unwappred_kid, _id_loc) = kid
   in
-  TC.return @@ Id.mk kind_id
+  TC.return @@ Id.mk unwappred_kid
 
 
 let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
