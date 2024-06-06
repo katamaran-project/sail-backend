@@ -727,11 +727,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
           (_typ                : S.typ            ) =
     let* id' = translate_identifier [%here] receiver_identifier
     in
-    match arguments with
-    | [car; cdr] when String.equal (Id.string_of id') "sail_cons" -> begin
-        let* car', car_named_statements = expression_of_aval location car
-        and* cdr', cdr_named_statements = expression_of_aval location cdr
-        in
+    let* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
+    in
+    match translated_arguments with
+    | [(car', car_named_statements); (cdr', cdr_named_statements)] when String.equal (Id.string_of id') "sail_cons" -> begin
         let named_statements = flatten_named_statements [ car_named_statements; cdr_named_statements ]
         in
         TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp (Exp_binop (Cons, car', cdr'))
