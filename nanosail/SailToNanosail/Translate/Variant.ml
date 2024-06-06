@@ -13,10 +13,6 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
-open Nanotype
-open TypeQuantifier
-open Enum
 
 
 let translate_variant
@@ -27,12 +23,12 @@ let translate_variant
       (constructors           : S.type_union list           )
       (_flag                  : bool                        ) : N.type_definition TC.t
   =
-  let* identifier' = translate_identifier [%here] identifier
-  and* type_quantifier' = translate_type_quantifier type_quantifier
+  let* identifier' = Identifier.translate_identifier [%here] identifier
+  and* type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
   and* constructors' =
     let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
-      let* identifier' = translate_identifier [%here] identifier
-      and* typ' = nanotype_of_sail_type typ
+      let* identifier' = Identifier.translate_identifier [%here] identifier
+      and* typ' = Nanotype.nanotype_of_sail_type typ
       in
       let field_nanotypes = match typ' with
         | N.Ty_tuple ts -> ts
