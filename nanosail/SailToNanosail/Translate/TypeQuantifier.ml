@@ -31,14 +31,17 @@ let translate_kind_id (kid : S.kid) : N.identifier TC.t =
   TC.return @@ Id.mk unwappred_kid
 
 
-let translate_type_quantifier_item (S.QI_aux (quantifier_item, location)) =
-  match quantifier_item with
-  | S.QI_id (KOpt_aux (KOpt_kind (kind, kind_id), _loc)) ->
-    let* kind'    = translate_kind kind
-    and* kind_id' = translate_kind_id kind_id
-    in
-    TC.return @@ (kind_id', kind')
-  | S.QI_constraint _ -> TC.not_yet_implemented [%here] location
+let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(N.identifier * N.kind) TC.t =
+  let S.QI_aux (unwrapped_quantifier_item, location) = quantifier_item
+  in
+  match unwrapped_quantifier_item with
+  | S.QI_constraint _                                    -> TC.not_yet_implemented [%here] location
+  | S.QI_id (KOpt_aux (KOpt_kind (kind, kind_id), _loc)) -> begin
+      let* kind'    = translate_kind kind
+      and* kind_id' = translate_kind_id kind_id
+      in
+      TC.return @@ (kind_id', kind')
+    end
 
 
 let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
