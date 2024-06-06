@@ -69,8 +69,8 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
     TC.return @@ factory left' right'
 
   in
-  let translate_equal = translate_comparison @@ fun l r -> N.NC_equal (l, r)
-  and translate_not_equal = translate_comparison @@ fun l r -> N.NC_not_equal (l, r)
+  let translate_equal      = translate_comparison @@ fun l r -> N.NC_equal (l, r)
+  and translate_not_equal  = translate_comparison @@ fun l r -> N.NC_not_equal (l, r)
   and translate_bounded_ge = translate_comparison @@ fun l r -> N.NC_bounded_ge (l, r)
   and translate_bounded_gt = translate_comparison @@ fun l r -> N.NC_bounded_gt (l, r)
   and translate_bounded_le = translate_comparison @@ fun l r -> N.NC_bounded_le (l, r)
@@ -80,12 +80,12 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | S.NC_equal (x, y) -> translate_equal x y
+  | S.NC_equal (x, y)      -> translate_equal      x y
+  | S.NC_not_equal (x, y)  -> translate_not_equal  x y
   | S.NC_bounded_ge (x, y) -> translate_bounded_ge x y
   | S.NC_bounded_gt (x, y) -> translate_bounded_gt x y
   | S.NC_bounded_le (x, y) -> translate_bounded_le x y
   | S.NC_bounded_lt (x, y) -> translate_bounded_lt x y
-  | S.NC_not_equal (x, y) -> translate_not_equal x y
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
   | S.NC_or (x, y) -> begin
       let* x' = translate_numeric_constraint x
