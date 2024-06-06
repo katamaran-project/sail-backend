@@ -20,9 +20,9 @@ open Identifier
 
 
 let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N.numeric_expression TC.t =
-  let S.Nexp_aux (numeric_expression, numexp_location) = numeric_expression
+  let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) = numeric_expression
   in
-  match numeric_expression with
+  match unwrapped_numeric_expression with
   | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
   | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var (Id.mk string)
   | Nexp_times (x, y) -> begin
