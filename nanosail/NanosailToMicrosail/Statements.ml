@@ -94,6 +94,12 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
+  and pp_sequence_statement (left : statement) (right : statement) : PPrint.document AC.t =
+      let* left'  = pp_par_statement left
+      and* right' = pp_par_statement right
+      in
+      AC.return @@ PP.(simple_app [ string "stm_seq"; left'; right' ])
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
@@ -113,13 +119,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
         )
     end
 
-  | Stm_seq (s1, s2) -> begin
-      let* s1' = pp_par_statement s1
-      and* s2' = pp_par_statement s2
-      in
-      AC.return @@ PP.(simple_app [ string "stm_seq"; s1'; s2' ])
-    end
-
+  | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
   | Stm_read_register register_identifier -> begin
       AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
     end
