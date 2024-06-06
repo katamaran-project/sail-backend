@@ -77,9 +77,9 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   and translate_bounded_lt = translate_comparison @@ fun l r -> N.NC_bounded_lt (l, r)
 
   in
-  let S.NC_aux (numeric_constraint, location) = numeric_constraint
+  let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
-  match numeric_constraint with
+  match unwrapped_numeric_constraint with
   | S.NC_equal (x, y) -> translate_equal x y
   | S.NC_bounded_ge (x, y) -> translate_bounded_ge x y
   | S.NC_bounded_gt (x, y) -> translate_bounded_gt x y
@@ -102,4 +102,4 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var (Id.mk kind_id)
   | S.NC_true                                  -> TC.return @@ N.NC_true
   | S.NC_false                                 -> TC.return @@ N.NC_false
-  | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] location
+  | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] numeric_constraint_location
