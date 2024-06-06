@@ -94,6 +94,19 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
+  and pp_let_statement (variable_identifier : identifier) (s1 : statement) (s2 : statement) : PPrint.document AC.t =
+    let* s1' = pp_statement s1
+    and* s2' = pp_statement s2
+    in
+    AC.return @@ PP.(
+        simple_app [
+          separate space [string "let:"; dquotes @@ pp_identifier variable_identifier; string ":="];
+          s1';
+          string "in";
+          s2'
+        ]
+      )
+
   and pp_sequence_statement (left : statement) (right : statement) : PPrint.document AC.t =
       let* left'  = pp_par_statement left
       and* right' = pp_par_statement right
@@ -105,20 +118,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_exp e -> pp_expression_statement e
   | Stm_match match_pattern -> pp_match_statement match_pattern
   | Stm_call (function_identifier, arguments) -> pp_call_statement function_identifier arguments
-  | Stm_let (variable_identifier, s1, s2) -> begin
-      let* s1' = pp_statement s1
-      and* s2' = pp_statement s2
-      in
-      AC.return @@ PP.(
-          simple_app [
-            separate space [string "let:"; dquotes @@ pp_identifier variable_identifier; string ":="];
-            s1';
-            string "in";
-            s2'
-          ]
-        )
-    end
-
+  | Stm_let (variable_identifier, s1, s2) -> pp_let_statement variable_identifier s1 s2
   | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
   | Stm_read_register register_identifier -> begin
       AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
