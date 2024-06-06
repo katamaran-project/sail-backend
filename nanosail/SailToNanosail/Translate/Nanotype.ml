@@ -21,7 +21,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   (*
     Types are representing as strings in Sail.
   *)
-  let rec type_of_identifier (identifier : S.id) : N.nanotype TC.t =
+  let rec nanotype_of_identifier (identifier : S.id) : N.nanotype TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
     match Id.string_of identifier' with
@@ -50,7 +50,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     | "atom", [ _ ]             -> TC.return N.Ty_int
     | "atom_bool", [ _ ]        -> TC.return N.Ty_bool
     | _, _                      -> begin
-        let* constructor = type_of_identifier identifier
+        let* constructor = nanotype_of_identifier identifier
         in
         TC.return @@ N.Ty_app (constructor, type_arguments')
       end
@@ -100,7 +100,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   in
   match typ with
   | Typ_tuple items                 -> translate_tuple items
-  | Typ_id id                       -> type_of_identifier id
+  | Typ_id id                       -> nanotype_of_identifier id
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
   | Typ_exist (ids, nc, typ)        -> translate_existential ids nc typ
   | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
