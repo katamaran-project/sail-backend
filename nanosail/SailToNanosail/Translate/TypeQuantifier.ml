@@ -13,7 +13,6 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Function
 
 
 let translate_kind (kind : S.kind) : N.kind TC.t =
