@@ -20,11 +20,11 @@ open TypeQuantifier
 
 
 let translate_type_abbreviation
-      (_definition_annotation : Libsail.Ast.def_annot       )
+      (_definition_annotation : S.def_annot                 )
       (_type_annotation       : Sail.type_annotation S.annot)
       (identifier             : S.id                        )
       (quantifier             : S.typquant                  )
-      (type_argument          : Libsail.Ast.typ_arg         ) : N.type_definition TC.t
+      (type_argument          : S.typ_arg                   ) : N.type_definition TC.t
   =
   let S.A_aux (arg, _arg_location) = type_argument
   in
