@@ -98,9 +98,9 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   | S.NC_bounded_gt (x, y)                     -> translate_bounded_gt x y
   | S.NC_bounded_le (x, y)                     -> translate_bounded_le x y
   | S.NC_bounded_lt (x, y)                     -> translate_bounded_lt x y
-  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
   | S.NC_or (x, y)                             -> translate_or x y
   | S.NC_and (x, y)                            -> translate_and x y
+  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var (Id.mk kind_id)
   | S.NC_true                                  -> TC.return @@ N.NC_true
   | S.NC_false                                 -> TC.return @@ N.NC_false
