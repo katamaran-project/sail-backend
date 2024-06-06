@@ -134,7 +134,6 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
   | Stm_read_register register_identifier -> pp_read_register_statement register_identifier
   | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
-
   | Stm_destructure_record { record_type_identifier;
                              field_identifiers;
                              variable_identifiers;
