@@ -126,7 +126,10 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   and pp_read_register_statement (register_identifier : identifier) : PPrint.document AC.t =
     AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
 
-  and pp_write_register_statement (register_identifier : identifier) (rhs : statement) : PPrint.document AC.t =
+  and pp_write_register_statement
+      (register_identifier : identifier)
+      (rhs                 : statement ) : PPrint.document AC.t
+    =
     let* rhs' = pp_statement rhs
     in
     AC.return @@ PP.simple_app [
