@@ -42,7 +42,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list)
     =
-    let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
+    let* type_arguments' = TC.map ~f:nanotype_of_type_argument type_arguments
     and* identifier'     = translate_identifier [%here] identifier
     in
     match (Id.string_of identifier'), type_arguments' with
@@ -55,7 +55,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
         TC.return @@ N.Ty_app (constructor, type_arguments')
       end
 
-  and translate_type_argument (type_argument : Libsail.Ast.typ_arg) : N.type_argument TC.t =
+  and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : N.type_argument TC.t =
     let S.A_aux (unwrapped_type_argument, _location) = type_argument
     in
     match unwrapped_type_argument with
