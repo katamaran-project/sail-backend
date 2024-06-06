@@ -122,13 +122,13 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
   and ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
     match bool_expression with
     | Var identifier                     -> AC.return @@ Prec.variable identifier
-    | And (left, right)                  -> conjunction left right
-    | Or  (left, right)                  -> disjunction left right
-    | Equal (left, right)                -> equality    left right
-    | NotEqual (left, right)             -> inequality  left right
-    | LessThan (left, right)             -> less_than left right
-    | GreaterThan (left, right)          -> greater_than left right
-    | LessThanOrEqualTo (left, right)    -> less_than_or_equal_to left right
+    | And (left, right)                  -> conjunction              left right
+    | Or  (left, right)                  -> disjunction              left right
+    | Equal (left, right)                -> equality                 left right
+    | NotEqual (left, right)             -> inequality               left right
+    | LessThan (left, right)             -> less_than                left right
+    | GreaterThan (left, right)          -> greater_than             left right
+    | LessThanOrEqualTo (left, right)    -> less_than_or_equal_to    left right
     | GreaterThanOrEqualTo (left, right) -> greater_than_or_equal_to left right
   in
   ast_of_bool_expression bool_expression
