@@ -32,7 +32,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
             when_cons';
           ])
       end
-      
+
     | MP_product { matched; id_fst; id_snd; body } -> begin
         let* matched' = pp_par_statement matched
         and* body'    = pp_par_statement body
@@ -45,7 +45,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
             body';
           ])
       end
-      
+
     | MP_bool { condition; when_true; when_false } -> begin
         let* condition'  = pp_par_statement condition
         and* when_true'  = pp_par_statement when_true
@@ -58,7 +58,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
             when_false'
           ])
       end
-      
+
     | MP_enum { matched; cases } -> begin
         let translate_case ~(key:identifier) ~(data:statement) (acc : PP.document list AC.t) =
           let* acc
@@ -81,7 +81,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
           addall cases'
         end
       end
-      
+
     | MP_variant { matched; cases } -> begin
         let _ = matched
         and _ = cases
@@ -171,7 +171,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
 
   and pp_fail_statement (message : string) : PPrint.document AC.t =
     AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
-      
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
