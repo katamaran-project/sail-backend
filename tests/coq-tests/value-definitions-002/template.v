@@ -8,3 +8,11 @@ Proof. trivial. Qed.
 
 Theorem imm_ex_size_correct : imm_ext_size = 20.
 Proof. trivial. Qed.
+
+(*
+
+(*<
+  (untranslated-definitions)
+>*)
+
+*)
