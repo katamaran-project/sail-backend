@@ -1,0 +1,2 @@
+Definition fun_increment : Stm [ "x" ∷ ty.int ] ty.int :=
+  stm_exp (exp_var "x" + exp_int 1).
