@@ -99,18 +99,18 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
 
   and pp_let_statement
       (variable_identifier : identifier)
-      (s1                  : statement )
-      (s2                  : statement ) : PPrint.document AC.t
+      (binding_statement   : statement )
+      (body_statement      : statement ) : PPrint.document AC.t
     =
-    let* s1' = pp_statement s1
-    and* s2' = pp_statement s2
+    let* binding_statement' = pp_statement binding_statement
+    and* body_statement'    = pp_statement body_statement
     in
     AC.return @@ PP.(
         simple_app [
           separate space [string "let:"; dquotes @@ pp_identifier variable_identifier; string ":="];
-          s1';
+          binding_statement';
           string "in";
-          s2'
+          body_statement'
         ]
       )
 
