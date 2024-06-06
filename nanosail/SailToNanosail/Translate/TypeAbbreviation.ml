@@ -22,7 +22,7 @@ let translate_type_abbreviation
       (quantifier             : S.typquant                  )
       (type_argument          : S.typ_arg                   ) : N.type_definition TC.t
   =
-  let S.A_aux (unwrapped_type_argument, _arg_location) = type_argument
+  let S.A_aux (unwrapped_type_argument, _type_argument_location) = type_argument
   in
   let* quantifier' = TypeQuantifier.translate_type_quantifier quantifier
   and* identifier' = Identifier.translate_identifier [%here] identifier
