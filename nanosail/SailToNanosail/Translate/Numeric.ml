@@ -20,29 +20,30 @@ open Identifier
 
 
 let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N.numeric_expression TC.t =
+  let translate_binary_operation
+      (factory : N.numeric_expression -> N.numeric_expression -> N.numeric_expression)
+      (left    : S.nexp                                                              )
+      (right   : S.nexp                                                              ) : N.numeric_expression TC.t
+    =
+    let* left'  = translate_numeric_expression left
+    and* right' = translate_numeric_expression right
+    in
+    TC.return @@ factory left' right'
+  in
+
+  let translate_sum   = translate_binary_operation @@ fun l r -> N.NE_add   (l, r)
+  and translate_minus = translate_binary_operation @@ fun l r -> N.NE_minus (l, r)
+  and translate_times = translate_binary_operation @@ fun l r -> N.NE_times (l, r)
+
+  in
   let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) = numeric_expression
   in
   match unwrapped_numeric_expression with
   | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
   | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var (Id.mk string)
-  | Nexp_times (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_times (x', y')
-    end
-  | Nexp_sum (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_add (x', y')
-    end
-  | Nexp_minus (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NE_minus (x', y')
-    end
+  | Nexp_times (x, y)                          -> translate_times x y
+  | Nexp_sum (x, y)                            -> translate_sum x y
+  | Nexp_minus (x, y)                          -> translate_minus x y
   | Nexp_neg x  -> begin
       let* x' = translate_numeric_expression x
       in
