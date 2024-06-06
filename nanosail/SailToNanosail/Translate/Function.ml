@@ -738,7 +738,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | "sail_cons" -> begin
         match argument_expressions with
         | [car; cdr] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (Cons, car, cdr))
-        | _          -> TC.fail [%here] "expected exactly two arguments for sail_cons"
+        | _          -> TC.fail [%here] "sail_cons unexpectedly didn't have 2 arguments"
+      end
+    | "add_atom" -> begin
+        match argument_expressions with
+        | [left; right] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (Plus, left, right))
+        | _             -> TC.fail [%here] "add_atom unexpectedly didn't have 2 arguments"
       end
     | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
 
