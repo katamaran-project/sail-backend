@@ -38,7 +38,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
      Sail represents types with parameters with Typ_app (id, type_args).
      This function translates these to their corresponding nanotype.
   *)
-  and translate_type_constructor
+  and nanotype_of_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list)
     =
@@ -101,7 +101,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   match typ with
   | Typ_tuple items                 -> translate_tuple items
   | Typ_id id                       -> nanotype_of_identifier id
-  | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
+  | Typ_app (identifier, type_args) -> nanotype_of_type_constructor identifier type_args
   | Typ_exist (ids, nc, typ)        -> translate_existential ids nc typ
   | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
   | Typ_var _                       -> TC.not_yet_implemented [%here] location
