@@ -276,6 +276,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
   and bool_expression_of_not_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.NotEqual (a, b)
   and bool_expression_of_bounded_lt = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.LessThan (a, b)
+  and bool_expression_of_bounded_le = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
   and bool_expression_of_bounded_ge = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
 
   in  
@@ -283,9 +284,9 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   in
   match unwrapped_numeric_constraint with
   | NC_bounded_lt (left, right) -> bool_expression_of_bounded_lt left right
+  | NC_bounded_le (left, right) -> bool_expression_of_bounded_le left right
   | NC_bounded_ge (left, right) -> bool_expression_of_bounded_ge left right
   | NC_bounded_gt (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_bounded_le (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
   | NC_set (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
   | NC_app (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
   | NC_true                     -> not_yet_implemented [%here] numeric_constraint_location
