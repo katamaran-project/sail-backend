@@ -92,14 +92,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     end;
     nanotype_of_sail_type typ
 
-  and translate_tuple (items : Libsail.Ast.typ list) =
+  and nanotype_of_tuple (items : Libsail.Ast.typ list) =
     let* items' = TC.map ~f:nanotype_of_sail_type items
     in
     TC.return @@ N.Ty_tuple items'
 
   in
   match typ with
-  | Typ_tuple items                 -> translate_tuple items
+  | Typ_tuple items                 -> nanotype_of_tuple items
   | Typ_id id                       -> nanotype_of_identifier id
   | Typ_app (identifier, type_args) -> nanotype_of_type_constructor identifier type_args
   | Typ_exist (ids, nc, typ)        -> nanotype_of_existential ids nc typ
