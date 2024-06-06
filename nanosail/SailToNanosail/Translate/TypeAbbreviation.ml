@@ -24,8 +24,10 @@ let translate_type_abbreviation
       (_type_annotation : Sail.type_annotation S.annot)
       (identifier : S.id)
       (quantifier : S.typquant)
-      (S.A_aux (arg, _arg_location)) : N.type_definition TC.t
+      (type_argument : Libsail.Ast.typ_arg) : N.type_definition TC.t
   =
+  let S.A_aux (arg, _arg_location) = type_argument
+  in
   let* quantifier' = translate_type_quantifier quantifier
   and* identifier' = translate_identifier [%here] identifier
   in
