@@ -165,6 +165,10 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       body'
     ]
 
+  and pp_cast_statement (statement_to_be_cast : statement) (_target_type : nanotype) : PPrint.document AC.t =
+      Stdio.printf "Warning: ignored cast\n";
+      pp_statement statement_to_be_cast
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
@@ -175,11 +179,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_read_register register_identifier -> pp_read_register_statement register_identifier
   | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
   | Stm_destructure_record destructure_record -> pp_destructure_record_statement destructure_record
-
-  | Stm_cast (statement_to_be_cast, _target_type) -> begin
-      Stdio.printf "Warning: ignored cast\n";
-      pp_statement statement_to_be_cast
-    end
+  | Stm_cast (statement_to_be_cast, target_type) -> pp_cast_statement statement_to_be_cast target_type
 
   | Stm_fail message -> begin
       AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
