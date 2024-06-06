@@ -734,17 +734,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     in
     let wrap = wrap_in_named_statements_context named_statements
     in
+    let binary_operation (operator : N.binary_operator) : N.statement TC.t
+      =
+        match argument_expressions with
+        | [x; y] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (operator, x, y))
+        | _      -> TC.fail [%here] "binary operation should have 2 arguments"
+    in
+      
     match Id.string_of receiver_identifier' with
-    | "sail_cons" -> begin
-        match argument_expressions with
-        | [car; cdr] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (Cons, car, cdr))
-        | _          -> TC.fail [%here] "sail_cons unexpectedly didn't have 2 arguments"
-      end
-    | "add_atom" -> begin
-        match argument_expressions with
-        | [left; right] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (Plus, left, right))
-        | _             -> TC.fail [%here] "add_atom unexpectedly didn't have 2 arguments"
-      end
+    | "sail_cons" -> binary_operation Cons
+    | "add_atom" -> binary_operation Plus
     | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
 
   and statement_of_let
