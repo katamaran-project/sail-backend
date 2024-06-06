@@ -89,16 +89,16 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
         AC.not_yet_implemented [%here]
       end
 
+  and pp_call_statement (function_identifier : identifier) (arguments : expression list) : PPrint.document AC.t =
+    let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
+    in
+    FunctionCalls.translate function_identifier pretty_printed_arguments
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
   | Stm_match match_pattern -> pp_match_statement match_pattern
-  | Stm_call (function_identifier, arguments) -> begin
-      let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
-      in
-      FunctionCalls.translate function_identifier pretty_printed_arguments
-    end
-
+  | Stm_call (function_identifier, arguments) -> pp_call_statement function_identifier arguments
   | Stm_let (variable_identifier, s1, s2) -> begin
       let* s1' = pp_statement s1
       and* s2' = pp_statement s2
