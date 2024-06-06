@@ -744,6 +744,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     match Id.string_of receiver_identifier' with
     | "sail_cons" -> binary_operation Cons
     | "add_atom" -> binary_operation Plus
+    | "sub_atom" -> binary_operation Minus
     | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
 
   and statement_of_let
