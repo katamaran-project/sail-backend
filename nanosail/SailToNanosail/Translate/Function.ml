@@ -732,10 +732,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     let argument_expressions = List.map ~f:fst translated_arguments
     and named_statements     = flatten_named_statements @@ List.map ~f:snd translated_arguments
     in
+    let wrap = wrap_in_named_statements_context named_statements
+    in
     match Id.string_of receiver_identifier' with
     | "sail_cons" -> begin
         match argument_expressions with
-        | [car; cdr] -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp (Exp_binop (Cons, car, cdr))
+        | [car; cdr] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (Cons, car, cdr))
         | _          -> TC.fail [%here] "expected exactly two arguments for sail_cons"
       end
     | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
