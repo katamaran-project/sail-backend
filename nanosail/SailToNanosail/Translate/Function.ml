@@ -730,7 +730,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
     let argument_expressions = List.map ~f:fst translated_arguments
-    and named_statements = flatten_named_statements @@ List.map ~f:snd translated_arguments
+    and named_statements     = flatten_named_statements @@ List.map ~f:snd translated_arguments
     in
     match Id.string_of receiver_identifier' with
     | "sail_cons" -> begin
