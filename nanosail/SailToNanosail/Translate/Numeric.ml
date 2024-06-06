@@ -60,18 +60,18 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N
 and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : N.numeric_constraint TC.t =
   let translate_comparison
       (factory : N.numeric_expression -> N.numeric_expression -> N.numeric_constraint)
-      (left : Libsail.Ast.nexp)
-      (right : Libsail.Ast.nexp)
+      (left    : Libsail.Ast.nexp                                                    )
+      (right   : Libsail.Ast.nexp                                                    ) : N.numeric_constraint TC.t
     =
-    let* left' = translate_numeric_expression left
+    let* left'  = translate_numeric_expression left
     and* right' = translate_numeric_expression right
     in
     TC.return @@ factory left' right'
 
   and translate_binary_operation
       (factory : N.numeric_constraint -> N.numeric_constraint -> N.numeric_constraint)
-      (left : Libsail.Ast.n_constraint)
-      (right : Libsail.Ast.n_constraint)
+      (left    : Libsail.Ast.n_constraint                                            )
+      (right   : Libsail.Ast.n_constraint                                            ) : N.numeric_constraint TC.t
     =
       let* left' = translate_numeric_constraint left
       and* right' = translate_numeric_constraint right
@@ -79,28 +79,28 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       TC.return @@ factory left' right'
 
   in
-  let translate_equal      = translate_comparison @@ fun l r -> N.NC_equal (l, r)
-  and translate_not_equal  = translate_comparison @@ fun l r -> N.NC_not_equal (l, r)
-  and translate_bounded_ge = translate_comparison @@ fun l r -> N.NC_bounded_ge (l, r)
-  and translate_bounded_gt = translate_comparison @@ fun l r -> N.NC_bounded_gt (l, r)
-  and translate_bounded_le = translate_comparison @@ fun l r -> N.NC_bounded_le (l, r)
-  and translate_bounded_lt = translate_comparison @@ fun l r -> N.NC_bounded_lt (l, r)
-  and translate_or         = translate_binary_operation @@ fun l r -> N.NC_or (l, r)
-  and translate_and        = translate_binary_operation @@ fun l r -> N.NC_and (l, r)
+  let translate_equal      = translate_comparison       @@ fun l r -> N.NC_equal      (l, r)
+  and translate_not_equal  = translate_comparison       @@ fun l r -> N.NC_not_equal  (l, r)
+  and translate_bounded_ge = translate_comparison       @@ fun l r -> N.NC_bounded_ge (l, r)
+  and translate_bounded_gt = translate_comparison       @@ fun l r -> N.NC_bounded_gt (l, r)
+  and translate_bounded_le = translate_comparison       @@ fun l r -> N.NC_bounded_le (l, r)
+  and translate_bounded_lt = translate_comparison       @@ fun l r -> N.NC_bounded_lt (l, r)
+  and translate_or         = translate_binary_operation @@ fun l r -> N.NC_or         (l, r)
+  and translate_and        = translate_binary_operation @@ fun l r -> N.NC_and        (l, r)
 
   in
   let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | S.NC_equal (x, y)      -> translate_equal      x y
-  | S.NC_not_equal (x, y)  -> translate_not_equal  x y
-  | S.NC_bounded_ge (x, y) -> translate_bounded_ge x y
-  | S.NC_bounded_gt (x, y) -> translate_bounded_gt x y
-  | S.NC_bounded_le (x, y) -> translate_bounded_le x y
-  | S.NC_bounded_lt (x, y) -> translate_bounded_lt x y
+  | S.NC_equal (x, y)                          -> translate_equal      x y
+  | S.NC_not_equal (x, y)                      -> translate_not_equal  x y
+  | S.NC_bounded_ge (x, y)                     -> translate_bounded_ge x y
+  | S.NC_bounded_gt (x, y)                     -> translate_bounded_gt x y
+  | S.NC_bounded_le (x, y)                     -> translate_bounded_le x y
+  | S.NC_bounded_lt (x, y)                     -> translate_bounded_lt x y
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
-  | S.NC_or (x, y) -> translate_or x y
-  | S.NC_and (x, y) -> translate_and x y
+  | S.NC_or (x, y)                             -> translate_or x y
+  | S.NC_and (x, y)                            -> translate_and x y
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var (Id.mk kind_id)
   | S.NC_true                                  -> TC.return @@ N.NC_true
   | S.NC_false                                 -> TC.return @@ N.NC_false
