@@ -89,7 +89,10 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
         AC.not_yet_implemented [%here]
       end
 
-  and pp_call_statement (function_identifier : identifier) (arguments : expression list) : PPrint.document AC.t =
+  and pp_call_statement
+      (function_identifier : identifier     )
+      (arguments           : expression list) : PPrint.document AC.t
+    =
     let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
