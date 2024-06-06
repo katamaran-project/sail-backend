@@ -280,17 +280,17 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_true              -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_false             -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_and (left, right)   -> bool_expression_of_and left right
-  | NC_or  (left, right)   -> bool_expression_of_or left right
-  | NC_equal (left, right) -> bool_expression_of_equal left right
+  | NC_bounded_ge (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_gt (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_le (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_lt (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_set (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_app (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_true                     -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_false                    -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_and (left, right)        -> bool_expression_of_and left right
+  | NC_or  (left, right)        -> bool_expression_of_or left right
+  | NC_equal (left, right)      -> bool_expression_of_equal left right
   | NC_not_equal (left, right)  -> bool_expression_of_not_equal left right
   | NC_var kid           -> begin
        let Kid_aux (Var unwrapped_id, _id_location) = kid
