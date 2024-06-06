@@ -128,6 +128,7 @@ module ExtendedType = struct
       | And                  of t * t
       | Or                   of t * t
       | Equal                of IntExpression.t * IntExpression.t
+      | NotEqual             of IntExpression.t * IntExpression.t
       | LessThan             of IntExpression.t * IntExpression.t
       | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
       | GreaterThan          of IntExpression.t * IntExpression.t
@@ -138,6 +139,7 @@ module ExtendedType = struct
       | And                  of t * t
       | Or                   of t * t
       | Equal                of IntExpression.t * IntExpression.t
+      | NotEqual             of IntExpression.t * IntExpression.t
       | LessThan             of IntExpression.t * IntExpression.t
       | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
       | GreaterThan          of IntExpression.t * IntExpression.t

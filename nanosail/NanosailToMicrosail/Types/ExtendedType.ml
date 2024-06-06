@@ -39,6 +39,7 @@ module Prec = struct
   let disjunction              = define_left_associative_binary_operator 30 @@ pp_binary "||"
 
   let equality                 = define_left_associative_binary_operator 5  @@ pp_binary "="
+  let inequality               = define_left_associative_binary_operator 5  @@ pp_binary "!="
   let less_than                = define_left_associative_binary_operator 5  @@ pp_binary "<"
   let greater_than             = define_left_associative_binary_operator 5  @@ pp_binary ">"
   let less_than_or_equal_to    = define_left_associative_binary_operator 5  @@ pp_binary "<="
@@ -112,6 +113,7 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
   and conjunction l r              = binary_operation Prec.conjunction l r
   and disjunction l r              = binary_operation Prec.disjunction l r
   and equality    l r              = comparison       Prec.equality    l r
+  and inequality  l r              = comparison       Prec.inequality  l r    
   and less_than   l r              = comparison       Prec.less_than   l r
   and greater_than l r             = comparison       Prec.greater_than l r
   and less_than_or_equal_to l r    = comparison       Prec.less_than_or_equal_to l r
@@ -123,6 +125,7 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
     | And (left, right)                  -> conjunction left right
     | Or  (left, right)                  -> disjunction left right
     | Equal (left, right)                -> equality    left right
+    | NotEqual (left, right)             -> inequality  left right
     | LessThan (left, right)             -> less_than left right
     | GreaterThan (left, right)          -> greater_than left right
     | LessThanOrEqualTo (left, right)    -> less_than_or_equal_to left right
