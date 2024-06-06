@@ -9,4 +9,6 @@ module NanosailToMicrosail = NanosailToMicrosail
 module Templates           = Templates
 module Map                 = Map
 module Sail                = Sail
-
+module ExtendedInteger     = ExtendedInteger
+module ComparisonNotations = ComparisonNotations
+module PrecedenceFormatter = PrecedenceFormatter

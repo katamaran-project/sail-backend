@@ -19,7 +19,7 @@ open Monads.Notations.Star(TC)
 
 module State = struct
   type mapping = int StringMap.t
-  
+
   type t =
     {
       next_id : int;
@@ -128,6 +128,73 @@ let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.As
 let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Parameter.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
+  let extended_parameter_type_of_atom (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                     -> not_yet_implemented [%here] type_argument_location
+        | A_bool _                    -> not_yet_implemented [%here] type_argument_location
+        | A_nexp numerical_expression -> begin
+            let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
+            in
+            match unwrapped_numerical_expression with
+            | Nexp_id _         -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_constant _   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_app (_, _)   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_times (_, _) -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_sum (_, _)   -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_var kid      -> begin
+                let Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                in
+                let+ translated_id = fresh_binding unwrapped_kid
+                in
+                Monad.return @@ N.ExtendedType.Parameter.Int translated_id
+              end
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+
+  and extended_parameter_type_of_atom_bool (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                     -> not_yet_implemented [%here] type_argument_location
+        | A_nexp _                    -> not_yet_implemented [%here] type_argument_location
+        | A_bool numeric_constraint   -> begin
+            let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+            in
+            match unwrapped_numeric_constraint with
+            | S.NC_equal (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_and (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_true              -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_var kid           -> begin
+                let Kid_aux (Var unwrapped_kid, _kid_location) = kid
+                in
+                let+ translated_id = fresh_binding unwrapped_kid
+                in
+                Monad.return @@ N.ExtendedType.Parameter.Bool translated_id
+              end
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    
+  in  
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -140,36 +207,9 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
-       | Id "atom" -> begin
-           match type_arguments with
-           | [ type_argument ] -> begin
-               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
-               in
-               match unwrapped_type_argument with
-                | A_typ _                     -> not_yet_implemented [%here] type_argument_location
-                | A_bool _                    -> not_yet_implemented [%here] type_argument_location
-                | A_nexp numerical_expression -> begin
-                    let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
-                    in
-                    match unwrapped_numerical_expression with
-                     | Nexp_id _         -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_constant _   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_app (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_times (_, _) -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_sum (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
-                     | Nexp_var kid      -> begin
-                         let Kid_aux (Var unwrapped_kid, _kid_location) = kid
-                         in
-                         Monad.return @@ N.ExtendedType.Parameter.Int (Some unwrapped_kid)
-                       end
-                  end
-             end
-           | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-         end
-       | Id string -> begin
+       | Id "atom"      -> extended_parameter_type_of_atom type_arguments
+       | Id "atom_bool" -> extended_parameter_type_of_atom_bool type_arguments
+       | Id string      -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
            in
@@ -201,44 +241,122 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
    | Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
    | Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
    | Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
-   | Nexp_var id              -> begin
-       let Kid_aux (Var unwrapped_id, _id_location) = id
+   | Nexp_var kid             -> begin
+       let Kid_aux (Var unwrapped_id, _id_location) = kid
        in
-       Monad.return @@ N.ExtendedType.IntExpression.Var unwrapped_id
+       let+ translated_id = binding unwrapped_id
+       in
+       Monad.return @@ N.ExtendedType.IntExpression.Var translated_id
      end
+
+and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
+  let bool_expression_of_binary_operation
+        (factory : N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t)
+        (left    : S.n_constraint                                                                                       )
+        (right   : S.n_constraint                                                                                       ) : N.ExtendedType.BoolExpression.t Monad.t
+    =
+    let+ left'  = bool_expression_of_sail_numeric_constraint left
+    and+ right' = bool_expression_of_sail_numeric_constraint right
+    in
+    Monad.return @@ factory left' right'
+  in
+  let bool_expression_of_comparison
+        (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.BoolExpression.t)
+        (left    : S.nexp                                                                                             )
+        (right   : S.nexp                                                                                             ) : N.ExtendedType.BoolExpression.t Monad.t
+    =
+      let+ left'  = int_expression_of_sail_numeric_expression left
+      and+ right' = int_expression_of_sail_numeric_expression right
+      in
+      Monad.return @@ factory left' right'
+  in    
+  let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+  in
+  match unwrapped_numeric_constraint with
+  | NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_true              -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_var kid           -> begin
+       let Kid_aux (Var unwrapped_id, _id_location) = kid
+       in
+       let+ translated_id = binding unwrapped_id
+       in
+       Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
+    end
+  | NC_and (left, right)   -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.And (a, b)) left right
+  | NC_or  (left, right)   -> bool_expression_of_binary_operation (fun a b -> N.ExtendedType.BoolExpression.Or  (a, b)) left right
+  | NC_equal (left, right) -> bool_expression_of_comparison (fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)) left right
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
+
   in
+  let extended_return_type_of_atom (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                   -> not_yet_implemented [%here] type_argument_location
+        | A_bool _                  -> not_yet_implemented [%here] type_argument_location
+        | A_nexp numeric_expression -> begin
+            let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
+            in
+            Monad.return @@ N.ExtendedType.ReturnValue.Int int_expression
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+
+  in
+  let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ type_argument ] -> begin
+        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        in
+        match unwrapped_type_argument with
+        | A_typ _                   -> not_yet_implemented [%here] type_argument_location
+        | A_nexp _                  -> not_yet_implemented [%here] type_argument_location
+        | A_bool numeric_constraint -> begin
+            let+ bool_expression = bool_expression_of_sail_numeric_constraint numeric_constraint
+            in
+            Monad.return @@ N.ExtendedType.ReturnValue.Bool bool_expression
+          end
+      end
+    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+
+  in 
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
-   | Typ_id _id           -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
    | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
    | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
    | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
+   | Typ_id id            -> begin
+       let Id_aux (unwrapped_id, id_location) = id
+       in
+       match unwrapped_id with
+       | S.Operator _ -> not_yet_implemented [%here] id_location
+       | S.Id name    -> begin
+           match name with
+           | "int"  -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
+           | "bool" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Bool (N.ExtendedType.BoolExpression.Var k)
+           | _      -> not_yet_implemented ~message:name [%here] id_location
+         end
+     end
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
-       | Id "atom" -> begin
-           match type_arguments with
-           | [ type_argument ] -> begin
-               let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
-               in
-               match unwrapped_type_argument with
-                | A_typ _                   -> not_yet_implemented [%here] type_argument_location
-                | A_bool _                  -> not_yet_implemented [%here] type_argument_location
-                | A_nexp numeric_expression -> begin
-                    let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
-                    in
-                    Monad.return @@ N.ExtendedType.ReturnValue.Int int_expression
-                  end
-             end
-           | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-         end
+       | Id "atom" -> extended_return_type_of_atom type_arguments
+       | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
@@ -254,115 +372,6 @@ let remove_string_duplicates (strings : string list) : string list =
   List.dedup_and_sort strings ~compare:String.compare
 
 
-let collect_variable_names_in_parameter_type (parameter_type : N.ExtendedType.Parameter.t) : string list =
-  let rec collect parameter_type =
-    match parameter_type with
-    | N.ExtendedType.Parameter.Tuple ts     -> List.concat @@ List.map ~f:collect ts
-    | N.ExtendedType.Parameter.Int (Some k) -> [ k ]
-    | N.ExtendedType.Parameter.Int None     -> [ ]
-    | N.ExtendedType.Parameter.Bool k       -> [ k ]
-    | N.ExtendedType.Parameter.Other _      -> []
-  in
-  remove_string_duplicates @@ collect parameter_type
-
-
-(* Returned list can contain duplicates *)
-let collect_variable_names_in_int_expression (int_expression : N.ExtendedType.IntExpression.t) : string list =
-  let rec collect int_expression =
-    match int_expression with
-    | N.ExtendedType.IntExpression.Var k             -> [ k ]
-    | N.ExtendedType.IntExpression.Constant _        -> []
-    | N.ExtendedType.IntExpression.Add (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Sub (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Mul (left, right) -> collect left @ collect right
-    | N.ExtendedType.IntExpression.Neg operand       -> collect operand
-  in
-  remove_string_duplicates @@ collect int_expression
-
-
-let simple_name_from_index (index : int) : string =
-  Printf.sprintf "#%d" index
-
-
-let generate_simpler_names (names : string list) : string StringMap.t =
-  let rec generate (index : int) (names : string list) (map : string StringMap.t) =
-    match names with
-    | []          -> map
-    | name::names -> begin
-        let simplified_name = simple_name_from_index index
-        in
-        let map' = StringMap.add_exn map ~key:name ~data:simplified_name
-        in
-        generate (index + 1) names map'
-      end
-  in
-  let empty : string StringMap.t = StringMap.empty
-  in
-  generate 0 names empty
-
-
-let substitute_in_parameter_type
-    (map            : string StringMap.t        )
-    (parameter_type : N.ExtendedType.Parameter.t) : N.ExtendedType.Parameter.t
-  =
-  let open N.ExtendedType.Parameter
-  in
-  let rec subst (parameter_type : t) =
-    match parameter_type with
-    | Tuple ts     -> Tuple (List.map ~f:subst ts)
-    | Int (Some k) -> Int (Some (StringMap.find_exn map k))
-    | Int None     -> Int None
-    | Bool k       -> Bool (StringMap.find_exn map k)
-    | Other _      -> parameter_type
-  in
-  subst parameter_type
-
-
-let substitute_in_int_expression
-    (map            : string StringMap.t            )
-    (int_expression : N.ExtendedType.IntExpression.t) : N.ExtendedType.IntExpression.t
-  =
-  let open N.ExtendedType.IntExpression
-  in
-  let rec subst (int_expression : t) =
-    match int_expression with
-    | Var k             -> Var (StringMap.find_exn map k)
-    | Constant _        -> int_expression
-    | Add (left, right) -> Add (subst left, subst right)
-    | Sub (left, right) -> Sub (subst left, subst right)
-    | Mul (left, right) -> Mul (subst left, subst right)
-    | Neg expr          -> Neg (subst expr)
-  in
-  subst int_expression
-
-
-let substitute_in_return_type
-    (map         : string StringMap.t          )
-    (return_type : N.ExtendedType.ReturnValue.t) : N.ExtendedType.ReturnValue.t
-  =
-  match return_type with
-  | N.ExtendedType.ReturnValue.Int int_expression -> N.ExtendedType.ReturnValue.Int (substitute_in_int_expression map int_expression)
-  
-
-(*
-   Gives variables simpler names
-*)
-let simplify (extended_function_type : N.ExtendedFunctionType.t) : N.ExtendedFunctionType.t =
-  let variable_names = remove_string_duplicates @@ List.concat @@ List.map ~f:collect_variable_names_in_parameter_type extended_function_type.extended_parameter_types
-  in
-  let variable_mapping = generate_simpler_names variable_names
-  in
-  let extended_parameter_types =
-    List.map ~f:(substitute_in_parameter_type variable_mapping) extended_function_type.extended_parameter_types
-  and extended_return_type =
-    substitute_in_return_type variable_mapping extended_function_type.extended_return_type
-  in
-  {
-    extended_parameter_types;
-    extended_return_type
-  }
-  
-
 let determine_extended_type
       (parameter_bindings : Sail.type_annotation Libsail.Ast.pat)
       (return_type        : Libsail.Ast.typ                     ) : N.ExtendedFunctionType.t TC.t
@@ -376,7 +385,7 @@ let determine_extended_type
     let extended_function_type : N.ExtendedFunctionType.t =
       { extended_parameter_types; extended_return_type }
     in
-    Monad.return @@ simplify extended_function_type
+    Monad.return extended_function_type
   in
   let (result, _final_state) = Monad.run monad State.initial
   in
