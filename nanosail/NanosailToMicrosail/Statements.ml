@@ -132,6 +132,39 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       rhs'
     ]
 
+  and pp_destructure_record_statement (destructure_record : destructure_record) : PPrint.document AC.t =
+    let {
+      record_type_identifier;
+      field_identifiers;
+      variable_identifiers;
+      destructured_record;
+      body
+    } = destructure_record
+    in
+    let pattern =
+      let pairs = List.zip_exn field_identifiers variable_identifiers
+      in
+      let build acc (field_identifier, variable_identifier) =
+        PP.(parens (simple_app [
+            string "recordpat_snoc";
+            acc;
+            dquotes @@ pp_identifier field_identifier;
+            pp_identifier variable_identifier
+          ]))
+      in
+      List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
+    in
+    let* destructured_record' = pp_statement destructured_record
+    and* body' = pp_statement body
+    in
+    AC.return @@ PP.simple_app [
+      pp_identifier @@ Id.mk "stm_match_record";
+      pp_identifier record_type_identifier;
+      PP.parens destructured_record';
+      pattern;
+      body'
+    ]
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
@@ -141,35 +174,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
   | Stm_read_register register_identifier -> pp_read_register_statement register_identifier
   | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
-  | Stm_destructure_record { record_type_identifier;
-                             field_identifiers;
-                             variable_identifiers;
-                             destructured_record;
-                             body } -> begin
-      let pattern =
-        let pairs = List.zip_exn field_identifiers variable_identifiers
-        in
-        let build acc (field_identifier, variable_identifier) =
-          PP.(parens (simple_app [
-                          string "recordpat_snoc";
-                          acc;
-                          dquotes @@ pp_identifier field_identifier;
-                          pp_identifier variable_identifier
-                        ]))
-        in
-        List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
-      in
-      let* destructured_record' = pp_statement destructured_record
-      and* body' = pp_statement body
-      in
-      AC.return @@ PP.simple_app [
-                       pp_identifier @@ Id.mk "stm_match_record";
-                       pp_identifier record_type_identifier;
-                       PP.parens destructured_record';
-                       pattern;
-                       body'
-                    ]
-    end
+  | Stm_destructure_record destructure_record -> pp_destructure_record_statement destructure_record
 
   | Stm_cast (statement_to_be_cast, _target_type) -> begin
       Stdio.printf "Warning: ignored cast\n";
