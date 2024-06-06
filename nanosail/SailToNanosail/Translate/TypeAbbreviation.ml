@@ -14,7 +14,6 @@ module N = Ast
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
-open Numeric
 open Nanotype
 open TypeQuantifier
 
@@ -34,7 +33,7 @@ let translate_type_abbreviation
   let* type_abbreviation =
     match arg with
     | A_nexp numeric_expression -> begin
-        let* numeric_expression' = translate_numeric_expression numeric_expression
+        let* numeric_expression' = Numeric.translate_numeric_expression numeric_expression
         in
         TC.return @@ N.TA_numeric_expression (quantifier', numeric_expression')
       end
@@ -44,7 +43,7 @@ let translate_type_abbreviation
         TC.return @@ N.TA_alias (quantifier', typ')
       end
     | A_bool numeric_constraint -> begin
-        let* numeric_constraint' = translate_numeric_constraint numeric_constraint
+        let* numeric_constraint' = Numeric.translate_numeric_constraint numeric_constraint
         in
         TC.return @@ N.TA_numeric_constraint (quantifier', numeric_constraint')
       end
