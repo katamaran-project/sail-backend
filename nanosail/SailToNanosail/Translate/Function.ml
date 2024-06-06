@@ -740,7 +740,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         | [x; y] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (operator, x, y))
         | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
-      
+
     match Id.string_of receiver_identifier' with
     | "sail_cons" -> binary_operation Cons
     | "add_atom" -> binary_operation Plus
