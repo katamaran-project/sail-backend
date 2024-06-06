@@ -13,7 +13,6 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Nanotype
 
 
 let translate_type_abbreviation
@@ -36,7 +35,7 @@ let translate_type_abbreviation
         TC.return @@ N.TA_numeric_expression (quantifier', numeric_expression')
       end
     | A_typ typ -> begin
-        let* typ' = nanotype_of_sail_type typ
+        let* typ' = Nanotype.nanotype_of_sail_type typ
         in
         TC.return @@ N.TA_alias (quantifier', typ')
       end
