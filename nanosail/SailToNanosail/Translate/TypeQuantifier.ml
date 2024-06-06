@@ -44,7 +44,9 @@ let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(
     end
 
 
-let translate_type_quantifier (S.TypQ_aux (quantifier, _location)) =
-  match quantifier with
+let translate_type_quantifier (type_quantifier : Libsail.Ast.typquant) : (N.identifier * N.kind) list TC.t =
+  let S.TypQ_aux (unwrapped_type_quantifier, _location) = type_quantifier
+  in
+  match unwrapped_type_quantifier with
   | S.TypQ_tq items  -> TC.map ~f:translate_type_quantifier_item items
   | S.TypQ_no_forall -> TC.return @@ []
