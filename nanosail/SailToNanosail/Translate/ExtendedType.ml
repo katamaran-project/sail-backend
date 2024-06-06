@@ -259,8 +259,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     and+ right' = bool_expression_of_sail_numeric_constraint right
     in
     Monad.return @@ factory left' right'
-  in
-  let bool_expression_of_comparison
+      
+  and bool_expression_of_comparison
         (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.BoolExpression.t)
         (left    : S.nexp                                                                                             )
         (right   : S.nexp                                                                                             ) : N.ExtendedType.BoolExpression.t Monad.t
@@ -269,7 +269,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
       and+ right' = int_expression_of_sail_numeric_expression right
       in
       Monad.return @@ factory left' right'
-  in    
+  in
+  
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
