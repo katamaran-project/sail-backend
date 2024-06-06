@@ -275,12 +275,13 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_or  = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.Or (a, b)
   and bool_expression_of_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
   and bool_expression_of_not_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.NotEqual (a, b)
+  and bool_expression_of_bounded_ge = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
 
   in  
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
-  | NC_bounded_ge (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_bounded_ge (left, right) -> bool_expression_of_bounded_ge left right
   | NC_bounded_gt (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_le (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
   | NC_bounded_lt (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
