@@ -114,7 +114,10 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
         ]
       )
 
-  and pp_sequence_statement (left : statement) (right : statement) : PPrint.document AC.t =
+  and pp_sequence_statement
+      (left  : statement)
+      (right : statement) : PPrint.document AC.t
+    =
       let* left'  = pp_par_statement left
       and* right' = pp_par_statement right
       in
