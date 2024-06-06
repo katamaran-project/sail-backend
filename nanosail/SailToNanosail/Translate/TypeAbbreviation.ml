@@ -13,7 +13,6 @@ module N = Ast
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
 open Nanotype
 
 
@@ -27,7 +26,7 @@ let translate_type_abbreviation
   let S.A_aux (unwrapped_type_argument, _arg_location) = type_argument
   in
   let* quantifier' = TypeQuantifier.translate_type_quantifier quantifier
-  and* identifier' = translate_identifier [%here] identifier
+  and* identifier' = Identifier.translate_identifier [%here] identifier
   in
   let* type_abbreviation =
     match unwrapped_type_argument with
