@@ -74,8 +74,25 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
         in
         TC.return @@ N.TA_bool b'
       end
-  in
 
+  and translate_existential
+      (ids         : Libsail.Ast.kinded_id list)
+      (constraints : Libsail.Ast.n_constraint  )
+      (typ         : Libsail.Ast.typ           )
+    =
+    let ids'                = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
+    and numeric_constraint' = StringOf.Sail.n_constraint constraints
+    and typ'                = Libsail.Ast_util.string_of_typ typ
+    in
+    begin
+      if
+        Configuration.(get print_warnings)
+      then
+        Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ'
+    end;
+    nanotype_of_sail_type typ
+
+  in
   match typ with
   | Typ_tuple items -> begin
       let* items' = TC.map ~f:nanotype_of_sail_type items
@@ -84,15 +101,8 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     end
   | Typ_id id                       -> type_of_identifier id
   | Typ_app (identifier, type_args) -> translate_type_constructor identifier type_args
+  | Typ_exist (ids, nc, typ)        -> translate_existential ids nc typ
   | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
   | Typ_var _                       -> TC.not_yet_implemented [%here] location
   | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
   | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
-  | Typ_exist (ids, nc, typ)        -> begin
-      let ids' = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
-      and numeric_constraint' = Libsail.Ast_util.string_of_n_constraint nc
-      and typ' = Libsail.Ast_util.string_of_typ typ
-      in
-      if Configuration.(get print_warnings) then Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ';
-      nanotype_of_sail_type typ
-    end
