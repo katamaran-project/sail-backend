@@ -273,6 +273,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
 
   let bool_expression_of_and = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.And (a, b)
   and bool_expression_of_or  = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.Or (a, b)
+  and bool_expression_of_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
 
   in  
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
@@ -296,7 +297,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     end
   | NC_and (left, right)   -> bool_expression_of_and left right
   | NC_or  (left, right)   -> bool_expression_of_or left right
-  | NC_equal (left, right) -> bool_expression_of_comparison (fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)) left right
+  | NC_equal (left, right) -> bool_expression_of_equal left right
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
