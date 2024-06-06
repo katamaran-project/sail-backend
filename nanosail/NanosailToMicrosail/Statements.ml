@@ -165,9 +165,12 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       body'
     ]
 
-  and pp_cast_statement (statement_to_be_cast : statement) (_target_type : nanotype) : PPrint.document AC.t =
-      Stdio.printf "Warning: ignored cast\n";
-      pp_statement statement_to_be_cast
+  and pp_cast_statement
+      (statement_to_be_cast : statement)
+      (_target_type         : nanotype ) : PPrint.document AC.t
+    =
+    Stdio.printf "Warning: ignored cast\n";
+    pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PPrint.document AC.t =
     AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
