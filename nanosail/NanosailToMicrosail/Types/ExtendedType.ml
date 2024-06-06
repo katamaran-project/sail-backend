@@ -110,13 +110,13 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
     in
     AC.return @@ f left' right'
   
-  and conjunction l r              = binary_operation Prec.conjunction l r
-  and disjunction l r              = binary_operation Prec.disjunction l r
-  and equality    l r              = comparison       Prec.equality    l r
-  and inequality  l r              = comparison       Prec.inequality  l r    
-  and less_than   l r              = comparison       Prec.less_than   l r
-  and greater_than l r             = comparison       Prec.greater_than l r
-  and less_than_or_equal_to l r    = comparison       Prec.less_than_or_equal_to l r
+  and conjunction l r              = binary_operation Prec.conjunction              l r
+  and disjunction l r              = binary_operation Prec.disjunction              l r
+  and equality    l r              = comparison       Prec.equality                 l r
+  and inequality  l r              = comparison       Prec.inequality               l r    
+  and less_than   l r              = comparison       Prec.less_than                l r
+  and greater_than l r             = comparison       Prec.greater_than             l r
+  and less_than_or_equal_to l r    = comparison       Prec.less_than_or_equal_to    l r
   and greater_than_or_equal_to l r = comparison       Prec.greater_than_or_equal_to l r
 
   and ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
