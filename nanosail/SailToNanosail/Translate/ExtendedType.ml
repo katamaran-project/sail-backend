@@ -288,6 +288,10 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   | NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
   | NC_true              -> not_yet_implemented [%here] numeric_constraint_location
   | NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_and (left, right)   -> bool_expression_of_and left right
+  | NC_or  (left, right)   -> bool_expression_of_or left right
+  | NC_equal (left, right) -> bool_expression_of_equal left right
+  | NC_not_equal (left, right)  -> bool_expression_of_not_equal left right
   | NC_var kid           -> begin
        let Kid_aux (Var unwrapped_id, _id_location) = kid
        in
@@ -295,10 +299,6 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
        in
        Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
     end
-  | NC_and (left, right)   -> bool_expression_of_and left right
-  | NC_or  (left, right)   -> bool_expression_of_or left right
-  | NC_equal (left, right) -> bool_expression_of_equal left right
-  | NC_not_equal (left, right)  -> bool_expression_of_not_equal left right
 
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
