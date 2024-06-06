@@ -729,22 +729,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     let* receiver_identifier' = translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
+    let argument_expressions = List.map ~f:fst translated_arguments
+    and named_statements = flatten_named_statements @@ List.map ~f:snd translated_arguments
+    in
+    match Id.string_of receiver_identifier' with
+    | "sail_cons" -> begin
+        match argument_expressions with
+        | [car; cdr] -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp (Exp_binop (Cons, car, cdr))
+        | _          -> TC.fail [%here] "expected exactly two arguments for sail_cons"
+      end
+    | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
 
-    match translated_arguments with
-    | [(car', car_named_statements); (cdr', cdr_named_statements)] when String.equal (Id.string_of receiver_identifier') "sail_cons" -> begin
-        let named_statements = flatten_named_statements [ car_named_statements; cdr_named_statements ]
-        in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_exp (Exp_binop (Cons, car', cdr'))
-      end
-    | _ -> begin
-        let* pairs = TC.map ~f:(expression_of_aval location) arguments
-        in
-        let argument_expressions, named_statements_list = List.unzip pairs
-        in
-        let named_statements = flatten_named_statements named_statements_list
-        in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
-      end
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
