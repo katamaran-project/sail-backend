@@ -174,16 +174,16 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
 
   in
   match statement with
-  | Stm_exp e -> pp_expression_statement e
-  | Stm_match match_pattern -> pp_match_statement match_pattern
-  | Stm_call (function_identifier, arguments) -> pp_call_statement function_identifier arguments
-  | Stm_let (variable_identifier, s1, s2) -> pp_let_statement variable_identifier s1 s2
-  | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
-  | Stm_read_register register_identifier -> pp_read_register_statement register_identifier
+  | Stm_exp e                                     -> pp_expression_statement e
+  | Stm_match match_pattern                       -> pp_match_statement match_pattern
+  | Stm_call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
+  | Stm_let (variable_identifier, s1, s2)         -> pp_let_statement variable_identifier s1 s2
+  | Stm_seq (s1, s2)                              -> pp_sequence_statement s1 s2
+  | Stm_read_register register_identifier         -> pp_read_register_statement register_identifier
   | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
-  | Stm_destructure_record destructure_record -> pp_destructure_record_statement destructure_record
-  | Stm_cast (statement_to_be_cast, target_type) -> pp_cast_statement statement_to_be_cast target_type
-  | Stm_fail message -> pp_fail_statement message
+  | Stm_destructure_record destructure_record     -> pp_destructure_record_statement destructure_record
+  | Stm_cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
+  | Stm_fail message                              -> pp_fail_statement message
 
 and pp_par_statement s =
   let* s' = pp_statement s
