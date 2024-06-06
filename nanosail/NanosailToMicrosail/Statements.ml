@@ -14,19 +14,16 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     in
     AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
-  in
-  match statement with
-  | Stm_exp e -> pp_expression_statement e
-  | Stm_match match_pattern -> begin
-      match match_pattern with
-      | MP_list { matched; when_nil; when_cons } -> begin
-          let id_head, id_tail, when_cons_body = when_cons
-          in
-          let* matched'   = pp_par_statement matched
-          and* when_nil'  = pp_par_statement when_nil
-          and* when_cons' = pp_par_statement when_cons_body
-          in
-          AC.return @@ PP.(simple_app [
+  and pp_match_statement (match_pattern : match_pattern) : PPrint.document AC.t =
+    match match_pattern with
+    | MP_list { matched; when_nil; when_cons } -> begin
+        let id_head, id_tail, when_cons_body = when_cons
+        in
+        let* matched'   = pp_par_statement matched
+        and* when_nil'  = pp_par_statement when_nil
+        and* when_cons' = pp_par_statement when_cons_body
+        in
+        AC.return @@ PP.(simple_app [
             string "stm_match_list";
             matched';
             when_nil';
@@ -34,65 +31,68 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
             dquotes (pp_identifier id_tail);
             when_cons';
           ])
-        end
-
-      | MP_product { matched; id_fst; id_snd; body } -> begin
-          let* matched' = pp_par_statement matched
-          and* body'    = pp_par_statement body
-          in
-          AC.return @@ PP.(simple_app [
+      end
+      
+    | MP_product { matched; id_fst; id_snd; body } -> begin
+        let* matched' = pp_par_statement matched
+        and* body'    = pp_par_statement body
+        in
+        AC.return @@ PP.(simple_app [
             string "stm_match_prod";
             matched';
             dquotes (pp_identifier id_fst);
             dquotes (pp_identifier id_snd);
             body';
           ])
-        end
-
-      | MP_bool { condition; when_true; when_false } -> begin
-          let* condition'  = pp_par_statement condition
-          and* when_true'  = pp_par_statement when_true
-          and* when_false' = pp_par_statement when_false
-          in
-          AC.return @@ PP.(simple_app [
+      end
+      
+    | MP_bool { condition; when_true; when_false } -> begin
+        let* condition'  = pp_par_statement condition
+        and* when_true'  = pp_par_statement when_true
+        and* when_false' = pp_par_statement when_false
+        in
+        AC.return @@ PP.(simple_app [
             string "stm_if";
             condition';
             when_true';
             when_false'
           ])
-        end
-
-      | MP_enum { matched; cases } -> begin
-          let translate_case ~(key:identifier) ~(data:statement) (acc : PP.document list AC.t) =
-            let* acc
-            and* pattern = AC.return @@ pp_identifier key
-            and* clause = pp_statement data
-            in
-            AC.return @@ PP.(separate space [
+      end
+      
+    | MP_enum { matched; cases } -> begin
+        let translate_case ~(key:identifier) ~(data:statement) (acc : PP.document list AC.t) =
+          let* acc
+          and* pattern = AC.return @@ pp_identifier key
+          and* clause = pp_statement data
+          in
+          AC.return @@ PP.(separate space [
               string "|";
               pattern;
               string " => ";
               clause
             ] :: acc)
-          in
-          let* matched' = pp_par_statement matched
-          and* cases' = IdentifierMap.fold cases ~init:(AC.return []) ~f:translate_case
-          in
-          AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
-            add @@ Coq.comment @@ PP.string "TODO Fix this";
-            add @@ PP.(separate space [ string "match"; matched'; string "with" ]);
-            addall cases'
-          end
+        in
+        let* matched' = pp_par_statement matched
+        and* cases' = IdentifierMap.fold cases ~init:(AC.return []) ~f:translate_case
+        in
+        AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
+          add @@ Coq.comment @@ PP.string "TODO Fix this";
+          add @@ PP.(separate space [ string "match"; matched'; string "with" ]);
+          addall cases'
         end
+      end
+      
+    | MP_variant { matched; cases } -> begin
+        let _ = matched
+        and _ = cases
+        in
+        AC.not_yet_implemented [%here]
+      end
 
-      | MP_variant { matched; cases } -> begin
-          let _ = matched
-          and _ = cases
-          in
-          AC.not_yet_implemented [%here]
-        end
-    end
-
+  in
+  match statement with
+  | Stm_exp e -> pp_expression_statement e
+  | Stm_match match_pattern -> pp_match_statement match_pattern
   | Stm_call (function_identifier, arguments) -> begin
       let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
       in
