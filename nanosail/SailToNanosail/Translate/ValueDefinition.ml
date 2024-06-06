@@ -16,9 +16,9 @@ open Monads.Notations.Star(TC)
 
 
 let translate_expression (expression : Sail.type_annotation S.exp) : N.value TC.t =
-  let S.E_aux (expression, (location, _type_annotation)) = expression
+  let S.E_aux (unwrapped_expression, (location, _type_annotation)) = expression
   in
-  match expression with
+  match unwrapped_expression with
   | S.E_lit literal -> begin
      let S.L_aux (literal, _literal_location) = literal
      in
