@@ -58,45 +58,34 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N
   | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
 and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : N.numeric_constraint TC.t =
+  let translate_comparison
+      (factory : N.numeric_expression -> N.numeric_expression -> N.numeric_constraint)
+      (left : Libsail.Ast.nexp)
+      (right : Libsail.Ast.nexp)
+    =
+    let* left' = translate_numeric_expression left
+    and* right' = translate_numeric_expression right
+    in
+    TC.return @@ factory left' right'
+
+  in
+  let translate_equal = translate_comparison @@ fun l r -> N.NC_equal (l, r)
+  and translate_not_equal = translate_comparison @@ fun l r -> N.NC_not_equal (l, r)
+  and translate_bounded_ge = translate_comparison @@ fun l r -> N.NC_bounded_ge (l, r)
+  and translate_bounded_gt = translate_comparison @@ fun l r -> N.NC_bounded_gt (l, r)
+  and translate_bounded_le = translate_comparison @@ fun l r -> N.NC_bounded_le (l, r)
+  and translate_bounded_lt = translate_comparison @@ fun l r -> N.NC_bounded_lt (l, r)
+
+  in
   let S.NC_aux (numeric_constraint, location) = numeric_constraint
   in
   match numeric_constraint with
-  | S.NC_equal (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_equal (x', y')
-    end
-  | S.NC_bounded_ge (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_ge (x', y')
-    end
-  | S.NC_bounded_gt (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_gt (x', y')
-    end
-  | S.NC_bounded_le (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_le (x', y')
-    end
-  | S.NC_bounded_lt (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_bounded_lt (x', y')
-    end
-  | S.NC_not_equal (x, y) -> begin
-      let* x' = translate_numeric_expression x
-      and* y' = translate_numeric_expression y
-      in
-      TC.return @@ N.NC_not_equal (x', y')
-    end
+  | S.NC_equal (x, y) -> translate_equal x y
+  | S.NC_bounded_ge (x, y) -> translate_bounded_ge x y
+  | S.NC_bounded_gt (x, y) -> translate_bounded_gt x y
+  | S.NC_bounded_le (x, y) -> translate_bounded_le x y
+  | S.NC_bounded_lt (x, y) -> translate_bounded_lt x y
+  | S.NC_not_equal (x, y) -> translate_not_equal x y
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
   | S.NC_or (x, y) -> begin
       let* x' = translate_numeric_constraint x
