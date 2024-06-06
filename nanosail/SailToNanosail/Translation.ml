@@ -15,7 +15,7 @@ open Basics
 
 
 let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * N.definition) TC.t =
-  let S.DEF_aux (def, annotation) = sail_definition
+  let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
   in
   if
     Configuration.should_ignore_definition sail_definition
@@ -24,7 +24,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
   else begin
     let translation =
       let* result =
-        match def with
+        match unwrapped_sail_definition with
         | DEF_type type_definition ->
            Translate.TypeDefinition.translate_type_definition annotation type_definition
         | DEF_let value_definition ->

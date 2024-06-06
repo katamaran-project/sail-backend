@@ -23,7 +23,10 @@ open Monads.Notations.Star(TC)
 
 (* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
 
-let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
+let type_from_lvar
+    (lvar : S.typ S.Ast_util.lvar)
+    (loc  : S.l                  ) : S.typ TC.t
+  =
   match lvar with
   | S.Ast_util.Register t   -> TC.return t
   | S.Ast_util.Enum t       -> TC.return t
@@ -34,14 +37,16 @@ let type_from_lvar (lvar : S.typ S.Ast_util.lvar) (loc : S.l) : S.typ TC.t =
 let create_if_statement
       ~(condition  : Ast.statement)
       ~(when_true  : Ast.statement)
-      ~(when_false : Ast.statement) =
+      ~(when_false : Ast.statement)
+  =
   N.Stm_match (MP_bool { condition; when_true; when_false })
 
 
 let statement_of_lvar
     (identifier : N.identifier         )
     (lvar       : S.typ S.Ast_util.lvar)
-    (location   : S.l                  ) : N.statement TC.t =
+    (location   : S.l                  ) : N.statement TC.t
+  =
   match lvar with
   | Libsail.Ast_util.Register _   -> TC.return @@ N.Stm_read_register identifier
   | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (N.Exp_var identifier)
@@ -54,9 +59,9 @@ let translate_return_type (sail_type : Libsail.Ast.typ) : N.nanotype TC.t =
 
 
 let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (N.identifier * N.nanotype) list TC.t  =
-  let S.P_aux (aux, ((location, _annotation) as annotation)) = pattern
+  let S.P_aux (unwrapped_pattern, ((location, _annotation) as annotation)) = pattern
   in
-  match aux with
+  match unwrapped_pattern with
   | P_lit (L_aux (lit, _loc)) ->
      begin
        match lit with
@@ -104,25 +109,24 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
-
-
-let value_of_literal (S.L_aux (literal, location)) =
-  match literal with
+let value_of_literal literal =
+  let S.L_aux (unwrapped_literal, literal_location) = literal
+  in
+  match unwrapped_literal with
   | L_true     -> TC.return @@ N.Val_bool true
   | L_false    -> TC.return @@ N.Val_bool false
   | L_num n    -> TC.return @@ N.Val_int n
   | L_unit     -> TC.return @@ N.Val_unit
   | L_string s -> TC.return @@ N.Val_string s
-  | S.L_zero   -> TC.not_yet_implemented [%here] location
-  | S.L_one    -> TC.not_yet_implemented [%here] location
-  | S.L_hex _  -> TC.not_yet_implemented [%here] location
-  | S.L_bin _  -> TC.not_yet_implemented [%here] location
-  | S.L_undef  -> TC.not_yet_implemented [%here] location
-  | S.L_real _ -> TC.not_yet_implemented [%here] location
+  | S.L_zero   -> TC.not_yet_implemented [%here] literal_location
+  | S.L_one    -> TC.not_yet_implemented [%here] literal_location
+  | S.L_hex _  -> TC.not_yet_implemented [%here] literal_location
+  | S.L_bin _  -> TC.not_yet_implemented [%here] literal_location
+  | S.L_undef  -> TC.not_yet_implemented [%here] literal_location
+  | S.L_real _ -> TC.not_yet_implemented [%here] literal_location
 
 
-let flatten_named_statements
-      (named_statements : (N.identifier * N.statement) list list) : (N.identifier * N.statement) list =
+let flatten_named_statements (named_statements : (N.identifier * N.statement) list list) : (N.identifier * N.statement) list =
   let flattened = List.concat named_statements
   in
   let statement_names = List.map ~f:fst flattened
@@ -159,11 +163,11 @@ let rec expression_of_aval
           (location : S.l         )
           (value    : S.typ S.aval) : (N.expression * (N.identifier * N.statement) list) TC.t
   =
-  let expression_of_tuple
-        (elements : S.typ S.aval list)
-    =
-    if List.is_empty elements
-    then TC.not_yet_implemented ~message:"Encountered empty tuple; should not occur" [%here] location
+  let expression_of_tuple (elements : S.typ S.aval list) =
+    if
+      List.is_empty elements
+    then
+      TC.not_yet_implemented ~message:"Encountered empty tuple; should not occur" [%here] location
     else begin
         let* translation_pairs      = TC.map ~f:(expression_of_aval location) elements
         in
@@ -260,7 +264,8 @@ let make_sequence statements location =
  *)
 let rec wrap_in_named_statements_context
       (named_statements : (N.identifier * N.statement) list)
-      (statement        : N.statement                ) : N.statement =
+      (statement        : N.statement                      ) : N.statement
+  =
   match named_statements with
   | (name, stm)::rest -> Stm_let (name, stm, wrap_in_named_statements_context rest statement)
   | []                -> statement
@@ -274,8 +279,8 @@ type with_destructured_record_data = {
   }
 
 let with_destructured_record
-      (location       : S.l                                                 )
-      (value          : S.typ S.aval                                        )
+      (location       : S.l                                              )
+      (value          : S.typ S.aval                                     )
       (body_generator : with_destructured_record_data -> N.statement TC.t) : N.statement TC.t
   =
   match value with
@@ -345,7 +350,7 @@ let with_destructured_record
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
-  let S.AE_aux (expression, _environment, location) = expression
+  let S.AE_aux (unwrapped_expression, _environment, location) = expression
   in
 
   let statement_of_match
@@ -913,7 +918,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     TC.return @@ Ast.Stm_fail "\"failure\"" (* todo *)
 
   in
-  match expression with
+  match unwrapped_expression with
   | AE_val value                                                  -> statement_of_value value
   | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
@@ -939,6 +944,7 @@ type sail_function_parts = {
   body               : Libsail.Ast.typ Libsail.Anf.aexp;
   return_type        : Libsail.Ast.typ;
 }
+
 
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
