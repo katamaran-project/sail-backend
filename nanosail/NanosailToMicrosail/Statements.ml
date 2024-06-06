@@ -8,13 +8,15 @@ open Identifier
 module AC = AnnotationContext
 
 
-let rec pp_statement statement =
-  match statement with
-  | Stm_exp e ->
-     let* e' = pp_par_expression e
-     in
-     AC.return @@ PP.(simple_app [string "stm_exp"; e'])
+let rec pp_statement (statement : statement) : PPrint.document AC.t =
+  let pp_expression_statement (expression : expression) : PPrint.document AC.t =
+    let* expression' = pp_par_expression expression
+    in
+    AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
+  in
+  match statement with
+  | Stm_exp e -> pp_expression_statement e
   | Stm_match match_pattern -> begin
       match match_pattern with
       | MP_list { matched; when_nil; when_cons } -> begin
