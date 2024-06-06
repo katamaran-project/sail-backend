@@ -169,6 +169,9 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       Stdio.printf "Warning: ignored cast\n";
       pp_statement statement_to_be_cast
 
+  and pp_fail_statement (message : string) : PPrint.document AC.t =
+    AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
+      
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
@@ -180,10 +183,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
   | Stm_destructure_record destructure_record -> pp_destructure_record_statement destructure_record
   | Stm_cast (statement_to_be_cast, target_type) -> pp_cast_statement statement_to_be_cast target_type
-
-  | Stm_fail message -> begin
-      AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
-    end
+  | Stm_fail message -> pp_fail_statement message
 
 and pp_par_statement s =
   let* s' = pp_statement s
