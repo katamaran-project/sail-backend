@@ -740,7 +740,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
       end
     | _ -> TC.return @@ wrap_in_named_statements_context named_statements @@ N.Stm_call (receiver_identifier', argument_expressions)
 
-
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
         (identifier  : S.id                )
