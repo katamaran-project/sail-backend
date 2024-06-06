@@ -97,7 +97,11 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
-  and pp_let_statement (variable_identifier : identifier) (s1 : statement) (s2 : statement) : PPrint.document AC.t =
+  and pp_let_statement
+      (variable_identifier : identifier)
+      (s1                  : statement )
+      (s2                  : statement ) : PPrint.document AC.t
+    =
     let* s1' = pp_statement s1
     and* s2' = pp_statement s2
     in
