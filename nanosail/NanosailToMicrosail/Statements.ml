@@ -116,6 +116,15 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   and pp_read_register_statement (register_identifier : identifier) : PPrint.document AC.t =
     AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
 
+  and pp_write_register_statement (register_identifier : identifier) (rhs : statement) : PPrint.document AC.t =
+    let* rhs' = pp_statement rhs
+    in
+    AC.return @@ PP.simple_app [
+      pp_identifier @@ Id.mk "stm_write_register";
+      pp_identifier register_identifier;
+      rhs'
+    ]
+
   in
   match statement with
   | Stm_exp e -> pp_expression_statement e
@@ -124,15 +133,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
   | Stm_let (variable_identifier, s1, s2) -> pp_let_statement variable_identifier s1 s2
   | Stm_seq (s1, s2) -> pp_sequence_statement s1 s2
   | Stm_read_register register_identifier -> pp_read_register_statement register_identifier
-  | Stm_write_register (register_identifier, rhs) -> begin
-      let* rhs' = pp_statement rhs
-      in
-      AC.return @@ PP.simple_app [
-          pp_identifier @@ Id.mk "stm_write_register";
-          pp_identifier register_identifier;
-          rhs'
-        ]
-    end
+  | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
 
   | Stm_destructure_record { record_type_identifier;
                              field_identifiers;
