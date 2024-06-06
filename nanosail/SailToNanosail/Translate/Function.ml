@@ -724,10 +724,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   and statement_of_application
           (receiver_identifier : S.id             )
           (arguments           : S.typ S.aval list)
-          (_typ                : S.typ            ) =
+          (_typ                : S.typ            )
+    =
     let* receiver_identifier' = translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
+
     match translated_arguments with
     | [(car', car_named_statements); (cdr', cdr_named_statements)] when String.equal (Id.string_of receiver_identifier') "sail_cons" -> begin
         let named_statements = flatten_named_statements [ car_named_statements; cdr_named_statements ]
@@ -960,7 +962,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          parameter_bindings;
          body;
          return_type
-       }         
+       }
      end
 
 
