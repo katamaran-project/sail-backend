@@ -2,7 +2,6 @@ module Translation            = Translation
 module Sanitation             = Sanitation
 module TranslationContext     = TranslationContext
 module Prelude                = Prelude
-module Basics                 = Basics
 module StringOf               = StringOf
 module Translate              = Translate
 

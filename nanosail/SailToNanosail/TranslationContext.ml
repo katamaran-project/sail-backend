@@ -1,6 +1,5 @@
 open Base
 open Ast
-open Basics
 
 
 module Context = struct
@@ -35,8 +34,8 @@ end
 
 module Error = struct
   type t =
-    | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
-    | AssertionFailure  of ocaml_source_location * string
+    | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
+    | AssertionFailure  of Lexing.position * string
 end
 
 
@@ -59,7 +58,7 @@ let run f      = Monad.run f Context.empty
 
 
 let string_of_error (error : Error.t) : string =
-  let string_of_ocaml_location (ocaml_location : ocaml_source_location) =
+  let string_of_ocaml_location (ocaml_location : Lexing.position) =
     Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
   in
   match error with

@@ -13,7 +13,6 @@ module TC = TranslationContext
 module StringMap = Map.String
 
 open Base
-open Basics
 open Monads.Notations.Star(TC)
 
 
@@ -47,7 +46,7 @@ end
 
 module Error = struct
   type t =
-    | NotYetImplemented of ocaml_source_location * Libsail.Ast.l * string option
+    | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
 end
 
 module Monad = Monads.StateResult.Make(State)(Error)

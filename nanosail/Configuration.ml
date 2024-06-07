@@ -76,77 +76,77 @@ module Identifier = struct (* move somewhere else *)
      | P_id identifier    -> string_of_id identifier
      | P_typ (_, pattern) -> of_pattern pattern
      | P_lit _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_wild -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_or (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_not _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_as (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_var (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_app (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_vector _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_vector_concat _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_vector_subrange (_, _, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_tuple _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_list _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_cons (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_string_append _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end
      | P_struct (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ Basics.string_of_position [%here]
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
          in
          failwith error_message
        end

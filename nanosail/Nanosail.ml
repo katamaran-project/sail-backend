@@ -1,4 +1,3 @@
-module Basics              = Basics
 module Id                  = Id
 module Ast                 = Ast
 module Configuration       = Configuration
