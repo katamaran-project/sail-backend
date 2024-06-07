@@ -79,23 +79,23 @@ module Identifier = struct (* move somewhere else *)
 
     in
     match pattern with
-     | P_id identifier    -> string_of_id identifier
-     | P_typ (_, pattern) -> of_pattern pattern
-     | P_lit _ -> not_supported [%here]
-     | P_wild -> not_supported [%here]
-     | P_or (_, _) -> not_supported [%here]
-     | P_not _ -> not_supported [%here]
-     | P_as (_, _) -> not_supported [%here]
-     | P_var (_, _) -> not_supported [%here]
-     | P_app (_, _) -> not_supported [%here]
-     | P_vector _ -> not_supported [%here]
-     | P_vector_concat _ -> not_supported [%here]
+     | P_id identifier             -> string_of_id identifier
+     | P_typ (_, pattern)          -> of_pattern pattern
+     | P_lit _                     -> not_supported [%here]
+     | P_wild                      -> not_supported [%here]
+     | P_or (_, _)                 -> not_supported [%here]
+     | P_not _                     -> not_supported [%here]
+     | P_as (_, _)                 -> not_supported [%here]
+     | P_var (_, _)                -> not_supported [%here]
+     | P_app (_, _)                -> not_supported [%here]
+     | P_vector _                  -> not_supported [%here]
+     | P_vector_concat _           -> not_supported [%here]
      | P_vector_subrange (_, _, _) -> not_supported [%here]
-     | P_tuple _ -> not_supported [%here]
-     | P_list _ -> not_supported [%here]
-     | P_cons (_, _) -> not_supported [%here]
-     | P_string_append _ -> not_supported [%here]
-     | P_struct (_, _) -> not_supported [%here]
+     | P_tuple _                   -> not_supported [%here]
+     | P_list _                    -> not_supported [%here]
+     | P_cons (_, _)               -> not_supported [%here]
+     | P_string_append _           -> not_supported [%here]
+     | P_struct (_, _)             -> not_supported [%here]
 end
 
 
