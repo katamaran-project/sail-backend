@@ -1,6 +1,5 @@
 open Base
 open Ast
-open Basics
 
 
 let generate
@@ -27,8 +26,8 @@ let generate
              stop.pos_lnum
              (stop.pos_cnum - stop.pos_bol)
        )
-       else string_of_location location
-    | _ -> string_of_location location
+       else StringOf.Sail.location location
+    | _ -> StringOf.Sail.location location
   in
   let { filename; line_number; sail_location; message } = untranslated_definition in
   let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number in
