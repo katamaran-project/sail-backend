@@ -1,10 +1,7 @@
 open Base
-(* open Auxlib *)
-open Ast
-open Identifier
 
 
-let pp_value (value : value) : PP.document =
+let pp_value (value : Ast.value) : PP.document =
   match value with
   | Val_unit        -> PP.(string "tt")
   | Val_int n       -> PP.(string @@ Z.to_string n)
@@ -13,11 +10,11 @@ let pp_value (value : value) : PP.document =
   | Val_bool b      -> PP.string @@ if b then "true" else "false"
 
 
-let pp_value_definition (value_definition : value_definition) : PP.document =
-  let { identifier; value } = value_definition
+let pp_value_definition (value_definition : Ast.value_definition) : PP.document =
+  let { Ast.identifier; value } = value_definition
   in
   let definition =
-    let identifier = pp_identifier identifier
+    let identifier = Identifier.pp_identifier identifier
     and parameters = []
     and result_type = None
     and body = pp_value value
@@ -27,9 +24,9 @@ let pp_value_definition (value_definition : value_definition) : PP.document =
   definition
 
 
-let generate (definitions : (Sail.sail_definition * definition) list) =
+let generate (definitions : (Sail.sail_definition * Ast.definition) list) =
   let value_definitions =
-    List.map ~f:snd @@ select Extract.value_definition definitions
+    List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
   in
   let coq_lines = List.map ~f:pp_value_definition value_definitions
   in

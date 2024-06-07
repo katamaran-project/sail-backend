@@ -4,7 +4,7 @@ module AC = AnnotationContext
 
 
 let pp_foreign_kit =
-  let title = Id.mk "ForeignKit"
+  let title = Ast.Identifier.mk "ForeignKit"
   and contents =
     PP.(separate_map hardline utf8string [
       "Definition Memory : Set := unit.";

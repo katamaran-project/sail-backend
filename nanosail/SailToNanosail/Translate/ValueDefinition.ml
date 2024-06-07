@@ -83,7 +83,7 @@ let translate_value_definition
   | S.P_id identifier -> begin
       match identifier with
       | S.Id_aux (S.Id identifier, _identifier_location) -> begin
-          let identifier = Id.mk identifier
+          let identifier = Ast.Identifier.mk identifier
           in
           let* value = translate_expression expression
           in

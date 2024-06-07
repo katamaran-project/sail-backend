@@ -1,6 +1,5 @@
 open Base
 open PP
-open Ast
 open Auxlib
 open Identifier
 open Statements
@@ -10,9 +9,9 @@ module AC = AnnotationContext
 
 
 let pp_function_definition
-      ((sail_function_definition : Sail.sail_definition), (function_definition : function_definition))
+      ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.function_definition))
       type_constraint =
-  let identifier = pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name
+  let identifier = pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
   let coq_definition =
     let parameters = []
@@ -58,13 +57,13 @@ let pp_function_definition
 
 
 let pp_function_definitions
-      (function_definitions : (Sail.sail_definition * function_definition) list)
-      (top_level_type_constraint_definitions : (Sail.sail_definition * top_level_type_constraint_definition) list) =
+      (function_definitions : (Sail.sail_definition * Ast.function_definition) list)
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.top_level_type_constraint_definition) list) =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match
         List.filter
-          ~f:(fun (_, type_constraint) -> Id.equal type_constraint.identifier function_name)
+          ~f:(fun (_, type_constraint) -> Ast.Identifier.equal type_constraint.identifier function_name)
           top_level_type_constraint_definitions
       with
       | [x] -> Some x
@@ -82,7 +81,7 @@ let pp_function_definition_kit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
-    let identifier = pp_identifier @@ Id.mk "FunDef"
+    let identifier = pp_identifier @@ Ast.Identifier.mk "FunDef"
     and parameters = [
         utf8string "{Δ τ}";
         utf8string "(f : Fun Δ τ)"
@@ -92,10 +91,10 @@ let pp_function_definition_kit
       let matched_expression =
         utf8string "f in Fun Δ τ return Stm Δ τ"
       and cases =
-        let case_of_function_definition function_definition =
+        let case_of_function_definition (function_definition : Ast.function_definition) =
           (
             pp_identifier function_definition.function_name,
-            pp_identifier @@ Id.add_prefix "fun_" function_definition.function_name
+            pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
           )
         in
         List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
@@ -112,4 +111,4 @@ let pp_function_definition_kit
           )
       )
   in
-  Coq.section (Id.mk "FunDefKit") contents
+  Coq.section (Ast.Identifier.mk "FunDefKit") contents

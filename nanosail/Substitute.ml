@@ -3,7 +3,7 @@ open Ast
 
 
 module Subst = struct
-  let rec numeric_expression (subst : identifier -> identifier) =
+  let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nexp : numeric_expression) =
       match nexp with
       | NE_constant _           -> nexp
@@ -16,7 +16,7 @@ module Subst = struct
     in
     aux
 
-  and nanotype (subst : identifier -> identifier) =
+  and nanotype (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (t : nanotype) =
       match t with
       | Ty_unit            -> Ty_unit
@@ -36,7 +36,7 @@ module Subst = struct
     in
     aux
 
-  and type_argument (subst : identifier -> identifier) =
+  and type_argument (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let aux (targ : type_argument) =
       match targ with
       | TA_type t       -> TA_type (nanotype subst t)
@@ -45,7 +45,7 @@ module Subst = struct
     in
     aux
 
-  and numeric_constraint (subst : identifier -> identifier) =
+  and numeric_constraint (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nconstr : numeric_constraint) =
       match nconstr with
       | NC_equal (left, right)      -> NC_equal (numeric_expression subst left, numeric_expression subst right)
@@ -72,8 +72,8 @@ let remove_apostrophes_at_start =
 let sanitizing_substitution =
   remove_apostrophes_at_start
 
-let sanitize_identifier (identifier : identifier) : identifier option =
-  let Id s = identifier
+let sanitize_identifier (identifier : Ast.Identifier.t) : Ast.Identifier.t option =
+  let s = Ast.Identifier.string_of identifier
   in
   if String.is_prefix ~prefix:"'" s
   then Some (Id (remove_apostrophes_at_start s))
@@ -82,16 +82,16 @@ let sanitize_identifier (identifier : identifier) : identifier option =
 
 module SubstitutionMonad = struct
   module SubstitutionMap = struct
-    type t = identifier IdentifierMap.t
+    type t = Identifier.t Identifier.Map.t
 
-    let empty = IdentifierMap.empty
+    let empty = Identifier.Map.empty
 
-    let add = IdentifierMap.add_exn
+    let add = Identifier.Map.add_exn
 
-    let find = IdentifierMap.find
+    let find = Identifier.Map.find
 
     let contains_value map identifier =
-      IdentifierMap.exists map ~f:(Id.equal identifier)
+      Identifier.Map.exists map ~f:(Identifier.equal identifier)
   end
 
   include Monads.State.Make(SubstitutionMap)
@@ -121,7 +121,7 @@ end
 let create_substitution_from_map map =
   let open SubstitutionMonad
   in
-  let contains_value (identifier : identifier) =
+  let contains_value (identifier : Ast.Identifier.t) =
     SubstitutionMap.contains_value map identifier
   in
   fun id ->
@@ -130,8 +130,8 @@ let create_substitution_from_map map =
   | None     -> if contains_value id then failwith "Clash!" else id
 
 let process_type_quantifier
-    (sanitize        : identifier -> identifier option)
-    (type_quantifier : type_quantifier                ) =
+    (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option)
+    (type_quantifier : type_quantifier                            ) =
   let open SubstitutionMonad in
   let open Monads.Notations.Star(SubstitutionMonad)
   in
@@ -152,10 +152,10 @@ let process_type_quantifier
   (type_quantifier', create_substitution_from_map map)
 
 let generic_sanitize
-    (sanitize        : identifier -> identifier option       )
-    (substituter     : (identifier -> identifier) -> 'a -> 'a)
-    (type_quantifier : type_quantifier                       )
-    (x               : 'a                                    ) =
+    (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option       )
+    (substituter     : (Ast.Identifier.t -> Ast.Identifier.t) -> 'a -> 'a)
+    (type_quantifier : type_quantifier                                   )
+    (x               : 'a                                                ) =
   let type_quantifier', subst = process_type_quantifier sanitize type_quantifier
   in
   let x' = substituter subst x

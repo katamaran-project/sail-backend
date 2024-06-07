@@ -40,7 +40,7 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N
   in
   match unwrapped_numeric_expression with
   | Nexp_constant constant                     -> TC.return @@ N.NE_constant constant
-  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var (Id.mk string)
+  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NE_var (Ast.Identifier.mk string)
   | Nexp_times (x, y)                          -> translate_times x y
   | Nexp_sum (x, y)                            -> translate_sum x y
   | Nexp_minus (x, y)                          -> translate_minus x y
@@ -100,8 +100,8 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   | S.NC_bounded_lt (x, y)                     -> translate_bounded_lt x y
   | S.NC_or (x, y)                             -> translate_or x y
   | S.NC_and (x, y)                            -> translate_and x y
-  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Id.mk kind_id, ns)
-  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var (Id.mk kind_id)
+  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ N.NC_set (Ast.Identifier.mk kind_id, ns)
+  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ N.NC_var (Ast.Identifier.mk kind_id)
   | S.NC_true                                  -> TC.return @@ N.NC_true
   | S.NC_false                                 -> TC.return @@ N.NC_false
   | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] numeric_constraint_location

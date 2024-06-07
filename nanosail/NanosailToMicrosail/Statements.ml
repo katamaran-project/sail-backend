@@ -1,5 +1,4 @@
 open Base
-open Ast
 open Auxlib
 open Monads.Notations.Star(AnnotationContext)
 open Expressions
@@ -8,13 +7,13 @@ open Identifier
 module AC = AnnotationContext
 
 
-let rec pp_statement (statement : statement) : PPrint.document AC.t =
-  let pp_expression_statement (expression : expression) : PPrint.document AC.t =
+let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
+  let pp_expression_statement (expression : Ast.expression) : PPrint.document AC.t =
     let* expression' = pp_par_expression expression
     in
     AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
-  and pp_match_statement (match_pattern : match_pattern) : PPrint.document AC.t =
+  and pp_match_statement (match_pattern : Ast.match_pattern) : PPrint.document AC.t =
     match match_pattern with
     | MP_list { matched; when_nil; when_cons } -> begin
         let id_head, id_tail, when_cons_body = when_cons
@@ -60,7 +59,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       end
 
     | MP_enum { matched; cases } -> begin
-        let translate_case ~(key:identifier) ~(data:statement) (acc : PP.document list AC.t) =
+        let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.statement) (acc : PP.document list AC.t) =
           let* acc
           and* pattern = AC.return @@ pp_identifier key
           and* clause = pp_statement data
@@ -73,7 +72,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
             ] :: acc)
         in
         let* matched' = pp_par_statement matched
-        and* cases' = IdentifierMap.fold cases ~init:(AC.return []) ~f:translate_case
+        and* cases' = Ast.Identifier.Map.fold cases ~init:(AC.return []) ~f:translate_case
         in
         AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
           add @@ Coq.comment @@ PP.string "TODO Fix this";
@@ -90,17 +89,17 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       end
 
   and pp_call_statement
-      (function_identifier : identifier     )
-      (arguments           : expression list) : PPrint.document AC.t
+      (function_identifier : Ast.Identifier.t   )
+      (arguments           : Ast.expression list) : PPrint.document AC.t
     =
     let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
   and pp_let_statement
-      (variable_identifier : identifier)
-      (binding_statement   : statement )
-      (body_statement      : statement ) : PPrint.document AC.t
+      (variable_identifier : Ast.Identifier.t)
+      (binding_statement   : Ast.statement   )
+      (body_statement      : Ast.statement   ) : PPrint.document AC.t
     =
     let* binding_statement' = pp_statement binding_statement
     and* body_statement'    = pp_statement body_statement
@@ -115,32 +114,32 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
       )
 
   and pp_sequence_statement
-      (left  : statement)
-      (right : statement) : PPrint.document AC.t
+      (left  : Ast.statement)
+      (right : Ast.statement) : PPrint.document AC.t
     =
       let* left'  = pp_par_statement left
       and* right' = pp_par_statement right
       in
       AC.return @@ PP.(simple_app [ string "stm_seq"; left'; right' ])
 
-  and pp_read_register_statement (register_identifier : identifier) : PPrint.document AC.t =
+  and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PPrint.document AC.t =
     AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
 
   and pp_write_register_statement
-      (register_identifier : identifier)
-      (rhs                 : statement ) : PPrint.document AC.t
+      (register_identifier : Ast.Identifier.t)
+      (rhs                 : Ast.statement   ) : PPrint.document AC.t
     =
     let* rhs' = pp_statement rhs
     in
     AC.return @@ PP.simple_app [
-      pp_identifier @@ Id.mk "stm_write_register";
+      pp_identifier @@ Ast.Identifier.mk "stm_write_register";
       pp_identifier register_identifier;
       rhs'
     ]
 
-  and pp_destructure_record_statement (destructure_record : destructure_record) : PPrint.document AC.t =
+  and pp_destructure_record_statement (destructure_record : Ast.destructure_record) : PPrint.document AC.t =
     let {
-      record_type_identifier;
+      Ast.record_type_identifier;
       field_identifiers;
       variable_identifiers;
       destructured_record;
@@ -164,7 +163,7 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     and* body' = pp_statement body
     in
     AC.return @@ PP.simple_app [
-      pp_identifier @@ Id.mk "stm_match_record";
+      pp_identifier @@ Ast.Identifier.mk "stm_match_record";
       pp_identifier record_type_identifier;
       PP.parens destructured_record';
       pattern;
@@ -172,14 +171,14 @@ let rec pp_statement (statement : statement) : PPrint.document AC.t =
     ]
 
   and pp_cast_statement
-      (statement_to_be_cast : statement)
-      (_target_type         : nanotype ) : PPrint.document AC.t
+      (statement_to_be_cast : Ast.statement)
+      (_target_type         : Ast.nanotype ) : PPrint.document AC.t
     =
     Stdio.printf "Warning: ignored cast\n";
     pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PPrint.document AC.t =
-    AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "fail"; PP.string message ]
+    AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "fail"; PP.string message ]
 
   in
   match statement with

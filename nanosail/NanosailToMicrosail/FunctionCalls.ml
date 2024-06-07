@@ -7,7 +7,7 @@ module AC = AnnotationContext
 
 
 let default_translation
-    (function_identifier : Ast.identifier  )
+    (function_identifier : Ast.Identifier.t)
     (arguments           : PP.document list) : PP.document AC.t
   =
   let terms =
@@ -21,7 +21,7 @@ let default_translation
 
 
 let translate_as_binary_operator
-    (original_function_name : Ast.identifier   )
+    (original_function_name : Ast.Identifier.t )
     (operator               : string           )
     (operands               : PP.document list ) : PP.document AC.t
   =
@@ -31,7 +31,7 @@ let translate_as_binary_operator
       let message =
         Printf.sprintf
           "%s should receive 2 arguments but instead received %d; falling back on default translation for function calls"
-          (Id.string_of original_function_name)
+          (Ast.Identifier.string_of original_function_name)
           (List.length operands)
       in
       let* annotation_index = AC.create_annotation_from_string message
@@ -42,10 +42,10 @@ let translate_as_binary_operator
 
 
 let translate
-    (function_identifier : Ast.identifier   )
+    (function_identifier : Ast.Identifier.t )
     (arguments           : PP.document list ) : PP.document AC.t
   =
-  match Id.string_of function_identifier with
+  match Ast.Identifier.string_of function_identifier with
   | "add_bits_int" -> translate_as_binary_operator function_identifier "+" arguments
   | "lteq_int"     -> translate_as_binary_operator function_identifier "<=" arguments
   | _ -> default_translation function_identifier arguments

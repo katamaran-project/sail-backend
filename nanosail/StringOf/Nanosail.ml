@@ -1,7 +1,7 @@
 open Base
 
 
-let identifier = Id.string_of
+let identifier = Ast.Identifier.string_of
 
 
 let rec nanotype (t : Ast.nanotype) =

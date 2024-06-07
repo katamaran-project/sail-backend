@@ -78,7 +78,7 @@ let coqify_identifiers (program : N.program) : N.program =
     in
     let sanitize_record (record_definition : N.record_definition) : N.record_definition =
       (* todo *)
-      Stdio.printf "WARNING: record %s may need to be sanitized\n" (Id.string_of record_definition.identifier);
+      Stdio.printf "WARNING: record %s may need to be sanitized\n" (Ast.Identifier.string_of record_definition.identifier);
       record_definition
     in
     match (type_definition : N.type_definition) with

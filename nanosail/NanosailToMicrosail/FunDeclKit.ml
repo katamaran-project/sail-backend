@@ -1,14 +1,13 @@
 open Base
 open PP
-open Ast
-open Monads.Notations.Star(AnnotationContext)
 open Identifier
+open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
 
 
-let generate function_definitions =
-  let pp_function_declaration function_definition =
+let generate (function_definitions : Ast.function_definition list) =
+  let pp_function_declaration (function_definition : Ast.function_definition) =
     let name = pp_identifier function_definition.function_name in
     let* function_type =
       let* parameter_types =
@@ -57,4 +56,4 @@ let generate function_definitions =
           ]
       ]
   in
-  Coq.section (Id.mk "FunDeclKit") contents
+  Coq.section (Ast.Identifier.mk "FunDeclKit") contents

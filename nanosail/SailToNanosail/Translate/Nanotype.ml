@@ -24,7 +24,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   let rec nanotype_of_identifier (identifier : S.id) : N.nanotype TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
-    match Id.string_of identifier' with
+    match Ast.Identifier.string_of identifier' with
     | "bool"      -> TC.return @@ N.Ty_bool
     | "nat"       -> TC.return @@ N.Ty_nat
     | "int"       -> TC.return @@ N.Ty_int
@@ -45,7 +45,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     let* type_arguments' = TC.map ~f:nanotype_of_type_argument type_arguments
     and* identifier'     = translate_identifier [%here] identifier
     in
-    match (Id.string_of identifier'), type_arguments' with
+    match (Ast.Identifier.string_of identifier'), type_arguments' with
     | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
     | "atom", [ _ ]             -> TC.return N.Ty_int
     | "atom_bool", [ _ ]        -> TC.return N.Ty_bool

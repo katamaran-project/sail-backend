@@ -19,6 +19,6 @@ let generate (definitions : (Sail.sail_definition * definition) list) =
       )  
   in
   let section =
-    Coq.section (Id.mk "TransparentObligations") PP.(separate hardline contents)
+    Coq.section (Ast.Identifier.mk "TransparentObligations") PP.(separate hardline contents)
   in
   Some section

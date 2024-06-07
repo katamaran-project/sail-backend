@@ -120,11 +120,11 @@ let register (definition : definition) =
 *)
 let lookup_type
       (extractor  : type_definition -> 'a option)
-      (identifier : identifier                  ) : 'a option t =
+      (identifier : Ast.Identifier.t            ) : 'a option t =
   let predicate (definition : definition) : type_definition option =
     match definition with
     | TypeDefinition type_definition ->
-      if Id.equal identifier (type_identifier type_definition)
+      if Ast.Identifier.equal identifier (type_identifier type_definition)
       then Some type_definition
       else None
     | _ -> None
@@ -137,11 +137,11 @@ let lookup_type
 
 
 (* Looks up type of register with given name *)
-let lookup_register_type (identifier : identifier) : nanotype option t =
+let lookup_register_type (identifier : Ast.Identifier.t) : nanotype option t =
   let predicate (definition : definition) : register_definition option =
     match definition with
     | RegisterDefinition register_definition ->
-      if Id.equal register_definition.identifier identifier
+      if Ast.Identifier.equal register_definition.identifier identifier
       then Some register_definition
       else None
     | _ -> None
@@ -151,7 +151,7 @@ let lookup_register_type (identifier : identifier) : nanotype option t =
   return @@ Option.map (List.find_map definitions ~f:predicate) ~f:(fun r -> r.typ)
 
 
-let is_register (identifier : identifier) : bool t =
+let is_register (identifier : Ast.Identifier.t) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
 
 
@@ -163,9 +163,9 @@ let generate_unique_int : int t =
   return index
 
 
-let generate_unique_identifier prefix : identifier t =
+let generate_unique_identifier prefix : Ast.Identifier.t t =
   let* index = generate_unique_int
   in
   let id = Printf.sprintf "%s%d" prefix index
   in
-  return (Id.mk id)
+  return (Ast.Identifier.mk id)

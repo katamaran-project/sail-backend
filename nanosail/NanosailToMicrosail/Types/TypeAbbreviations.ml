@@ -1,5 +1,4 @@
 open Base
-open Ast
 open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
@@ -7,8 +6,8 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate (type_abbreviation : type_abbreviation_definition) : PP.document AC.t =
-  let { identifier; abbreviation } = type_abbreviation
+let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.document AC.t =
+  let { Ast.identifier; Ast.abbreviation } = type_abbreviation
   in
   match abbreviation with
   | TA_numeric_expression (quantifier, numexpr) -> begin
@@ -36,5 +35,5 @@ let generate (type_abbreviation : type_abbreviation_definition) : PP.document AC
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
       AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body;
-    end
+    end 
 

@@ -1,6 +1,5 @@
 open Base
 open PPrint
-open Ast
 open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
@@ -8,14 +7,14 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate_inductive_type (variant_definition : variant_definition) : PP.document AC.t =
-  let { identifier; type_quantifier; constructors } = variant_definition
+let generate_inductive_type (variant_definition : Ast.variant_definition) : PP.document AC.t =
+  let { Ast.identifier; type_quantifier; constructors } = variant_definition
   in
   let inductive_type =
     let identifier' =
       pp_identifier identifier
     in
-    let pp_constructor_types (field_nanotypes : nanotype list) =
+    let pp_constructor_types (field_nanotypes : Ast.nanotype list) =
       let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype field_nanotypes
       in
       let ts = ts @ [ identifier' ]
@@ -44,18 +43,18 @@ let generate_inductive_type (variant_definition : variant_definition) : PP.docum
   inductive_type
 
 
-let generate_constructors_inductive_type (variant_definition  : variant_definition) =
-  let identifier = pp_identifier @@ Id.add_suffix "Constructor" variant_definition.identifier
-  and typ = pp_identifier @@ Id.mk "Set"
+let generate_constructors_inductive_type (variant_definition  : Ast.variant_definition) =
+  let identifier = pp_identifier @@ Ast.Identifier.add_suffix "Constructor" variant_definition.identifier
+  and typ = pp_identifier @@ Ast.Identifier.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
   Coq.build_inductive_type identifier typ (fun add_constructor ->
       AC.iter constructor_names
-        ~f:(fun case -> add_constructor @@ pp_identifier @@ Id.add_prefix "K" case)
+        ~f:(fun case -> add_constructor @@ pp_identifier @@ Ast.Identifier.add_prefix "K" case)
     )
 
 
-let generate (variant_definition : variant_definition) =
+let generate (variant_definition : Ast.variant_definition) =
   let* inductive_type = generate_inductive_type variant_definition
   and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in

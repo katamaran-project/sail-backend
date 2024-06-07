@@ -552,7 +552,7 @@ let record
   line @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
 
 
-let local_obligation_tactic (identifier : Ast.identifier) : PP.document =
+let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   let lines_of_code = [
       PP.string "Local Obligation Tactic :=";
       PP.(twice space ^^ pp_identifier identifier)
@@ -562,16 +562,16 @@ let local_obligation_tactic (identifier : Ast.identifier) : PP.document =
 
 
 let derive
-      (class_identifier : Ast.identifier)
-      (type_identifier  : Ast.identifier) : PP.document =
+      (class_identifier : Ast.Identifier.t)
+      (type_identifier  : Ast.Identifier.t) : PP.document =
   let str =
     Printf.sprintf
       "Derive %s for %s."
-      (Id.string_of class_identifier)
-      (Id.string_of type_identifier)
+      (Ast.Identifier.string_of class_identifier)
+      (Ast.Identifier.string_of type_identifier)
   in
   PP.string str
 
 
-let derive_eqdec_for (identifier : Ast.identifier) =
-  derive (Id.mk "EqDec") identifier
+let derive_eqdec_for (identifier : Ast.Identifier.t) =
+  derive (Ast.Identifier.mk "EqDec") identifier

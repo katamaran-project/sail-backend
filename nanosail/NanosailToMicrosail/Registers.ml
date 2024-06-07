@@ -1,5 +1,4 @@
 open Base
-open Ast
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
 
@@ -12,7 +11,7 @@ let reg_inductive_type register_definitions =
   in
   let inductive_type =
     Coq.build_inductive_type identifier typ (fun add_constructor ->
-        let make_constructor (register_definition : register_definition) =
+        let make_constructor (register_definition : Ast.register_definition) =
           let identifier = pp_identifier register_definition.identifier
           in
           let* register_type = Nanotype.pp_nanotype register_definition.typ
@@ -28,7 +27,7 @@ let reg_inductive_type register_definitions =
 
 
 let no_confusion_for_reg () =
-  Coq.section (Id.mk "TransparentObligations") (
+  Coq.section (Ast.Identifier.mk "TransparentObligations") (
       PP.(separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
@@ -40,10 +39,10 @@ let reg_definition () =
   PP.utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 
-let translate_regname (register_identifier : identifier) : identifier =
+let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
   let prefix = "RegName_"
   in
-  Id.mk @@ Printf.sprintf "%s%s" prefix (Id.string_of register_identifier)
+  Ast.Identifier.mk @@ Printf.sprintf "%s%s" prefix (Ast.Identifier.string_of register_identifier)
 
 (*
   Defines RegName inductive type enumerating all registers
@@ -56,7 +55,7 @@ let translate_regname (register_identifier : identifier) : identifier =
   .
 
  *)
-let regnames (register_definitions : (Sail.sail_definition * register_definition) list) =
+let regnames (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
   if List.is_empty register_definitions
   then None
   else begin
@@ -132,9 +131,9 @@ let obligation_tactic =
     ]
   )
 
-let generate (register_definitions : (Sail.sail_definition * register_definition) list) : PP.document =
+let generate (register_definitions : (Sail.sail_definition * Ast.register_definition) list) : PP.document =
   let register_names =
-    let extract_identifier (pair : Sail.sail_definition * register_definition) =
+    let extract_identifier (pair : Sail.sail_definition * Ast.register_definition) =
       pp_identifier (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
@@ -149,4 +148,4 @@ let generate (register_definitions : (Sail.sail_definition * register_definition
       reg_finite register_names
     ])
   in
-  Coq.section (Id.mk "RegDeclKit") section_contents
+  Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents

@@ -1,12 +1,11 @@
 open Base
-open Ast
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
 
 module AC = AnnotationContext
 
 
-let pp_infix_binOp (binary_operator : binary_operator) =
+let pp_infix_binOp (binary_operator : Ast.binary_operator) =
   match binary_operator with
   | Plus   -> AC.return @@ PP.plus
   | Times  -> AC.return @@ PP.star
@@ -24,38 +23,37 @@ let pp_infix_binOp (binary_operator : binary_operator) =
   | Append -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let ty_of_val =
-  let rec aux = function
-    | Val_unit          -> Ty_unit
-    | Val_bool _        -> Ty_bool
-    | Val_int _         -> Ty_int
-    | Val_string _      -> Ty_string
-    | Val_prod (v1, v2) -> Ty_tuple [aux v1; aux v2]
-  in
-  aux
+let rec ty_of_val (value : Ast.value) : Ast.nanotype =
+  match value with
+  | Val_unit          -> Ty_unit
+  | Val_bool _        -> Ty_bool
+  | Val_int _         -> Ty_int
+  | Val_string _      -> Ty_string
+  | Val_prod (v1, v2) -> Ty_tuple [ty_of_val v1; ty_of_val v2]
 
 
-let pp_value =
-  let rec aux = function
-    | Val_unit          -> PP.string "tt"
-    | Val_bool b        -> PP.string (Bool.to_string b)
-    | Val_int i         -> Coq.integer i
-    | Val_string s      -> PP.(dquotes @@ string s)
-    | Val_prod (v1, v2) -> Coq.product (aux v1) (aux v2)
-  in
-  aux
+
+let rec pp_value (value : Ast.value) : PP.document =
+  match value with
+  | Val_unit          -> PP.string "tt"
+  | Val_bool b        -> PP.string (Bool.to_string b)
+  | Val_int i         -> Coq.integer i
+  | Val_string s      -> PP.(dquotes @@ string s)
+  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
 
 
-let rec pp_expression e =
-  let rec pp_exp_list = function
+let rec pp_expression (e : Ast.expression) =
+  let rec pp_exp_list expressions =
+    match expressions with
     | []      -> AC.return @@ PP.string "nil"
     | x :: xs ->
-       let* x'  = pp_par_expression x
-       and* xs' = pp_exp_list xs
-       in
-       AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
+      let* x'  = pp_par_expression x
+      and* xs' = pp_exp_list xs
+      in
+      AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
   in
-  let pp_exp_val = function
+  let pp_exp_val (value : Ast.value) =
+    match value with
     | Val_bool true        -> AC.return @@ PP.string "exp_true"
     | Val_bool false       -> AC.return @@ PP.string "exp_false"
     | Val_int n            -> AC.return @@ PP.(simple_app [string "exp_int"; Coq.integer n])
@@ -73,11 +71,15 @@ let rec pp_expression e =
         ]
       end
   in
-  let pp_exp_binop bo e1 e2 =
+  let pp_exp_binop
+      (binary_operator : Ast.binary_operator)
+      (e1              : Ast.expression     )
+      (e2              : Ast.expression     )
+    =
     let* e1' = pp_par_expression e1
     and* e2' = pp_par_expression e2
     in
-    match bo with
+    match binary_operator with
     | Pair ->
        AC.return @@ PP.(simple_app [
          string "exp_binop";
@@ -100,12 +102,12 @@ let rec pp_expression e =
          e2'
        ])
     | _  ->
-      let* binop' = pp_infix_binOp bo
+      let* binop' = pp_infix_binOp binary_operator
       in
       AC.return @@ PP.infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var v              -> AC.return @@ PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
+  | Exp_var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
   | Exp_val v              -> pp_exp_val v
   | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
   | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ PP.(simple_app [string "exp_not"; e'])

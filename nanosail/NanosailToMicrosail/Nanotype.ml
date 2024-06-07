@@ -1,5 +1,4 @@
 open Base
-open Ast
 open Numeric
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
@@ -7,9 +6,9 @@ open Identifier
 module AC = AnnotationContext
 
 
-let rec pp_nanotype (typ : nanotype) =
+let rec pp_nanotype (typ : Ast.nanotype) =
   let pp_product x y =
-    PP.parens @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.prod"; x; y ]
+    PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.prod"; x; y ]
   in
   
   let pp_tuple elts =
@@ -23,12 +22,12 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.list"; element_type' ]
+    AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
   in
   
   let pp_application
-      (constructor    : nanotype          )
-      (type_arguments : type_argument list) : PP.document AC.t
+      (constructor    : Ast.nanotype          )
+      (type_arguments : Ast.type_argument list) : PP.document AC.t
     =
     let* constructor' = pp_nanotype constructor
     in
@@ -41,15 +40,15 @@ let rec pp_nanotype (typ : nanotype) =
   let pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
-    AC.return @@ PP.simple_app [ pp_identifier @@ Id.mk "ty.bitvector"; nexpr' ]
+    AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
   in
   match typ with
-   | Ty_unit                     -> AC.return @@ pp_identifier @@ Id.mk "ty.unit"
-   | Ty_bool                     -> AC.return @@ pp_identifier @@ Id.mk "ty.bool"
-   | Ty_int                      -> AC.return @@ pp_identifier @@ Id.mk "ty.int"
-   | Ty_nat                      -> AC.return @@ pp_identifier @@ Id.mk "ty.nat"
-   | Ty_string                   -> AC.return @@ pp_identifier @@ Id.mk "ty.string"
-   | Ty_atom                     -> AC.return @@ pp_identifier @@ Id.mk "ty.atom"
+   | Ty_unit                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
+   | Ty_bool                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"
+   | Ty_int                      -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.int"
+   | Ty_nat                      -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.nat"
+   | Ty_string                   -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.string"
+   | Ty_atom                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
    | Ty_custom id                -> AC.return @@ pp_identifier id
    | Ty_record                   -> AC.not_yet_implemented [%here]
    | Ty_prod (_, _)              -> AC.not_yet_implemented [%here]
@@ -60,7 +59,7 @@ let rec pp_nanotype (typ : nanotype) =
    | Ty_bitvector nexpr          -> pp_bitvector nexpr
 
 
-and coq_type_of_nanotype (nanotype : nanotype) =
+and coq_type_of_nanotype (nanotype : Ast.nanotype) =
   let coq_type_of_bitvector_type n =
     let* n' = pp_numeric_expression n
     in
@@ -94,7 +93,7 @@ and coq_type_of_nanotype (nanotype : nanotype) =
   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
 
-and pp_type_argument (type_argument : type_argument) : PP.document AC.t =
+and pp_type_argument (type_argument : Ast.type_argument) : PP.document AC.t =
   match type_argument with
   | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e

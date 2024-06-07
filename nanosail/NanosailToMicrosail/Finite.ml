@@ -1,12 +1,11 @@
 open Base
-open Ast
 open Auxlib
 open Identifier
 
 
 let generate_enum_finiteness
       (_sail_definition : Sail.sail_definition)
-      (enum_definition  : enum_definition) =
+      (enum_definition  : Ast.enum_definition ) =
   let identifier = pp_identifier @@ enum_definition.identifier
   and type_name  = pp_identifier @@ enum_definition.identifier
   and values     = List.map ~f:pp_identifier enum_definition.cases
@@ -14,27 +13,27 @@ let generate_enum_finiteness
   Coq.finite_instance ~identifier ~type_name ~values
 
 
-let generate_register_finiteness (register_definitions : (Sail.sail_definition * register_definition) list) =
+let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
   let translated_register_identifiers =
     List.map ~f:Registers.translate_regname register_identifiers
   in
-  let identifier = pp_identifier @@ Id.mk "RegName"
-  and type_name  = pp_identifier @@ Id.mk "RegName"
+  let identifier = pp_identifier @@ Ast.Identifier.mk "RegName"
+  and type_name  = pp_identifier @@ Ast.Identifier.mk "RegName"
   and values     = List.map ~f:pp_identifier translated_register_identifiers
   in
   Coq.finite_instance ~identifier ~type_name ~values
 
 
-let generate (definitions : (Sail.sail_definition * definition) list) =
+let generate (definitions : (Sail.sail_definition * Ast.definition) list) =
   let finite_enums =
-    let enum_definitions = select Extract.(type_definition of_enum) definitions
+    let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
     in
     List.map ~f:(uncurry generate_enum_finiteness) enum_definitions
   and finite_registers =
-    let register_definitions = select Extract.register_definition definitions
+    let register_definitions = Ast.(select Extract.register_definition definitions)
     in
     if List.is_empty register_definitions
     then None
@@ -54,9 +53,9 @@ let generate (definitions : (Sail.sail_definition * definition) list) =
         build_list @@
           fun { add; addall; _ } -> begin
               add    @@ Coq.imports [ "stdpp.finite" ];
-              add    @@ Coq.local_obligation_tactic (Id.mk "finite_from_eqdec");
+              add    @@ Coq.local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
               addall @@ finite_definitions;
             end
       in
-      Option.some @@ Coq.section (Id.mk "Finite") @@ PP.(separate (twice hardline) parts)
+      Option.some @@ Coq.section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
     end
