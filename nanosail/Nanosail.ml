@@ -1,4 +1,3 @@
-module Id                  = Id
 module Ast                 = Ast
 module Configuration       = Configuration
 module Auxlib              = Auxlib

@@ -4,7 +4,36 @@ module IdentifierMap = Map.Identifier
 open Base
 
 
-type identifier = Id.t
+module Identifier = struct
+  module T = struct
+    type t = Id of string
+        
+    let compare (Id x) (Id y) =
+      String.compare x y
+        
+    let sexp_of_t (Id x) =
+      String.sexp_of_t x
+  end
+  
+  include T
+  include Comparator.Make(T)
+      
+  let equal (Id x) (Id y) =
+    String.equal x y
+      
+  let mk x = Id x
+      
+  let string_of (Id x) = x
+    
+  let update f (Id x) = Id (f x)
+      
+  let add_prefix prefix =
+    update (fun x -> prefix ^ x)
+      
+  let add_suffix suffix =
+    update (fun x -> x ^ suffix)
+end
+
 
 type numeric_expression =
   | NE_constant of Z.t
@@ -12,8 +41,8 @@ type numeric_expression =
   | NE_minus    of numeric_expression * numeric_expression
   | NE_times    of numeric_expression * numeric_expression
   | NE_neg      of numeric_expression
-  | NE_id       of identifier
-  | NE_var      of identifier
+  | NE_id       of Identifier.t
+  | NE_var      of Identifier.t
 
 type kind =
   | Kind_type
@@ -57,7 +86,7 @@ type nanotype =
   | Ty_nat                                           (* TODO remove *)
   | Ty_atom                                          (* TODO remove *)
   | Ty_app       of nanotype * type_argument list    (* TODO remove *)
-  | Ty_custom    of identifier                       (* TODO remove *)
+  | Ty_custom    of Identifier.t                     (* TODO remove *)
 
 and type_argument =
   | TA_type   of nanotype
@@ -71,22 +100,22 @@ and numeric_constraint =
   | NC_bounded_le of numeric_expression * numeric_expression
   | NC_bounded_lt of numeric_expression * numeric_expression
   | NC_not_equal  of numeric_expression * numeric_expression
-  | NC_set        of identifier         * Z.t list
+  | NC_set        of Identifier.t       * Z.t list
   | NC_or         of numeric_constraint * numeric_constraint
   | NC_and        of numeric_constraint * numeric_constraint
-  | NC_app        of identifier         * type_argument list
-  | NC_var        of identifier
+  | NC_app        of Identifier.t       * type_argument list
+  | NC_var        of Identifier.t
   | NC_true
   | NC_false
 
-type type_quantifier_item = identifier * kind
+type type_quantifier_item = Identifier.t * kind
 
 type type_quantifier = type_quantifier_item list
 
 type function_type = {
-  parameters  : (identifier * nanotype) list;
+  parameters  : (Identifier.t * nanotype) list;
   return_type : nanotype
-  }
+}
 
 module ExtendedType = struct
   module Parameter = struct
@@ -196,25 +225,25 @@ type value =
 
 
 type expression =
-  | Exp_var    of identifier
+  | Exp_var    of Identifier.t
   | Exp_val    of value
   | Exp_neg    of expression
   | Exp_not    of expression
   | Exp_list   of expression list
   | Exp_binop  of binary_operator * expression * expression
-  | Exp_record of { type_identifier : identifier; variable_identifiers : identifier list }
-  | Exp_enum   of identifier
+  | Exp_record of { type_identifier : Identifier.t; variable_identifiers : Identifier.t list }
+  | Exp_enum   of Identifier.t
 
 
 type statement =
   | Stm_match              of match_pattern
   | Stm_exp                of expression
-  | Stm_call               of identifier * expression list
-  | Stm_let                of identifier * statement * statement
+  | Stm_call               of Identifier.t * expression list
+  | Stm_let                of Identifier.t * statement * statement
   | Stm_destructure_record of destructure_record
   | Stm_seq                of statement * statement
-  | Stm_read_register      of identifier
-  | Stm_write_register     of identifier * statement
+  | Stm_read_register      of Identifier.t
+  | Stm_write_register     of Identifier.t * statement
   | Stm_cast               of statement * nanotype
   | Stm_fail               of string
 
@@ -228,15 +257,15 @@ and match_pattern =
 and match_pattern_list =
   {
     matched   : statement;
-    when_cons : identifier * identifier * statement;
+    when_cons : Identifier.t * Identifier.t * statement;
     when_nil  : statement;
   }
 
 and match_pattern_product =
   {
     matched   : statement;
-    id_fst    : identifier;
-    id_snd    : identifier;
+    id_fst    : Identifier.t;
+    id_snd    : Identifier.t;
     body      : statement;
   }
 
@@ -256,21 +285,21 @@ and match_pattern_enum =
 and match_pattern_variant =
   {
     matched    : statement;
-    cases      : (identifier list * statement) IdentifierMap.t
+    cases      : (Identifier.t list * statement) IdentifierMap.t
   }
 
 and destructure_record =
   {
-    record_type_identifier : identifier     ;   (* name of the record                                              *)
-    field_identifiers      : identifier list;   (* names of the record's fields                                    *)
-    variable_identifiers   : identifier list;   (* names of the variables receiving the record's fields' values    *)
-    destructured_record    : statement      ;   (* statement yield the record object                               *)
-    body                   : statement      ;   (* body that can refer to record fields using variable_identifiers *)
+    record_type_identifier : Identifier.t     ;   (* name of the record                                              *)
+    field_identifiers      : Identifier.t list;   (* names of the record's fields                                    *)
+    variable_identifiers   : Identifier.t list;   (* names of the variables receiving the record's fields' values    *)
+    destructured_record    : statement        ;   (* statement yield the record object                               *)
+    body                   : statement        ;   (* body that can refer to record fields using variable_identifiers *)
   }
 
 
 type function_definition = {
-  function_name          : identifier;
+  function_name          : Identifier.t;
   function_type          : function_type;
   extended_function_type : ExtendedFunctionType.t;
   function_body          : statement;
@@ -288,8 +317,8 @@ type untranslated_definition =
 
 type register_definition =
   {
-    identifier : identifier;
-    typ        : nanotype  ;
+    identifier : Identifier.t;
+    typ        : nanotype    ;
   }
 
 
@@ -301,33 +330,33 @@ type type_abbreviation =
 
 type type_abbreviation_definition =
   {
-    identifier   : identifier       ;
+    identifier   : Identifier.t     ;
     abbreviation : type_abbreviation;
   }
 
 
 type variant_definition =
   {
-    identifier      : identifier              ;
+    identifier      : Identifier.t            ;
     type_quantifier : type_quantifier         ;
     constructors    : variant_constructor list;
   }
 
-and variant_constructor = (identifier * nanotype list)
+and variant_constructor = (Identifier.t * nanotype list)
 
 
 type enum_definition =
   {
-    identifier : identifier;
-    cases      : identifier list;
+    identifier : Identifier.t     ;
+    cases      : Identifier.t list;
   }
 
 
 type record_definition =
   {
-    identifier      : identifier;
-    type_quantifier : type_quantifier;
-    fields          : (identifier * nanotype) list;
+    identifier      : Identifier.t                  ;
+    type_quantifier : type_quantifier               ;
+    fields          : (Identifier.t * nanotype) list;
   }
 
 
@@ -340,14 +369,14 @@ type type_definition =
 
 type top_level_type_constraint_definition =
   {
-    identifier : identifier;
+    identifier : Identifier.t;
   }
 
 
 type value_definition =
   {
-    identifier : identifier;
-    value      : value;
+    identifier : Identifier.t;
+    value      : value       ;
   }
 
 
