@@ -72,84 +72,30 @@ module Identifier = struct (* move somewhere else *)
   let rec of_pattern (pattern : 'a pat) : string =
     let P_aux (pattern, _) = pattern
     in
+    let not_supported (position : Lexing.position) =
+         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position position
+         in
+         failwith error_message
+           
+    in    
     match pattern with
      | P_id identifier    -> string_of_id identifier
      | P_typ (_, pattern) -> of_pattern pattern
-     | P_lit _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_wild -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_or (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_not _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_as (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_var (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_app (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_vector _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_vector_concat _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_vector_subrange (_, _, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_tuple _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_list _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_cons (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_string_append _ -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
-     | P_struct (_, _) -> begin
-         let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position [%here]
-         in
-         failwith error_message
-       end
+     | P_lit _ -> not_supported [%here]
+     | P_wild -> not_supported [%here]
+     | P_or (_, _) -> not_supported [%here]
+     | P_not _ -> not_supported [%here]
+     | P_as (_, _) -> not_supported [%here]
+     | P_var (_, _) -> not_supported [%here]
+     | P_app (_, _) -> not_supported [%here]
+     | P_vector _ -> not_supported [%here]
+     | P_vector_concat _ -> not_supported [%here]
+     | P_vector_subrange (_, _, _) -> not_supported [%here]
+     | P_tuple _ -> not_supported [%here]
+     | P_list _ -> not_supported [%here]
+     | P_cons (_, _) -> not_supported [%here]
+     | P_string_append _ -> not_supported [%here]
+     | P_struct (_, _) -> not_supported [%here]
 end
 
 
