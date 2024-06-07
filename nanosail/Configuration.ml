@@ -76,8 +76,8 @@ module Identifier = struct (* move somewhere else *)
          let error_message = Printf.sprintf "not supported (%s)" @@ StringOf.OCaml.position position
          in
          failwith error_message
-           
-    in    
+
+    in
     match pattern with
      | P_id identifier    -> string_of_id identifier
      | P_typ (_, pattern) -> of_pattern pattern
