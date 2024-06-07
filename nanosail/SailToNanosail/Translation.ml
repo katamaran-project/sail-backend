@@ -79,7 +79,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
           let location_string =
             Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
           and pretty_printed_sail_code =
-            Sail.string_of_sail_definition sail_definition
+            StringOf.Sail.definition sail_definition
           in
           failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
         end

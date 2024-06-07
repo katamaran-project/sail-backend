@@ -104,3 +104,16 @@ let location (location : Libsail.Parse_ast.l) : string =
     | Range (pos1, pos2)      -> Printf.sprintf "Range(%s-%s)" (OCaml.position pos1) (OCaml.position pos2)
   in
   aux location
+
+
+let definition
+      ?(buffer_initial_size = 1000)
+      ?(line_width = 160)
+      ?(ribbon_width = 1.0)
+      sail_definition =
+  let buffer = Buffer.create buffer_initial_size
+  in
+  let document = Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  in
+  PPrint.ToBuffer.pretty ribbon_width line_width buffer document;
+  Buffer.contents buffer
