@@ -3,17 +3,9 @@ module Big_int       = Nat_big_num
 open Base
 
 
-module Identifier = Identifier
+module Identifier        = Identifier
+module NumericExpression = NumericExpression
 
-
-type numeric_expression =
-  | NE_constant of Z.t
-  | NE_add      of numeric_expression * numeric_expression
-  | NE_minus    of numeric_expression * numeric_expression
-  | NE_times    of numeric_expression * numeric_expression
-  | NE_neg      of numeric_expression
-  | NE_id       of Identifier.t
-  | NE_var      of Identifier.t
 
 type kind =
   | Kind_type
@@ -49,7 +41,7 @@ type nanotype =
   | Ty_sum       of nanotype * nanotype
   | Ty_unit
   (* | Ty_enum *)                                    (* TODO add *)
-  | Ty_bitvector of numeric_expression
+  | Ty_bitvector of NumericExpression.t
   | Ty_tuple     of nanotype list
   (* | Ty_union *)                                   (* TODO add *)
   | Ty_record                                        (* TODO complete *)
@@ -61,16 +53,16 @@ type nanotype =
 
 and type_argument =
   | TA_type   of nanotype
-  | TA_numexp of numeric_expression
+  | TA_numexp of NumericExpression.t
   | TA_bool   of numeric_constraint
 
 and numeric_constraint =
-  | NC_equal      of numeric_expression * numeric_expression
-  | NC_bounded_ge of numeric_expression * numeric_expression
-  | NC_bounded_gt of numeric_expression * numeric_expression
-  | NC_bounded_le of numeric_expression * numeric_expression
-  | NC_bounded_lt of numeric_expression * numeric_expression
-  | NC_not_equal  of numeric_expression * numeric_expression
+  | NC_equal      of NumericExpression.t * NumericExpression.t
+  | NC_bounded_ge of NumericExpression.t * NumericExpression.t
+  | NC_bounded_gt of NumericExpression.t * NumericExpression.t
+  | NC_bounded_le of NumericExpression.t * NumericExpression.t
+  | NC_bounded_lt of NumericExpression.t * NumericExpression.t
+  | NC_not_equal  of NumericExpression.t * NumericExpression.t
   | NC_set        of Identifier.t       * Z.t list
   | NC_or         of numeric_constraint * numeric_constraint
   | NC_and        of numeric_constraint * numeric_constraint
@@ -294,7 +286,7 @@ type register_definition =
 
 
 type type_abbreviation =
-  | TA_numeric_expression of type_quantifier * numeric_expression
+  | TA_numeric_expression of type_quantifier * NumericExpression.t
   | TA_numeric_constraint of type_quantifier * numeric_constraint
   | TA_alias              of type_quantifier * nanotype
 

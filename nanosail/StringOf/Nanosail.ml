@@ -36,15 +36,15 @@ and type_argument (targ : Ast.type_argument) =
    | Ast.TA_numexp numexp -> numeric_expression numexp
    | Ast.TA_bool nc       -> numeric_constraint nc
 
-and numeric_expression (numexp : Ast.numeric_expression) =
+and numeric_expression (numexp : Ast.NumericExpression.t) =
   match numexp with
-  | Ast.NE_constant n     -> Z.to_string n
-  | Ast.NE_add (e1, e2)   -> Printf.sprintf "(%s + %s)" (numeric_expression e1) (numeric_expression e2)
-  | Ast.NE_minus (e1, e2) -> Printf.sprintf "(%s - %s)" (numeric_expression e1) (numeric_expression e2)
-  | Ast.NE_times (e1, e2) -> Printf.sprintf "(%s * %s)" (numeric_expression e1) (numeric_expression e2)
-  | Ast.NE_neg e          -> Printf.sprintf "-%s" (numeric_expression e)
-  | Ast.NE_id id          -> identifier id
-  | Ast.NE_var id         -> identifier id
+  | NE_constant n     -> Z.to_string n
+  | NE_add (e1, e2)   -> Printf.sprintf "(%s + %s)" (numeric_expression e1) (numeric_expression e2)
+  | NE_minus (e1, e2) -> Printf.sprintf "(%s - %s)" (numeric_expression e1) (numeric_expression e2)
+  | NE_times (e1, e2) -> Printf.sprintf "(%s * %s)" (numeric_expression e1) (numeric_expression e2)
+  | NE_neg e          -> Printf.sprintf "-%s" (numeric_expression e)
+  | NE_id id          -> identifier id
+  | NE_var id         -> identifier id
 
 and numeric_constraint (nc : Ast.numeric_constraint) =
   match nc with

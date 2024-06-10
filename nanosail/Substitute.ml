@@ -4,7 +4,7 @@ open Ast
 
 module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nexp : numeric_expression) =
+    let rec aux (nexp : NumericExpression.t) =
       match nexp with
       | NE_constant _           -> nexp
       | NE_add (left, right)    -> NE_add (aux left, aux right)
@@ -165,8 +165,8 @@ let generic_sanitize
 
 module Sanitize = struct
   let numeric_expression
-      (type_quantifier    : type_quantifier   )
-      (numeric_expression : numeric_expression) =
+      (type_quantifier    : type_quantifier    )
+      (numeric_expression : NumericExpression.t) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_expression

@@ -4,8 +4,8 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
-let pp_numeric_expression (numeric_expression : Ast.numeric_expression) =
-  let rec pp level (numexp : Ast.numeric_expression) =
+let pp_numeric_expression (numeric_expression : Ast.NumericExpression.t) =
+  let rec pp level (numexp : Ast.NumericExpression.t) =
     let parens_if lvl doc =
       if level <= lvl
       then doc
