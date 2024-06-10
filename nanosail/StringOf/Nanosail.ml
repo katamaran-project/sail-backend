@@ -38,13 +38,13 @@ and type_argument (targ : Ast.type_argument) =
 
 and numeric_expression (numexp : Ast.NumericExpression.t) =
   match numexp with
-  | NE_constant n     -> Z.to_string n
-  | NE_add (e1, e2)   -> Printf.sprintf "(%s + %s)" (numeric_expression e1) (numeric_expression e2)
-  | NE_minus (e1, e2) -> Printf.sprintf "(%s - %s)" (numeric_expression e1) (numeric_expression e2)
-  | NE_times (e1, e2) -> Printf.sprintf "(%s * %s)" (numeric_expression e1) (numeric_expression e2)
-  | NE_neg e          -> Printf.sprintf "-%s" (numeric_expression e)
-  | NE_id id          -> identifier id
-  | NE_var id         -> identifier id
+  | Constant n     -> Z.to_string n
+  | Add (e1, e2)   -> Printf.sprintf "(%s + %s)" (numeric_expression e1) (numeric_expression e2)
+  | Minus (e1, e2) -> Printf.sprintf "(%s - %s)" (numeric_expression e1) (numeric_expression e2)
+  | Times (e1, e2) -> Printf.sprintf "(%s * %s)" (numeric_expression e1) (numeric_expression e2)
+  | Neg e          -> Printf.sprintf "-%s" (numeric_expression e)
+  | Id id          -> identifier id
+  | Var id         -> identifier id
 
 and numeric_constraint (nc : Ast.numeric_constraint) =
   match nc with

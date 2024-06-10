@@ -6,13 +6,13 @@ module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nexp : NumericExpression.t) =
       match nexp with
-      | NE_constant _           -> nexp
-      | NE_add (left, right)    -> NE_add (aux left, aux right)
-      | NE_minus (left, right)  -> NE_minus (aux left, aux right)
-      | NE_times (left, right)  -> NE_times (aux left, aux right)
-      | NE_neg operand          -> NE_neg (aux operand)
-      | NE_id identifier        -> NE_id (subst identifier)
-      | NE_var identifier       -> NE_var (subst identifier)
+      | Constant _           -> nexp
+      | Add (left, right)    -> Add (aux left, aux right)
+      | Minus (left, right)  -> Minus (aux left, aux right)
+      | Times (left, right)  -> Times (aux left, aux right)
+      | Neg operand          -> Neg (aux operand)
+      | Id identifier        -> Id (subst identifier)
+      | Var identifier       -> Var (subst identifier)
     in
     aux
 

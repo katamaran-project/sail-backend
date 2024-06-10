@@ -31,28 +31,28 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N
     TC.return @@ factory left' right'
   in
 
-  let translate_sum   = translate_binary_operation @@ fun l r -> NE_add   (l, r)
-  and translate_minus = translate_binary_operation @@ fun l r -> NE_minus (l, r)
-  and translate_times = translate_binary_operation @@ fun l r -> NE_times (l, r)
+  let translate_sum   = translate_binary_operation @@ fun l r -> Add   (l, r)
+  and translate_minus = translate_binary_operation @@ fun l r -> Minus (l, r)
+  and translate_times = translate_binary_operation @@ fun l r -> Times (l, r)
 
   in
   let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) = numeric_expression
   in
   match unwrapped_numeric_expression with
-  | Nexp_constant constant                     -> TC.return @@ N.NumericExpression.NE_constant constant
-  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NumericExpression.NE_var (Ast.Identifier.mk string)
+  | Nexp_constant constant                     -> TC.return @@ N.NumericExpression.Constant constant
+  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NumericExpression.Var (Ast.Identifier.mk string)
   | Nexp_times (x, y)                          -> translate_times x y
   | Nexp_sum (x, y)                            -> translate_sum x y
   | Nexp_minus (x, y)                          -> translate_minus x y
   | Nexp_neg x  -> begin
       let* x' = translate_numeric_expression x
       in
-      TC.return @@ N.NumericExpression.NE_neg x'
+      TC.return @@ N.NumericExpression.Neg x'
     end
   | Nexp_id identifier -> begin
       let* identifier' = translate_identifier [%here] identifier
       in
-      TC.return @@ N.NumericExpression.NE_id identifier'
+      TC.return @@ N.NumericExpression.Id identifier'
     end
   | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
   | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
