@@ -16,9 +16,9 @@ let pp_sail_definition sail_definition =
 
 let pp_kind (kind : Ast.Kind.t) =
   match kind with
-  | Kind_type -> AC.not_yet_implemented [%here]
-  | Kind_int  -> AC.return @@ PP.string @@ "nat"
-  | Kind_bool -> AC.not_yet_implemented [%here]
+  | Type -> AC.not_yet_implemented [%here]
+  | Int  -> AC.return @@ PP.string @@ "nat"
+  | Bool -> AC.not_yet_implemented [%here]
 
 
 let pp_type_quantifier quantifier =

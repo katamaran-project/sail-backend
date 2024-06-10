@@ -17,9 +17,9 @@ let translate_kind (kind : S.kind) : Ast.Kind.t TC.t =
   let S.K_aux (kind, _location) = kind
   in
   match kind with
-  | S.K_type -> TC.return @@ Ast.Kind.Kind_type
-  | S.K_int  -> TC.return @@ Ast.Kind.Kind_int
-  | S.K_bool -> TC.return @@ Ast.Kind.Kind_bool
+  | S.K_type -> TC.return @@ Ast.Kind.Type
+  | S.K_int  -> TC.return @@ Ast.Kind.Int
+  | S.K_bool -> TC.return @@ Ast.Kind.Bool
 
 
 let translate_kind_id (kid : S.kid) : Ast.Identifier.t TC.t =
