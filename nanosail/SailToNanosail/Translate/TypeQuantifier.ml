@@ -13,13 +13,13 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let translate_kind (kind : S.kind) : Ast.kind TC.t =
+let translate_kind (kind : S.kind) : Ast.Kind.t TC.t =
   let S.K_aux (kind, _location) = kind
   in
   match kind with
-  | S.K_type -> TC.return @@ Ast.Kind_type
-  | S.K_int  -> TC.return @@ Ast.Kind_int
-  | S.K_bool -> TC.return @@ Ast.Kind_bool
+  | S.K_type -> TC.return @@ Ast.Kind.Kind_type
+  | S.K_int  -> TC.return @@ Ast.Kind.Kind_int
+  | S.K_bool -> TC.return @@ Ast.Kind.Kind_bool
 
 
 let translate_kind_id (kid : S.kid) : Ast.Identifier.t TC.t =
@@ -28,7 +28,7 @@ let translate_kind_id (kid : S.kid) : Ast.Identifier.t TC.t =
   TC.return @@ Ast.Identifier.mk unwappred_kid
 
 
-let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(Ast.Identifier.t * Ast.kind) TC.t =
+let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(Ast.Identifier.t * Ast.Kind.t) TC.t =
   let S.QI_aux (unwrapped_quantifier_item, location) = quantifier_item
   in
   match unwrapped_quantifier_item with
@@ -41,7 +41,7 @@ let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(
     end
 
 
-let translate_type_quantifier (type_quantifier : Libsail.Ast.typquant) : (Ast.Identifier.t * Ast.kind) list TC.t =
+let translate_type_quantifier (type_quantifier : Libsail.Ast.typquant) : (Ast.Identifier.t * Ast.Kind.t) list TC.t =
   let S.TypQ_aux (unwrapped_type_quantifier, _location) = type_quantifier
   in
   match unwrapped_type_quantifier with

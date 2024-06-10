@@ -14,7 +14,7 @@ let pp_sail_definition sail_definition =
   Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
 
 
-let pp_kind (kind : Ast.kind) =
+let pp_kind (kind : Ast.Kind.t) =
   match kind with
   | Kind_type -> AC.not_yet_implemented [%here]
   | Kind_int  -> AC.return @@ PP.string @@ "nat"

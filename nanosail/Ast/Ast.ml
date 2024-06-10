@@ -5,12 +5,8 @@ open Base
 
 module Identifier        = Identifier
 module NumericExpression = NumericExpression
+module Kind              = Kind
 
-
-type kind =
-  | Kind_type
-  | Kind_int
-  | Kind_bool
 
 (*
   should mirror
@@ -71,7 +67,7 @@ and numeric_constraint =
   | NC_true
   | NC_false
 
-type type_quantifier_item = Identifier.t * kind
+type type_quantifier_item = Identifier.t * Kind.t
 
 type type_quantifier = type_quantifier_item list
 
