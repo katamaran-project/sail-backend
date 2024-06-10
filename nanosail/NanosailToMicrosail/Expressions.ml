@@ -23,14 +23,13 @@ let pp_infix_binOp (binary_operator : Ast.binary_operator) =
   | Append -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let rec ty_of_val (value : Ast.value) : Ast.nanotype =
+let rec ty_of_val (value : Ast.value) : Ast.Type.t =
   match value with
   | Val_unit          -> Ty_unit
   | Val_bool _        -> Ty_bool
   | Val_int _         -> Ty_int
   | Val_string _      -> Ty_string
   | Val_prod (v1, v2) -> Ty_tuple [ty_of_val v1; ty_of_val v2]
-
 
 
 let rec pp_value (value : Ast.value) : PP.document =

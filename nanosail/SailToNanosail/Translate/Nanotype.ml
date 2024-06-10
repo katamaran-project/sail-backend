@@ -17,22 +17,22 @@ open Identifier
 open Numeric
 
 
-let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
+let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   (*
     Types are representing as strings in Sail.
   *)
-  let rec nanotype_of_identifier (identifier : S.id) : N.nanotype TC.t =
+  let rec nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
     match Ast.Identifier.string_of identifier' with
-    | "bool"      -> TC.return @@ N.Ty_bool
-    | "nat"       -> TC.return @@ N.Ty_nat
-    | "int"       -> TC.return @@ N.Ty_int
-    | "unit"      -> TC.return @@ N.Ty_unit
-    | "string"    -> TC.return @@ N.Ty_string
+    | "bool"      -> TC.return @@ Ast.Type.Ty_bool
+    | "nat"       -> TC.return @@ Ast.Type.Ty_nat
+    | "int"       -> TC.return @@ Ast.Type.Ty_int
+    | "unit"      -> TC.return @@ Ast.Type.Ty_unit
+    | "string"    -> TC.return @@ Ast.Type.Ty_string
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | _           -> TC.return @@ N.Ty_custom identifier'
+    | _           -> TC.return @@ Ast.Type.Ty_custom identifier'
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -46,33 +46,33 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
     and* identifier'     = translate_identifier [%here] identifier
     in
     match (Ast.Identifier.string_of identifier'), type_arguments' with
-    | "list" , [ N.TA_type t ]  -> TC.return @@ N.Ty_list t
-    | "atom", [ _ ]             -> TC.return N.Ty_int
-    | "atom_bool", [ _ ]        -> TC.return N.Ty_bool
+    | "list" , [ TA_type t ]    -> TC.return @@ Ast.Type.Ty_list t
+    | "atom", [ _ ]             -> TC.return Ast.Type.Ty_int
+    | "atom_bool", [ _ ]        -> TC.return Ast.Type.Ty_bool
     | _, _                      -> begin
         let* constructor = nanotype_of_identifier identifier
         in
-        TC.return @@ N.Ty_app (constructor, type_arguments')
+        TC.return @@ Ast.Type.Ty_app (constructor, type_arguments')
       end
 
-  and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : N.type_argument TC.t =
+  and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
     let S.A_aux (unwrapped_type_argument, _location) = type_argument
     in
     match unwrapped_type_argument with
     | A_nexp e -> begin
         let* e' = translate_numeric_expression e
         in
-        TC.return @@ N.TA_numexp e'
+        TC.return @@ Ast.TypeArgument.TA_numexp e'
       end
     | A_typ t  -> begin
         let* t' = nanotype_of_sail_type t
         in
-        TC.return @@ N.TA_type t'
+        TC.return @@ Ast.TypeArgument.TA_type t'
       end
     | A_bool b -> begin
         let* b' = translate_numeric_constraint b
         in
-        TC.return @@ N.TA_bool b'
+        TC.return @@ Ast.TypeArgument.TA_bool b'
       end
 
   and nanotype_of_existential
@@ -95,7 +95,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : N.nanotype TC.t =
   and nanotype_of_tuple (items : Libsail.Ast.typ list) =
     let* items' = TC.map ~f:nanotype_of_sail_type items
     in
-    TC.return @@ N.Ty_tuple items'
+    TC.return @@ Ast.Type.Ty_tuple items'
 
   in
   match typ with

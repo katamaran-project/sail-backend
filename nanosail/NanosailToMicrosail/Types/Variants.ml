@@ -14,7 +14,7 @@ let generate_inductive_type (variant_definition : Ast.variant_definition) : PP.d
     let identifier' =
       pp_identifier identifier
     in
-    let pp_constructor_types (field_nanotypes : Ast.nanotype list) =
+    let pp_constructor_types (field_nanotypes : Ast.Type.t list) =
       let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype field_nanotypes
       in
       let ts = ts @ [ identifier' ]

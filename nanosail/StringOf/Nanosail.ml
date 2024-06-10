@@ -4,7 +4,7 @@ open Base
 let identifier = Ast.Identifier.string_of
 
 
-let rec nanotype (t : Ast.nanotype) =
+let rec nanotype (t : Ast.Type.t) =
   match t with
   | Ty_int              -> "Ty_int"
   | Ty_bool             -> "Ty_bool"
@@ -30,11 +30,11 @@ let rec nanotype (t : Ast.nanotype) =
       Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
     end
                           
-and type_argument (targ : Ast.type_argument) =
+and type_argument (targ : Ast.TypeArgument.t) =
   match targ with
-   | Ast.TA_type t        -> nanotype t
-   | Ast.TA_numexp numexp -> numeric_expression numexp
-   | Ast.TA_bool nc       -> numeric_constraint nc
+   | TA_type t        -> nanotype t
+   | TA_numexp numexp -> numeric_expression numexp
+   | TA_bool nc       -> numeric_constraint nc
 
 and numeric_expression (numexp : Ast.NumericExpression.t) =
   match numexp with
@@ -46,13 +46,13 @@ and numeric_expression (numexp : Ast.NumericExpression.t) =
   | Id id          -> identifier id
   | Var id         -> identifier id
 
-and numeric_constraint (nc : Ast.numeric_constraint) =
+and numeric_constraint (nc : Ast.NumericConstraint.t) =
   match nc with
   | NC_equal (e1, e2)      -> Printf.sprintf "(%s == %s)" (numeric_expression e1) (numeric_expression e2)
   | NC_bounded_ge (e1, e2) -> Printf.sprintf "(%s >= %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_gt (e1, e2) -> Printf.sprintf "(%s > %s)" (numeric_expression e1) (numeric_expression e2)
+  | NC_bounded_gt (e1, e2) -> Printf.sprintf "(%s > %s)"  (numeric_expression e1) (numeric_expression e2)
   | NC_bounded_le (e1, e2) -> Printf.sprintf "(%s <= %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_lt (e1, e2) -> Printf.sprintf "(%s < %s)" (numeric_expression e1) (numeric_expression e2)
+  | NC_bounded_lt (e1, e2) -> Printf.sprintf "(%s < %s)"  (numeric_expression e1) (numeric_expression e2)
   | NC_not_equal (e1, e2)  -> Printf.sprintf "(%s != %s)" (numeric_expression e1) (numeric_expression e2)
   | NC_var id              -> identifier id
   | NC_true                -> "NC_true"

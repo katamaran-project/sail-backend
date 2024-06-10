@@ -172,7 +172,7 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
 
   and pp_cast_statement
       (statement_to_be_cast : Ast.statement)
-      (_target_type         : Ast.nanotype ) : PPrint.document AC.t
+      (_target_type         : Ast.Type.t   ) : PPrint.document AC.t
     =
     Stdio.printf "Warning: ignored cast\n";
     pp_statement statement_to_be_cast

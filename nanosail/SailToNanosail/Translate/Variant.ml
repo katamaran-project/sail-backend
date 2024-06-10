@@ -31,8 +31,8 @@ let translate_variant
       and* typ' = Nanotype.nanotype_of_sail_type typ
       in
       let field_nanotypes = match typ' with
-        | N.Ty_tuple ts -> ts
-        | _             -> [ typ' ]
+        | Ty_tuple ts -> ts
+        | _           -> [ typ' ]
       in
       TC.return @@ (identifier', field_nanotypes)
     in

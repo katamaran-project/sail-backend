@@ -6,7 +6,7 @@ open Identifier
 module AC = AnnotationContext
 
 
-let rec pp_nanotype (typ : Ast.nanotype) =
+let rec pp_nanotype (typ : Ast.Type.t) =
   let pp_product x y =
     PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.prod"; x; y ]
   in
@@ -26,8 +26,8 @@ let rec pp_nanotype (typ : Ast.nanotype) =
   in
   
   let pp_application
-      (constructor    : Ast.nanotype          )
-      (type_arguments : Ast.type_argument list) : PP.document AC.t
+      (constructor    : Ast.Type.t             )
+      (type_arguments : Ast.TypeArgument.t list) : PP.document AC.t
     =
     let* constructor' = pp_nanotype constructor
     in
@@ -59,7 +59,7 @@ let rec pp_nanotype (typ : Ast.nanotype) =
    | Ty_bitvector nexpr          -> pp_bitvector nexpr
 
 
-and coq_type_of_nanotype (nanotype : Ast.nanotype) =
+and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
     let* n' = pp_numeric_expression n
     in
@@ -93,7 +93,7 @@ and coq_type_of_nanotype (nanotype : Ast.nanotype) =
   | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
   | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
 
-and pp_type_argument (type_argument : Ast.type_argument) : PP.document AC.t =
+and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
   match type_argument with
   | TA_type t   -> pp_nanotype t
   | TA_numexp e -> pp_numeric_expression e

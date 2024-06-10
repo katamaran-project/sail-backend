@@ -22,7 +22,7 @@ let pp_numeric_expression (numeric_expression : Ast.NumericExpression.t) =
   in
   AC.return @@ pp 0 numeric_expression
 
-and pp_numeric_constraint (numeric_constraint : Ast.numeric_constraint) =
+and pp_numeric_constraint (numeric_constraint : Ast.NumericConstraint.t) =
   match numeric_constraint with
   | NC_true                -> AC.return @@ PP.string "true"
   | NC_false               -> AC.return @@ PP.string "false"

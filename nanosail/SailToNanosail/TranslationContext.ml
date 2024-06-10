@@ -137,7 +137,7 @@ let lookup_type
 
 
 (* Looks up type of register with given name *)
-let lookup_register_type (identifier : Ast.Identifier.t) : nanotype option t =
+let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let predicate (definition : definition) : register_definition option =
     match definition with
     | RegisterDefinition register_definition ->

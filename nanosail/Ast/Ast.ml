@@ -7,7 +7,26 @@ module Identifier        = Identifier
 module NumericExpression = NumericExpression
 module Kind              = Kind
 
-
+module rec Type : sig
+  type t =
+    | Ty_int
+    | Ty_bool
+    | Ty_string
+    | Ty_list      of t
+    | Ty_prod      of t * t
+    | Ty_sum       of t * t
+    | Ty_unit
+    (* | Ty_enum *)                                    (* TODO add *)
+    | Ty_bitvector of NumericExpression.t
+    | Ty_tuple     of t list
+    (* | Ty_union *)                                   (* TODO add *)
+    | Ty_record                                        (* TODO complete *)
+  
+    | Ty_nat                                           (* TODO remove *)
+    | Ty_atom                                          (* TODO remove *)
+    | Ty_app       of t * TypeArgument.t list          (* TODO remove *)
+    | Ty_custom    of Identifier.t                     (* TODO remove *)
+end = struct
 (*
   should mirror
 
@@ -28,52 +47,76 @@ module Kind              = Kind
 
    defined in theories/Syntax/TypeDecl.v
  *)
-type nanotype =
-  | Ty_int
-  | Ty_bool
-  | Ty_string
-  | Ty_list      of nanotype
-  | Ty_prod      of nanotype * nanotype
-  | Ty_sum       of nanotype * nanotype
-  | Ty_unit
-  (* | Ty_enum *)                                    (* TODO add *)
-  | Ty_bitvector of NumericExpression.t
-  | Ty_tuple     of nanotype list
-  (* | Ty_union *)                                   (* TODO add *)
-  | Ty_record                                        (* TODO complete *)
+  type t =
+    | Ty_int
+    | Ty_bool
+    | Ty_string
+    | Ty_list      of t
+    | Ty_prod      of t * t
+    | Ty_sum       of t * t
+    | Ty_unit
+    (* | Ty_enum *)                                    (* TODO add *)
+    | Ty_bitvector of NumericExpression.t
+    | Ty_tuple     of t list
+    (* | Ty_union *)                                   (* TODO add *)
+    | Ty_record                                        (* TODO complete *)
+  
+    | Ty_nat                                           (* TODO remove *)
+    | Ty_atom                                          (* TODO remove *)
+    | Ty_app       of t * TypeArgument.t list          (* TODO remove *)
+    | Ty_custom    of Identifier.t                     (* TODO remove *)
+end
+and TypeArgument : sig
+  type t =
+    | TA_type   of Type.t
+    | TA_numexp of NumericExpression.t
+    | TA_bool   of NumericConstraint.t
+end = struct
+  type t =
+    | TA_type   of Type.t
+    | TA_numexp of NumericExpression.t
+    | TA_bool   of NumericConstraint.t
+end
+and NumericConstraint : sig
+  type t =
+    | NC_equal      of NumericExpression.t * NumericExpression.t
+    | NC_bounded_ge of NumericExpression.t * NumericExpression.t
+    | NC_bounded_gt of NumericExpression.t * NumericExpression.t
+    | NC_bounded_le of NumericExpression.t * NumericExpression.t
+    | NC_bounded_lt of NumericExpression.t * NumericExpression.t
+    | NC_not_equal  of NumericExpression.t * NumericExpression.t
+    | NC_set        of Identifier.t       * Z.t list
+    | NC_or         of t                  * t
+    | NC_and        of t                  * t
+    | NC_app        of Identifier.t       * TypeArgument.t list
+    | NC_var        of Identifier.t
+    | NC_true
+    | NC_false
+end = struct
+  type t =
+    | NC_equal      of NumericExpression.t * NumericExpression.t
+    | NC_bounded_ge of NumericExpression.t * NumericExpression.t
+    | NC_bounded_gt of NumericExpression.t * NumericExpression.t
+    | NC_bounded_le of NumericExpression.t * NumericExpression.t
+    | NC_bounded_lt of NumericExpression.t * NumericExpression.t
+    | NC_not_equal  of NumericExpression.t * NumericExpression.t
+    | NC_set        of Identifier.t        * Z.t list
+    | NC_or         of NumericConstraint.t * NumericConstraint.t
+    | NC_and        of NumericConstraint.t * NumericConstraint.t
+    | NC_app        of Identifier.t        * TypeArgument.t list
+    | NC_var        of Identifier.t
+    | NC_true
+    | NC_false
+end
 
-  | Ty_nat                                           (* TODO remove *)
-  | Ty_atom                                          (* TODO remove *)
-  | Ty_app       of nanotype * type_argument list    (* TODO remove *)
-  | Ty_custom    of Identifier.t                     (* TODO remove *)
-
-and type_argument =
-  | TA_type   of nanotype
-  | TA_numexp of NumericExpression.t
-  | TA_bool   of numeric_constraint
-
-and numeric_constraint =
-  | NC_equal      of NumericExpression.t * NumericExpression.t
-  | NC_bounded_ge of NumericExpression.t * NumericExpression.t
-  | NC_bounded_gt of NumericExpression.t * NumericExpression.t
-  | NC_bounded_le of NumericExpression.t * NumericExpression.t
-  | NC_bounded_lt of NumericExpression.t * NumericExpression.t
-  | NC_not_equal  of NumericExpression.t * NumericExpression.t
-  | NC_set        of Identifier.t       * Z.t list
-  | NC_or         of numeric_constraint * numeric_constraint
-  | NC_and        of numeric_constraint * numeric_constraint
-  | NC_app        of Identifier.t       * type_argument list
-  | NC_var        of Identifier.t
-  | NC_true
-  | NC_false
 
 type type_quantifier_item = Identifier.t * Kind.t
 
 type type_quantifier = type_quantifier_item list
 
 type function_type = {
-  parameters  : (Identifier.t * nanotype) list;
-  return_type : nanotype
+  parameters  : (Identifier.t * Type.t) list;
+  return_type : Type.t
 }
 
 module ExtendedType = struct
@@ -152,7 +195,7 @@ end
   If given type is a tuple, collects all types inside of it in a list.
   If given type is not a tuple, simply return that type in a singleton list.
  *)
-let tuple_to_list (t : nanotype) : nanotype list =
+let tuple_to_list (t : Type.t) : Type.t list =
   match t with
   | Ty_tuple ts -> ts
   | _           -> [ t ]
@@ -203,7 +246,7 @@ type statement =
   | Stm_seq                of statement * statement
   | Stm_read_register      of Identifier.t
   | Stm_write_register     of Identifier.t * statement
-  | Stm_cast               of statement * nanotype
+  | Stm_cast               of statement * Type.t
   | Stm_fail               of string
 
 and match_pattern =
@@ -277,14 +320,14 @@ type untranslated_definition =
 type register_definition =
   {
     identifier : Identifier.t;
-    typ        : nanotype    ;
+    typ        : Type.t      ;
   }
 
 
 type type_abbreviation =
   | TA_numeric_expression of type_quantifier * NumericExpression.t
-  | TA_numeric_constraint of type_quantifier * numeric_constraint
-  | TA_alias              of type_quantifier * nanotype
+  | TA_numeric_constraint of type_quantifier * NumericConstraint.t
+  | TA_alias              of type_quantifier * Type.t
 
 
 type type_abbreviation_definition =
@@ -301,7 +344,7 @@ type variant_definition =
     constructors    : variant_constructor list;
   }
 
-and variant_constructor = (Identifier.t * nanotype list)
+and variant_constructor = (Identifier.t * Type.t list)
 
 
 type enum_definition =
@@ -313,9 +356,9 @@ type enum_definition =
 
 type record_definition =
   {
-    identifier      : Identifier.t                  ;
-    type_quantifier : type_quantifier               ;
-    fields          : (Identifier.t * nanotype) list;
+    identifier      : Identifier.t                ;
+    type_quantifier : type_quantifier             ;
+    fields          : (Identifier.t * Type.t) list;
   }
 
 

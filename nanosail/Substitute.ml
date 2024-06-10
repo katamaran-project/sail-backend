@@ -17,7 +17,7 @@ module Subst = struct
     aux
 
   and nanotype (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (t : nanotype) =
+    let rec aux (t : Ast.Type.t) : Ast.Type.t =
       match t with
       | Ty_unit            -> Ty_unit
       | Ty_bool            -> Ty_bool
@@ -37,7 +37,7 @@ module Subst = struct
     aux
 
   and type_argument (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let aux (targ : type_argument) =
+    let aux (targ : Ast.TypeArgument.t) : Ast.TypeArgument.t =
       match targ with
       | TA_type t       -> TA_type (nanotype subst t)
       | TA_numexp nexp  -> TA_numexp (numeric_expression subst nexp)
@@ -46,7 +46,7 @@ module Subst = struct
     aux
 
   and numeric_constraint (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nconstr : numeric_constraint) =
+    let rec aux (nconstr : Ast.NumericConstraint.t) : Ast.NumericConstraint.t =
       match nconstr with
       | NC_equal (left, right)      -> NC_equal (numeric_expression subst left, numeric_expression subst right)
       | NC_bounded_ge (left, right) -> NC_bounded_ge (numeric_expression subst left, numeric_expression subst right)
@@ -174,8 +174,8 @@ module Sanitize = struct
       numeric_expression
 
   let numeric_constraint
-      (type_quantifier    : type_quantifier   )
-      (numeric_constraint : numeric_constraint) =
+      (type_quantifier    : type_quantifier        )
+      (numeric_constraint : Ast.NumericConstraint.t) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_constraint
@@ -184,7 +184,7 @@ module Sanitize = struct
 
   let nanotype
       (type_quantifier    : type_quantifier)
-      (nanotype           : nanotype       ) =
+      (nanotype           : Ast.Type.t     ) =
     generic_sanitize
       sanitize_identifier
       Subst.nanotype

@@ -52,18 +52,18 @@ let statement_of_lvar
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
 
-let translate_return_type (sail_type : Libsail.Ast.typ) : N.nanotype TC.t =
+let translate_return_type (sail_type : Libsail.Ast.typ) : N.Type.t TC.t =
   nanotype_of_sail_type sail_type
 
 
-let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * N.nanotype) list TC.t  =
+let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t  =
   let S.P_aux (unwrapped_pattern, ((location, _annotation) as annotation)) = pattern
   in
   match unwrapped_pattern with
   | P_lit (L_aux (lit, _loc)) ->
      begin
        match lit with
-       | S.L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", N.Ty_unit)] (* todo rather ugly *)
+       | S.L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Ty_unit)] (* todo rather ugly *)
        | S.L_zero     -> TC.not_yet_implemented [%here] location
        | S.L_one      -> TC.not_yet_implemented [%here] location
        | S.L_true     -> TC.not_yet_implemented [%here] location
