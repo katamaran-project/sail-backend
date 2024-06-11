@@ -15,14 +15,18 @@ let generate (enum_definition : Ast.enum_definition) : PP.document AC.t =
     )
 
 
+let convert_enum_name_to_tag (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  Ast.Identifier.update (fun x -> "E" ^ String.lowercase x) identifier
+
+
 let generate_enum_of_enums (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
   let enum_definitions =
     List.map ~f:snd enum_definitions
   in
   let identifier = PP.string "Enums"
   and typ = PP.string "Set"
-  and constructor_of_enum (enum_definition : Ast.enum_definition) =
-    let id = Ast.Identifier.update (fun x -> "E" ^ String.lowercase x) enum_definition.identifier
+  and tag_of_enum (enum_definition : Ast.enum_definition) =
+    let id = convert_enum_name_to_tag enum_definition.identifier
     in
     pp_identifier id
   in
@@ -33,7 +37,7 @@ let generate_enum_of_enums (enum_definitions : (Sail.sail_definition * Ast.enum_
       (fun add_constructor ->
         AC.iter
           ~f:(fun enum_identifier ->
-            add_constructor (constructor_of_enum enum_identifier)
+            add_constructor @@ tag_of_enum enum_identifier
           )
           enum_definitions
       )
