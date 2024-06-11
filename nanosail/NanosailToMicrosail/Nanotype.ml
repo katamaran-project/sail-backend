@@ -42,7 +42,11 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
   in
-  
+
+  let pp_enum identifier =
+    AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of identifier
+
+  in  
   match typ with
    | Unit                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
    | Bool                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"
@@ -52,10 +56,10 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Atom                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
    | Custom id                        -> AC.return @@ pp_identifier id
    | Record                           -> AC.not_yet_implemented [%here]
-   | Enum id                          -> AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of id
    | Product (_, _)                   -> AC.not_yet_implemented [%here]
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
    | Application (constructor, targs) -> pp_application constructor targs
+   | Enum id                          -> pp_enum id
    | List typ                         -> pp_list typ
    | Tuple ts                         -> pp_tuple ts
    | Bitvector nexpr                  -> pp_bitvector nexpr
