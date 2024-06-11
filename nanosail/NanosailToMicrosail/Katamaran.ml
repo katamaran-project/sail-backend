@@ -74,7 +74,7 @@ let pretty_print ir =
           Types.Enums.generate_enum_of_enums enum_definitions
         ]
       else [
-          Types.Enums.generate_enum_of_enums enum_definitions;  
+          Types.Enums.generate_enum_of_enums enum_definitions;
           Types.Enums.generate_no_confusions enum_definitions;
           Types.Enums.generate_eqdecs enum_definitions;
         ]
@@ -117,7 +117,7 @@ let pretty_print ir =
     in
     PP.(separate small_step segments)
   in
-  
+
   let program =
     generate_section
       "PROGRAM"
@@ -129,7 +129,7 @@ let pretty_print ir =
           (select Extract.top_level_type_constraint_definition ir.definitions)
       )
   in
-  
+
   let registers =
     if
       List.is_empty @@ select Extract.register_definition ir.definitions
@@ -140,23 +140,23 @@ let pretty_print ir =
       in
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
-  
+
   let no_confusion =
     NoConfusion.generate ir.definitions
   in
-  
+
   let finite =
     Finite.generate ir.definitions
   in
-  
+
   let eqdecs =
     EqDec.generate ir.definitions
   in
-  
+
   let value_definitions =
     ValueDefinitions.generate ir.definitions
   in
-  
+
   let sections =
     build_list @@
       fun { add; addopt; _ } -> begin
