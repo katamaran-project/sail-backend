@@ -749,6 +749,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | "gt_int"    -> binary_operation Gt
     | "gteq_int"  -> binary_operation Ge
     | "eq_int"    -> binary_operation Eq
+    | "neq_int"   -> binary_operation Neq
     | _           -> TC.return @@ wrap @@ N.Stm_call (receiver_identifier', argument_expressions)
 
   and statement_of_let
