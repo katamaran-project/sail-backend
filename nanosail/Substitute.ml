@@ -19,20 +19,20 @@ module Subst = struct
   and nanotype (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (t : Ast.Type.t) : Ast.Type.t =
       match t with
-      | Unit               -> Unit
-      | Bool               -> Bool   
-      | Nat                -> Nat
-      | Int                -> Int   
-      | String             -> String
-      | Atom               -> Atom
-      | List x             -> List (aux x)
-      | Bitvector nexpr    -> Bitvector (numeric_expression subst nexpr)
-      | Tuple ts           -> Tuple (List.map ~f:aux ts)
+      | Unit                    -> Unit
+      | Bool                    -> Bool   
+      | Nat                     -> Nat
+      | Int                     -> Int   
+      | String                  -> String
+      | Atom                    -> Atom
+      | List x                  -> List (aux x)
+      | Bitvector nexpr         -> Bitvector (numeric_expression subst nexpr)
+      | Tuple ts                -> Tuple (List.map ~f:aux ts)
       | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
-      | Custom id          -> Custom id (* probably should not be substituted *)
-      | Record             -> Record (* todo *)
-      | Product (t1, t2)   -> Product (aux t1, aux t2)
-      | Sum (t1, t2)       -> Sum (aux t1, aux t2)
+      | Custom id               -> Custom id (* probably should not be substituted *)
+      | Record                  -> Record (* todo *)
+      | Product (t1, t2)        -> Product (aux t1, aux t2)
+      | Sum (t1, t2)            -> Sum (aux t1, aux t2)
     in
     aux
 
