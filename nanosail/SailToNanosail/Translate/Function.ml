@@ -732,7 +732,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     in
     let wrap = wrap_in_named_statements_context named_statements
     in
-    let binary_operation (operator : N.binary_operator) : N.statement TC.t
+    let binary_operation (operator : N.BinaryOperator.t) : N.statement TC.t
       =
         match argument_expressions with
         | [x; y] -> TC.return @@ wrap @@ N.Stm_exp (Exp_binop (operator, x, y))

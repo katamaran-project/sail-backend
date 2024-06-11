@@ -6,6 +6,7 @@ open Base
 module Identifier        = Identifier
 module NumericExpression = NumericExpression
 module Kind              = Kind
+module BinaryOperator    = BinaryOperator
 
 module rec Type : sig
   type t =
@@ -201,22 +202,6 @@ let tuple_to_list (t : Type.t) : Type.t list =
   | _           -> [ t ]
 
 
-type binary_operator =
-  | Plus
-  | Times
-  | Minus
-  | And
-  | Or
-  | Pair
-  | Cons
-  | Append
-  | Eq
-  | Neq
-  | Le
-  | Lt
-  | Ge
-  | Gt
-
 
 type value =
   | Val_unit
@@ -232,7 +217,7 @@ type expression =
   | Exp_neg    of expression
   | Exp_not    of expression
   | Exp_list   of expression list
-  | Exp_binop  of binary_operator * expression * expression
+  | Exp_binop  of BinaryOperator.t * expression * expression
   | Exp_record of { type_identifier : Identifier.t; variable_identifiers : Identifier.t list }
   | Exp_enum   of Identifier.t
 
