@@ -14,7 +14,7 @@ let rec nanotype (t : Ast.Type.t) =
   | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (nanotype t1) (nanotype t2)
   | Unit             -> "Type.Unit"
   | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (numeric_expression numexp)
-  | Enum id          -> Printf.sprintf "Type.Enum(%s)" id
+  | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Ast.Identifier.string_of id)
   | Record           -> "Type.Record"
   | Nat              -> "Type.Nat"
   | Atom             -> "Type.Atom"

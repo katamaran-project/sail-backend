@@ -17,7 +17,7 @@ module rec Type : sig
     | Product     of t * t
     | Sum         of t * t
     | Unit
-    | Enum        of string
+    | Enum        of Identifier.t
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
@@ -56,7 +56,7 @@ end = struct
     | Product     of t * t
     | Sum         of t * t
     | Unit
-    | Enum        of string
+    | Enum        of Identifier.t
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)

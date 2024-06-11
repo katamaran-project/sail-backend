@@ -51,7 +51,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Atom                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
    | Custom id                        -> AC.return @@ pp_identifier id
    | Record                           -> AC.not_yet_implemented [%here]
-   | Enum id                          -> AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" id
+   | Enum id                          -> AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" (Ast.Identifier.string_of id)
    | Product (_, _)                   -> AC.not_yet_implemented [%here]
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
    | Application (constructor, targs) -> pp_application constructor targs
