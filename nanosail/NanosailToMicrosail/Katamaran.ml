@@ -54,9 +54,12 @@ let pretty_print ir =
   let prelude =
     Prelude.generate ()
   in
+
   let generate_section title contents =
     PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
+
   in
+
   let base =
     let translated_type_definitions =
       let type_definitions = select Extract.(type_definition of_anything) ir.definitions
@@ -74,6 +77,19 @@ let pretty_print ir =
         Types.Enums.generate_eqdecs enum_definitions;
       ]
     in
+    let base_module =
+      let base_module_name = "UntitledBase"
+      in
+      PP.(separate hardline [
+              string "Module Export " ^^ string base_module_name ^^ string " <: Base.";
+              string "#[export] Instance typedeclkit : TypeDeclKit :=";
+              string "  {| enumi   := Enums;";
+              string "     unioni  := Unions;";
+              string "     recordi := Records;";
+              string " |}.";
+              string "End " ^^ string base_module_name ^^ dot;
+      ])
+    in
     let segments =
       build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
@@ -81,10 +97,12 @@ let pretty_print ir =
           addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
+          add    @@ base_module;
         )
     in
     PP.(separate small_step segments)
   in
+  
   let program =
     generate_section
       "PROGRAM"
@@ -96,6 +114,7 @@ let pretty_print ir =
           (select Extract.top_level_type_constraint_definition ir.definitions)
       )
   in
+  
   let registers =
     if
       List.is_empty @@ select Extract.register_definition ir.definitions
@@ -106,18 +125,23 @@ let pretty_print ir =
       in
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
+  
   let no_confusion =
     NoConfusion.generate ir.definitions
   in
+  
   let finite =
     Finite.generate ir.definitions
   in
+  
   let eqdecs =
     EqDec.generate ir.definitions
   in
+  
   let value_definitions =
     ValueDefinitions.generate ir.definitions
   in
+  
   let sections =
     build_list @@
       fun { add; addopt; _ } -> begin
