@@ -6,25 +6,25 @@ let identifier = Ast.Identifier.string_of
 
 let rec nanotype (t : Ast.Type.t) =
   match t with
-  | Ty_int              -> "Ty_int"
-  | Ty_bool             -> "Ty_bool"
-  | Ty_string           -> "Ty_string"
-  | Ty_list _           -> "Ty_list"
-  | Ty_prod (t1, t2)    -> Printf.sprintf "(%s * %s)" (nanotype t1) (nanotype t2)
-  | Ty_sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (nanotype t1) (nanotype t2)
-  | Ty_unit             -> "Ty_unit"
-  | Ty_bitvector numexp -> Printf.sprintf "Ty_bitvector(%s)" (numeric_expression numexp)
-  | Ty_record           -> "Ty_record"
-  | Ty_nat              -> "Ty_nat"
-  | Ty_atom             -> "Ty_atom"
-  | Ty_custom id        -> Printf.sprintf "Ty_custom(%s)" (identifier id)
-  | Ty_app (constructor, targs) -> begin
+  | Int              -> "Type.Int"
+  | Bool             -> "Type.Bool"
+  | String           -> "Type.String"
+  | List _           -> "Type.List"
+  | Product (t1, t2) -> Printf.sprintf "(%s * %s)" (nanotype t1) (nanotype t2)
+  | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (nanotype t1) (nanotype t2)
+  | Unit             -> "Type.Unit"
+  | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (numeric_expression numexp)
+  | Record           -> "Type.Record"
+  | Nat              -> "Type.Nat"
+  | Atom             -> "Type.Atom"
+  | Custom id        -> Printf.sprintf "Type.Custom(%s)" (identifier id)
+  | Application (constructor, targs) -> begin
       let constructor' = nanotype constructor
       and targs' = List.map ~f:type_argument targs
       in
       Printf.sprintf "%s(%s)" constructor' (String.concat ~sep:"," targs')
     end
-  | Ty_tuple ts -> begin
+  | Tuple ts -> begin
       let ts' = List.map ~f:nanotype ts
       in
       Printf.sprintf "(%s)" (String.concat ~sep:"," ts')

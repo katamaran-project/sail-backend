@@ -25,14 +25,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
     match Ast.Identifier.string_of identifier' with
-    | "bool"      -> TC.return @@ Ast.Type.Ty_bool
-    | "nat"       -> TC.return @@ Ast.Type.Ty_nat
-    | "int"       -> TC.return @@ Ast.Type.Ty_int
-    | "unit"      -> TC.return @@ Ast.Type.Ty_unit
-    | "string"    -> TC.return @@ Ast.Type.Ty_string
+    | "bool"      -> TC.return @@ Ast.Type.Bool
+    | "nat"       -> TC.return @@ Ast.Type.Nat
+    | "int"       -> TC.return @@ Ast.Type.Int
+    | "unit"      -> TC.return @@ Ast.Type.Unit
+    | "string"    -> TC.return @@ Ast.Type.String
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | _           -> TC.return @@ Ast.Type.Ty_custom identifier'
+    | _           -> TC.return @@ Ast.Type.Custom identifier'
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
@@ -46,13 +46,13 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     and* identifier'     = translate_identifier [%here] identifier
     in
     match (Ast.Identifier.string_of identifier'), type_arguments' with
-    | "list" , [ TA_type t ]    -> TC.return @@ Ast.Type.Ty_list t
-    | "atom", [ _ ]             -> TC.return Ast.Type.Ty_int
-    | "atom_bool", [ _ ]        -> TC.return Ast.Type.Ty_bool
+    | "list" , [ TA_type t ]    -> TC.return @@ Ast.Type.List t
+    | "atom", [ _ ]             -> TC.return Ast.Type.Int
+    | "atom_bool", [ _ ]        -> TC.return Ast.Type.Bool
     | _, _                      -> begin
         let* constructor = nanotype_of_identifier identifier
         in
-        TC.return @@ Ast.Type.Ty_app (constructor, type_arguments')
+        TC.return @@ Ast.Type.Application (constructor, type_arguments')
       end
 
   and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
@@ -95,7 +95,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   and nanotype_of_tuple (items : Libsail.Ast.typ list) =
     let* items' = TC.map ~f:nanotype_of_sail_type items
     in
-    TC.return @@ Ast.Type.Ty_tuple items'
+    TC.return @@ Ast.Type.Tuple items'
 
   in
   match typ with

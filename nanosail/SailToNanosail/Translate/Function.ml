@@ -63,7 +63,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
   | P_lit (L_aux (lit, _loc)) ->
      begin
        match lit with
-       | S.L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Ty_unit)] (* todo rather ugly *)
+       | S.L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Unit)] (* todo rather ugly *)
        | S.L_zero     -> TC.not_yet_implemented [%here] location
        | S.L_one      -> TC.not_yet_implemented [%here] location
        | S.L_true     -> TC.not_yet_implemented [%here] location

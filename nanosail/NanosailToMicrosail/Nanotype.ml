@@ -43,20 +43,20 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
   in
   match typ with
-   | Ty_unit                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
-   | Ty_bool                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"
-   | Ty_int                      -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.int"
-   | Ty_nat                      -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.nat"
-   | Ty_string                   -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.string"
-   | Ty_atom                     -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
-   | Ty_custom id                -> AC.return @@ pp_identifier id
-   | Ty_record                   -> AC.not_yet_implemented [%here]
-   | Ty_prod (_, _)              -> AC.not_yet_implemented [%here]
-   | Ty_sum (_, _)               -> AC.not_yet_implemented [%here]
-   | Ty_app (constructor, targs) -> pp_application constructor targs
-   | Ty_list typ                 -> pp_list typ
-   | Ty_tuple ts                 -> pp_tuple ts
-   | Ty_bitvector nexpr          -> pp_bitvector nexpr
+   | Unit                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
+   | Bool                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"
+   | Int                              -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.int"
+   | Nat                              -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.nat"
+   | String                           -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.string"
+   | Atom                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
+   | Custom id                        -> AC.return @@ pp_identifier id
+   | Record                           -> AC.not_yet_implemented [%here]
+   | Product (_, _)                   -> AC.not_yet_implemented [%here]
+   | Sum (_, _)                       -> AC.not_yet_implemented [%here]
+   | Application (constructor, targs) -> pp_application constructor targs
+   | List typ                         -> pp_list typ
+   | Tuple ts                         -> pp_tuple ts
+   | Bitvector nexpr                  -> pp_bitvector nexpr
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
@@ -78,20 +78,20 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
 
   in
   match nanotype with
-  | Ty_unit            -> AC.return @@ PP.string "Datatypes.unit"
-  | Ty_bool            -> AC.return @@ PP.string "Datatypes.bool"
-  | Ty_nat             -> AC.return @@ PP.string "nat"
-  | Ty_int             -> AC.return @@ PP.string "Z"
-  | Ty_string          -> AC.return @@ PP.string "String.string"
-  | Ty_custom id       -> AC.return @@ pp_identifier id
-  | Ty_bitvector n     -> coq_type_of_bitvector_type n
-  | Ty_list t          -> coq_type_of_list_type t
-  | Ty_app (t, ts)     -> coq_type_of_application t ts
-  | Ty_tuple _ts       -> AC.not_yet_implemented [%here]
-  | Ty_atom            -> AC.not_yet_implemented [%here]
-  | Ty_record          -> AC.not_yet_implemented [%here]
-  | Ty_prod (_, _)     -> AC.not_yet_implemented [%here]
-  | Ty_sum (_, _)      -> AC.not_yet_implemented [%here]
+  | Unit                -> AC.return @@ PP.string "Datatypes.unit"
+  | Bool                -> AC.return @@ PP.string "Datatypes.bool"
+  | Nat                 -> AC.return @@ PP.string "nat"
+  | Int                 -> AC.return @@ PP.string "Z"
+  | String              -> AC.return @@ PP.string "String.string"
+  | Custom id           -> AC.return @@ pp_identifier id
+  | Bitvector n         -> coq_type_of_bitvector_type n
+  | List t              -> coq_type_of_list_type t
+  | Application (t, ts) -> coq_type_of_application t ts
+  | Tuple _ts           -> AC.not_yet_implemented [%here]
+  | Atom                -> AC.not_yet_implemented [%here]
+  | Record              -> AC.not_yet_implemented [%here]
+  | Product (_, _)      -> AC.not_yet_implemented [%here]
+  | Sum (_, _)          -> AC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
   match type_argument with

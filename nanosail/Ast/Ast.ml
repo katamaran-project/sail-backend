@@ -10,23 +10,23 @@ module BinaryOperator    = BinaryOperator
 
 module rec Type : sig
   type t =
-    | Ty_int
-    | Ty_bool
-    | Ty_string
-    | Ty_list      of t
-    | Ty_prod      of t * t
-    | Ty_sum       of t * t
-    | Ty_unit
-    (* | Ty_enum *)                                    (* TODO add *)
-    | Ty_bitvector of NumericExpression.t
-    | Ty_tuple     of t list
-    (* | Ty_union *)                                   (* TODO add *)
-    | Ty_record                                        (* TODO complete *)
+    | Int
+    | Bool
+    | String
+    | List        of t
+    | Product     of t * t
+    | Sum         of t * t
+    | Unit
+    (* | Ty_enum *)                                   (* TODO add *)
+    | Bitvector   of NumericExpression.t
+    | Tuple       of t list
+    (* | Ty_union *)                                  (* TODO add *)
+    | Record                                          (* TODO complete *)
   
-    | Ty_nat                                           (* TODO remove *)
-    | Ty_atom                                          (* TODO remove *)
-    | Ty_app       of t * TypeArgument.t list          (* TODO remove *)
-    | Ty_custom    of Identifier.t                     (* TODO remove *)
+    | Nat                                             (* TODO remove *)
+    | Atom                                            (* TODO remove *)
+    | Application of t * TypeArgument.t list          (* TODO remove *)
+    | Custom      of Identifier.t                     (* TODO remove *)
 end = struct
 (*
   should mirror
@@ -49,23 +49,23 @@ end = struct
    defined in theories/Syntax/TypeDecl.v
  *)
   type t =
-    | Ty_int
-    | Ty_bool
-    | Ty_string
-    | Ty_list      of t
-    | Ty_prod      of t * t
-    | Ty_sum       of t * t
-    | Ty_unit
-    (* | Ty_enum *)                                    (* TODO add *)
-    | Ty_bitvector of NumericExpression.t
-    | Ty_tuple     of t list
-    (* | Ty_union *)                                   (* TODO add *)
-    | Ty_record                                        (* TODO complete *)
+    | Int
+    | Bool
+    | String
+    | List        of t
+    | Product     of t * t
+    | Sum         of t * t
+    | Unit
+    (* | Ty_enum *)                                   (* TODO add *)
+    | Bitvector   of NumericExpression.t
+    | Tuple       of t list
+    (* | Ty_union *)                                  (* TODO add *)
+    | Record                                          (* TODO complete *)
   
-    | Ty_nat                                           (* TODO remove *)
-    | Ty_atom                                          (* TODO remove *)
-    | Ty_app       of t * TypeArgument.t list          (* TODO remove *)
-    | Ty_custom    of Identifier.t                     (* TODO remove *)
+    | Nat                                             (* TODO remove *)
+    | Atom                                            (* TODO remove *)
+    | Application of t * TypeArgument.t list          (* TODO remove *)
+    | Custom      of Identifier.t                     (* TODO remove *)
 end
 and TypeArgument : sig
   type t =
@@ -199,8 +199,8 @@ end
  *)
 let tuple_to_list (t : Type.t) : Type.t list =
   match t with
-  | Ty_tuple ts -> ts
-  | _           -> [ t ]
+  | Tuple ts -> ts
+  | _        -> [ t ]
 
 
 type value =

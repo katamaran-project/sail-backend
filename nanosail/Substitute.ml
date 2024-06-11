@@ -19,20 +19,20 @@ module Subst = struct
   and nanotype (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (t : Ast.Type.t) : Ast.Type.t =
       match t with
-      | Ty_unit            -> Ty_unit
-      | Ty_bool            -> Ty_bool
-      | Ty_nat             -> Ty_nat
-      | Ty_int             -> Ty_int
-      | Ty_string          -> Ty_string
-      | Ty_atom            -> Ty_atom
-      | Ty_list x          -> Ty_list (aux x)
-      | Ty_bitvector nexpr -> Ty_bitvector (numeric_expression subst nexpr)
-      | Ty_tuple ts        -> Ty_tuple (List.map ~f:aux ts)
-      | Ty_app (id, targs) -> Ty_app (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
-      | Ty_custom id       -> Ty_custom id (* probably should not be substituted *)
-      | Ty_record          -> Ty_record (* todo *)
-      | Ty_prod (t1, t2)   -> Ty_prod (aux t1, aux t2)
-      | Ty_sum (t1, t2)    -> Ty_sum (aux t1, aux t2)
+      | Unit               -> Unit
+      | Bool               -> Bool   
+      | Nat                -> Nat
+      | Int                -> Int   
+      | String             -> String
+      | Atom               -> Atom
+      | List x             -> List (aux x)
+      | Bitvector nexpr    -> Bitvector (numeric_expression subst nexpr)
+      | Tuple ts           -> Tuple (List.map ~f:aux ts)
+      | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
+      | Custom id          -> Custom id (* probably should not be substituted *)
+      | Record             -> Record (* todo *)
+      | Product (t1, t2)   -> Product (aux t1, aux t2)
+      | Sum (t1, t2)       -> Sum (aux t1, aux t2)
     in
     aux
 
