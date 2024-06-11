@@ -747,7 +747,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | "lt_int"    -> binary_operation LessThan
     | "lteq_int"  -> binary_operation LessThanOrEqualTo
     | "gt_int"    -> binary_operation GreaterThan
-    | "gteq_int"  -> binary_operation Ge
+    | "gteq_int"  -> binary_operation GreaterThanOrEqualTo
     | "eq_int"    -> binary_operation Eq
     | "neq_int"   -> binary_operation Neq
     | _           -> TC.return @@ wrap @@ N.Stm_call (receiver_identifier', argument_expressions)

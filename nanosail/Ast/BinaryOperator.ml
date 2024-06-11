@@ -11,5 +11,5 @@ type t =
   | Neq
   | LessThanOrEqualTo
   | LessThan
-  | Ge
+  | GreaterThanOrEqualTo
   | GreaterThan
