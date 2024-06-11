@@ -10,6 +10,6 @@ type t =
   | Eq
   | Neq
   | Le
-  | Lt
+  | LessThan
   | Ge
   | Gt
