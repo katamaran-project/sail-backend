@@ -13,6 +13,9 @@ let pp_base_module () =
   let base_module_name = "UntitledBase"
   and flag = Coq.Export
   and includes = [ "Base" ]
-  and contents = PP.(separate hardline [ pp_typedeclkit () ])
+  and contents = PP.(separate small_step [
+                         pp_typedeclkit ();
+                       ]
+                 )
   in
   Coq.module' ~flag ~includes base_module_name contents
