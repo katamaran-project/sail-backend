@@ -133,7 +133,10 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
         let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
         in
         match unwrapped_type_argument with
-        | A_typ _                     -> not_yet_implemented [%here] type_argument_location
+        | A_typ typ                   -> begin
+            Stdio.printf "%s\n" (StringOf.Sail.typ typ);
+            not_yet_implemented [%here] type_argument_location
+          end
         | A_bool _                    -> not_yet_implemented [%here] type_argument_location
         | A_nexp numerical_expression -> begin
             let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
@@ -358,7 +361,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
            match name with
            | "int"  -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
            | "bool" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Bool (N.ExtendedType.BoolExpression.Var k)
-           | _      -> not_yet_implemented ~message:name [%here] id_location
+           | id     -> Monad.return @@ N.ExtendedType.ReturnValue.Other id
          end
      end
    | Typ_app (identifier, type_arguments) -> begin

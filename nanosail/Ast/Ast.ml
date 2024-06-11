@@ -179,8 +179,9 @@ module ExtendedType = struct
 
   module ReturnValue = struct
     type t =
-      | Int  of IntExpression.t
-      | Bool of BoolExpression.t
+      | Int   of IntExpression.t
+      | Bool  of BoolExpression.t
+      | Other of string
   end
 end
 

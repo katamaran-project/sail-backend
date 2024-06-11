@@ -146,6 +146,7 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
   match extended_type with
   | Int int_expression   -> pp_int_expression int_expression
   | Bool bool_expression -> pp_bool_expression bool_expression
+  | Other id             -> AC.return @@ PP.string id
 
 
 let pp_extended_function_type
