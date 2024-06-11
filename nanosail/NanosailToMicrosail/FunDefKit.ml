@@ -28,7 +28,7 @@ let pp_function_definition
       AC.return @@ Some (
                       hanging_list (PP.string "Stm") [
                           bindings;
-                          result_type
+                          parens result_type
                         ]
                     )
     in

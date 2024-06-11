@@ -26,7 +26,7 @@ let generate (function_definitions : Ast.function_definition list) =
                       concat [
                           parameter_types;
                           break 1;
-                          return_type
+                          parens return_type
                         ]
                     )
                 )
