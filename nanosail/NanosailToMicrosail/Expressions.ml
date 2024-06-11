@@ -13,7 +13,7 @@ let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
   | And                  -> AC.return @@ PP.(twice ampersand)
   | Or                   -> AC.return @@ PP.(twice bar)
   | EqualTo              -> AC.return @@ PP.equals
-  | Neq                  -> AC.return @@ PP.(bang ^^ equals)
+  | NotEqualTo           -> AC.return @@ PP.(bang ^^ equals)
   | LessThanOrEqualTo    -> AC.return @@ PP.(langle ^^ equals)
   | LessThan             -> AC.return @@ PP.langle
   | GreaterThanOrEqualTo -> AC.return @@ PP.(rangle ^^ equals)

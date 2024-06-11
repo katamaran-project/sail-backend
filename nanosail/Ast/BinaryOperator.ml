@@ -8,7 +8,7 @@ type t =
   | Cons
   | Append
   | EqualTo
-  | Neq
+  | NotEqualTo
   | LessThanOrEqualTo
   | LessThan
   | GreaterThanOrEqualTo
