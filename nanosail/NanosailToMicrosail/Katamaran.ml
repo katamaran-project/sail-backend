@@ -87,7 +87,7 @@ let pretty_print ir =
     let extra_record_definitions =
       let record_definitions = select Extract.(type_definition of_record) ir.definitions
       in
-      Types.Records.generate_enum_of_records record_definitions
+      Types.Records.generate_tags record_definitions
     in
     let base_module =
       let base_module_name = "UntitledBase"

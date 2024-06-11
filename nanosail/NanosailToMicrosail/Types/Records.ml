@@ -21,7 +21,7 @@ let generate (record_definition : Ast.record_definition) : document AC.t =
   AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
 
 
-let generate_enum_of_records (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
+let generate_tags (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
   let record_definitions =
     List.map ~f:snd record_definitions
   in
