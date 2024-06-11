@@ -62,3 +62,29 @@ let generate (variant_definition : Ast.variant_definition) =
                    inductive_type;
                    constructors_inductive_type
                  ]
+
+
+let generate_tags (variant_definitions : (Sail.sail_definition * Ast.variant_definition) list) =
+  let variant_definitions =
+    List.map ~f:snd variant_definitions
+  in
+  let identifier = PP.string "Unions"
+  and typ = PP.string "Set"
+  and tag_of_variant (variant_definition : Ast.variant_definition) =
+    let id = TranslationSettings.convert_enum_name_to_tag variant_definition.identifier
+    in
+    pp_identifier id
+  in
+  let inductive_type =
+    Coq.build_inductive_type
+      identifier
+      typ
+      (fun add_constructor ->
+        AC.iter
+          ~f:(fun variant_identifier ->
+            add_constructor @@ tag_of_variant variant_identifier
+          )
+          variant_definitions
+      )
+  in
+  Coq.annotate inductive_type

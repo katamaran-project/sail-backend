@@ -79,11 +79,10 @@ let pretty_print ir =
           Types.Enums.generate_eqdecs enum_definitions;
         ]
     in
-    let extra_union_definitions =
-      Coq.annotate @@ Coq.build_inductive_type
-        (PP.string "Unions")
-        (PP.string "Set")
-        (fun _add_constructor -> AC.return ())
+    let extra_variant_definitions =
+      let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
+      in
+      Types.Variants.generate_tags variant_definitions
     in
     let extra_record_definitions =
       let record_definitions = select Extract.(type_definition of_record) ir.definitions
@@ -110,7 +109,7 @@ let pretty_print ir =
           addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
-          add    @@ extra_union_definitions;
+          add    @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
           add    @@ base_module;
         )
