@@ -20,3 +20,28 @@ let generate (record_definition : Ast.record_definition) : document AC.t =
   in
   AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
 
+
+let generate_enum_of_records (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
+  let record_definitions =
+    List.map ~f:snd record_definitions
+  in
+  let identifier = PP.string "Records"
+  and typ = PP.string "Set"
+  and tag_of_record (record_definition : Ast.record_definition) =
+    let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
+    in
+    pp_identifier id
+  in
+  let inductive_type =
+    Coq.build_inductive_type
+      identifier
+      typ
+      (fun add_constructor ->
+        AC.iter
+          ~f:(fun record_identifier ->
+            add_constructor @@ tag_of_record record_identifier
+          )
+          record_definitions
+      )
+  in
+  Coq.annotate inductive_type

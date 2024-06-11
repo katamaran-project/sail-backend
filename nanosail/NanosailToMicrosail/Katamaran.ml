@@ -84,10 +84,9 @@ let pretty_print ir =
         (fun _add_constructor -> AC.return ())
     in
     let extra_record_definitions =
-      Coq.annotate @@ Coq.build_inductive_type
-        (PP.string "Records")
-        (PP.string "Set")
-        (fun _add_constructor -> AC.return ())
+      let record_definitions = select Extract.(type_definition of_record) ir.definitions
+      in
+      Types.Records.generate_enum_of_records record_definitions
     in
     let base_module =
       let base_module_name = "UntitledBase"
