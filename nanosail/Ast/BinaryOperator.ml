@@ -9,7 +9,7 @@ type t =
   | Append
   | Eq
   | Neq
-  | Le
+  | LessThanOrEqualTo
   | LessThan
   | Ge
   | GreaterThan
