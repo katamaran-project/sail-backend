@@ -120,7 +120,8 @@ let register (definition : definition) =
 *)
 let lookup_type
       (extractor  : type_definition -> 'a option)
-      (identifier : Ast.Identifier.t            ) : 'a option t =
+      (identifier : Ast.Identifier.t            ) : 'a option t
+  =
   let predicate (definition : definition) : type_definition option =
     match definition with
     | TypeDefinition type_definition ->
