@@ -31,6 +31,7 @@ module Subst = struct
       | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
       | Custom id               -> Custom id (* probably should not be substituted *)
       | Record                  -> Record (* todo *)
+      | Enum id                 -> Enum id
       | Product (t1, t2)        -> Product (aux t1, aux t2)
       | Sum (t1, t2)            -> Sum (aux t1, aux t2)
     in
