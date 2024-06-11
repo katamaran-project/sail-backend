@@ -71,10 +71,10 @@ let pretty_print ir =
       in
       if List.is_empty enum_definitions
       then [
-          Types.Enums.generate_enum_of_enums enum_definitions
+          Types.Enums.generate_tags enum_definitions
         ]
       else [
-          Types.Enums.generate_enum_of_enums enum_definitions;
+          Types.Enums.generate_tags enum_definitions;
           Types.Enums.generate_no_confusions enum_definitions;
           Types.Enums.generate_eqdecs enum_definitions;
         ]

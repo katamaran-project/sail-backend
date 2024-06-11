@@ -15,7 +15,7 @@ let generate (enum_definition : Ast.enum_definition) : PP.document AC.t =
     )
 
 
-let generate_enum_of_enums (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
+let generate_tags (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
   let enum_definitions =
     List.map ~f:snd enum_definitions
   in
