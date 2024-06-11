@@ -37,10 +37,10 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
         in
         match typ with
         | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id_as_string
-        | Some (N.TD_abbreviation _) -> TC.not_yet_implemented [%here] location
-        | Some (N.TD_variant _)      -> TC.not_yet_implemented [%here] location
-        | Some (N.TD_record _)       -> TC.not_yet_implemented [%here] location
-        | Some (N.TD_enum _)         -> TC.return @@ Ast.Type.Enum identifier'
+        | Some (Ast.TD_abbreviation _) -> TC.not_yet_implemented [%here] location
+        | Some (Ast.TD_variant _)      -> TC.not_yet_implemented [%here] location
+        | Some (Ast.TD_record _)       -> TC.not_yet_implemented [%here] location
+        | Some (Ast.TD_enum _)         -> TC.return @@ Ast.Type.Enum identifier'
       end
 
   (*
