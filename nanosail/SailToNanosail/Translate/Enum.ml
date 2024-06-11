@@ -9,8 +9,6 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
@@ -21,12 +19,12 @@ let translate_enum
       (_definition_annotation : S.def_annot)
       (_type_annotation       : 'a S.annot )
       (identifier             : S.id       )
-      (cases                  : S.id list  ) : N.type_definition TC.t
+      (cases                  : S.id list  ) : Ast.type_definition TC.t
   =
   let* identifier' = translate_identifier [%here] identifier
   and* cases'      = TC.map ~f:(translate_identifier [%here]) cases
   in
-  TC.return @@ N.TD_enum {
+  TC.return @@ Ast.TD_enum {
       identifier = identifier';
       cases      = cases'     ;
     }
