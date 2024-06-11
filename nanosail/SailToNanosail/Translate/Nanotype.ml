@@ -24,7 +24,9 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   let rec nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
     let* identifier' = translate_identifier [%here] identifier
     in
-    match Ast.Identifier.string_of identifier' with
+    let id_as_string = Ast.Identifier.string_of identifier'
+    in
+    match id_as_string with
     | "bool"      -> TC.return @@ Ast.Type.Bool
     | "nat"       -> TC.return @@ Ast.Type.Nat
     | "int"       -> TC.return @@ Ast.Type.Int
@@ -32,9 +34,15 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | "string"    -> TC.return @@ Ast.Type.String
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | id          -> begin
-        Stdio.printf "Tralala %s\n" id;
-        TC.return @@ Ast.Type.Custom identifier'
+    | _           -> begin
+        let* typ = TC.lookup_type identifier'
+        in
+        match typ with
+        | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id_as_string
+        | Some (N.TD_abbreviation _) -> TC.not_yet_implemented [%here] location
+        | Some (N.TD_variant _)      -> TC.not_yet_implemented [%here] location
+        | Some (N.TD_enum _)         -> TC.not_yet_implemented [%here] location
+        | Some (N.TD_record _)       -> TC.not_yet_implemented [%here] location
       end
 
   (*
