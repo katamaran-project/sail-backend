@@ -11,19 +11,17 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 open Identifier
 
 
-let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N.NumericExpression.t TC.t =
+let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : Ast.NumericExpression.t TC.t =
   let translate_binary_operation
-        (factory : N.NumericExpression.t -> N.NumericExpression.t -> N.NumericExpression.t)
-        (left    : S.nexp                                                                 )
-        (right   : S.nexp                                                                 ) : N.NumericExpression.t TC.t
+        (factory : Ast.NumericExpression.t -> Ast.NumericExpression.t -> Ast.NumericExpression.t)
+        (left    : S.nexp                                                                       )
+        (right   : S.nexp                                                                       ) : Ast.NumericExpression.t TC.t
     =
     let* left'  = translate_numeric_expression left
     and* right' = translate_numeric_expression right
@@ -39,29 +37,29 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : N
   let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) = numeric_expression
   in
   match unwrapped_numeric_expression with
-  | Nexp_constant constant                     -> TC.return @@ N.NumericExpression.Constant constant
-  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ N.NumericExpression.Var (Ast.Identifier.mk string)
+  | Nexp_constant constant                     -> TC.return @@ Ast.NumericExpression.Constant constant
+  | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ Ast.NumericExpression.Var (Ast.Identifier.mk string)
   | Nexp_times (x, y)                          -> translate_times x y
   | Nexp_sum (x, y)                            -> translate_sum x y
   | Nexp_minus (x, y)                          -> translate_minus x y
   | Nexp_neg x  -> begin
       let* x' = translate_numeric_expression x
       in
-      TC.return @@ N.NumericExpression.Neg x'
+      TC.return @@ Ast.NumericExpression.Neg x'
     end
   | Nexp_id identifier -> begin
       let* identifier' = translate_identifier [%here] identifier
       in
-      TC.return @@ N.NumericExpression.Id identifier'
+      TC.return @@ Ast.NumericExpression.Id identifier'
     end
   | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
   | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
-and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : N.NumericConstraint.t TC.t =
+and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : Ast.NumericConstraint.t TC.t =
   let translate_comparison
-        (factory : N.NumericExpression.t -> N.NumericExpression.t -> N.NumericConstraint.t)
-        (left    : Libsail.Ast.nexp                                                       )
-        (right   : Libsail.Ast.nexp                                                       ) : N.NumericConstraint.t TC.t
+        (factory : Ast.NumericExpression.t -> Ast.NumericExpression.t -> Ast.NumericConstraint.t)
+        (left    : Libsail.Ast.nexp                                                             )
+        (right   : Libsail.Ast.nexp                                                             ) : Ast.NumericConstraint.t TC.t
     =
     let* left'  = translate_numeric_expression left
     and* right' = translate_numeric_expression right
@@ -69,9 +67,9 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
     TC.return @@ factory left' right'
 
   and translate_binary_operation
-      (factory : N.NumericConstraint.t -> N.NumericConstraint.t -> N.NumericConstraint.t)
-      (left    : Libsail.Ast.n_constraint                                               )
-      (right   : Libsail.Ast.n_constraint                                               ) : N.NumericConstraint.t TC.t
+      (factory : Ast.NumericConstraint.t -> Ast.NumericConstraint.t -> Ast.NumericConstraint.t)
+      (left    : Libsail.Ast.n_constraint                                                     )
+      (right   : Libsail.Ast.n_constraint                                                     ) : Ast.NumericConstraint.t TC.t
     =
       let* left' = translate_numeric_constraint left
       and* right' = translate_numeric_constraint right
