@@ -11,8 +11,6 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open TypeAbbreviation
