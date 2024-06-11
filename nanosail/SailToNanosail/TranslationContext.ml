@@ -118,7 +118,7 @@ let register (definition : definition) =
 
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
-let lookup_type
+let lookup_type_of_kind
       (extractor  : type_definition -> 'a option)
       (identifier : Ast.Identifier.t            ) : 'a option t
   =
@@ -135,6 +135,10 @@ let lookup_type
   let type_definition = List.find_map definitions ~f:predicate
   in
   return @@ Option.bind type_definition ~f:extractor
+
+
+let lookup_type =
+  lookup_type_of_kind (Extract.of_anything)
 
 
 (* Looks up type of register with given name *)

@@ -32,7 +32,10 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | "string"    -> TC.return @@ Ast.Type.String
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | _           -> TC.return @@ Ast.Type.Custom identifier'
+    | id          -> begin
+        Stdio.printf "Tralala %s\n" id;
+        TC.return @@ Ast.Type.Custom identifier'
+      end
 
   (*
      Sail represents types with parameters with Typ_app (id, type_args).
