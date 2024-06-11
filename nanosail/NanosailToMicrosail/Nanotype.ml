@@ -40,7 +40,9 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
 
   and pp_enum identifier =
-    AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of identifier
+    let tag = TranslationSettings.convert_enum_name_to_tag identifier
+    in
+    AC.return @@ PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
 
   in  
   match typ with
