@@ -7,7 +7,7 @@ type t =
   | Pair
   | Cons
   | Append
-  | Eq
+  | EqualTo
   | Neq
   | LessThanOrEqualTo
   | LessThan
