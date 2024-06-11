@@ -90,17 +90,7 @@ let pretty_print ir =
       Types.Records.generate_tags record_definitions
     in
     let base_module =
-      let base_module_name = "UntitledBase"
-      in
-      PP.(separate hardline [
-              string "Module Export " ^^ string base_module_name ^^ string " <: Base.";
-              string "#[export] Instance typedeclkit : TypeDeclKit :=";
-              string "  {| enumi   := Enums;";
-              string "     unioni  := Unions;";
-              string "     recordi := Records;";
-              string "  |}.";
-              string "End " ^^ string base_module_name ^^ dot;
-      ])
+      BaseModule.pp_base_module ()
     in
     let segments =
       build_list (fun { add; addall; addopt } ->
