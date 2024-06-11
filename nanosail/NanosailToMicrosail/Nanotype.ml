@@ -17,15 +17,13 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     match Auxlib.split_last elts' with
     | Some (xs, last) -> AC.return @@ List.fold_right ~f:pp_product ~init:last xs
     | None            -> AC.not_yet_implemented [%here]
-  in
-  
-  let pp_list element_type =
+    
+  and pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
     AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
-  in
   
-  let pp_application
+  and pp_application
       (constructor    : Ast.Type.t             )
       (type_arguments : Ast.TypeArgument.t list) : PP.document AC.t
     =
@@ -35,15 +33,13 @@ let rec pp_nanotype (typ : Ast.Type.t) =
       AC.map ~f:(AC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
     in
     AC.return @@ PP.parens @@ PP.simple_app (constructor' :: type_arguments')
-  in
   
-  let pp_bitvector nexpr =
+  and pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
     AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
-  in
 
-  let pp_enum identifier =
+  and pp_enum identifier =
     AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of identifier
 
   in  
