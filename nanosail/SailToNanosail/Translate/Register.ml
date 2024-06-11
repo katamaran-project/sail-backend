@@ -9,8 +9,6 @@ module S = struct
   include Libsail.Anf
 end
 
-module N = Ast
-
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
@@ -20,7 +18,7 @@ open TopLevelTypeConstraint
 
 let translate_register
       (_definition_annotation        : S.def_annot                    )
-      (annotated_register_definition : Sail.type_annotation S.dec_spec) : N.definition TC.t
+      (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.definition TC.t
   =
   let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
   in
@@ -29,7 +27,7 @@ let translate_register
       let* identifier' = translate_identifier [%here] identifier
       and* nanotype    = nanotype_of_sail_type sail_type
       in
-      TC.return @@ N.RegisterDefinition {
+      TC.return @@ Ast.RegisterDefinition {
           identifier = identifier';
           typ        = nanotype   ;
         }
