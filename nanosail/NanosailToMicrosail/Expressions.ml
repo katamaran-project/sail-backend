@@ -7,20 +7,20 @@ module AC = AnnotationContext
 
 let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
   match binary_operator with
-  | Plus   -> AC.return @@ PP.plus
-  | Times  -> AC.return @@ PP.star
-  | Minus  -> AC.return @@ PP.minus
-  | And    -> AC.return @@ PP.(twice ampersand)
-  | Or     -> AC.return @@ PP.(twice bar)
-  | Eq     -> AC.return @@ PP.equals
-  | Neq    -> AC.return @@ PP.(bang ^^ equals)
+  | Plus                 -> AC.return @@ PP.plus
+  | Times                -> AC.return @@ PP.star
+  | Minus                -> AC.return @@ PP.minus
+  | And                  -> AC.return @@ PP.(twice ampersand)
+  | Or                   -> AC.return @@ PP.(twice bar)
+  | Eq                   -> AC.return @@ PP.equals
+  | Neq                  -> AC.return @@ PP.(bang ^^ equals)
   | LessThanOrEqualTo     -> AC.return @@ PP.(langle ^^ equals)
-  | LessThan -> AC.return @@ PP.langle
-  | GreaterThanOrEqualTo     -> AC.return @@ PP.(rangle ^^ equals)
-  | GreaterThan     -> AC.return @@ PP.rangle
-  | Pair   -> AC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
-  | Cons   -> AC.not_yet_implemented [%here] (* Should not occur *)
-  | Append -> AC.not_yet_implemented [%here] (* Should not occur *)
+  | LessThan             -> AC.return @@ PP.langle
+  | GreaterThanOrEqualTo -> AC.return @@ PP.(rangle ^^ equals)
+  | GreaterThan          -> AC.return @@ PP.rangle
+  | Pair                 -> AC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
+  | Cons                 -> AC.not_yet_implemented [%here] (* Should not occur *)
+  | Append               -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
 let rec ty_of_val (value : Ast.value) : Ast.Type.t =
