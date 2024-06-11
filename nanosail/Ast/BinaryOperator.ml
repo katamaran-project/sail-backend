@@ -12,4 +12,4 @@ type t =
   | Le
   | LessThan
   | Ge
-  | Gt
+  | GreaterThan

@@ -17,7 +17,7 @@ let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
   | Le     -> AC.return @@ PP.(langle ^^ equals)
   | LessThan -> AC.return @@ PP.langle
   | Ge     -> AC.return @@ PP.(rangle ^^ equals)
-  | Gt     -> AC.return @@ PP.rangle
+  | GreaterThan     -> AC.return @@ PP.rangle
   | Pair   -> AC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
   | Cons   -> AC.not_yet_implemented [%here] (* Should not occur *)
   | Append -> AC.not_yet_implemented [%here] (* Should not occur *)

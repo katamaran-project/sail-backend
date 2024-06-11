@@ -746,7 +746,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | "mult_atom" -> binary_operation Times
     | "lt_int"    -> binary_operation LessThan
     | "lteq_int"  -> binary_operation Le
-    | "gt_int"    -> binary_operation Gt
+    | "gt_int"    -> binary_operation GreaterThan
     | "gteq_int"  -> binary_operation Ge
     | "eq_int"    -> binary_operation Eq
     | "neq_int"   -> binary_operation Neq
