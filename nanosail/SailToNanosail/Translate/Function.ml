@@ -744,6 +744,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
     | "add_atom"  -> binary_operation Plus
     | "sub_atom"  -> binary_operation Minus
     | "mult_atom" -> binary_operation Times
+    | "lt_int"    -> binary_operation Lt
     | "gt_int"    -> binary_operation Gt
     | _           -> TC.return @@ wrap @@ N.Stm_call (receiver_identifier', argument_expressions)
 
