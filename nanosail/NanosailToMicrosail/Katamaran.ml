@@ -72,10 +72,22 @@ let pretty_print ir =
       if List.is_empty enum_definitions
       then []
       else [
-        Types.Enums.generate_enum_of_enums enum_definitions;
-        Types.Enums.generate_no_confusions enum_definitions;
-        Types.Enums.generate_eqdecs enum_definitions;
-      ]
+          Types.Enums.generate_enum_of_enums enum_definitions;
+          Types.Enums.generate_no_confusions enum_definitions;
+          Types.Enums.generate_eqdecs enum_definitions;
+        ]
+    in
+    let extra_union_definitions =
+      Coq.annotate @@ Coq.build_inductive_type
+        (PP.string "Unions")
+        (PP.string "Set")
+        (fun _add_constructor -> AC.return ())
+    in
+    let extra_record_definitions =
+      Coq.annotate @@ Coq.build_inductive_type
+        (PP.string "Records")
+        (PP.string "Set")
+        (fun _add_constructor -> AC.return ())
     in
     let base_module =
       let base_module_name = "UntitledBase"
@@ -86,7 +98,7 @@ let pretty_print ir =
               string "  {| enumi   := Enums;";
               string "     unioni  := Unions;";
               string "     recordi := Records;";
-              string " |}.";
+              string "  |}.";
               string "End " ^^ string base_module_name ^^ dot;
       ])
     in
@@ -97,6 +109,8 @@ let pretty_print ir =
           addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
+          add    @@ extra_union_definitions;
+          add    @@ extra_record_definitions;
           add    @@ base_module;
         )
     in
