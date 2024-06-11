@@ -70,9 +70,11 @@ let pretty_print ir =
       let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
       in
       if List.is_empty enum_definitions
-      then []
+      then [
+          Types.Enums.generate_enum_of_enums enum_definitions
+        ]
       else [
-          Types.Enums.generate_enum_of_enums enum_definitions;
+          Types.Enums.generate_enum_of_enums enum_definitions;  
           Types.Enums.generate_no_confusions enum_definitions;
           Types.Enums.generate_eqdecs enum_definitions;
         ]
