@@ -71,7 +71,7 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.variant_def
   let identifier = PP.string "Unions"
   and typ = PP.string "Set"
   and tag_of_variant (variant_definition : Ast.variant_definition) =
-    let id = TranslationSettings.convert_enum_name_to_tag variant_definition.identifier
+    let id = TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
     in
     pp_identifier id
   in
