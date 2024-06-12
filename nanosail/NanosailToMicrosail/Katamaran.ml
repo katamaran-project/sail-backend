@@ -75,7 +75,11 @@ let pretty_print ir =
         Types.Enums.generate_eqdecs enum_definitions;
       ]
   in
-  
+
+  let register_definitions =
+    Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
+  in
+
   let base =
     let extra_variant_definitions =
       let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
@@ -91,10 +95,6 @@ let pretty_print ir =
     
     let base_module =
       BaseModule.pp_base_module ir.definitions
-    in
-    
-    let register_definitions =
-      Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
     in
     
     let segments =
