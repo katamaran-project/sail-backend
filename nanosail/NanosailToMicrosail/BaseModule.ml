@@ -21,7 +21,7 @@ let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) 
   in
   let parameter_identifier = "e"
   in
-  let identifier  = PP.(string "enum_denote")
+  let identifier  = PP.string "enum_denote"
   and parameters  = [ (PP.string parameter_identifier, Some (PP.string "Enums")) ]
   and result_type = Some (PP.string "Set")
   and body =
