@@ -56,4 +56,3 @@ include Monads.Util.Make(Monad)
 
 
 let document_of_annotation (Annotation d) = d
-
