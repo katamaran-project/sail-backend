@@ -57,7 +57,6 @@ let pretty_print ir =
 
   let generate_section title contents =
     PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
-
   in
 
   let base =
