@@ -1,6 +1,16 @@
 #+TITLE: Notes
 
-* ~Base.v~
+* Features
+
+** TODO Register Parameters
+
+** TODO Bitvectors
+
+** TODO Base Module
+
+* Files
+
+** ~Base.v~
 
 #+BEGIN_SRC diff
 + From Coq Require Import
@@ -407,7 +417,7 @@
   #+END_SRC
 
  
-* ~Machine.v~
+** ~Machine.v~
 
 #+BEGIN_SRC diff
 + From Coq Require Import
