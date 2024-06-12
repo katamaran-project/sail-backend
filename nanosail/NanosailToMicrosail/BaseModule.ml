@@ -74,6 +74,28 @@ let pp_variant_denote (definitions : (Sail.sail_definition * Ast.definition) lis
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+let pp_record_denote (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+  let denotations =
+    let record_definitions =
+      List.map ~f:snd Ast.(select Extract.(type_definition of_record) definitions)
+    in
+    let record_identifiers =
+      List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions
+    in
+    let denotation_pair_for record_identifier =
+      (
+        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_identifier,
+        Identifier.pp_identifier record_identifier
+      )
+    in
+    List.map ~f:denotation_pair_for record_identifiers
+  and parameter_identifier = PP.string "r"
+  and tag_type_identifier  = PP.string "Records"
+  and function_identifier  = PP.string "record_denote"
+  in
+  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
   =
   let base_module_name = "UntitledBase"
@@ -84,6 +106,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
         pp_typedeclkit ();
         pp_enum_denote definitions;
         pp_variant_denote definitions;
+        pp_record_denote definitions;
       ]
     in
     PP.(separate small_step sections)
