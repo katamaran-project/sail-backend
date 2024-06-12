@@ -176,11 +176,11 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
 
 
 let definition
-      ~(identifier  : PP.document                                    )
-      ?(implicit_parameters : (PP.document * PP.document option) list = [])
-      ?(parameters  : (PP.document * PP.document) list              = [])
-      ?(result_type : PP.document option                           = None)
-      (body        : PP.document                                    ) : PP.document
+      ~(identifier          : PP.document                                   )
+      ?(implicit_parameters : (PP.document * PP.document option) list = []  )
+      ?(parameters          : (PP.document * PP.document) list        = []  )
+      ?(result_type         : PP.document option                      = None)
+       (body                : PP.document                                   ) : PP.document
   =
   let open PP
   in
