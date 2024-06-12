@@ -41,9 +41,11 @@ let pp_program_module
 (******************************************************************************)
 (* Full pretty printing *)
 
-let pp_module_header title =
+(* todo remove *)
+let _pp_module_header title =
   PP.string (Printf.sprintf "(*** %s ***)" title)
 
+(* todo remove *)
 let _generate_module_header title =
   AC.return @@ PP.string @@ Printf.sprintf "(*** %s ***)" title
 
@@ -96,23 +98,6 @@ let pretty_print ir =
     BaseModule.pp_base_module ir.definitions
   in
 
-  let base =
-    
-    let segments =
-      build_list (fun { add; addall; addopt } ->
-          add    @@ pp_module_header "TYPES";
-          add    @@ PP.string "Import DefaultBase.";
-          addopt @@ register_definitions;
-          addall @@ translated_type_definitions;
-          addall @@ extra_enum_definitions;
-          add    @@ extra_variant_definitions;
-          add    @@ extra_record_definitions;
-          add    @@ base_module
-        )
-    in
-    PP.(separate small_step segments)
-  in
-
   let program =
     generate_section
       "PROGRAM"
@@ -154,15 +139,21 @@ let pretty_print ir =
 
   let sections =
     build_list @@
-      fun { add; addopt; _ } -> begin
-          add    prelude;
-          add    base;
-          addopt eqdecs;
-          addopt finite;
-          add    value_definitions;
-          add    program;
-          add    registers;
-          addopt no_confusion;
+      fun { add; addopt; addall } -> begin
+          add    @@ prelude;
+          add    @@ PP.string "Import DefaultBase.";
+          addopt @@ register_definitions;
+          addall @@ translated_type_definitions;
+          addall @@ extra_enum_definitions;
+          add    @@ extra_variant_definitions;
+          add    @@ extra_record_definitions;
+          add    @@ base_module;
+          addopt @@ eqdecs;
+          addopt @@ finite;
+          add    @@ value_definitions;
+          add    @@ program;
+          add    @@ registers;
+          addopt @@ no_confusion;
         end
   in
   PP.(separate_nonempty big_step sections)
