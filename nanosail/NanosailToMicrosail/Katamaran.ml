@@ -8,9 +8,6 @@ open ForeignKit
 module AC = AnnotationContext
 
 
-let defaultBase = PP.string "Import DefaultBase."
-
-
 (******************************************************************************)
 (* Program pretty printing *)
 
@@ -94,7 +91,7 @@ let pretty_print ir =
     let segments =
       build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
-          add    @@ defaultBase;
+          add    @@ PP.string "Import DefaultBase.";
           addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
@@ -149,13 +146,13 @@ let pretty_print ir =
     build_list @@
       fun { add; addopt; _ } -> begin
           add    prelude;
+          addopt eqdecs;
+          addopt finite;
           add    base;
           add    value_definitions;
           add    program;
           add    registers;
           addopt no_confusion;
-          addopt eqdecs;
-          addopt finite;
         end
   in
   PP.(separate_nonempty big_step sections)
