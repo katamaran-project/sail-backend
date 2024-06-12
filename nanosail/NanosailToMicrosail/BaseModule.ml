@@ -50,11 +50,8 @@ let pp_enum_denote (enum_definitions : Ast.enum_definition list) : PP.document =
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_variant_denote (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+let pp_variant_denote (variant_definitions : Ast.variant_definition list) : PP.document =
   let denotations =
-    let variant_definitions =
-      List.map ~f:snd Ast.(select Extract.(type_definition of_variant) definitions)
-    in
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
     in
@@ -107,11 +104,8 @@ let pp_typedenotekit () =
   PP.(separate hardline @@ List.map ~f:string coq_lines)
 
 
-let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+let pp_union_constructor (variant_definitions : Ast.variant_definition list) : PP.document =
   let denotations =
-    let variant_definitions =
-      List.map ~f:snd Ast.(select Extract.(type_definition of_variant) definitions)
-    in
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
     in
@@ -132,6 +126,8 @@ let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
+  and variant_definitions =
+    List.map ~f:snd Ast.(select Extract.(type_definition of_variant) definitions)
   in
   begin
     let base_module_name = "UntitledBase"
@@ -141,10 +137,10 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
       let sections = [
           pp_typedeclkit ();
           pp_enum_denote enum_definitions;
-          pp_variant_denote definitions;
+          pp_variant_denote variant_definitions;
           pp_record_denote definitions;
           pp_typedenotekit ();
-          pp_union_constructor definitions;
+          pp_union_constructor variant_definitions;
         ]
       in
       PP.(separate small_step sections)
