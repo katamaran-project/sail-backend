@@ -212,6 +212,48 @@ let definition
   )
 
 
+let definition'
+      ~(identifier  : PP.document                     )
+      ~(parameters  : (PP.document * PP.document) list)
+      ~(result_type : PP.document option              )
+      ~(body        : PP.document                     ) : PP.document
+  =
+  let open PP
+  in
+  let pp_parameters =
+    let pp_parameter (var, typ) =
+      parens @@ var ^^ string " : " ^^ typ
+    in
+    build_list @@ fun { add; _ } -> begin
+                      if not @@ List.is_empty parameters then add space;
+                      add @@ align @@ separate space @@ List.map ~f:pp_parameter parameters
+                    end
+  in
+  group begin
+      concat begin
+          build_list begin fun { add; addall; _ } ->
+            add @@ string "Definition";
+            add space;
+            add identifier;
+            addall @@ pp_parameters;
+            begin
+              match result_type with
+              | None    -> ()
+              | Some rt ->
+                 add space;
+                 add colon;
+                 add space;
+                 add rt
+            end;
+            add space;
+            add @@ string ":=";
+            add @@ break 1;
+            add @@ ifflat body (indent' body)
+            end
+        end ^^ eol
+    end
+
+
 let match' expression cases =
   let match_line =
     PP.(
