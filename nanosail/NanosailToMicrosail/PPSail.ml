@@ -27,10 +27,6 @@ let pp_type_quantifier quantifier =
     in
     let* kind' = pp_kind kind
     in
-    AC.return @@ PP.(parens @@ separate space [
-      identifier';
-      colon;
-      kind'
-    ])
+    AC.return (identifier', kind')
   in
   AC.map ~f:pp_type_quantifier_item quantifier

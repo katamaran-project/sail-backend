@@ -175,58 +175,72 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   PP.indented_enclosed_lines first_line contents last_line
 
 
-let definition
-      ~(identifier  : PP.document       )
-      ~(parameters  : PP.document list  )
-      ~(result_type : PP.document option)
-      ~(body        : PP.document       ) : PP.document =
-  PP.(
-    group begin
-      concat begin
-        build_list begin fun { add; _ } ->
-          add @@ string "Definition";
-          add space;
-          add identifier;
-          begin
-            if not (List.is_empty parameters)
-            then
-              add space;
-            add @@ align (separate space parameters)
-          end;
-          begin
-            match result_type with
-            | None    -> ()
-            | Some rt ->
-              add space;
-              add colon;
-              add space;
-              add rt
-          end;
-          add space;
-          add @@ string ":=";
-          add @@ break 1;
-          add @@ ifflat body (indent' body)
-        end
-      end ^^ eol
-    end
-  )
+(* let definition *)
+(*       ~(identifier  : PP.document       ) *)
+(*       ~(parameters  : PP.document list  ) *)
+(*       ~(result_type : PP.document option) *)
+(*       ~(body        : PP.document       ) : PP.document = *)
+(*   PP.( *)
+(*     group begin *)
+(*       concat begin *)
+(*         build_list begin fun { add; _ } -> *)
+(*           add @@ string "Definition"; *)
+(*           add space; *)
+(*           add identifier; *)
+(*           begin *)
+(*             if not (List.is_empty parameters) *)
+(*             then *)
+(*               add space; *)
+(*             add @@ align (separate space parameters) *)
+(*           end; *)
+(*           begin *)
+(*             match result_type with *)
+(*             | None    -> () *)
+(*             | Some rt -> *)
+(*               add space; *)
+(*               add colon; *)
+(*               add space; *)
+(*               add rt *)
+(*           end; *)
+(*           add space; *)
+(*           add @@ string ":="; *)
+(*           add @@ break 1; *)
+(*           add @@ ifflat body (indent' body) *)
+(*         end *)
+(*       end ^^ eol *)
+(*     end *)
+(*   ) *)
 
 
 let definition'
-      ~(identifier  : PP.document                     )
-      ~(parameters  : (PP.document * PP.document) list)
-      ~(result_type : PP.document option              )
-      ~(body        : PP.document                     ) : PP.document
+      ~(identifier  : PP.document                                    )
+      ?(implicit_parameters : (PP.document * PP.document option) list = [])
+      ?(parameters  : (PP.document * PP.document) list              = [])
+      ?(result_type : PP.document option                           = None)
+      (body        : PP.document                                    ) : PP.document
   =
   let open PP
   in
   let pp_parameters =
-    let pp_parameter (var, typ) =
-      parens @@ var ^^ string " : " ^^ typ
+    let pp_implicit_parameters =
+      let pp_implicit_parameter (var, typ) =
+        match typ with
+        | Some typ -> braces @@ separate space [ var; colon; typ ]
+        | None     -> braces @@ var
+      in
+      List.map ~f:pp_implicit_parameter implicit_parameters
+    and pp_explicit_parameters =
+      let pp_parameter (var, typ) =
+        parens @@ var ^^ string " : " ^^ typ
+      in
+      List.map ~f:pp_parameter parameters
+    in
+    let pp_explicit_and_implicit_parameters =
+      List.concat [ pp_implicit_parameters; pp_explicit_parameters ]
     in
     build_list @@ fun { add; _ } -> begin
                       if not @@ List.is_empty parameters then add space;
-                      add @@ align @@ separate space @@ List.map ~f:pp_parameter parameters
+                      add @@ align @@ separate space @@ pp_explicit_and_implicit_parameters
                     end
   in
   group begin

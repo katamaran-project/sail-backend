@@ -15,11 +15,10 @@ let pp_value_definition (value_definition : Ast.value_definition) : PP.document 
   in
   let definition =
     let identifier = Identifier.pp_identifier identifier
-    and parameters = []
     and result_type = None
     and body = pp_value value
     in
-    Coq.definition ~identifier ~parameters ~result_type ~body
+    Coq.definition' ~identifier ~result_type body
   in
   definition
 

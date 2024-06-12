@@ -14,8 +14,6 @@ let pp_function_definition
   let identifier = pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
   let coq_definition =
-    let parameters = []
-    in
     let* result_type =
       let* bindings =
         let* docs = AC.map ~f:PPSail.pp_bind function_definition.function_type.parameters
@@ -39,7 +37,7 @@ let pp_function_definition
     in
     let* _ = AC.create_annotation_from_document extended_function_type'
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type ~body
+    AC.return @@ Coq.definition' ~identifier ~result_type body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -82,9 +80,12 @@ let pp_function_definition_kit
       top_level_type_constraint_definitions =
   let fundef =
     let identifier = pp_identifier @@ Ast.Identifier.mk "FunDef"
+    and implicit_parameters = [
+        (utf8string "Δ", None);
+        (utf8string "τ", None);
+      ]
     and parameters = [
-        utf8string "{Δ τ}";
-        utf8string "(f : Fun Δ τ)"
+        (utf8string "f", utf8string "Fun Δ τ")
       ]
     and result_type = Some (utf8string "Stm Δ τ")
     and body =
@@ -101,7 +102,7 @@ let pp_function_definition_kit
       in
       Coq.match' matched_expression cases
     in
-    Coq.definition ~identifier ~parameters ~result_type ~body
+    Coq.definition' ~identifier ~implicit_parameters ~parameters ~result_type body
   in
   let contents =
     separate small_step (

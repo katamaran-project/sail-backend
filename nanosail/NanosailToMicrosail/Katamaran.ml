@@ -89,7 +89,7 @@ let pretty_print ir =
       Types.Records.generate_tags record_definitions
     in
     let base_module =
-      BaseModule.pp_base_module ()
+      BaseModule.pp_base_module ir.definitions
     in
     let segments =
       build_list (fun { add; addall; addopt } ->
@@ -100,7 +100,7 @@ let pretty_print ir =
           addall @@ extra_enum_definitions;
           add    @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
-          add    @@ base_module;
+          add    @@ base_module
         )
     in
     PP.(separate small_step segments)

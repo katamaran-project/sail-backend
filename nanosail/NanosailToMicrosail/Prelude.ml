@@ -37,11 +37,10 @@ let generate_open_scopes () =
 
 let generate_definitions () =
   let definitions = [
-      Coq.definition
+      Coq.definition'
         ~identifier:(PP.string "bitvector")
-        ~parameters:[PP.string "(n : nat)"]
-        ~result_type:None
-        ~body:(PP.string "bv n");
+        ~parameters:[(PP.string "n", PP.string "nat")]
+        (PP.string "bv n");
     ]
   in
   PP.(separate hardline definitions)
