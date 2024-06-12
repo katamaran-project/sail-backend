@@ -273,14 +273,14 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
       Monad.return @@ factory left' right'
   in
 
-  let bool_expression_of_and = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.And (a, b)
-  and bool_expression_of_or  = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.Or (a, b)
-  and bool_expression_of_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
-  and bool_expression_of_not_equal = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.NotEqual (a, b)
-  and bool_expression_of_bounded_lt = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.LessThan (a, b)
-  and bool_expression_of_bounded_le = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
-  and bool_expression_of_bounded_gt = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThan (a, b)
-  and bool_expression_of_bounded_ge = bool_expression_of_comparison @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
+  let bool_expression_of_and        = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.And (a, b)
+  and bool_expression_of_or         = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.Or (a, b)
+  and bool_expression_of_equal      = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
+  and bool_expression_of_not_equal  = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.NotEqual (a, b)
+  and bool_expression_of_bounded_lt = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.LessThan (a, b)
+  and bool_expression_of_bounded_le = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
+  and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThan (a, b)
+  and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
 
   in  
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
