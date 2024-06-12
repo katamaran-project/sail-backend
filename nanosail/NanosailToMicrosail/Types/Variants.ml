@@ -44,7 +44,7 @@ let generate_inductive_type (variant_definition : Ast.variant_definition) : PP.d
 
 
 let generate_constructors_inductive_type (variant_definition  : Ast.variant_definition) =
-  let identifier = pp_identifier @@ Ast.Identifier.add_suffix "Constructor" variant_definition.identifier
+  let identifier = pp_identifier @@ TranslationSettings.derive_variant_constructor_type variant_definition.identifier
   and typ = pp_identifier @@ Ast.Identifier.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
