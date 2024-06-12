@@ -46,7 +46,7 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) =
   return @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
 
 
-let collect_annotations f =
+let collect_annotations (f : 'a t) : 'a * annotation list =
   let result, state = Monad.run f initial_state
   in
   (result, List.rev state.annotations)
