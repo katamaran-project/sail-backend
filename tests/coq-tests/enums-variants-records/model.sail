@@ -11,7 +11,8 @@ enum MyEnum2 = { x2, y2, z2 }
 union instruction1 = {
   Add1 : int,
   Sub1 : unit,
-  Mul1 : (int, int)
+  Mul1 : (int, int),
+  Ternary1 : (int, int, int)
 }
 
 union instruction2 = {
