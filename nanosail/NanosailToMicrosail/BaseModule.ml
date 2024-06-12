@@ -164,7 +164,27 @@ let pp_union_constructor_type (variant_definitions : Ast.variant_definition list
     Coq.match' matched_expression cases
   in
   Coq.definition ~identifier ~parameters ~result_type body
+
+
+let pp_eqdec_and_finite_instances () =
+  let coq_lines = [
+      "#[export] Instance eqdec_enum_denote E : EqDec (enum_denote E) :=";
+      "  ltac:(destruct E; auto with typeclass_instances).";
+      "#[export] Instance finite_enum_denote E : finite.Finite (enum_denote E) :=";
+      "  ltac:(destruct E; auto with typeclass_instances).";
+      "#[export] Instance eqdec_union_denote U : EqDec (union_denote U) :=";
+      "  ltac:(destruct U; cbn; auto with typeclass_instances).";
+      "#[export] Instance eqdec_union_constructor U : EqDec (union_constructor U) :=";
+      "  ltac:(destruct U; cbn; auto with typeclass_instances).";
+      "#[export] Instance finite_union_constructor U : finite.Finite (union_constructor U) :=";
+      "  ltac:(destruct U; cbn; auto with typeclass_instances).";
+      "#[export] Instance eqdec_record_denote R : EqDec (record_denote R) :=";
+      "  ltac:(destruct R; auto with typeclass_instances).";
+    ]
+  in
+  PP.(separate hardline @@ List.map ~f:string coq_lines)
   
+
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
   let enum_definitions =
@@ -187,6 +207,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
           pp_typedenotekit ();
           pp_union_constructor variant_definitions;
           pp_union_constructor_type variant_definitions;
+          pp_eqdec_and_finite_instances ();
         ]
       in
       PP.(separate small_step sections)
