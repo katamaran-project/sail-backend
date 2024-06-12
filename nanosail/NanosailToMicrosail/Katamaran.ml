@@ -150,13 +150,13 @@ let pretty_print ir =
           addall @@ extra_enum_definitions;
           addall @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
+          addopt @@ no_confusion;
           addopt @@ eqdecs;
           addopt @@ finite;
           add    @@ base_module;
           add    @@ value_definitions;
           add    @@ program;
           add    @@ registers;
-          addopt @@ no_confusion;
         end
   in
   PP.(separate_nonempty small_step sections)
