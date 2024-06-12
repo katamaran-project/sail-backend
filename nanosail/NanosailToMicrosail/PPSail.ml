@@ -27,6 +27,6 @@ let pp_type_quantifier quantifier =
     in
     let* kind' = pp_kind kind
     in
-    AC.return (identifier', kind')
+    AC.return (identifier', Some kind')
   in
   AC.map ~f:pp_type_quantifier_item quantifier

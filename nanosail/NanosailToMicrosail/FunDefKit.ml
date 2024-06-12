@@ -85,7 +85,7 @@ let pp_function_definition_kit
         (utf8string "τ", None);
       ]
     and parameters = [
-        (utf8string "f", utf8string "Fun Δ τ")
+        (utf8string "f", Some (utf8string "Fun Δ τ"))
       ]
     and result_type = Some (utf8string "Stm Δ τ")
     and body =

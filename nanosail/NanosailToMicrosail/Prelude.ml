@@ -39,7 +39,7 @@ let generate_definitions () =
   let definitions = [
       Coq.definition
         ~identifier:(PP.string "bitvector")
-        ~parameters:[(PP.string "n", PP.string "nat")]
+        ~parameters:[(PP.string "n", Some (PP.string "nat"))]
         (PP.string "bv n");
     ]
   in

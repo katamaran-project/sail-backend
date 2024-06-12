@@ -17,7 +17,7 @@ let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) 
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   in
   let identifier  = PP.(string "enum_denote")
-  and parameters  = [ (PP.string "e", PP.string "Enums") ]
+  and parameters  = [ (PP.string "e", Some (PP.string "Enums")) ]
   and result_type = Some (PP.string "Set")
   and body =
     PP.string "test"

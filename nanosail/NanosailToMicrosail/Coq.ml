@@ -178,7 +178,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
 let definition
       ~(identifier          : PP.document                                   )
       ?(implicit_parameters : (PP.document * PP.document option) list = []  )
-      ?(parameters          : (PP.document * PP.document) list        = []  )
+      ?(parameters          : (PP.document * PP.document option) list = []  )
       ?(result_type         : PP.document option                      = None)
        (body                : PP.document                                   ) : PP.document
   =
@@ -194,7 +194,9 @@ let definition
       List.map ~f:pp_implicit_parameter implicit_parameters
     and pp_explicit_parameters =
       let pp_parameter (var, typ) =
-        parens @@ var ^^ string " : " ^^ typ
+        match typ with
+        | Some typ -> parens @@ var ^^ string " : " ^^ typ
+        | None     -> var
       in
       List.map ~f:pp_parameter parameters
     in
