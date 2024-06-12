@@ -32,6 +32,13 @@
                   "Capability_of_regval"
                   "bit_of_regval"
                   "word_of_regval"
+                  "num_of_read_kind"
+                  "num_of_write_kind"
+                  "num_of_a64_barrier_domain"
+                  "num_of_a64_barrier_type"
+                  "num_of_cache_op_kind"
+                  "num_of_trans_kind"
+                  "num_of_Permission"
                   )
 
 (ignore-all-overloads)

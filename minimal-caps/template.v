@@ -9,11 +9,3 @@
 (untranslated-definitions)
 >*)
  *)
-
-(*
-  IGNORED
-
-(*<
-(ignored-definitions)
->*)
-*)
