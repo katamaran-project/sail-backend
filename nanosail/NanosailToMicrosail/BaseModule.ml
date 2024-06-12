@@ -50,7 +50,7 @@ let pp_enum_denote (enum_definitions : Ast.enum_definition list) : PP.document =
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_variant_denote (variant_definitions : Ast.variant_definition list) : PP.document =
+let pp_union_denote (variant_definitions : Ast.variant_definition list) : PP.document =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -137,7 +137,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
       let sections = [
           pp_typedeclkit ();
           pp_enum_denote enum_definitions;
-          pp_variant_denote variant_definitions;
+          pp_union_denote variant_definitions;
           pp_record_denote definitions;
           pp_typedenotekit ();
           pp_union_constructor variant_definitions;
