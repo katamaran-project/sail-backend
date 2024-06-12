@@ -37,7 +37,7 @@ let pp_function_definition
     in
     let* _ = AC.create_annotation_from_document extended_function_type'
     in
-    AC.return @@ Coq.definition' ~identifier ~result_type body
+    AC.return @@ Coq.definition ~identifier ~result_type body
   in
   let original_sail_code =
     build_list (fun { add; _ } ->
@@ -102,7 +102,7 @@ let pp_function_definition_kit
       in
       Coq.match' matched_expression cases
     in
-    Coq.definition' ~identifier ~implicit_parameters ~parameters ~result_type body
+    Coq.definition ~identifier ~implicit_parameters ~parameters ~result_type body
   in
   let contents =
     separate small_step (

@@ -22,7 +22,7 @@ let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) 
   and body =
     PP.string "test"
   in
-  Coq.definition' ~identifier ~parameters ~result_type body
+  Coq.definition ~identifier ~parameters ~result_type body
 
 
 

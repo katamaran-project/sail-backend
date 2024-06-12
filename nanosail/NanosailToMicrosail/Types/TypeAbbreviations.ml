@@ -15,7 +15,7 @@ let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.documen
       let* body        = Numeric.pp_numeric_expression numexpr
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
-      AC.return @@ Coq.definition' ~identifier ~parameters body
+      AC.return @@ Coq.definition ~identifier ~parameters body
     end
 
   | TA_numeric_constraint (quantifier, numconstraint) -> begin
@@ -24,7 +24,7 @@ let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.documen
       let* body        = Numeric.pp_numeric_constraint numconstraint
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
-      AC.return @@ Coq.definition' ~identifier ~parameters body
+      AC.return @@ Coq.definition ~identifier ~parameters body
     end
 
   | TA_alias (quantifier, typ) -> begin
@@ -33,6 +33,6 @@ let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.documen
       let* body        = Nanotype.pp_nanotype typ
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
-      AC.return @@ Coq.definition' ~identifier ~parameters body;
+      AC.return @@ Coq.definition ~identifier ~parameters body;
     end 
 
