@@ -12,6 +12,7 @@ val document_of_annotation          : annotation -> PP.document
                                              
 val not_yet_implemented             : ?message:string -> Lexing.position -> PP.document t
 val collect_annotations             : 'a t -> ('a * annotation list)
+val drop_annotations                : 'a t -> 'a
 
 val map                             : f:('a -> 'b t) -> 'a list -> 'b list t
 val iter                            : f:('a -> unit t) -> 'a list -> unit t

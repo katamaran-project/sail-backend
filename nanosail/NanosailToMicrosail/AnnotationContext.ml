@@ -52,6 +52,10 @@ let collect_annotations (f : 'a t) : 'a * annotation list =
   (result, List.rev state.annotations)
 
 
+let drop_annotations (f : 'a t) : 'a =
+  fst @@ collect_annotations f
+
+
 include Monads.Util.Make(Monad)
 
 
