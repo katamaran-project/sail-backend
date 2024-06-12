@@ -147,9 +147,9 @@ let pretty_print ir =
           addall @@ extra_enum_definitions;
           add    @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
-          add    @@ base_module;
           addopt @@ eqdecs;
           addopt @@ finite;
+          add    @@ base_module;
           add    @@ value_definitions;
           add    @@ program;
           add    @@ registers;
