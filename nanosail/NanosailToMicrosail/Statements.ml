@@ -74,9 +74,10 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
         let* matched' = pp_par_statement matched
         and* cases' = Ast.Identifier.Map.fold cases ~init:(AC.return []) ~f:translate_case
         in
+        let* annotation_index = AC.create_annotation_from_document PP.(string "typeof(" ^^ matched' ^^ string ")")
+        in
         AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
-          add @@ Coq.comment @@ PP.string "TODO Fix this";
-          add @@ PP.(separate space [ string "match"; matched'; string "with" ]);
+          add @@ PP.(separate space [ string "match:"; matched'; string "in"; string (Printf.sprintf "NYI[%d]" annotation_index); string "with" ]);
           addall cases'
         end
       end
