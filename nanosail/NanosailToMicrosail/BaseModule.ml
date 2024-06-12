@@ -132,7 +132,7 @@ let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
-  in  
+  in
   begin
     let base_module_name = "UntitledBase"
     and flag = Coq.Export
