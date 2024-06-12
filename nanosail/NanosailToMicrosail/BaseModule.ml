@@ -13,10 +13,10 @@ let pp_typedeclkit () =
 
 
 let pp_denote_function
-      ~(denotations : (PP.document * PP.document) list)
-      ~(parameter_identifier : PP.document)
-      ~(tag_type_identifier : PP.document)
-      ~(function_identifier : PP.document) : PP.document
+      ~(denotations          : (PP.document * PP.document) list)
+      ~(parameter_identifier : PP.document                     )
+      ~(tag_type_identifier  : PP.document                     )
+      ~(function_identifier  : PP.document                     ) : PP.document
   =
   let identifier  = function_identifier
   and parameters  = [ (parameter_identifier, Some tag_type_identifier) ]
