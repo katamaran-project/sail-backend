@@ -59,9 +59,11 @@ let pretty_print ir =
   let base =
     let type_definitions = select Extract.(type_definition of_anything) ir.definitions
     in
+    
     let translated_type_definitions =
       List.map ~f:(uncurry Types.pp_type_definition) type_definitions
     in
+    
     let extra_enum_definitions =
       let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
       in
@@ -75,22 +77,27 @@ let pretty_print ir =
           Types.Enums.generate_eqdecs enum_definitions;
         ]
     in
+    
     let extra_variant_definitions =
       let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
       in
       Types.Variants.generate_tags variant_definitions
     in
+    
     let extra_record_definitions =
       let record_definitions = select Extract.(type_definition of_record) ir.definitions
       in
       Types.Records.generate_tags record_definitions
     in
+    
     let base_module =
       BaseModule.pp_base_module ir.definitions
     in
+    
     let register_definitions =
       Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
     in
+    
     let segments =
       build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
