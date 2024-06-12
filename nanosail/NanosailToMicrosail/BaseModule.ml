@@ -132,8 +132,7 @@ let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) 
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
-  =
+let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
   let base_module_name = "UntitledBase"
   and flag = Coq.Export
   and includes = [ "Base" ]
