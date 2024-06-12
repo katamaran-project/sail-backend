@@ -120,6 +120,48 @@ let pp_union_constructor (variant_definitions : Ast.variant_definition list) : P
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+let pp_union_constructor_type (variant_definitions : Ast.variant_definition list) : PP.document =
+  let identifier  = PP.string "union_constructor_type"
+  and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
+  and result_type = Some (PP.string "union_constructor u -> Ty")
+  and body =
+    let matched_expression = PP.string "u"
+    and cases =
+      let pp_variant_case (variant_definition : Ast.variant_definition) =
+        let match_constructor_cases =
+          let constructor_cases =
+            let pp_constructor_case (constructor : Ast.variant_constructor) =
+              let (constructor_identifier, constructor_field_types) = constructor
+              in
+              let pp_constructor_tag =
+                Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
+              and pp_constructor_field_types =
+                let pp_types =
+                  List.map ~f:(fun x -> AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype x) constructor_field_types
+                in
+                PP.(separate space pp_types)
+              in
+              (
+                pp_constructor_tag,
+                pp_constructor_field_types
+              )
+            in
+            List.map ~f:pp_constructor_case variant_definition.constructors
+          in
+          Coq.match' (PP.string "k") constructor_cases
+        in
+        (
+          Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+          PP.(string "fun k => " ^^ align match_constructor_cases)
+        )
+      in
+      List.map ~f:pp_variant_case variant_definitions
+    in
+    Coq.match' matched_expression cases
+  in
+  Coq.definition ~identifier ~parameters ~result_type body
+  
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -140,6 +182,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
           pp_record_denote record_definitions;
           pp_typedenotekit ();
           pp_union_constructor variant_definitions;
+          pp_union_constructor_type variant_definitions;
         ]
       in
       PP.(separate small_step sections)
