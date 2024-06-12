@@ -124,8 +124,8 @@ let pretty_print ir =
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
 
-  let no_confusion =
-    NoConfusion.generate ir.definitions
+  let register_no_confusion =
+    NoConfusion.generate_noconfusions_for_registers ir.definitions
   in
 
   let finite =
@@ -150,7 +150,7 @@ let pretty_print ir =
           addall @@ extra_enum_definitions;
           addall @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
-          addopt @@ no_confusion;
+          addopt @@ register_no_confusion;
           addopt @@ eqdecs;
           addopt @@ finite;
           add    @@ base_module;
