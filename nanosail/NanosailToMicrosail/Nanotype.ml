@@ -44,6 +44,12 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return @@ PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
 
+  and pp_product t1 t2 =
+    let* t1' = pp_nanotype t1
+    and* t2' = pp_nanotype t2
+    in
+    AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
+
   in  
   match typ with
    | Unit                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
@@ -54,7 +60,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Atom                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
    | Custom id                        -> AC.return @@ pp_identifier id
    | Record                           -> AC.not_yet_implemented [%here]
-   | Product (_, _)                   -> AC.not_yet_implemented [%here]
+   | Product (t1, t2)                 -> pp_product t1 t2
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
    | Application (constructor, targs) -> pp_application constructor targs
    | Enum id                          -> pp_enum id
