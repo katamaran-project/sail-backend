@@ -80,22 +80,23 @@ let pretty_print ir =
     Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
   in
 
+  let extra_variant_definitions =
+    let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
+    in
+    Types.Variants.generate_tags variant_definitions
+  in
+  
+  let extra_record_definitions =
+    let record_definitions = select Extract.(type_definition of_record) ir.definitions
+    in
+    Types.Records.generate_tags record_definitions
+  in
+  
+  let base_module =
+    BaseModule.pp_base_module ir.definitions
+  in
+
   let base =
-    let extra_variant_definitions =
-      let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
-      in
-      Types.Variants.generate_tags variant_definitions
-    in
-    
-    let extra_record_definitions =
-      let record_definitions = select Extract.(type_definition of_record) ir.definitions
-      in
-      Types.Records.generate_tags record_definitions
-    in
-    
-    let base_module =
-      BaseModule.pp_base_module ir.definitions
-    in
     
     let segments =
       build_list (fun { add; addall; addopt } ->
