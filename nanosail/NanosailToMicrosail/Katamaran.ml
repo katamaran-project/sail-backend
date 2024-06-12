@@ -56,13 +56,13 @@ let pretty_print ir =
     PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
   in
 
-  let base =
-    let translated_type_definitions =
-      let type_definitions = select Extract.(type_definition of_anything) ir.definitions
-      in
-      List.map ~f:(uncurry Types.pp_type_definition) type_definitions
+  let translated_type_definitions =
+    let type_definitions = select Extract.(type_definition of_anything) ir.definitions
     in
-    
+    List.map ~f:(uncurry Types.pp_type_definition) type_definitions
+  in
+
+  let base =
     let extra_enum_definitions =
       let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
       in
