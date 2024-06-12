@@ -365,7 +365,7 @@ let annotate_with_original_definition original translation =
   then
     PP.(
       concat [
-        original_sail_code (PPSail.pp_sail_definition original);
+        original_sail_code @@ PPSail.pp_sail_definition original;
         hardline;
         translation
       ]
