@@ -327,7 +327,7 @@ let with_destructured_record
               let message =
                 Printf.sprintf "Tried looking up %s; expected to find record type definition" (Ast.Identifier.string_of record_type_identifier)
               in
-              (* TC.fail [%here] message *)
+              (* TC.fail [%here] message *) (* todo make this a failure again *)
               TC.not_yet_implemented ~message [%here] location
             end
         end
