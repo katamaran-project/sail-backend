@@ -7,16 +7,10 @@ module AC = AnnotationContext
 
 
 let rec pp_nanotype (typ : Ast.Type.t) =
-  let pp_product x y =
-    PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.prod"; x; y ]
-  in
-  
   let pp_tuple elts =
     let* elts' = AnnotationContext.map ~f:pp_nanotype elts
     in
-    match Auxlib.split_last elts' with
-    | Some (xs, last) -> AC.return @@ List.fold_right ~f:pp_product ~init:last xs
-    | None            -> AC.not_yet_implemented [%here]
+    AC.return PP.(separate space [ string "ty.tuple"; Coq.list elts' ])
     
   and pp_list element_type =
     let* element_type' = pp_nanotype element_type

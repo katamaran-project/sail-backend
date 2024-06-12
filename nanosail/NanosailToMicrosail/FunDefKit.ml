@@ -16,7 +16,15 @@ let pp_function_definition
   let coq_definition =
     let* result_type =
       let* bindings =
-        let* docs = AC.map ~f:PPSail.pp_bind function_definition.function_type.parameters
+        let* parameters : (Ast.Identifier.t * PP.document) list =
+          let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
+            let* t' = Nanotype.pp_nanotype t
+            in
+            AC.return (id, t')
+          in
+          AC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+        in
+        let* docs = AC.map ~f:PPSail.pp_bind parameters
         in
         AC.return @@ Coq.list docs
       in

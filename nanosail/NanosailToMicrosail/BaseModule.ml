@@ -136,10 +136,14 @@ let pp_union_constructor_type (variant_definitions : Ast.variant_definition list
               let pp_constructor_tag =
                 Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
               and pp_constructor_field_types =
-                let pp_types =
-                  List.map ~f:(fun x -> AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype x) constructor_field_types
+                let packed_type =
+                  match constructor_field_types with
+                  | []     -> Ast.Type.Unit
+                  | [x]    -> x
+                  | [x; y] -> Ast.Type.Product (x, y)
+                  | xs     -> Ast.Type.Tuple xs
                 in
-                PP.(separate space pp_types)
+                AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype packed_type
               in
               (
                 pp_constructor_tag,

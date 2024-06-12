@@ -1,13 +1,11 @@
 open Base
-open Nanotype
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
 
 
 let pp_bind (arg, t) =
-  let* t' = pp_nanotype t in
-  AC.return @@ PP.(utf8string ("\"" ^ (Ast.Identifier.string_of arg) ^ "\" ∷ " ) ^^ t')
+  AC.return @@ PP.(utf8string ("\"" ^ (Ast.Identifier.string_of arg) ^ "\" ∷ " ) ^^ t)
 
 
 let pp_sail_definition sail_definition =

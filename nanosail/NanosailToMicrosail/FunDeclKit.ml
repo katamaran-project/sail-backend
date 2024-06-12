@@ -10,8 +10,16 @@ let generate (function_definitions : Ast.function_definition list) =
   let pp_function_declaration (function_definition : Ast.function_definition) =
     let name = pp_identifier function_definition.function_name in
     let* function_type =
-      let* parameter_types =
-        let* ps = AC.map ~f:PPSail.pp_bind function_definition.function_type.parameters
+      let* parameter_bindings =
+        let* pp_parameter_bindings =
+          let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
+            let* t' = Nanotype.pp_nanotype t
+            in
+            AC.return (id, t')
+          in
+          AC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+        in
+        let* ps = AC.map ~f:PPSail.pp_bind pp_parameter_bindings
         in
         AC.return @@ Coq.list ps
       in
@@ -24,7 +32,7 @@ let generate (function_definitions : Ast.function_definition list) =
               align (
                   group (
                       concat [
-                          parameter_types;
+                          parameter_bindings;
                           break 1;
                           parens return_type
                         ]
