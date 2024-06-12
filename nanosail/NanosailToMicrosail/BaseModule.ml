@@ -31,11 +31,8 @@ let pp_denote_function
   Coq.definition ~identifier ~parameters ~result_type body
 
 
-let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+let pp_enum_denote (enum_definitions : Ast.enum_definition list) : PP.document =
   let denotations =
-    let enum_definitions =
-      List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
-    in
     let enum_identifiers =
       List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
     in
@@ -133,19 +130,24 @@ let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) 
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
-  let base_module_name = "UntitledBase"
-  and flag = Coq.Export
-  and includes = [ "Base" ]
-  and contents =
-    let sections = [
-        pp_typedeclkit ();
-        pp_enum_denote definitions;
-        pp_variant_denote definitions;
-        pp_record_denote definitions;
-        pp_typedenotekit ();
-        pp_union_constructor definitions;
-      ]
+  let enum_definitions =
+    List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
+  in  
+  begin
+    let base_module_name = "UntitledBase"
+    and flag = Coq.Export
+    and includes = [ "Base" ]
+    and contents =
+      let sections = [
+          pp_typedeclkit ();
+          pp_enum_denote enum_definitions;
+          pp_variant_denote definitions;
+          pp_record_denote definitions;
+          pp_typedenotekit ();
+          pp_union_constructor definitions;
+        ]
+      in
+      PP.(separate small_step sections)
     in
-    PP.(separate small_step sections)
-  in
-  Coq.module' ~flag ~includes base_module_name contents
+    Coq.module' ~flag ~includes base_module_name contents
+  end
