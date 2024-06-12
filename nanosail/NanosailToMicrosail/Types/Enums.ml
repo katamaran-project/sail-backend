@@ -63,12 +63,10 @@ let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.enum_
 
 
 let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
-  let enum_definitions = List.map ~f:snd enum_definitions (* todo cleanup *)
-  in
-  let generate_eqdec (enum_definition : Ast.enum_definition) =
-    PP.string @@ Printf.sprintf "Derive EqDec for %s." (Ast.Identifier.string_of @@ enum_definition.identifier)
+  let enum_identifiers =
+    List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
   in
   let lines =
-    List.map ~f:generate_eqdec enum_definitions
+    List.map ~f:Coq.derive_eqdec_for enum_identifiers
   in
   PP.separate PP.hardline lines
