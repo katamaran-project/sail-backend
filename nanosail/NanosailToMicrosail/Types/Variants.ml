@@ -50,7 +50,7 @@ let generate_constructors_inductive_type (variant_definition  : Ast.variant_defi
   in
   Coq.build_inductive_type identifier typ (fun add_constructor ->
       AC.iter constructor_names
-        ~f:(fun case -> add_constructor @@ pp_identifier @@ Ast.Identifier.add_prefix "K" case)
+        ~f:(fun case -> add_constructor @@ pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag case)
     )
 
 

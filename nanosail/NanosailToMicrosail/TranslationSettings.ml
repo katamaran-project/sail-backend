@@ -16,3 +16,6 @@ let convert_variant_name_to_tag (identifier : Ast.Identifier.t) : Ast.Identifier
 let derive_variant_constructor_type (variant_identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.add_suffix "Constructor" variant_identifier
 
+
+let convert_constructor_name_to_tag (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  Ast.Identifier.update (fun x -> "K" ^ String.lowercase x) identifier
