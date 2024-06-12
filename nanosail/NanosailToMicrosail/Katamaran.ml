@@ -62,20 +62,21 @@ let pretty_print ir =
     List.map ~f:(uncurry Types.pp_type_definition) type_definitions
   in
 
-  let base =
-    let extra_enum_definitions =
-      let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
-      in
-      if List.is_empty enum_definitions
-      then [
-          Types.Enums.generate_tags enum_definitions
-        ]
-      else [
-          Types.Enums.generate_tags enum_definitions;
-          Types.Enums.generate_no_confusions enum_definitions;
-          Types.Enums.generate_eqdecs enum_definitions;
-        ]
+  let extra_enum_definitions =
+    let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
     in
+    if List.is_empty enum_definitions
+    then [
+        Types.Enums.generate_tags enum_definitions
+      ]
+    else [
+        Types.Enums.generate_tags enum_definitions;
+        Types.Enums.generate_no_confusions enum_definitions;
+        Types.Enums.generate_eqdecs enum_definitions;
+      ]
+  in
+  
+  let base =
     
     let extra_variant_definitions =
       let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
