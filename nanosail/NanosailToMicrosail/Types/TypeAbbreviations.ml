@@ -3,7 +3,6 @@ open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
-module PP = PPrint
 
 
 let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.document AC.t =
