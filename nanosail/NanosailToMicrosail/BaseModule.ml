@@ -108,7 +108,6 @@ let pp_typedenotekit () =
     ]
   in
   PP.(separate hardline @@ List.map ~f:string coq_lines)
-  
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
