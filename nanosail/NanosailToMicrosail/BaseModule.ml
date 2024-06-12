@@ -12,33 +12,45 @@ let pp_typedeclkit () =
   )
 
 
-let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
-  let enum_definitions =
-    List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
-  in
-  let enum_identifiers =
-    List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
-  in
-  let parameter_identifier = "e"
-  in
-  let identifier  = PP.string "enum_denote"
-  and parameters  = [ (PP.string parameter_identifier, Some (PP.string "Enums")) ]
+let pp_denote_function
+      ~(denotations : (PP.document * PP.document) list)
+      ~(parameter_identifier : PP.document)
+      ~(tag_type_identifier : PP.document)
+      ~(function_identifier : PP.document) : PP.document
+  =
+  let identifier  = function_identifier
+  and parameters  = [ (parameter_identifier, Some tag_type_identifier) ]
   and result_type = Some (PP.string "Set")
   and body =
-    let matched_expression = PP.string parameter_identifier
-    and cases =
-      let process_case identifier =
-        (
-          PP.string @@ Ast.Identifier.string_of @@ TranslationSettings.convert_enum_name_to_tag identifier,
-          PP.string @@ Ast.Identifier.string_of identifier
-        )
-      in
-      List.map ~f:process_case enum_identifiers
+    let matched_expression = parameter_identifier
+    and cases              = denotations
     in
     Coq.match' matched_expression cases
   in
   Coq.definition ~identifier ~parameters ~result_type body
 
+
+let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+  let denotations =
+    let enum_definitions =
+      List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
+    in
+    let enum_identifiers =
+      List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
+    in
+    let denotation_pair_for enum_identifier =
+      (
+        Identifier.pp_identifier @@ TranslationSettings.convert_enum_name_to_tag enum_identifier,
+        Identifier.pp_identifier enum_identifier
+      )
+    in
+    List.map ~f:denotation_pair_for enum_identifiers
+  and parameter_identifier = PP.string "e"
+  and tag_type_identifier  = PP.string "Enums"
+  and function_identifier  = PP.string "enum_denote"
+  in
+  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+    
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
   =
