@@ -16,6 +16,9 @@ let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) 
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   in
+  let enum_identifiers =
+    List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
+  in
   let parameter_identifier = "e"
   in
   let identifier  = PP.(string "enum_denote")
@@ -30,7 +33,7 @@ let pp_enum_denote (definitions : (Sail.sail_definition * Ast.definition) list) 
           PP.string @@ Ast.Identifier.string_of identifier
         )
       in
-      List.map ~f:process_case @@ List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
+      List.map ~f:process_case enum_identifiers
     in
     Coq.match' matched_expression cases
   in
