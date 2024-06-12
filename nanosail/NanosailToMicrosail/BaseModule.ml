@@ -2,14 +2,15 @@ open Base
 
 
 let pp_typedeclkit () =
-  PP.(separate hardline [
-          string "#[export] Instance typedeclkit : TypeDeclKit :=";
-          string "  {| enumi   := Enums;";
-          string "     unioni  := Unions;";
-          string "     recordi := Records;";
-          string "  |}.";
-        ]
-  )
+  let coq_lines = [
+      "#[export] Instance typedeclkit : TypeDeclKit :=";
+      "  {| enumi   := Enums;";
+      "     unioni  := Unions;";
+      "     recordi := Records;";
+      "  |}.";
+    ]
+  in
+  PP.(separate hardline @@ List.map ~f:string coq_lines)
 
 
 let pp_denote_function
@@ -96,6 +97,20 @@ let pp_record_denote (definitions : (Sail.sail_definition * Ast.definition) list
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+let pp_typedenotekit () =
+  let coq_lines = [
+      "#[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=";
+      "  {|";
+      "     enumt := enum_denote;";
+      "     uniont := union_denote;";
+      "     recordt := record_denote;";
+      "  |}.";
+    ]
+  in
+  PP.(separate hardline @@ List.map ~f:string coq_lines)
+  
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
   =
   let base_module_name = "UntitledBase"
@@ -107,6 +122,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
         pp_enum_denote definitions;
         pp_variant_denote definitions;
         pp_record_denote definitions;
+        pp_typedenotekit ();
       ]
     in
     PP.(separate small_step sections)
