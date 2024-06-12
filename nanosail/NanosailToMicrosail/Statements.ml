@@ -58,7 +58,7 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
           ])
       end
 
-    | MP_enum { matched; cases } -> begin
+    | MP_enum { matched; matched_type; cases } -> begin
         let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.statement) (acc : PP.document list AC.t) =
           let* acc
           and* pattern = AC.return @@ pp_identifier key
@@ -74,10 +74,11 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
         let* matched' = pp_par_statement matched
         and* cases' = Ast.Identifier.Map.fold cases ~init:(AC.return []) ~f:translate_case
         in
-        let* annotation_index = AC.create_annotation_from_document PP.(string "typeof(" ^^ matched' ^^ string ")")
+        let matched_type =
+          Identifier.pp_identifier @@ TranslationSettings.convert_enum_name_to_tag matched_type
         in
         AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
-          add @@ PP.(separate space [ string "match:"; matched'; string "in"; string (Printf.sprintf "NYI[%d]" annotation_index); string "with" ]);
+          add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
           addall cases'
         end
       end

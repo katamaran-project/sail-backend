@@ -265,8 +265,9 @@ and match_pattern_bool =
 
 and match_pattern_enum =
   {
-    matched    : statement;
-    cases      : statement Identifier.Map.t
+    matched      : statement;
+    matched_type : Identifier.t;
+    cases        : statement Identifier.Map.t
   }
 
 and match_pattern_variant =

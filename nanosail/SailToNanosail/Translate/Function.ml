@@ -547,10 +547,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         TC.return @@ (N.Stm_exp matched_expression, named_statements)
       and* cases = TC.fold_left ~f:process_case ~init:Ast.Identifier.Map.empty cases
       in
+      let matched_type =
+        enum_definition.identifier
+      in
       let match_statement = N.Stm_match (N.MP_enum {
-                                             matched;
-                                             cases
-                              })
+          matched;
+          matched_type;
+          cases
+        })
       in
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
