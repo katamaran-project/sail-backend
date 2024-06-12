@@ -391,7 +391,7 @@ let annotate_with_original_definitions originals translation =
     translation
 
 
-let annotate f =
+let annotate (f : PP.document AC.t) : PP.document =
   let (document, annotations) = AC.collect_annotations f
   in
   let pp_annotations =
