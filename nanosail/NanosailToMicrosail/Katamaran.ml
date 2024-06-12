@@ -88,11 +88,14 @@ let pretty_print ir =
     let base_module =
       BaseModule.pp_base_module ir.definitions
     in
+    let register_definitions =
+      Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
+    in
     let segments =
       build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
           add    @@ PP.string "Import DefaultBase.";
-          addopt @@ Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
+          addopt @@ register_definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
           add    @@ extra_variant_definitions;
