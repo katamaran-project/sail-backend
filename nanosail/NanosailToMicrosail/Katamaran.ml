@@ -77,7 +77,6 @@ let pretty_print ir =
   in
   
   let base =
-    
     let extra_variant_definitions =
       let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
       in
