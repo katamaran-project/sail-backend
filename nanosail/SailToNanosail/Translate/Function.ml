@@ -480,7 +480,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
       let process_case
             (table      : N.statement Ast.Identifier.Map.t            )
-            (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement Ast.Identifier.Map.t TC.t =
+            (match_case : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp)) : N.statement Ast.Identifier.Map.t TC.t
+        =
         let (AP_aux (pattern, _environment, _location), condition, body) = match_case
         in
         (*
