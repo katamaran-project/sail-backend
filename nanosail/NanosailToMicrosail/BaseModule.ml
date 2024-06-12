@@ -110,6 +110,28 @@ let pp_typedenotekit () =
   PP.(separate hardline @@ List.map ~f:string coq_lines)
 
 
+let pp_union_constructor (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+  let denotations =
+    let variant_definitions =
+      List.map ~f:snd Ast.(select Extract.(type_definition of_variant) definitions)
+    in
+    let variant_identifiers =
+      List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
+    in
+    let denotation_pair_for variant_identifier =
+      (
+        Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
+        Identifier.pp_identifier @@ TranslationSettings.derive_variant_constructor_type variant_identifier
+      )
+    in
+    List.map ~f:denotation_pair_for variant_identifiers
+  and parameter_identifier = PP.string "u"
+  and tag_type_identifier  = PP.string "Unions"
+  and function_identifier  = PP.string "union_constructor"
+  in
+  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document
   =
   let base_module_name = "UntitledBase"
@@ -122,6 +144,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
         pp_variant_denote definitions;
         pp_record_denote definitions;
         pp_typedenotekit ();
+        pp_union_constructor definitions;
       ]
     in
     PP.(separate small_step sections)
