@@ -204,7 +204,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
    | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
    | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
-   | Typ_id _             -> not_yet_implemented [%here] sail_type_location
+   | Typ_id id            -> Monad.return @@ Ast.ExtendedType.Parameter.Other (StringOf.Sail.id id)
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
