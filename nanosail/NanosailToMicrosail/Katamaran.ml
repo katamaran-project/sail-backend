@@ -159,7 +159,7 @@ let pretty_print ir =
           addopt @@ no_confusion;
         end
   in
-  PP.(separate_nonempty big_step sections)
+  PP.(separate_nonempty small_step sections)
 
 
 let output_document_to_channel len out doc =
