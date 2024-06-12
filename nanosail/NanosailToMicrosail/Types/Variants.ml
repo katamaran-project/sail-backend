@@ -90,9 +90,9 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.variant_def
   Coq.annotate inductive_type
 
 
-let generate_eqdecs (variant_definitions : Ast.variant_definition list) =
+let generate_eqdecs (variant_definitions : (Sail.sail_definition * Ast.variant_definition) list) =
   let variant_identifiers =
-    List.map ~f:(fun vd -> vd.identifier) variant_definitions
+    List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
   let lines =
     List.map ~f:Coq.derive_eqdec_for variant_identifiers
