@@ -55,7 +55,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
  *)
-let regnames (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
+let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
   if List.is_empty register_definitions
   then None
   else begin

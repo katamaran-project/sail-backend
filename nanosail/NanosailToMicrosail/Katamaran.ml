@@ -92,7 +92,7 @@ let pretty_print ir =
       build_list (fun { add; addall; addopt } ->
           add    @@ pp_module_header "TYPES";
           add    @@ PP.string "Import DefaultBase.";
-          addopt @@ Registers.regnames @@ select Extract.register_definition ir.definitions;
+          addopt @@ Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
           add    @@ extra_variant_definitions;
@@ -146,9 +146,9 @@ let pretty_print ir =
     build_list @@
       fun { add; addopt; _ } -> begin
           add    prelude;
+          add    base;
           addopt eqdecs;
           addopt finite;
-          add    base;
           add    value_definitions;
           add    program;
           add    registers;
