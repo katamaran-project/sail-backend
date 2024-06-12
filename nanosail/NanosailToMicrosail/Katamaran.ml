@@ -85,7 +85,10 @@ let pretty_print ir =
   let extra_variant_definitions =
     let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
     in
-    Types.Variants.generate_tags variant_definitions
+    [
+      Types.Variants.generate_tags variant_definitions;
+      Types.Variants.generate_eqdecs variant_definitions;
+    ]
   in
   
   let extra_record_definitions =
@@ -145,7 +148,7 @@ let pretty_print ir =
           addopt @@ register_definitions;
           addall @@ translated_type_definitions;
           addall @@ extra_enum_definitions;
-          add    @@ extra_variant_definitions;
+          addall @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
           addopt @@ eqdecs;
           addopt @@ finite;
