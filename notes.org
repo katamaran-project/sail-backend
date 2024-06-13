@@ -13,6 +13,7 @@
   - Use monads in Base Module
 - Matching statements
   - Investigate ~stm_match_union_alt~
+- ~let x :: type~
 * Files
 
 ** ~Base.v~
@@ -703,77 +704,77 @@
 -     Let word : Ty := ty.word.
 - 
 -     Definition fun_exec_sd : Stm ["rs1" :: ty.src; "rs2" :: ty.src; "imm" :: ty.int] ty.bool :=
--       let: "base_cap" :: cap  := call read_reg_cap (exp_var "rs1") in
++       let: "base_cap" :: cap  := call read_reg_cap (exp_var "rs1") in
 -       let*: ["perm", "beg", "end", "cursor"] := (exp_var "base_cap") in
--       (let: "c" :: cap := exp_record capability
--                                      [ exp_var "perm";
--                                        exp_var "beg";
--                                        exp_var "end";
--                                        exp_var "cursor" + exp_var "imm"
--                                      ] in
--        let: p :: bool := call write_allowed (exp_var "perm") in
++       (let: "c" :: cap := exp_record capability
++                                      [ exp_var "perm";
++                                        exp_var "beg";
++                                        exp_var "end";
++                                        exp_var "cursor" + exp_var "imm"
++                                      ] in
++        let: p :: bool := call write_allowed (exp_var "perm") in
 -        stm_assert p (exp_string "Err: [store] no write permission") ;;
--        let: w :: ty.word := call read_reg (exp_var "rs2") in
--        let: "tmp" := exp_val ty.perm RW in
++        let: w :: ty.word := call read_reg (exp_var "rs2") in
++        let: "tmp" := exp_val ty.perm RW in
 -        use lemma subperm_not_E [exp_var "tmp"; exp_var "perm"] ;;
 -        use lemma safe_move_cursor [exp_var "c"; exp_var "base_cap"] ;;
--        call write_mem c w ;;
--        call update_pc ;;
--        stm_val ty.bool true).
++        call write_mem c w ;;
++        call update_pc ;;
++        stm_val ty.bool true).
 - 
 -     Definition fun_exec_ld : Stm ["cd" :: ty.dst; "cs" :: ty.src; "imm" :: ty.int] ty.bool :=
--       let: "base_cap" :: cap  := call read_reg_cap (exp_var "cs") in
++       let: "base_cap" :: cap  := call read_reg_cap (exp_var "cs") in
 -       let*: ["perm", "beg", "end", "cursor"] := (exp_var "base_cap") in
--       (let: "c" :: cap := exp_record capability
--                                      [ exp_var "perm";
--                                        exp_var "beg";
--                                        exp_var "end";
--                                        exp_var "cursor" + exp_var "imm"
--                                      ] in
--        let: p :: bool := call read_allowed (exp_var "perm") in
++       (let: "c" :: cap := exp_record capability
++                                      [ exp_var "perm";
++                                        exp_var "beg";
++                                        exp_var "end";
++                                        exp_var "cursor" + exp_var "imm"
++                                      ] in
++        let: p :: bool := call read_allowed (exp_var "perm") in
 -        stm_assert p (exp_string "Err: [load] no read permission") ;;                 
--        let: "tmp" := exp_val ty.perm R in
++        let: "tmp" := exp_val ty.perm R in
 -        use lemma subperm_not_E [exp_var "tmp"; exp_var "perm"] ;;
 -        use lemma safe_move_cursor [exp_var "c"; exp_var "base_cap"] ;;
 -        let: n :: ty.memval := call read_mem c in
--        call write_reg (exp_var "cd") n ;;
--        call update_pc ;;
--        stm_val ty.bool true).
++        call write_reg (exp_var "cd") n ;;
++        call update_pc ;;
++        stm_val ty.bool true).
 - 
 -     Definition fun_exec_cincoffset : Stm ["cd" :: ty.dst; "cs" :: ty.src; "rs" :: ty.src] ty.bool :=
--       let: "base_cap" :: cap  := call read_reg_cap (exp_var "cs") in
--       let: "offset" :: ty.int := call read_reg_num (exp_var "rs") in
++       let: "base_cap" :: cap  := call read_reg_cap (exp_var "cs") in
++       let: "offset" :: ty.int := call read_reg_num (exp_var "rs") in
 -       let*: ["perm", "beg", "end", "cursor"] := (exp_var "base_cap") in
--       (match: exp_var "perm" in permission with
--        | E => fail "Err: [cincoffset] not permitted on enter capability"
--        | _ =>
--            let: "c" :: cap := exp_record capability
--                                          [ exp_var "perm";
--                                            exp_var "beg";
--                                            exp_var "end";
--                                            exp_var "cursor" + exp_var "offset"
--                                          ] in
++       (match: exp_var "perm" in permission with
++        | E => fail "Err: [cincoffset] not permitted on enter capability"
++        | _ =>
++            let: "c" :: cap := exp_record capability
++                                          [ exp_var "perm";
++                                            exp_var "beg";
++                                            exp_var "end";
++                                            exp_var "cursor" + exp_var "offset"
++                                          ] in
 -            use lemma safe_move_cursor [exp_var "c"; exp_var "base_cap"] ;;
--            call write_reg (exp_var "cd") (exp_inr (exp_var "c")) ;;
--            call update_pc ;;
--            stm_val ty.bool true
--        end).
++            call write_reg (exp_var "cd") (exp_inr (exp_var "c")) ;;
++            call update_pc ;;
++            stm_val ty.bool true
++        end).
 - 
 -     Definition fun_exec_candperm : Stm ["cd" :: ty.dst; "cs" :: ty.src; "rs" :: ty.src] ty.bool :=
--       let: "cs_val" := call read_reg_cap (exp_var "cs") in
--       let: "rs_val" := call read_reg_num (exp_var "rs") in
++       let: "cs_val" := call read_reg_cap (exp_var "cs") in
++       let: "rs_val" := call read_reg_num (exp_var "rs") in
 -       let*: ["p", "b", "e", "a"] := exp_var "cs_val" in
--       let: "p'" := call perm_from_bits (exp_var "rs_val") in
--       let: "new_p"  := call and_perm (exp_var "p") (exp_var "p'") in
++       let: "p'" := call perm_from_bits (exp_var "rs_val") in
++       let: "new_p"  := call and_perm (exp_var "p") (exp_var "p'") in
 -       let: "new_cap" :: cap := exp_record capability
--                                           [ exp_var "new_p";
--                                             exp_var "b";
--                                             exp_var "e";
--                                             exp_var "a"
--                                           ] in
++                                           [ exp_var "new_p";
++                                             exp_var "b";
++                                             exp_var "e";
++                                             exp_var "a"
++                                           ] in
 -       use lemma safe_sub_perm [exp_var "new_cap"; exp_var "cs_val"] ;;
--       call write_reg (exp_var "cd") (exp_inr (exp_var "new_cap")) ;;
--       stm_val ty.bool true.
++       call write_reg (exp_var "cd") (exp_inr (exp_var "new_cap")) ;;
++       stm_val ty.bool true.
 - 
 -     Definition fun_exec_addi : Stm ["rd" :: ty.dst; "rs" :: ty.src; "imm" :: ty.int] ty.bool :=
 -       let: "v" :: ty.int := call read_reg_num (exp_var "rs") in
