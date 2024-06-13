@@ -2,18 +2,12 @@
 
 * Features
 
-** TODO Register Parameters
-
-** TODO Bitvectors
-
-** TODO Base Module
-
-** TODO Matching statements
-
-** TODO Use monads in Base Module 
-
-** TODO Investigate ~stm_match_union_alt~
-
+- Register Parameters
+- Bitvectors
+- Base Module
+- Matching statements
+- Use monads in Base Module 
+- Investigate ~stm_match_union_alt~
 * Files
 
 ** ~Base.v~
