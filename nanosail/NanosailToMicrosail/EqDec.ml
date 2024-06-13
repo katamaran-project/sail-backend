@@ -16,4 +16,3 @@ let generate (definitions : (Sail.sail_definition * Ast.definition) list) =
       )
   in
   Some PP.(separate hardline eqdec_derivations)
-
