@@ -50,9 +50,10 @@ let _generate_module_header title =
   AC.return @@ PP.string @@ Printf.sprintf "(*** %s ***)" title
 
 let pretty_print ir =
-  let type_definitions = select Extract.(type_definition of_anything) ir.definitions
-  and enum_definitions = select Extract.(type_definition of_enum) ir.definitions
-  and record_definitions = select Extract.(type_definition of_record) ir.definitions
+  let type_definitions     = select Extract.(type_definition of_anything) ir.definitions
+  and enum_definitions     = select Extract.(type_definition of_enum) ir.definitions
+  and record_definitions   = select Extract.(type_definition of_record) ir.definitions
+  and register_definitions = select Extract.register_definition ir.definitions
   in
   
   let prelude =
@@ -67,8 +68,8 @@ let pretty_print ir =
     List.map ~f:(uncurry Types.pp_type_definition) type_definitions
   in
 
-  let register_definitions =
-    Registers.regname_inductive_type @@ select Extract.register_definition ir.definitions;
+  let pp_register_definitions =
+    Registers.regname_inductive_type register_definitions;
   in
 
   let extra_variant_definitions =
@@ -98,12 +99,10 @@ let pretty_print ir =
 
   let registers =
     if
-      List.is_empty @@ select Extract.register_definition ir.definitions
+      List.is_empty register_definitions
     then
       PP.empty
     else
-      let register_definitions = select Extract.register_definition ir.definitions
-      in
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
 
@@ -133,12 +132,12 @@ let pretty_print ir =
       fun { add; addopt; addall } -> begin
           add    @@ prelude;
           add    @@ PP.string "Import DefaultBase.";
-          addopt @@ register_definitions;
+          addopt @@ pp_register_definitions;
           addall @@ translated_type_definitions;
           add    @@ Types.Enums.generate_tags enum_definitions;
           addall @@ extra_variant_definitions;
           add    @@ Types.Records.generate_tags record_definitions;
-          addopt @@ Registers.generate_noconfusions ir.definitions;
+          addopt @@ Registers.generate_noconfusions register_definitions;
           addall @@ no_confusion;
           addall @@ eqdecs;
           addopt @@ finite;

@@ -152,10 +152,7 @@ let generate (register_definitions : (Sail.sail_definition * Ast.register_defini
   Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
-let generate_noconfusions (definitions : (Sail.sail_definition * Ast.definition) list) =
-  let register_definitions =
-    Ast.(select Extract.register_definition definitions)
-  in
+let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
   let has_registers =
     not @@ List.is_empty register_definitions
   in
