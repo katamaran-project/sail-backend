@@ -64,18 +64,12 @@ let pretty_print ir =
     List.map ~f:(uncurry Types.pp_type_definition) type_definitions
   in
 
-  let extra_enum_definitions =
+  let enum_tags =
     let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
     in
-    if List.is_empty enum_definitions
-    then [
-        Types.Enums.generate_tags enum_definitions
-      ]
-    else [
-        Types.Enums.generate_tags enum_definitions;
-        Types.Enums.generate_no_confusions enum_definitions;
-        Types.Enums.generate_eqdecs enum_definitions;
-      ]
+    Types.Enums.generate_tags enum_definitions
+        (* Types.Enums.generate_no_confusions enum_definitions; *)
+        (* Types.Enums.generate_eqdecs enum_definitions; *)
   in
 
   let register_definitions =
@@ -147,7 +141,7 @@ let pretty_print ir =
           add    @@ PP.string "Import DefaultBase.";
           addopt @@ register_definitions;
           addall @@ translated_type_definitions;
-          addall @@ extra_enum_definitions;
+          add    @@ enum_tags;
           addall @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
           addopt @@ register_no_confusion;
