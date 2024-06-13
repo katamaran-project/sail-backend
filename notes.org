@@ -2,7 +2,7 @@
 
 * Features
 
-- Register Parameters
+- Register Parameters (not)
 - Bitvectors
 - Base Module
   - Eqdec
@@ -13,7 +13,9 @@
   - Use monads in Base Module
 - Matching statements
   - Investigate ~stm_match_union_alt~
-- ~let x :: type~
+- ~let x :: type (use low level stm version)
+- match |> notation (enums, unions/variants)
+  
 * Files
 
 ** ~Base.v~
