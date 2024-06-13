@@ -656,42 +656,42 @@
 +      | _ => exp_var "c"
 +      end).
 - 
--   Definition fun_is_correct_pc : Stm ["c" :: ty.cap] ty.bool :=
++   Definition fun_is_correct_pc : Stm ["c" :: ty.cap] ty.bool :=
 -     let*: ["perm" , "beg" , "end" , "cur"] := (exp_var "c") in
--     (let: "tmp1" := call is_perm (exp_var "perm") (exp_val ty.perm R) in
--      let: "tmp2" := call is_perm (exp_var "perm") (exp_val ty.perm RW) in
--      if: (exp_var "beg" <= exp_var "cur") && (exp_var "cur" < exp_var "end")
--           && (exp_var "tmp1" || exp_var "tmp2")
--      then stm_val ty.bool true
--      else stm_val ty.bool false).
-- 
--   Definition fun_is_perm : Stm ["p" :: ty.perm; "p'" :: ty.perm] ty.bool :=
++     (let: "tmp1" := call is_perm (exp_var "perm") (exp_val ty.perm R) in
++      let: "tmp2" := call is_perm (exp_var "perm") (exp_val ty.perm RW) in
++      if: (exp_var "beg" <= exp_var "cur") && (exp_var "cur" < exp_var "end")
++           && (exp_var "tmp1" || exp_var "tmp2")
++      then stm_val ty.bool true
++      else stm_val ty.bool false).
++ 
++   Definition fun_is_perm : Stm ["p" :: ty.perm; "p'" :: ty.perm] ty.bool :=
 -     stm_match_enum permission (exp_var "p") (fun _ => stm_val ty.unit tt) ;;
 -     stm_match_enum permission (exp_var "p'") (fun _ => stm_val ty.unit tt) ;;
--     exp_var "p" = exp_var "p'".
++     exp_var "p" = exp_var "p'".
 - 
--   Definition fun_add_pc : Stm ["offset" :: ty.int] ty.unit :=
--     let: "opc" := stm_read_register pc in
--     let*: ["perm", "beg", "end", "cur"] := (exp_var "opc") in
--     (let: "npc" := (exp_record capability
--                                [ exp_var "perm";
--                                  exp_var "beg";
--                                  exp_var "end";
--                                  exp_var "cur" + exp_var "offset" ]) in
++   Definition fun_add_pc : Stm ["offset" :: ty.int] ty.unit :=
++     let: "opc" := stm_read_register pc in
++     let*: ["perm", "beg", "end", "cur"] := (exp_var "opc") in
++     (let: "npc" := (exp_record capability
++                                [ exp_var "perm";
++                                  exp_var "beg";
++                                  exp_var "end";
++                                  exp_var "cur" + exp_var "offset" ]) in
 -      lemma_correctPC_not_E (exp_var "opc") ;;
 -      use lemma safe_move_cursor [exp_var "npc"; exp_var "opc"] ;;
--      stm_write_register pc (exp_var "npc") ;;
--      stm_val ty.unit tt).
++      stm_write_register pc (exp_var "npc") ;;
++      stm_val ty.unit tt).
 - 
--   Definition fun_read_allowed : Stm ["p" :: ty.perm] ty.bool :=
--     call is_sub_perm (exp_val (ty.enum permission) R) (exp_var "p").
-- 
--   Definition fun_write_allowed : Stm ["p" :: ty.perm] ty.bool :=
--     call is_sub_perm (exp_val (ty.enum permission) RW) (exp_var "p").
-- 
--   Definition fun_within_bounds : Stm ["c" :: ty.cap] ty.bool :=
++   Definition fun_read_allowed : Stm ["p" :: ty.perm] ty.bool :=
++     call is_sub_perm (exp_val (ty.enum permission) R) (exp_var "p").
++ 
++   Definition fun_write_allowed : Stm ["p" :: ty.perm] ty.bool :=
++     call is_sub_perm (exp_val (ty.enum permission) RW) (exp_var "p").
++ 
++   Definition fun_within_bounds : Stm ["c" :: ty.cap] ty.bool :=
 -     let*: ["p", "b", "e", "a"] := (exp_var "c") in
--     ((exp_var "b" <= exp_var "a") && (exp_var "a" <= exp_var "e")).
++     ((exp_var "b" <= exp_var "a") && (exp_var "a" <= exp_var "e")).
 - 
 -   Section ExecStore.
 - 
