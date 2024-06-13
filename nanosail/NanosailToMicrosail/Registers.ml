@@ -153,10 +153,10 @@ let generate (register_definitions : (Sail.sail_definition * Ast.register_defini
 
 
 let generate_noconfusions (definitions : (Sail.sail_definition * Ast.definition) list) =
+  let register_definitions =
+    Ast.(select Extract.register_definition definitions)
+  in
   let has_registers =
-    let register_definitions =
-      Ast.(select Extract.register_definition definitions)
-    in
     not @@ List.is_empty register_definitions
   in
   let contents =
