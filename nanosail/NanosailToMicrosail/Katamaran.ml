@@ -50,6 +50,10 @@ let _generate_module_header title =
   AC.return @@ PP.string @@ Printf.sprintf "(*** %s ***)" title
 
 let pretty_print ir =
+  let type_definitions = select Extract.(type_definition of_anything) ir.definitions
+  and enum_definitions = select Extract.(type_definition of_enum) ir.definitions
+  in
+  
   let prelude =
     Prelude.generate ()
   in
@@ -59,17 +63,7 @@ let pretty_print ir =
   in
 
   let translated_type_definitions =
-    let type_definitions = select Extract.(type_definition of_anything) ir.definitions
-    in
     List.map ~f:(uncurry Types.pp_type_definition) type_definitions
-  in
-
-  let enum_tags =
-    let enum_definitions = select Extract.(type_definition of_enum) ir.definitions
-    in
-    Types.Enums.generate_tags enum_definitions
-        (* Types.Enums.generate_no_confusions enum_definitions; *)
-        (* Types.Enums.generate_eqdecs enum_definitions; *)
   in
 
   let register_definitions =
@@ -122,12 +116,21 @@ let pretty_print ir =
     NoConfusion.generate_noconfusions_for_registers ir.definitions
   in
 
+  let no_confusion =
+    [
+      Types.Enums.generate_no_confusions enum_definitions;
+    ]
+  in
+
   let finite =
     Finite.generate ir.definitions
   in
 
   let eqdecs =
-    EqDec.generate ir.definitions
+    [
+      Types.Enums.generate_eqdecs enum_definitions;
+    ]
+    (* EqDec.generate ir.definitions *)
   in
 
   let value_definitions =
@@ -141,11 +144,12 @@ let pretty_print ir =
           add    @@ PP.string "Import DefaultBase.";
           addopt @@ register_definitions;
           addall @@ translated_type_definitions;
-          add    @@ enum_tags;
+          add    @@ Types.Enums.generate_tags enum_definitions;
           addall @@ extra_variant_definitions;
           add    @@ extra_record_definitions;
           addopt @@ register_no_confusion;
-          addopt @@ eqdecs;
+          addall @@ no_confusion;
+          addall @@ eqdecs;
           addopt @@ finite;
           add    @@ base_module;
           add    @@ value_definitions;
