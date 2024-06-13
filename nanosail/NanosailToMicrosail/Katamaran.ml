@@ -52,6 +52,7 @@ let _generate_module_header title =
 let pretty_print ir =
   let type_definitions = select Extract.(type_definition of_anything) ir.definitions
   and enum_definitions = select Extract.(type_definition of_enum) ir.definitions
+  and record_definitions = select Extract.(type_definition of_record) ir.definitions
   in
   
   let prelude =
@@ -77,12 +78,6 @@ let pretty_print ir =
       Types.Variants.generate_tags variant_definitions;
       Types.Variants.generate_eqdecs variant_definitions;
     ]
-  in
-  
-  let extra_record_definitions =
-    let record_definitions = select Extract.(type_definition of_record) ir.definitions
-    in
-    Types.Records.generate_tags record_definitions
   in
   
   let base_module =
@@ -146,7 +141,7 @@ let pretty_print ir =
           addall @@ translated_type_definitions;
           add    @@ Types.Enums.generate_tags enum_definitions;
           addall @@ extra_variant_definitions;
-          add    @@ extra_record_definitions;
+          add    @@ Types.Records.generate_tags record_definitions;
           addopt @@ register_no_confusion;
           addall @@ no_confusion;
           addall @@ eqdecs;
