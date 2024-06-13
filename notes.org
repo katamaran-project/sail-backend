@@ -5,9 +5,14 @@
 - Register Parameters
 - Bitvectors
 - Base Module
+  - Eqdec
+  - Folds
+  - ~record_field_type~
+  - ~typedefkit~
+  - Canonicals
+  - Use monads in Base Module
 - Matching statements
-- Use monads in Base Module 
-- Investigate ~stm_match_union_alt~
+  - Investigate ~stm_match_union_alt~
 * Files
 
 ** ~Base.v~
