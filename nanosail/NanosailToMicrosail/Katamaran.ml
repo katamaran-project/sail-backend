@@ -108,7 +108,7 @@ let pretty_print ir =
   in
 
   let register_no_confusion =
-    NoConfusion.generate_noconfusions_for_registers ir.definitions
+    Registers.generate_noconfusions ir.definitions
   in
 
   let no_confusion =

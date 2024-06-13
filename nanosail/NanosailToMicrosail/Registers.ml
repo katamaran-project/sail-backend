@@ -1,6 +1,7 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
+open Auxlib
 
 module AC = AnnotationContext
 
@@ -149,3 +150,24 @@ let generate (register_definitions : (Sail.sail_definition * Ast.register_defini
     ])
   in
   Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
+
+
+let generate_noconfusions (definitions : (Sail.sail_definition * Ast.definition) list) =
+  let has_registers =
+    let register_definitions =
+      Ast.(select Extract.register_definition definitions)
+    in
+    not @@ List.is_empty register_definitions
+  in
+  let contents =
+    build_list (fun { add; _ } ->
+        add @@ PP.string "Local Set Transparent Obligations.";
+        add @@ PP.string "";
+        if has_registers
+        then add @@ PP.string "Derive NoConfusion for RegName.";
+      )  
+  in
+  let section =
+    Coq.section (Ast.Identifier.mk "TransparentObligations") PP.(separate hardline contents)
+  in
+  Some section
