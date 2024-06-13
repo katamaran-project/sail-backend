@@ -587,74 +587,74 @@
 -     (let: "tmp" := exp_val ty.perm R in
 -      use lemma subperm_not_E [exp_var "tmp"; exp_var "perm"]).
 - 
--   Definition fun_read_reg : Stm ["rs" :: ty.enum regname] ty.word :=
++   Definition fun_read_reg : Stm ["rs" :: ty.enum regname] ty.word :=
 -     use lemma open_gprs ;;
--     let: "x" := match: exp_var "rs" in regname with
--                 | R0 =>
--                     use lemma int_safe [exp_val ty.int 0%Z] ;;
--                     exp_inl (exp_val ty.int 0%Z)
--                 | R1 => stm_read_register reg1
--                 | R2 => stm_read_register reg2
--                 | R3 => stm_read_register reg3
--                 end in
++     let: "x" := match: exp_var "rs" in regname with
++                 | R0 =>
++                     use lemma int_safe [exp_val ty.int 0%Z] ;;
++                     exp_inl (exp_val ty.int 0%Z)
++                 | R1 => stm_read_register reg1
++                 | R2 => stm_read_register reg2
++                 | R3 => stm_read_register reg3
++                 end in
 -     use lemma close_gprs ;;
--     stm_exp x.
++     stm_exp x.
 - 
 -   Definition fun_read_reg_cap : Stm ["cs" :: ty.enum regname] ty.cap :=
--     let: w := call read_reg (exp_var "cs") in
--     match: w with
--     | inl i => fail "Err [read_reg_cap]: expect register to hold a capability"
--     | inr c =>
++     let: w := call read_reg (exp_var "cs") in
++     match: w with
++     | inl i => fail "Err [read_reg_cap]: expect register to hold a capability"
++     | inr c =>
 -         let*: ["p", "b", "e", "a"] := exp_var "c" in (* force record *)
--         (exp_var "c")
--     end.
++         (exp_var "c")
++     end.
 - 
 -   Definition fun_read_reg_num : Stm ["rs" :: ty.enum regname ] ty.int :=
--     let: w := call read_reg (exp_var "rs") in
--     match: w with
--     | inl i => stm_exp i
--     | inr c => fail "Err [read_reg_num]: expect register to hold a number"
--     end.
++     let: w := call read_reg (exp_var "rs") in
++     match: w with
++     | inl i => stm_exp i
++     | inr c => fail "Err [read_reg_num]: expect register to hold a number"
++     end.
 - 
 -   Definition fun_write_reg : Stm ["rd" :: ty.enum regname; "w" :: ty.word] ty.unit :=
 -     use lemma open_gprs ;;
--     match: exp_var "rd" in regname with
--     | R0 => stm_val ty.unit tt
--     | R1 => stm_write_register reg1 (exp_var "w") ;; stm_val ty.unit tt
--     | R2 => stm_write_register reg2 (exp_var "w") ;; stm_val ty.unit tt
--     | R3 => stm_write_register reg3 (exp_var "w") ;; stm_val ty.unit tt
--     end ;;
++     match: exp_var "rd" in regname with
++     | R0 => stm_val ty.unit tt
++     | R1 => stm_write_register reg1 (exp_var "w") ;; stm_val ty.unit tt
++     | R2 => stm_write_register reg2 (exp_var "w") ;; stm_val ty.unit tt
++     | R3 => stm_write_register reg3 (exp_var "w") ;; stm_val ty.unit tt
++     end ;;
 -     use lemma close_gprs.
 - 
--   Definition fun_next_pc : Stm [] ty.cap :=
--     let: "c" := stm_read_register pc in
--     let*: ["perm" , "beg" , "end" , "cur"] := (exp_var "c") in
--       (exp_record capability
--          [ exp_var "perm";
--            exp_var "beg";
--            exp_var "end";
--            exp_var "cur" + exp_int 1 ]).
++   Definition fun_next_pc : Stm [] ty.cap :=
++     let: "c" := stm_read_register pc in
++     let*: ["perm" , "beg" , "end" , "cur"] := (exp_var "c") in
++       (exp_record capability
++          [ exp_var "perm";
++            exp_var "beg";
++            exp_var "end";
++            exp_var "cur" + exp_int 1 ]).
 - 
--   Definition fun_update_pc : Stm [] ty.unit :=
--     let: "opc" := stm_read_register pc in
--     let: "npc" := call next_pc in
++   Definition fun_update_pc : Stm [] ty.unit :=
++     let: "opc" := stm_read_register pc in
++     let: "npc" := call next_pc in
 -     lemma_correctPC_not_E (exp_var "opc") ;;
 -     use lemma safe_move_cursor [exp_var "npc"; exp_var "opc"] ;;
--     stm_write_register pc (exp_var "npc") ;;
--     stm_val ty.unit tt.
++     stm_write_register pc (exp_var "npc") ;;
++     stm_val ty.unit tt.
 - 
--   Definition fun_update_pc_perm : Stm ["c" :: ty.cap] ty.cap :=
++   Definition fun_update_pc_perm : Stm ["c" :: ty.cap] ty.cap :=
 -     let*: ["p" , "b" , "e" , "a"] := (exp_var "c") in
--     (match: exp_var "p" in permission with
--      | E => let: "p" := exp_val ty.perm R in
++     (match: exp_var "p" in permission with
++      | E => let: "p" := exp_val ty.perm R in
 -             use lemma safe_to_execute [exp_var "c"] ;;
--             exp_record capability
--                        [ exp_var "p" ;
--                          exp_var "b" ;
--                          exp_var "e" ;
--                          exp_var "a" ]
--      | _ => exp_var "c"
--      end).
++             exp_record capability
++                        [ exp_var "p" ;
++                          exp_var "b" ;
++                          exp_var "e" ;
++                          exp_var "a" ]
++      | _ => exp_var "c"
++      end).
 - 
 -   Definition fun_is_correct_pc : Stm ["c" :: ty.cap] ty.bool :=
 -     let*: ["perm" , "beg" , "end" , "cur"] := (exp_var "c") in
