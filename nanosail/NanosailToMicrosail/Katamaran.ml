@@ -107,10 +107,6 @@ let pretty_print ir =
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
 
-  let register_no_confusion =
-    Registers.generate_noconfusions ir.definitions
-  in
-
   let no_confusion =
     [
       Types.Enums.generate_no_confusions enum_definitions;
@@ -142,7 +138,7 @@ let pretty_print ir =
           add    @@ Types.Enums.generate_tags enum_definitions;
           addall @@ extra_variant_definitions;
           add    @@ Types.Records.generate_tags record_definitions;
-          addopt @@ register_no_confusion;
+          addopt @@ Registers.generate_noconfusions ir.definitions;
           addall @@ no_confusion;
           addall @@ eqdecs;
           addopt @@ finite;
