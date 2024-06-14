@@ -21,9 +21,9 @@ let translate_variant
       (constructors           : S.type_union list           )
       (_flag                  : bool                        ) : Ast.type_definition TC.t
   =
-  let* identifier' = Identifier.translate_identifier [%here] identifier
+  let* identifier'      = Identifier.translate_identifier [%here] identifier
   and* type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
-  and* constructors' =
+  and* constructors'    =
     let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
       let* identifier' = Identifier.translate_identifier [%here] identifier
       and* typ' = Nanotype.nanotype_of_sail_type typ
