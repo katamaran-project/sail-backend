@@ -8,9 +8,6 @@ open ForeignKit
 module AC = AnnotationContext
 
 
-(******************************************************************************)
-(* Program pretty printing *)
-
 let pp_program_module
       program_name
       base_name
@@ -36,9 +33,6 @@ let pp_program_module
     identifier
     contents
 
-
-(******************************************************************************)
-(* Full pretty printing *)
 
 let pretty_print ir =
   let type_definitions     = select Extract.(type_definition of_anything) ir.definitions
