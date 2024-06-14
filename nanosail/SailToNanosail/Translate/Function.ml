@@ -35,7 +35,7 @@ let type_from_lvar
 let create_if_statement
       ~(condition  : Ast.statement)
       ~(when_true  : Ast.statement)
-      ~(when_false : Ast.statement)
+      ~(when_false : Ast.statement) : Ast.statement
   =
   N.Stm_match (MP_bool { condition; when_true; when_false })
 
