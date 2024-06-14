@@ -17,9 +17,9 @@ let pp_type_definition
   =
   let document =
     match type_definition with
-    | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
-    | Enum enum              -> Enums.generate enum
-    | Variant variant        -> Variants.generate variant
-    | Record record          -> Records.generate record
+    | Abbreviation abbrev -> TypeAbbreviations.generate abbrev
+    | Enum enum           -> Enums.generate enum
+    | Variant variant     -> Variants.generate variant
+    | Record record       -> Records.generate record
   in
   Coq.annotate_with_original_definition original @@ Coq.annotate document

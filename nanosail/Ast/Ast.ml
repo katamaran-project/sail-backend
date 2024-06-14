@@ -65,8 +65,8 @@ module Extract = struct
 
   let of_abbreviation (type_definition : Definition.Type.t) =
     match type_definition with
-    | TD_abbreviation x -> Some x
-    | _                 -> None
+    | Abbreviation x -> Some x
+    | _              -> None
 
   let register_definition (definition : Definition.t) =
     match definition with
@@ -108,7 +108,7 @@ let select
 (* todo move inside Definition.Type submodule *)
 let type_identifier (type_definition : Definition.Type.t) =
   match type_definition with
-  | TD_abbreviation x -> x.identifier
-  | Variant x         -> x.identifier
-  | Enum x            -> x.identifier
-  | Record x          -> x.identifier
+  | Abbreviation x -> x.identifier
+  | Variant x      -> x.identifier
+  | Enum x         -> x.identifier
+  | Record x       -> x.identifier

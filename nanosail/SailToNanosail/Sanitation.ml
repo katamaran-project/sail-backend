@@ -15,7 +15,7 @@ end
 (* Renames variables so that the identifiers are valid in Coq *)
 let coqify_identifiers (program : Ast.program) : Ast.program =
   let sanitize_type_definition (type_definition : Ast.Definition.Type.t) : Ast.Definition.Type.t =
-    let sanitize_type_abbreviation (type_abbreviation_definition : Ast.Definition.type_abbreviation_definition) : Ast.Definition.type_abbreviation_definition =
+    let sanitize_type_abbreviation (type_abbreviation_definition : Ast.Definition.Type.Abbreviation.t) : Ast.Definition.Type.Abbreviation.t =
       let identifier = type_abbreviation_definition.identifier
       and abbreviation = type_abbreviation_definition.abbreviation
       in
@@ -26,7 +26,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.TA_numeric_expression (type_quantifier', numeric_expression')
+            abbreviation = Ast.Definition.Type.Abbreviation.TA_numeric_expression (type_quantifier', numeric_expression')
           }
         end
       | TA_numeric_constraint (type_quantifier, numeric_constraint) ->
@@ -35,7 +35,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.TA_numeric_constraint (type_quantifier', numeric_constraint')
+            abbreviation = Ast.Definition.Type.Abbreviation.TA_numeric_constraint (type_quantifier', numeric_constraint')
           }
         end
       | TA_alias (type_quantifier, nanotype) ->
@@ -44,7 +44,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.TA_alias (type_quantifier', nanotype')
+            abbreviation = Ast.Definition.Type.Abbreviation.TA_alias (type_quantifier', nanotype')
           }
         end
     in
@@ -80,10 +80,10 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
       record_definition
     in
     match type_definition with
-    | TD_abbreviation abbreviation -> Ast.Definition.Type.TD_abbreviation (sanitize_type_abbreviation abbreviation)
-    | Variant variant              -> Ast.Definition.Type.Variant         (sanitize_variant variant               )
-    | Enum enum                    -> Ast.Definition.Type.Enum            (sanitize_enum enum                     )
-    | Record record                -> Ast.Definition.Type.Record          (sanitize_record record                 )
+    | Abbreviation abbreviation -> Ast.Definition.Type.Abbreviation (sanitize_type_abbreviation abbreviation)
+    | Variant variant           -> Ast.Definition.Type.Variant         (sanitize_variant variant               )
+    | Enum enum                 -> Ast.Definition.Type.Enum            (sanitize_enum enum                     )
+    | Record record             -> Ast.Definition.Type.Record          (sanitize_record record                 )
   in
   let sanitize_definition
       (sail_definition : Sail.sail_definition)

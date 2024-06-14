@@ -448,11 +448,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           let* lookup_result = TC.lookup_type @@ Ast.Identifier.mk id
           in
           match lookup_result with
-          | Some (TD_abbreviation def) -> match_abbreviation def
-          | Some (Variant def)         -> match_variant def
-          | Some (Enum def)            -> match_enum def
-          | Some (Record def)          -> match_record def
-          | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+          | Some (Abbreviation def) -> match_abbreviation def
+          | Some (Variant def)      -> match_variant def
+          | Some (Enum def)         -> match_enum def
+          | Some (Record def)       -> match_record def
+          | None                    -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
@@ -664,7 +664,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return statement
 
-    and match_abbreviation (_type_abbreviation : Ast.Definition.type_abbreviation_definition) =
+    and match_abbreviation (_type_abbreviation : Ast.Definition.Type.Abbreviation.t) =
       TC.not_yet_implemented [%here] location
 
     and match_record (_record_definition : Ast.Definition.Type.Record.t) =

@@ -30,17 +30,17 @@ let translate_type_abbreviation
     | A_nexp numeric_expression -> begin
         let* numeric_expression' = Numeric.translate_numeric_expression numeric_expression
         in
-        TC.return @@ Ast.Definition.TA_numeric_expression (quantifier', numeric_expression')
+        TC.return @@ Ast.Definition.Type.Abbreviation.TA_numeric_expression (quantifier', numeric_expression')
       end
     | A_typ typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
         in
-        TC.return @@ Ast.Definition.TA_alias (quantifier', typ')
+        TC.return @@ Ast.Definition.Type.Abbreviation.TA_alias (quantifier', typ')
       end
     | A_bool numeric_constraint -> begin
         let* numeric_constraint' = Numeric.translate_numeric_constraint numeric_constraint
         in
-        TC.return @@ Ast.Definition.TA_numeric_constraint (quantifier', numeric_constraint')
+        TC.return @@ Ast.Definition.Type.Abbreviation.TA_numeric_constraint (quantifier', numeric_constraint')
       end
   in
-  TC.return @@ Ast.Definition.Type.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
+  TC.return @@ Ast.Definition.Type.Abbreviation { identifier = identifier'; abbreviation = type_abbreviation }

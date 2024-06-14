@@ -43,19 +43,6 @@ type register_definition =
   }
 
 
-type type_abbreviation =
-  | TA_numeric_expression of type_quantifier * NumericExpression.t
-  | TA_numeric_constraint of type_quantifier * NumericConstraint.t
-  | TA_alias              of type_quantifier * Type.t
-
-
-type type_abbreviation_definition =
-  {
-    identifier   : Identifier.t     ;
-    abbreviation : type_abbreviation;
-  }
-
-
 module Type = struct  
   module Variant = struct
     type t =
@@ -85,12 +72,24 @@ module Type = struct
       }
   end
 
+  module Abbreviation = struct
+    type type_abbreviation = (* todo find better name *)
+      | TA_numeric_expression of type_quantifier * NumericExpression.t
+      | TA_numeric_constraint of type_quantifier * NumericConstraint.t
+      | TA_alias              of type_quantifier * Type.t
+                                                     
+    type t =
+      {
+        identifier   : Identifier.t     ;
+        abbreviation : type_abbreviation;
+      }
+  end
 
   type t =
-    | TD_abbreviation of type_abbreviation_definition
-    | Variant         of Variant.t
-    | Enum            of Enum.t
-    | Record          of Record.t
+    | Abbreviation of Abbreviation.t
+    | Variant      of Variant.t
+    | Enum         of Enum.t
+    | Record       of Record.t
 end
   
 
