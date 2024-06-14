@@ -140,15 +140,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     ]
 
   and pp_destructure_record_statement (destructure_record : Ast.Statement.destructure_record) : PPrint.document AC.t =
-    let open Ast.Statement
-    in
     let {
       record_type_identifier;
       field_identifiers;
       variable_identifiers;
       destructured_record;
       body
-    } = destructure_record
+    } : Ast.Statement.destructure_record = destructure_record
     in
     let pattern =
       let pairs = List.zip_exn field_identifiers variable_identifiers
