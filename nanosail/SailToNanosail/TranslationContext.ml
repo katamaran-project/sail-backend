@@ -119,10 +119,10 @@ let register (definition : Definition.t) =
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
 let lookup_type_of_kind
-      (extractor  : Definition.type_definition -> 'a option)
-      (identifier : Ast.Identifier.t                       ) : 'a option t
+      (extractor  : Definition.Type.t -> 'a option)
+      (identifier : Ast.Identifier.t              ) : 'a option t
   =
-  let predicate (definition : Definition.t) : Definition.type_definition option =
+  let predicate (definition : Definition.t) : Definition.Type.t option =
     match definition with
     | TypeDefinition type_definition ->
       if Ast.Identifier.equal identifier (type_identifier type_definition)

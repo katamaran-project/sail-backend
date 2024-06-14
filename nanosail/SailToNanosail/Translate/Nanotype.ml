@@ -33,7 +33,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
     | _           -> begin
-        let* typ : Ast.Definition.type_definition option = TC.lookup_type identifier'
+        let* typ : Ast.Definition.Type.t option = TC.lookup_type identifier'
         in
         match typ with
         | None                     -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)

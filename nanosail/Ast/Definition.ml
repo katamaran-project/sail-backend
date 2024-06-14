@@ -81,12 +81,14 @@ type record_definition =
   }
 
 
-type type_definition =
-  | TD_abbreviation of type_abbreviation_definition
-  | TD_variant      of variant_definition
-  | TD_enum         of enum_definition
-  | TD_record       of record_definition
-
+module Type = struct
+  type t =
+    | TD_abbreviation of type_abbreviation_definition
+    | TD_variant      of variant_definition
+    | TD_enum         of enum_definition
+    | TD_record       of record_definition
+end
+  
 
 type top_level_type_constraint_definition =
   {
@@ -104,7 +106,7 @@ type value_definition =
 type t =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition               of Function.t
-  | TypeDefinition                   of type_definition
+  | TypeDefinition                   of Type.t
   | RegisterDefinition               of register_definition
   | UntranslatedDefinition           of Untranslated.t
   | ValueDefinition                  of value_definition

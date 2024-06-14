@@ -18,7 +18,7 @@ let translate_type_abbreviation
       (_type_annotation       : Sail.type_annotation S.annot)
       (identifier             : S.id                        )
       (quantifier             : S.typquant                  )
-      (type_argument          : S.typ_arg                   ) : Ast.Definition.type_definition TC.t
+      (type_argument          : S.typ_arg                   ) : Ast.Definition.Type.t TC.t
   =
   let S.A_aux (unwrapped_type_argument, _type_argument_location) = type_argument
   in
@@ -43,4 +43,4 @@ let translate_type_abbreviation
         TC.return @@ Ast.Definition.TA_numeric_constraint (quantifier', numeric_constraint')
       end
   in
-  TC.return @@ Ast.Definition.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
+  TC.return @@ Ast.Definition.Type.TD_abbreviation { identifier = identifier'; abbreviation = type_abbreviation }

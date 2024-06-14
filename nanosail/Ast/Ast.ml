@@ -39,8 +39,8 @@ module Extract = struct
     | _                    -> None
 
   let type_definition
-      (of_kind    : Definition.type_definition -> 'a option)
-      (definition : Definition.t                           )
+      (of_kind    : Definition.Type.t -> 'a option)
+      (definition : Definition.t                  )
     =
     match definition with
     | TypeDefinition x -> of_kind x
@@ -48,22 +48,22 @@ module Extract = struct
 
   let of_anything = Option.some
 
-  let of_enum (type_definition : Definition.type_definition) =
+  let of_enum (type_definition : Definition.Type.t) =
     match type_definition with
     | TD_enum x -> Some x
     | _         -> None
 
-  let of_variant (type_definition : Definition.type_definition) =
+  let of_variant (type_definition : Definition.Type.t) =
     match type_definition with
     | TD_variant x -> Some x
     | _            -> None
 
-  let of_record (type_definition : Definition.type_definition) =
+  let of_record (type_definition : Definition.Type.t) =
     match type_definition with
     | TD_record x -> Some x
     | _           -> None
 
-  let of_abbreviation (type_definition : Definition.type_definition) =
+  let of_abbreviation (type_definition : Definition.Type.t) =
     match type_definition with
     | TD_abbreviation x -> Some x
     | _                 -> None
@@ -105,7 +105,7 @@ let select
   List.filter_map ~f:(lift_extractor extractor) definitions
 
 
-let type_identifier (type_definition : Definition.type_definition) =
+let type_identifier (type_definition : Definition.Type.t) =
   match type_definition with
   | TD_abbreviation x -> x.identifier
   | TD_variant x      -> x.identifier

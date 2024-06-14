@@ -19,12 +19,12 @@ let translate_enum
       (_definition_annotation : S.def_annot)
       (_type_annotation       : 'a S.annot )
       (identifier             : S.id       )
-      (cases                  : S.id list  ) : Ast.Definition.type_definition TC.t
+      (cases                  : S.id list  ) : Ast.Definition.Type.t TC.t
   =
   let* identifier' = translate_identifier [%here] identifier
   and* cases'      = TC.map ~f:(translate_identifier [%here]) cases
   in
-  TC.return @@ Ast.Definition.TD_enum {
+  TC.return @@ Ast.Definition.Type.TD_enum {
       identifier = identifier';
       cases      = cases'     ;
     }

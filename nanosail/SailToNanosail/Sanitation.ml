@@ -14,7 +14,7 @@ end
 
 (* Renames variables so that the identifiers are valid in Coq *)
 let coqify_identifiers (program : Ast.program) : Ast.program =
-  let sanitize_type_definition (type_definition : Ast.Definition.type_definition) : Ast.Definition.type_definition =
+  let sanitize_type_definition (type_definition : Ast.Definition.Type.t) : Ast.Definition.Type.t =
     let sanitize_type_abbreviation (type_abbreviation_definition : Ast.Definition.type_abbreviation_definition) : Ast.Definition.type_abbreviation_definition =
       let identifier = type_abbreviation_definition.identifier
       and abbreviation = type_abbreviation_definition.abbreviation
@@ -79,11 +79,11 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
       Stdio.printf "WARNING: record %s may need to be sanitized\n" (Ast.Identifier.string_of record_definition.identifier);
       record_definition
     in
-    match (type_definition : Ast.Definition.type_definition) with
-    | TD_abbreviation abbreviation -> Ast.Definition.TD_abbreviation (sanitize_type_abbreviation abbreviation)
-    | TD_variant variant           -> Ast.Definition.TD_variant      (sanitize_variant variant               )
-    | TD_enum enum                 -> Ast.Definition.TD_enum         (sanitize_enum enum                     )
-    | TD_record record             -> Ast.Definition.TD_record       (sanitize_record record                 )
+    match type_definition with
+    | TD_abbreviation abbreviation -> Ast.Definition.Type.TD_abbreviation (sanitize_type_abbreviation abbreviation)
+    | TD_variant variant           -> Ast.Definition.Type.TD_variant      (sanitize_variant variant               )
+    | TD_enum enum                 -> Ast.Definition.Type.TD_enum         (sanitize_enum enum                     )
+    | TD_record record             -> Ast.Definition.Type.TD_record       (sanitize_record record                 )
   in
   let sanitize_definition
       (sail_definition : Sail.sail_definition)
