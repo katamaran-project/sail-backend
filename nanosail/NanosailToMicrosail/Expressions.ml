@@ -45,11 +45,12 @@ let rec pp_expression (expression : Ast.Expression.t) =
   let rec pp_exp_list expressions =
     match expressions with
     | []      -> AC.return @@ PP.string "nil"
-    | x :: xs ->
-      let* x'  = pp_par_expression x
-      and* xs' = pp_exp_list xs
-      in
-      AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
+    | x :: xs -> begin
+        let* x'  = pp_par_expression x
+        and* xs' = pp_exp_list xs
+        in
+        AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
+      end
   in
   let pp_value (value : Ast.Value.t) : PP.document AC.t =
     match value with
