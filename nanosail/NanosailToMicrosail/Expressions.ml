@@ -106,12 +106,12 @@ let rec pp_expression (e : Ast.Expression.t) =
       AC.return @@ PP.infix 2 1 binop' e1' e2'
   in
   match e with
-  | Exp_var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
-  | Exp_val v              -> pp_exp_val v
-  | Exp_neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
-  | Exp_not e              -> let* e' = pp_par_expression e in AC.return @@ PP.(simple_app [string "exp_not"; e'])
-  | Exp_binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
-  | Exp_list lst           -> begin
+  | Var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
+  | Val v              -> pp_exp_val v
+  | Neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
+  | Not e              -> let* e' = pp_par_expression e in AC.return @@ PP.(simple_app [string "exp_not"; e'])
+  | Binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
+  | List lst           -> begin
       let* lst' =
         if
           Configuration.(get use_list_notations)
@@ -124,7 +124,7 @@ let rec pp_expression (e : Ast.Expression.t) =
       in
       AC.return @@ PP.(simple_app [string "exp_list"; lst'])
     end
-  | Exp_record { type_identifier; variable_identifiers } -> begin
+  | Record { type_identifier; variable_identifiers } -> begin
       AC.return @@ PP.(simple_app [
                        string "exp_record";
                        pp_identifier type_identifier;
@@ -133,7 +133,7 @@ let rec pp_expression (e : Ast.Expression.t) =
                                      ~f:(fun id -> simple_app [ string "exp_var"; pp_identifier id ])
                      ])
     end
-  | Exp_enum identifier -> AC.return @@ pp_identifier identifier
+  | Enum identifier -> AC.return @@ pp_identifier identifier
 
 and pp_par_expression e =
   let* e' = pp_expression e
