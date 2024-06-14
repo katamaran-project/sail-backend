@@ -31,8 +31,6 @@ let tuple_to_list (t : Type.t) : Type.t list =
   | _        -> [ t ]
 
 
-
-
 type expression =
   | Exp_var    of Identifier.t
   | Exp_val    of Value.t
