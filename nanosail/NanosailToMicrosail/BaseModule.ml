@@ -182,7 +182,7 @@ let pp_eqdec_and_finite_instances () =
       "  ltac:(destruct R; auto with typeclass_instances).";
     ]
   in
-  PP.(separate hardline @@ List.map ~f:string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
 let pp_union_fold (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
