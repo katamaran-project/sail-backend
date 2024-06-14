@@ -916,7 +916,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
   and statement_of_cast
         (expression  : S.typ S.aexp)
-        (target_type : S.typ       )
+        (target_type : S.typ       ) : Ast.statement TC.t
     =
     let* translated_expression = statement_of_aexp expression
     and* translated_type       = nanotype_of_sail_type target_type
