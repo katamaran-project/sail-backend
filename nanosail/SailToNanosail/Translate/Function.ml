@@ -627,7 +627,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
                     (acc                 : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-                    (variant_constructor : Ast.Definition.Type.Variant.variant_constructor               ) =
+                    (variant_constructor : Ast.Definition.Type.Variant.constructor                       ) =
                   let (constructor_tag, fields) = variant_constructor
                   in
                   let* field_vars =

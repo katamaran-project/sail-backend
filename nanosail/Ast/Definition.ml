@@ -75,12 +75,12 @@ module Type = struct
   module Variant = struct
     type t =
       {
-        identifier      : Identifier.t            ;
-        type_quantifier : type_quantifier         ;
-        constructors    : variant_constructor list;
+        identifier      : Identifier.t    ;
+        type_quantifier : type_quantifier ;
+        constructors    : constructor list;
       }
 
-    and variant_constructor = (Identifier.t * Type.t list)
+    and constructor = (Identifier.t * Type.t list)
   end
 
   type t =

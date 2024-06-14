@@ -130,7 +130,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
       let pp_variant_case (variant_definition : Ast.Definition.Type.Variant.t) =
         let match_constructor_cases =
           let constructor_cases =
-            let pp_constructor_case (constructor : Ast.Definition.Type.Variant.variant_constructor) =
+            let pp_constructor_case (constructor : Ast.Definition.Type.Variant.constructor) =
               let (constructor_identifier, constructor_field_types) = constructor
               in
               let pp_constructor_tag =
@@ -193,7 +193,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
     let pp_variant_case (variant_definition : Ast.Definition.Type.Variant.t) : PP.document * PP.document =
       let match_constructor_cases =
         let constructor_cases =
-          let pp_constructor_case (variant_constructor : Ast.Definition.Type.Variant.variant_constructor) : PP.document * PP.document =
+          let pp_constructor_case (variant_constructor : Ast.Definition.Type.Variant.constructor) : PP.document * PP.document =
             let (constructor_identifier, constructor_field_types) = variant_constructor
             in
             let n_fields = List.length constructor_field_types
