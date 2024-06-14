@@ -52,3 +52,10 @@ let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.rec
     Coq.derive_no_confusion_for record_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) record_definitions
+
+
+let generate_eqdecs (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
+  let record_identifiers =
+    List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
+  in
+  List.map ~f:Coq.derive_eqdec_for record_identifiers
