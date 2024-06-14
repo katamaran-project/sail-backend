@@ -1,5 +1,3 @@
-module Big_int       = Nat_big_num
-
 open Base
 
 
@@ -9,6 +7,7 @@ module Kind                 = Kind
 module BinaryOperator       = BinaryOperator
 module ExtendedType         = ExtendedType
 module ExtendedFunctionType = ExtendedFunctionType
+module Value                = Value
 include Recursive
 
 
@@ -32,17 +31,11 @@ let tuple_to_list (t : Type.t) : Type.t list =
   | _        -> [ t ]
 
 
-type value =
-  | Val_unit
-  | Val_bool   of bool
-  | Val_int    of Big_int.num
-  | Val_string of string
-  | Val_prod   of value * value
 
 
 type expression =
   | Exp_var    of Identifier.t
-  | Exp_val    of value
+  | Exp_val    of Value.t
   | Exp_neg    of expression
   | Exp_not    of expression
   | Exp_list   of expression list
@@ -193,7 +186,7 @@ type top_level_type_constraint_definition =
 type value_definition =
   {
     identifier : Identifier.t;
-    value      : value       ;
+    value      : Value.t     ;
   }
 
 

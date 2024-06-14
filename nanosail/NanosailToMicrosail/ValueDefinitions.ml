@@ -1,7 +1,7 @@
 open Base
 
 
-let pp_value (value : Ast.value) : PP.document =
+let pp_value (value : Ast.Value.t) : PP.document =
   match value with
   | Val_unit        -> PP.(string "tt")
   | Val_int n       -> PP.(string @@ Z.to_string n)

@@ -23,7 +23,7 @@ let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
   | Append               -> AC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let rec ty_of_val (value : Ast.value) : Ast.Type.t =
+let rec ty_of_val (value : Ast.Value.t) : Ast.Type.t =
   match value with
   | Val_unit          -> Unit
   | Val_bool _        -> Bool
@@ -32,7 +32,7 @@ let rec ty_of_val (value : Ast.value) : Ast.Type.t =
   | Val_prod (v1, v2) -> Tuple [ty_of_val v1; ty_of_val v2]
 
 
-let rec pp_value (value : Ast.value) : PP.document =
+let rec pp_value (value : Ast.Value.t) : PP.document =
   match value with
   | Val_unit          -> PP.string "tt"
   | Val_bool b        -> PP.string (Bool.to_string b)
@@ -51,7 +51,7 @@ let rec pp_expression (e : Ast.expression) =
       in
       AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
   in
-  let pp_exp_val (value : Ast.value) =
+  let pp_exp_val (value : Ast.Value.t) =
     match value with
     | Val_bool true        -> AC.return @@ PP.string "exp_true"
     | Val_bool false       -> AC.return @@ PP.string "exp_false"

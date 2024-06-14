@@ -107,15 +107,15 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
   | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
-let value_of_literal literal =
+let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
   let S.L_aux (unwrapped_literal, literal_location) = literal
   in
   match unwrapped_literal with
-  | L_true     -> TC.return @@ N.Val_bool true
-  | L_false    -> TC.return @@ N.Val_bool false
-  | L_num n    -> TC.return @@ N.Val_int n
-  | L_unit     -> TC.return @@ N.Val_unit
-  | L_string s -> TC.return @@ N.Val_string s
+  | L_true     -> TC.return @@ Ast.Value.Val_bool true
+  | L_false    -> TC.return @@ Ast.Value.Val_bool false
+  | L_num n    -> TC.return @@ Ast.Value.Val_int n
+  | L_unit     -> TC.return @@ Ast.Value.Val_unit
+  | L_string s -> TC.return @@ Ast.Value.Val_string s
   | S.L_zero   -> TC.not_yet_implemented [%here] literal_location
   | S.L_one    -> TC.not_yet_implemented [%here] literal_location
   | S.L_hex _  -> TC.not_yet_implemented [%here] literal_location
