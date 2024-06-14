@@ -119,3 +119,30 @@ let description_list (items : (document * document) list) : document =
 
 let line (d : document) : document =
   d ^^ hardline
+
+
+type build_lines_context = {
+  line  : document -> unit;
+  lines : document list -> unit;
+  empty_line : unit -> unit;
+}
+
+
+let build_lines (body : build_lines_context -> unit) =
+  let reversed_accumulated_lines = ref []
+  in
+  let accumulate_single line =
+    reversed_accumulated_lines := line :: !reversed_accumulated_lines
+  in
+  let accumulate lines =
+    List.iter ~f:accumulate_single lines
+  in
+  let context =
+    {
+      line       = accumulate_single                ;
+      lines      = accumulate                       ;
+      empty_line = fun () -> accumulate_single empty;
+    }
+  in
+  body context;
+  concat @@ List.rev !reversed_accumulated_lines
