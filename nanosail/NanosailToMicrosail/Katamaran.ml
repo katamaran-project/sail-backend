@@ -53,6 +53,7 @@ let pretty_print ir =
   let type_definitions     = select Extract.(type_definition of_anything) ir.definitions
   and enum_definitions     = select Extract.(type_definition of_enum) ir.definitions
   and record_definitions   = select Extract.(type_definition of_record) ir.definitions
+  and variant_definitions  = select Extract.(type_definition of_variant) ir.definitions
   and register_definitions = select Extract.register_definition ir.definitions
   in
   
@@ -73,8 +74,6 @@ let pretty_print ir =
   in
 
   let extra_variant_definitions =
-    let variant_definitions = select Extract.(type_definition of_variant) ir.definitions
-    in
     [
       Types.Variants.generate_tags variant_definitions;
       Types.Variants.generate_eqdecs variant_definitions;
@@ -119,6 +118,7 @@ let pretty_print ir =
   let eqdecs =
     [
       Types.Enums.generate_eqdecs enum_definitions;
+      Types.Variants.generate_eqdecs variant_definitions;
     ]
     (* EqDec.generate ir.definitions *)
   in
