@@ -107,12 +107,12 @@ let pretty_print ir =
 
   let no_confusion =
     let contents =
-      let items = build_list begin fun { add; addall; _ } ->
-          add    @@ PP.string "Local Set Transparent Obligations.";
-          addall @@ Types.Enums.generate_no_confusions enum_definitions;
-        end
-      in
-      PP.(separate hardline items)
+      PP.build_lines begin fun { line; lines; empty_line } ->
+        line  @@ PP.string "Local Set Transparent Obligations.";
+        empty_line ();
+        line  @@ Coq.comment @@ PP.string "NoConfusion for each enum type";
+        lines @@ Types.Enums.generate_no_confusions enum_definitions;
+      end
     in
     Coq.section (Ast.Identifier.mk "TransparentObligations") contents
   in
@@ -136,21 +136,21 @@ let pretty_print ir =
   let sections =
     build_list @@
       fun { add; addopt; addall } -> begin
-          add    @@ prelude;
-          add    @@ PP.string "Import DefaultBase.";
-          addopt @@ pp_register_definitions;
-          addall @@ translated_type_definitions;
-          add    @@ Types.Enums.generate_tags enum_definitions;
-          addall @@ extra_variant_definitions;
-          add    @@ Types.Records.generate_tags record_definitions;
-          addopt @@ Registers.generate_noconfusions register_definitions;
-          addall @@ no_confusion;
-          addall @@ eqdecs;
-          addopt @@ finite;
-          add    @@ base_module;
-          add    @@ value_definitions;
-          add    @@ program;
-          add    @@ registers;
+          (* add    @@ prelude; *)
+          (* add    @@ PP.string "Import DefaultBase."; *)
+          (* addopt @@ pp_register_definitions; *)
+          (* addall @@ translated_type_definitions; *)
+          (* add    @@ Types.Enums.generate_tags enum_definitions; *)
+          (* addall @@ extra_variant_definitions; *)
+          (* add    @@ Types.Records.generate_tags record_definitions; *)
+          (* addopt @@ Registers.generate_noconfusions register_definitions; *)
+          add    @@ no_confusion;
+          (* addall @@ eqdecs; *)
+          (* addopt @@ finite; *)
+          (* add    @@ base_module; *)
+          (* add    @@ value_definitions; *)
+          (* add    @@ program; *)
+          (* add    @@ registers; *)
         end
   in
   PP.(separate_nonempty small_step sections)
