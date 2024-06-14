@@ -6,20 +6,19 @@ module S = struct
 end
 
 module Big_int = Nat_big_num
-module N  = Ast
 module TC = TranslationContext
 
 open Monads.Notations.Star(TC)
 open Base
 
 
-let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * N.definition) TC.t =
+let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * Ast.definition) TC.t =
   let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
   in
   if
     Configuration.should_ignore_definition sail_definition
   then
-    TC.return (sail_definition, N.IgnoredDefinition)
+    TC.return (sail_definition, Ast.IgnoredDefinition)
   else begin
     let translation =
       let* result =
@@ -66,7 +65,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     TC.recover translation begin fun error ->
       match error with
       | NotYetImplemented (ocaml_location, sail_location, message) -> begin
-          let untranslated_definition = N.UntranslatedDefinition {
+          let untranslated_definition = Ast.UntranslatedDefinition {
               filename = ocaml_location.pos_fname;
               line_number = ocaml_location.pos_lnum;
               sail_location = sail_location;
@@ -86,7 +85,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     end
   end
 
-let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : N.program =
+let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : Ast.program =
   let translate =
     let* () = Prelude.register_types ()
     in
