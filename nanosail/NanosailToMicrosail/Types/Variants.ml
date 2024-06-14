@@ -98,3 +98,10 @@ let generate_eqdecs (variant_definitions : (Sail.sail_definition * Ast.variant_d
     List.map ~f:Coq.derive_eqdec_for variant_identifiers
   in
   PP.separate PP.hardline lines
+
+
+let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.variant_definition) list) =
+  let generate_derivation (variant_definition : Ast.variant_definition) =
+    PP.string @@ Printf.sprintf "Derive NoConfusion for %s." (Ast.Identifier.string_of variant_definition.identifier)
+  in
+  List.map ~f:(Fn.compose generate_derivation snd) variant_definitions

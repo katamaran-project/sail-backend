@@ -112,6 +112,9 @@ let pretty_print ir =
         empty_line ();
         line  @@ Coq.comment @@ PP.string "NoConfusion for each enum type";
         lines @@ Types.Enums.generate_no_confusions enum_definitions;
+        empty_line ();
+        line  @@ Coq.comment @@ PP.string "NoConfusion for each variant/enum type";
+        lines @@ Types.Variants.generate_no_confusions variant_definitions;
       end
     in
     Coq.section (Ast.Identifier.mk "TransparentObligations") contents
