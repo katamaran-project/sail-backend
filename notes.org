@@ -15,7 +15,25 @@
   - Investigate ~stm_match_union_alt~
 - ~let x :: type (use low level stm version)
 - match |> notation (enums, unions/variants)
-  
+
+* Types
+
+#+BEGIN_SRC sail
+  enum Permission = O | R | RW | E
+
+  struct Capability = {
+    cap_permission: Permission,
+    cap_begin:      address,
+    cap_end:        address,
+    cap_cursor:     address,
+  }
+
+  union word = {
+    Cap : Capability,
+    Num : integer
+  }
+#+END_SRC
+
 * Files
 
 ** ~Base.v~
