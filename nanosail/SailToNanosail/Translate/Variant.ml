@@ -38,7 +38,7 @@ let translate_variant
     in
     TC.map ~f:translate_constructor constructors
   in
-  TC.return @@ Ast.Definition.Type.TD_variant {
+  TC.return @@ Ast.Definition.Type.Variant {
       identifier      = identifier'     ;
       type_quantifier = type_quantifier';
       constructors    = constructors'   ;

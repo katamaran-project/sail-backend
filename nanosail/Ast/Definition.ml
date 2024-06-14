@@ -56,16 +56,6 @@ type type_abbreviation_definition =
   }
 
 
-type variant_definition =
-  {
-    identifier      : Identifier.t            ;
-    type_quantifier : type_quantifier         ;
-    constructors    : variant_constructor list;
-  }
-
-and variant_constructor = (Identifier.t * Type.t list)
-
-
 type enum_definition =
   {
     identifier : Identifier.t     ;
@@ -81,10 +71,21 @@ type record_definition =
   }
 
 
-module Type = struct
+module Type = struct  
+  module Variant = struct
+    type t =
+      {
+        identifier      : Identifier.t            ;
+        type_quantifier : type_quantifier         ;
+        constructors    : variant_constructor list;
+      }
+
+    and variant_constructor = (Identifier.t * Type.t list)
+  end
+
   type t =
     | TD_abbreviation of type_abbreviation_definition
-    | TD_variant      of variant_definition
+    | Variant         of Variant.t
     | TD_enum         of enum_definition
     | TD_record       of record_definition
 end

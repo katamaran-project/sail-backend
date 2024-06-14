@@ -19,7 +19,7 @@ let pp_type_definition
     match type_definition with
     | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | TD_enum enum           -> Enums.generate enum
-    | TD_variant variant     -> Variants.generate variant
+    | Variant variant        -> Variants.generate variant
     | TD_record record       -> Records.generate record
   in
   Coq.annotate_with_original_definition original @@ Coq.annotate document

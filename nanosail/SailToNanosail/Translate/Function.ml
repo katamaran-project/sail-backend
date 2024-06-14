@@ -449,7 +449,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           in
           match lookup_result with
           | Some (TD_abbreviation def) -> match_abbreviation def
-          | Some (TD_variant def)      -> match_variant def
+          | Some (Variant def)         -> match_variant def
           | Some (TD_enum def)         -> match_enum def
           | Some (TD_record def)       -> match_record def
           | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
@@ -561,7 +561,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (variant_definition : Ast.Definition.variant_definition) =
+    and match_variant (variant_definition : Ast.Definition.Type.Variant.t) =
       let process_case
           (acc  : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp                )
@@ -627,7 +627,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
                     (acc                 : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-                    (variant_constructor : Ast.Definition.variant_constructor                            ) =
+                    (variant_constructor : Ast.Definition.Type.Variant.variant_constructor               ) =
                   let (constructor_tag, fields) = variant_constructor
                   in
                   let* field_vars =

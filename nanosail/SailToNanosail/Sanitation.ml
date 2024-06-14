@@ -48,7 +48,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           }
         end
     in
-    let sanitize_variant (variant_definition : Ast.Definition.variant_definition) : Ast.Definition.variant_definition =
+    let sanitize_variant (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Definition.Type.Variant.t =
       let identifier      = variant_definition.identifier
       and type_quantifier = variant_definition.type_quantifier
       and constructors    = variant_definition.constructors
@@ -81,7 +81,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
     in
     match type_definition with
     | TD_abbreviation abbreviation -> Ast.Definition.Type.TD_abbreviation (sanitize_type_abbreviation abbreviation)
-    | TD_variant variant           -> Ast.Definition.Type.TD_variant      (sanitize_variant variant               )
+    | Variant variant              -> Ast.Definition.Type.Variant         (sanitize_variant variant               )
     | TD_enum enum                 -> Ast.Definition.Type.TD_enum         (sanitize_enum enum                     )
     | TD_record record             -> Ast.Definition.Type.TD_record       (sanitize_record record                 )
   in

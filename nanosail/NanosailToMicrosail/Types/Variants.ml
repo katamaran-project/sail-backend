@@ -7,8 +7,8 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate_inductive_type (variant_definition : Ast.Definition.variant_definition) : PP.document AC.t =
-  let { identifier; type_quantifier; constructors } : Ast.Definition.variant_definition = variant_definition
+let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
+  let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
   let inductive_type =
     let identifier' =
@@ -43,7 +43,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.variant_definit
   inductive_type
 
 
-let generate_constructors_inductive_type (variant_definition  : Ast.Definition.variant_definition) =
+let generate_constructors_inductive_type (variant_definition  : Ast.Definition.Type.Variant.t) =
   let identifier = pp_identifier @@ TranslationSettings.derive_variant_constructor_type variant_definition.identifier
   and typ = pp_identifier @@ Ast.Identifier.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
@@ -54,7 +54,7 @@ let generate_constructors_inductive_type (variant_definition  : Ast.Definition.v
     )
 
 
-let generate (variant_definition : Ast.Definition.variant_definition) =
+let generate (variant_definition : Ast.Definition.Type.Variant.t) =
   let* inductive_type = generate_inductive_type variant_definition
   and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
@@ -64,13 +64,13 @@ let generate (variant_definition : Ast.Definition.variant_definition) =
                  ]
 
 
-let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.variant_definition) list) =
+let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
   let variant_definitions =
     List.map ~f:snd variant_definitions
   in
   let identifier = PP.string "Unions"
   and typ = PP.string "Set"
-  and tag_of_variant (variant_definition : Ast.Definition.variant_definition) =
+  and tag_of_variant (variant_definition : Ast.Definition.Type.Variant.t) =
     let id = TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
     in
     pp_identifier id
@@ -90,15 +90,15 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
   Coq.annotate inductive_type
 
 
-let generate_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definition.variant_definition) list) =
+let generate_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
   let variant_identifiers =
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
   List.map ~f:Coq.derive_eqdec_for variant_identifiers
 
 
-let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.Definition.variant_definition) list) =
-  let generate_derivation (variant_definition : Ast.Definition.variant_definition) =
+let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
+  let generate_derivation (variant_definition : Ast.Definition.Type.Variant.t) =
     Coq.derive_no_confusion_for variant_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) variant_definitions

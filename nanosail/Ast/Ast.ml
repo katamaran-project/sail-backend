@@ -55,8 +55,8 @@ module Extract = struct
 
   let of_variant (type_definition : Definition.Type.t) =
     match type_definition with
-    | TD_variant x -> Some x
-    | _            -> None
+    | Variant x -> Some x
+    | _         -> None
 
   let of_record (type_definition : Definition.Type.t) =
     match type_definition with
@@ -108,6 +108,6 @@ let select
 let type_identifier (type_definition : Definition.Type.t) =
   match type_definition with
   | TD_abbreviation x -> x.identifier
-  | TD_variant x      -> x.identifier
+  | Variant x         -> x.identifier
   | TD_enum x         -> x.identifier
   | TD_record x       -> x.identifier
