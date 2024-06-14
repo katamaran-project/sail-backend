@@ -2,7 +2,8 @@
 
 (env
  (dev
-  (flags (:standard -w -30))))  ;; Turns off warning about duplicate record names in recursive types
+  (flags (:standard -w -30                ;; Turns off warning about duplicate record names in recursive types
+                    -warn-error -A))))    ;; Turn off fatal warnings
 
 (library
  (name nanosail)
