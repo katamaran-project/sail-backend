@@ -42,12 +42,12 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
 
 
 let rec pp_expression (expression : Ast.Expression.t) =
-  let rec pp_exp_list expressions =
+  let rec pp_list expressions =
     match expressions with
     | []      -> AC.return @@ PP.string "nil"
     | x :: xs -> begin
         let* x'  = pp_par_expression x
-        and* xs' = pp_exp_list xs
+        and* xs' = pp_list xs
         in
         AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
       end
@@ -112,7 +112,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
           in
           AC.return @@ Coq.list expressions
         else
-          pp_exp_list lst
+          pp_list lst
       in
       AC.return @@ PP.(simple_app [string "exp_list"; lst'])
     end
