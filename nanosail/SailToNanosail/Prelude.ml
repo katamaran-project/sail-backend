@@ -1,4 +1,3 @@
-open Ast
 open Monads.Notations.Star(TranslationContext)
 
 module TC = TranslationContext
