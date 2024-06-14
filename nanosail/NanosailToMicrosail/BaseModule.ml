@@ -183,7 +183,60 @@ let pp_eqdec_and_finite_instances () =
     ]
   in
   PP.(separate hardline @@ List.map ~f:string coq_lines)
-  
+
+
+let pp_union_fold (variant_definitions : Ast.variant_definition list) : PP.document =
+  let identifier = PP.string "union_fold"
+  and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
+  and result_type = Some (PP.string "{ K & Val (union_constructor_type U K) } -> uniont U")
+  and contents =
+    let pp_variant_case (variant_definition : Ast.variant_definition) : PP.document * PP.document =
+      let match_constructor_cases =
+        let constructor_cases =
+          let pp_constructor_case (variant_constructor : Ast.variant_constructor) : PP.document * PP.document =
+            let (constructor_identifier, constructor_field_types) = variant_constructor
+            in
+            let n_fields = List.length constructor_field_types
+            in
+            let field_variables =
+              let generate_identifier index =
+                PP.string @@ Printf.sprintf "x%d" index
+              and indices =
+                List.range ~start:`inclusive ~stop:`inclusive 1 (List.length constructor_field_types)
+              in
+              List.map ~f:generate_identifier indices
+            in
+            let pattern =
+              let fields =
+                match n_fields with
+                | 0 -> PP.string "tt"
+                | 1 -> PP.string "x1"
+                | _ -> PP.(parens @@ separate (comma ^^ space) field_variables)
+              in
+              let parts = [
+                PP.string "existT";
+                Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+                fields
+              ]
+              in
+              PP.(separate space parts)
+            and expression =
+              PP.(separate space @@ Identifier.pp_identifier constructor_identifier :: field_variables)
+            in
+            (pattern, expression)
+          in
+          List.map ~f:pp_constructor_case variant_definition.constructors
+        in
+        Coq.match' (PP.string "Kv") constructor_cases
+      in
+      (
+        Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+        PP.(string "fun Kv => " ^^ align match_constructor_cases)
+      )
+    in    
+    Coq.match' (PP.string "U") @@ List.map ~f:pp_variant_case variant_definitions
+  in
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
@@ -200,14 +253,15 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) 
     and includes = [ "Base" ]
     and contents =
       let sections = [
-          pp_typedeclkit ();
-          pp_enum_denote enum_definitions;
-          pp_union_denote variant_definitions;
-          pp_record_denote record_definitions;
-          pp_typedenotekit ();
-          pp_union_constructor variant_definitions;
-          pp_union_constructor_type variant_definitions;
-          pp_eqdec_and_finite_instances ();
+          (* pp_typedeclkit (); *)
+          (* pp_enum_denote enum_definitions; *)
+          (* pp_union_denote variant_definitions; *)
+          (* pp_record_denote record_definitions; *)
+          (* pp_typedenotekit (); *)
+          (* pp_union_constructor variant_definitions; *)
+          (* pp_union_constructor_type variant_definitions; *)
+          (* pp_eqdec_and_finite_instances (); *)
+          pp_union_fold variant_definitions;
         ]
       in
       PP.(separate small_step sections)
