@@ -42,24 +42,10 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.enum_definitio
 
 
 let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
-  let enum_definitions = List.map ~f:snd enum_definitions
+  let generate_derivation (enum_definition : Ast.enum_definition) =
+    PP.string @@ Printf.sprintf "Derive NoConfusion for %s." (Ast.Identifier.string_of enum_definition.identifier)
   in
-  let contents =
-    let set_transparent_obligations =
-      PP.string "Local Set Transparent Obligations."
-    in
-    let derivations =
-      let generate_derivation (enum_definition : Ast.enum_definition) =
-        PP.string @@ Printf.sprintf "Derive NoConfusion for %s." (Ast.Identifier.string_of enum_definition.identifier)
-      in
-      let lines =
-        List.map ~f:generate_derivation enum_definitions
-      in
-      PP.separate PP.hardline lines
-    in
-    PP.(set_transparent_obligations ^^ twice hardline ^^ derivations)
-  in
-  Coq.section (Ast.Identifier.mk "TransparentObligations") contents
+  List.map ~f:(Fn.compose generate_derivation snd) enum_definitions
 
 
 let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =

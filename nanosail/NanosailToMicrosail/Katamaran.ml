@@ -106,9 +106,15 @@ let pretty_print ir =
   in
 
   let no_confusion =
-    [
-      Types.Enums.generate_no_confusions enum_definitions;
-    ]
+    let contents =
+      let items = build_list begin fun { add; addall; _ } ->
+          add    @@ PP.string "Local Set Transparent Obligations.";
+          addall @@ Types.Enums.generate_no_confusions enum_definitions;
+        end
+      in
+      PP.(separate hardline items)
+    in
+    Coq.section (Ast.Identifier.mk "TransparentObligations") contents
   in
 
   let finite =
