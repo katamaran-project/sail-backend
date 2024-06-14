@@ -139,8 +139,6 @@ let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : P
 
 
 let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
-  let open Ast.ExtendedType.ReturnValue
-  in
   match extended_type with
   | Int int_expression   -> pp_int_expression int_expression
   | Bool bool_expression -> pp_bool_expression bool_expression
