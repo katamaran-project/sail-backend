@@ -51,7 +51,7 @@ let rec pp_expression (e : Ast.Expression.t) =
       in
       AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
   in
-  let pp_exp_val (value : Ast.Value.t) =
+  let pp_exp_val (value : Ast.Value.t) : PP.document AC.t =
     match value with
     | Bool true        -> AC.return @@ PP.string "exp_true"
     | Bool false       -> AC.return @@ PP.string "exp_false"
@@ -73,7 +73,7 @@ let rec pp_expression (e : Ast.Expression.t) =
   let pp_exp_binop
       (binary_operator : Ast.BinaryOperator.t)
       (e1              : Ast.Expression.t    )
-      (e2              : Ast.Expression.t    )
+      (e2              : Ast.Expression.t    ) : PP.document AC.t
     =
     let* e1' = pp_par_expression e1
     and* e2' = pp_par_expression e2
@@ -135,7 +135,7 @@ let rec pp_expression (e : Ast.Expression.t) =
     end
   | Enum identifier -> AC.return @@ pp_identifier identifier
 
-and pp_par_expression e =
+and pp_par_expression (e : Ast.Expression.t) : PP.document AC.t =
   let* e' = pp_expression e
   in
   AC.return @@ PP.parens e'
