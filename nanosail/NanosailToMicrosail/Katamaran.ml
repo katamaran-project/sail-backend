@@ -108,7 +108,7 @@ let pretty_print ir =
         comment @@ PP.string "NoConfusion for each enum type";
         lines @@ Types.Enums.generate_no_confusions enum_definitions;
         empty_line ();
-        comment @@ PP.string "NoConfusion for each variant/enum type";
+        comment @@ PP.string "NoConfusion for each variant/union type";
         lines @@ Types.Variants.generate_no_confusions variant_definitions;
         empty_line ();
         comment @@ PP.string "NoConfusion for each record type";
