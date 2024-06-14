@@ -70,7 +70,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
         ]
       end
   in
-  let pp_exp_binop
+  let pp_binary_operation
       (binary_operator : Ast.BinaryOperator.t)
       (e1              : Ast.Expression.t    )
       (e2              : Ast.Expression.t    ) : PP.document AC.t
@@ -101,7 +101,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
   | Val v              -> pp_exp_val v
   | Neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
   | Not e              -> let* e' = pp_par_expression e in AC.return @@ PP.(simple_app [string "exp_not"; e'])
-  | Binop (bo, e1, e2) -> pp_exp_binop bo e1 e2
+  | Binop (bo, e1, e2) -> pp_binary_operation bo e1 e2
   | List lst           -> begin
       let* lst' =
         if
