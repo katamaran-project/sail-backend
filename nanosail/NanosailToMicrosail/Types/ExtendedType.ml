@@ -148,8 +148,8 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
 
 
 let pp_extended_function_type
-      (ft  : Ast.Definition.function_type)
-      (eft : Ast.ExtendedFunctionType.t  ) : PP.document AC.t
+      (ft  : Ast.Definition.FunctionType.t)
+      (eft : Ast.ExtendedFunctionType.t   ) : PP.document AC.t
   =
   let parameter_names =
     List.map ~f:(fun (id, _) -> Ast.Identifier.string_of id) ft.parameters

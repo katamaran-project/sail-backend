@@ -7,15 +7,17 @@ type type_quantifier_item = Identifier.t * Kind.t
 type type_quantifier = type_quantifier_item list
 
 
-type function_type = {
-  parameters  : (Identifier.t * Type.t) list;
-  return_type : Type.t
-}
+module FunctionType = struct
+  type t = {
+    parameters  : (Identifier.t * Type.t) list;
+    return_type : Type.t
+  }
+end
 
 
 type function_definition = {
   function_name          : Identifier.t;
-  function_type          : function_type;
+  function_type          : FunctionType.t;
   extended_function_type : ExtendedFunctionType.t;
   function_body          : Statement.t;
 }
