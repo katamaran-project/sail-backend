@@ -98,7 +98,7 @@ let pp_typedenotekit () =
       "  |}.";
     ]
   in
-  PP.(separate hardline @@ List.map ~f:string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
 let pp_union_constructor (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
