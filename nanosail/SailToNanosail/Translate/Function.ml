@@ -950,12 +950,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
   | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
 
 
-type sail_function_parts = {
-  identifier         : S.id;
-  parameter_bindings : Sail.type_annotation Libsail.Ast.pat;
-  body               : Libsail.Ast.typ Libsail.Anf.aexp;
-  return_type        : Libsail.Ast.typ;
-}
+type sail_function_parts =
+  {
+    identifier         : S.id;
+    parameter_bindings : Sail.type_annotation Libsail.Ast.pat;
+    body               : Libsail.Ast.typ Libsail.Anf.aexp;
+    return_type        : Libsail.Ast.typ;
+  }
 
 
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
