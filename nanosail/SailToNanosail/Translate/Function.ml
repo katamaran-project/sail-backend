@@ -925,7 +925,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
 
   and statement_of_throw
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
-        (_typ  : Libsail.Ast.typ                 )
+        (_typ  : Libsail.Ast.typ                 ) : Ast.statement TC.t
     =
     TC.return @@ Ast.Stm_fail "\"failure\"" (* todo *)
 
@@ -983,7 +983,7 @@ let translate_body = statement_of_aexp
 
 let translate_function_definition
       (definition_annotation : S.def_annot                  )
-      (function_definition   : Sail.type_annotation S.fundef)
+      (function_definition   : Sail.type_annotation S.fundef) : Ast.definition TC.t
   =
   let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
   in
