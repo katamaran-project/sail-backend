@@ -20,6 +20,6 @@ let pp_type_definition
     | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | Enum enum              -> Enums.generate enum
     | Variant variant        -> Variants.generate variant
-    | TD_record record       -> Records.generate record
+    | Record record          -> Records.generate record
   in
   Coq.annotate_with_original_definition original @@ Coq.annotate document

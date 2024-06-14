@@ -83,7 +83,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
     | TD_abbreviation abbreviation -> Ast.Definition.Type.TD_abbreviation (sanitize_type_abbreviation abbreviation)
     | Variant variant              -> Ast.Definition.Type.Variant         (sanitize_variant variant               )
     | Enum enum                    -> Ast.Definition.Type.Enum            (sanitize_enum enum                     )
-    | TD_record record             -> Ast.Definition.Type.TD_record       (sanitize_record record                 )
+    | Record record                -> Ast.Definition.Type.Record          (sanitize_record record                 )
   in
   let sanitize_definition
       (sail_definition : Sail.sail_definition)

@@ -89,7 +89,7 @@ module Type = struct
     | TD_abbreviation of type_abbreviation_definition
     | Variant         of Variant.t
     | Enum            of Enum.t
-    | TD_record       of record_definition
+    | Record          of record_definition
 end
   
 

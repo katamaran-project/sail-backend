@@ -33,7 +33,7 @@ let translate_record
   and* type_quantifier = translate_type_quantifier type_quantifier
   and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
   in
-  TC.return @@ Ast.Definition.Type.TD_record {
+  TC.return @@ Ast.Definition.Type.Record {
     identifier;
     type_quantifier;
     fields

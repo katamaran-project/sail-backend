@@ -60,8 +60,8 @@ module Extract = struct
 
   let of_record (type_definition : Definition.Type.t) =
     match type_definition with
-    | TD_record x -> Some x
-    | _           -> None
+    | Record x -> Some x
+    | _        -> None
 
   let of_abbreviation (type_definition : Definition.Type.t) =
     match type_definition with
@@ -111,4 +111,4 @@ let type_identifier (type_definition : Definition.Type.t) =
   | TD_abbreviation x -> x.identifier
   | Variant x         -> x.identifier
   | Enum x            -> x.identifier
-  | TD_record x       -> x.identifier
+  | Record x          -> x.identifier
