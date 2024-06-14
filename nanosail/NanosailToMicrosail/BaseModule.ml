@@ -10,7 +10,7 @@ let pp_typedeclkit () =
       "  |}.";
     ]
   in
-  PP.(separate hardline @@ List.map ~f:string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
 let pp_denote_function
