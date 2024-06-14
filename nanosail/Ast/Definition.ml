@@ -56,13 +56,6 @@ type type_abbreviation_definition =
   }
 
 
-type enum_definition =
-  {
-    identifier : Identifier.t     ;
-    cases      : Identifier.t list;
-  }
-
-
 type record_definition =
   {
     identifier      : Identifier.t                ;
@@ -83,10 +76,19 @@ module Type = struct
     and constructor = (Identifier.t * Type.t list)
   end
 
+  module Enum = struct
+    type t =
+      {
+        identifier : Identifier.t     ;
+        cases      : Identifier.t list;
+      }
+  end
+
+
   type t =
     | TD_abbreviation of type_abbreviation_definition
     | Variant         of Variant.t
-    | TD_enum         of enum_definition
+    | Enum            of Enum.t
     | TD_record       of record_definition
 end
   

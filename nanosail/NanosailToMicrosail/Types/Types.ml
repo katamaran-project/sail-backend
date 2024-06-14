@@ -18,7 +18,7 @@ let pp_type_definition
   let document =
     match type_definition with
     | TD_abbreviation abbrev -> TypeAbbreviations.generate abbrev
-    | TD_enum enum           -> Enums.generate enum
+    | Enum enum              -> Enums.generate enum
     | Variant variant        -> Variants.generate variant
     | TD_record record       -> Records.generate record
   in

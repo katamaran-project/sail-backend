@@ -450,7 +450,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           match lookup_result with
           | Some (TD_abbreviation def) -> match_abbreviation def
           | Some (Variant def)         -> match_variant def
-          | Some (TD_enum def)         -> match_enum def
+          | Some (Enum def)            -> match_enum def
           | Some (TD_record def)       -> match_record def
           | None                       -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
         end
@@ -459,7 +459,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING ENUMS
     *)
-    and match_enum (enum_definition : Ast.Definition.enum_definition) =
+    and match_enum (enum_definition : Ast.Definition.Type.Enum.t) =
       (* the matched variable has type enum as described by enum_definition *)
       let* () =
         let n_match_cases = List.length cases

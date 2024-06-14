@@ -70,7 +70,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
         constructors    = constructors'
       }
     in
-    let sanitize_enum (enum_definition : Ast.Definition.enum_definition) : Ast.Definition.enum_definition =
+    let sanitize_enum (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Definition.Type.Enum.t =
       (* no work to be done *)
       enum_definition
     in
@@ -82,7 +82,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
     match type_definition with
     | TD_abbreviation abbreviation -> Ast.Definition.Type.TD_abbreviation (sanitize_type_abbreviation abbreviation)
     | Variant variant              -> Ast.Definition.Type.Variant         (sanitize_variant variant               )
-    | TD_enum enum                 -> Ast.Definition.Type.TD_enum         (sanitize_enum enum                     )
+    | Enum enum                    -> Ast.Definition.Type.Enum            (sanitize_enum enum                     )
     | TD_record record             -> Ast.Definition.Type.TD_record       (sanitize_record record                 )
   in
   let sanitize_definition

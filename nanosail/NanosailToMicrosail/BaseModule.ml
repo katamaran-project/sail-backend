@@ -31,7 +31,7 @@ let pp_denote_function
   Coq.definition ~identifier ~parameters ~result_type body
 
 
-let pp_enum_denote (enum_definitions : Ast.Definition.enum_definition list) : PP.document =
+let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document =
   let denotations =
     let enum_identifiers =
       List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions

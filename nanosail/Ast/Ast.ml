@@ -50,8 +50,8 @@ module Extract = struct
 
   let of_enum (type_definition : Definition.Type.t) =
     match type_definition with
-    | TD_enum x -> Some x
-    | _         -> None
+    | Enum x -> Some x
+    | _      -> None
 
   let of_variant (type_definition : Definition.Type.t) =
     match type_definition with
@@ -105,9 +105,10 @@ let select
   List.filter_map ~f:(lift_extractor extractor) definitions
 
 
+(* todo move inside Definition.Type submodule *)
 let type_identifier (type_definition : Definition.Type.t) =
   match type_definition with
   | TD_abbreviation x -> x.identifier
   | Variant x         -> x.identifier
-  | TD_enum x         -> x.identifier
+  | Enum x            -> x.identifier
   | TD_record x       -> x.identifier

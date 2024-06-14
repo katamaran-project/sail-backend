@@ -4,8 +4,8 @@ open Identifier
 
 
 let generate_enum_finiteness
-      (_sail_definition : Sail.sail_definition          )
-      (enum_definition  : Ast.Definition.enum_definition) =
+      (_sail_definition : Sail.sail_definition      )
+      (enum_definition  : Ast.Definition.Type.Enum.t) =
   let identifier = pp_identifier @@ enum_definition.identifier
   and type_name  = pp_identifier @@ enum_definition.identifier
   and values     = List.map ~f:pp_identifier enum_definition.cases

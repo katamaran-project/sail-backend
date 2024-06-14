@@ -40,7 +40,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
         | Some (TD_abbreviation _) -> TC.not_yet_implemented [%here] location
         | Some (Variant _)         -> TC.not_yet_implemented [%here] location
         | Some (TD_record _)       -> TC.not_yet_implemented [%here] location
-        | Some (TD_enum _)         -> TC.return @@ Ast.Type.Enum identifier'
+        | Some (Enum _)            -> TC.return @@ Ast.Type.Enum identifier'
       end
 
   (*

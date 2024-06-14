@@ -24,7 +24,7 @@ let translate_enum
   let* identifier' = translate_identifier [%here] identifier
   and* cases'      = TC.map ~f:(translate_identifier [%here]) cases
   in
-  TC.return @@ Ast.Definition.Type.TD_enum {
+  TC.return @@ Ast.Definition.Type.Enum {
       identifier = identifier';
       cases      = cases'     ;
     }
