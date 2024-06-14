@@ -87,13 +87,14 @@ let rec pp_expression (e : Ast.Expression.t) =
        ])
     in
     match binary_operator with
-    | Pair -> pp "bop.pair"
-    | Cons -> pp "bop.cons"
+    | Pair   -> pp "bop.pair"
+    | Cons   -> pp "bop.cons"
     | Append -> pp "bop.append"
-    | _  ->
-      let* binop' = pp_infix_binOp binary_operator
-      in
-      AC.return @@ PP.infix 2 1 binop' e1' e2'
+    | _      -> begin
+        let* binop' = pp_infix_binOp binary_operator
+        in
+        AC.return @@ PP.infix 2 1 binop' e1' e2'
+      end
   in
   match e with
   | Var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
