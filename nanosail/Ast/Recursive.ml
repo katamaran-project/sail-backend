@@ -12,7 +12,7 @@ module rec Type : sig
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
-  
+
     | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
@@ -51,7 +51,7 @@ end = struct
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
-  
+
     | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)

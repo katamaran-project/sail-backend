@@ -34,5 +34,5 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
       AC.return @@ Coq.definition ~identifier ~parameters body;
-    end 
+    end
 

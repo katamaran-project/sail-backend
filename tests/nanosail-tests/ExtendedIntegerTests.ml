@@ -51,7 +51,7 @@ let test_comparisons =
     assert_ge (Int 3) (Int 3);
   ]
 
-  
+
 let test_suite =
   "extended integer test suite" >::: test_comparisons
-    
+

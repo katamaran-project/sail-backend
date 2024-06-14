@@ -194,8 +194,8 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-    
-  in  
+
+  in
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -260,7 +260,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     and+ right' = bool_expression_of_sail_numeric_constraint right
     in
     Monad.return @@ factory left' right'
-      
+
   and bool_expression_of_comparison
         (factory : Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.BoolExpression.t)
         (left    : S.nexp                                                                                             )
@@ -281,7 +281,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
   and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
 
-  in  
+  in
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
@@ -343,7 +343,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
 
-  in 
+  in
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location

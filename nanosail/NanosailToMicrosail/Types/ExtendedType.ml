@@ -17,7 +17,7 @@ module Prec = struct
 
   let pp_binary operator x y =
     PP.(separate space [ x; string operator; y ])
-  
+
 
   let variable id =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
@@ -73,7 +73,7 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
   and multiplication l r = binary_operation Prec.multiplication l r
   and negation       o   = unary_operation Prec.negation o
 
-  in  
+  in
   ast_of_int_expression integer_expression
 
 
@@ -107,11 +107,11 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
     and* right' = ast_of_int_expression right
     in
     AC.return @@ f left' right'
-  
+
   and conjunction l r              = binary_operation Prec.conjunction              l r
   and disjunction l r              = binary_operation Prec.disjunction              l r
   and equality    l r              = comparison       Prec.equality                 l r
-  and inequality  l r              = comparison       Prec.inequality               l r    
+  and inequality  l r              = comparison       Prec.inequality               l r
   and less_than   l r              = comparison       Prec.less_than                l r
   and greater_than l r             = comparison       Prec.greater_than             l r
   and less_than_or_equal_to l r    = comparison       Prec.less_than_or_equal_to    l r

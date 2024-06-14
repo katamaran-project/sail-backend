@@ -9,7 +9,7 @@ val compose                         : ('b -> 'c t) -> ('a -> 'b t) -> 'a -> 'c t
 val create_annotation_from_document : PPrint.document -> int t
 val create_annotation_from_string   : string -> int t
 val document_of_annotation          : annotation -> PP.document
-                                             
+
 val not_yet_implemented             : ?message:string -> Lexing.position -> PP.document t
 val collect_annotations             : 'a t -> ('a * annotation list)
 val drop_annotations                : 'a t -> 'a

@@ -19,9 +19,9 @@ module Subst = struct
     let rec aux (t : Ast.Type.t) : Ast.Type.t =
       match t with
       | Unit                    -> Unit
-      | Bool                    -> Bool   
+      | Bool                    -> Bool
       | Nat                     -> Nat
-      | Int                     -> Int   
+      | Int                     -> Int
       | String                  -> String
       | Atom                    -> Atom
       | List x                  -> List (aux x)

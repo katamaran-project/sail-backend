@@ -40,7 +40,7 @@ let pretty_print ir =
   and variant_definitions  = Ast.(select Extract.(type_definition of_variant) ir.definitions)
   and register_definitions = Ast.(select Extract.register_definition ir.definitions)
   in
-  
+
   let prelude =
     Prelude.generate ()
   in
@@ -62,7 +62,7 @@ let pretty_print ir =
       Types.Variants.generate_tags variant_definitions;
     ]
   in
-  
+
   let base_module =
     BaseModule.pp_base_module ir.definitions
   in

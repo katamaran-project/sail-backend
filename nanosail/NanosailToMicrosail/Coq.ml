@@ -558,7 +558,7 @@ let record
       Auxlib.maximum @@ List.map ~f:(Fn.compose PP.requirement fst) fields
     in
     List.map fields ~f:(
-      fun (id, t) -> 
+      fun (id, t) ->
         PP.(separate space [ PP.pad_right longest_field_length id; colon; t ] ^^ semi)
     )
   in

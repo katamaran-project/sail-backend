@@ -30,7 +30,7 @@ let rec nanotype (t : Ast.Type.t) =
       in
       Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
     end
-                          
+
 and type_argument (targ : Ast.TypeArgument.t) =
   match targ with
    | TA_type t        -> nanotype t

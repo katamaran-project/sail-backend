@@ -877,7 +877,7 @@ let destructuring_tests =
           Integer n
         ];
       end;
-      
+
       addall begin
         let* i = [-4; 0; 10]
         and* j = [-9; 0; 3]
@@ -1033,7 +1033,7 @@ let destructuring_tests =
           Integer j
         ];
       end;
-      
+
       addall begin
         let* i = [-4; 0; 10]
         and* j = [-2; 0; 5]
@@ -1216,7 +1216,7 @@ let destructuring_tests =
           |} variable,
           value
         ];
-      end;      
+      end;
     end
   in
   "define function" >::: List.map ~f:(uncurry test_run) test_cases

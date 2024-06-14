@@ -6,7 +6,7 @@ end
 
 module Make(O : Output) = struct
   module ExtendedIntegerNotations = ComparisonNotations.Make(ExtendedInteger)
-  
+
   type output = O.t
   type ast = Ast of O.t * ExtendedInteger.t
 
@@ -14,7 +14,7 @@ module Make(O : Output) = struct
     let Ast (x, _) = ast
     in
     x
-  
+
   let level_of (ast : ast) : ExtendedInteger.t =
     let Ast (_, n) = ast
     in
@@ -74,7 +74,7 @@ module Make(O : Output) = struct
       Ast (formatter left' right', precedence)
     in
     format
-  
+
   let define_atom (output : output) : ast =
     Ast (output, ExtendedInteger.PositiveInfinity)
 

@@ -26,7 +26,7 @@ let template_prelude (translation : Ast.program) =
     in
     (id, Slang.Functions.mk_strict_function f)
   in
-  
+
   let full_translation =
     let id = "full-translation"
     in
@@ -65,7 +65,7 @@ let template_prelude (translation : Ast.program) =
     in
     nullary_function id f
   in
-      
+
   let exported = [
     full_translation;
     ignored_definitions;

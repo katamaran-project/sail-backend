@@ -19,7 +19,7 @@ module Prec = struct
   let div = define_left_associative_binary_operator  20 (fun x y -> Printf.sprintf "%s / %s" x y)
   let pow = define_right_associative_binary_operator 30 (fun x y -> Printf.sprintf "%s ^ %s" x y)
   let neg = define_unary_prefix_operator             50 (fun x   -> Printf.sprintf "-%s"     x  )
-  
+
   let to_string = output_of
 end
 

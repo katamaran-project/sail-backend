@@ -233,7 +233,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
         Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
         PP.(string "fun Kv => " ^^ align match_constructor_cases)
       )
-    in    
+    in
     Coq.match' (PP.string "U") @@ List.map ~f:pp_variant_case variant_definitions
   in
   Coq.definition ~identifier ~parameters ~result_type contents

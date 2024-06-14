@@ -11,12 +11,12 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     let* elts' = AnnotationContext.map ~f:pp_nanotype elts
     in
     AC.return PP.(separate space [ string "ty.tuple"; Coq.list elts' ])
-    
+
   and pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
     AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
-  
+
   and pp_application
       (constructor    : Ast.Type.t             )
       (type_arguments : Ast.TypeArgument.t list) : PP.document AC.t
@@ -27,7 +27,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
       AC.map ~f:(AC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
     in
     AC.return @@ PP.parens @@ PP.simple_app (constructor' :: type_arguments')
-  
+
   and pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
@@ -44,7 +44,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
-  in  
+  in
   match typ with
    | Unit                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
    | Bool                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"

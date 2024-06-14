@@ -22,7 +22,7 @@ let gather_patterns (patterns : Value.t list) =
         | None        -> gather_optionals ~positionals ~optionals:[] patterns
       end
     | [] -> (positionals, [], [])
-            
+
   and gather_optionals
       ~(positionals : positional list)
       ~(optionals   : optional list  )
@@ -35,7 +35,7 @@ let gather_patterns (patterns : Value.t list) =
         | None -> gather_keywords ~positionals ~optionals ~keywords:[] patterns
       end
     | [] -> (positionals, optionals, [])
-            
+
   and gather_keywords
       ~(positionals : positional list)
       ~(optionals   : optional list  )

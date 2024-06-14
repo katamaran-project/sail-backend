@@ -43,7 +43,7 @@ type register_definition =
   }
 
 
-module Type = struct  
+module Type = struct
   module Variant = struct
     type t =
       {
@@ -77,7 +77,7 @@ module Type = struct
       | TA_numeric_expression of type_quantifier * NumericExpression.t
       | TA_numeric_constraint of type_quantifier * NumericConstraint.t
       | TA_alias              of type_quantifier * Type.t
-                                                     
+
     type t =
       {
         identifier   : Identifier.t     ;
@@ -91,7 +91,7 @@ module Type = struct
     | Enum         of Enum.t
     | Record       of Record.t
 end
-  
+
 
 type top_level_type_constraint_definition =
   {

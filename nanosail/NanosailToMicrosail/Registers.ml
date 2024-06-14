@@ -162,7 +162,7 @@ let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.De
         add @@ PP.string "";
         if has_registers
         then add @@ PP.string "Derive NoConfusion for RegName.";
-      )  
+      )
   in
   let section =
     Coq.section (Ast.Identifier.mk "TransparentObligations") PP.(separate hardline contents)

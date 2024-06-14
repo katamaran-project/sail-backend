@@ -22,7 +22,7 @@ module Context = struct
     and set (context : t) (definitions : Ast.Definition.t list) : t = { context with definitions }
     in
     (get, set)
-  
+
   let next_id_index =
     let get (context : t) : int = context.next_id_index
     and set (context : t) (next_id_index : int) : t = { context with next_id_index }
