@@ -125,6 +125,9 @@ let pretty_print ir =
       empty_line ();
       comment @@ PP.string "EqDeq for each variant/union type";
       lines @@ Types.Variants.generate_eqdecs variant_definitions;
+      empty_line ();
+      comment @@ PP.string "EqDeq for each record type";
+      lines @@ Types.Records.generate_eqdecs record_definitions;
     end
     (* EqDec.generate ir.definitions *)
   in
