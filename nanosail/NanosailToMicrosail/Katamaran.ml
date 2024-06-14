@@ -41,14 +41,6 @@ let pp_program_module
 (******************************************************************************)
 (* Full pretty printing *)
 
-(* todo remove *)
-let _pp_module_header title =
-  PP.string (Printf.sprintf "(*** %s ***)" title)
-
-(* todo remove *)
-let _generate_module_header title =
-  AC.return @@ PP.string @@ Printf.sprintf "(*** %s ***)" title
-
 let pretty_print ir =
   let type_definitions     = select Extract.(type_definition of_anything) ir.definitions
   and enum_definitions     = select Extract.(type_definition of_enum) ir.definitions
