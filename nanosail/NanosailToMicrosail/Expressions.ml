@@ -41,7 +41,7 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
   | Prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
 
 
-let rec pp_expression (e : Ast.Expression.t) =
+let rec pp_expression (expression : Ast.Expression.t) =
   let rec pp_exp_list expressions =
     match expressions with
     | []      -> AC.return @@ PP.string "nil"
@@ -96,7 +96,7 @@ let rec pp_expression (e : Ast.Expression.t) =
         AC.return @@ PP.infix 2 1 binop' e1' e2'
       end
   in
-  match e with
+  match expression with
   | Var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
   | Val v              -> pp_exp_val v
   | Neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
