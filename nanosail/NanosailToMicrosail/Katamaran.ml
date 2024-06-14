@@ -12,7 +12,7 @@ let pp_program_module
       program_name
       base_name
       function_definitions
-      (top_level_type_constraint_definitions : (Sail.sail_definition * top_level_type_constraint_definition) list)=
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Definition.top_level_type_constraint_definition) list)=
   let flag            = Coq.Import
   and identifier      = program_name ^ "Program"
   and base_identifier = base_name ^ "Base" in

@@ -85,7 +85,7 @@ let translate_value_definition
           in
           let* value = translate_expression expression
           in
-          TC.return @@ Ast.ValueDefinition { identifier; value }
+          TC.return @@ Ast.Definition.ValueDefinition { identifier; value }
         end
       | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
     end

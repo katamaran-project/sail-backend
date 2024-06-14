@@ -1,10 +1,9 @@
 open Base
-open Ast
 
 
 module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nexp : NumericExpression.t) =
+    let rec aux (nexp : Ast.NumericExpression.t) =
       match nexp with
       | Constant _           -> nexp
       | Add (left, right)    -> Add (aux left, aux right)
@@ -83,16 +82,16 @@ let sanitize_identifier (identifier : Ast.Identifier.t) : Ast.Identifier.t optio
 
 module SubstitutionMonad = struct
   module SubstitutionMap = struct
-    type t = Identifier.t Identifier.Map.t
+    type t = Ast.Identifier.t Ast.Identifier.Map.t
 
-    let empty = Identifier.Map.empty
+    let empty = Ast.Identifier.Map.empty
 
-    let add = Identifier.Map.add_exn
+    let add = Ast.Identifier.Map.add_exn
 
-    let find = Identifier.Map.find
+    let find = Ast.Identifier.Map.find
 
     let contains_value map identifier =
-      Identifier.Map.exists map ~f:(Identifier.equal identifier)
+      Ast.Identifier.Map.exists map ~f:(Ast.Identifier.equal identifier)
   end
 
   include Monads.State.Make(SubstitutionMap)
@@ -132,11 +131,11 @@ let create_substitution_from_map map =
 
 let process_type_quantifier
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option)
-    (type_quantifier : type_quantifier                            ) =
+    (type_quantifier : Ast.Definition.type_quantifier             ) =
   let open SubstitutionMonad in
   let open Monads.Notations.Star(SubstitutionMonad)
   in
-  let rec aux (items : type_quantifier_item list) =
+  let rec aux (items : Ast.Definition.type_quantifier_item list) =
     match items with
     | []                 -> return []
     | (id, kind) :: rest ->
@@ -155,7 +154,7 @@ let process_type_quantifier
 let generic_sanitize
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option       )
     (substituter     : (Ast.Identifier.t -> Ast.Identifier.t) -> 'a -> 'a)
-    (type_quantifier : type_quantifier                                   )
+    (type_quantifier : Ast.Definition.type_quantifier                    )
     (x               : 'a                                                ) =
   let type_quantifier', subst = process_type_quantifier sanitize type_quantifier
   in
@@ -166,8 +165,8 @@ let generic_sanitize
 
 module Sanitize = struct
   let numeric_expression
-      (type_quantifier    : type_quantifier    )
-      (numeric_expression : NumericExpression.t) =
+      (type_quantifier    : Ast.Definition.type_quantifier)
+      (numeric_expression : Ast.NumericExpression.t       ) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_expression
@@ -175,8 +174,8 @@ module Sanitize = struct
       numeric_expression
 
   let numeric_constraint
-      (type_quantifier    : type_quantifier        )
-      (numeric_constraint : Ast.NumericConstraint.t) =
+      (type_quantifier    : Ast.Definition.type_quantifier)
+      (numeric_constraint : Ast.NumericConstraint.t       ) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_constraint
@@ -184,8 +183,8 @@ module Sanitize = struct
       numeric_constraint
 
   let nanotype
-      (type_quantifier    : type_quantifier)
-      (nanotype           : Ast.Type.t     ) =
+      (type_quantifier    : Ast.Definition.type_quantifier)
+      (nanotype           : Ast.Type.t                    ) =
     generic_sanitize
       sanitize_identifier
       Subst.nanotype

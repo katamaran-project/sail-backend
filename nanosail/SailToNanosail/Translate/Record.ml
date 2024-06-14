@@ -21,7 +21,7 @@ let translate_record
       (_type_annotation       : Sail.type_annotation S.annot)
       (identifier             : S.id                        )
       (type_quantifier        : S.typquant                  )
-      (fields                 : (S.typ * S.id) list         ) : Ast.type_definition TC.t
+      (fields                 : (S.typ * S.id) list         ) : Ast.Definition.type_definition TC.t
   =
   let translate_field (field_type : S.typ) (field_identifier : S.id) =
     let* field_type'       = Nanotype.nanotype_of_sail_type field_type
@@ -33,8 +33,8 @@ let translate_record
   and* type_quantifier = translate_type_quantifier type_quantifier
   and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
   in
-  TC.return @@ Ast.TD_record {
-                   identifier;
-                   type_quantifier;
-                   fields
-                 }
+  TC.return @@ Ast.Definition.TD_record {
+    identifier;
+    type_quantifier;
+    fields
+  }

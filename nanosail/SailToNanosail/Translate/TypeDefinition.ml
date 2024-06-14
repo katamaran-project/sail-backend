@@ -20,14 +20,14 @@ open Record
 
 let translate_type_definition
       (definition_annotation     : S.def_annot                    )
-      (annotated_type_definition : Sail.type_annotation S.type_def) : Ast.definition TC.t
+      (annotated_type_definition : Sail.type_annotation S.type_def) : Ast.Definition.t TC.t
   =
   let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
   in
   let register translation =
     let* result = translation
     in
-    TC.return @@ Ast.TypeDefinition result
+    TC.return @@ Ast.Definition.TypeDefinition result
   in
   match type_definition with
   | TD_abbrev (identifier, quantifier, arg)                      -> register @@ translate_type_abbreviation definition_annotation type_annotation identifier quantifier arg

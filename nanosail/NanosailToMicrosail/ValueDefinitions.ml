@@ -10,8 +10,8 @@ let pp_value (value : Ast.Value.t) : PP.document =
   | Bool b      -> PP.string @@ if b then "true" else "false"
 
 
-let pp_value_definition (value_definition : Ast.value_definition) : PP.document =
-  let { Ast.identifier; value } = value_definition
+let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document =
+  let { identifier; value } : Ast.Definition.value_definition = value_definition
   in
   let definition =
     let identifier = Identifier.pp_identifier identifier
@@ -23,7 +23,7 @@ let pp_value_definition (value_definition : Ast.value_definition) : PP.document 
   definition
 
 
-let generate (definitions : (Sail.sail_definition * Ast.definition) list) =
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) =
   let value_definitions =
     List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
   in

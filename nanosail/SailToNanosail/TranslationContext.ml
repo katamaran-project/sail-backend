@@ -5,8 +5,8 @@ open Ast
 module Context = struct
   type t =
     {
-      definitions   : definition list;  (* list of definitions                          *)
-      next_id_index : int;              (* counter used to generate unique identifiers  *)
+      definitions   : Definition.t list;  (* list of definitions                          *)
+      next_id_index : int;                (* counter used to generate unique identifiers  *)
     }
 
   let empty : t =
@@ -19,8 +19,8 @@ module Context = struct
      Accessors
   *)
   let definitions =
-    let get (context : t) : definition list = context.definitions
-    and set (context : t) (definitions : definition list) : t = { context with definitions }
+    let get (context : t) : Definition.t list = context.definitions
+    and set (context : t) (definitions : Definition.t list) : t = { context with definitions }
     in
     (get, set)
   
@@ -105,7 +105,7 @@ let fail ocaml_position message =
   Monad.fail @@ AssertionFailure (ocaml_position, message)
 
 
-let register (definition : definition) =
+let register (definition : Definition.t) =
   let* old_definitions = Monad.get Context.definitions
   in
   let new_definitions = definition :: old_definitions
@@ -119,10 +119,10 @@ let register (definition : definition) =
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
 let lookup_type_of_kind
-      (extractor  : type_definition -> 'a option)
-      (identifier : Ast.Identifier.t            ) : 'a option t
+      (extractor  : Definition.type_definition -> 'a option)
+      (identifier : Ast.Identifier.t                       ) : 'a option t
   =
-  let predicate (definition : definition) : type_definition option =
+  let predicate (definition : Definition.t) : Definition.type_definition option =
     match definition with
     | TypeDefinition type_definition ->
       if Ast.Identifier.equal identifier (type_identifier type_definition)
@@ -143,7 +143,7 @@ let lookup_type =
 
 (* Looks up type of register with given name *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
-  let predicate (definition : definition) : register_definition option =
+  let predicate (definition : Definition.t) : Definition.register_definition option =
     match definition with
     | RegisterDefinition register_definition ->
       if Ast.Identifier.equal register_definition.identifier identifier

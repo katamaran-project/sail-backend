@@ -17,7 +17,7 @@ open TypeDefinition
 
 let translate_top_level_type_constraint
       (_definition_annotation : S.def_annot)
-      (S.VS_aux (value_specification, _vspec_annotation)) : Ast.definition TC.t =
+      (S.VS_aux (value_specification, _vspec_annotation)) : Ast.Definition.t TC.t =
   let VS_val_spec (
           TypSchm_aux (
               TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
@@ -26,4 +26,4 @@ let translate_top_level_type_constraint
   in
   let* identifier' = translate_identifier [%here] identifier
   in
-  TC.return @@ Ast.TopLevelTypeConstraintDefinition { identifier = identifier' }
+  TC.return @@ Ast.Definition.TopLevelTypeConstraintDefinition { identifier = identifier' }

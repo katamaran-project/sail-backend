@@ -5,7 +5,7 @@ module TC = TranslationContext
 
 
 let prelude = [
-    TypeDefinition (TD_enum { identifier = Ast.Identifier.mk "unit"; cases = [ Ast.Identifier.mk "()" ] });
+    Ast.Definition.TypeDefinition (TD_enum { identifier = Ast.Identifier.mk "unit"; cases = [ Ast.Identifier.mk "()" ] });
   ]
 
 

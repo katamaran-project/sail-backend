@@ -12,7 +12,7 @@ let reg_inductive_type register_definitions =
   in
   let inductive_type =
     Coq.build_inductive_type identifier typ (fun add_constructor ->
-        let make_constructor (register_definition : Ast.register_definition) =
+        let make_constructor (register_definition : Ast.Definition.register_definition) =
           let identifier = pp_identifier register_definition.identifier
           in
           let* register_type = Nanotype.pp_nanotype register_definition.typ
@@ -56,7 +56,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
  *)
-let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
+let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
   if List.is_empty register_definitions
   then None
   else begin
@@ -132,9 +132,9 @@ let obligation_tactic =
     ]
   )
 
-let generate (register_definitions : (Sail.sail_definition * Ast.register_definition) list) : PP.document =
+let generate (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
-    let extract_identifier (pair : Sail.sail_definition * Ast.register_definition) =
+    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
       pp_identifier (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
@@ -152,7 +152,7 @@ let generate (register_definitions : (Sail.sail_definition * Ast.register_defini
   Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
-let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.register_definition) list) =
+let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
   let has_registers =
     not @@ List.is_empty register_definitions
   in

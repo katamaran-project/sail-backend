@@ -459,7 +459,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING ENUMS
     *)
-    and match_enum (enum_definition : Ast.enum_definition) =
+    and match_enum (enum_definition : Ast.Definition.enum_definition) =
       (* the matched variable has type enum as described by enum_definition *)
       let* () =
         let n_match_cases = List.length cases
@@ -561,7 +561,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (variant_definition : Ast.variant_definition) =
+    and match_variant (variant_definition : Ast.Definition.variant_definition) =
       let process_case
           (acc  : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp                )
@@ -627,7 +627,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
                     (acc                 : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-                    (variant_constructor : Ast.variant_constructor                          ) =
+                    (variant_constructor : Ast.Definition.variant_constructor                            ) =
                   let (constructor_tag, fields) = variant_constructor
                   in
                   let* field_vars =
@@ -664,10 +664,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return statement
 
-    and match_abbreviation (_type_abbreviation : Ast.type_abbreviation_definition) =
+    and match_abbreviation (_type_abbreviation : Ast.Definition.type_abbreviation_definition) =
       TC.not_yet_implemented [%here] location
 
-    and match_record (_record_definition : Ast.record_definition) =
+    and match_record (_record_definition : Ast.Definition.record_definition) =
       TC.not_yet_implemented [%here] location
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
@@ -984,7 +984,7 @@ let translate_body = statement_of_aexp
 
 let translate_function_definition
       (definition_annotation : S.def_annot                  )
-      (function_definition   : Sail.type_annotation S.fundef) : Ast.definition TC.t
+      (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
   let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
   in
@@ -998,7 +998,7 @@ let translate_function_definition
       and* function_body          = translate_body parts.body
       and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
       in
-      TC.return @@ Ast.FunctionDefinition {
+      TC.return @@ Ast.Definition.FunctionDefinition {
         function_name;
         function_type = {
             parameters;

@@ -5,8 +5,8 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
-let generate (type_abbreviation : Ast.type_abbreviation_definition) : PP.document AC.t =
-  let { Ast.identifier; Ast.abbreviation } = type_abbreviation
+let generate (type_abbreviation : Ast.Definition.type_abbreviation_definition) : PP.document AC.t =
+  let { identifier; abbreviation } : Ast.Definition.type_abbreviation_definition = type_abbreviation
   in
   match abbreviation with
   | TA_numeric_expression (quantifier, numexpr) -> begin

@@ -6,8 +6,8 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
-let generate (function_definitions : Ast.function_definition list) =
-  let pp_function_declaration (function_definition : Ast.function_definition) =
+let generate (function_definitions : Ast.Definition.function_definition list) =
+  let pp_function_declaration (function_definition : Ast.Definition.function_definition) =
     let name = pp_identifier function_definition.function_name in
     let* function_type =
       let* parameter_bindings =

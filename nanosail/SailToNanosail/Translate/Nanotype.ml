@@ -33,14 +33,14 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
     | _           -> begin
-        let* typ = TC.lookup_type identifier'
+        let* typ : Ast.Definition.type_definition option = TC.lookup_type identifier'
         in
         match typ with
-        | None                         -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
-        | Some (Ast.TD_abbreviation _) -> TC.not_yet_implemented [%here] location
-        | Some (Ast.TD_variant _)      -> TC.not_yet_implemented [%here] location
-        | Some (Ast.TD_record _)       -> TC.not_yet_implemented [%here] location
-        | Some (Ast.TD_enum _)         -> TC.return @@ Ast.Type.Enum identifier'
+        | None                     -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
+        | Some (TD_abbreviation _) -> TC.not_yet_implemented [%here] location
+        | Some (TD_variant _)      -> TC.not_yet_implemented [%here] location
+        | Some (TD_record _)       -> TC.not_yet_implemented [%here] location
+        | Some (TD_enum _)         -> TC.return @@ Ast.Type.Enum identifier'
       end
 
   (*

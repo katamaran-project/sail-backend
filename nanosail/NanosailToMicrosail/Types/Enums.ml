@@ -6,7 +6,7 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate (enum_definition : Ast.enum_definition) : PP.document AC.t =
+let generate (enum_definition : Ast.Definition.enum_definition) : PP.document AC.t =
   let identifier = pp_identifier enum_definition.identifier
   and typ = pp_identifier @@ Ast.Identifier.mk "Set"
   in
@@ -15,13 +15,13 @@ let generate (enum_definition : Ast.enum_definition) : PP.document AC.t =
     )
 
 
-let generate_tags (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
+let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.enum_definition) list) =
   let enum_definitions =
     List.map ~f:snd enum_definitions
   in
   let identifier = PP.string "Enums"
   and typ = PP.string "Set"
-  and tag_of_enum (enum_definition : Ast.enum_definition) =
+  and tag_of_enum (enum_definition : Ast.Definition.enum_definition) =
     let id = TranslationSettings.convert_enum_name_to_tag enum_definition.identifier
     in
     pp_identifier id
@@ -41,14 +41,14 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.enum_definitio
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
-  let generate_derivation (enum_definition : Ast.enum_definition) =
+let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.Definition.enum_definition) list) =
+  let generate_derivation (enum_definition : Ast.Definition.enum_definition) =
     Coq.derive_no_confusion_for enum_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) enum_definitions
 
 
-let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
+let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.Definition.enum_definition) list) =
   let enum_identifiers =
     List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
   in

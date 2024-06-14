@@ -12,13 +12,13 @@ open Monads.Notations.Star(TC)
 open Base
 
 
-let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * Ast.definition) TC.t =
+let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
   in
   if
     Configuration.should_ignore_definition sail_definition
   then
-    TC.return (sail_definition, Ast.IgnoredDefinition)
+    TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
   else begin
     let translation =
       let* result =
@@ -65,7 +65,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     TC.recover translation begin fun error ->
       match error with
       | NotYetImplemented (ocaml_location, sail_location, message) -> begin
-          let untranslated_definition = Ast.UntranslatedDefinition {
+          let untranslated_definition = Ast.Definition.UntranslatedDefinition {
               filename = ocaml_location.pos_fname;
               line_number = ocaml_location.pos_lnum;
               sail_location = sail_location;

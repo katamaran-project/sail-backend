@@ -14,8 +14,8 @@ end
 
 (* Renames variables so that the identifiers are valid in Coq *)
 let coqify_identifiers (program : Ast.program) : Ast.program =
-  let sanitize_type_definition (type_definition : Ast.type_definition) : Ast.type_definition =
-    let sanitize_type_abbreviation (type_abbreviation_definition : Ast.type_abbreviation_definition) : Ast.type_abbreviation_definition =
+  let sanitize_type_definition (type_definition : Ast.Definition.type_definition) : Ast.Definition.type_definition =
+    let sanitize_type_abbreviation (type_abbreviation_definition : Ast.Definition.type_abbreviation_definition) : Ast.Definition.type_abbreviation_definition =
       let identifier = type_abbreviation_definition.identifier
       and abbreviation = type_abbreviation_definition.abbreviation
       in
@@ -26,7 +26,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.TA_numeric_expression (type_quantifier', numeric_expression')
+            abbreviation = Ast.Definition.TA_numeric_expression (type_quantifier', numeric_expression')
           }
         end
       | TA_numeric_constraint (type_quantifier, numeric_constraint) ->
@@ -35,7 +35,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.TA_numeric_constraint (type_quantifier', numeric_constraint')
+            abbreviation = Ast.Definition.TA_numeric_constraint (type_quantifier', numeric_constraint')
           }
         end
       | TA_alias (type_quantifier, nanotype) ->
@@ -44,11 +44,11 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
           in
           {
             identifier = identifier;
-            abbreviation = Ast.TA_alias (type_quantifier', nanotype')
+            abbreviation = Ast.Definition.TA_alias (type_quantifier', nanotype')
           }
         end
     in
-    let sanitize_variant (variant_definition : Ast.variant_definition) : Ast.variant_definition =
+    let sanitize_variant (variant_definition : Ast.Definition.variant_definition) : Ast.Definition.variant_definition =
       let identifier      = variant_definition.identifier
       and type_quantifier = variant_definition.type_quantifier
       and constructors    = variant_definition.constructors
@@ -70,28 +70,28 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
         constructors    = constructors'
       }
     in
-    let sanitize_enum (enum_definition : Ast.enum_definition) : Ast.enum_definition =
+    let sanitize_enum (enum_definition : Ast.Definition.enum_definition) : Ast.Definition.enum_definition =
       (* no work to be done *)
       enum_definition
     in
-    let sanitize_record (record_definition : Ast.record_definition) : Ast.record_definition =
+    let sanitize_record (record_definition : Ast.Definition.record_definition) : Ast.Definition.record_definition =
       (* todo *)
       Stdio.printf "WARNING: record %s may need to be sanitized\n" (Ast.Identifier.string_of record_definition.identifier);
       record_definition
     in
-    match (type_definition : Ast.type_definition) with
-    | TD_abbreviation abbreviation -> Ast.TD_abbreviation (sanitize_type_abbreviation abbreviation)
-    | TD_variant variant           -> Ast.TD_variant      (sanitize_variant variant               )
-    | TD_enum enum                 -> Ast.TD_enum         (sanitize_enum enum                     )
-    | TD_record record             -> Ast.TD_record       (sanitize_record record                 )
+    match (type_definition : Ast.Definition.type_definition) with
+    | TD_abbreviation abbreviation -> Ast.Definition.TD_abbreviation (sanitize_type_abbreviation abbreviation)
+    | TD_variant variant           -> Ast.Definition.TD_variant      (sanitize_variant variant               )
+    | TD_enum enum                 -> Ast.Definition.TD_enum         (sanitize_enum enum                     )
+    | TD_record record             -> Ast.Definition.TD_record       (sanitize_record record                 )
   in
   let sanitize_definition
       (sail_definition : Sail.sail_definition)
-      (definition      : Ast.definition        ) : Sail.sail_definition * Ast.definition =
+      (definition      : Ast.Definition.t    ) : Sail.sail_definition * Ast.Definition.t =
     (
       sail_definition,
       match definition with
-      | TypeDefinition def                 -> Ast.TypeDefinition (sanitize_type_definition def)
+      | TypeDefinition def                 -> Ast.Definition.TypeDefinition (sanitize_type_definition def)
       | TopLevelTypeConstraintDefinition _ -> definition
       | FunctionDefinition _               -> definition
       | RegisterDefinition _               -> definition

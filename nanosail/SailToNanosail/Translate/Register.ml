@@ -18,7 +18,7 @@ open TopLevelTypeConstraint
 
 let translate_register
       (_definition_annotation        : S.def_annot                    )
-      (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.definition TC.t
+      (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.Definition.t TC.t
   =
   let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
   in
@@ -27,7 +27,7 @@ let translate_register
       let* identifier' = translate_identifier [%here] identifier
       and* nanotype    = nanotype_of_sail_type sail_type
       in
-      TC.return @@ Ast.RegisterDefinition {
+      TC.return @@ Ast.Definition.RegisterDefinition {
           identifier = identifier';
           typ        = nanotype   ;
         }

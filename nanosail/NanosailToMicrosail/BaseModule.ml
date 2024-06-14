@@ -31,7 +31,7 @@ let pp_denote_function
   Coq.definition ~identifier ~parameters ~result_type body
 
 
-let pp_enum_denote (enum_definitions : Ast.enum_definition list) : PP.document =
+let pp_enum_denote (enum_definitions : Ast.Definition.enum_definition list) : PP.document =
   let denotations =
     let enum_identifiers =
       List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
@@ -50,7 +50,7 @@ let pp_enum_denote (enum_definitions : Ast.enum_definition list) : PP.document =
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_union_denote (variant_definitions : Ast.variant_definition list) : PP.document =
+let pp_union_denote (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -69,7 +69,7 @@ let pp_union_denote (variant_definitions : Ast.variant_definition list) : PP.doc
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_record_denote (record_definitions : Ast.record_definition list) : PP.document =
+let pp_record_denote (record_definitions : Ast.Definition.record_definition list) : PP.document =
   let denotations =
     let record_identifiers =
       List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions
@@ -101,7 +101,7 @@ let pp_typedenotekit () =
   PP.(separate hardline @@ List.map ~f:string coq_lines)
 
 
-let pp_union_constructor (variant_definitions : Ast.variant_definition list) : PP.document =
+let pp_union_constructor (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -120,17 +120,17 @@ let pp_union_constructor (variant_definitions : Ast.variant_definition list) : P
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_union_constructor_type (variant_definitions : Ast.variant_definition list) : PP.document =
+let pp_union_constructor_type (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
   let identifier  = PP.string "union_constructor_type"
   and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
   and result_type = Some (PP.string "union_constructor u -> Ty")
   and body =
     let matched_expression = PP.string "u"
     and cases =
-      let pp_variant_case (variant_definition : Ast.variant_definition) =
+      let pp_variant_case (variant_definition : Ast.Definition.variant_definition) =
         let match_constructor_cases =
           let constructor_cases =
-            let pp_constructor_case (constructor : Ast.variant_constructor) =
+            let pp_constructor_case (constructor : Ast.Definition.variant_constructor) =
               let (constructor_identifier, constructor_field_types) = constructor
               in
               let pp_constructor_tag =
@@ -185,15 +185,15 @@ let pp_eqdec_and_finite_instances () =
   PP.(separate hardline @@ List.map ~f:string coq_lines)
 
 
-let pp_union_fold (variant_definitions : Ast.variant_definition list) : PP.document =
+let pp_union_fold (variant_definitions : Ast.Definition.variant_definition list) : PP.document =
   let identifier = PP.string "union_fold"
   and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
   and result_type = Some (PP.string "{ K & Val (union_constructor_type U K) } -> uniont U")
   and contents =
-    let pp_variant_case (variant_definition : Ast.variant_definition) : PP.document * PP.document =
+    let pp_variant_case (variant_definition : Ast.Definition.variant_definition) : PP.document * PP.document =
       let match_constructor_cases =
         let constructor_cases =
-          let pp_constructor_case (variant_constructor : Ast.variant_constructor) : PP.document * PP.document =
+          let pp_constructor_case (variant_constructor : Ast.Definition.variant_constructor) : PP.document * PP.document =
             let (constructor_identifier, constructor_field_types) = variant_constructor
             in
             let n_fields = List.length constructor_field_types
@@ -239,7 +239,7 @@ let pp_union_fold (variant_definitions : Ast.variant_definition list) : PP.docum
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_base_module (definitions : (Sail.sail_definition * Ast.definition) list) : PP.document =
+let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   and variant_definitions =

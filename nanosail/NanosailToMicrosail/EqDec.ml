@@ -2,7 +2,8 @@ open Base
 open Auxlib
 
 
-let generate (definitions : (Sail.sail_definition * Ast.definition) list) =
+(* todo move to Registers *)
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) =
   let has_registers =
     let register_definitions =
       Ast.select Ast.Extract.register_definition definitions

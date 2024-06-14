@@ -19,7 +19,7 @@ let translate_variant
       (identifier             : S.id                        )
       (type_quantifier        : S.typquant                  )
       (constructors           : S.type_union list           )
-      (_flag                  : bool                        ) : Ast.type_definition TC.t
+      (_flag                  : bool                        ) : Ast.Definition.type_definition TC.t
   =
   let* identifier'      = Identifier.translate_identifier [%here] identifier
   and* type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
@@ -38,7 +38,7 @@ let translate_variant
     in
     TC.map ~f:translate_constructor constructors
   in
-  TC.return @@ Ast.TD_variant {
+  TC.return @@ Ast.Definition.TD_variant {
       identifier      = identifier'     ;
       type_quantifier = type_quantifier';
       constructors    = constructors'   ;

@@ -7,7 +7,7 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
-let generate (record_definition : Ast.record_definition) : document AC.t =
+let generate (record_definition : Ast.Definition.record_definition) : document AC.t =
   let generate_field field_identifier field_type =
     let* field_type' = Nanotype.coq_type_of_nanotype field_type
     in
@@ -21,13 +21,13 @@ let generate (record_definition : Ast.record_definition) : document AC.t =
   AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
 
 
-let generate_tags (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
+let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.record_definition) list) =
   let record_definitions =
     List.map ~f:snd record_definitions
   in
   let identifier = PP.string "Records"
   and typ = PP.string "Set"
-  and tag_of_record (record_definition : Ast.record_definition) =
+  and tag_of_record (record_definition : Ast.Definition.record_definition) =
     let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
     in
     pp_identifier id
@@ -47,14 +47,14 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.record_defin
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
-  let generate_derivation (record_definition : Ast.record_definition) =
+let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.Definition.record_definition) list) =
+  let generate_derivation (record_definition : Ast.Definition.record_definition) =
     Coq.derive_no_confusion_for record_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) record_definitions
 
 
-let generate_eqdecs (record_definitions : (Sail.sail_definition * Ast.record_definition) list) =
+let generate_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition.record_definition) list) =
   let record_identifiers =
     List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
   in
