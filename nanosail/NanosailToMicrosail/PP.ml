@@ -115,3 +115,7 @@ let description_list (items : (document * document) list) : document =
     separate hardline [ header; indent' description ]
   in
   separate hardline @@ List.map ~f:render_item items
+
+
+let line (d : document) : document =
+  d ^^ hardline
