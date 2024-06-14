@@ -78,8 +78,6 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
 
 
 let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t) : PP.document AC.t =
-  let open Ast.ExtendedType.Parameter
-  in
   match extended_type with
   | Int k        -> AC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
   | Bool k       -> AC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
