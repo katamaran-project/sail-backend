@@ -78,28 +78,18 @@ let rec pp_expression (e : Ast.Expression.t) =
     let* e1' = pp_par_expression e1
     and* e2' = pp_par_expression e2
     in
+    let pp id =
+      AC.return @@ PP.(simple_app [
+         string "exp_binop";
+         string id;
+         e1';
+         e2'
+       ])
+    in
     match binary_operator with
-    | Pair ->
-       AC.return @@ PP.(simple_app [
-         string "exp_binop";
-         string "bop.pair";
-         e1';
-         e2'
-       ])
-    | Cons ->
-       AC.return @@ PP.(simple_app [
-         string "exp_binop";
-         string "bop.cons";
-         e1';
-         e2'
-       ])
-    | Append ->
-       AC.return @@ PP.(simple_app [
-         string "exp_binop";
-         string "bop.append";
-         e1';
-         e2'
-       ])
+    | Pair -> pp "bop.pair"
+    | Cons -> pp "bop.cons"
+    | Append -> pp "bop.append"
     | _  ->
       let* binop' = pp_infix_binOp binary_operator
       in
