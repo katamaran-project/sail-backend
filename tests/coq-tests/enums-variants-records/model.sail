@@ -12,13 +12,15 @@ union MyUnion1 = {
   Add1 : int,
   Sub1 : unit,
   Mul1 : (int, int),
-  Ternary1 : (int, int, int)
+  Ternary1 : (int, int, int),
+  Ret1 : unit
 }
 
 union MyUnion2 = {
   Add2 : int,
   Sub2 : unit,
-  Mul2 : (int, int)
+  Mul2 : (int, int),
+  Ret2 : unit
 }
 
 struct MyStruct1 = {
