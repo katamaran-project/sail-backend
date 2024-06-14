@@ -2,16 +2,16 @@ module Type = Recursive.Type
 
 
 type t =
-  | Stm_match              of match_pattern
-  | Stm_exp                of Expression.t
-  | Stm_call               of Identifier.t * Expression.t list
-  | Stm_let                of Identifier.t * t * t
-  | Stm_destructure_record of destructure_record
-  | Stm_seq                of t * t
-  | Stm_read_register      of Identifier.t
-  | Stm_write_register     of Identifier.t * t
-  | Stm_cast               of t * Type.t
-  | Stm_fail               of string
+  | Match             of match_pattern
+  | Exp               of Expression.t
+  | Call              of Identifier.t * Expression.t list
+  | Let               of Identifier.t * t * t
+  | DestructureRecord of destructure_record
+  | Seq               of t * t
+  | ReadRegister      of Identifier.t
+  | WriteRegister     of Identifier.t * t
+  | Cast              of t * Type.t
+  | Fail              of string
 
 and match_pattern =
   | MP_list    of match_pattern_list

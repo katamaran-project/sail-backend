@@ -140,8 +140,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     ]
 
   and pp_destructure_record_statement (destructure_record : Ast.Statement.destructure_record) : PPrint.document AC.t =
+    let open Ast.Statement
+    in
     let {
-      Ast.Statement.record_type_identifier; (* todo clean up *)
+      record_type_identifier;
       field_identifiers;
       variable_identifiers;
       destructured_record;
@@ -184,16 +186,16 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
 
   in
   match statement with
-  | Stm_exp e                                     -> pp_expression_statement e
-  | Stm_match match_pattern                       -> pp_match_statement match_pattern
-  | Stm_call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
-  | Stm_let (variable_identifier, s1, s2)         -> pp_let_statement variable_identifier s1 s2
-  | Stm_seq (s1, s2)                              -> pp_sequence_statement s1 s2
-  | Stm_read_register register_identifier         -> pp_read_register_statement register_identifier
-  | Stm_write_register (register_identifier, rhs) -> pp_write_register_statement register_identifier rhs
-  | Stm_destructure_record destructure_record     -> pp_destructure_record_statement destructure_record
-  | Stm_cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
-  | Stm_fail message                              -> pp_fail_statement message
+  | Exp e                                     -> pp_expression_statement e
+  | Match match_pattern                       -> pp_match_statement match_pattern
+  | Call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
+  | Let (variable_identifier, s1, s2)         -> pp_let_statement variable_identifier s1 s2
+  | Seq (s1, s2)                              -> pp_sequence_statement s1 s2
+  | ReadRegister register_identifier          -> pp_read_register_statement register_identifier
+  | WriteRegister (register_identifier, rhs)  -> pp_write_register_statement register_identifier rhs
+  | DestructureRecord destructure_record      -> pp_destructure_record_statement destructure_record
+  | Cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
+  | Fail message                              -> pp_fail_statement message
 
 and pp_par_statement s =
   let* s' = pp_statement s

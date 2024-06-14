@@ -37,7 +37,7 @@ let create_if_statement
       ~(when_true  : Ast.Statement.t)
       ~(when_false : Ast.Statement.t) : Ast.Statement.t
   =
-  Ast.Statement.Stm_match (MP_bool { condition; when_true; when_false })
+  Ast.Statement.Match (MP_bool { condition; when_true; when_false })
 
 
 let statement_of_lvar
@@ -46,8 +46,8 @@ let statement_of_lvar
     (location   : S.l                     ) : Ast.Statement.t TC.t
   =
   match lvar with
-  | Libsail.Ast_util.Register _   -> TC.return @@ Ast.Statement.Stm_read_register identifier
-  | Libsail.Ast_util.Local (_, _) -> TC.return @@ Ast.Statement.Stm_exp (Ast.Expression.Var identifier)
+  | Libsail.Ast_util.Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
+  | Libsail.Ast_util.Local (_, _) -> TC.return @@ Ast.Statement.Exp (Ast.Expression.Var identifier)
   | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -201,7 +201,7 @@ let rec expression_of_aval
           TC.generate_unique_identifier prefix
         in
         let named_statements =
-          [(unique_id, Ast.Statement.Stm_read_register id')]
+          [(unique_id, Ast.Statement.ReadRegister id')]
         in
         TC.return (Ast.Expression.Var unique_id, named_statements)
       end
@@ -239,7 +239,7 @@ let make_sequence statements location =
     | x::xs -> begin
         let* xs' = aux xs
         in
-        TC.return @@ Ast.Statement.Stm_seq (x, xs')
+        TC.return @@ Ast.Statement.Seq (x, xs')
       end
   in
   aux statements
@@ -265,7 +265,7 @@ let rec wrap_in_named_statements_context
       (statement        : Ast.Statement.t                          ) : Ast.Statement.t
   =
   match named_statements with
-  | (name, stm)::rest -> Stm_let (name, stm, wrap_in_named_statements_context rest statement)
+  | (name, stm)::rest -> Let (name, stm, wrap_in_named_statements_context rest statement)
   | []                -> statement
 
 
@@ -315,7 +315,7 @@ let with_destructured_record
               let* destructured_record =
                 statement_of_lvar record_identifier lvar location
               in
-              TC.return @@ Ast.Statement.Stm_destructure_record {
+              TC.return @@ Ast.Statement.DestructureRecord {
                                record_type_identifier;
                                field_identifiers;
                                variable_identifiers;
@@ -387,7 +387,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           let* matched =
             let* expression, named_statements = expression_of_aval location matched
             in
-            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Stm_exp expression
+            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Exp expression
 
           and* when_nil = statement_of_aexp nil_clause
 
@@ -405,7 +405,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 when_nil;
               }
           in
-          TC.return @@ Ast.Statement.Stm_match match_pattern
+          TC.return @@ Ast.Statement.Match match_pattern
         end
       | _ -> TC.fail [%here] "list cases do not have expected structure"
 
@@ -430,12 +430,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           let* (matched, named_statements) =
             let* expr, named_statements = expression_of_aval location matched
             in
-            TC.return (Ast.Statement.Stm_exp expr, named_statements)
+            TC.return (Ast.Statement.Exp expr, named_statements)
           and* id_fst = translate_identifier [%here] id_l
           and* id_snd = translate_identifier [%here] id_r
           and* body   = statement_of_aexp clause
           in
-          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Stm_match (Ast.Statement.MP_product { matched; id_fst; id_snd; body })
+          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MP_product { matched; id_fst; id_snd; body })
         end
       | _ -> TC.not_yet_implemented [%here] location
 
@@ -544,13 +544,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* (matched, named_statements) =
         let* matched_expression, named_statements = expression_of_aval location matched
         in
-        TC.return @@ (Ast.Statement.Stm_exp matched_expression, named_statements)
+        TC.return @@ (Ast.Statement.Exp matched_expression, named_statements)
       and* cases = TC.fold_left ~f:process_case ~init:Ast.Identifier.Map.empty cases
       in
       let matched_type =
         enum_definition.identifier
       in
-      let match_statement = Ast.Statement.Stm_match (Ast.Statement.MP_enum {
+      let match_statement = Ast.Statement.Match (Ast.Statement.MP_enum {
           matched;
           matched_type;
           cases
@@ -656,11 +656,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* statement =
         let* matched_expression, named_statements = expression_of_aval location matched
         in
-        let matched = Ast.Statement.Stm_exp matched_expression
+        let matched = Ast.Statement.Exp matched_expression
         in
         let match_pattern : Ast.Statement.match_pattern_variant = { matched; cases }
         in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ Stm_match (MP_variant match_pattern)
+        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (MP_variant match_pattern)
       in
       TC.return statement
 
@@ -714,7 +714,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             let expression =
               Ast.Expression.Var (List.nth_exn variable_identifiers selected_field_index)
             in
-            TC.return @@ Ast.Statement.Stm_exp expression
+            TC.return @@ Ast.Statement.Exp expression
           end
         | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Ast.Identifier.string_of record_type_identifier) (Ast.Identifier.string_of field_identifier)
       )
@@ -723,7 +723,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (value : S.typ S.aval) =
     let* expression, named_statements = expression_of_aval location value
     in
-    TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Stm_exp expression
+    TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Exp expression
 
   and statement_of_application
           (receiver_identifier : S.id             )
@@ -741,7 +741,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t
       =
         match argument_expressions with
-        | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Stm_exp (Binop (operator, x, y))
+        | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Exp (Binop (operator, x, y))
         | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
 
@@ -756,7 +756,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | "gteq_int"  -> binary_operation GreaterThanOrEqualTo
     | "eq_int"    -> binary_operation EqualTo
     | "neq_int"   -> binary_operation NotEqualTo
-    | _           -> TC.return @@ wrap @@ Ast.Statement.Stm_call (receiver_identifier', argument_expressions)
+    | _           -> TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
@@ -770,7 +770,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     and* s1  = statement_of_aexp expression
     and* s2  = statement_of_aexp body
     in
-    TC.return @@ Ast.Statement.Stm_let (id', s1, s2)
+    TC.return @@ Ast.Statement.Let (id', s1, s2)
 
   and statement_of_if
         (condition   : S.typ S.aval)
@@ -781,11 +781,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* (condition, condition_named_statements) =
       let* condition_expression, named_statements = expression_of_aval location condition
       in
-      TC.return (Ast.Statement.Stm_exp condition_expression, named_statements)
+      TC.return (Ast.Statement.Exp condition_expression, named_statements)
     and* when_true = statement_of_aexp then_clause
     and* when_false = statement_of_aexp else_clause
     in
-    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Stm_match (MP_bool { condition; when_true; when_false })
+    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (MP_bool { condition; when_true; when_false })
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
@@ -817,7 +817,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* named_statement =
         let* expression, named_statements = expression_of_aval location value
         in
-        TC.return @@ wrap_in_named_statements_context named_statements (Ast.Statement.Stm_exp expression)
+        TC.return @@ wrap_in_named_statements_context named_statements (Ast.Statement.Exp expression)
       in
       let named_statements' =
         (variable_identifier, named_statement) :: named_statements
@@ -841,7 +841,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         Ast.Expression.Record { type_identifier; variable_identifiers }
       in
-      TC.return @@ wrap_in_named_statements_context named_statements (Stm_exp record_expression)
+      TC.return @@ wrap_in_named_statements_context named_statements (Exp record_expression)
     end
 
   and statement_of_assignment
@@ -858,7 +858,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         then begin
             let* translated_rhs = statement_of_aexp rhs
             in
-            TC.return @@ Ast.Statement.Stm_write_register (id_in_lhs, translated_rhs)
+            TC.return @@ Ast.Statement.WriteRegister (id_in_lhs, translated_rhs)
           end
         else begin
             TC.not_yet_implemented ~message:"assignment to local variable" [%here] location
@@ -875,7 +875,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* lhs_expression, lhs_named_statements = expression_of_aval location lhs
     and* rhs_statement = statement_of_aexp rhs
     in
-    let lhs_expr_as_statement = Ast.Statement.Stm_exp lhs_expression
+    let lhs_expr_as_statement = Ast.Statement.Exp lhs_expression
     in
     let if_statement =
       match logical_operator with
@@ -891,7 +891,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            *)
           let condition  = lhs_expr_as_statement
           and when_true  = rhs_statement
-          and when_false = Ast.(Statement.Stm_exp (Val (Bool false)))
+          and when_false = Ast.(Statement.Exp (Val (Bool false)))
           in
           create_if_statement ~condition ~when_true ~when_false
         end
@@ -906,7 +906,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               if ( x ) { true } else { y }
            *)
           let condition  = lhs_expr_as_statement
-          and when_true  = Ast.(Statement.Stm_exp (Val (Bool true)))
+          and when_true  = Ast.(Statement.Exp (Val (Bool true)))
           and when_false = rhs_statement
           in
           create_if_statement ~condition ~when_true ~when_false
@@ -921,13 +921,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* translated_expression = statement_of_aexp expression
     and* translated_type       = nanotype_of_sail_type target_type
     in
-    TC.return @@ Ast.Statement.Stm_cast (translated_expression, translated_type)
+    TC.return @@ Ast.Statement.Cast (translated_expression, translated_type)
 
   and statement_of_throw
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
-    TC.return @@ Ast.Statement.Stm_fail "\"failure\"" (* todo *)
+    TC.return @@ Ast.Statement.Fail "\"failure\"" (* todo *)
 
   in
   match unwrapped_expression with
