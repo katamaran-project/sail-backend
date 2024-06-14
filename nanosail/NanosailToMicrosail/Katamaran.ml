@@ -119,8 +119,11 @@ let pretty_print ir =
   in
 
   let eqdecs =
-    Coq.build_lines begin fun { line; lines; empty_line } ->
+    Coq.build_lines begin fun { line; lines; empty_line; comment } ->
+      comment @@ PP.string "EqDeq for each enum type";
       lines @@ Types.Enums.generate_eqdecs enum_definitions;
+      empty_line ();
+      comment @@ PP.string "EqDeq for each variant/union type";
       lines @@ Types.Variants.generate_eqdecs variant_definitions;
     end
     (* EqDec.generate ir.definitions *)
