@@ -8,7 +8,7 @@ module AC = AnnotationContext
 
 
 let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
-  let pp_expression_statement (expression : Ast.expression) : PPrint.document AC.t =
+  let pp_expression_statement (expression : Ast.Expression.t) : PPrint.document AC.t =
     let* expression' = pp_par_expression expression
     in
     AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
@@ -91,8 +91,8 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
       end
 
   and pp_call_statement
-      (function_identifier : Ast.Identifier.t   )
-      (arguments           : Ast.expression list) : PPrint.document AC.t
+      (function_identifier : Ast.Identifier.t     )
+      (arguments           : Ast.Expression.t list) : PPrint.document AC.t
     =
     let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
     in

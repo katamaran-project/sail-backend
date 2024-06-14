@@ -47,7 +47,7 @@ let statement_of_lvar
   =
   match lvar with
   | Libsail.Ast_util.Register _   -> TC.return @@ N.Stm_read_register identifier
-  | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (N.Exp_var identifier)
+  | Libsail.Ast_util.Local (_, _) -> TC.return @@ N.Stm_exp (Ast.Expression.Exp_var identifier)
   | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -159,7 +159,7 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * N.statement
  *)
 let rec expression_of_aval
           (location : S.l         )
-          (value    : S.typ S.aval) : (N.expression * (Ast.Identifier.t * N.statement) list) TC.t
+          (value    : S.typ S.aval) : (Ast.Expression.t * (Ast.Identifier.t * N.statement) list) TC.t
   =
   let expression_of_tuple (elements : S.typ S.aval list) =
     if
@@ -171,7 +171,7 @@ let rec expression_of_aval
         in
         let translation_expressions = List.map ~f:fst translation_pairs
         and translation_statements  = List.map ~f:snd translation_pairs
-        and make_pair x y           = N.Exp_binop (Pair, x, y)
+        and make_pair x y           = Ast.Expression.Exp_binop (Pair, x, y)
         in
         let resulting_expression    = Auxlib.reduce ~f:make_pair translation_expressions
         in
@@ -184,7 +184,7 @@ let rec expression_of_aval
     =
     let* lit' = value_of_literal literal
     in
-    TC.return @@ (N.Exp_val lit', [])
+    TC.return @@ (Ast.Expression.Exp_val lit', [])
 
   and expression_of_identifier
         (identifier : S.id                       )
@@ -193,7 +193,7 @@ let rec expression_of_aval
     let* id' = translate_identifier [%here] identifier
     in
     match lvar with
-    | Local (_, _) -> TC.return (N.Exp_var id', [])
+    | Local (_, _) -> TC.return (Ast.Expression.Exp_var id', [])
     | Register _   -> begin
         let* unique_id =
           let prefix = Printf.sprintf "reg_%s_" (Ast.Identifier.string_of id')
@@ -203,9 +203,9 @@ let rec expression_of_aval
         let named_statements =
           [(unique_id, N.Stm_read_register id')]
         in
-        TC.return (N.Exp_var unique_id, named_statements)
+        TC.return (Ast.Expression.Exp_var unique_id, named_statements)
       end
-    | Enum _       -> TC.return (Ast.Exp_enum id', [])
+    | Enum _       -> TC.return (Ast.Expression.Exp_enum id', [])
     | Unbound _    -> TC.not_yet_implemented [%here] location
 
   and expression_of_list
@@ -217,7 +217,7 @@ let rec expression_of_aval
     let translation_expressions, translation_statements =
       List.unzip translation_pairs
     in
-    TC.return @@ (N.Exp_list translation_expressions, flatten_named_statements translation_statements)
+    TC.return @@ (Ast.Expression.Exp_list translation_expressions, flatten_named_statements translation_statements)
 
   in
   match value with
@@ -712,7 +712,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         match Auxlib.find_index_of ~f:(Ast.Identifier.equal field_identifier) field_identifiers with
         | Some selected_field_index -> begin
             let expression =
-              N.Exp_var (List.nth_exn variable_identifiers selected_field_index)
+              Ast.Expression.Exp_var (List.nth_exn variable_identifiers selected_field_index)
             in
             TC.return @@ N.Stm_exp expression
           end
@@ -839,7 +839,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
         and variable_identifiers =
           List.map field_identifiers ~f:(StringMap.find_exn field_map)
         in
-        N.Exp_record { type_identifier; variable_identifiers }
+        Ast.Expression.Exp_record { type_identifier; variable_identifiers }
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Stm_exp record_expression)
     end

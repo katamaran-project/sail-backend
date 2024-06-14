@@ -41,7 +41,7 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
   | Prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
 
 
-let rec pp_expression (e : Ast.expression) =
+let rec pp_expression (e : Ast.Expression.t) =
   let rec pp_exp_list expressions =
     match expressions with
     | []      -> AC.return @@ PP.string "nil"
@@ -72,8 +72,8 @@ let rec pp_expression (e : Ast.expression) =
   in
   let pp_exp_binop
       (binary_operator : Ast.BinaryOperator.t)
-      (e1              : Ast.expression      )
-      (e2              : Ast.expression      )
+      (e1              : Ast.Expression.t    )
+      (e2              : Ast.Expression.t    )
     =
     let* e1' = pp_par_expression e1
     and* e2' = pp_par_expression e2

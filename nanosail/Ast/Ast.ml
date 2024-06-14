@@ -9,7 +9,7 @@ module ExtendedType         = ExtendedType
 module ExtendedFunctionType = ExtendedFunctionType
 module Value                = Value
 include Recursive
-
+module Expression           = Expression
 
 type type_quantifier_item = Identifier.t * Kind.t
 
@@ -31,21 +31,10 @@ let tuple_to_list (t : Type.t) : Type.t list =
   | _        -> [ t ]
 
 
-type expression =
-  | Exp_var    of Identifier.t
-  | Exp_val    of Value.t
-  | Exp_neg    of expression
-  | Exp_not    of expression
-  | Exp_list   of expression list
-  | Exp_binop  of BinaryOperator.t * expression * expression
-  | Exp_record of { type_identifier : Identifier.t; variable_identifiers : Identifier.t list }
-  | Exp_enum   of Identifier.t
-
-
 type statement =
   | Stm_match              of match_pattern
-  | Stm_exp                of expression
-  | Stm_call               of Identifier.t * expression list
+  | Stm_exp                of Expression.t
+  | Stm_call               of Identifier.t * Expression.t list
   | Stm_let                of Identifier.t * statement * statement
   | Stm_destructure_record of destructure_record
   | Stm_seq                of statement * statement
