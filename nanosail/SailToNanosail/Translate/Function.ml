@@ -142,7 +142,7 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Stateme
 
   This function returns a pair:
 
-  - The first element, of type N.expression, is the part of the Sail expression that fits in a microSail expression
+  - The first element, of type Ast.expression, is the part of the Sail expression that fits in a microSail expression
   - The second element, a list of "named statements" (i.e., pairs of identifiers and statements), are the parts of the Sail expression
   that were translated into microSail statements. Since the evaluation result of a statement can be referred in the resulting microSail expression,
   we also name each statement.
