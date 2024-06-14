@@ -148,9 +148,9 @@ let pretty_print ir =
           (* add    @@ Types.Records.generate_tags record_definitions; *)
           (* addopt @@ Registers.generate_noconfusions register_definitions; *)
           (* add    @@ no_confusion; *)
-          add    @@ eqdecs;
+          (* add    @@ eqdecs; *)
           (* addopt @@ finite; *)
-          (* add    @@ base_module; *)
+          add    @@ base_module;
           (* add    @@ value_definitions; *)
           (* add    @@ program; *)
           (* add    @@ registers; *)
