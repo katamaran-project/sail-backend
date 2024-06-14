@@ -596,3 +596,8 @@ let derive
 
 let derive_eqdec_for (identifier : Ast.Identifier.t) =
   derive (Ast.Identifier.mk "EqDec") identifier
+
+
+let derive_no_confusion_for (identifier : Ast.Identifier.t) =
+  derive (Ast.Identifier.mk "NoConfusion") identifier
+
