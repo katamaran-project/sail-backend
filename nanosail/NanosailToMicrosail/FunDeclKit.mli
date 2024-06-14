@@ -1,1 +1,1 @@
-val generate : Ast.Definition.function_definition list -> PPrint.document
+val generate : Ast.Definition.Function.t list -> PPrint.document

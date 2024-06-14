@@ -9,7 +9,7 @@ module AC = AnnotationContext
 
 
 let pp_function_definition
-      ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.function_definition))
+      ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
       type_constraint =
   let identifier = pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
@@ -63,7 +63,7 @@ let pp_function_definition
 
 
 let pp_function_definitions
-      (function_definitions : (Sail.sail_definition * Ast.Definition.function_definition) list)
+      (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) =
   let type_and_function_pairs =
     let find_type_constraint function_name =
@@ -100,7 +100,7 @@ let pp_function_definition_kit
       let matched_expression =
         utf8string "f in Fun Δ τ return Stm Δ τ"
       and cases =
-        let case_of_function_definition (function_definition : Ast.Definition.function_definition) =
+        let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
           (
             pp_identifier function_definition.function_name,
             pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name

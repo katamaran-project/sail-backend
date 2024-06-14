@@ -15,12 +15,14 @@ module FunctionType = struct
 end
 
 
-type function_definition = {
-  function_name          : Identifier.t;
-  function_type          : FunctionType.t;
-  extended_function_type : ExtendedFunctionType.t;
-  function_body          : Statement.t;
-}
+module Function = struct
+  type t = {
+    function_name          : Identifier.t;
+    function_type          : FunctionType.t;
+    extended_function_type : ExtendedFunctionType.t;
+    function_body          : Statement.t;
+  }
+end
 
 
 type untranslated_definition =
@@ -99,7 +101,7 @@ type value_definition =
 
 type t =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
-  | FunctionDefinition               of function_definition
+  | FunctionDefinition               of Function.t
   | TypeDefinition                   of type_definition
   | RegisterDefinition               of register_definition
   | UntranslatedDefinition           of untranslated_definition
