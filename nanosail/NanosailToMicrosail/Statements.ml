@@ -186,7 +186,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
 
   in
   match statement with
-  | Exp e                                     -> pp_expression_statement e
+  | Expression expression                     -> pp_expression_statement expression
   | Match match_pattern                       -> pp_match_statement match_pattern
   | Call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
   | Let (variable_identifier, s1, s2)         -> pp_let_statement variable_identifier s1 s2

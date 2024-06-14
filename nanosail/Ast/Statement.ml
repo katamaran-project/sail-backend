@@ -3,7 +3,7 @@ module Type = Recursive.Type
 
 type t =
   | Match             of match_pattern
-  | Exp               of Expression.t
+  | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
   | Let               of Identifier.t * t * t
   | DestructureRecord of destructure_record
