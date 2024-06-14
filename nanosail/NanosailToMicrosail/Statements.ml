@@ -7,13 +7,13 @@ open Identifier
 module AC = AnnotationContext
 
 
-let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
+let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PPrint.document AC.t =
     let* expression' = pp_par_expression expression
     in
     AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
-  and pp_match_statement (match_pattern : Ast.match_pattern) : PPrint.document AC.t =
+  and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PPrint.document AC.t =
     match match_pattern with
     | MP_list { matched; when_nil; when_cons } -> begin
         let id_head, id_tail, when_cons_body = when_cons
@@ -59,7 +59,7 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
       end
 
     | MP_enum { matched; matched_type; cases } -> begin
-        let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.statement) (acc : PP.document list AC.t) =
+        let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list AC.t) =
           let* acc
           and* pattern = AC.return @@ pp_identifier key
           and* clause = pp_statement data
@@ -100,8 +100,8 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
 
   and pp_let_statement
       (variable_identifier : Ast.Identifier.t)
-      (binding_statement   : Ast.statement   )
-      (body_statement      : Ast.statement   ) : PPrint.document AC.t
+      (binding_statement   : Ast.Statement.t )
+      (body_statement      : Ast.Statement.t ) : PPrint.document AC.t
     =
     let* binding_statement' = pp_statement binding_statement
     and* body_statement'    = pp_statement body_statement
@@ -116,8 +116,8 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
       )
 
   and pp_sequence_statement
-      (left  : Ast.statement)
-      (right : Ast.statement) : PPrint.document AC.t
+      (left  : Ast.Statement.t)
+      (right : Ast.Statement.t) : PPrint.document AC.t
     =
       let* left'  = pp_par_statement left
       and* right' = pp_par_statement right
@@ -129,7 +129,7 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
 
   and pp_write_register_statement
       (register_identifier : Ast.Identifier.t)
-      (rhs                 : Ast.statement   ) : PPrint.document AC.t
+      (rhs                 : Ast.Statement.t ) : PPrint.document AC.t
     =
     let* rhs' = pp_statement rhs
     in
@@ -139,9 +139,9 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
       rhs'
     ]
 
-  and pp_destructure_record_statement (destructure_record : Ast.destructure_record) : PPrint.document AC.t =
+  and pp_destructure_record_statement (destructure_record : Ast.Statement.destructure_record) : PPrint.document AC.t =
     let {
-      Ast.record_type_identifier;
+      Ast.Statement.record_type_identifier; (* todo clean up *)
       field_identifiers;
       variable_identifiers;
       destructured_record;
@@ -173,8 +173,8 @@ let rec pp_statement (statement : Ast.statement) : PPrint.document AC.t =
     ]
 
   and pp_cast_statement
-      (statement_to_be_cast : Ast.statement)
-      (_target_type         : Ast.Type.t   ) : PPrint.document AC.t
+      (statement_to_be_cast : Ast.Statement.t)
+      (_target_type         : Ast.Type.t     ) : PPrint.document AC.t
     =
     Stdio.printf "Warning: ignored cast\n";
     pp_statement statement_to_be_cast

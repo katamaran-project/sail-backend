@@ -8,7 +8,6 @@ module S = struct
   include Libsail.Anf
 end
 
-module N  = Ast
 module TC = TranslationContext
 module StringMap = Map.String
 
@@ -124,7 +123,7 @@ let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.As
   Focuses on parameter types.
   Atoms must only contain a single identifier as their type argument.
 *)
-let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Parameter.t Monad.t =
+let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Parameter.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
   let extended_parameter_type_of_atom (type_arguments : S.typ_arg list) =
@@ -155,7 +154,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
                 in
                 let+ translated_id = fresh_binding unwrapped_kid
                 in
-                Monad.return @@ N.ExtendedType.Parameter.Int translated_id
+                Monad.return @@ Ast.ExtendedType.Parameter.Int translated_id
               end
           end
       end
@@ -190,7 +189,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
                 in
                 let+ translated_id = fresh_binding unwrapped_kid
                 in
-                Monad.return @@ N.ExtendedType.Parameter.Bool translated_id
+                Monad.return @@ Ast.ExtendedType.Parameter.Bool translated_id
               end
           end
       end
@@ -221,11 +220,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Pa
      end
 
 
-let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) : N.ExtendedType.IntExpression.t Monad.t =
+let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) : Ast.ExtendedType.IntExpression.t Monad.t =
   let binary_operation
-        (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t)
-        (left    : S.nexp                                                                                            )
-        (right   : S.nexp                                                                                            ) : N.ExtendedType.IntExpression.t Monad.t
+        (factory : Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.IntExpression.t)
+        (left    : S.nexp                                                                                                  )
+        (right   : S.nexp                                                                                                  ) : Ast.ExtendedType.IntExpression.t Monad.t
     =
     let+ left'  = int_expression_of_sail_numeric_expression left
     and+ right' = int_expression_of_sail_numeric_expression right
@@ -239,23 +238,23 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
    | Nexp_app (_, _)          -> not_yet_implemented [%here] numeric_expression_location
    | Nexp_exp _               -> not_yet_implemented [%here] numeric_expression_location
    | Nexp_neg _               -> not_yet_implemented [%here] numeric_expression_location
-   | Nexp_constant n          -> Monad.return @@ N.ExtendedType.IntExpression.Constant n
-   | Nexp_sum (left, right)   -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Add (a, b)) left right
-   | Nexp_minus (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Sub (a, b)) left right
-   | Nexp_times (left, right) -> binary_operation (fun a b -> N.ExtendedType.IntExpression.Mul (a, b)) left right
+   | Nexp_constant n          -> Monad.return @@ Ast.ExtendedType.IntExpression.Constant n
+   | Nexp_sum (left, right)   -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Add (a, b)) left right
+   | Nexp_minus (left, right) -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Sub (a, b)) left right
+   | Nexp_times (left, right) -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Mul (a, b)) left right
    | Nexp_var kid             -> begin
        let Kid_aux (Var unwrapped_id, _id_location) = kid
        in
        let+ translated_id = binding unwrapped_id
        in
-       Monad.return @@ N.ExtendedType.IntExpression.Var translated_id
+       Monad.return @@ Ast.ExtendedType.IntExpression.Var translated_id
      end
 
-and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : N.ExtendedType.BoolExpression.t Monad.t =
+and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : Ast.ExtendedType.BoolExpression.t Monad.t =
   let bool_expression_of_binary_operation
-        (factory : N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t -> N.ExtendedType.BoolExpression.t)
+        (factory : Ast.ExtendedType.BoolExpression.t -> Ast.ExtendedType.BoolExpression.t -> Ast.ExtendedType.BoolExpression.t)
         (left    : S.n_constraint                                                                                       )
-        (right   : S.n_constraint                                                                                       ) : N.ExtendedType.BoolExpression.t Monad.t
+        (right   : S.n_constraint                                                                                       ) : Ast.ExtendedType.BoolExpression.t Monad.t
     =
     let+ left'  = bool_expression_of_sail_numeric_constraint left
     and+ right' = bool_expression_of_sail_numeric_constraint right
@@ -263,9 +262,9 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     Monad.return @@ factory left' right'
       
   and bool_expression_of_comparison
-        (factory : N.ExtendedType.IntExpression.t -> N.ExtendedType.IntExpression.t -> N.ExtendedType.BoolExpression.t)
+        (factory : Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.BoolExpression.t)
         (left    : S.nexp                                                                                             )
-        (right   : S.nexp                                                                                             ) : N.ExtendedType.BoolExpression.t Monad.t
+        (right   : S.nexp                                                                                             ) : Ast.ExtendedType.BoolExpression.t Monad.t
     =
       let+ left'  = int_expression_of_sail_numeric_expression left
       and+ right' = int_expression_of_sail_numeric_expression right
@@ -273,14 +272,14 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
       Monad.return @@ factory left' right'
   in
 
-  let bool_expression_of_and        = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.And (a, b)
-  and bool_expression_of_or         = bool_expression_of_binary_operation @@ fun a b -> N.ExtendedType.BoolExpression.Or (a, b)
-  and bool_expression_of_equal      = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.Equal (a, b)
-  and bool_expression_of_not_equal  = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.NotEqual (a, b)
-  and bool_expression_of_bounded_lt = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.LessThan (a, b)
-  and bool_expression_of_bounded_le = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
-  and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThan (a, b)
-  and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> N.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
+  let bool_expression_of_and        = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.And (a, b)
+  and bool_expression_of_or         = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.Or (a, b)
+  and bool_expression_of_equal      = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.Equal (a, b)
+  and bool_expression_of_not_equal  = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.NotEqual (a, b)
+  and bool_expression_of_bounded_lt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThan (a, b)
+  and bool_expression_of_bounded_le = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
+  and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
+  and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
 
   in  
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
@@ -303,11 +302,11 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
        in
        let+ translated_id = binding unwrapped_id
        in
-       Monad.return @@ N.ExtendedType.BoolExpression.Var translated_id
+       Monad.return @@ Ast.ExtendedType.BoolExpression.Var translated_id
     end
 
 
-let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.ReturnValue.t Monad.t =
+let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
 
   in
@@ -322,7 +321,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
         | A_nexp numeric_expression -> begin
             let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
             in
-            Monad.return @@ N.ExtendedType.ReturnValue.Int int_expression
+            Monad.return @@ Ast.ExtendedType.ReturnValue.Int int_expression
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
@@ -339,7 +338,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
         | A_bool numeric_constraint -> begin
             let+ bool_expression = bool_expression_of_sail_numeric_constraint numeric_constraint
             in
-            Monad.return @@ N.ExtendedType.ReturnValue.Bool bool_expression
+            Monad.return @@ Ast.ExtendedType.ReturnValue.Bool bool_expression
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
@@ -359,9 +358,9 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : N.ExtendedType.Retur
        | S.Operator _ -> not_yet_implemented [%here] id_location
        | S.Id name    -> begin
            match name with
-           | "int"  -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Int (N.ExtendedType.IntExpression.Var k)
-           | "bool" -> let+ k = next_id in Monad.return @@ N.ExtendedType.ReturnValue.Bool (N.ExtendedType.BoolExpression.Var k)
-           | id     -> Monad.return @@ N.ExtendedType.ReturnValue.Other id
+           | "int"  -> let+ k = next_id in Monad.return @@ Ast.ExtendedType.ReturnValue.Int (Ast.ExtendedType.IntExpression.Var k)
+           | "bool" -> let+ k = next_id in Monad.return @@ Ast.ExtendedType.ReturnValue.Bool (Ast.ExtendedType.BoolExpression.Var k)
+           | id     -> Monad.return @@ Ast.ExtendedType.ReturnValue.Other id
          end
      end
    | Typ_app (identifier, type_arguments) -> begin
@@ -387,7 +386,7 @@ let remove_string_duplicates (strings : string list) : string list =
 
 let determine_extended_type
       (parameter_bindings : Sail.type_annotation Libsail.Ast.pat)
-      (return_type        : Libsail.Ast.typ                     ) : N.ExtendedFunctionType.t TC.t
+      (return_type        : Libsail.Ast.typ                     ) : Ast.ExtendedFunctionType.t TC.t
   =
   let monad =
     let+ parameter_types = unpack_parameter_types parameter_bindings
@@ -395,7 +394,7 @@ let determine_extended_type
     let+ extended_parameter_types = map ~f:extended_parameter_type_of_sail_type parameter_types
     and+ extended_return_type     = extended_return_type_of_sail_type return_type
     in
-    let extended_function_type : N.ExtendedFunctionType.t =
+    let extended_function_type : Ast.ExtendedFunctionType.t =
       { extended_parameter_types; extended_return_type }
     in
     Monad.return extended_function_type
