@@ -28,7 +28,8 @@ let translate_variant
       let* identifier' = Identifier.translate_identifier [%here] identifier
       and* typ' = Nanotype.nanotype_of_sail_type typ
       in
-      let field_nanotypes = match typ' with
+      let field_nanotypes =
+        match typ' with
         | Tuple ts -> ts
         | Unit     -> []
         | _        -> [ typ' ]
