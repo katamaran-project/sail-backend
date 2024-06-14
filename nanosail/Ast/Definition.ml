@@ -25,13 +25,15 @@ module Function = struct
 end
 
 
-type untranslated_definition =
-  {
-    filename      : string             ;
-    line_number   : int                ;
-    sail_location : Libsail.Parse_ast.l;
-    message       : string option      ;
-  }
+module Untranslated = struct
+  type t =
+    {
+      filename      : string             ;
+      line_number   : int                ;
+      sail_location : Libsail.Parse_ast.l;
+      message       : string option      ;
+    }
+end
 
 
 type register_definition =
@@ -104,6 +106,6 @@ type t =
   | FunctionDefinition               of Function.t
   | TypeDefinition                   of type_definition
   | RegisterDefinition               of register_definition
-  | UntranslatedDefinition           of untranslated_definition
+  | UntranslatedDefinition           of Untranslated.t
   | ValueDefinition                  of value_definition
   | IgnoredDefinition
