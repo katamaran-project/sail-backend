@@ -74,7 +74,7 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
       (* no work to be done *)
       enum_definition
     in
-    let sanitize_record (record_definition : Ast.Definition.record_definition) : Ast.Definition.record_definition =
+    let sanitize_record (record_definition : Ast.Definition.Type.Record.t) : Ast.Definition.Type.Record.t =
       (* todo *)
       Stdio.printf "WARNING: record %s may need to be sanitized\n" (Ast.Identifier.string_of record_definition.identifier);
       record_definition

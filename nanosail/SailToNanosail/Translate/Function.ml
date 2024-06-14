@@ -667,7 +667,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     and match_abbreviation (_type_abbreviation : Ast.Definition.type_abbreviation_definition) =
       TC.not_yet_implemented [%here] location
 
-    and match_record (_record_definition : Ast.Definition.record_definition) =
+    and match_record (_record_definition : Ast.Definition.Type.Record.t) =
       TC.not_yet_implemented [%here] location
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =

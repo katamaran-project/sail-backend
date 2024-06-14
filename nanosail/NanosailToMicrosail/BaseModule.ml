@@ -69,7 +69,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_record_denote (record_definitions : Ast.Definition.record_definition list) : PP.document =
+let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let denotations =
     let record_identifiers =
       List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions

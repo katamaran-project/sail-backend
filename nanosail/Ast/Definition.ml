@@ -56,14 +56,6 @@ type type_abbreviation_definition =
   }
 
 
-type record_definition =
-  {
-    identifier      : Identifier.t                ;
-    type_quantifier : type_quantifier             ;
-    fields          : (Identifier.t * Type.t) list;
-  }
-
-
 module Type = struct  
   module Variant = struct
     type t =
@@ -84,12 +76,21 @@ module Type = struct
       }
   end
 
+  module Record = struct
+    type t =
+      {
+        identifier      : Identifier.t                ;
+        type_quantifier : type_quantifier             ;
+        fields          : (Identifier.t * Type.t) list;
+      }
+  end
+
 
   type t =
     | TD_abbreviation of type_abbreviation_definition
     | Variant         of Variant.t
     | Enum            of Enum.t
-    | Record          of record_definition
+    | Record          of Record.t
 end
   
 
