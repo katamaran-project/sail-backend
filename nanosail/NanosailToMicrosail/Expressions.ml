@@ -51,7 +51,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
       in
       AC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
   in
-  let pp_exp_val (value : Ast.Value.t) : PP.document AC.t =
+  let pp_value (value : Ast.Value.t) : PP.document AC.t =
     match value with
     | Bool true        -> AC.return @@ PP.string "exp_true"
     | Bool false       -> AC.return @@ PP.string "exp_false"
@@ -98,7 +98,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
   in
   match expression with
   | Var v              -> AC.return PP.(simple_app [string "exp_var"; dquotes (pp_identifier v)])
-  | Val v              -> pp_exp_val v
+  | Val v              -> pp_value v
   | Neg e              -> let* e' = pp_par_expression e in AC.return @@ PP.(string "- " ^^ e')
   | Not e              -> let* e' = pp_par_expression e in AC.return @@ PP.(simple_app [string "exp_not"; e'])
   | Binop (bo, e1, e2) -> pp_binary_operation bo e1 e2
