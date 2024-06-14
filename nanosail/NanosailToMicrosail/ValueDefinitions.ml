@@ -3,11 +3,11 @@ open Base
 
 let pp_value (value : Ast.Value.t) : PP.document =
   match value with
-  | Val_unit        -> PP.(string "tt")
-  | Val_int n       -> PP.(string @@ Z.to_string n)
-  | Val_string _    -> PP.string "not yet implemented" (* todo *)
-  | Val_prod (_, _) -> PP.string "not yet implemented" (* todo *)
-  | Val_bool b      -> PP.string @@ if b then "true" else "false"
+  | Unit        -> PP.(string "tt")
+  | Int n       -> PP.(string @@ Z.to_string n)
+  | String _    -> PP.string "not yet implemented" (* todo *)
+  | Prod (_, _) -> PP.string "not yet implemented" (* todo *)
+  | Bool b      -> PP.string @@ if b then "true" else "false"
 
 
 let pp_value_definition (value_definition : Ast.value_definition) : PP.document =

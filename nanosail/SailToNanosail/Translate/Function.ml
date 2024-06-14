@@ -111,11 +111,11 @@ let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
   let S.L_aux (unwrapped_literal, literal_location) = literal
   in
   match unwrapped_literal with
-  | L_true     -> TC.return @@ Ast.Value.Val_bool true
-  | L_false    -> TC.return @@ Ast.Value.Val_bool false
-  | L_num n    -> TC.return @@ Ast.Value.Val_int n
-  | L_unit     -> TC.return @@ Ast.Value.Val_unit
-  | L_string s -> TC.return @@ Ast.Value.Val_string s
+  | L_true     -> TC.return @@ Ast.Value.Bool true
+  | L_false    -> TC.return @@ Ast.Value.Bool false
+  | L_num n    -> TC.return @@ Ast.Value.Int n
+  | L_unit     -> TC.return @@ Ast.Value.Unit
+  | L_string s -> TC.return @@ Ast.Value.String s
   | S.L_zero   -> TC.not_yet_implemented [%here] literal_location
   | S.L_one    -> TC.not_yet_implemented [%here] literal_location
   | S.L_hex _  -> TC.not_yet_implemented [%here] literal_location
@@ -891,7 +891,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
            *)
           let condition  = lhs_expr_as_statement
           and when_true  = rhs_statement
-          and when_false = Ast.(Stm_exp (Exp_val (Val_bool false)))
+          and when_false = Ast.(Stm_exp (Exp_val (Bool false)))
           in
           create_if_statement ~condition ~when_true ~when_false
         end
@@ -906,7 +906,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : N.statement TC.t =
               if ( x ) { true } else { y }
            *)
           let condition  = lhs_expr_as_statement
-          and when_true  = Ast.(Stm_exp (Exp_val (Val_bool true)))
+          and when_true  = Ast.(Stm_exp (Exp_val (Bool true)))
           and when_false = rhs_statement
           in
           create_if_statement ~condition ~when_true ~when_false

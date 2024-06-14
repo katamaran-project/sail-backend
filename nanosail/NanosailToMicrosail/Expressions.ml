@@ -25,20 +25,20 @@ let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
 
 let rec ty_of_val (value : Ast.Value.t) : Ast.Type.t =
   match value with
-  | Val_unit          -> Unit
-  | Val_bool _        -> Bool
-  | Val_int _         -> Int
-  | Val_string _      -> String
-  | Val_prod (v1, v2) -> Tuple [ty_of_val v1; ty_of_val v2]
+  | Unit          -> Unit
+  | Bool _        -> Bool
+  | Int _         -> Int
+  | String _      -> String
+  | Prod (v1, v2) -> Tuple [ty_of_val v1; ty_of_val v2]
 
 
 let rec pp_value (value : Ast.Value.t) : PP.document =
   match value with
-  | Val_unit          -> PP.string "tt"
-  | Val_bool b        -> PP.string (Bool.to_string b)
-  | Val_int i         -> Coq.integer i
-  | Val_string s      -> PP.(dquotes @@ string s)
-  | Val_prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
+  | Unit          -> PP.string "tt"
+  | Bool b        -> PP.string (Bool.to_string b)
+  | Int i         -> Coq.integer i
+  | String s      -> PP.(dquotes @@ string s)
+  | Prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
 
 
 let rec pp_expression (e : Ast.expression) =
@@ -53,12 +53,12 @@ let rec pp_expression (e : Ast.expression) =
   in
   let pp_exp_val (value : Ast.Value.t) =
     match value with
-    | Val_bool true        -> AC.return @@ PP.string "exp_true"
-    | Val_bool false       -> AC.return @@ PP.string "exp_false"
-    | Val_int n            -> AC.return @@ PP.(simple_app [string "exp_int"; Coq.integer n])
-    | Val_string s         -> AC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
-    | Val_unit             -> AC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
-    | Val_prod (_, _) as v -> begin
+    | Bool true        -> AC.return @@ PP.string "exp_true"
+    | Bool false       -> AC.return @@ PP.string "exp_false"
+    | Int n            -> AC.return @@ PP.(simple_app [string "exp_int"; Coq.integer n])
+    | String s         -> AC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
+    | Unit             -> AC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
+    | Prod (_, _) as v -> begin
         let* tuple_type' = Nanotype.pp_nanotype (ty_of_val v)
         in
         let value' = pp_value v

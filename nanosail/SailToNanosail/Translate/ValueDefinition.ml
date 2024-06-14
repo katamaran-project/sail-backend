@@ -21,7 +21,7 @@ let translate_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t
      let S.L_aux (literal, _literal_location) = literal
      in
      match literal with
-      | S.L_num n    -> TC.return @@ Ast.Value.Val_int n
+      | S.L_num n    -> TC.return @@ Ast.Value.Int n
       | S.L_unit     -> TC.not_yet_implemented [%here] location
       | S.L_zero     -> TC.not_yet_implemented [%here] location
       | S.L_one      -> TC.not_yet_implemented [%here] location
