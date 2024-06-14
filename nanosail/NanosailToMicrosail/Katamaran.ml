@@ -1,5 +1,4 @@
 open Base
-open Ast
 open Auxlib
 open Monads.Notations.Star(AnnotationContext)
 open FunDefKit
@@ -12,7 +11,7 @@ let pp_program_module
       program_name
       base_name
       function_definitions
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Definition.top_level_type_constraint_definition) list)=
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list)=
   let flag            = Coq.Import
   and identifier      = program_name ^ "Program"
   and base_identifier = base_name ^ "Base" in
@@ -35,11 +34,11 @@ let pp_program_module
 
 
 let pretty_print ir =
-  let type_definitions     = select Extract.(type_definition of_anything) ir.definitions
-  and enum_definitions     = select Extract.(type_definition of_enum) ir.definitions
-  and record_definitions   = select Extract.(type_definition of_record) ir.definitions
-  and variant_definitions  = select Extract.(type_definition of_variant) ir.definitions
-  and register_definitions = select Extract.register_definition ir.definitions
+  let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
+  and enum_definitions     = Ast.(select Extract.(type_definition of_enum) ir.definitions)
+  and record_definitions   = Ast.(select Extract.(type_definition of_record) ir.definitions)
+  and variant_definitions  = Ast.(select Extract.(type_definition of_variant) ir.definitions)
+  and register_definitions = Ast.(select Extract.register_definition ir.definitions)
   in
   
   let prelude =
@@ -75,8 +74,8 @@ let pretty_print ir =
         pp_program_module
           ir.program_name
           "Default"
-          (select Extract.function_definition ir.definitions)
-          (select Extract.top_level_type_constraint_definition ir.definitions)
+          Ast.(select Extract.function_definition ir.definitions)
+          Ast.(select Extract.top_level_type_constraint_definition ir.definitions)
       )
   in
 
