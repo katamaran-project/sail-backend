@@ -94,10 +94,7 @@ let generate_eqdecs (variant_definitions : (Sail.sail_definition * Ast.variant_d
   let variant_identifiers =
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
-  let lines =
-    List.map ~f:Coq.derive_eqdec_for variant_identifiers
-  in
-  PP.separate PP.hardline lines
+  List.map ~f:Coq.derive_eqdec_for variant_identifiers
 
 
 let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.variant_definition) list) =

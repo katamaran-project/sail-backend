@@ -68,7 +68,6 @@ let pretty_print ir =
   let extra_variant_definitions =
     [
       Types.Variants.generate_tags variant_definitions;
-      Types.Variants.generate_eqdecs variant_definitions;
     ]
   in
   
@@ -97,33 +96,33 @@ let pretty_print ir =
       generate_section "REGISTERS" @@ Registers.generate register_definitions
   in
 
+  let finite =
+    Finite.generate ir.definitions
+  in
+
   let no_confusion =
     let contents =
-      PP.build_lines begin fun { line; lines; empty_line } ->
+      Coq.build_lines begin fun { line; lines; empty_line; comment } ->
         line  @@ PP.string "Local Set Transparent Obligations.";
         empty_line ();
-        line  @@ Coq.comment @@ PP.string "NoConfusion for each enum type";
+        comment @@ PP.string "NoConfusion for each enum type";
         lines @@ Types.Enums.generate_no_confusions enum_definitions;
         empty_line ();
-        line  @@ Coq.comment @@ PP.string "NoConfusion for each variant/enum type";
+        comment @@ PP.string "NoConfusion for each variant/enum type";
         lines @@ Types.Variants.generate_no_confusions variant_definitions;
         empty_line ();
-        line  @@ Coq.comment @@ PP.string "NoConfusion for each record type";
+        comment @@ PP.string "NoConfusion for each record type";
         lines @@ Types.Records.generate_no_confusions record_definitions;
       end
     in
     Coq.section (Ast.Identifier.mk "TransparentObligations") contents
   in
 
-  let finite =
-    Finite.generate ir.definitions
-  in
-
   let eqdecs =
-    [
-      Types.Enums.generate_eqdecs enum_definitions;
-      Types.Variants.generate_eqdecs variant_definitions;
-    ]
+    Coq.build_lines begin fun { line; lines; empty_line } ->
+      lines @@ Types.Enums.generate_eqdecs enum_definitions;
+      lines @@ Types.Variants.generate_eqdecs variant_definitions;
+    end
     (* EqDec.generate ir.definitions *)
   in
 
@@ -142,8 +141,8 @@ let pretty_print ir =
           (* addall @@ extra_variant_definitions; *)
           (* add    @@ Types.Records.generate_tags record_definitions; *)
           (* addopt @@ Registers.generate_noconfusions register_definitions; *)
-          add    @@ no_confusion;
-          (* addall @@ eqdecs; *)
+          (* add    @@ no_confusion; *)
+          add    @@ eqdecs;
           (* addopt @@ finite; *)
           (* add    @@ base_module; *)
           (* add    @@ value_definitions; *)

@@ -52,7 +52,5 @@ let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.enum_definit
   let enum_identifiers =
     List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
   in
-  let lines =
-    List.map ~f:Coq.derive_eqdec_for enum_identifiers
-  in
-  PP.separate PP.hardline lines
+  List.map ~f:Coq.derive_eqdec_for enum_identifiers
+
