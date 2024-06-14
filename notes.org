@@ -1,8 +1,8 @@
 #+TITLE: Notes
 
-* Features
+* TODO
 
-- Register Parameters (not)
+- Variant with unit field type should have 0 fields
 - Bitvectors
 - Base Module
   - Eqdec
@@ -13,7 +13,7 @@
   - Use monads in Base Module
 - Matching statements
   - Investigate ~stm_match_union_alt~
-- ~let x :: type (use low level stm version)
+- ~let x :: type~ (use low level stm version)
 - match |> notation (enums, unions/variants)
 
 * Types
