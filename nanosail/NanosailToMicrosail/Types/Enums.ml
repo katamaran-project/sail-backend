@@ -43,7 +43,7 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.enum_definitio
 
 let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.enum_definition) list) =
   let generate_derivation (enum_definition : Ast.enum_definition) =
-    PP.string @@ Printf.sprintf "Derive NoConfusion for %s." (Ast.Identifier.string_of enum_definition.identifier)
+    Coq.derive_no_confusion_for enum_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) enum_definitions
 
