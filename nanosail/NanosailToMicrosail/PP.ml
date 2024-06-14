@@ -145,3 +145,8 @@ let build_lines (body : build_lines_context -> unit) =
   in
   body context;
   separate hardline @@ List.rev !reversed_accumulated_lines
+
+
+let lines (strings : string list) : PP.document =
+  separate_map hardline string strings
+
