@@ -126,7 +126,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
     end
   | Enum identifier -> AC.return @@ pp_identifier identifier
 
-and pp_par_expression (e : Ast.Expression.t) : PP.document AC.t =
-  let* e' = pp_expression e
+and pp_par_expression (expression : Ast.Expression.t) : PP.document AC.t =
+  let* expression' = pp_expression expression
   in
-  AC.return @@ PP.parens e'
+  AC.return @@ PP.parens expression'
