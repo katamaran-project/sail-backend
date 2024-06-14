@@ -3,11 +3,12 @@ module Big_int       = Nat_big_num
 open Base
 
 
-module Identifier        = Identifier
-module NumericExpression = NumericExpression
-module Kind              = Kind
-module BinaryOperator    = BinaryOperator
-module ExtendedType      = ExtendedType
+module Identifier           = Identifier
+module NumericExpression    = NumericExpression
+module Kind                 = Kind
+module BinaryOperator       = BinaryOperator
+module ExtendedType         = ExtendedType
+module ExtendedFunctionType = ExtendedFunctionType
 
 
 module rec Type : sig
@@ -123,12 +124,6 @@ type function_type = {
 }
 
 
-module ExtendedFunctionType = struct
-  type t = {
-    extended_parameter_types : ExtendedType.Parameter.t list;
-    extended_return_type     : ExtendedType.ReturnValue.t
-  }
-end
 
 
 (*
