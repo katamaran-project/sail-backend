@@ -1,3 +1,6 @@
+open Base
+
+
 module rec Type : sig
   type t =
     | Int
@@ -17,6 +20,8 @@ module rec Type : sig
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
     | Custom      of Identifier.t                     (* TODO remove *)
+
+  val to_string : t -> string
 end = struct
 (*
   should mirror
@@ -56,6 +61,33 @@ end = struct
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
     | Custom      of Identifier.t                     (* TODO remove *)
+
+  let rec to_string (t : t) : string =
+    match t with
+    | Int              -> "Type.Int"
+    | Bool             -> "Type.Bool"
+    | String           -> "Type.String"
+    | List _           -> "Type.List"
+    | Product (t1, t2) -> Printf.sprintf "(%s * %s)" (to_string t1) (to_string t2)
+    | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
+    | Unit             -> "Type.Unit"
+    | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
+    | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
+    | Record           -> "Type.Record"
+    | Nat              -> "Type.Nat"
+    | Atom             -> "Type.Atom"
+    | Custom id        -> Printf.sprintf "Type.Custom(%s)" (Identifier.string_of id)
+    | Application (constructor, targs) -> begin
+        let constructor' = to_string constructor
+        and targs' = List.map ~f:TypeArgument.to_string targs
+        in
+        Printf.sprintf "%s(%s)" constructor' (String.concat ~sep:"," targs')
+      end
+    | Tuple ts -> begin
+        let ts' = List.map ~f:to_string ts
+        in
+        Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
+      end
 end
 
 and TypeArgument : sig
@@ -63,11 +95,19 @@ and TypeArgument : sig
     | Type              of Type.t
     | NumericExpression of NumericExpression.t
     | Bool              of NumericConstraint.t
+
+  val to_string : t -> string
 end = struct
   type t =
     | Type              of Type.t
     | NumericExpression of NumericExpression.t
     | Bool              of NumericConstraint.t
+
+  let to_string (type_argument : t) : string =
+    match type_argument with
+    | Type t                   -> Type.to_string t
+    | NumericExpression numexp -> NumericExpression.to_string numexp
+    | Bool nc                  -> NumericConstraint.to_string nc
 end
 
 and NumericConstraint : sig
