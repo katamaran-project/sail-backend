@@ -24,16 +24,16 @@ let pp_numeric_expression (numeric_expression : Ast.NumericExpression.t) =
 
 and pp_numeric_constraint (numeric_constraint : Ast.NumericConstraint.t) =
   match numeric_constraint with
-  | NC_true                -> AC.return @@ PP.string "true"
-  | NC_false               -> AC.return @@ PP.string "false"
-  | NC_equal (_x, _y)      -> AC.not_yet_implemented [%here]
-  | NC_bounded_ge (_x, _y) -> AC.not_yet_implemented [%here]
-  | NC_bounded_gt (_x, _y) -> AC.not_yet_implemented [%here]
-  | NC_bounded_le (_x, _y) -> AC.not_yet_implemented [%here]
-  | NC_bounded_lt (_x, _y) -> AC.not_yet_implemented [%here]
-  | NC_not_equal (_x, _y)  -> AC.not_yet_implemented [%here]
-  | NC_set (_x, _y)        -> AC.not_yet_implemented [%here]
-  | NC_or (_x, _y)         -> AC.not_yet_implemented [%here]
-  | NC_and (_x, _y)        -> AC.not_yet_implemented [%here]
-  | NC_app (_x, _y)        -> AC.not_yet_implemented [%here]
-  | NC_var _               -> AC.not_yet_implemented [%here]
+  | True                -> AC.return @@ PP.string "true"
+  | False               -> AC.return @@ PP.string "false"
+  | Equal (_x, _y)      -> AC.not_yet_implemented [%here]
+  | Bounded_ge (_x, _y) -> AC.not_yet_implemented [%here]
+  | Bounded_gt (_x, _y) -> AC.not_yet_implemented [%here]
+  | Bounded_le (_x, _y) -> AC.not_yet_implemented [%here]
+  | Bounded_lt (_x, _y) -> AC.not_yet_implemented [%here]
+  | Not_equal (_x, _y)  -> AC.not_yet_implemented [%here]
+  | Set (_x, _y)        -> AC.not_yet_implemented [%here]
+  | Or (_x, _y)         -> AC.not_yet_implemented [%here]
+  | And (_x, _y)        -> AC.not_yet_implemented [%here]
+  | App (_x, _y)        -> AC.not_yet_implemented [%here]
+  | Var _               -> AC.not_yet_implemented [%here]

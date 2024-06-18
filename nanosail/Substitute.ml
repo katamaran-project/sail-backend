@@ -48,19 +48,19 @@ module Subst = struct
   and numeric_constraint (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nconstr : Ast.NumericConstraint.t) : Ast.NumericConstraint.t =
       match nconstr with
-      | NC_equal (left, right)      -> NC_equal (numeric_expression subst left, numeric_expression subst right)
-      | NC_bounded_ge (left, right) -> NC_bounded_ge (numeric_expression subst left, numeric_expression subst right)
-      | NC_bounded_gt (left, right) -> NC_bounded_gt (numeric_expression subst left, numeric_expression subst right)
-      | NC_bounded_le (left, right) -> NC_bounded_le (numeric_expression subst left, numeric_expression subst right)
-      | NC_bounded_lt (left, right) -> NC_bounded_lt (numeric_expression subst left, numeric_expression subst right)
-      | NC_not_equal (left, right)  -> NC_not_equal (numeric_expression subst left, numeric_expression subst right)
-      | NC_set (identifier, ns)     -> NC_set (subst identifier, ns)
-      | NC_or (left, right)         -> NC_or (aux left, aux right)
-      | NC_and (left, right)        -> NC_and (aux left, aux right)
-      | NC_app (identifier, targs)  -> NC_app (identifier, List.map ~f:(type_argument subst) targs)
-      | NC_var identifier           -> NC_var (subst identifier)
-      | NC_true                     -> NC_true
-      | NC_false                    -> NC_false
+      | Equal (left, right)      -> Equal (numeric_expression subst left, numeric_expression subst right)
+      | Bounded_ge (left, right) -> Bounded_ge (numeric_expression subst left, numeric_expression subst right)
+      | Bounded_gt (left, right) -> Bounded_gt (numeric_expression subst left, numeric_expression subst right)
+      | Bounded_le (left, right) -> Bounded_le (numeric_expression subst left, numeric_expression subst right)
+      | Bounded_lt (left, right) -> Bounded_lt (numeric_expression subst left, numeric_expression subst right)
+      | Not_equal (left, right)  -> Not_equal (numeric_expression subst left, numeric_expression subst right)
+      | Set (identifier, ns)     -> Set (subst identifier, ns)
+      | Or (left, right)         -> Or (aux left, aux right)
+      | And (left, right)        -> And (aux left, aux right)
+      | App (identifier, targs)  -> App (identifier, List.map ~f:(type_argument subst) targs)
+      | Var identifier           -> Var (subst identifier)
+      | True                     -> True
+      | False                    -> False
     in
     aux
 end

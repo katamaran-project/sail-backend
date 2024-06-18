@@ -77,14 +77,14 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       TC.return @@ factory left' right'
 
   in
-  let translate_equal      = translate_comparison       @@ fun l r -> NC_equal      (l, r)
-  and translate_not_equal  = translate_comparison       @@ fun l r -> NC_not_equal  (l, r)
-  and translate_bounded_ge = translate_comparison       @@ fun l r -> NC_bounded_ge (l, r)
-  and translate_bounded_gt = translate_comparison       @@ fun l r -> NC_bounded_gt (l, r)
-  and translate_bounded_le = translate_comparison       @@ fun l r -> NC_bounded_le (l, r)
-  and translate_bounded_lt = translate_comparison       @@ fun l r -> NC_bounded_lt (l, r)
-  and translate_or         = translate_binary_operation @@ fun l r -> NC_or         (l, r)
-  and translate_and        = translate_binary_operation @@ fun l r -> NC_and        (l, r)
+  let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
+  and translate_not_equal  = translate_comparison       @@ fun l r -> Not_equal  (l, r)
+  and translate_bounded_ge = translate_comparison       @@ fun l r -> Bounded_ge (l, r)
+  and translate_bounded_gt = translate_comparison       @@ fun l r -> Bounded_gt (l, r)
+  and translate_bounded_le = translate_comparison       @@ fun l r -> Bounded_le (l, r)
+  and translate_bounded_lt = translate_comparison       @@ fun l r -> Bounded_lt (l, r)
+  and translate_or         = translate_binary_operation @@ fun l r -> Or         (l, r)
+  and translate_and        = translate_binary_operation @@ fun l r -> And        (l, r)
 
   in
   let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
@@ -98,8 +98,8 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   | S.NC_bounded_lt (x, y)                     -> translate_bounded_lt x y
   | S.NC_or (x, y)                             -> translate_or x y
   | S.NC_and (x, y)                            -> translate_and x y
-  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ Ast.NumericConstraint.NC_set (Ast.Identifier.mk kind_id, ns)
-  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ Ast.NumericConstraint.NC_var (Ast.Identifier.mk kind_id)
-  | S.NC_true                                  -> TC.return @@ Ast.NumericConstraint.NC_true
-  | S.NC_false                                 -> TC.return @@ Ast.NumericConstraint.NC_false
+  | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ Ast.NumericConstraint.Set (Ast.Identifier.mk kind_id, ns)
+  | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ Ast.NumericConstraint.Var (Ast.Identifier.mk kind_id)
+  | S.NC_true                                  -> TC.return @@ Ast.NumericConstraint.True
+  | S.NC_false                                 -> TC.return @@ Ast.NumericConstraint.False
   | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] numeric_constraint_location

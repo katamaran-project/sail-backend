@@ -49,16 +49,16 @@ and numeric_expression (numexp : Ast.NumericExpression.t) =
 
 and numeric_constraint (nc : Ast.NumericConstraint.t) =
   match nc with
-  | NC_equal (e1, e2)      -> Printf.sprintf "(%s == %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_ge (e1, e2) -> Printf.sprintf "(%s >= %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_gt (e1, e2) -> Printf.sprintf "(%s > %s)"  (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_le (e1, e2) -> Printf.sprintf "(%s <= %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_bounded_lt (e1, e2) -> Printf.sprintf "(%s < %s)"  (numeric_expression e1) (numeric_expression e2)
-  | NC_not_equal (e1, e2)  -> Printf.sprintf "(%s != %s)" (numeric_expression e1) (numeric_expression e2)
-  | NC_var id              -> identifier id
-  | NC_true                -> "NC_true"
-  | NC_false               -> "NC_false"
-  | NC_set (_, _)          -> failwith "Not yet imnplemented"
-  | NC_or (_, _)           -> failwith "Not yet imnplemented"
-  | NC_and (_, _)          -> failwith "Not yet imnplemented"
-  | NC_app (_, _)          -> failwith "Not yet imnplemented"
+  | Equal (e1, e2)      -> Printf.sprintf "(%s == %s)" (numeric_expression e1) (numeric_expression e2)
+  | Bounded_ge (e1, e2) -> Printf.sprintf "(%s >= %s)" (numeric_expression e1) (numeric_expression e2)
+  | Bounded_gt (e1, e2) -> Printf.sprintf "(%s > %s)"  (numeric_expression e1) (numeric_expression e2)
+  | Bounded_le (e1, e2) -> Printf.sprintf "(%s <= %s)" (numeric_expression e1) (numeric_expression e2)
+  | Bounded_lt (e1, e2) -> Printf.sprintf "(%s < %s)"  (numeric_expression e1) (numeric_expression e2)
+  | Not_equal (e1, e2)  -> Printf.sprintf "(%s != %s)" (numeric_expression e1) (numeric_expression e2)
+  | Var id              -> identifier id
+  | True                -> "NC_true"
+  | False               -> "NC_false"
+  | Set (_, _)          -> failwith "Not yet imnplemented"
+  | Or (_, _)           -> failwith "Not yet imnplemented"
+  | And (_, _)          -> failwith "Not yet imnplemented"
+  | App (_, _)          -> failwith "Not yet imnplemented"

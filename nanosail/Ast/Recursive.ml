@@ -70,32 +70,32 @@ end = struct
 end
 and NumericConstraint : sig
   type t =
-    | NC_equal      of NumericExpression.t * NumericExpression.t
-    | NC_bounded_ge of NumericExpression.t * NumericExpression.t
-    | NC_bounded_gt of NumericExpression.t * NumericExpression.t
-    | NC_bounded_le of NumericExpression.t * NumericExpression.t
-    | NC_bounded_lt of NumericExpression.t * NumericExpression.t
-    | NC_not_equal  of NumericExpression.t * NumericExpression.t
-    | NC_set        of Identifier.t       * Z.t list
-    | NC_or         of t                  * t
-    | NC_and        of t                  * t
-    | NC_app        of Identifier.t       * TypeArgument.t list
-    | NC_var        of Identifier.t
-    | NC_true
-    | NC_false
+    | Equal      of NumericExpression.t * NumericExpression.t
+    | Bounded_ge of NumericExpression.t * NumericExpression.t
+    | Bounded_gt of NumericExpression.t * NumericExpression.t
+    | Bounded_le of NumericExpression.t * NumericExpression.t
+    | Bounded_lt of NumericExpression.t * NumericExpression.t
+    | Not_equal  of NumericExpression.t * NumericExpression.t
+    | Set        of Identifier.t       * Z.t list
+    | Or         of t                  * t
+    | And        of t                  * t
+    | App        of Identifier.t       * TypeArgument.t list
+    | Var        of Identifier.t
+    | True
+    | False
 end = struct
   type t =
-    | NC_equal      of NumericExpression.t * NumericExpression.t
-    | NC_bounded_ge of NumericExpression.t * NumericExpression.t
-    | NC_bounded_gt of NumericExpression.t * NumericExpression.t
-    | NC_bounded_le of NumericExpression.t * NumericExpression.t
-    | NC_bounded_lt of NumericExpression.t * NumericExpression.t
-    | NC_not_equal  of NumericExpression.t * NumericExpression.t
-    | NC_set        of Identifier.t        * Z.t list
-    | NC_or         of NumericConstraint.t * NumericConstraint.t
-    | NC_and        of NumericConstraint.t * NumericConstraint.t
-    | NC_app        of Identifier.t        * TypeArgument.t list
-    | NC_var        of Identifier.t
-    | NC_true
-    | NC_false
+    | Equal      of NumericExpression.t * NumericExpression.t
+    | Bounded_ge of NumericExpression.t * NumericExpression.t
+    | Bounded_gt of NumericExpression.t * NumericExpression.t
+    | Bounded_le of NumericExpression.t * NumericExpression.t
+    | Bounded_lt of NumericExpression.t * NumericExpression.t
+    | Not_equal  of NumericExpression.t * NumericExpression.t
+    | Set        of Identifier.t        * Z.t list
+    | Or         of NumericConstraint.t * NumericConstraint.t
+    | And        of NumericConstraint.t * NumericConstraint.t
+    | App        of Identifier.t        * TypeArgument.t list
+    | Var        of Identifier.t
+    | True
+    | False
 end
