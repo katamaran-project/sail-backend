@@ -52,7 +52,6 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Unit                             -> ty "unit"
    | Bool                             -> ty "ty.bool"
    | Int                              -> ty "int"
-   | Nat                              -> ty "nat"
    | String                           -> ty "string"
    | Atom                             -> ty "atom"
    | Record                           -> AC.not_yet_implemented [%here]
@@ -86,7 +85,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   match nanotype with
   | Unit                -> AC.return @@ PP.string "Datatypes.unit"
   | Bool                -> AC.return @@ PP.string "Datatypes.bool"
-  | Nat                 -> AC.return @@ PP.string "nat"
   | Int                 -> AC.return @@ PP.string "Z"
   | String              -> AC.return @@ PP.string "String.string"
   | Bitvector n         -> coq_type_of_bitvector_type n

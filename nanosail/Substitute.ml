@@ -20,7 +20,6 @@ module Subst = struct
       match t with
       | Unit                    -> Unit
       | Bool                    -> Bool
-      | Nat                     -> Nat
       | Int                     -> Int
       | String                  -> String
       | Atom                    -> Atom

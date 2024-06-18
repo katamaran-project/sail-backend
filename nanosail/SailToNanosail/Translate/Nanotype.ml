@@ -26,7 +26,6 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     in
     match id_as_string with
     | "bool"      -> TC.return @@ Ast.Type.Bool
-    | "nat"       -> TC.return @@ Ast.Type.Nat
     | "int"       -> TC.return @@ Ast.Type.Int
     | "unit"      -> TC.return @@ Ast.Type.Unit
     | "string"    -> TC.return @@ Ast.Type.String

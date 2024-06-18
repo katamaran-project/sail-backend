@@ -21,7 +21,6 @@ module rec Type : sig
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
 
-    | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
 
@@ -61,7 +60,6 @@ end = struct
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
 
-    | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
 
@@ -77,7 +75,6 @@ end = struct
     | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
     | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
     | Record           -> "Type.Record"
-    | Nat              -> "Type.Nat"
     | Atom             -> "Type.Atom"
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
