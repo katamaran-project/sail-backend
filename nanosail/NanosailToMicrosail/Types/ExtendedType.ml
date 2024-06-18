@@ -161,7 +161,7 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
         let annotation_document =
           PP.lines [
               unknown_data.annotation;
-              Printf.sprintf "OCaml position: %s" @@ StringOf.OCaml.position unknown_data.ocaml_location;
+              Printf.sprintf "OCaml position: %s line %d" unknown_data.ocaml_location.pos_fname unknown_data.ocaml_location.pos_lnum;
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location unknown_data.sail_location;
             ]
         in
