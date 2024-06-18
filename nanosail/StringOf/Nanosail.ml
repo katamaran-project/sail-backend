@@ -50,10 +50,10 @@ and numeric_expression (numexp : Ast.NumericExpression.t) =
 and numeric_constraint (nc : Ast.NumericConstraint.t) =
   match nc with
   | Equal (e1, e2)      -> Printf.sprintf "(%s == %s)" (numeric_expression e1) (numeric_expression e2)
-  | Bounded_ge (e1, e2) -> Printf.sprintf "(%s >= %s)" (numeric_expression e1) (numeric_expression e2)
-  | Bounded_gt (e1, e2) -> Printf.sprintf "(%s > %s)"  (numeric_expression e1) (numeric_expression e2)
-  | Bounded_le (e1, e2) -> Printf.sprintf "(%s <= %s)" (numeric_expression e1) (numeric_expression e2)
-  | Bounded_lt (e1, e2) -> Printf.sprintf "(%s < %s)"  (numeric_expression e1) (numeric_expression e2)
+  | BoundedGE (e1, e2)  -> Printf.sprintf "(%s >= %s)" (numeric_expression e1) (numeric_expression e2)
+  | BoundedGT (e1, e2)  -> Printf.sprintf "(%s > %s)"  (numeric_expression e1) (numeric_expression e2)
+  | BoundedLE (e1, e2)  -> Printf.sprintf "(%s <= %s)" (numeric_expression e1) (numeric_expression e2)
+  | BoundedLT (e1, e2)  -> Printf.sprintf "(%s < %s)"  (numeric_expression e1) (numeric_expression e2)
   | Not_equal (e1, e2)  -> Printf.sprintf "(%s != %s)" (numeric_expression e1) (numeric_expression e2)
   | Var id              -> identifier id
   | True                -> "NC_true"

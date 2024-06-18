@@ -27,10 +27,10 @@ and pp_numeric_constraint (numeric_constraint : Ast.NumericConstraint.t) =
   | True                -> AC.return @@ PP.string "true"
   | False               -> AC.return @@ PP.string "false"
   | Equal (_x, _y)      -> AC.not_yet_implemented [%here]
-  | Bounded_ge (_x, _y) -> AC.not_yet_implemented [%here]
-  | Bounded_gt (_x, _y) -> AC.not_yet_implemented [%here]
-  | Bounded_le (_x, _y) -> AC.not_yet_implemented [%here]
-  | Bounded_lt (_x, _y) -> AC.not_yet_implemented [%here]
+  | BoundedGE (_x, _y)  -> AC.not_yet_implemented [%here]
+  | BoundedGT (_x, _y)  -> AC.not_yet_implemented [%here]
+  | BoundedLE (_x, _y)  -> AC.not_yet_implemented [%here]
+  | BoundedLT (_x, _y)  -> AC.not_yet_implemented [%here]
   | Not_equal (_x, _y)  -> AC.not_yet_implemented [%here]
   | Set (_x, _y)        -> AC.not_yet_implemented [%here]
   | Or (_x, _y)         -> AC.not_yet_implemented [%here]

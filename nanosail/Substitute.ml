@@ -49,10 +49,10 @@ module Subst = struct
     let rec aux (nconstr : Ast.NumericConstraint.t) : Ast.NumericConstraint.t =
       match nconstr with
       | Equal (left, right)      -> Equal (numeric_expression subst left, numeric_expression subst right)
-      | Bounded_ge (left, right) -> Bounded_ge (numeric_expression subst left, numeric_expression subst right)
-      | Bounded_gt (left, right) -> Bounded_gt (numeric_expression subst left, numeric_expression subst right)
-      | Bounded_le (left, right) -> Bounded_le (numeric_expression subst left, numeric_expression subst right)
-      | Bounded_lt (left, right) -> Bounded_lt (numeric_expression subst left, numeric_expression subst right)
+      | BoundedGE (left, right)  -> BoundedGE (numeric_expression subst left, numeric_expression subst right)
+      | BoundedGT (left, right)  -> BoundedGT (numeric_expression subst left, numeric_expression subst right)
+      | BoundedLE (left, right)  -> BoundedLE (numeric_expression subst left, numeric_expression subst right)
+      | BoundedLT (left, right)  -> BoundedLT (numeric_expression subst left, numeric_expression subst right)
       | Not_equal (left, right)  -> Not_equal (numeric_expression subst left, numeric_expression subst right)
       | Set (identifier, ns)     -> Set (subst identifier, ns)
       | Or (left, right)         -> Or (aux left, aux right)
