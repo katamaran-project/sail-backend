@@ -75,7 +75,7 @@ and NumericConstraint : sig
     | BoundedGT  of NumericExpression.t * NumericExpression.t
     | BoundedLE  of NumericExpression.t * NumericExpression.t
     | BoundedLT  of NumericExpression.t * NumericExpression.t
-    | Not_equal  of NumericExpression.t * NumericExpression.t
+    | NotEqual   of NumericExpression.t * NumericExpression.t
     | Set        of Identifier.t        * Z.t list
     | Or         of t                   * t
     | And        of t                   * t
@@ -90,7 +90,7 @@ end = struct
     | BoundedGT  of NumericExpression.t * NumericExpression.t
     | BoundedLE  of NumericExpression.t * NumericExpression.t
     | BoundedLT  of NumericExpression.t * NumericExpression.t
-    | Not_equal  of NumericExpression.t * NumericExpression.t
+    | NotEqual   of NumericExpression.t * NumericExpression.t
     | Set        of Identifier.t        * Z.t list
     | Or         of NumericConstraint.t * NumericConstraint.t
     | And        of NumericConstraint.t * NumericConstraint.t

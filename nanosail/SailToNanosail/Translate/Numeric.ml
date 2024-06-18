@@ -78,7 +78,7 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
 
   in
   let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
-  and translate_not_equal  = translate_comparison       @@ fun l r -> Not_equal  (l, r)
+  and translate_not_equal  = translate_comparison       @@ fun l r -> NotEqual   (l, r)
   and translate_bounded_ge = translate_comparison       @@ fun l r -> BoundedGE  (l, r)
   and translate_bounded_gt = translate_comparison       @@ fun l r -> BoundedGT  (l, r)
   and translate_bounded_le = translate_comparison       @@ fun l r -> BoundedLE  (l, r)

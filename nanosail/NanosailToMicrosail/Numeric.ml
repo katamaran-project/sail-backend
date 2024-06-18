@@ -31,7 +31,7 @@ and pp_numeric_constraint (numeric_constraint : Ast.NumericConstraint.t) =
   | BoundedGT (_x, _y)  -> AC.not_yet_implemented [%here]
   | BoundedLE (_x, _y)  -> AC.not_yet_implemented [%here]
   | BoundedLT (_x, _y)  -> AC.not_yet_implemented [%here]
-  | Not_equal (_x, _y)  -> AC.not_yet_implemented [%here]
+  | NotEqual  (_x, _y)  -> AC.not_yet_implemented [%here]
   | Set (_x, _y)        -> AC.not_yet_implemented [%here]
   | Or (_x, _y)         -> AC.not_yet_implemented [%here]
   | And (_x, _y)        -> AC.not_yet_implemented [%here]
