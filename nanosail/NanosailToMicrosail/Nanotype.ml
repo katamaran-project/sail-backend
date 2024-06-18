@@ -44,14 +44,17 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
+  and ty s =
+    AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
+
   in
   match typ with
-   | Unit                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.unit"
-   | Bool                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.bool"
-   | Int                              -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.int"
-   | Nat                              -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.nat"
-   | String                           -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.string"
-   | Atom                             -> AC.return @@ pp_identifier @@ Ast.Identifier.mk "ty.atom"
+   | Unit                             -> ty "unit"
+   | Bool                             -> ty "ty.bool"
+   | Int                              -> ty "int"
+   | Nat                              -> ty "nat"
+   | String                           -> ty "string"
+   | Atom                             -> ty "atom"
    | Custom id                        -> AC.return @@ pp_identifier id
    | Record                           -> AC.not_yet_implemented [%here]
    | Product (t1, t2)                 -> pp_product t1 t2
