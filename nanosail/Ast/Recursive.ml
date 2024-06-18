@@ -24,7 +24,6 @@ module rec Type : sig
     | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
-    | Custom      of Identifier.t                     (* TODO remove *)
 
   val to_string : t -> string
 end = struct
@@ -65,7 +64,6 @@ end = struct
     | Nat                                             (* TODO remove *)
     | Atom                                            (* TODO remove *)
     | Application of t * TypeArgument.t list          (* TODO remove *)
-    | Custom      of Identifier.t                     (* TODO remove *)
 
   let rec to_string (t : t) : string =
     match t with
@@ -81,7 +79,6 @@ end = struct
     | Record           -> "Type.Record"
     | Nat              -> "Type.Nat"
     | Atom             -> "Type.Atom"
-    | Custom id        -> Printf.sprintf "Type.Custom(%s)" (Identifier.string_of id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs

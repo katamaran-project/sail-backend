@@ -55,7 +55,6 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Nat                              -> ty "nat"
    | String                           -> ty "string"
    | Atom                             -> ty "atom"
-   | Custom id                        -> AC.return @@ pp_identifier id
    | Record                           -> AC.not_yet_implemented [%here]
    | Product (t1, t2)                 -> pp_product t1 t2
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
@@ -90,7 +89,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Nat                 -> AC.return @@ PP.string "nat"
   | Int                 -> AC.return @@ PP.string "Z"
   | String              -> AC.return @@ PP.string "String.string"
-  | Custom id           -> AC.return @@ pp_identifier id
   | Bitvector n         -> coq_type_of_bitvector_type n
   | List t              -> coq_type_of_list_type t
   | Application (t, ts) -> coq_type_of_application t ts
