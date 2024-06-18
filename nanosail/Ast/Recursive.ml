@@ -137,7 +137,7 @@ end = struct
     | True
     | False
 
-  let to_string (numeric_constraint : t) =
+  let rec to_string (numeric_constraint : t) =
     match numeric_constraint with
     | Equal     (e1, e2)  -> Printf.sprintf "(%s == %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
     | BoundedGE (e1, e2)  -> Printf.sprintf "(%s >= %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
@@ -149,7 +149,7 @@ end = struct
     | True                -> "NC_true"
     | False               -> "NC_false"
     | Set (_, _)          -> failwith "Not yet imnplemented"
-    | Or (_, _)           -> failwith "Not yet imnplemented"
-    | And (_, _)          -> failwith "Not yet imnplemented"
+    | Or (c1, c2)         -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
+    | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
 end
