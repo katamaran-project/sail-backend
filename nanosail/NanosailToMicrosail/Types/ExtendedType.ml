@@ -87,6 +87,19 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
       in
       AC.return @@ PP.(separate (string " * ") ts')
     end
+  | Unknown ud   -> begin
+      let* annotation_index =
+        let annotation_document =
+          PP.lines [
+              ud.annotation;
+              Printf.sprintf "OCaml position: %s" @@ StringOf.OCaml.position ud.ocaml_location;
+              Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location ud.sail_location;
+            ]
+        in
+        AC.create_annotation_from_document annotation_document
+      in
+      AC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
+    end
 
 
 let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document AC.t =

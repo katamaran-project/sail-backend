@@ -2,18 +2,26 @@ open Base
 
 
 module Parameter = struct
+  type unknown_data = {
+      ocaml_location : Lexing.position;
+      sail_location  : Libsail.Ast.l;
+      annotation     : string;
+    }
+  
   type t =
-    | Tuple of t list
-    | Int   of int
-    | Bool  of int
-    | Other of string
+    | Tuple   of t list
+    | Int     of int
+    | Bool    of int
+    | Other   of string
+    | Unknown of unknown_data
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
-    | Tuple ts -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-    | Int k    -> Printf.sprintf "int(#%d)" k
-    | Bool k   -> Printf.sprintf "bool(#%d)" k
-    | Other s  -> s
+    | Tuple ts   -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
+    | Int k      -> Printf.sprintf "int(#%d)" k
+    | Bool k     -> Printf.sprintf "bool(#%d)" k
+    | Other s    -> s
+    | Unknown _  -> Printf.sprintf "unknown"
 end
 
 (* OCaml requires this duplication for recursive modules *)
@@ -63,4 +71,3 @@ module ReturnValue = struct
     | Bool  of BoolExpression.t
     | Other of string
 end
-
