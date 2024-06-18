@@ -71,7 +71,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | A_nexp e -> begin
         let* e' = translate_numeric_expression e
         in
-        TC.return @@ Ast.TypeArgument.Numexp e'
+        TC.return @@ Ast.TypeArgument.NumericExpression e'
       end
     | A_typ t  -> begin
         let* t' = nanotype_of_sail_type t

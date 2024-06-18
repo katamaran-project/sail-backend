@@ -33,9 +33,9 @@ let rec nanotype (t : Ast.Type.t) =
 
 and type_argument (targ : Ast.TypeArgument.t) =
   match targ with
-   | Type t        -> nanotype t
-   | Numexp numexp -> numeric_expression numexp
-   | Bool nc       -> numeric_constraint nc
+   | Type t                   -> nanotype t
+   | NumericExpression numexp -> numeric_expression numexp
+   | Bool nc                  -> numeric_constraint nc
 
 and numeric_expression (numexp : Ast.NumericExpression.t) =
   match numexp with

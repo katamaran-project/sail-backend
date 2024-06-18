@@ -59,14 +59,14 @@ end = struct
 end
 and TypeArgument : sig
   type t =
-    | Type   of Type.t
-    | Numexp of NumericExpression.t  (* todo rename to NumericExpression *)
-    | Bool   of NumericConstraint.t
+    | Type              of Type.t
+    | NumericExpression of NumericExpression.t
+    | Bool              of NumericConstraint.t
 end = struct
   type t =
-    | Type   of Type.t
-    | Numexp of NumericExpression.t
-    | Bool   of NumericConstraint.t
+    | Type              of Type.t
+    | NumericExpression of NumericExpression.t
+    | Bool              of NumericConstraint.t
 end
 and NumericConstraint : sig
   type t =
