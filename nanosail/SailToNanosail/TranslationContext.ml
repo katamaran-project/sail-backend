@@ -145,9 +145,11 @@ let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let predicate (definition : Ast.Definition.t) : Ast.Definition.register_definition option =
     match definition with
     | RegisterDefinition register_definition ->
-      if Ast.Identifier.equal register_definition.identifier identifier
-      then Some register_definition
-      else None
+       begin
+         if Ast.Identifier.equal register_definition.identifier identifier
+         then Some register_definition
+         else None
+       end
     | _ -> None
   in
   let* definitions = Monad.get Context.definitions
