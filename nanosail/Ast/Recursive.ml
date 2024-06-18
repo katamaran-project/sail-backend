@@ -20,8 +20,7 @@ module rec Type : sig
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
-
-    | Application of t * TypeArgument.t list          (* TODO remove *)
+    | Application of t * TypeArgument.t list
 
   val to_string : t -> string
 end = struct
@@ -58,8 +57,7 @@ end = struct
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
     | Record                                          (* TODO complete *)
-
-    | Application of t * TypeArgument.t list          (* TODO remove *)
+    | Application of t * TypeArgument.t list
 
   let rec to_string (t : t) : string =
     match t with
