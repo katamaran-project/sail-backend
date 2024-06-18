@@ -57,6 +57,7 @@ end = struct
     | Application of t * TypeArgument.t list          (* TODO remove *)
     | Custom      of Identifier.t                     (* TODO remove *)
 end
+
 and TypeArgument : sig
   type t =
     | Type              of Type.t
@@ -68,6 +69,7 @@ end = struct
     | NumericExpression of NumericExpression.t
     | Bool              of NumericConstraint.t
 end
+
 and NumericConstraint : sig
   type t =
     | Equal      of NumericExpression.t * NumericExpression.t
