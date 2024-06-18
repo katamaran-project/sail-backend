@@ -15,7 +15,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PPrint.document AC.t =
     match match_pattern with
-    | MP_list { matched; when_nil; when_cons } -> begin
+    | List { matched; when_nil; when_cons } -> begin
         let id_head, id_tail, when_cons_body = when_cons
         in
         let* matched'   = pp_par_statement matched
@@ -32,7 +32,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
           ])
       end
 
-    | MP_product { matched; id_fst; id_snd; body } -> begin
+    | Product { matched; id_fst; id_snd; body } -> begin
         let* matched' = pp_par_statement matched
         and* body'    = pp_par_statement body
         in
@@ -45,7 +45,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
           ])
       end
 
-    | MP_bool { condition; when_true; when_false } -> begin
+    | Bool { condition; when_true; when_false } -> begin
         let* condition'  = pp_par_statement condition
         and* when_true'  = pp_par_statement when_true
         and* when_false' = pp_par_statement when_false
@@ -58,7 +58,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
           ])
       end
 
-    | MP_enum { matched; matched_type; cases } -> begin
+    | Enum { matched; matched_type; cases } -> begin
         let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list AC.t) =
           let* acc
           and* pattern = AC.return @@ pp_identifier key
@@ -83,7 +83,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         end
       end
 
-    | MP_variant { matched; cases } -> begin
+    | Variant { matched; cases } -> begin
         let _ = matched
         and _ = cases
         in

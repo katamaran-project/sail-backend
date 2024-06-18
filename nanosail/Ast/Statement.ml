@@ -14,11 +14,11 @@ type t =
   | Fail              of string
 
 and match_pattern =
-  | MP_list    of match_pattern_list
-  | MP_product of match_pattern_product
-  | MP_bool    of match_pattern_bool
-  | MP_enum    of match_pattern_enum
-  | MP_variant of match_pattern_variant
+  | List    of match_pattern_list
+  | Product of match_pattern_product
+  | Bool    of match_pattern_bool
+  | Enum    of match_pattern_enum
+  | Variant of match_pattern_variant
 
 and match_pattern_list =
   {

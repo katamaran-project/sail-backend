@@ -37,7 +37,7 @@ let create_if_statement
       ~(when_true  : Ast.Statement.t)
       ~(when_false : Ast.Statement.t) : Ast.Statement.t
   =
-  Ast.Statement.Match (MP_bool { condition; when_true; when_false })
+  Ast.Statement.Match (Bool { condition; when_true; when_false })
 
 
 let statement_of_lvar
@@ -399,7 +399,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             TC.return (id_head, id_tail, clause)
           in
           let match_pattern =
-            Ast.Statement.MP_list {
+            Ast.Statement.List {
                 matched;
                 when_cons;
                 when_nil;
@@ -435,7 +435,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           and* id_snd = translate_identifier [%here] id_r
           and* body   = statement_of_aexp clause
           in
-          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MP_product { matched; id_fst; id_snd; body })
+          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.Product { matched; id_fst; id_snd; body })
         end
       | _ -> TC.not_yet_implemented [%here] location
 
@@ -550,7 +550,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let matched_type =
         enum_definition.identifier
       in
-      let match_statement = Ast.Statement.Match (Ast.Statement.MP_enum {
+      let match_statement = Ast.Statement.Match (Ast.Statement.Enum {
           matched;
           matched_type;
           cases
@@ -660,7 +660,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         let match_pattern : Ast.Statement.match_pattern_variant = { matched; cases }
         in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (MP_variant match_pattern)
+        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (Variant match_pattern)
       in
       TC.return statement
 
@@ -785,7 +785,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     and* when_true = statement_of_aexp then_clause
     and* when_false = statement_of_aexp else_clause
     in
-    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (MP_bool { condition; when_true; when_false })
+    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (Bool { condition; when_true; when_false })
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
