@@ -53,7 +53,6 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Bool                             -> ty "ty.bool"
    | Int                              -> ty "int"
    | String                           -> ty "string"
-   | Atom                             -> ty "atom"
    | Record                           -> AC.not_yet_implemented [%here]
    | Product (t1, t2)                 -> pp_product t1 t2
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
@@ -91,7 +90,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | List t              -> coq_type_of_list_type t
   | Application (t, ts) -> coq_type_of_application t ts
   | Tuple _ts           -> AC.not_yet_implemented [%here]
-  | Atom                -> AC.not_yet_implemented [%here]
   | Record              -> AC.not_yet_implemented [%here]
   | Enum _id            -> AC.not_yet_implemented [%here] (* todo lookup Coq Inductive type corresponding to the enum named id *)
   | Product (_, _)      -> AC.not_yet_implemented [%here]
