@@ -16,7 +16,7 @@ let    initial_state  = { annotations = [] }
 let create_annotation_from_document (annotation_document : PP.document) : int t =
   let open Monads.Notations.Star(Monad)
   in
-  let annotation        = Annotation annotation_document  in
+  let  annotation       = Annotation annotation_document  in
   let* state            = Monad.get                       in
   let  annotations'     = annotation :: state.annotations in
   let  state'           = { annotations = annotations' }  in
