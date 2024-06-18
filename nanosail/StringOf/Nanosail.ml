@@ -37,6 +37,5 @@ and type_argument (targ : Ast.TypeArgument.t) =
    | NumericExpression numexp -> numeric_expression numexp
    | Bool nc                  -> numeric_constraint nc
 
-and numeric_expression (numexp : Ast.NumericExpression.t) =
-
+and numeric_expression = Ast.NumericExpression.to_string
 and numeric_constraint = Ast.NumericConstraint.to_string
