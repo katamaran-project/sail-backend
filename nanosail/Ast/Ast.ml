@@ -103,12 +103,3 @@ let select
     Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
   in
   List.filter_map ~f:(lift_extractor extractor) definitions
-
-
-(* todo move inside Definition.Type submodule *)
-let type_identifier (type_definition : Definition.Type.t) =
-  match type_definition with
-  | Abbreviation x -> x.identifier
-  | Variant x      -> x.identifier
-  | Enum x         -> x.identifier
-  | Record x       -> x.identifier

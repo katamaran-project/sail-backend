@@ -90,6 +90,13 @@ module Type = struct
     | Variant      of Variant.t
     | Enum         of Enum.t
     | Record       of Record.t
+
+  let type_identifier (type_definition : t) : Identifier.t =
+    match type_definition with
+    | Abbreviation x -> x.identifier
+    | Variant x      -> x.identifier
+    | Enum x         -> x.identifier
+    | Record x       -> x.identifier
 end
 
 

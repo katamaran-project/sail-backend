@@ -124,7 +124,7 @@ let lookup_type_of_kind
   let predicate (definition : Ast.Definition.t) : Ast.Definition.Type.t option =
     match definition with
     | TypeDefinition type_definition ->
-      if Ast.Identifier.equal identifier (Ast.type_identifier type_definition)
+      if Ast.Identifier.equal identifier (Ast.Definition.Type.type_identifier type_definition)
       then Some type_definition
       else None
     | _ -> None
