@@ -83,6 +83,8 @@ and NumericConstraint : sig
     | Var        of Identifier.t
     | True
     | False
+
+  val to_string : t -> string
 end = struct
   type t =
     | Equal      of NumericExpression.t * NumericExpression.t
@@ -98,4 +100,20 @@ end = struct
     | Var        of Identifier.t
     | True
     | False
+
+  let to_string (numeric_constraint : t) =
+    match numeric_constraint with
+    | Equal     (e1, e2)  -> Printf.sprintf "(%s == %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | BoundedGE (e1, e2)  -> Printf.sprintf "(%s >= %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | BoundedGT (e1, e2)  -> Printf.sprintf "(%s > %s)"  (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | BoundedLE (e1, e2)  -> Printf.sprintf "(%s <= %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | BoundedLT (e1, e2)  -> Printf.sprintf "(%s < %s)"  (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | NotEqual  (e1, e2)  -> Printf.sprintf "(%s != %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | Var id              -> Identifier.string_of id
+    | True                -> "NC_true"
+    | False               -> "NC_false"
+    | Set (_, _)          -> failwith "Not yet imnplemented"
+    | Or (_, _)           -> failwith "Not yet imnplemented"
+    | And (_, _)          -> failwith "Not yet imnplemented"
+    | App (_, _)          -> failwith "Not yet imnplemented"
 end
