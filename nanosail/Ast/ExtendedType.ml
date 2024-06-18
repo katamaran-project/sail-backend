@@ -1,13 +1,13 @@
 open Base
 
 
+type unknown_data = {
+    ocaml_location : Lexing.position;
+    sail_location  : Libsail.Ast.l;
+    annotation     : string;
+  }
+
 module Parameter = struct
-  type unknown_data = {
-      ocaml_location : Lexing.position;
-      sail_location  : Libsail.Ast.l;
-      annotation     : string;
-    }
-  
   type t =
     | Tuple   of t list
     | Int     of int
@@ -67,7 +67,8 @@ end = struct
 
 module ReturnValue = struct
   type t =
-    | Int   of IntExpression.t
-    | Bool  of BoolExpression.t
-    | Other of string
+    | Int     of IntExpression.t
+    | Bool    of BoolExpression.t
+    | Other   of string
+    | Unknown of unknown_data
 end

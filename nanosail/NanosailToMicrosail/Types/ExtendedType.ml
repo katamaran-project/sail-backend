@@ -156,6 +156,19 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
   | Int int_expression   -> pp_int_expression int_expression
   | Bool bool_expression -> pp_bool_expression bool_expression
   | Other id             -> AC.return @@ PP.string id
+  | Unknown unknown_data -> begin
+      let* annotation_index =
+        let annotation_document =
+          PP.lines [
+              unknown_data.annotation;
+              Printf.sprintf "OCaml position: %s" @@ StringOf.OCaml.position unknown_data.ocaml_location;
+              Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location unknown_data.sail_location;
+            ]
+        in
+        AC.create_annotation_from_document annotation_document
+      in
+      AC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
+    end
 
 
 let pp_extended_function_type

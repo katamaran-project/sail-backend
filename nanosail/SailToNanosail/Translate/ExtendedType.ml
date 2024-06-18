@@ -350,7 +350,16 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
    | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
    | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
-   | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
+   | Typ_exist (_, _, _)  -> begin
+       let unknown_data : Ast.ExtendedType.unknown_data =
+         {
+           ocaml_location = [%here];
+           sail_location  = sail_type_location;
+           annotation     = StringOf.Sail.typ sail_type
+         }
+       in
+       Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown unknown_data
+     end
    | Typ_id id            -> begin
        let Id_aux (unwrapped_id, id_location) = id
        in
