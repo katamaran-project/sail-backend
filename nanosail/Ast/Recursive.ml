@@ -1,5 +1,10 @@
 open Base
 
+(*
+  Type, TypeArgument and NumericConstraint
+
+  Put in same file because they are recursive
+*)
 
 module rec Type : sig
   type t =
