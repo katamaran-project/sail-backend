@@ -39,9 +39,9 @@ module Subst = struct
   and type_argument (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let aux (targ : Ast.TypeArgument.t) : Ast.TypeArgument.t =
       match targ with
-      | TA_type t       -> TA_type (nanotype subst t)
-      | TA_numexp nexp  -> TA_numexp (numeric_expression subst nexp)
-      | TA_bool nconstr -> TA_bool (numeric_constraint subst nconstr)
+      | Type t       -> Type (nanotype subst t)
+      | Numexp nexp  -> Numexp (numeric_expression subst nexp)
+      | Bool nconstr -> Bool (numeric_constraint subst nconstr)
     in
     aux
 

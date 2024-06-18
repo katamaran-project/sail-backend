@@ -55,7 +55,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     and* identifier'     = translate_identifier [%here] identifier
     in
     match (Ast.Identifier.string_of identifier'), type_arguments' with
-    | "list" , [ TA_type t ]    -> TC.return @@ Ast.Type.List t
+    | "list" , [ Type t ]    -> TC.return @@ Ast.Type.List t
     | "atom", [ _ ]             -> TC.return Ast.Type.Int
     | "atom_bool", [ _ ]        -> TC.return Ast.Type.Bool
     | _, _                      -> begin
@@ -71,17 +71,17 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | A_nexp e -> begin
         let* e' = translate_numeric_expression e
         in
-        TC.return @@ Ast.TypeArgument.TA_numexp e'
+        TC.return @@ Ast.TypeArgument.Numexp e'
       end
     | A_typ t  -> begin
         let* t' = nanotype_of_sail_type t
         in
-        TC.return @@ Ast.TypeArgument.TA_type t'
+        TC.return @@ Ast.TypeArgument.Type t'
       end
     | A_bool b -> begin
         let* b' = translate_numeric_constraint b
         in
-        TC.return @@ Ast.TypeArgument.TA_bool b'
+        TC.return @@ Ast.TypeArgument.Bool b'
       end
 
   and nanotype_of_existential

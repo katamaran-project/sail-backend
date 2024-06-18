@@ -100,6 +100,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
   match type_argument with
-  | TA_type t   -> pp_nanotype t
-  | TA_numexp e -> pp_numeric_expression e
-  | TA_bool nc  -> pp_numeric_constraint nc
+  | Type t   -> pp_nanotype t
+  | Numexp e -> pp_numeric_expression e
+  | Bool nc  -> pp_numeric_constraint nc
