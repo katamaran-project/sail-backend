@@ -18,10 +18,10 @@ let create_annotation_from_document (annotation_document : PP.document) : int t 
   in
   let  annotation       = Annotation annotation_document  in
   let* state            = Monad.get                       in
+  let  annotation_index = List.length state.annotations   in
   let  annotations'     = annotation :: state.annotations in
   let  state'           = { annotations = annotations' }  in
-  let* ()               = Monad.put state'                in
-  let  annotation_index = List.length annotations'
+  let* ()               = Monad.put state'
   in
   return annotation_index
 
