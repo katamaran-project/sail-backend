@@ -18,6 +18,7 @@ module C = struct
     let include_original_code             = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
     let ignore_overloads                  = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
     let print_warnings                    = bool     "print-warnings"                   false
+    let pretty_print_let                  = bool     "pretty-print-let"                 false
     let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
     let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let ignore_definition_predicate       = callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
