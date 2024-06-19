@@ -5,13 +5,26 @@ type t =
   | Match             of match_pattern
   | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
-  | Let               of Identifier.t * t * t
+  | Let               of let_data
   | DestructureRecord of destructure_record
   | Seq               of t * t
   | ReadRegister      of Identifier.t
   | WriteRegister     of Identifier.t * t
   | Cast              of t * Type.t
   | Fail              of string
+
+(*
+  let <variable_identifier> : <binding_statement_type> = <binding_statement>
+  in
+  <body>
+*)                             
+and let_data =
+  {
+    variable_identifier    : Identifier.t;
+    binding_statement_type : Type.t;
+    binding_statement      : t;
+    body_statement         : t;
+  }
 
 and match_pattern =
   | List    of match_pattern_list

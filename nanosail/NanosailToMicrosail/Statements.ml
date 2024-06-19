@@ -98,21 +98,32 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
-  and pp_let_statement
-      (variable_identifier : Ast.Identifier.t)
-      (binding_statement   : Ast.Statement.t )
-      (body_statement      : Ast.Statement.t ) : PPrint.document AC.t
+  and pp_let_statement (let_data : Ast.Statement.let_data) : PPrint.document AC.t
     =
-    let* binding_statement' = pp_statement binding_statement
-    and* body_statement'    = pp_statement body_statement
+    let {
+        variable_identifier;
+        binding_statement_type;
+        binding_statement;
+        body_statement
+      } : Ast.Statement.let_data = let_data
+    in
+    let  variable_identifier'    = pp_identifier variable_identifier in
+    let* binding_statement'      = pp_statement binding_statement
+    and* binding_statement_type' = Nanotype.pp_nanotype binding_statement_type
+    and* body_statement'         = pp_statement body_statement
     in
     AC.return @@ PP.(
         simple_app [
-          separate space [string "let:"; dquotes @@ pp_identifier variable_identifier; string ":="];
-          binding_statement';
-          string "in";
-          body_statement'
-        ]
+            separate space [
+                string "let:";
+                dquotes variable_identifier';
+                string "::";
+                binding_statement_type';
+                string ":="];
+            binding_statement';
+            string "in";
+            body_statement'
+          ]
       )
 
   and pp_sequence_statement
@@ -187,7 +198,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
   | Expression expression                     -> pp_expression_statement expression
   | Match match_pattern                       -> pp_match_statement match_pattern
   | Call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
-  | Let (variable_identifier, s1, s2)         -> pp_let_statement variable_identifier s1 s2
+  | Let let_data                              -> pp_let_statement let_data
   | Seq (s1, s2)                              -> pp_sequence_statement s1 s2
   | ReadRegister register_identifier          -> pp_read_register_statement register_identifier
   | WriteRegister (register_identifier, rhs)  -> pp_write_register_statement register_identifier rhs

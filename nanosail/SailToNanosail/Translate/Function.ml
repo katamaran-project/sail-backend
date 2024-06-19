@@ -265,7 +265,14 @@ let rec wrap_in_named_statements_context
       (statement        : Ast.Statement.t                          ) : Ast.Statement.t
   =
   match named_statements with
-  | (name, stm)::rest -> Let (name, stm, wrap_in_named_statements_context rest statement)
+  | (name, stm)::rest -> begin
+      Let {
+          variable_identifier    = name;
+          binding_statement_type = Ast.Type.String; (* todo Fix this! *)
+          binding_statement      = stm;
+          body_statement         = wrap_in_named_statements_context rest statement
+        }
+    end
   | []                -> statement
 
 
@@ -761,16 +768,22 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
         (identifier  : S.id                )
-        (_typ1       : S.typ               )
+        (typ1        : S.typ               )
         (expression  : S.typ S.aexp        )
         (body        : S.typ S.aexp        )
         (_typ2       : S.typ               )
     =
-    let* id' = translate_identifier [%here] identifier
+    let* id' = translate_identifier [%here] identifier  (* todo rename to record fields *)
+    and* typ1' = Nanotype.nanotype_of_sail_type typ1
     and* s1  = statement_of_aexp expression
     and* s2  = statement_of_aexp body
     in
-    TC.return @@ Ast.Statement.Let (id', s1, s2)
+    TC.return @@ Ast.Statement.Let {
+                     variable_identifier = id';
+                     binding_statement_type = typ1';
+                     binding_statement = s1;
+                     body_statement = s2;
+                   }
 
   and statement_of_if
         (condition   : S.typ S.aval)
