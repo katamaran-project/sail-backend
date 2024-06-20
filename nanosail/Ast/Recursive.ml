@@ -91,6 +91,8 @@ and TypeArgument : sig
     | Bool              of NumericConstraint.t
 
   val to_string : t -> string
+
+  val equal : t -> t -> bool
 end = struct
   type t =
     | Type              of Type.t
@@ -102,6 +104,13 @@ end = struct
     | Type t                   -> Type.to_string t
     | NumericExpression numexp -> NumericExpression.to_string numexp
     | Bool nc                  -> NumericConstraint.to_string nc
+
+  let equal (t1 : t) (t2 : t) : bool =
+    match t1, t2 with
+    | Type t1                , Type t2                 -> Type.equal t1 t2
+    | NumericExpression nexp1, NumericExpression nexp2 -> NumericExpression.equal nexp1 nexp2
+    | Bool nconstr1          , Bool nconstr2           -> NumericConstraint.equal nconstr1 nconstr2
+    | _                      , _                       -> false
 end
 
 and NumericConstraint : sig
