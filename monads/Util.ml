@@ -26,6 +26,14 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
+  let filter_map ~(f : 'a -> 'b option M.t) (xs : 'a list) : 'b list M.t =
+    let rec aux xs acc =
+      match xs with
+      | []    -> M.return @@ List.rev acc
+      | x::xs -> M.bind (f x) (fun x' -> aux xs @@ match x' with | Some r -> r::acc | None -> acc)
+    in
+    aux xs []
+
   let rec iter ~f xs =
     match xs with
     | []    -> M.return ()
