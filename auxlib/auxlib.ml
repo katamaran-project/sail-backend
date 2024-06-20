@@ -98,3 +98,11 @@ let rec equal_lists ~(eq : 'a -> 'a -> bool) (xs : 'a list) (ys : 'a list) : boo
   | [], []       -> true
   | x::xs, y::ys -> eq x y && equal_lists ~eq xs ys
   | _, _         -> false
+
+
+let first2  = fst
+let second2 = snd
+
+let first3  (x, _, _) = x
+let second3 (_, x, _) = x
+let third3  (_, _, x) = x
