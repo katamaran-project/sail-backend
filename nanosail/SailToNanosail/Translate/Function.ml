@@ -730,7 +730,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (location         : S.l         )
         (value            : S.typ S.aval)
         (field_identifier : S.id        )
-        (_field_type      : S.typ       )
+        (_field_type      : S.typ       ) : Ast.Statement.t TC.t
     =
     let* field_identifier = translate_identifier [%here] field_identifier
     in
