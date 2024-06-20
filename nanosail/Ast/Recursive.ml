@@ -121,6 +121,8 @@ and NumericConstraint : sig
     | False
 
   val to_string : t -> string
+
+  val equal : t -> t -> bool
 end = struct
   type t =
     | Equal      of NumericExpression.t * NumericExpression.t
@@ -152,4 +154,21 @@ end = struct
     | Or (c1, c2)         -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
     | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
+
+  let rec equal (t1 : t) (t2 : t) : bool =
+    match t1, t2 with
+     | Equal (t1a, t1b)    , Equal (t2a, t2b)     -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | NotEqual (t1a, t1b) , NotEqual (t2a, t2b)  -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | BoundedGE (t1a, t1b), BoundedGE (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | BoundedGT (t1a, t1b), BoundedGT (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | BoundedLE (t1a, t1b), BoundedLE (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | BoundedLT (t1a, t1b), BoundedLT (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
+     | Set (id1, ns1)      , Set (id2, ns2)       -> Identifier.equal id1 id2 && Auxlib.equal_lists ~eq:Z.equal ns1 ns2
+     | Or (t1a, t1b)       , Or (t2a, t2b)        -> equal t1a t2a && equal t1b t2b
+     | And (t1a, t1b)      , And (t2a, t2b)       -> equal t1a t2a && equal t1b t2b
+     | App (id1, targs1)   , App (id2, targs2)    -> Identifier.equal id1 id2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
+     | Var id1             , Var id2              -> Identifier.equal id1 id2
+     | True                , True                 -> true
+     | False               , False                -> true
+     | _                   , _                    -> false
 end
