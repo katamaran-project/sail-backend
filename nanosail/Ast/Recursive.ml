@@ -87,17 +87,17 @@ end = struct
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
-    | Int, Int -> true
-    | Bool, Bool -> true
-    | String, String -> true
-    | List t1, List t2 -> equal t1 t2
-    | Product (t1a, t1b), Product (t2a, t2b) -> equal t1a t2a && equal t1b t2b
-    | Sum (t1a, t1b), Sum (t2a, t2b) -> equal t1a t2a && equal t1b t2b
-    | Unit, Unit -> true
-    | Enum id1, Enum id2 -> Identifier.equal id1 id2
-    | Bitvector nexp1, Bitvector nexp2 -> NumericExpression.equal nexp1 nexp2
-    | Tuple ts1, Tuple ts2 -> Auxlib.equal_lists ~eq:equal ts1 ts2
-    | Record id1, Record id2 -> Identifier.equal id1 id2
+    | Int                     , Int                      -> true
+    | Bool                    , Bool                     -> true
+    | String                  , String                   -> true
+    | List t1                 , List t2                  -> equal t1 t2
+    | Product (t1a, t1b)      , Product (t2a, t2b)       -> equal t1a t2a && equal t1b t2b
+    | Sum (t1a, t1b)          , Sum (t2a, t2b)           -> equal t1a t2a && equal t1b t2b
+    | Unit                    , Unit                     -> true
+    | Enum id1                , Enum id2                 -> Identifier.equal id1 id2
+    | Bitvector nexp1         , Bitvector nexp2          -> NumericExpression.equal nexp1 nexp2
+    | Tuple ts1               , Tuple ts2                -> Auxlib.equal_lists ~eq:equal ts1 ts2
+    | Record id1              , Record id2               -> Identifier.equal id1 id2
     | Application (c1, targs1), Application (c2, targs2) -> equal c1 c2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
     | _, _ -> false
 end
