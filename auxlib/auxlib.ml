@@ -92,18 +92,6 @@ let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
   | x::xs -> List.fold_left xs ~init:x ~f
 
 
-(* Checks if all elements in xs are equal to each other *)
-let all_equal ~(eq : 'a -> 'a -> bool) (xs : 'a list) : bool =
-  let rec aux x ys =
-    match ys with
-    | []    -> true
-    | y::ys -> eq x y && aux x ys
-  in
-  match xs with
-  | [] -> true
-  | x::xs -> aux x xs
-
-
 (* Checks if the given lists contain equal elements in the same order *)
 let rec equal_lists ~(eq : 'a -> 'a -> bool) (xs : 'a list) (ys : 'a list) : bool =
   match xs, ys with
