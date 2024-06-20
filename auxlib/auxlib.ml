@@ -90,3 +90,15 @@ let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
   match list with
   | []    -> failwith "cannot reduce empty list"
   | x::xs -> List.fold_left xs ~init:x ~f
+
+
+let all_equal ~(eq : 'a -> 'a -> bool) (xs : 'a list) : bool =
+  let rec aux x ys =
+    match ys with
+    | []    -> true
+    | y::ys -> eq x y && aux x ys
+  in
+  match xs with
+  | [] -> true
+  | x::xs -> aux x xs
+
