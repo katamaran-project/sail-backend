@@ -14,12 +14,6 @@
 ** Matching statements
 *** Investigate ~stm_match_union_alt~
 ** match |> notation (enums, unions/variants)
-** ~let x :: type~ (use low level stm version)
-
-#+BEGIN_SRC coq
-  Notation "'let:' x :: τ := s1 'in' s2" := (stm_let x%string τ s1%exp s2%exp)
-    (at level 200, x at level 48, only parsing) : exp_scope.
-#+END_SRC
 
 
 
