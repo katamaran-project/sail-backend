@@ -92,6 +92,7 @@ let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
   | x::xs -> List.fold_left xs ~init:x ~f
 
 
+(* Checks if all elements in xs are equal to each other *)
 let all_equal ~(eq : 'a -> 'a -> bool) (xs : 'a list) : bool =
   let rec aux x ys =
     match ys with
