@@ -19,7 +19,7 @@ module rec Type : sig
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
-    | Record                                          (* TODO complete *)
+    | Record      of Identifier.t
     | Application of t * TypeArgument.t list
 
   val to_string : t -> string
@@ -58,7 +58,7 @@ end = struct
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
     (* | Ty_union *)                                  (* TODO add *)
-    | Record                                          (* TODO complete *)
+    | Record      of Identifier.t
     | Application of t * TypeArgument.t list
 
   let rec to_string (t : t) : string =
@@ -72,7 +72,7 @@ end = struct
     | Unit             -> "Type.Unit"
     | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
     | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
-    | Record           -> "Type.Record"
+    | Record id        -> Printf.sprintf "Type.Record(%s)" (Identifier.string_of id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs
@@ -97,7 +97,7 @@ end = struct
     | Enum id1, Enum id2 -> Identifier.equal id1 id2
     | Bitvector nexp1, Bitvector nexp2 -> NumericExpression.equal nexp1 nexp2
     | Tuple ts1, Tuple ts2 -> Auxlib.equal_lists ~eq:equal ts1 ts2
-    | Record, Record -> true
+    | Record id1, Record id2 -> Identifier.equal id1 id2
     | Application (c1, targs1), Application (c2, targs2) -> equal c1 c2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
     | _, _ -> false
 end
