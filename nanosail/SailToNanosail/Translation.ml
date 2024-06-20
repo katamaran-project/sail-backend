@@ -46,7 +46,9 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
         | DEF_overload (_, _) ->
            TC.not_yet_implemented [%here] annotation.loc
         | DEF_default _ ->
-           TC.not_yet_implemented [%here] annotation.loc
+           if Configuration.(get ignore_default_order)
+           then TC.not_yet_implemented [%here] annotation.loc
+           else TC.not_yet_implemented [%here] annotation.loc
         | DEF_scattered _ ->
            TC.not_yet_implemented [%here] annotation.loc
         | DEF_measure (_, _, _) ->

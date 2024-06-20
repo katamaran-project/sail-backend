@@ -17,6 +17,7 @@ module C = struct
     let use_list_notations                = bool     "use-list-notations"               false (* Use list notations                                                          *)
     let include_original_code             = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
     let ignore_overloads                  = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
+    let ignore_default_order              = bool     "ignore-default-order"             true
     let print_warnings                    = bool     "print-warnings"                   false
     let pretty_print_let                  = bool     "pretty-print-let"                 false
     let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
