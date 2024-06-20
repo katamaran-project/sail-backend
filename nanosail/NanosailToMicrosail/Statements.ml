@@ -112,7 +112,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     and* binding_statement_type' = Nanotype.pp_nanotype binding_statement_type
     and* body_statement'         = pp_statement body_statement
     in
-    AC.return @@ PP.(
+    if
+      Configuration.(get pretty_print_let)
+    then
+      AC.return @@ PP.(
         simple_app [
             separate space [
                 string "let:";
@@ -124,7 +127,18 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
             string "in";
             body_statement'
           ]
-      )
+        )
+    else
+      AC.return @@ PP.(
+        simple_app [
+            string "stm_let";
+            dquotes variable_identifier';
+            parens binding_statement_type';
+            parens binding_statement';
+            parens body_statement';
+          ]
+        )
+
 
   and pp_sequence_statement
       (left  : Ast.Statement.t)
