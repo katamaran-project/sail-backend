@@ -23,8 +23,7 @@ module rec Type : sig
     | Application of t * TypeArgument.t list
 
   val to_string : t -> string
-
-  val equal : t -> t -> bool
+  val equal     : t -> t -> bool
 end = struct
 (*
   should mirror
@@ -109,8 +108,7 @@ and TypeArgument : sig
     | Bool              of NumericConstraint.t
 
   val to_string : t -> string
-
-  val equal : t -> t -> bool
+  val equal     : t -> t -> bool
 end = struct
   type t =
     | Type              of Type.t
@@ -148,8 +146,7 @@ and NumericConstraint : sig
     | False
 
   val to_string : t -> string
-
-  val equal : t -> t -> bool
+  val equal     : t -> t -> bool
 end = struct
   type t =
     | Equal      of NumericExpression.t * NumericExpression.t
