@@ -142,19 +142,19 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
   match definition with
   | DEF_type type_definition       -> should_ignore_type_definition type_definition
   | DEF_fundef function_definition -> should_ignore_function_definition function_definition
-  | DEF_mapdef _                   -> _
-  | DEF_impl _                     -> _
+  | DEF_mapdef _                   -> false
+  | DEF_impl _                     -> false
   | DEF_let value_definition       -> should_ignore_value_definition value_definition
-  | DEF_val _                      -> _
-  | DEF_outcome (_, _)             -> _
-  | DEF_instantiation (_, _)       -> _
-  | DEF_fixity (_, _, _)           -> _
+  | DEF_val _                      -> false
+  | DEF_outcome (_, _)             -> false
+  | DEF_instantiation (_, _)       -> false
+  | DEF_fixity (_, _, _)           -> false
   | DEF_overload (_, _)            -> get (ignore_overloads)
   | DEF_default default_spec       -> should_ignore_default_definition default_spec
-  | DEF_scattered _                -> _
-  | DEF_measure (_, _, _)          -> _
-  | DEF_loop_measures (_, _)       -> _
-  | DEF_register _                 -> _
-  | DEF_internal_mutrec _          -> _
+  | DEF_scattered _                -> false
+  | DEF_measure (_, _, _)          -> false
+  | DEF_loop_measures (_, _)       -> false
+  | DEF_register _                 -> false
+  | DEF_internal_mutrec _          -> false
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
 
