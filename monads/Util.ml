@@ -18,6 +18,14 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
+  let flatmap ~(f : 'a -> 'b list M.t) (xs : 'a list) : 'b list M.t =
+    let rec aux xs acc =
+      match xs with
+      | []    -> M.return @@ List.concat @@ List.rev acc
+      | x::xs -> M.bind (f x) (fun x' -> aux xs (x' :: acc))
+    in
+    aux xs []
+
   let rec iter ~f xs =
     match xs with
     | []    -> M.return ()
