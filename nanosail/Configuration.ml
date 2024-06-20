@@ -135,11 +135,26 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     in
     Slang.Value.truthy result
 
+  and should_ignore_default_definition (_default_spec : default_spec) : bool =
+    get ignore_default_order
+
   in
   match definition with
-  | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
-  | DEF_fundef function_definition -> should_ignore_function_definition function_definition
   | DEF_type type_definition       -> should_ignore_type_definition type_definition
+  | DEF_fundef function_definition -> should_ignore_function_definition function_definition
+  | DEF_mapdef _                   -> _
+  | DEF_impl _                     -> _
   | DEF_let value_definition       -> should_ignore_value_definition value_definition
+  | DEF_val _                      -> _
+  | DEF_outcome (_, _)             -> _
+  | DEF_instantiation (_, _)       -> _
+  | DEF_fixity (_, _, _)           -> _
   | DEF_overload (_, _)            -> get (ignore_overloads)
-  | _                              -> false
+  | DEF_default default_spec       -> should_ignore_default_definition default_spec
+  | DEF_scattered _                -> _
+  | DEF_measure (_, _, _)          -> _
+  | DEF_loop_measures (_, _)       -> _
+  | DEF_register _                 -> _
+  | DEF_internal_mutrec _          -> _
+  | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
+
