@@ -99,7 +99,7 @@ end = struct
     | Tuple ts1               , Tuple ts2                -> Auxlib.equal_lists ~eq:equal ts1 ts2
     | Record id1              , Record id2               -> Identifier.equal id1 id2
     | Application (c1, targs1), Application (c2, targs2) -> equal c1 c2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
-    | _, _ -> false
+    | _                       , _                        -> false
 end
 
 and TypeArgument : sig
