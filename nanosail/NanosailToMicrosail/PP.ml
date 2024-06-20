@@ -117,7 +117,7 @@ let description_list (items : (document * document) list) : document =
   separate hardline @@ List.map ~f:render_item items
 
 
-let line (d : document) : document =
+let line_nl (d : document) : document =
   d ^^ hardline
 
 

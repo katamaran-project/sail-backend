@@ -140,7 +140,7 @@ let generate (register_definitions : (Sail.sail_definition * Ast.Definition.regi
     List.map ~f:extract_identifier register_definitions
   in
   let section_contents =
-    Coq.line @@ PP.(separate (twice hardline) [
+    Coq.sentence @@ PP.(separate (twice hardline) [
       reg_inductive_type @@ List.map ~f:snd register_definitions;
       no_confusion_for_reg ();
       reg_definition ();

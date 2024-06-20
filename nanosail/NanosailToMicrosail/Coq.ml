@@ -147,14 +147,14 @@ type module_flag =
   | NoFlag
 
 
-let line contents =
+let sentence contents =
   PP.(contents ^^ eol)
 
 
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.(
-      line @@ separate space @@ build_list (fun { add; addall; _ } ->
+      sentence @@ separate space @@ build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
             match flag with
@@ -170,7 +170,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
           end;
         )
     )
-  and last_line = PP.(line @@ separate space [ string "End"; string identifier ])
+  and last_line = PP.(sentence @@ separate space [ string "End"; string identifier ])
   in
   PP.indented_enclosed_lines first_line contents last_line
 
@@ -319,17 +319,17 @@ let require_imports src names =
   let first = PP.(string src ^^ space ^^ string "Require Import")
   and rest = List.map ~f:PP.string names
   in
-  PP.(line @@ hanging_list ~adaptive:false (string "From") (first :: rest))
+  PP.(sentence @@ hanging_list ~adaptive:false (string "From") (first :: rest))
 
 
 let imports names =
-  PP.(line @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
+  PP.(sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 
 let open_scopes scopes =
   let open_scope scope =
     PP.(
-      line @@ concat [
+      sentence @@ concat [
         string "Local Open Scope";
         space;
         string scope;
@@ -532,7 +532,7 @@ let finite_instance
     ]
   )
   in
-  line declaration
+  sentence declaration
 
 
 (* fields as (identifier, type) pairs *)
@@ -570,7 +570,7 @@ let record
           ]
     )
   in
-  line @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
+  sentence @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
 
 
 let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
@@ -579,7 +579,7 @@ let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
       PP.(twice space ^^ pp_identifier identifier)
     ]
   in
-  line PP.(separate hardline lines_of_code)
+  sentence PP.(separate hardline lines_of_code)
 
 
 let derive
