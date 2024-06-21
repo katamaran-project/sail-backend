@@ -102,3 +102,19 @@ let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.De
     Coq.derive_no_confusion_for variant_definition.identifier
   in
   List.map ~f:(Fn.compose generate_derivation snd) variant_definitions
+
+
+let generate_tag_match
+    ~(matched_identifier   : Ast.Identifier.t                                          )
+    ~(variant_definitions  : Ast.Definition.Type.Variant.t list                        )
+    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> PP.document * PP.document) : PP.document
+  =
+  Coq.match' (Identifier.pp_identifier matched_identifier) @@ List.map ~f:variant_case_handler variant_definitions
+
+
+let generate_constructor_match
+    ~(matched_identifier       : Ast.Identifier.t                                               )
+    ~(variant_definition       : Ast.Definition.Type.Variant.t                                  )
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document
+  =
+  Coq.match' (Identifier.pp_identifier matched_identifier) @@ List.map ~f:constructor_case_handler variant_definition.constructors
