@@ -8,16 +8,16 @@ module AC = AnnotationContext
 let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) =
   match binary_operator with
   | Plus                 -> AC.return Coq.Operator.addition
-  | Times                -> AC.return Coq.Operator.multiplication
   | Minus                -> AC.return Coq.Operator.subtraction
+  | Times                -> AC.return Coq.Operator.multiplication
   | And                  -> AC.return Coq.Operator.conjunction
   | Or                   -> AC.return Coq.Operator.disjunction
   | EqualTo              -> AC.return Coq.Operator.equality
   | NotEqualTo           -> AC.return Coq.Operator.inequality
-  | LessThanOrEqualTo    -> AC.return Coq.Operator.less_than_or_equal_to
   | LessThan             -> AC.return Coq.Operator.less_than
-  | GreaterThanOrEqualTo -> AC.return Coq.Operator.greater_than_or_equals_to
   | GreaterThan          -> AC.return Coq.Operator.greater_than
+  | LessThanOrEqualTo    -> AC.return Coq.Operator.less_than_or_equal_to
+  | GreaterThanOrEqualTo -> AC.return Coq.Operator.greater_than_or_equals_to
   | Pair                 -> AC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
   | Cons                 -> AC.not_yet_implemented [%here] (* Should not occur *)
   | Append               -> AC.not_yet_implemented [%here] (* Should not occur *)
