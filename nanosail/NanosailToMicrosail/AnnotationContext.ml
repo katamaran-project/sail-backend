@@ -43,7 +43,7 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) =
   in
   let* id = create_annotation_from_document annotation_doc
   in
-  return @@ PPrint.string (Printf.sprintf "NYI[%d]" id)
+  return @@ PPrint.string @@ Printf.sprintf "NYI[%d]" id
 
 
 let collect_annotations (f : 'a t) : 'a * annotation list =
