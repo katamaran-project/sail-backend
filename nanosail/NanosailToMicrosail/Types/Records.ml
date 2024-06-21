@@ -59,3 +59,11 @@ let generate_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition
     List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
   in
   List.map ~f:Coq.derive_eqdec_for record_identifiers
+
+
+let generate_tag_match
+    ~(matched_identifier  : Ast.Identifier.t                                         )
+    ~(record_definitions  : Ast.Definition.Type.Record.t list                        )
+    ~(record_case_handler : Ast.Definition.Type.Record.t -> PP.document * PP.document) : PP.document
+  =
+  Coq.match' (Identifier.pp_identifier matched_identifier) @@ List.map ~f:record_case_handler record_definitions
