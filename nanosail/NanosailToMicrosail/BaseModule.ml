@@ -262,6 +262,8 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
 
 let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let identifier = PP.string "union_unfold"
+  and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
+  and result_type = Some (PP.string "uniont U -> { K & Val (union_constructor_type U K) }")
   and contents =
     let matched_identifier = Ast.Identifier.mk "U"
     in
@@ -303,7 +305,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
     in
     pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
   in
-  Coq.definition ~identifier contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
