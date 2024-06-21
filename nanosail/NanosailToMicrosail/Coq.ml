@@ -8,6 +8,20 @@ module AC = AnnotationContext
 module Big_int = Nat_big_num
 
 
+module Operator = struct
+  let addition                  = PP.plus
+  let multiplication            = PP.star
+  let subtraction               = PP.minus
+  let conjunction               = PP.(twice ampersand)
+  let disjunction               = PP.(twice bar)
+  let equality                  = PP.equals
+  let inequality                = PP.(bang ^^ equals)
+  let less_than                 = PP.langle
+  let greater_than              = PP.rangle
+  let less_than_or_equal_to     = PP.(langle ^^ equals)
+  let greater_than_or_equals_to = PP.(rangle ^^ equals)
+end
+
 let eol = PP.dot
 
 let left_comment_delimiter = PP.string "(*"
