@@ -223,22 +223,25 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
     let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : PP.document * PP.document =
       let (constructor_identifier, constructor_field_types) = variant_constructor
       in
-      let n_fields = List.length constructor_field_types
-      in
       let field_variables =
         let generate_identifier index =
           PP.string @@ Printf.sprintf "x%d" index
         and indices =
-          List.range ~start:`inclusive ~stop:`inclusive 1 (List.length constructor_field_types)
+          let n_fields = List.length constructor_field_types
+          in
+          List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
         in
         List.map ~f:generate_identifier indices
       in
       let pattern =
         let fields =
-          match n_fields with
-          | 0 -> PP.string "tt"
-          | 1 -> List.hd_exn field_variables
-          | _ -> PP.(parens @@ separate (comma ^^ space) field_variables)
+          let tt = PP.string "tt"
+          in
+          match field_variables with
+          | []     -> tt
+          | [t]    -> t
+          | [_; _] -> PP.(parens @@ separate (comma ^^ space) field_variables)
+          | _      -> PP.(parens @@ separate (comma ^^ space) (tt :: field_variables))
         in
         let parts = [
           PP.string "existT";
@@ -279,10 +282,13 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
         end
       and expression =
         let tuple =
+          let tt = PP.string "tt"
+          in
           match field_names with
-          | [] -> PP.string "tt"
-          | [t] -> t
-          | _   -> PP.parens @@ PP.separate (PP.string ", ") field_names
+          | []     -> tt
+          | [t]    -> t
+          | [_; _] -> PP.parens @@ PP.separate (PP.string ", ") field_names
+          | _      -> PP.parens @@ PP.separate (PP.string ", ") (tt :: field_names)
         in
         PP.(separate space [
             string "existT";
