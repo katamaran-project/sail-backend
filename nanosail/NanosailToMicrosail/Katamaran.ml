@@ -93,21 +93,39 @@ let pretty_print ir =
   in
 
   let no_confusion =
-    let contents =
-      Coq.build_lines begin fun { line; lines; empty_line; comment } ->
-        line  @@ PP.string "Local Set Transparent Obligations.";
-        empty_line ();
-        comment @@ PP.string "NoConfusion for each enum type";
-        lines @@ Types.Enums.generate_no_confusions enum_definitions;
-        empty_line ();
-        comment @@ PP.string "NoConfusion for each variant/union type";
-        lines @@ Types.Variants.generate_no_confusions variant_definitions;
-        empty_line ();
-        comment @@ PP.string "NoConfusion for each record type";
-        lines @@ Types.Records.generate_no_confusions record_definitions;
-      end
+    let has_enums    = not @@ List.is_empty enum_definitions
+    and has_variants = not @@ List.is_empty variant_definitions
+    and has_records  = not @@ List.is_empty record_definitions
     in
-    Coq.section (Ast.Identifier.mk "TransparentObligations") contents
+    if
+      has_enums || has_variants || has_records
+    then
+      let contents =
+        Coq.build_lines begin fun { line; lines; empty_line; comment } ->
+          line  @@ PP.string "Local Set Transparent Obligations.";
+          if has_enums
+          then begin
+            empty_line ();
+            comment @@ PP.string "NoConfusion for each enum type";
+            lines @@ Types.Enums.generate_no_confusions enum_definitions;
+          end;
+          if has_variants
+          then begin
+            empty_line ();
+            comment @@ PP.string "NoConfusion for each variant/union type";
+            lines @@ Types.Variants.generate_no_confusions variant_definitions;
+          end;
+          if has_records
+          then begin
+            empty_line ();
+            comment @@ PP.string "NoConfusion for each record type";
+            lines @@ Types.Records.generate_no_confusions record_definitions;
+          end
+        end
+      in
+      Coq.section (Ast.Identifier.mk "TransparentObligations") contents
+    else
+      PP.empty
   in
 
   let eqdecs =
