@@ -5,7 +5,8 @@ open Identifier
 
 let generate_enum_finiteness
       (_sail_definition : Sail.sail_definition      )
-      (enum_definition  : Ast.Definition.Type.Enum.t) =
+      (enum_definition  : Ast.Definition.Type.Enum.t)
+  =
   let identifier = pp_identifier @@ enum_definition.identifier
   and type_name  = pp_identifier @@ enum_definition.identifier
   and values     = List.map ~f:pp_identifier enum_definition.cases
@@ -13,7 +14,7 @@ let generate_enum_finiteness
   Coq.finite_instance ~identifier ~type_name ~values
 
 
-let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
+let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -27,7 +28,7 @@ let generate_register_finiteness (register_definitions : (Sail.sail_definition *
   Coq.finite_instance ~identifier ~type_name ~values
 
 
-let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) =
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document option =
   let finite_enums =
     let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
     in
