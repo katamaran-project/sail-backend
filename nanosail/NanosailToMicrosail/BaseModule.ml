@@ -348,18 +348,18 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and includes = [ "Base" ]
     and contents =
       let sections = [
-          (* pp_typedeclkit (); *)
-          (* pp_enum_denote enum_definitions; *)
-          (* pp_union_denote variant_definitions; *)
-          (* pp_record_denote record_definitions; *)
-          (* pp_typedenotekit (); *)
-          (* pp_union_constructor variant_definitions; *)
-          (* pp_union_constructor_type variant_definitions; *)
-          (* pp_eqdec_and_finite_instances (); *)
-          (* pp_union_fold variant_definitions; *)
-          (* pp_union_unfold variant_definitions; *)
-          pp_record_field_type record_definitions;
-        ]
+        pp_typedeclkit ();
+        pp_enum_denote enum_definitions;
+        pp_union_denote variant_definitions;
+        pp_record_denote record_definitions;
+        pp_typedenotekit ();
+        pp_union_constructor variant_definitions;
+        pp_union_constructor_type variant_definitions;
+        pp_eqdec_and_finite_instances ();
+        pp_union_fold variant_definitions;
+        pp_union_unfold variant_definitions;
+        pp_record_field_type record_definitions;
+      ]
       in
       PP.(separate small_step sections)
     in
