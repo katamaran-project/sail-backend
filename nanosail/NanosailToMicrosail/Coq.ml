@@ -640,3 +640,7 @@ let build_lines (f : build_lines_context -> unit) : PP.document =
 
 let lambda parameter body =
   PP.(separate space [ string "fun"; parameter; string "=>"; align body ])
+
+
+let application f args =
+  PP.(f ^^ space ^^ align (separate space args))
