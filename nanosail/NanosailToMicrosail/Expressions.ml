@@ -5,7 +5,7 @@ open Identifier
 module AC = AnnotationContext
 
 
-let pp_infix_binOp (binary_operator : Ast.BinaryOperator.t) =
+let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) =
   match binary_operator with
   | Plus                 -> AC.return @@ PP.plus
   | Times                -> AC.return @@ PP.star
@@ -92,7 +92,7 @@ let rec pp_expression (expression : Ast.Expression.t) =
     | Cons   -> pp "bop.cons"
     | Append -> pp "bop.append"
     | _      -> begin
-        let* binop' = pp_infix_binOp binary_operator
+        let* binop' = pp_infix_binary_operation binary_operator
         in
         AC.return @@ PP.infix 2 1 binop' e1' e2'
       end
