@@ -185,6 +185,58 @@ let pp_eqdec_and_finite_instances () =
   PP.(separate_map hardline string coq_lines)
 
 
+let pp_match_variant_constructors
+    ~(matched_identifier  : Ast.Identifier.t                  )
+    ~(variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document
+  =
+  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : PP.document * PP.document =
+    let parameter_identifier = Ast.Identifier.mk "Kv"
+    in
+    let body =
+      let matched_identifier = parameter_identifier
+      and constructor_case_handler (constructor_identifier, field_types) =
+        let field_names =
+          let generate_identifier index =
+            PP.string @@ Printf.sprintf "x%d" index
+          and indices =
+            let n_fields = List.length field_types
+            in
+            List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
+          in
+          List.map ~f:generate_identifier indices
+        in
+        let pattern = PP.separate PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+            add    @@ Identifier.pp_identifier constructor_identifier;
+            addall @@ field_names
+          end
+        and expression =
+          let tuple =
+            match field_names with
+            | [] -> PP.string "tt"
+            | [t] -> t
+            | _   -> PP.parens @@ PP.separate (PP.string ", ") field_names
+          in
+          PP.(separate space [
+            string "existT";
+            Identifier.pp_identifier constructor_identifier;
+            tuple
+          ])
+        in
+        (
+          pattern,
+          expression
+        )
+      in
+      Types.Variants.generate_constructor_match ~matched_identifier ~variant_definition ~constructor_case_handler
+    in
+    (
+      Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+      Coq.lambda (Identifier.pp_identifier parameter_identifier) body
+    )
+  in
+  Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
+  
+
 let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let identifier = PP.string "union_fold"
   and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
@@ -239,6 +291,16 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
+let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+  let identifier = PP.string "union_unfold"
+  and contents =
+    let matched_identifier = Ast.Identifier.mk "U"
+    in
+    pp_match_variant_constructors ~variant_definitions ~matched_identifier
+  in
+  Coq.definition ~identifier contents
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -253,15 +315,16 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and includes = [ "Base" ]
     and contents =
       let sections = [
-          pp_typedeclkit ();
-          pp_enum_denote enum_definitions;
-          pp_union_denote variant_definitions;
-          pp_record_denote record_definitions;
-          pp_typedenotekit ();
-          pp_union_constructor variant_definitions;
-          pp_union_constructor_type variant_definitions;
-          pp_eqdec_and_finite_instances ();
-          pp_union_fold variant_definitions;
+          (* pp_typedeclkit (); *)
+          (* pp_enum_denote enum_definitions; *)
+          (* pp_union_denote variant_definitions; *)
+          (* pp_record_denote record_definitions; *)
+          (* pp_typedenotekit (); *)
+          (* pp_union_constructor variant_definitions; *)
+          (* pp_union_constructor_type variant_definitions; *)
+          (* pp_eqdec_and_finite_instances (); *)
+          (* pp_union_fold variant_definitions; *)
+          pp_union_unfold variant_definitions;
         ]
       in
       PP.(separate small_step sections)
