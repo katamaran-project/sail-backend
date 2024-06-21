@@ -308,6 +308,32 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
+let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+  let matched_identifier = Ast.Identifier.mk "R"
+  in
+  let identifier = PP.string "record_field_type"
+  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
+  and result_type = Some (PP.string "NCtx string Ty")
+  and contents =
+    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
+      let pattern =
+        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+      and expression =
+        let pp_field (field_identifier, field_type) =
+          let id = Identifier.pp_identifier field_identifier
+          and t  = AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type
+          in
+          PP.(separate space [ id; string "::"; t ])
+        in
+        Coq.list @@ List.map ~f:pp_field record_definition.fields
+      in
+      (pattern, expression)
+    in
+    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+  in
+  Coq.definition ~identifier ~parameters ~result_type contents
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -330,8 +356,9 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
           (* pp_union_constructor variant_definitions; *)
           (* pp_union_constructor_type variant_definitions; *)
           (* pp_eqdec_and_finite_instances (); *)
-          pp_union_fold variant_definitions;
-          pp_union_unfold variant_definitions;
+          (* pp_union_fold variant_definitions; *)
+          (* pp_union_unfold variant_definitions; *)
+          pp_record_field_type record_definitions;
         ]
       in
       PP.(separate small_step sections)
