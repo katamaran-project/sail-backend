@@ -44,8 +44,10 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
-  and pp_record id =
-    AC.not_yet_implemented [%here]
+  and pp_record identifier =
+    let tag = TranslationSettings.convert_record_name_to_tag identifier
+    in
+    AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
   and ty s =
     AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
