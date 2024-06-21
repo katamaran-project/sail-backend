@@ -44,6 +44,9 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
+  and pp_record id =
+    AC.not_yet_implemented [%here]
+
   and ty s =
     AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
 
@@ -53,7 +56,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Bool                             -> ty "ty.bool"
    | Int                              -> ty "int"
    | String                           -> ty "string"
-   | Record _id                       -> AC.not_yet_implemented [%here]
+   | Record id                        -> pp_record id
    | Product (t1, t2)                 -> pp_product t1 t2
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
    | Application (constructor, targs) -> pp_application constructor targs
