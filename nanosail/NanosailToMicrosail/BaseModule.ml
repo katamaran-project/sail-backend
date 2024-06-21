@@ -334,6 +334,39 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
+let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+  let matched_identifier = Ast.Identifier.mk "R"
+  in
+  let identifier = PP.string "record_fold"
+  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
+  and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp_identifier matched_identifier ]))
+  and contents =
+    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
+      let pattern =
+        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+      and expression =
+        let lambda_parameter = Ast.Identifier.mk "fields"
+        in
+        let lambda_body =
+          let arguments =
+            let f (field_identifier, _field_type) =
+              PP.string @@ Printf.sprintf "%s.[??\"%s\"]"
+                (Ast.Identifier.string_of lambda_parameter)
+                (Ast.Identifier.string_of field_identifier)
+            in
+            List.map ~f record_definition.fields
+          in
+          Coq.application (PP.string "MkCap") arguments
+        in
+        Coq.lambda (Identifier.pp_identifier lambda_parameter) lambda_body
+      in
+      (pattern, expression)
+    in
+    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+  in
+  Coq.definition ~identifier ~parameters ~result_type contents
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -348,17 +381,18 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and includes = [ "Base" ]
     and contents =
       let sections = [
-        pp_typedeclkit ();
-        pp_enum_denote enum_definitions;
-        pp_union_denote variant_definitions;
-        pp_record_denote record_definitions;
-        pp_typedenotekit ();
-        pp_union_constructor variant_definitions;
-        pp_union_constructor_type variant_definitions;
-        pp_eqdec_and_finite_instances ();
-        pp_union_fold variant_definitions;
-        pp_union_unfold variant_definitions;
-        pp_record_field_type record_definitions;
+        (* pp_typedeclkit (); *)
+        (* pp_enum_denote enum_definitions; *)
+        (* pp_union_denote variant_definitions; *)
+        (* pp_record_denote record_definitions; *)
+        (* pp_typedenotekit (); *)
+        (* pp_union_constructor variant_definitions; *)
+        (* pp_union_constructor_type variant_definitions; *)
+        (* pp_eqdec_and_finite_instances (); *)
+        (* pp_union_fold variant_definitions; *)
+        (* pp_union_unfold variant_definitions; *)
+        (* pp_record_field_type record_definitions; *)
+        pp_record_fold record_definitions;
       ]
       in
       PP.(separate small_step sections)
