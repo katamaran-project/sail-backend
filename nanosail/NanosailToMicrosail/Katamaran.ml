@@ -129,15 +129,34 @@ let pretty_print ir =
   in
 
   let eqdecs =
+    let has_enums       = not @@ List.is_empty enum_definitions
+    and has_variants    = not @@ List.is_empty variant_definitions
+    and has_records     = not @@ List.is_empty record_definitions
+    and need_separation = ref false 
+    in
     Coq.build_lines begin fun { lines; empty_line; comment; _ } ->
-      comment @@ PP.string "EqDeq for each enum type";
-      lines @@ Types.Enums.generate_eqdecs enum_definitions;
-      empty_line ();
-      comment @@ PP.string "EqDeq for each variant/union type";
-      lines @@ Types.Variants.generate_eqdecs variant_definitions;
-      empty_line ();
-      comment @@ PP.string "EqDeq for each record type";
-      lines @@ Types.Records.generate_eqdecs record_definitions;
+      if has_enums
+      then begin
+        comment @@ PP.string "EqDeq for each enum type";
+        lines @@ Types.Enums.generate_eqdecs enum_definitions;
+        need_separation := true;
+      end;
+      if has_variants
+      then begin
+        if !need_separation
+        then empty_line ();
+        comment @@ PP.string "EqDeq for each variant/union type";
+        lines @@ Types.Variants.generate_eqdecs variant_definitions;
+        need_separation := true;
+      end;
+      if has_records
+      then begin
+        if !need_separation
+        then empty_line ();
+        comment @@ PP.string "EqDeq for each record type";
+        lines @@ Types.Records.generate_eqdecs record_definitions;
+        need_separation := true;
+      end
     end
     (* EqDec.generate ir.definitions *)
   in
