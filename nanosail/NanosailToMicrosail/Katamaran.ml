@@ -168,21 +168,21 @@ let pretty_print ir =
   let sections =
     build_list @@
       fun { add; addopt; addall } -> begin
-          add    @@ prelude;
-          add    @@ PP.string "Import DefaultBase.";
-          addopt @@ pp_register_definitions;
-          addall @@ translated_type_definitions;
-          add    @@ Types.Enums.generate_tags enum_definitions;
-          addall @@ extra_variant_definitions;
-          add    @@ Types.Records.generate_tags record_definitions;
-          addopt @@ Registers.generate_noconfusions register_definitions;
-          add    @@ no_confusion;
-          add    @@ eqdecs;
-          addopt @@ finite;
+          (* add    @@ prelude; *)
+          (* add    @@ PP.string "Import DefaultBase."; *)
+          (* addopt @@ pp_register_definitions; *)
+          (* addall @@ translated_type_definitions; *)
+          (* add    @@ Types.Enums.generate_tags enum_definitions; *)
+          (* addall @@ extra_variant_definitions; *)
+          (* add    @@ Types.Records.generate_tags record_definitions; *)
+          (* addopt @@ Registers.generate_noconfusions register_definitions; *)
+          (* add    @@ no_confusion; *)
+          (* add    @@ eqdecs; *)
+          (* addopt @@ finite; *)
           add    @@ base_module;
-          add    @@ value_definitions;
-          add    @@ program;
-          add    @@ registers;
+          (* add    @@ value_definitions; *)
+          (* add    @@ program; *)
+          (* add    @@ registers; *)
         end
   in
   PP.(separate_nonempty small_step sections)
