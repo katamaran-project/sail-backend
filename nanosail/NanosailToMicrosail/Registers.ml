@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
-open Identifier
 open Auxlib
 
 module AC = AnnotationContext
@@ -17,7 +16,7 @@ let reg_inductive_type register_definitions =
   let inductive_type =
     Coq.build_inductive_type identifier typ (fun add_constructor ->
         let make_constructor (register_definition : Ast.Definition.register_definition) =
-          let identifier = pp_identifier register_definition.identifier
+          let identifier = Identifier.pp_identifier register_definition.identifier
           in
           let* register_type = Nanotype.pp_nanotype register_definition.typ
           in
@@ -72,7 +71,7 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
       in
       let inductive_type =
         Coq.build_inductive_type type_name typ (fun add_constructor ->
-            AC.iter register_names ~f:(fun name -> add_constructor @@ pp_identifier @@ translate_regname name)
+            AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp_identifier @@ translate_regname name)
           )
       in
       Option.some @@ Coq.annotate inductive_type
@@ -141,7 +140,7 @@ let obligation_tactic =
 let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
     let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
-      pp_identifier (snd pair).identifier
+      Identifier.pp_identifier (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
   in
