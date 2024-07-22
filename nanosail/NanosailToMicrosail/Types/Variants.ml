@@ -8,7 +8,7 @@ module PP = PPrint
 
 
 (* Name for the inductive type listing all variant/union types *)
-let variants_identifier = Ast.Identifier.mk "Unions"
+let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
   
 
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
@@ -72,7 +72,7 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
   let variant_definitions =
     List.map ~f:snd variant_definitions
   in
-  let identifier = Identifier.pp_identifier variants_identifier
+  let identifier = Identifier.pp_identifier variants_inductive_type_identifier
   and typ = PP.string "Set"
   and tag_of_variant (variant_definition : Ast.Definition.Type.Variant.t) =
     let id = TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
@@ -128,4 +128,4 @@ let required_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definitio
   let variant_identifiers =
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
-  variants_identifier :: variant_identifiers
+  variants_inductive_type_identifier :: variant_identifiers
