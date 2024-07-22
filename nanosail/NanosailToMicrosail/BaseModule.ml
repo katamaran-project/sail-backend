@@ -467,6 +467,10 @@ let pp_memory_model () =
   Coq.section identifier content
 
 
+let pp_include_mixin () =
+  Coq.include_module (PP.string "BaseMixin")
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -501,6 +505,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_varkit_instance ();
         pp_regdeclkit register_definitions;
         pp_memory_model ();
+        pp_include_mixin ();
       ]
       in
       PP.(separate small_step sections)
