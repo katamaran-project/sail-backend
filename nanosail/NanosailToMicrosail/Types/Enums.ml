@@ -1,5 +1,4 @@
 open Base
-open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -11,11 +10,11 @@ let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
 let generate (enum_definition : Ast.Definition.Type.Enum.t) : PP.document AC.t =
-  let identifier = pp_identifier enum_definition.identifier
-  and typ = pp_identifier @@ Ast.Identifier.mk "Set"
+  let identifier = Identifier.pp_identifier enum_definition.identifier
+  and typ = Identifier.pp_identifier @@ Ast.Identifier.mk "Set"
   in
   Coq.build_inductive_type identifier typ (fun add_constructor ->
-      AC.iter ~f:add_constructor @@ List.map ~f:pp_identifier enum_definition.cases
+      AC.iter ~f:add_constructor @@ List.map ~f:Identifier.pp_identifier enum_definition.cases
     )
 
 
@@ -28,7 +27,7 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
   and tag_of_enum (enum_definition : Ast.Definition.Type.Enum.t) =
     let id = TranslationSettings.convert_enum_name_to_tag enum_definition.identifier
     in
-    pp_identifier id
+    Identifier.pp_identifier id
   in
   let inductive_type =
     Coq.build_inductive_type
