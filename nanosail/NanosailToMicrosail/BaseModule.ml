@@ -449,7 +449,11 @@ let pp_canonicals () =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
   PP.separate_map PP.hardline Coq.canonical identifiers
-  
+
+
+let pp_varkit_instance () =
+  PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
+
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
@@ -480,6 +484,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         (* pp_record_unfold record_definitions; *)
         pp_typedefkit_instance ();
         pp_canonicals ();
+        pp_varkit_instance ();
       ]
       in
       PP.(separate small_step sections)
