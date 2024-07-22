@@ -1,9 +1,6 @@
-open PPrint
 open Monads.Notations.Star(AnnotationContext)
 
-module AC = AnnotationContext
-module PP = PPrint
-
+module AC                = AnnotationContext
 module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
 module Enums             = Enums
@@ -13,7 +10,7 @@ module ExtendedType      = ExtendedType
 
 let pp_type_definition
       (original        : Sail.sail_definition )
-      (type_definition : Ast.Definition.Type.t) : document
+      (type_definition : Ast.Definition.Type.t) : PP.document
   =
   let document =
     match type_definition with
