@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Identifier
 open Statements
 open Monads.Notations.Star(AnnotationContext)
@@ -47,7 +46,7 @@ let pp_function_definition
     AC.return @@ Coq.definition ~identifier ~result_type body
   in
   let original_sail_code =
-    build_list (fun { add; _ } ->
+    Auxlib.build_list (fun { add; _ } ->
         (
           match type_constraint with
           | Some (sail_type_constraint, _) -> add sail_type_constraint
@@ -79,7 +78,7 @@ let pp_function_definitions
         (fdef, find_type_constraint function_definition.function_name))
       function_definitions
   in
-  List.map ~f:(uncurry pp_function_definition) type_and_function_pairs
+  List.map ~f:(Auxlib.uncurry pp_function_definition) type_and_function_pairs
 
 
 let pp_function_definition_kit
@@ -113,7 +112,7 @@ let pp_function_definition_kit
   in
   let contents =
     PP.separate PP.small_step (
-        build_list (fun { add; addall; _ } ->
+        Auxlib.build_list (fun { add; addall; _ } ->
             addall @@ pp_function_definitions function_definitions top_level_type_constraint_definitions;
             add fundef
           )
