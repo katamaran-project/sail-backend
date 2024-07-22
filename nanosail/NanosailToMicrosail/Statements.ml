@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Monads.Notations.Star(AnnotationContext)
 open Expressions
 open Identifier
@@ -77,7 +76,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         let matched_type =
           Identifier.pp_identifier @@ TranslationSettings.convert_enum_name_to_tag matched_type
         in
-        AC.return @@ PP.separate PP.hardline @@ build_list @@ fun { add; addall; _ } -> begin
+        AC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
           add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
           addall cases'
         end
