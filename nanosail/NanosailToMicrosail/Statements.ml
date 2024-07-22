@@ -1,13 +1,12 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
-open Expressions
 
 module AC = AnnotationContext
 
 
 let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PPrint.document AC.t =
-    let* expression' = pp_par_expression expression
+    let* expression' = Expressions.pp_par_expression expression
     in
     AC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
@@ -92,7 +91,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PPrint.document AC.t
     =
-    let* pretty_printed_arguments = AC.map ~f:pp_par_expression arguments
+    let* pretty_printed_arguments = AC.map ~f:Expressions.pp_par_expression arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
