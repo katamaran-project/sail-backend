@@ -8,7 +8,7 @@ module PP = PPrint
 
 
 (* Name for the inductive type listing all variant/union types *)
-let records_identifier = Ast.Identifier.mk "Unions"
+let records_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
 let generate (record_definition : Ast.Definition.Type.Record.t) : document AC.t =
@@ -29,7 +29,7 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
   let record_definitions =
     List.map ~f:snd record_definitions
   in
-  let identifier = Identifier.pp_identifier records_identifier
+  let identifier = Identifier.pp_identifier records_inductive_type_identifier
   and typ = PP.string "Set"
   and tag_of_record (record_definition : Ast.Definition.Type.Record.t) =
     let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
@@ -77,4 +77,4 @@ let required_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition
   let record_identifiers =
     List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
   in
-  records_identifier :: record_identifiers
+  records_inductive_type_identifier :: record_identifiers
