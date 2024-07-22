@@ -418,6 +418,32 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
+let pp_typedefkit_instance () =
+  PP.lines [
+    "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
+    "  {| unionk           := union_constructor;";
+    "     unionk_ty        := union_constructor_type;";
+    "     recordf          := string;";
+    "     recordf_ty       := record_field_type;";
+    "     unionv_fold      := union_fold;";
+    "     unionv_unfold    := union_unfold;";
+    "     recordv_fold     := record_fold;";
+    "     recordv_unfold   := record_unfold;";
+    "  |}.";
+    "Proof.";
+    "  - abstract (now intros [] []).";
+    "  - abstract (intros [] [[] x]; cbn in x;";
+    "              repeat";
+    "                match goal with";
+    "                | x: unit     |- _ => destruct x";
+    "                | x: prod _ _ |- _ => destruct x";
+    "                end; auto).";
+    "  - abstract (now intros [] []).";
+    "  - abstract (intros []; now apply env.Forall_forall).";
+    "Defined.";
+  ]
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -443,8 +469,9 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         (* pp_union_fold variant_definitions; *)
         (* pp_union_unfold variant_definitions; *)
         (* pp_record_field_type record_definitions; *)
-        pp_record_fold record_definitions;
-        pp_record_unfold record_definitions;
+        (* pp_record_fold record_definitions; *)
+        (* pp_record_unfold record_definitions; *)
+        pp_typedefkit_instance ();
       ]
       in
       PP.(separate small_step sections)
