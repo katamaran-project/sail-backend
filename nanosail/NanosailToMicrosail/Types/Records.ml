@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
-open Identifier
 
 module AC = AnnotationContext
 
@@ -13,11 +12,11 @@ let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC
   let generate_field field_identifier field_type =
     let* field_type' = Nanotype.coq_type_of_nanotype field_type
     in
-    AC.return (pp_identifier field_identifier, field_type')
+    AC.return (Identifier.pp_identifier field_identifier, field_type')
   in
-  let* identifier  = AC.return @@ pp_identifier record_definition.identifier
-  and* type_name   = AC.return @@ pp_identifier @@ Ast.Identifier.mk "Set"
-  and* constructor = AC.return @@ pp_identifier @@ Ast.Identifier.add_prefix "Mk" record_definition.identifier (* todo: allow custom name *)
+  let* identifier  = AC.return @@ Identifier.pp_identifier record_definition.identifier
+  and* type_name   = AC.return @@ Identifier.pp_identifier @@ Ast.Identifier.mk "Set"
+  and* constructor = AC.return @@ Identifier.pp_identifier @@ Ast.Identifier.add_prefix "Mk" record_definition.identifier (* todo: allow custom name *)
   and* fields      = AC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
   in
   AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
@@ -32,7 +31,7 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
   and tag_of_record (record_definition : Ast.Definition.Type.Record.t) =
     let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
     in
-    pp_identifier id
+    Identifier.pp_identifier id
   in
   let inductive_type =
     Coq.build_inductive_type
