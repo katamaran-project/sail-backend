@@ -55,7 +55,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
   in
   match typ with
    | Unit                             -> ty "unit"
-   | Bool                             -> ty "ty.bool"
+   | Bool                             -> ty "bool"
    | Int                              -> ty "int"
    | String                           -> ty "string"
    | Record id                        -> pp_record id
