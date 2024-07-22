@@ -1,5 +1,4 @@
 open Base
-open PP
 open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
@@ -25,7 +24,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
       in
       let* return_type = Nanotype.pp_nanotype function_definition.function_type.return_type
       in
-      AC.return @@
+      AC.return PP.(
           concat [
               string "Fun";
               space;
@@ -39,12 +38,13 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
                     )
                 )
             ]
+        )
     in
     AC.return (name, function_type)
   in
   let inductive_type_declaration =
-    let name = string "Fun"
-    and typ = string "PCtx -> Ty -> Set"
+    let name = PP.string "Fun"
+    and typ = PP.string "PCtx -> Ty -> Set"
     in
     Coq.build_inductive_type name typ @@ fun add_constructor -> begin
         AC.iter function_definitions ~f:(fun function_definition ->
@@ -55,9 +55,9 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
       end
   in
   let contents =
-    separate small_step [
+    PP.separate PP.small_step [
         Coq.annotate inductive_type_declaration;
-        separate_map hardline utf8string [
+        PP.separate_map PP.hardline PP.utf8string [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
             "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
             "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
