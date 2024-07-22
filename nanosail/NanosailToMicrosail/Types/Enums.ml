@@ -52,13 +52,6 @@ let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.Defin
   List.map ~f:(Fn.compose generate_derivation snd) enum_definitions
 
 
-let generate_eqdecs (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =
-  let enum_identifiers =
-    List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
-  in
-  List.map ~f:Coq.derive_eqdec_for enum_identifiers
-
-
 let required_eqdecs (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : Ast.Identifier.t list =
   let enum_identifiers =
     List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
