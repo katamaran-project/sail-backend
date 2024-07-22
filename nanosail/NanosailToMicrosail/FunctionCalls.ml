@@ -1,5 +1,4 @@
 open Base
-open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -12,7 +11,7 @@ let default_translation
   let terms =
     Auxlib.build_list @@ fun { add; addall; _ } -> begin
       add @@ PP.string "call";
-      add @@ pp_identifier function_identifier;
+      add @@ Identifier.pp_identifier function_identifier;
       addall @@ arguments
     end
   in
