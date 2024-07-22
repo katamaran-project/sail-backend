@@ -7,7 +7,7 @@ module AC = AnnotationContext
 
 
 (* Name for the inductive type listing all registers *)
-let regname_identifier = Ast.Identifier.mk "RegName"
+let regname_inductive_type_identifier = Ast.Identifier.mk "RegName"
 
 
 let reg_inductive_type register_definitions =
@@ -67,7 +67,7 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
       let register_names =
         List.map ~f:(fun (_, def) -> def.identifier) register_definitions
       in
-      let type_name = Identifier.pp_identifier regname_identifier
+      let type_name = Identifier.pp_identifier regname_inductive_type_identifier
       and typ = PP.string "Set"
       in
       let inductive_type =
@@ -177,4 +177,4 @@ let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.De
 
 
 let required_eqdecs (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
-  [ regname_identifier ]
+  [ regname_inductive_type_identifier ]
