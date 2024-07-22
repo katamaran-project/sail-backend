@@ -1,7 +1,6 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
 open Expressions
-open Identifier
 
 module AC = AnnotationContext
 
@@ -25,8 +24,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
             string "stm_match_list";
             matched';
             when_nil';
-            dquotes (pp_identifier id_head);
-            dquotes (pp_identifier id_tail);
+            dquotes (Identifier.pp_identifier id_head);
+            dquotes (Identifier.pp_identifier id_tail);
             when_cons';
           ])
       end
@@ -38,8 +37,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         AC.return @@ PP.(simple_app [
             string "stm_match_prod";
             matched';
-            dquotes (pp_identifier id_fst);
-            dquotes (pp_identifier id_snd);
+            dquotes (Identifier.pp_identifier id_fst);
+            dquotes (Identifier.pp_identifier id_snd);
             body';
           ])
       end
@@ -60,7 +59,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     | Enum { matched; matched_type; cases } -> begin
         let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list AC.t) =
           let* acc
-          and* pattern = AC.return @@ pp_identifier key
+          and* pattern = AC.return @@ Identifier.pp_identifier key
           and* clause = pp_statement data
           in
           AC.return @@ PP.(separate space [
@@ -106,7 +105,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         body_statement
       } : Ast.Statement.let_data = let_data
     in
-    let  variable_identifier'    = pp_identifier variable_identifier in
+    let  variable_identifier'    = Identifier.pp_identifier variable_identifier in
     let* binding_statement'      = pp_statement binding_statement
     and* binding_statement_type' = Nanotype.pp_nanotype binding_statement_type
     and* body_statement'         = pp_statement body_statement
@@ -149,7 +148,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
       AC.return @@ PP.(simple_app [ string "stm_seq"; left'; right' ])
 
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PPrint.document AC.t =
-    AC.return @@ PP.(simple_app [ string "stm_read_register"; pp_identifier register_identifier ])
+    AC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp_identifier register_identifier ])
 
   and pp_write_register_statement
       (register_identifier : Ast.Identifier.t)
@@ -158,8 +157,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     let* rhs' = pp_statement rhs
     in
     AC.return @@ PP.simple_app [
-      pp_identifier @@ Ast.Identifier.mk "stm_write_register";
-      pp_identifier register_identifier;
+      Identifier.pp_identifier @@ Ast.Identifier.mk "stm_write_register";
+      Identifier.pp_identifier register_identifier;
       rhs'
     ]
 
@@ -179,8 +178,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         PP.(parens (simple_app [
             string "recordpat_snoc";
             acc;
-            dquotes @@ pp_identifier field_identifier;
-            pp_identifier variable_identifier
+            dquotes @@ Identifier.pp_identifier field_identifier;
+            Identifier.pp_identifier variable_identifier
           ]))
       in
       List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
@@ -189,8 +188,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     and* body' = pp_statement body
     in
     AC.return @@ PP.simple_app [
-      pp_identifier @@ Ast.Identifier.mk "stm_match_record";
-      pp_identifier record_type_identifier;
+      Identifier.pp_identifier @@ Ast.Identifier.mk "stm_match_record";
+      Identifier.pp_identifier record_type_identifier;
       PP.parens destructured_record';
       pattern;
       body'
@@ -204,7 +203,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
     pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PPrint.document AC.t =
-    AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "fail"; PP.string message ]
+    AC.return @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "fail"; PP.string message ]
 
   in
   match statement with
