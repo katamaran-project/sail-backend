@@ -1,7 +1,6 @@
 open Base
 open Numeric
 open Monads.Notations.Star(AnnotationContext)
-open Identifier
 
 module AC = AnnotationContext
 
@@ -15,7 +14,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
   and pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    AC.return @@ PP.parens @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
+    AC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
 
   and pp_application
       (constructor    : Ast.Type.t             )
@@ -31,7 +30,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
   and pp_bitvector nexpr =
     let* nexpr' = pp_numeric_expression nexpr
     in
-    AC.return @@ PP.simple_app [ pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
+    AC.return @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
 
   and pp_enum identifier =
     let tag = TranslationSettings.convert_enum_name_to_tag identifier
@@ -50,7 +49,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
   and ty s =
-    AC.return @@ pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
+    AC.return @@ Identifier.pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
 
   in
   match typ with
