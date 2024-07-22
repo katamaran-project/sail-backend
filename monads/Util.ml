@@ -76,6 +76,14 @@ module Make (M : Sig.Monad) = struct
     | [] -> M.return ()
     | x::xs -> M.bind x (fun _ -> sequence xs)
 
+  let collect' xs =
+    let rec aux acc xs =
+      match xs with
+      | []    -> M.return @@ List.rev acc
+      | x::xs -> M.bind x @@ fun x' -> aux (x' :: acc) xs
+    in
+    aux [] xs
+
   let compose (g : 'b -> 'c M.t) (f : 'a -> 'b M.t) (x : 'a) =
     M.bind (f x) g
 end
