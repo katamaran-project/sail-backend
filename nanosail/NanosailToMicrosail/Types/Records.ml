@@ -58,13 +58,6 @@ let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.Def
   List.map ~f:(Fn.compose generate_derivation snd) record_definitions
 
 
-let generate_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
-  let record_identifiers =
-    List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
-  in
-  List.map ~f:Coq.derive_eqdec_for record_identifiers
-
-
 let generate_tag_match
     ~(matched_identifier  : Ast.Identifier.t                                         )
     ~(record_definitions  : Ast.Definition.Type.Record.t list                        )
