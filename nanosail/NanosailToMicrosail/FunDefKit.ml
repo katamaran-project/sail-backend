@@ -1,5 +1,4 @@
 open Base
-open Statements
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -36,7 +35,7 @@ let pp_function_definition
                     )
     in
     let* body =
-      pp_statement function_definition.function_body
+      Statements.pp_statement function_definition.function_body
     in
     let* extended_function_type' = Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
     in
