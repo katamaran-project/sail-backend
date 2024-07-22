@@ -459,6 +459,14 @@ let pp_regdeclkit register_definitions =
   Registers.generate_regdeclkit register_definitions
 
 
+let pp_memory_model () =
+  let identifier = Ast.Identifier.mk "MemoryModel"
+  and content =
+    Coq.comment @@ PP.string "TODO"
+  in
+  Coq.section identifier content
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -492,6 +500,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_canonicals ();
         pp_varkit_instance ();
         pp_regdeclkit register_definitions;
+        pp_memory_model ();
       ]
       in
       PP.(separate small_step sections)
