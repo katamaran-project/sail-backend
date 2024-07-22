@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -167,7 +166,7 @@ let sentence contents =
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.(
-      sentence @@ separate space @@ build_list (fun { add; addall; _ } ->
+      sentence @@ separate space @@ Auxlib.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
             match flag with
@@ -216,14 +215,14 @@ let definition
     let pp_explicit_and_implicit_parameters =
       List.concat [ pp_implicit_parameters; pp_explicit_parameters ]
     in
-    build_list @@ fun { add; _ } -> begin
+    Auxlib.build_list @@ fun { add; _ } -> begin
                       if not @@ List.is_empty parameters then add space;
                       add @@ align @@ separate space @@ pp_explicit_and_implicit_parameters
                     end
   in
   group begin
       concat begin
-          build_list begin fun { add; addall; _ } ->
+          Auxlib.build_list begin fun { add; addall; _ } ->
             add @@ string "Definition";
             add space;
             add identifier;
@@ -260,7 +259,7 @@ let match' expression cases =
     let longest_pattern_width =
       let widths = List.map ~f:(fun pattern -> PP.requirement pattern) (List.map ~f:fst cases)
       in
-      maximum (0 :: widths)
+      Auxlib.maximum (0 :: widths)
     in
     let generate_case (pattern, expression) =
       PP.(
@@ -278,7 +277,7 @@ let match' expression cases =
     PP.(string "end")
   in
   let result_lines =
-    build_list (fun { add; addall; _ } ->
+    Auxlib.build_list (fun { add; addall; _ } ->
         add    match_line;
         addall case_lines;
         add    final_line
@@ -290,7 +289,7 @@ let match' expression cases =
 let match_pair matched_expressions cases =
   let left_patterns = List.map ~f:(Fn.compose fst fst) cases
   in
-  let left_patterns_max_width = maximum (List.map ~f:PPrint.requirement left_patterns)
+  let left_patterns_max_width = Auxlib.maximum (List.map ~f:PPrint.requirement left_patterns)
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
@@ -393,7 +392,7 @@ let annotate_with_original_definitions originals translation =
   then
     PP.(
       concat begin
-        build_list begin fun { add; _ } ->
+        Auxlib.build_list begin fun { add; _ } ->
           add @@ original_sail_codes (List.map ~f:PPSail.pp_sail_definition originals);
           add hardline;
           add translation
@@ -449,7 +448,7 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
     in
     PP.(
       separate space (
-        build_list (fun { add; addall; _ } ->
+        Auxlib.build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
             addall parameters';
@@ -469,7 +468,7 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
       List.map constructors ~f:(fun (id, params, typ) ->
           PP.(
             separate space (
-              build_list (fun { add; _ } ->
+              Auxlib.build_list (fun { add; _ } ->
                   add id;
                   if requirement params > 0
                   then add params
@@ -483,14 +482,14 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
       if List.is_empty pairs
       then 0
       else
-        maximum (
+        Auxlib.maximum (
             List.map ~f:(fun (left, _) -> PP.requirement left) pairs
           )
     in
     let make_line (left, right) =
       PP.(
         (twice space) ^^ separate space (
-          build_list (fun { add; _ } ->
+          Auxlib.build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ pad_right longest_left_part left;
               if requirement right > 0
@@ -505,7 +504,7 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
     List.map ~f:make_line pairs
   in
   let result_lines =
-    build_list (fun { add; addall; _ } ->
+    Auxlib.build_list (fun { add; addall; _ } ->
         add first_line;
         addall constructor_lines
       )
