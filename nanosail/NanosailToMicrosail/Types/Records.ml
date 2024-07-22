@@ -7,6 +7,10 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
+(* Name for the inductive type listing all variant/union types *)
+let records_identifier = Ast.Identifier.mk "Unions"
+
+
 let generate (record_definition : Ast.Definition.Type.Record.t) : document AC.t =
   let generate_field field_identifier field_type =
     let* field_type' = Nanotype.coq_type_of_nanotype field_type
@@ -25,7 +29,7 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
   let record_definitions =
     List.map ~f:snd record_definitions
   in
-  let identifier = PP.string "Records"
+  let identifier = Identifier.pp_identifier records_identifier
   and typ = PP.string "Set"
   and tag_of_record (record_definition : Ast.Definition.Type.Record.t) =
     let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
@@ -67,3 +71,10 @@ let generate_tag_match
     ~(record_case_handler : Ast.Definition.Type.Record.t -> PP.document * PP.document) : PP.document
   =
   Coq.match' (Identifier.pp_identifier matched_identifier) @@ List.map ~f:record_case_handler record_definitions
+
+
+let required_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) : Ast.Identifier.t list =
+  let record_identifiers =
+    List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
+  in
+  records_identifier :: record_identifiers

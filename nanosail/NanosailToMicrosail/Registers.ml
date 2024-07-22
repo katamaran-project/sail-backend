@@ -6,6 +6,10 @@ open Auxlib
 module AC = AnnotationContext
 
 
+(* Name for the inductive type listing all registers *)
+let regname_identifier = Ast.Identifier.mk "RegName"
+
+
 let reg_inductive_type register_definitions =
   let identifier = PP.string "Reg"
   and typ = PP.string "Ty -> Set"
@@ -63,7 +67,7 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
       let register_names =
         List.map ~f:(fun (_, def) -> def.identifier) register_definitions
       in
-      let type_name = PP.string "RegName"
+      let type_name = Identifier.pp_identifier regname_identifier
       and typ = PP.string "Set"
       in
       let inductive_type =
@@ -73,6 +77,7 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
       in
       Option.some @@ Coq.annotate inductive_type
     end
+
 
 let instance_reg_eq_dec register_names =
   let cases =
@@ -97,6 +102,7 @@ let instance_reg_eq_dec register_names =
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
   )
+
 
 let reg_finite register_names =
   let enum_values =
@@ -168,3 +174,7 @@ let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.De
     Coq.section (Ast.Identifier.mk "TransparentObligations") PP.(separate hardline contents)
   in
   Some section
+
+
+let required_eqdecs (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
+  [ regname_identifier ]

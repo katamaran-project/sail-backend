@@ -120,35 +120,26 @@ let pretty_print ir =
   in
 
   let eqdecs =
-    let has_enums       = not @@ List.is_empty enum_definitions
-    and has_variants    = not @@ List.is_empty variant_definitions
-    and has_records     = not @@ List.is_empty record_definitions
-    and need_separation = ref false 
+    let eqdec_identifiers = List.concat [
+        Types.Enums.required_eqdecs enum_definitions;
+        Types.Variants.required_eqdecs variant_definitions;
+        Types.Records.required_eqdecs record_definitions;
+        Registers.required_eqdecs register_definitions;
+      ]
     in
-    Coq.build_lines begin fun { lines; empty_line; comment; _ } ->
-      if has_enums
-      then begin
-        comment @@ PP.string "EqDeq for each enum type";
-        lines @@ Types.Enums.generate_eqdecs enum_definitions;
-        need_separation := true;
-      end;
-      if has_variants
-      then begin
-        if !need_separation
-        then empty_line ();
-        comment @@ PP.string "EqDeq for each variant/union type";
-        lines @@ Types.Variants.generate_eqdecs variant_definitions;
-        need_separation := true;
-      end;
-      if has_records
-      then begin
-        if !need_separation
-        then empty_line ();
-        comment @@ PP.string "EqDeq for each record type";
-        lines @@ Types.Records.generate_eqdecs record_definitions;
-        need_separation := true;
-      end
-    end
+    let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
+    in
+    PP.separate PP.hardline coq_lines
+    (* Coq.build_lines begin fun { lines; empty_line; comment; _ } -> *)
+    (*   comment @@ PP.string "EqDeq for each enum type"; *)
+    (*   lines @@ Types.Enums.generate_eqdecs enum_definitions; *)
+    (*   empty_line (); *)
+    (*   comment @@ PP.string "EqDeq for each variant/union type"; *)
+    (*   lines @@ Types.Variants.generate_eqdecs variant_definitions; *)
+    (*   empty_line (); *)
+    (*   comment @@ PP.string "EqDeq for each record type"; *)
+    (*   lines @@ Types.Records.generate_eqdecs record_definitions; *)
+    (* end *)
     (* EqDec.generate ir.definitions *)
   in
 
@@ -159,20 +150,20 @@ let pretty_print ir =
   let sections =
     build_list @@
       fun { add; addopt; addall } -> begin
-          add    @@ prelude;
-          add    @@ PP.string "Import DefaultBase.";
-          addopt @@ pp_register_definitions;
-          addall @@ translated_type_definitions;
-          add    @@ Types.Enums.generate_tags enum_definitions;
-          addall @@ extra_variant_definitions;
-          add    @@ Types.Records.generate_tags record_definitions;
-          addopt @@ Registers.generate_noconfusions register_definitions;
-          add    @@ no_confusion;
+          (* add    @@ prelude; *)
+          (* add    @@ PP.string "Import DefaultBase."; *)
+          (* addopt @@ pp_register_definitions; *)
+          (* addall @@ translated_type_definitions; *)
+          (* add    @@ Types.Enums.generate_tags enum_definitions; *)
+          (* addall @@ extra_variant_definitions; *)
+          (* add    @@ Types.Records.generate_tags record_definitions; *)
+          (* addopt @@ Registers.generate_noconfusions register_definitions; *)
+          (* add    @@ no_confusion; *)
           add    @@ eqdecs;
-          addopt @@ finite;
-          add    @@ base_module;
-          add    @@ value_definitions;
-          add    @@ program;
+          (* addopt @@ finite; *)
+          (* add    @@ base_module; *)
+          (* add    @@ value_definitions; *)
+          (* add    @@ program; *)
         end
   in
   PP.(separate_nonempty small_step sections)

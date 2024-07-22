@@ -7,6 +7,10 @@ module AC = AnnotationContext
 module PP = PPrint
 
 
+(* Name for the inductive type listing all variant/union types *)
+let variants_identifier = Ast.Identifier.mk "Unions"
+  
+
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
@@ -68,7 +72,7 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
   let variant_definitions =
     List.map ~f:snd variant_definitions
   in
-  let identifier = PP.string "Unions"
+  let identifier = Identifier.pp_identifier variants_identifier
   and typ = PP.string "Set"
   and tag_of_variant (variant_definition : Ast.Definition.Type.Variant.t) =
     let id = TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
@@ -118,3 +122,10 @@ let generate_constructor_match
     ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document
   =
   Coq.match' (Identifier.pp_identifier matched_identifier) @@ List.map ~f:constructor_case_handler variant_definition.constructors
+
+
+let required_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : Ast.Identifier.t list =
+  let variant_identifiers =
+    List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
+  in
+  variants_identifier :: variant_identifiers
