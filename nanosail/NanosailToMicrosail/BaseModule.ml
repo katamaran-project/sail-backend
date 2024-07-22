@@ -367,6 +367,55 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
   Coq.definition ~identifier ~parameters ~result_type contents
 
 
+let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+  let matched_identifier = Ast.Identifier.mk "R"
+  in
+  let identifier = PP.string "record_unfold"
+  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
+  and result_type =
+    (* recordt R -> NamedEnv Val (record_field_type R) *)
+    let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp_identifier matched_identifier ]
+    and return_type =
+      PP.simple_app [
+        PP.string "NamedEnv";
+        PP.string "Val";
+        PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp_identifier matched_identifier ]
+      ]
+    in
+    Some (Coq.function_type [ parameter_type ] return_type)
+  and contents =
+    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
+      let pattern =
+        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+      and expression =
+        let lambda_parameter = Ast.Identifier.mk "r"
+        in
+        let lambda_body =
+          let bindings =
+            let make_binding (field_identifier, field_type) =
+              PP.parens @@ PP.separate PP.space [
+                PP.utf8string "►";
+                PP.dquotes @@ Identifier.pp_identifier field_identifier;
+                PP.utf8string "∷";
+                AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
+                PP.utf8string "↦";
+                Identifier.pp_identifier field_identifier;
+                Identifier.pp_identifier lambda_parameter
+              ]
+            in
+            List.map ~f:make_binding record_definition.fields
+          in
+          PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
+        in
+        Coq.lambda (Identifier.pp_identifier lambda_parameter) lambda_body
+      in
+      (pattern, expression)
+    in
+    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+  in
+  Coq.definition ~identifier ~parameters ~result_type contents
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -393,6 +442,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         (* pp_union_unfold variant_definitions; *)
         (* pp_record_field_type record_definitions; *)
         pp_record_fold record_definitions;
+        pp_record_unfold record_definitions;
       ]
       in
       PP.(separate small_step sections)
