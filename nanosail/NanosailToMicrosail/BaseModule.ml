@@ -393,14 +393,16 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
         let lambda_body =
           let bindings =
             let make_binding (field_identifier, field_type) =
-              PP.parens @@ PP.separate PP.space [
+              PP.separate PP.space [
                 PP.utf8string "►";
-                PP.dquotes @@ Identifier.pp_identifier field_identifier;
-                PP.utf8string "∷";
-                AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
-                PP.utf8string "↦";
-                Identifier.pp_identifier field_identifier;
-                Identifier.pp_identifier lambda_parameter
+                PP.parens @@ PP.separate PP.space [
+                  PP.dquotes @@ Identifier.pp_identifier field_identifier;
+                  PP.utf8string "∷";
+                  AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
+                  PP.utf8string "↦";
+                  Identifier.pp_identifier field_identifier;
+                  Identifier.pp_identifier lambda_parameter
+                ]
               ]
             in
             List.map ~f:make_binding record_definition.fields
