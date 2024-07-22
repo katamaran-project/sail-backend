@@ -1,5 +1,4 @@
 open Base
-open PP
 open Auxlib
 open Identifier
 open Statements
@@ -32,9 +31,9 @@ let pp_function_definition
         Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       AC.return @@ Some (
-                      hanging_list (PP.string "Stm") [
+                      PP.hanging_list (PP.string "Stm") [
                           bindings;
-                          parens result_type
+                          PP.parens result_type
                         ]
                     )
     in
@@ -89,16 +88,16 @@ let pp_function_definition_kit
   let fundef =
     let identifier = pp_identifier @@ Ast.Identifier.mk "FunDef"
     and implicit_parameters = [
-        (utf8string "Δ", None);
-        (utf8string "τ", None);
+        (PP.utf8string "Δ", None);
+        (PP.utf8string "τ", None);
       ]
     and parameters = [
-        (utf8string "f", Some (utf8string "Fun Δ τ"))
+        (PP.utf8string "f", Some (PP.utf8string "Fun Δ τ"))
       ]
-    and result_type = Some (utf8string "Stm Δ τ")
+    and result_type = Some (PP.utf8string "Stm Δ τ")
     and body =
       let matched_expression =
-        utf8string "f in Fun Δ τ return Stm Δ τ"
+        PP.utf8string "f in Fun Δ τ return Stm Δ τ"
       and cases =
         let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
           (
@@ -113,7 +112,7 @@ let pp_function_definition_kit
     Coq.definition ~identifier ~implicit_parameters ~parameters ~result_type body
   in
   let contents =
-    separate small_step (
+    PP.separate PP.small_step (
         build_list (fun { add; addall; _ } ->
             addall @@ pp_function_definitions function_definitions top_level_type_constraint_definitions;
             add fundef
