@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Monads.Notations.Star(AnnotationContext)
 open FunDefKit
 open ForeignKit
@@ -50,7 +49,7 @@ let pretty_print ir =
   in
 
   let translated_type_definitions =
-    List.map ~f:(uncurry Types.pp_type_definition) type_definitions
+    List.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
   in
 
   let pp_register_definitions =
@@ -148,7 +147,7 @@ let pretty_print ir =
   in
 
   let sections =
-    build_list @@
+    Auxlib.build_list @@
       fun { add; addopt; addall } -> begin
           (* add    @@ prelude; *)
           (* add    @@ PP.string "Import DefaultBase."; *)
