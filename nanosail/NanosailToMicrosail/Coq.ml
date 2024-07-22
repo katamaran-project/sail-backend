@@ -644,3 +644,14 @@ let lambda parameter body =
 
 let application f args =
   PP.(f ^^ space ^^ align (separate space args))
+
+
+let arrow = PP.string "->"
+
+
+let function_type parameter_types result_type =
+  PP.separate PP.space @@ Auxlib.build_list @@ fun { addall; add; _ } -> begin
+    addall parameter_types;
+    add arrow;
+    add result_type
+  end
