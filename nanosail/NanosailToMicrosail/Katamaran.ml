@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
-open ForeignKit
 
 module AC = AnnotationContext
 
@@ -20,7 +19,7 @@ let pp_program_module
       Coq.sentence @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
       Coq.sentence @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
-      pp_foreign_kit;
+      ForeignKit.pp_foreign_kit;
       Coq.sentence @@ string @@ "Include ProgramMixin " ^ base_identifier;
     ])
   in
