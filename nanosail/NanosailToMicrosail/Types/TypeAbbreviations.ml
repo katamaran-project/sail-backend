@@ -9,7 +9,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
   in
   match abbreviation with
   | TA_numeric_expression (quantifier, numexpr) -> begin
-      let  identifier  = Identifier.pp_identifier identifier
+      let  identifier  = Identifier.pp identifier
       in
       let* body        = Numeric.Expression.pp numexpr
       and* parameters  = PPSail.pp_type_quantifier quantifier
@@ -18,7 +18,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
     end
 
   | TA_numeric_constraint (quantifier, numconstraint) -> begin
-      let  identifier  = Identifier.pp_identifier identifier
+      let  identifier  = Identifier.pp identifier
       in
       let* body        = Numeric.Constraint.pp numconstraint
       and* parameters  = PPSail.pp_type_quantifier quantifier
@@ -27,7 +27,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
     end
 
   | TA_alias (quantifier, typ) -> begin
-      let  identifier  = Identifier.pp_identifier identifier
+      let  identifier  = Identifier.pp identifier
       in
       let* body        = Nanotype.pp_nanotype typ
       and* parameters  = PPSail.pp_type_quantifier quantifier

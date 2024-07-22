@@ -146,8 +146,8 @@ let product v1 v2 =
 
 
 let section identifier contents =
-  let first_line = PP.(string "Section" ^^ space ^^ Identifier.pp_identifier identifier ^^ eol)
-  and last_line  = PP.(string "End" ^^ space ^^ Identifier.pp_identifier identifier ^^ eol)
+  let first_line = PP.(string "Section" ^^ space ^^ Identifier.pp identifier ^^ eol)
+  and last_line  = PP.(string "End" ^^ space ^^ Identifier.pp identifier ^^ eol)
   in
   PP.indented_enclosed_lines first_line contents last_line
 
@@ -587,7 +587,7 @@ let record
 let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   let lines_of_code = [
       PP.string "Local Obligation Tactic :=";
-      PP.(twice space ^^ Identifier.pp_identifier identifier)
+      PP.(twice space ^^ Identifier.pp identifier)
     ]
   in
   sentence PP.(separate hardline lines_of_code)
@@ -655,7 +655,7 @@ let function_type parameter_types result_type =
 
 
 let canonical identifier =
-  PP.simple_app [ PP.string "Canonical"; Identifier.pp_identifier identifier ]
+  PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
 
 
 let include_module (name : PP.document) =

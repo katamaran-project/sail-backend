@@ -21,7 +21,7 @@ let pp_kind (kind : Ast.Kind.t) =
 
 let pp_type_quantifier quantifier =
   let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = Identifier.pp_identifier identifier
+    let identifier' = Identifier.pp identifier
     in
     let* kind' = pp_kind kind
     in

@@ -15,7 +15,7 @@ let reg_inductive_type register_definitions =
   let inductive_type =
     Coq.build_inductive_type identifier typ (fun add_constructor ->
         let make_constructor (register_definition : Ast.Definition.register_definition) =
-          let identifier = Identifier.pp_identifier register_definition.identifier
+          let identifier = Identifier.pp register_definition.identifier
           in
           let* register_type = Nanotype.pp_nanotype register_definition.typ
           in
@@ -65,12 +65,12 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
       let register_names =
         List.map ~f:(fun (_, def) -> def.identifier) register_definitions
       in
-      let type_name = Identifier.pp_identifier regname_inductive_type_identifier
+      let type_name = Identifier.pp regname_inductive_type_identifier
       and typ = PP.string "Set"
       in
       let inductive_type =
         Coq.build_inductive_type type_name typ (fun add_constructor ->
-            AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp_identifier @@ translate_regname name)
+            AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
           )
       in
       Option.some @@ Coq.annotate inductive_type
@@ -139,7 +139,7 @@ let obligation_tactic =
 let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
     let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
-      Identifier.pp_identifier (snd pair).identifier
+      Identifier.pp (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
   in

@@ -13,7 +13,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
   and pp_list element_type =
     let* element_type' = pp_nanotype element_type
     in
-    AC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "ty.list"; element_type' ]
+    AC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.list"; element_type' ]
 
   and pp_application
       (constructor    : Ast.Type.t             )
@@ -29,7 +29,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
   and pp_bitvector nexpr =
     let* nexpr' = Numeric.Expression.pp nexpr
     in
-    AC.return @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
+    AC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
 
   and pp_enum identifier =
     let tag = TranslationSettings.convert_enum_name_to_tag identifier
@@ -48,7 +48,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
   and ty s =
-    AC.return @@ Identifier.pp_identifier @@ Ast.Identifier.mk @@ "ty." ^ s
+    AC.return @@ Identifier.pp @@ Ast.Identifier.mk @@ "ty." ^ s
 
   in
   match typ with

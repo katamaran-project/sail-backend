@@ -20,8 +20,8 @@ end = struct
       | Minus (x, y) -> parens_if 0 @@ PP.(concat [ pp 0 x; space; minus; space; pp 0 y ])
       | Times (x, y) -> parens_if 1 @@ PP.(concat [ pp 1 x; space; star; space; pp 1 y ])
       | Neg x        -> parens_if 2 @@ PP.(concat [ minus; pp 3 x ])
-      | Id id        -> Identifier.pp_identifier id
-      | Var id       -> Identifier.pp_identifier id
+      | Id id        -> Identifier.pp id
+      | Var id       -> Identifier.pp id
     in
     AC.return @@ pp 0 numeric_expression
 end

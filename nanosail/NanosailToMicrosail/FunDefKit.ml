@@ -7,7 +7,7 @@ module AC = AnnotationContext
 let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
       type_constraint =
-  let identifier = Identifier.pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+  let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
   let coq_definition =
     let* result_type =
@@ -83,7 +83,7 @@ let pp_function_definition_kit
       function_definitions
       top_level_type_constraint_definitions =
   let fundef =
-    let identifier = Identifier.pp_identifier @@ Ast.Identifier.mk "FunDef"
+    let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
     and implicit_parameters = [
         (PP.utf8string "Δ", None);
         (PP.utf8string "τ", None);
@@ -98,8 +98,8 @@ let pp_function_definition_kit
       and cases =
         let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
           (
-            Identifier.pp_identifier function_definition.function_name,
-            Identifier.pp_identifier @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+            Identifier.pp function_definition.function_name,
+            Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
           )
         in
         List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)

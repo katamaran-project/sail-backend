@@ -1,2 +1,2 @@
-let pp_identifier (identifier : Ast.Identifier.t) =
+let pp (identifier : Ast.Identifier.t) =
   PP.string @@ Ast.Identifier.string_of identifier

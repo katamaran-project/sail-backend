@@ -5,9 +5,9 @@ let generate_enum_finiteness
       (_sail_definition : Sail.sail_definition      )
       (enum_definition  : Ast.Definition.Type.Enum.t)
   =
-  let identifier = Identifier.pp_identifier @@ enum_definition.identifier
-  and type_name  = Identifier.pp_identifier @@ enum_definition.identifier
-  and values     = List.map ~f:Identifier.pp_identifier enum_definition.cases
+  let identifier = Identifier.pp @@ enum_definition.identifier
+  and type_name  = Identifier.pp @@ enum_definition.identifier
+  and values     = List.map ~f:Identifier.pp enum_definition.cases
   in
   Coq.finite_instance ~identifier ~type_name ~values
 
@@ -19,9 +19,9 @@ let generate_register_finiteness (register_definitions : (Sail.sail_definition *
   let translated_register_identifiers =
     List.map ~f:Registers.translate_regname register_identifiers
   in
-  let identifier = Identifier.pp_identifier @@ Ast.Identifier.mk "RegName"
-  and type_name  = Identifier.pp_identifier @@ Ast.Identifier.mk "RegName"
-  and values     = List.map ~f:Identifier.pp_identifier translated_register_identifiers
+  let identifier = Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and type_name  = Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and values     = List.map ~f:Identifier.pp translated_register_identifiers
   in
   Coq.finite_instance ~identifier ~type_name ~values
 

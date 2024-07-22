@@ -41,8 +41,8 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
     in
     let denotation_pair_for enum_identifier =
       (
-        Identifier.pp_identifier @@ TranslationSettings.convert_enum_name_to_tag enum_identifier,
-        Identifier.pp_identifier enum_identifier
+        Identifier.pp @@ TranslationSettings.convert_enum_name_to_tag enum_identifier,
+        Identifier.pp enum_identifier
       )
     in
     List.map ~f:denotation_pair_for enum_identifiers
@@ -60,8 +60,8 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
     in
     let denotation_pair_for variant_identifier =
       (
-        Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
-        Identifier.pp_identifier variant_identifier
+        Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
+        Identifier.pp variant_identifier
       )
     in
     List.map ~f:denotation_pair_for variant_identifiers
@@ -79,8 +79,8 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
     in
     let denotation_pair_for record_identifier =
       (
-        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_identifier,
-        Identifier.pp_identifier record_identifier
+        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_identifier,
+        Identifier.pp record_identifier
       )
     in
     List.map ~f:denotation_pair_for record_identifiers
@@ -111,8 +111,8 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
     in
     let denotation_pair_for variant_identifier =
       (
-        Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
-        Identifier.pp_identifier @@ TranslationSettings.derive_variant_constructor_type variant_identifier
+        Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
+        Identifier.pp @@ TranslationSettings.derive_variant_constructor_type variant_identifier
       )
     in
     List.map ~f:denotation_pair_for variant_identifiers
@@ -137,7 +137,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
               let (constructor_identifier, constructor_field_types) = constructor
               in
               let pp_constructor_tag =
-                Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
+                Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
               and pp_constructor_field_types =
                 let packed_type =
                   match constructor_field_types with
@@ -158,7 +158,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
           Coq.match' (PP.string "k") constructor_cases
         in
         (
-          Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+          Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
           PP.(string "fun k => " ^^ align match_constructor_cases)
         )
       in
@@ -198,7 +198,7 @@ let pp_match_variant_constructors
     let parameter_identifier = Ast.Identifier.mk "Kv"
     in
     let pattern =
-      Identifier.pp_identifier @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
+      Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
     and expression =
       let lambda_body =
         Types.Variants.generate_constructor_match
@@ -206,7 +206,7 @@ let pp_match_variant_constructors
           ~variant_definition
           ~constructor_case_handler
       in
-      Coq.lambda (Identifier.pp_identifier parameter_identifier) lambda_body
+      Coq.lambda (Identifier.pp parameter_identifier) lambda_body
     in
     (
       pattern,
@@ -249,13 +249,13 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
         in
         let parts = [
           PP.string "existT";
-          Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+          Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
           fields
         ]
         in
         PP.(separate space parts)
       and expression =
-        PP.(separate space @@ Identifier.pp_identifier constructor_identifier :: field_variables)
+        PP.(separate space @@ Identifier.pp constructor_identifier :: field_variables)
       in
       (pattern, expression)
     in
@@ -284,7 +284,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
         List.map ~f:generate_identifier indices
       in
       let pattern = PP.separate PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-          add    @@ Identifier.pp_identifier constructor_identifier;
+          add    @@ Identifier.pp constructor_identifier;
           addall @@ field_names
         end
       and expression =
@@ -299,7 +299,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
         in
         PP.(separate space [
             string "existT";
-            Identifier.pp_identifier @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+            Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
             tuple
           ])
       in
@@ -317,15 +317,15 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_field_type"
-  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
+  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
   and result_type = Some (PP.string "NCtx string Ty")
   and contents =
     let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
       let pattern =
-        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
       and expression =
         let pp_field (field_identifier, field_type) =
-          let id = Identifier.pp_identifier field_identifier
+          let id = Identifier.pp field_identifier
           and t  = AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type
           in
           PP.(separate space [ id; string "::"; t ])
@@ -343,12 +343,12 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_fold"
-  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
-  and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp_identifier matched_identifier ]))
+  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
+  and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp matched_identifier ]))
   and contents =
     let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
       let pattern =
-        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
       and expression =
         let lambda_parameter = Ast.Identifier.mk "fields"
         in
@@ -363,7 +363,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
           in
           Coq.application (PP.string "MkCap") arguments
         in
-        Coq.lambda (Identifier.pp_identifier lambda_parameter) lambda_body
+        Coq.lambda (Identifier.pp lambda_parameter) lambda_body
       in
       (pattern, expression)
     in
@@ -376,22 +376,22 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_unfold"
-  and parameters = [ (Identifier.pp_identifier matched_identifier, Some (PP.string "recordi")) ]
+  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
   and result_type =
     (* recordt R -> NamedEnv Val (record_field_type R) *)
-    let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp_identifier matched_identifier ]
+    let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp matched_identifier ]
     and return_type =
       PP.simple_app [
         PP.string "NamedEnv";
         PP.string "Val";
-        PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp_identifier matched_identifier ]
+        PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
       ]
     in
     Some (Coq.function_type [ parameter_type ] return_type)
   and contents =
     let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
       let pattern =
-        Identifier.pp_identifier @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
       and expression =
         let lambda_parameter = Ast.Identifier.mk "r"
         in
@@ -401,12 +401,12 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
               PP.separate PP.space [
                 PP.utf8string "►";
                 PP.parens @@ PP.separate PP.space [
-                  PP.dquotes @@ Identifier.pp_identifier field_identifier;
+                  PP.dquotes @@ Identifier.pp field_identifier;
                   PP.utf8string "∷";
                   AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
                   PP.utf8string "↦";
-                  Identifier.pp_identifier field_identifier;
-                  Identifier.pp_identifier lambda_parameter
+                  Identifier.pp field_identifier;
+                  Identifier.pp lambda_parameter
                 ]
               ]
             in
@@ -414,7 +414,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
           in
           PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
         in
-        Coq.lambda (Identifier.pp_identifier lambda_parameter) lambda_body
+        Coq.lambda (Identifier.pp lambda_parameter) lambda_body
       in
       (pattern, expression)
     in

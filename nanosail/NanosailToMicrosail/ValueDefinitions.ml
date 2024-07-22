@@ -14,7 +14,7 @@ let pp_value_definition (value_definition : Ast.Definition.value_definition) : P
   let { identifier; value } : Ast.Definition.value_definition = value_definition
   in
   let definition =
-    let identifier = Identifier.pp_identifier identifier
+    let identifier = Identifier.pp identifier
     and result_type = None
     and body = pp_value value
     in
