@@ -1,6 +1,5 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
-open Auxlib
 
 module AC = AnnotationContext
 
@@ -162,7 +161,7 @@ let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.De
     not @@ List.is_empty register_definitions
   in
   let contents =
-    build_list (fun { add; _ } ->
+    Auxlib.build_list (fun { add; _ } ->
         add @@ PP.string "Local Set Transparent Obligations.";
         add @@ PP.string "";
         if has_registers
