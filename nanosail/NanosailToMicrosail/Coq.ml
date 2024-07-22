@@ -659,3 +659,7 @@ let function_type parameter_types result_type =
 
 let canonical identifier =
   PP.simple_app [ PP.string "Canonical"; Identifier.pp_identifier identifier ]
+
+
+let include_module (name : PP.document) =
+  PP.simple_app [ PP.string "Include"; name ]
