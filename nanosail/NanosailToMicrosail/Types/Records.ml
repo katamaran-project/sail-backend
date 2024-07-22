@@ -1,17 +1,15 @@
 open Base
-open PPrint
 open Monads.Notations.Star(AnnotationContext)
 open Identifier
 
 module AC = AnnotationContext
-module PP = PPrint
 
 
 (* Name for the inductive type listing all variant/union types *)
 let records_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let generate (record_definition : Ast.Definition.Type.Record.t) : document AC.t =
+let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC.t =
   let generate_field field_identifier field_type =
     let* field_type' = Nanotype.coq_type_of_nanotype field_type
     in
