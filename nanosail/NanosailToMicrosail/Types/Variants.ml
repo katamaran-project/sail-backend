@@ -1,9 +1,7 @@
 open Base
-open PPrint
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
-module PP = PPrint
 
 
 (* Name for the inductive type listing all variant/union types *)
@@ -22,7 +20,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
       in
       let ts = ts @ [ identifier' ]
       in
-      AC.return @@ separate (string " -> ") ts
+      AC.return @@ PP.separate (PP.string " -> ") ts
     in
     let* type_quantifier' =
       AC.map type_quantifier ~f:(fun (id, kind) ->
@@ -34,7 +32,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
     Coq.build_inductive_type
       identifier'
       ~parameters: type_quantifier'
-      (string "Set")
+      (PP.string "Set")
       begin
         fun add_constructor ->
         AC.iter constructors ~f:(fun (constructor, typ) ->
@@ -61,7 +59,7 @@ let generate (variant_definition : Ast.Definition.Type.Variant.t) =
   let* inductive_type = generate_inductive_type variant_definition
   and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
-  AC.return @@ PP.separate (twice hardline) [
+  AC.return @@ PP.separate (PP.twice PP.hardline) [
                    inductive_type;
                    constructors_inductive_type
                  ]
