@@ -444,6 +444,13 @@ let pp_typedefkit_instance () =
   ]
 
 
+let pp_canonicals () =
+  let identifiers =
+    List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
+  in
+  PP.separate_map PP.hardline Coq.canonical identifiers
+  
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -472,6 +479,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         (* pp_record_fold record_definitions; *)
         (* pp_record_unfold record_definitions; *)
         pp_typedefkit_instance ();
+        pp_canonicals ();
       ]
       in
       PP.(separate small_step sections)
