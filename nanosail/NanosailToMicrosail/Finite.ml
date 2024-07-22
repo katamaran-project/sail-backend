@@ -1,5 +1,4 @@
 open Base
-open Auxlib
 open Identifier
 
 
@@ -32,7 +31,7 @@ let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP
   let finite_enums =
     let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
     in
-    List.map ~f:(uncurry generate_enum_finiteness) enum_definitions
+    List.map ~f:(Auxlib.uncurry generate_enum_finiteness) enum_definitions
   and finite_registers =
     let register_definitions = Ast.(select Extract.register_definition definitions)
     in
@@ -41,7 +40,7 @@ let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP
     else Some (generate_register_finiteness register_definitions)
   in
   let finite_definitions =
-    build_list @@
+    Auxlib.build_list @@
       fun { addall; addopt; _ } -> begin
           addall finite_enums;
           addopt finite_registers;
@@ -51,7 +50,7 @@ let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP
   then None
   else begin
       let parts =
-        build_list @@
+        Auxlib.build_list @@
           fun { add; addall; _ } -> begin
               add    @@ Coq.imports [ "stdpp.finite" ];
               add    @@ Coq.local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
