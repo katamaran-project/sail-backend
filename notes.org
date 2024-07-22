@@ -7,6 +7,63 @@
 ** Base Module
 *** Eqdec
 *** Folds
+**** Record folds
+#+BEGIN_SRC coq
+  Definition record_fold (R : recordi) : NamedEnv Val (record_field_type R) -> recordt R :=
+    match R with
+    | capability =>
+
+        fun fields =>
+        MkCap
+          fields.[??"cap_permission"]
+          fields.[??"cap_begin"]
+          fields.[??"cap_end"]
+          fields.[??"cap_cursor"]
+    end%exp.
+#+END_SRC
+
+#+BEGIN_SRC coq
+  record_fold =
+  fun R : recordi =>
+  match R as R0 return (forall _ : NamedEnv Val (record_field_type R0), recordt R0) with
+  | capability =>
+      fun fields : NamedEnv Val (record_field_type capability) =>
+      {|
+        cap_permission := env.lookup fields {| ctx.in_at := 3; ctx.in_valid := eq_refl |};
+        cap_begin := env.lookup fields {| ctx.in_at := 2; ctx.in_valid := eq_refl |};
+        cap_end := env.lookup fields {| ctx.in_at := 1; ctx.in_valid := eq_refl |};
+        cap_cursor := env.lookup fields {| ctx.in_at := 0; ctx.in_valid := eq_refl |}
+      |}
+  end
+#+END_SRC
+
+**** Record unfolds
+
+#+BEGIN_SRC coq
+  Definition record_unfold (R : recordi) : recordt R -> NamedEnv Val (record_field_type R) :=
+  match R  with
+  | capability =>
+    fun c=>
+      env.nil
+        ► ("cap_permission" ∷ ty.perm ↦ cap_permission c)
+        ► ("cap_begin"      ∷ ty.addr ↦ cap_begin c)
+        ► ("cap_end"        ∷ ty.addr ↦ cap_end c)
+        ► ("cap_cursor"     ∷ ty.addr ↦ cap_cursor c)
+  end%env.
+#+END_SRC
+
+#+BEGIN_SRC coq
+  record_unfold =
+  λ R : recordi,
+    match R as R0 return (recordt R0 → NamedEnv Val (record_field_type R0)) with
+    | capability =>
+        λ c : recordt capability, [env].["cap_permission"∷ty.perm ↦ cap_permission c]
+          .["cap_begin"∷ty.addr ↦ cap_begin c].["cap_end"∷ty.addr ↦ cap_end c].["cap_cursor"∷ty.addr ↦ 
+          cap_cursor c]
+    end
+       : ∀ R : recordi, recordt R → NamedEnv Val (record_field_type R)
+#+END_SRC
+
 *** ~record_field_type~
 *** ~typedefkit~
 *** Canonicals
@@ -14,7 +71,6 @@
 ** Matching statements
 *** Investigate ~stm_match_union_alt~
 ** match |> notation (enums, unions/variants)
-
 
 For the pattern matching on unions I suggest using https://github.com/katamaran-project/katamaran/blob/6b50d42d5fa4027be887fbd39ccadd3acd57b688/theories/Syntax/Statements.v#L181-L188
 For a union type U and scrutinee s it takes a list of alternatives altsand a well-formedness (exhaustiveness) proof alts_wf.
@@ -44,6 +100,14 @@ For a union type U and scrutinee s it takes a list of alternatives altsand a wel
     (stm_match_union_alt_list U e (cons x%alt (cons y%alt .. (cons z%alt nil) ..)) Logic.I)
       (format "'[hv' 'match:'  e  'in'  'union'  U  'with'  '/' | x  '/' | y  '/' | ..  '/' | z  '/' 'end' ']'") : exp_scope.
 #+END_SRC
+
+* Notations
+
+#+BEGIN_SRC coq
+  Notation "e .[?? x ]" := (@lookup _ _ _ e (x∷_) _)
+    (at level 2, x at level 200, only parsing).
+#+END_SRC
+
 
 
 * Types
