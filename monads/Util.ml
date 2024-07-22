@@ -1,14 +1,9 @@
 module Make (M : Sig.Monad) = struct
-  let rec collect n ~f =
+  let rec repeat n ~f =
     if n <= 0
     then M.return []
     else
-      M.bind f (fun r -> M.bind (collect (n-1) ~f) (fun rs -> M.return @@ r::rs))
-
-  let rec repeat n ~f =
-    if n <= 0
-    then M.return ()
-    else M.bind f (fun _ -> repeat (n - 1) ~f)
+      M.bind f (fun r -> M.bind (repeat (n-1) ~f) (fun rs -> M.return @@ r::rs))
 
   let map ~f xs =
     let rec aux xs acc =

@@ -18,7 +18,7 @@ let test_repeat =
   "repeat" >:: fun _ ->
     let f = repeat ~f:(IntWriter.write 1) 5
     in
-    let ((), r) = IntWriter.run f
+    let (_, r) = IntWriter.run f
     in
     assert_equal 5 r
 
