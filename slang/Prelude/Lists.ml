@@ -135,4 +135,4 @@ let initialize =
     last;
   ]
   in
-  EC.sequence definitions
+  EC.ignore @@ EC.sequence definitions

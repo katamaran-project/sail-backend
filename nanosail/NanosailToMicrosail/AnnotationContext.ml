@@ -58,6 +58,4 @@ let drop_annotations (f : 'a t) : 'a =
 
 include Monads.Util.Make(Monad)
 
-let collect = collect'
-
 let document_of_annotation (Annotation d) = d

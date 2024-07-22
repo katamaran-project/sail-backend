@@ -17,4 +17,4 @@ val drop_annotations                : 'a t -> 'a
 val map                             : f:('a -> 'b t) -> 'a list -> 'b list t
 val iter                            : f:('a -> unit t) -> 'a list -> unit t
 val lift                            : f:('a -> 'b) -> 'a t -> 'b t
-val collect                         : 'a t list -> 'a list t
+val sequence                        : 'a t list -> 'a list t

@@ -66,12 +66,7 @@ module Make (M : Sig.Monad) = struct
       end
     | [] -> M.return true
 
-  let rec sequence xs =
-    match xs with
-    | [] -> M.return ()
-    | x::xs -> M.bind x (fun _ -> sequence xs)
-
-  let collect' xs =
+  let sequence xs =
     let rec aux acc xs =
       match xs with
       | []    -> M.return @@ List.rev acc

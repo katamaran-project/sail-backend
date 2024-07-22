@@ -514,7 +514,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_include_mixin ();
       ]
       in
-      let* sections = AC.collect sections
+      let* sections = AC.sequence sections
       in
       AC.return PP.(separate small_step sections)
     in

@@ -236,7 +236,7 @@ and EvaluationContext : sig
   val iter                    : f:('a -> unit t) -> 'a list -> unit t
   val exists                  : f:('a -> bool t) -> 'a list -> bool t
   val forall                  : f:('a -> bool t) -> 'a list -> bool t
-  val sequence                : 'a t list -> unit t
+  val sequence                : 'a t list -> 'a list t
 end
 =
 struct
