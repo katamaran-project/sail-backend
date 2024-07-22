@@ -455,6 +455,10 @@ let pp_varkit_instance () =
   PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
 
 
+let pp_regdeclkit register_definitions =
+  Registers.generate_regdeclkit register_definitions
+
+
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
@@ -462,6 +466,8 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     List.map ~f:snd Ast.(select Extract.(type_definition of_variant) definitions)
   and record_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_record) definitions)
+  and register_definitions =
+    Ast.(select Extract.register_definition definitions)
   in
   begin
     let base_module_name = "UntitledBase"
@@ -485,6 +491,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_typedefkit_instance ();
         pp_canonicals ();
         pp_varkit_instance ();
+        pp_regdeclkit register_definitions;
       ]
       in
       PP.(separate small_step sections)

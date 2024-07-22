@@ -79,15 +79,6 @@ let pretty_print ir =
       )
   in
 
-  let registers =
-    if
-      List.is_empty register_definitions
-    then
-      PP.empty
-    else
-      generate_section "REGISTERS" @@ Registers.generate register_definitions
-  in
-
   let finite =
     Finite.generate ir.definitions
   in
@@ -182,7 +173,6 @@ let pretty_print ir =
           add    @@ base_module;
           (* add    @@ value_definitions; *)
           (* add    @@ program; *)
-          (* add    @@ registers; *)
         end
   in
   PP.(separate_nonempty small_step sections)
