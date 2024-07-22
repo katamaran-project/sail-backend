@@ -27,7 +27,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.parens @@ PP.simple_app (constructor' :: type_arguments')
 
   and pp_bitvector nexpr =
-    let* nexpr' = Numeric.pp_numeric_expression nexpr
+    let* nexpr' = Numeric.Expression.pp nexpr
     in
     AC.return @@ PP.simple_app [ Identifier.pp_identifier @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
 
@@ -68,7 +68,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
-    let* n' = Numeric.pp_numeric_expression n
+    let* n' = Numeric.Expression.pp n
     in
     AC.return @@ PP.(string "bv" ^^ space ^^ n')
 
@@ -101,5 +101,5 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
   match type_argument with
   | Type t              -> pp_nanotype t
-  | NumericExpression e -> Numeric.pp_numeric_expression e
-  | Bool nc             -> Numeric.pp_numeric_constraint nc
+  | NumericExpression e -> Numeric.Expression.pp e
+  | Bool nc             -> Numeric.Constraint.pp nc

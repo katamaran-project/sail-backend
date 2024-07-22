@@ -11,7 +11,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
   | TA_numeric_expression (quantifier, numexpr) -> begin
       let  identifier  = Identifier.pp_identifier identifier
       in
-      let* body        = Numeric.pp_numeric_expression numexpr
+      let* body        = Numeric.Expression.pp numexpr
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
       AC.return @@ Coq.definition ~identifier ~parameters body
@@ -20,7 +20,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
   | TA_numeric_constraint (quantifier, numconstraint) -> begin
       let  identifier  = Identifier.pp_identifier identifier
       in
-      let* body        = Numeric.pp_numeric_constraint numconstraint
+      let* body        = Numeric.Constraint.pp numconstraint
       and* parameters  = PPSail.pp_type_quantifier quantifier
       in
       AC.return @@ Coq.definition ~identifier ~parameters body

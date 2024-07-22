@@ -21,7 +21,7 @@ let addloc (numexp : S.Ast.nexp_aux) =
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
   match TC.run @@ translate_numeric_expression nexp with
   | (TC.Success nano_nexp, _) -> begin
-      let (document, _) = collect_annotations (Nanosail.NanosailToMicrosail.Numeric.pp_numeric_expression nano_nexp)
+      let (document, _) = collect_annotations (Nanosail.NanosailToMicrosail.Numeric.Expression.pp nano_nexp)
       in
       string_of_document document
     end
