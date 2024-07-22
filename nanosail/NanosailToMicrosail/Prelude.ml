@@ -1,9 +1,6 @@
-open Auxlib
-
-
 let generate_require_imports () =
   let coq_imports =
-    build_list (fun { add; _ } ->
+    Auxlib.build_list (fun { add; _ } ->
         if Configuration.(get use_list_notations) then add "Lists.List";
         add "Strings.String";
         add "ZArith.BinInt"
@@ -18,7 +15,7 @@ let generate_require_imports () =
 
 let generate_imports () =
   let imports =
-    build_list (fun { add; _ } ->
+    Auxlib.build_list (fun { add; _ } ->
         add "ctx.notations";
         add "ctx.resolution";
         if Configuration.(get use_list_notations) then add "ListNotations";
@@ -28,7 +25,7 @@ let generate_imports () =
 
 let generate_open_scopes () =
   let scopes =
-    build_list (fun { add; _ } ->
+    Auxlib.build_list (fun { add; _ } ->
         add "string_scope";
         add "list_scope";
       )
