@@ -655,3 +655,7 @@ let function_type parameter_types result_type =
     add arrow;
     add result_type
   end
+
+
+let canonical identifier =
+  PP.simple_app [ PP.string "Canonical"; Identifier.pp_identifier identifier ]
