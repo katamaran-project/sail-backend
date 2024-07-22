@@ -1,6 +1,5 @@
 open Base
 open Auxlib
-open Identifier
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
@@ -149,8 +148,8 @@ let product v1 v2 =
 
 
 let section identifier contents =
-  let first_line = PP.(string "Section" ^^ space ^^ pp_identifier identifier ^^ eol)
-  and last_line  = PP.(string "End" ^^ space ^^ pp_identifier identifier ^^ eol)
+  let first_line = PP.(string "Section" ^^ space ^^ Identifier.pp_identifier identifier ^^ eol)
+  and last_line  = PP.(string "End" ^^ space ^^ Identifier.pp_identifier identifier ^^ eol)
   in
   PP.indented_enclosed_lines first_line contents last_line
 
@@ -590,7 +589,7 @@ let record
 let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   let lines_of_code = [
       PP.string "Local Obligation Tactic :=";
-      PP.(twice space ^^ pp_identifier identifier)
+      PP.(twice space ^^ Identifier.pp_identifier identifier)
     ]
   in
   sentence PP.(separate hardline lines_of_code)
