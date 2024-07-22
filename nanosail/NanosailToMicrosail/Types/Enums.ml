@@ -2,7 +2,6 @@ open Base
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
-module PP = PPrint
 
 
 (* Name for the inductive type listing all enum types *)
