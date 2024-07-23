@@ -27,6 +27,11 @@ let pp_typedeclkit () : PP.document =
   PP.(separate_map hardline string coq_lines)
 
 
+(*
+
+   Helper function to define denote functions, such as enum_denote.
+   
+ *)
 let pp_denote_function
       ~(denotations          : (PP.document * PP.document) list)
       ~(parameter_identifier : PP.document                     )
@@ -77,12 +82,12 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
 
 (*
 
-   Generates code for union_denote, which maps union names to their types.contents
+   Generates code for union_denote, which maps union names to their types.
 
      Definition union_denote (U : Unions) : Set :=
-        match U with
-        | instruction => Instruction
-        end.
+       match U with
+       | instruction => Instruction
+       end.
 
  *)
 let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
@@ -104,6 +109,16 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+(*
+
+   Generates code for record_denote, which maps record names to their types.
+
+     Definition record_denote (R : Records) : Set :=
+       match R with
+       | capability => Capability
+       end.
+   
+ *)
 let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let denotations =
     let record_identifiers =
