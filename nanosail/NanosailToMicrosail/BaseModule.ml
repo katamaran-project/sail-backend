@@ -4,16 +4,27 @@ module AC = AnnotationContext
 open Monads.Notations.Star(AnnotationContext)
 
 
-let pp_typedeclkit () : PP.document AC.t =
+(*
+
+      #[export] Instance typedeclkit : TypeDeclKit :=
+        {|
+           enumi := Enums;
+           unioni := Unions;
+           recordi := Records;
+        |}.
+   
+ *)
+let pp_typedeclkit () : PP.document =
   let coq_lines = [
       "#[export] Instance typedeclkit : TypeDeclKit :=";
-      "  {| enumi   := Enums;";
+      "  {|";
+      "     enumi   := Enums;";
       "     unioni  := Unions;";
       "     recordi := Records;";
       "  |}.";
     ]
   in
-  AC.return PP.(separate_map hardline string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
 let pp_denote_function
@@ -34,7 +45,18 @@ let pp_denote_function
   AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
 
 
-let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document AC.t =
+(*
+
+   Generates code for enum_denote, which maps enum names to their types.
+
+      Definition enum_denote (e : Enums) : Set :=
+        match e with
+        | permission => Permission
+        | regname    => RegName
+        end.
+   
+ *)
+let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document =
   let denotations =
     let enum_identifiers =
       List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
@@ -50,10 +72,20 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document AC.t =
+(*
+
+   Generates code for union_denote, which maps union names to their types.contents
+
+     Definition union_denote (U : Unions) : Set :=
+        match U with
+        | instruction => Instruction
+        end.
+
+ *)
+let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -69,10 +101,10 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document AC.t =
+let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let denotations =
     let record_identifiers =
       List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions
@@ -88,10 +120,10 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   and tag_type_identifier  = PP.string "Records"
   and function_identifier  = PP.string "record_denote"
   in
-  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_typedenotekit () : PP.document AC.t =
+let pp_typedenotekit () : PP.document =
   let coq_lines = [
       "#[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=";
       "  {|";
@@ -101,10 +133,10 @@ let pp_typedenotekit () : PP.document AC.t =
       "  |}.";
     ]
   in
-  AC.return PP.(separate_map hardline string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
-let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document AC.t =
+let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -120,10 +152,10 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_constructor"
   in
-  pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
-let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document AC.t =
+let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let identifier  = PP.string "union_constructor_type"
   and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
   and result_type = Some (PP.string "union_constructor u -> Ty")
@@ -166,10 +198,10 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
     in
     Coq.match' matched_expression cases
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
+  Coq.definition ~identifier ~parameters ~result_type body
 
 
-let pp_eqdec_and_finite_instances () : PP.document AC.t =
+let pp_eqdec_and_finite_instances () : PP.document =
   let coq_lines = [
       "#[export] Instance eqdec_enum_denote E : EqDec (enum_denote E) :=";
       "  ltac:(destruct E; auto with typeclass_instances).";
@@ -185,14 +217,14 @@ let pp_eqdec_and_finite_instances () : PP.document AC.t =
       "  ltac:(destruct R; auto with typeclass_instances).";
     ]
   in
-  AC.return PP.(separate_map hardline string coq_lines)
+  PP.(separate_map hardline string coq_lines)
 
 
 (* Helper function for pp_union_fold and pp_union_unfold *)
 let pp_match_variant_constructors
     ~(matched_identifier  : Ast.Identifier.t                  )
     ~(variant_definitions : Ast.Definition.Type.Variant.t list)
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document AC.t
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document
   =
   let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : PP.document * PP.document =
     let parameter_identifier = Ast.Identifier.mk "Kv"
@@ -213,15 +245,14 @@ let pp_match_variant_constructors
       expression
     )
   in
-  AC.return @@ Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
+  Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
   
 
-let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document AC.t =
+let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let identifier = PP.string "union_fold"
   and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
   and result_type = Some (PP.string "{ K & Val (union_constructor_type U K) } -> uniont U")
-  in
-  let* contents =
+  and contents =
     let matched_identifier = Ast.Identifier.mk "U"
     in
     let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : PP.document * PP.document =
@@ -261,15 +292,14 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
     in
     pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document AC.t =
+let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let identifier = PP.string "union_unfold"
   and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
   and result_type = Some (PP.string "uniont U -> { K & Val (union_constructor_type U K) }")
-  in
-  let* contents =
+  and contents =
     let matched_identifier = Ast.Identifier.mk "U"
     in
     let constructor_case_handler (constructor_identifier, field_types) =
@@ -310,10 +340,10 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
     in
     pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document AC.t =
+let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_field_type"
@@ -336,10 +366,10 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
     in
     Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document AC.t =
+let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_fold"
@@ -369,10 +399,10 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
     in
     Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document AC.t =
+let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let matched_identifier = Ast.Identifier.mk "R"
   in
   let identifier = PP.string "record_unfold"
@@ -420,11 +450,11 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
     in
     Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.definition ~identifier ~parameters ~result_type contents
 
 
-let pp_typedefkit_instance () : PP.document AC.t =
-  AC.return @@ PP.lines [
+let pp_typedefkit_instance () : PP.document =
+  PP.lines [
     "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
     "  {| unionk           := union_constructor;";
     "     unionk_ty        := union_constructor_type;";
@@ -449,31 +479,31 @@ let pp_typedefkit_instance () : PP.document AC.t =
   ]
 
 
-let pp_canonicals () : PP.document AC.t =
+let pp_canonicals () : PP.document =
   let identifiers =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
-  AC.return @@ PP.separate_map PP.hardline Coq.canonical identifiers
+  PP.separate_map PP.hardline Coq.canonical identifiers
 
 
-let pp_varkit_instance () : PP.document AC.t =
-  AC.return @@ PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
+let pp_varkit_instance () : PP.document =
+  PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
 
 
-let pp_regdeclkit register_definitions : PP.document AC.t =
-  AC.return @@ Registers.generate_regdeclkit register_definitions
+let pp_regdeclkit register_definitions : PP.document =
+  Registers.generate_regdeclkit register_definitions
 
 
-let pp_memory_model () : PP.document AC.t =
+let pp_memory_model () : PP.document =
   let identifier = Ast.Identifier.mk "MemoryModel"
   and content =
     Coq.comment @@ PP.string "TODO"
   in
-  AC.return @@ Coq.section identifier content
+  Coq.section identifier content
 
 
-let pp_include_mixin () : PP.document AC.t =
-  AC.return @@ Coq.include_module (PP.string "BaseMixin")
+let pp_include_mixin () : PP.document =
+  Coq.include_module (PP.string "BaseMixin")
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document AC.t =
@@ -513,8 +543,6 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_memory_model ();
         pp_include_mixin ();
       ]
-      in
-      let* sections = AC.sequence sections
       in
       AC.return PP.(separate small_step sections)
     in
