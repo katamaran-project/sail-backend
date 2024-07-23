@@ -174,5 +174,8 @@ let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.De
   Some section
 
 
-let required_eqdecs (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
+let collect_identifiers (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
+
+let required_no_confusions = collect_identifiers
+let required_eqdecs        = collect_identifiers
