@@ -7,6 +7,7 @@ type t =
   | Id       of Identifier.t
   | Var      of Identifier.t
 
+
 let rec to_string (numeric_expression : t) =
   match numeric_expression with
   | Constant n     -> Z.to_string n
