@@ -685,16 +685,22 @@ let generation_block
     (label    : PP.document    )
     (contents : PP.document    ) : PP.document
   =
+  let position_string =
+    let filename    = position.pos_fname
+    and line_number = position.pos_lnum
+    in
+    Printf.sprintf "%s:%d" filename line_number
+  in
   let entry_block =
     inline_comment @@ PP.separate PP.space [
-      PP.string (StringOf.OCaml.position position);
-      PP.string "ENTRY";
+      PP.string "<<<<<";
+      PP.string position_string;
       label
     ]
   and exit_block =
     inline_comment @@ PP.separate PP.space [
-      PP.string (StringOf.OCaml.position position);
-      PP.string "EXIT";
+      PP.string ">>>>>";
+      PP.string position_string;
       label
     ]
   in
