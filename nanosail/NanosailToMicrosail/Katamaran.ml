@@ -55,11 +55,11 @@ let pretty_print ir =
   in
 
   let pp_enum_tags =
-    Types.Enums.generate_tags enum_definitions
+    Coq.generation_block [%here] (PP.string "Enum Tags") @@ Types.Enums.generate_tags enum_definitions
   in
 
   let pp_record_tags =
-    Types.Records.generate_tags record_definitions
+    Coq.generation_block [%here] (PP.string "Record Tags") @@ Types.Records.generate_tags record_definitions
   in
   
   let pp_variant_tags =
