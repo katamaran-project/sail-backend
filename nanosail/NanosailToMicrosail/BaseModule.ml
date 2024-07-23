@@ -156,49 +156,52 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
 
 
 let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
-  let identifier  = PP.string "union_constructor_type"
-  and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
-  and result_type = Some (PP.string "union_constructor u -> Ty")
-  and body =
-    let matched_expression = PP.string "u"
-    and cases =
-      let pp_variant_case (variant_definition : Ast.Definition.Type.Variant.t) =
-        let match_constructor_cases =
-          let constructor_cases =
-            let pp_constructor_case (constructor : Ast.Definition.Type.Variant.constructor) =
-              let (constructor_identifier, constructor_field_types) = constructor
-              in
-              let pp_constructor_tag =
-                Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
-              and pp_constructor_field_types =
-                let packed_type =
-                  match constructor_field_types with
-                  | []     -> Ast.Type.Unit
-                  | [x]    -> x
-                  | [x; y] -> Ast.Type.Product (x, y)
-                  | xs     -> Ast.Type.Tuple xs
-                in
-                AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype packed_type
-              in
-              (
-                pp_constructor_tag,
-                pp_constructor_field_types
-              )
-            in
-            List.map ~f:pp_constructor_case variant_definition.constructors
-          in
-          Coq.match' (PP.string "k") constructor_cases
-        in
-        (
-          Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
-          PP.(string "fun k => " ^^ align match_constructor_cases)
-        )
-      in
-      List.map ~f:pp_variant_case variant_definitions
+  let result =
+    let identifier  = PP.string "union_constructor_type"
+    and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
+    and result_type = Some (PP.string "union_constructor u -> Ty")
     in
-    Coq.match' matched_expression cases
+    let* body =
+      let matched_expression = PP.string "u"
+      in
+      let* cases =
+        let pp_variant_case (variant_definition : Ast.Definition.Type.Variant.t) =
+          let* match_constructor_cases =
+            let* constructor_cases =
+              let pp_constructor_case (constructor : Ast.Definition.Type.Variant.constructor) =
+                let (constructor_identifier, constructor_field_types) = constructor
+                in
+                let pp_constructor_tag =
+                  Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
+                in
+                let* pp_constructor_field_types =
+                  let packed_type =
+                    match constructor_field_types with
+                    | []     -> Ast.Type.Unit
+                    | [x]    -> x
+                    | [x; y] -> Ast.Type.Product (x, y)
+                    | xs     -> Ast.Type.Tuple xs
+                  in
+                  Nanotype.pp_nanotype packed_type
+                in
+                AC.return @@ (pp_constructor_tag, pp_constructor_field_types)
+              in
+              AC.map ~f:pp_constructor_case variant_definition.constructors
+            in
+            AC.return @@ Coq.match' (PP.string "k") constructor_cases
+          in
+          AC.return (
+            Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+            PP.(string "fun k => " ^^ align match_constructor_cases)
+          )
+        in
+        AC.map ~f:pp_variant_case variant_definitions
+      in
+      AC.return @@ Coq.match' matched_expression cases
+    in
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
   in
-  Coq.definition ~identifier ~parameters ~result_type body
+  Coq.annotate result
 
 
 let pp_eqdec_and_finite_instances () : PP.document =
