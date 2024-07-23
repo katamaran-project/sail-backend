@@ -50,6 +50,14 @@ let inline_comment comment =
     ])
 
 
+let multiline_comment comment =
+  PP.separate PP.hardline [
+    left_comment_delimiter;
+    PP.indent' comment;
+    right_comment_delimiter
+  ]
+
+
 let comment comment =
   let str = PP.string_of_document comment
   in
