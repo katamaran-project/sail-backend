@@ -2,12 +2,12 @@
 
 * TODO
 
-** Variant with unit field type should have 0 fields
-** Bitvectors
-** Base Module
-*** Eqdec
-*** Folds
-**** Record folds
+** TODO Variant with unit field type should have 0 fields
+** TODO Bitvectors
+** DONE Base Module
+*** DONE Eqdec
+*** DONE Folds
+**** DONE Record folds
 #+BEGIN_SRC coq
   Definition record_fold (R : recordi) : NamedEnv Val (record_field_type R) -> recordt R :=
     match R with
@@ -37,7 +37,7 @@
   end
 #+END_SRC
 
-**** Record unfolds
+**** DONE Record unfolds
 
 #+BEGIN_SRC coq
   Definition record_unfold (R : recordi) : recordt R -> NamedEnv Val (record_field_type R) :=
@@ -64,13 +64,13 @@
        : ∀ R : recordi, recordt R → NamedEnv Val (record_field_type R)
 #+END_SRC
 
-*** ~record_field_type~
-*** ~typedefkit~
-*** Canonicals
-** Use monads in Base Module
-** Matching statements
+*** TODO ~record_field_type~
+*** TODO ~typedefkit~
+*** DONE Canonicals
+** DONE Use monads in Base Module
+** TODO Matching statements
 *** Investigate ~stm_match_union_alt~
-** match |> notation (enums, unions/variants)
+** TODO match |> notation (enums, unions/variants)
 
 For the pattern matching on unions I suggest using https://github.com/katamaran-project/katamaran/blob/6b50d42d5fa4027be887fbd39ccadd3acd57b688/theories/Syntax/Statements.v#L181-L188
 For a union type U and scrutinee s it takes a list of alternatives altsand a well-formedness (exhaustiveness) proof alts_wf.
@@ -100,6 +100,7 @@ For a union type U and scrutinee s it takes a list of alternatives altsand a wel
     (stm_match_union_alt_list U e (cons x%alt (cons y%alt .. (cons z%alt nil) ..)) Logic.I)
       (format "'[hv' 'match:'  e  'in'  'union'  U  'with'  '/' | x  '/' | y  '/' | ..  '/' | z  '/' 'end' ']'") : exp_scope.
 #+END_SRC
+** TODO ~enum_denote~ should contain regname
 
 * Notations
 
