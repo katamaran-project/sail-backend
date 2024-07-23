@@ -118,8 +118,12 @@ let generate_constructor_match
   AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
-let required_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : Ast.Identifier.t list =
+let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : Ast.Identifier.t list =
   let variant_identifiers =
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
   variants_inductive_type_identifier :: variant_identifiers
+
+
+let required_no_confusions = collect_identifiers
+let required_eqdecs        = collect_identifiers
