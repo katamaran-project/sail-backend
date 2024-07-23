@@ -56,11 +56,13 @@ let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.Def
 
 
 let generate_tag_match
-    ~(matched_identifier  : Ast.Identifier.t                                         )
-    ~(record_definitions  : Ast.Definition.Type.Record.t list                        )
-    ~(record_case_handler : Ast.Definition.Type.Record.t -> PP.document * PP.document) : PP.document
+    ~(matched_identifier  : Ast.Identifier.t                                                )
+    ~(record_definitions  : Ast.Definition.Type.Record.t list                               )
+    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) AC.t) : PP.document AC.t
   =
-  Coq.match' (Identifier.pp matched_identifier) @@ List.map ~f:record_case_handler record_definitions
+  let* cases = AC.map ~f:record_case_handler record_definitions
+  in
+  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
 let required_eqdecs (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) : Ast.Identifier.t list =
