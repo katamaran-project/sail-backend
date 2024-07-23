@@ -99,11 +99,13 @@ let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.De
 
 
 let generate_tag_match
-    ~(matched_identifier   : Ast.Identifier.t                                          )
-    ~(variant_definitions  : Ast.Definition.Type.Variant.t list                        )
-    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> PP.document * PP.document) : PP.document
+    ~(matched_identifier   : Ast.Identifier.t                                                 )
+    ~(variant_definitions  : Ast.Definition.Type.Variant.t list                               )
+    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> (PP.document * PP.document) AC.t) : PP.document AC.t
   =
-  Coq.match' (Identifier.pp matched_identifier) @@ List.map ~f:variant_case_handler variant_definitions
+  let* cases = AC.map ~f:variant_case_handler variant_definitions
+  in
+  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
 let generate_constructor_match
