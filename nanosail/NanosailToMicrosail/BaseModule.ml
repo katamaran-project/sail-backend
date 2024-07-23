@@ -227,234 +227,253 @@ let pp_eqdec_and_finite_instances () : PP.document =
 let pp_match_variant_constructors
     ~(matched_identifier  : Ast.Identifier.t                  )
     ~(variant_definitions : Ast.Definition.Type.Variant.t list)
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) AC.t) : PP.document AC.t
   =
-  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : PP.document * PP.document =
+  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : (PP.document * PP.document) AC.t =
     let parameter_identifier = Ast.Identifier.mk "Kv"
     in
     let pattern =
       Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
-    and expression =
-      let lambda_body =
+    in
+    let* expression =
+      let* lambda_body =
         Types.Variants.generate_constructor_match
           ~matched_identifier:parameter_identifier
           ~variant_definition
           ~constructor_case_handler
       in
-      Coq.lambda (Identifier.pp parameter_identifier) lambda_body
+      AC.return @@ Coq.lambda (Identifier.pp parameter_identifier) lambda_body
     in
-    (
-      pattern,
-      expression
-    )
+    AC.return (pattern, expression)
   in
   Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
   
 
 let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
-  let identifier = PP.string "union_fold"
-  and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
-  and result_type = Some (PP.string "{ K & Val (union_constructor_type U K) } -> uniont U")
-  and contents =
-    let matched_identifier = Ast.Identifier.mk "U"
+  let result =
+    let identifier = PP.string "union_fold"
+    and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
+    and result_type = Some (PP.string "{ K & Val (union_constructor_type U K) } -> uniont U")
     in
-    let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : PP.document * PP.document =
-      let (constructor_identifier, constructor_field_types) = variant_constructor
+    let* contents =
+      let matched_identifier = Ast.Identifier.mk "U"
       in
-      let field_variables =
-        let generate_identifier index =
-          PP.string @@ Printf.sprintf "x%d" index
-        and indices =
-          let n_fields = List.length constructor_field_types
+      let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : (PP.document * PP.document) AC.t =
+        let (constructor_identifier, constructor_field_types) = variant_constructor
+        in
+        let field_variables =
+          let generate_identifier index =
+            PP.string @@ Printf.sprintf "x%d" index
+          and indices =
+            let n_fields = List.length constructor_field_types
+            in
+            List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
           in
-          List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
+          List.map ~f:generate_identifier indices
         in
-        List.map ~f:generate_identifier indices
-      in
-      let pattern =
-        let fields =
-          let tt = PP.string "tt"
+        let pattern =
+          let fields =
+            let tt = PP.string "tt"
+            in
+            match field_variables with
+            | []     -> tt
+            | [t]    -> t
+            | [_; _] -> PP.(parens @@ separate (comma ^^ space) field_variables)
+            | _      -> PP.(parens @@ separate (comma ^^ space) (tt :: field_variables))
           in
-          match field_variables with
-          | []     -> tt
-          | [t]    -> t
-          | [_; _] -> PP.(parens @@ separate (comma ^^ space) field_variables)
-          | _      -> PP.(parens @@ separate (comma ^^ space) (tt :: field_variables))
+          let parts = [
+            PP.string "existT";
+            Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+            fields
+          ]
+          in
+          PP.(separate space parts)
+        and expression =
+          PP.(separate space @@ Identifier.pp constructor_identifier :: field_variables)
         in
-        let parts = [
-          PP.string "existT";
-          Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
-          fields
-        ]
-        in
-        PP.(separate space parts)
-      and expression =
-        PP.(separate space @@ Identifier.pp constructor_identifier :: field_variables)
+        AC.return (pattern, expression)
       in
-      (pattern, expression)
+      pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.annotate result
 
 
 let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
-  let identifier = PP.string "union_unfold"
-  and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
-  and result_type = Some (PP.string "uniont U -> { K & Val (union_constructor_type U K) }")
-  and contents =
-    let matched_identifier = Ast.Identifier.mk "U"
+  let result =
+    let identifier = PP.string "union_unfold"
+    and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
+    and result_type = Some (PP.string "uniont U -> { K & Val (union_constructor_type U K) }")
     in
-    let constructor_case_handler (constructor_identifier, field_types) =
-      let field_names =
-        let generate_identifier index =
-          PP.string @@ Printf.sprintf "x%d" index
-        and indices =
-          let n_fields = List.length field_types
-          in
-          List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
-        in
-        List.map ~f:generate_identifier indices
+    let* contents =
+      let matched_identifier = Ast.Identifier.mk "U"
       in
-      let pattern = PP.separate PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-          add    @@ Identifier.pp constructor_identifier;
-          addall @@ field_names
-        end
-      and expression =
-        let tuple =
-          let tt = PP.string "tt"
+      let constructor_case_handler (constructor_identifier, field_types) : (PP.document * PP.document) AC.t =
+        let field_names =
+          let generate_identifier index =
+            PP.string @@ Printf.sprintf "x%d" index
+          and indices =
+            let n_fields = List.length field_types
+            in
+            List.range ~start:`inclusive ~stop:`inclusive 1 n_fields
           in
-          match field_names with
-          | []     -> tt
-          | [t]    -> t
-          | [_; _] -> PP.parens @@ PP.separate (PP.string ", ") field_names
-          | _      -> PP.parens @@ PP.separate (PP.string ", ") (tt :: field_names)
+          List.map ~f:generate_identifier indices
         in
-        PP.(separate space [
-            string "existT";
-            Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
-            tuple
-          ])
+        let pattern = PP.separate PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+            add    @@ Identifier.pp constructor_identifier;
+            addall @@ field_names
+          end
+        and expression =
+          let tuple =
+            let tt = PP.string "tt"
+            in
+            match field_names with
+            | []     -> tt
+            | [t]    -> t
+            | [_; _] -> PP.parens @@ PP.separate (PP.string ", ") field_names
+            | _      -> PP.parens @@ PP.separate (PP.string ", ") (tt :: field_names)
+          in
+          PP.(separate space [
+              string "existT";
+              Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+              tuple
+            ])
+        in
+        AC.return (pattern, expression)
       in
-      (
-        pattern,
-        expression
-      )
+      pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.annotate result
 
 
 let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
-  let matched_identifier = Ast.Identifier.mk "R"
-  in
-  let identifier = PP.string "record_field_type"
-  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
-  and result_type = Some (PP.string "NCtx string Ty")
-  and contents =
-    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
-      let pattern =
-        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
-      and expression =
-        let pp_field (field_identifier, field_type) =
-          let id = Identifier.pp field_identifier
-          and t  = AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type
-          in
-          PP.(separate space [ id; string "::"; t ])
-        in
-        Coq.list @@ List.map ~f:pp_field record_definition.fields
-      in
-      (pattern, expression)
+  let result =
+    let matched_identifier = Ast.Identifier.mk "R"
     in
-    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    let identifier = PP.string "record_field_type"
+    and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
+    and result_type = Some (PP.string "NCtx string Ty")
+    in
+    let* contents =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+        let pattern =
+          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        in
+        let* expression =
+          let pp_field (field_identifier, field_type) =
+            let id = Identifier.pp field_identifier
+            in
+            let* t = Nanotype.pp_nanotype field_type
+            in
+            AC.return PP.(separate space [ id; string "::"; t ])
+          in
+          let* fields = AC.map ~f:pp_field record_definition.fields
+          in
+          AC.return @@ Coq.list fields
+        in
+        AC.return (pattern, expression)
+      in
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    in
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.definition ~identifier ~parameters ~result_type contents
+  Coq.annotate result
 
 
 let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
-  let matched_identifier = Ast.Identifier.mk "R"
-  in
-  let identifier = PP.string "record_fold"
-  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
-  and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp matched_identifier ]))
-  and contents =
-    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
-      let pattern =
-        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
-      and expression =
-        let lambda_parameter = Ast.Identifier.mk "fields"
-        in
-        let lambda_body =
-          let arguments =
-            let f (field_identifier, _field_type) =
-              PP.string @@ Printf.sprintf "%s.[??\"%s\"]"
-                (Ast.Identifier.string_of lambda_parameter)
-                (Ast.Identifier.string_of field_identifier)
-            in
-            List.map ~f record_definition.fields
-          in
-          Coq.application (PP.string "MkCap") arguments
-        in
-        Coq.lambda (Identifier.pp lambda_parameter) lambda_body
-      in
-      (pattern, expression)
+  let result =
+    let matched_identifier = Ast.Identifier.mk "R"
     in
-    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    let identifier = PP.string "record_fold"
+    and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
+    and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp matched_identifier ]))
+    in
+    let* contents =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+        let pattern =
+          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        and expression =
+          let lambda_parameter = Ast.Identifier.mk "fields"
+          in
+          let lambda_body =
+            let arguments =
+              let f (field_identifier, _field_type) =
+                PP.string @@ Printf.sprintf "%s.[??\"%s\"]"
+                  (Ast.Identifier.string_of lambda_parameter)
+                  (Ast.Identifier.string_of field_identifier)
+              in
+              List.map ~f record_definition.fields
+            in
+            Coq.application (PP.string "MkCap") arguments
+          in
+          Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+        in
+        AC.return (pattern, expression)
+      in
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    in
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.definition ~identifier ~parameters ~result_type contents
-
+  Coq.annotate result
+    
 
 let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
-  let matched_identifier = Ast.Identifier.mk "R"
-  in
-  let identifier = PP.string "record_unfold"
-  and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
-  and result_type =
-    (* recordt R -> NamedEnv Val (record_field_type R) *)
-    let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp matched_identifier ]
-    and return_type =
-      PP.simple_app [
-        PP.string "NamedEnv";
-        PP.string "Val";
-        PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
-      ]
+  let result =
+    let matched_identifier = Ast.Identifier.mk "R"
     in
-    Some (Coq.function_type [ parameter_type ] return_type)
-  and contents =
-    let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : PP.document * PP.document =
-      let pattern =
-        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
-      and expression =
-        let lambda_parameter = Ast.Identifier.mk "r"
-        in
-        let lambda_body =
-          let bindings =
-            let make_binding (field_identifier, field_type) =
-              PP.separate PP.space [
-                PP.utf8string "►";
-                PP.parens @@ PP.separate PP.space [
-                  PP.dquotes @@ Identifier.pp field_identifier;
-                  PP.utf8string "∷";
-                  AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
-                  PP.utf8string "↦";
-                  Identifier.pp field_identifier;
-                  Identifier.pp lambda_parameter
-                ]
-              ]
-            in
-            List.map ~f:make_binding record_definition.fields
-          in
-          PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
-        in
-        Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+    let identifier = PP.string "record_unfold"
+    and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
+    and result_type =
+      (* recordt R -> NamedEnv Val (record_field_type R) *)
+      let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp matched_identifier ]
+      and return_type =
+        PP.simple_app [
+          PP.string "NamedEnv";
+          PP.string "Val";
+          PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
+        ]
       in
-      (pattern, expression)
+      Some (Coq.function_type [ parameter_type ] return_type)
     in
-    Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    let* contents =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+        let pattern =
+          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+        and expression =
+          let lambda_parameter = Ast.Identifier.mk "r"
+          in
+          let lambda_body =
+            let bindings =
+              let make_binding (field_identifier, field_type) =
+                PP.separate PP.space [
+                  PP.utf8string "►";
+                  PP.parens @@ PP.separate PP.space [
+                    PP.dquotes @@ Identifier.pp field_identifier;
+                    PP.utf8string "∷";
+                    AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
+                    PP.utf8string "↦";
+                    Identifier.pp field_identifier;
+                    Identifier.pp lambda_parameter
+                  ]
+                ]
+              in
+              List.map ~f:make_binding record_definition.fields
+            in
+            PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
+          in
+          Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+        in
+        AC.return (pattern, expression)
+      in
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+    in
+    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.definition ~identifier ~parameters ~result_type contents
-
+  Coq.annotate result
+    
 
 let pp_typedefkit_instance () : PP.document =
   PP.lines [
