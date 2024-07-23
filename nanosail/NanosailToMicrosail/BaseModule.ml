@@ -442,29 +442,32 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
         let pattern =
           Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
-        and expression =
+        in
+        let* expression =
           let lambda_parameter = Ast.Identifier.mk "r"
           in
-          let lambda_body =
-            let bindings =
+          let* lambda_body =
+            let* bindings =
               let make_binding (field_identifier, field_type) =
-                PP.separate PP.space [
+                let* field_type' = Nanotype.pp_nanotype field_type
+                in
+                AC.return @@ PP.separate PP.space [
                   PP.utf8string "►";
                   PP.parens @@ PP.separate PP.space [
                     PP.dquotes @@ Identifier.pp field_identifier;
                     PP.utf8string "∷";
-                    AnnotationContext.drop_annotations @@ Nanotype.pp_nanotype field_type;
+                    field_type';
                     PP.utf8string "↦";
                     Identifier.pp field_identifier;
                     Identifier.pp lambda_parameter
                   ]
                 ]
               in
-              List.map ~f:make_binding record_definition.fields
+              AC.map ~f:make_binding record_definition.fields
             in
-            PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
+            AC.return PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
           in
-          Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+          AC.return @@ Coq.lambda (Identifier.pp lambda_parameter) lambda_body
         in
         AC.return (pattern, expression)
       in
