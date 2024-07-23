@@ -87,43 +87,16 @@ let pretty_print ir =
   in
 
   let pp_no_confusion =
-    let has_enums    = not @@ List.is_empty enum_definitions
-    and has_variants = not @@ List.is_empty variant_definitions
-    and has_records  = not @@ List.is_empty record_definitions
+    let eqdec_identifiers = List.concat [
+        Types.Enums.required_no_confusions enum_definitions;
+        Types.Variants.required_no_confusions variant_definitions;
+        Types.Records.required_no_confusions record_definitions;
+        Registers.required_no_confusions register_definitions;
+      ]
     in
-    if
-      has_enums || has_variants || has_records
-    then
-      let contents =
-        Coq.build_lines begin fun { line; lines; empty_line; comment } ->
-          line  @@ PP.string "Local Set Transparent Obligations.";
-          if has_enums
-          then begin
-            empty_line ();
-            comment @@ PP.string "NoConfusion for each enum type";
-            lines @@ Types.Enums.generate_no_confusions enum_definitions;
-          end;
-          if has_variants
-          then begin
-            empty_line ();
-            comment @@ PP.string "NoConfusion for each variant/union type";
-            lines @@ Types.Variants.generate_no_confusions variant_definitions;
-          end;
-          if has_records
-          then begin
-            empty_line ();
-            comment @@ PP.string "NoConfusion for each record type";
-            lines @@ Types.Records.generate_no_confusions record_definitions;
-          end
-        end
-      in
-      Coq.section (Ast.Identifier.mk "TransparentObligations") contents
-    else
-      PP.empty
-  in
-
-  let pp_register_no_confusions =
-    Registers.generate_noconfusions register_definitions
+    let coq_lines = List.map ~f:Coq.derive_no_confusion_for eqdec_identifiers
+    in
+    PP.separate PP.hardline coq_lines
   in
 
   let pp_eqdecs =
@@ -152,7 +125,6 @@ let pretty_print ir =
           add    @@ pp_enum_tags;
           add    @@ pp_variant_tags;
           add    @@ pp_record_tags;
-          addopt @@ pp_register_no_confusions;
           add    @@ pp_no_confusion;
           add    @@ pp_eqdecs;
           addopt @@ pp_finite;
