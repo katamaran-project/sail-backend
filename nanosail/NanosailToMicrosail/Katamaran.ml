@@ -137,7 +137,6 @@ let pretty_print ir =
     Auxlib.build_list @@
       fun { add; addopt; addall } -> begin
           add    @@ prelude;
-          add    @@ PP.string "Import DefaultBase.";
           addopt @@ pp_register_definitions;
           addall @@ translated_type_definitions;
           add    @@ Types.Enums.generate_tags enum_definitions;

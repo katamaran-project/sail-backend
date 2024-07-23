@@ -46,10 +46,15 @@ let generate_definitions () =
   PP.(separate hardline definitions)
 
 
+let generate_import_default_base () =
+  PP.string "Import DefaultBase."
+    
+
 let generate () =
   PP.(separate (twice hardline) [
       generate_require_imports ();
       generate_imports ();
       generate_open_scopes ();
       generate_definitions ();
+      generate_import_default_base ();
     ])
