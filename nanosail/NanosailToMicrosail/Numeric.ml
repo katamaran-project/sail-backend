@@ -5,10 +5,10 @@ module AC = AnnotationContext
 
 
 module rec Expression : sig
-  val pp : Ast.NumericExpression.t -> PP.document AC.t
+  val pp : Ast.Numeric.Expression.t -> PP.document AC.t
 end = struct                                        
-  let pp (numeric_expression : Ast.NumericExpression.t) =
-    let rec pp level (numexp : Ast.NumericExpression.t) =
+  let pp (numeric_expression : Ast.Numeric.Expression.t) =
+    let rec pp level (numexp : Ast.Numeric.Expression.t) =
       let parens_if lvl doc =
         if level <= lvl
         then doc
@@ -27,9 +27,9 @@ end = struct
 end
 
 and Constraint : sig
-  val pp : Ast.NumericConstraint.t -> PP.document AC.t
+  val pp : Ast.Numeric.Constraint.t -> PP.document AC.t
 end = struct                                        
- let pp (numeric_constraint : Ast.NumericConstraint.t) =
+ let pp (numeric_constraint : Ast.Numeric.Constraint.t) =
    match numeric_constraint with
    | True                -> AC.return @@ PP.string "true"
    | False               -> AC.return @@ PP.string "false"

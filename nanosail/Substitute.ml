@@ -3,7 +3,7 @@ open Base
 
 module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nexp : Ast.NumericExpression.t) =
+    let rec aux (nexp : Ast.Numeric.Expression.t) =
       match nexp with
       | Constant _           -> nexp
       | Add (left, right)    -> Add (aux left, aux right)
@@ -43,7 +43,7 @@ module Subst = struct
     aux
 
   and numeric_constraint (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nconstr : Ast.NumericConstraint.t) : Ast.NumericConstraint.t =
+    let rec aux (nconstr : Ast.Numeric.Constraint.t) : Ast.Numeric.Constraint.t =
       match nconstr with
       | Equal     (left, right)  -> Equal     (numeric_expression subst left, numeric_expression subst right)
       | BoundedGE (left, right)  -> BoundedGE (numeric_expression subst left, numeric_expression subst right)
@@ -164,7 +164,7 @@ let generic_sanitize
 module Sanitize = struct
   let numeric_expression
       (type_quantifier    : Ast.Definition.type_quantifier)
-      (numeric_expression : Ast.NumericExpression.t       ) =
+      (numeric_expression : Ast.Numeric.Expression.t      ) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_expression
@@ -173,7 +173,7 @@ module Sanitize = struct
 
   let numeric_constraint
       (type_quantifier    : Ast.Definition.type_quantifier)
-      (numeric_constraint : Ast.NumericConstraint.t       ) =
+      (numeric_constraint : Ast.Numeric.Constraint.t      ) =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_constraint

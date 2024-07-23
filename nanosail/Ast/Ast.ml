@@ -2,13 +2,14 @@ open Base
 
 
 module Identifier           = Identifier
-module NumericExpression    = NumericExpression
+module Numeric              = Numeric
 module Kind                 = Kind
 module BinaryOperator       = BinaryOperator
+module Type                 = Nanotype
+module TypeArgument         = TypeArgument
 module ExtendedType         = ExtendedType
 module ExtendedFunctionType = ExtendedFunctionType
 module Value                = Value
-include Recursive
 module Statement            = Statement
 module Expression           = Expression
 module Definition           = Definition
