@@ -138,6 +138,15 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+(*
+
+  #[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=
+    {| enumt := enum_denote;
+       uniont := union_denote;
+       recordt := record_denote;
+    |}.
+
+ *)
 let pp_typedenotekit () : PP.document =
   let coq_lines = [
       "#[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=";
@@ -151,6 +160,16 @@ let pp_typedenotekit () : PP.document =
   PP.(separate_map hardline string coq_lines)
 
 
+(*
+
+   Generates code for union_constructor.
+
+     Definition union_constructor (U : Unions) : Set :=
+       match U with
+       | instruction => InstructionConstructor
+       end.
+
+ *)
 let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let denotations =
     let variant_identifiers =
@@ -170,6 +189,43 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
   Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
 
 
+(*
+
+   Generates code for union_constructor_type.
+
+     Definition union_constructor_type (U : Unions) : union_constructor U -> Ty :=
+       match U with
+       | instruction => fun K =>
+         match K with
+         | kjalr_cap      => ty.prod ty.dst ty.src
+         | kcjalr         => ty.tuple [ty.dst; ty.src; ty.int]
+         | kcjal          => ty.prod ty.dst ty.int
+         | kbne           => ty.tuple [ty.src; ty.src; ty.int]
+         | kld            => ty.tuple [ty.dst; ty.src; ty.int]
+         | ksd            => ty.tuple [ty.src; ty.src; ty.int]
+         | kaddi          => ty.tuple [ty.dst; ty.src; ty.int]
+         | kadd           => ty.tuple [ty.dst; ty.src; ty.src]
+         | ksub           => ty.tuple [ty.dst; ty.src; ty.src]
+         | kslt           => ty.tuple [ty.dst; ty.src; ty.src]
+         | kslti          => ty.tuple [ty.dst; ty.src; ty.int]
+         | ksltu          => ty.tuple [ty.dst; ty.src; ty.src]
+         | ksltiu         => ty.tuple [ty.dst; ty.src; ty.int]
+         | kcmove         => ty.prod ty.dst ty.src
+         | kcincoffset    => ty.tuple [ty.dst; ty.src; ty.src]
+         | kcandperm      => ty.tuple [ty.dst; ty.src; ty.src]
+         | kcsetbounds    => ty.tuple [ty.dst; ty.src; ty.src]
+         | kcsetboundsimm => ty.tuple [ty.dst; ty.src; ty.int]
+         | kcgettag       => ty.prod ty.dst ty.src
+         | kcgetperm      => ty.prod ty.dst ty.src
+         | kcgetbase      => ty.prod ty.dst ty.src
+         | kcgetlen       => ty.prod ty.dst ty.src
+         | kcgetaddr      => ty.prod ty.dst ty.src
+         | kfail          => ty.unit
+         | kret           => ty.unit
+         end
+       end.
+   
+ *)
 let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let result =
     let identifier  = PP.string "union_constructor_type"
@@ -219,6 +275,23 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
   Coq.annotate result
 
 
+
+(*
+
+  #[export] Instance eqdec_enum_denote E : EqDec (enum_denote E) :=
+    ltac:(destruct E; auto with typeclass_instances).
+  #[export] Instance finite_enum_denote E : finite.Finite (enum_denote E) :=
+    ltac:(destruct E; auto with typeclass_instances).
+  #[export] Instance eqdec_union_denote U : EqDec (union_denote U) :=
+    ltac:(destruct U; cbn; auto with typeclass_instances).
+  #[export] Instance eqdec_union_constructor U : EqDec (union_constructor U) :=
+    ltac:(destruct U; cbn; auto with typeclass_instances).
+  #[export] Instance finite_union_constructor U : finite.Finite (union_constructor U) :=
+    ltac:(destruct U; cbn; auto with typeclass_instances).
+  #[export] Instance eqdec_record_denote R : EqDec (record_denote R) :=
+    ltac:(destruct R; auto with typeclass_instances).
+   
+ *)
 let pp_eqdec_and_finite_instances () : PP.document =
   let coq_lines = [
       "#[export] Instance eqdec_enum_denote E : EqDec (enum_denote E) :=";
@@ -264,6 +337,43 @@ let pp_match_variant_constructors
   Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
   
 
+(*
+
+   Generates code for union_fold.
+   
+     Definition union_fold (U : unioni) : { K & Val (union_constructor_type U K) } -> uniont U :=
+       match U with
+       | instruction => fun Kv =>
+         match Kv with
+         | existT kjalr_cap      (cd , cs)              => jalr_cap      cd  cs
+         | existT kcjalr         (tt , cd , cs , imm)   => cjalr         cd  cs  imm
+         | existT kcjal          (cd , imm)             => cjal          cd  imm
+         | existT kbne           (tt , rs1 , rs2 , imm) => bne           rs1 rs2 imm
+         | existT kld            (tt , cd , cs , imm)   => ld            cd  cs  imm
+         | existT ksd            (tt , rs1 , rs2, imm)  => sd            rs1 rs2 imm
+         | existT kaddi          (tt , rd , rs , imm)   => addi          rd  rs  imm
+         | existT kadd           (tt , rd , rs1 , rs2)  => add           rd  rs1 rs2
+         | existT ksub           (tt , rd , rs1 , rs2)  => sub           rd  rs1 rs2
+         | existT kslt           (tt , rd , rs1 , rs2)  => slt           rd  rs1 rs2
+         | existT kslti          (tt , rd , rs , imm)   => slti          rd  rs  imm
+         | existT ksltu          (tt , rd , rs1 , rs2)  => sltu          rd  rs1 rs2
+         | existT ksltiu         (tt , rd , rs , imm)   => sltiu         rd  rs  imm
+         | existT kcmove         (cd , cs)              => cmove         cd  cs
+         | existT kcincoffset    (tt , cd , cs , rs)    => cincoffset    cd  cs  rs
+         | existT kcandperm      (tt , cd , cs , rs)    => candperm      cd  cs  rs
+         | existT kcsetbounds    (tt , cd , cs , rs)    => csetbounds    cd  cs  rs
+         | existT kcsetboundsimm (tt , cd , cs , imm)   => csetboundsimm cd  cs  imm
+         | existT kcgettag       (rd , cs)              => cgettag       rd  cs
+         | existT kcgetperm      (rd , cs)              => cgetperm      rd  cs
+         | existT kcgetbase      (rd , cs)              => cgetbase      rd  cs
+         | existT kcgetlen       (rd , cs)              => cgetlen       rd  cs
+         | existT kcgetaddr      (rd , cs)              => cgetaddr      rd  cs
+         | existT kfail          tt                     => fail
+         | existT kret           tt                     => ret
+         end
+       end.
+
+ *)
 let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let result =
     let identifier = PP.string "union_fold"
@@ -315,6 +425,43 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
   Coq.annotate result
 
 
+(*
+
+   Generates code for union_unfold.
+
+     Definition union_unfold (U : unioni) : uniont U -> { K & Val (union_constructor_type U K) } :=
+       match U with
+       | instruction => fun Kv =>
+         match Kv with
+         | jalr_cap      cd  cs      => existT kjalr_cap      (cd , cs)
+         | cjalr         cd  cs  imm => existT kcjalr         (tt , cd , cs , imm)
+         | cjal          cd  imm     => existT kcjal          (cd , imm)
+         | bne           rs1 rs2 imm => existT kbne           (tt , rs1 , rs2 , imm)
+         | ld            cd  cs  imm => existT kld            (tt , cd , cs , imm)
+         | sd            rs1 rs2 imm => existT ksd            (tt , rs1 , rs2 , imm)
+         | addi          rd  rs  imm => existT kaddi          (tt , rd , rs , imm)
+         | add           rd  rs1 rs2 => existT kadd           (tt , rd , rs1 , rs2)
+         | sub           rd  rs1 rs2 => existT ksub           (tt , rd , rs1 , rs2)
+         | slt           rd  rs1 rs2 => existT kslt           (tt , rd , rs1 , rs2)
+         | slti          rd  rs  imm => existT kslti          (tt , rd , rs , imm)
+         | sltu          rd  rs1 rs2 => existT ksltu          (tt , rd , rs1 , rs2)
+         | sltiu         rd  rs  imm => existT ksltiu         (tt , rd , rs , imm)
+         | cmove         cd  cs      => existT kcmove         (cd , cs)
+         | cincoffset    cd  cs  rs  => existT kcincoffset    (tt , cd , cs , rs)
+         | candperm      cd  cs  rs  => existT kcandperm      (tt , cd , cs , rs)
+         | csetbounds    cd  cs  rs  => existT kcsetbounds    (tt, cd , cs , rs)
+         | csetboundsimm cd  cs  imm => existT kcsetboundsimm (tt, cd , cs , imm)
+         | cgettag       rd  cs      => existT kcgettag       (rd , cs)
+         | cgetperm      rd  cs      => existT kcgetperm      (rd , cs)
+         | cgetbase      rd  cs      => existT kcgetbase      (rd , cs)
+         | cgetlen       rd  cs      => existT kcgetlen       (rd , cs)
+         | cgetaddr      rd  cs      => existT kcgetaddr      (rd , cs)
+         | fail                      => existT kfail          tt
+         | ret                       => existT kret           tt
+         end
+       end.
+
+*)
 let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let result =
     let identifier = PP.string "union_unfold"
@@ -364,6 +511,20 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
   Coq.annotate result
 
 
+(*
+
+   Generates code for record_field_type.
+
+     Definition record_field_type (R : recordi) : NCtx string Ty :=
+       match R with
+       | capability => [ "cap_permission" ∷ ty.perm;
+                         "cap_begin"      ∷ ty.addr;
+                         "cap_end"        ∷ ty.addr;
+                         "cap_cursor"     ∷ ty.addr
+                       ]
+       end.
+
+ *)
 let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
     let matched_identifier = Ast.Identifier.mk "R"
@@ -398,6 +559,23 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
   Coq.annotate result
 
 
+(*
+
+   Generates code for record_fold.
+
+     Definition record_fold (R : recordi) : NamedEnv Val (record_field_type R) -> recordt R :=
+       match R with
+       | capability =>
+   
+           fun fields =>
+           MkCap
+             fields.[??"cap_permission"]
+             fields.[??"cap_begin"]
+             fields.[??"cap_end"]
+             fields.[??"cap_cursor"]
+       end%exp.
+   
+ *)
 let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
     let matched_identifier = Ast.Identifier.mk "R"
@@ -435,6 +613,22 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
   Coq.annotate result
     
 
+(*
+
+   Generates code for record_unfold.
+   
+     Definition record_unfold (R : recordi) : recordt R -> NamedEnv Val (record_field_type R) :=
+       match R  with
+       | capability =>
+         fun c=>
+           env.nil
+             ► ("cap_permission" ∷ ty.perm ↦ cap_permission c)
+             ► ("cap_begin"      ∷ ty.addr ↦ cap_begin c)
+             ► ("cap_end"        ∷ ty.addr ↦ cap_end c)
+             ► ("cap_cursor"     ∷ ty.addr ↦ cap_cursor c)
+       end%env.
+   
+*)
 let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
     let matched_identifier = Ast.Identifier.mk "R"
@@ -493,6 +687,31 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
   Coq.annotate result
     
 
+(*
+
+  #[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=
+    {| unionk           := union_constructor;
+       unionk_ty        := union_constructor_type;
+       recordf          := string;
+       recordf_ty       := record_field_type;
+       unionv_fold      := union_fold;
+       unionv_unfold    := union_unfold;
+       recordv_fold     := record_fold;
+       recordv_unfold   := record_unfold;
+    |}.
+  Proof.
+    - abstract (now intros [] []).
+    - abstract (intros [] [[] x]; cbn in x;
+                repeat
+                  match goal with
+                  | x: unit     |- _ => destruct x
+                  | x: prod _ _ |- _ => destruct x
+                  end; auto).
+    - abstract (now intros [] []).
+    - abstract (intros []; now apply env.Forall_forall).
+  Defined.
+
+ *)
 let pp_typedefkit_instance () : PP.document =
   PP.lines [
     "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
@@ -519,6 +738,13 @@ let pp_typedefkit_instance () : PP.document =
   ]
 
 
+(*
+
+  Canonical typedeclkit.
+  Canonical typedenotekit.
+  Canonical typedefkit.
+
+*)
 let pp_canonicals () : PP.document =
   let identifiers =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
@@ -526,14 +752,55 @@ let pp_canonicals () : PP.document =
   PP.separate_map PP.hardline Coq.canonical identifiers
 
 
+(*
+
+  #[export] Instance varkit : VarKit := DefaultVarKit.
+   
+*)
 let pp_varkit_instance () : PP.document =
   PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
 
 
+(*
+
+  Section RegDeclKit.
+
+    Inductive Reg : Ty -> Set :=
+    | pc   : Reg ty.cap
+    | reg1 : Reg ty.word
+    | reg2 : Reg ty.word
+    | reg3 : Reg ty.word.
+
+    Section TransparentObligations.
+      Local Set Transparent Obligations.
+      Derive Signature NoConfusion NoConfusionHom EqDec for Reg.
+    End TransparentObligations.
+
+    Definition 𝑹𝑬𝑮 : Ty -> Set := Reg.
+    #[export] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=
+      sigma_eqdec _ _.
+
+    Local Obligation Tactic :=
+      finite_from_eqdec.
+
+    #[export,program] Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=
+      {| enum := [ existT _ pc; existT _ reg1; existT _ reg2; existT _ reg3 ] |}.
+
+  End RegDeclKit.
+
+*)
 let pp_regdeclkit register_definitions : PP.document =
   Registers.generate_regdeclkit register_definitions
 
 
+(*
+
+  Section MemoryModel.
+   (* TODO *)
+  End MemoryModel.
+
+
+*)
 let pp_memory_model () : PP.document =
   let identifier = Ast.Identifier.mk "MemoryModel"
   and content =
@@ -542,6 +809,11 @@ let pp_memory_model () : PP.document =
   Coq.section identifier content
 
 
+(*
+   
+   Include BaseMixin.
+   
+*)
 let pp_include_mixin () : PP.document =
   Coq.include_module (PP.string "BaseMixin")
 
