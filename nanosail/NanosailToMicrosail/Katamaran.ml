@@ -38,7 +38,7 @@ let pretty_print ir =
   and register_definitions = Ast.(select Extract.register_definition ir.definitions)
   in
 
-  let prelude =
+  let pp_prelude =
     Coq.generation_block [%here] (PP.string "Prelude") @@ Prelude.generate ()
   in
 
@@ -136,7 +136,7 @@ let pretty_print ir =
   let sections =
     Auxlib.build_list @@
       fun { add; addopt; addall } -> begin
-          add    @@ prelude;
+          add    @@ pp_prelude;
           addopt @@ pp_register_definitions;
           addall @@ translated_type_definitions;
           add    @@ Types.Enums.generate_tags enum_definitions;
