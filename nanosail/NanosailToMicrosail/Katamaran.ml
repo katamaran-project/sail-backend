@@ -88,7 +88,7 @@ let pretty_print ir =
     Finite.generate ir.definitions
   in
 
-  let no_confusion =
+  let pp_no_confusion =
     let has_enums    = not @@ List.is_empty enum_definitions
     and has_variants = not @@ List.is_empty variant_definitions
     and has_records  = not @@ List.is_empty record_definitions
@@ -155,7 +155,7 @@ let pretty_print ir =
           addall @@ pp_variant_tags;
           add    @@ pp_record_tags;
           addopt @@ pp_register_no_confusions;
-          add    @@ no_confusion;
+          add    @@ pp_no_confusion;
           add    @@ pp_eqdecs;
           addopt @@ pp_finite;
           add    @@ pp_base_module;
