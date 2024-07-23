@@ -73,7 +73,8 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
       )
     in
     List.map ~f:denotation_pair_for enum_identifiers
-  and parameter_identifier = PP.string "e"
+  in      
+  let parameter_identifier = PP.string "e"
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
