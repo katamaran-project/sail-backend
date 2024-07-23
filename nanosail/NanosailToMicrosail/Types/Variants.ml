@@ -80,12 +80,14 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
     Coq.build_inductive_type
       identifier
       typ
-      (fun add_constructor ->
-        AC.iter
-          ~f:(fun variant_identifier ->
-            add_constructor @@ tag_of_variant variant_identifier
-          )
-          variant_definitions
+      (
+        fun add_constructor -> begin
+            AC.iter
+              ~f:(fun variant_identifier ->
+                  add_constructor @@ tag_of_variant variant_identifier
+                )
+              variant_definitions
+          end
       )
   in
   Coq.annotate inductive_type

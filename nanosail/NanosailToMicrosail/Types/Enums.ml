@@ -32,12 +32,16 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
     Coq.build_inductive_type
       identifier
       typ
-      (fun add_constructor ->
-        AC.iter
-          ~f:(fun enum_identifier ->
-            add_constructor @@ tag_of_enum enum_identifier
-          )
-          enum_definitions
+      (
+        fun add_constructor -> begin
+            let* () = add_constructor @@ Identifier.pp Registers.regname_tag
+            in
+            AC.iter
+              ~f:(fun enum_identifier ->
+                  add_constructor @@ tag_of_enum enum_identifier
+                )
+              enum_definitions
+          end
       )
   in
   Coq.annotate inductive_type

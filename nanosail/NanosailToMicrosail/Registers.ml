@@ -7,6 +7,7 @@ module AC = AnnotationContext
 (* Name for the inductive type listing all registers *)
 let regname_inductive_type_identifier = Ast.Identifier.mk "RegName"
 
+let regname_tag = Ast.Identifier.mk "regname"
 
 let reg_inductive_type register_definitions =
   let identifier = PP.string "Reg"
