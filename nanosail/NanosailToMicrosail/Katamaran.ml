@@ -57,6 +57,10 @@ let pretty_print ir =
   let pp_enum_tags =
     Types.Enums.generate_tags enum_definitions
   in
+
+  let pp_record_tags =
+    Types.Records.generate_tags record_definitions
+  in
   
   let pp_extra_variant_definitions =
     [
@@ -145,7 +149,7 @@ let pretty_print ir =
           addall @@ pp_translated_type_definitions;
           add    @@ pp_enum_tags;
           addall @@ pp_extra_variant_definitions;
-          add    @@ Types.Records.generate_tags record_definitions;
+          add    @@ pp_record_tags;
           addopt @@ Registers.generate_noconfusions register_definitions;
           add    @@ no_confusion;
           add    @@ eqdecs;
