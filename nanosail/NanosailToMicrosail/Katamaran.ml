@@ -39,7 +39,7 @@ let pretty_print ir =
   in
 
   let prelude =
-    Prelude.generate ()
+    Coq.generation_block [%here] (PP.string "Prelude") @@ Prelude.generate ()
   in
 
   let generate_section title contents =

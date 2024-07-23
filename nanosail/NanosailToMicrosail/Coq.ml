@@ -672,15 +672,26 @@ let include_module (name : PP.document) =
   PP.simple_app [ PP.string "Include"; name ]
 
 
-let annotate_with_generation_metadata
+let generation_block
     (position : Lexing.position)
     (label    : PP.document    )
-    (doc      : PP.document    ) : PP.document
+    (contents : PP.document    ) : PP.document
   =
-  let comments =
-    PP.separate PP.space [
+  let entry_block =
+    comment @@ PP.separate PP.space [
       PP.string (StringOf.OCaml.position position);
+      PP.string "ENTRY";
+      label
+    ]
+  and exit_block =
+    comment @@ PP.separate PP.space [
+      PP.string (StringOf.OCaml.position position);
+      PP.string "EXIT";
       label
     ]
   in
-  add_comment ~comments ~doc
+  PP.separate PP.hardline [
+    entry_block;
+    contents;
+    exit_block;
+  ]
