@@ -674,7 +674,13 @@ let include_module (name : PP.document) =
 
 let annotate_with_generation_metadata
     (position : Lexing.position)
-    (doc      : PP.document    ) : PP.document =
-  let comments = PP.string @@ StringOf.OCaml.position position
+    (label    : PP.document    )
+    (doc      : PP.document    ) : PP.document
+  =
+  let comments =
+    PP.separate PP.space [
+      PP.string (StringOf.OCaml.position position);
+      label
+    ]
   in
   add_comment ~comments ~doc
