@@ -43,13 +43,6 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =
-  let generate_derivation (enum_definition : Ast.Definition.Type.Enum.t) =
-    Coq.derive_no_confusion_for enum_definition.identifier
-  in
-  List.map ~f:(Fn.compose generate_derivation snd) enum_definitions
-
-
 let collect_identifiers (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : Ast.Identifier.t list =
   let enum_identifiers =
     List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
