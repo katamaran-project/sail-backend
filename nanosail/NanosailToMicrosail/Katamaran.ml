@@ -104,7 +104,7 @@ let pretty_print ir =
       in
       PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
-    Coq.section section_identifier section_contents
+    Coq.generation_block [%here] (PP.string "No Confusion") @@ Coq.section section_identifier section_contents
   in
 
   let pp_eqdecs =
@@ -117,7 +117,7 @@ let pretty_print ir =
     in
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
-    PP.separate PP.hardline coq_lines
+    Coq.generation_block [%here] (PP.string "EqDec") @@ PP.separate PP.hardline coq_lines
   in
 
   let pp_value_definitions =
