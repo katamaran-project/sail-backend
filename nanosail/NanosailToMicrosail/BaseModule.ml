@@ -145,7 +145,8 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
 (*
 
   #[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=
-    {| enumt := enum_denote;
+    {|
+       enumt := enum_denote;
        uniont := union_denote;
        recordt := record_denote;
     |}.
