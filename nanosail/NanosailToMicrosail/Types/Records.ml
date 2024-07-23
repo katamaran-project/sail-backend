@@ -72,5 +72,5 @@ let collect_identifiers (record_definitions : (Sail.sail_definition * Ast.Defini
   records_inductive_type_identifier :: record_identifiers
 
 
-let required_eqdecs        = collect_identifiers
 let required_no_confusions = collect_identifiers
+let required_eqdecs        = collect_identifiers
