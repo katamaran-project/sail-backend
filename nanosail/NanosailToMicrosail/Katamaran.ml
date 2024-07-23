@@ -68,11 +68,11 @@ let pretty_print ir =
     ]
   in
 
-  let base_module =
+  let pp_base_module =
     BaseModule.pp_base_module ir.definitions
   in
 
-  let program =
+  let pp_program =
     generate_section
       "PROGRAM"
       (
@@ -84,7 +84,7 @@ let pretty_print ir =
       )
   in
 
-  let finite =
+  let pp_finite =
     Finite.generate ir.definitions
   in
 
@@ -124,7 +124,11 @@ let pretty_print ir =
       PP.empty
   in
 
-  let eqdecs =
+  let pp_register_no_confusions =
+    Registers.generate_noconfusions register_definitions
+  in
+
+  let pp_eqdecs =
     let eqdec_identifiers = List.concat [
         Types.Enums.required_eqdecs enum_definitions;
         Types.Variants.required_eqdecs variant_definitions;
@@ -137,7 +141,7 @@ let pretty_print ir =
     PP.separate PP.hardline coq_lines
   in
 
-  let value_definitions =
+  let pp_value_definitions =
     ValueDefinitions.generate ir.definitions
   in
 
@@ -150,13 +154,13 @@ let pretty_print ir =
           add    @@ pp_enum_tags;
           addall @@ pp_extra_variant_definitions;
           add    @@ pp_record_tags;
-          addopt @@ Registers.generate_noconfusions register_definitions;
+          addopt @@ pp_register_no_confusions;
           add    @@ no_confusion;
-          add    @@ eqdecs;
-          addopt @@ finite;
-          add    @@ base_module;
-          add    @@ value_definitions;
-          add    @@ program;
+          add    @@ pp_eqdecs;
+          addopt @@ pp_finite;
+          add    @@ pp_base_module;
+          add    @@ pp_value_definitions;
+          add    @@ pp_program;
         end
   in
   PP.(separate_nonempty small_step sections)
