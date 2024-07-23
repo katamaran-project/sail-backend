@@ -77,6 +77,13 @@ let comment comment =
     )
 
 
+let add_comment
+    ~(comments : PP.document)
+    ~(doc      : PP.document) : PP.document
+  =
+  PP.separate PP.hardline [ comment comments; doc ]
+
+
 let original_sail_code source =
   let str = PP.string_of_document source
   in
