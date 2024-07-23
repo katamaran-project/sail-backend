@@ -63,7 +63,7 @@ let pretty_print ir =
   in
   
   let pp_variant_tags =
-    Types.Variants.generate_tags variant_definitions;
+    Coq.generation_block [%here] (PP.string "Variant Tags") @@ Types.Variants.generate_tags variant_definitions;
   in
 
   let pp_base_module =
