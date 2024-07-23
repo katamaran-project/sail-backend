@@ -48,13 +48,6 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
-  let generate_derivation (record_definition : Ast.Definition.Type.Record.t) =
-    Coq.derive_no_confusion_for record_definition.identifier
-  in
-  List.map ~f:(Fn.compose generate_derivation snd) record_definitions
-
-
 let generate_tag_match
     ~(matched_identifier  : Ast.Identifier.t                                                )
     ~(record_definitions  : Ast.Definition.Type.Record.t list                               )
