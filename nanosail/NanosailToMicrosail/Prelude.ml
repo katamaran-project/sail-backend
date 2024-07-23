@@ -13,6 +13,7 @@ let generate_require_imports () =
       Coq.require_imports "Equations" [ "Equations" ];
     ])
 
+
 let generate_imports () =
   let imports =
     Auxlib.build_list (fun { add; _ } ->
@@ -23,6 +24,7 @@ let generate_imports () =
   in
   Coq.imports imports
 
+
 let generate_open_scopes () =
   let scopes =
     Auxlib.build_list (fun { add; _ } ->
@@ -31,6 +33,7 @@ let generate_open_scopes () =
       )
   in
   Coq.open_scopes scopes
+
 
 let generate_definitions () =
   let definitions = [
@@ -41,6 +44,7 @@ let generate_definitions () =
     ]
   in
   PP.(separate hardline definitions)
+
 
 let generate () =
   PP.(separate (twice hardline) [
