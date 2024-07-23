@@ -91,13 +91,6 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
   Coq.annotate inductive_type
 
 
-let generate_no_confusions (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
-  let generate_derivation (variant_definition : Ast.Definition.Type.Variant.t) =
-    Coq.derive_no_confusion_for variant_definition.identifier
-  in
-  List.map ~f:(Fn.compose generate_derivation snd) variant_definitions
-
-
 let generate_tag_match
     ~(matched_identifier   : Ast.Identifier.t                                                 )
     ~(variant_definitions  : Ast.Definition.Type.Variant.t list                               )
