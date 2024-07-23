@@ -670,3 +670,9 @@ let canonical identifier =
 
 let include_module (name : PP.document) =
   PP.simple_app [ PP.string "Include"; name ]
+
+
+let annotate_with_generation_metadata (position : Lexing.position) (doc : PP.document) =
+  let comments = PP.string @@ StringOf.OCaml.position position
+  in
+  add_comment ~comments ~doc
