@@ -87,16 +87,24 @@ let pretty_print ir =
   in
 
   let pp_no_confusion =
-    let eqdec_identifiers = List.concat [
-        Types.Enums.required_no_confusions enum_definitions;
-        Types.Variants.required_no_confusions variant_definitions;
-        Types.Records.required_no_confusions record_definitions;
-        Registers.required_no_confusions register_definitions;
-      ]
+    let section_identifier = Ast.Identifier.mk "TransparentObligations"
     in
-    let coq_lines = List.map ~f:Coq.derive_no_confusion_for eqdec_identifiers
+    let section_contents =
+      let eqdec_identifiers = List.concat [
+          Types.Enums.required_no_confusions enum_definitions;
+          Types.Variants.required_no_confusions variant_definitions;
+          Types.Records.required_no_confusions record_definitions;
+          Registers.required_no_confusions register_definitions;
+        ]
+      in
+      let transparent_obligations =
+        PP.string "Local Set Transparent Obligations."
+      and no_confusion_lines =
+        PP.separate_map PP.hardline Coq.derive_no_confusion_for eqdec_identifiers
+      in
+      PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
-    PP.separate PP.hardline coq_lines
+    Coq.section section_identifier section_contents
   in
 
   let pp_eqdecs =
