@@ -686,13 +686,13 @@ let generation_block
     (contents : PP.document    ) : PP.document
   =
   let entry_block =
-    comment @@ PP.separate PP.space [
+    multiline_comment @@ PP.separate PP.space [
       PP.string (StringOf.OCaml.position position);
       PP.string "ENTRY";
       label
     ]
   and exit_block =
-    comment @@ PP.separate PP.space [
+    multiline_comment @@ PP.separate PP.space [
       PP.string (StringOf.OCaml.position position);
       PP.string "EXIT";
       label
