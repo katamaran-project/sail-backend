@@ -109,11 +109,13 @@ let generate_tag_match
 
 
 let generate_constructor_match
-    ~(matched_identifier       : Ast.Identifier.t                                               )
-    ~(variant_definition       : Ast.Definition.Type.Variant.t                                  )
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> PP.document * PP.document) : PP.document
+    ~(matched_identifier       : Ast.Identifier.t                                                      )
+    ~(variant_definition       : Ast.Definition.Type.Variant.t                                         )
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) AC.t) : PP.document AC.t
   =
-  Coq.match' (Identifier.pp matched_identifier) @@ List.map ~f:constructor_case_handler variant_definition.constructors
+  let* cases = AC.map ~f:constructor_case_handler variant_definition.constructors
+  in
+  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
 let required_eqdecs (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : Ast.Identifier.t list =
