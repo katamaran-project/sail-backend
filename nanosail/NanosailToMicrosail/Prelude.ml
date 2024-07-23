@@ -2,6 +2,7 @@ let generate_require_imports () =
   let coq_imports =
     Auxlib.build_list (fun { add; _ } ->
         if Configuration.(get use_list_notations) then add "Lists.List";
+        add "Classes.EquivDec";
         add "Strings.String";
         add "ZArith.BinInt"
       )
