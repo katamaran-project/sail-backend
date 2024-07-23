@@ -63,6 +63,9 @@ let pp_denote_function
  *)
 let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document =
   let denotations =
+    let regname_denotation =
+      (Identifier.pp Registers.regname_tag, Identifier.pp Registers.regname_inductive_type_identifier)
+    in
     let enum_identifiers =
       List.map ~f:(fun enum_definition -> enum_definition.identifier) enum_definitions
     in
@@ -72,7 +75,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
         Identifier.pp enum_identifier
       )
     in
-    List.map ~f:denotation_pair_for enum_identifiers
+    regname_denotation :: List.map ~f:denotation_pair_for enum_identifiers
   in      
   let parameter_identifier = PP.string "e"
   and tag_type_identifier  = PP.string "Enums"
