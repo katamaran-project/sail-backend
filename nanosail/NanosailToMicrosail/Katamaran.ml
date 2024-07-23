@@ -127,17 +127,6 @@ let pretty_print ir =
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
     PP.separate PP.hardline coq_lines
-    (* Coq.build_lines begin fun { lines; empty_line; comment; _ } -> *)
-    (*   comment @@ PP.string "EqDeq for each enum type"; *)
-    (*   lines @@ Types.Enums.generate_eqdecs enum_definitions; *)
-    (*   empty_line (); *)
-    (*   comment @@ PP.string "EqDeq for each variant/union type"; *)
-    (*   lines @@ Types.Variants.generate_eqdecs variant_definitions; *)
-    (*   empty_line (); *)
-    (*   comment @@ PP.string "EqDeq for each record type"; *)
-    (*   lines @@ Types.Records.generate_eqdecs record_definitions; *)
-    (* end *)
-    (* EqDec.generate ir.definitions *)
   in
 
   let value_definitions =
