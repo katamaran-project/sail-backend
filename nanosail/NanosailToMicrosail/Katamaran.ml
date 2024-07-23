@@ -63,9 +63,7 @@ let pretty_print ir =
   in
   
   let pp_variant_tags =
-    [
-      Types.Variants.generate_tags variant_definitions;
-    ]
+    Types.Variants.generate_tags variant_definitions;
   in
 
   let pp_base_module =
@@ -152,7 +150,7 @@ let pretty_print ir =
           addopt @@ pp_register_definitions;
           addall @@ pp_translated_type_definitions;
           add    @@ pp_enum_tags;
-          addall @@ pp_variant_tags;
+          add    @@ pp_variant_tags;
           add    @@ pp_record_tags;
           addopt @@ pp_register_no_confusions;
           add    @@ pp_no_confusion;
