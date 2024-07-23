@@ -5,6 +5,7 @@ module AC      = AnnotationContext
 module Big_int = Nat_big_num
 
 
+(* Operators *)
 module Operator = struct
   let addition                  = PP.plus
   let multiplication            = PP.star
@@ -19,9 +20,11 @@ module Operator = struct
   let greater_than_or_equals_to = PP.(rangle ^^ equals)
 end
 
+(* End of line symbol *)
 let eol = PP.dot
 
-let left_comment_delimiter = PP.string "(*"
+(* Comment delimiters *)
+let left_comment_delimiter  = PP.string "(*"
 let right_comment_delimiter = PP.string "*)"
 
 
