@@ -3,7 +3,7 @@ open Base
 (*
   Type, TypeArgument and NumericConstraint
 
-  Put in same file because they are recursive
+  Put in same file because they are mutually recursive
 *)
 
 module rec Type : sig
