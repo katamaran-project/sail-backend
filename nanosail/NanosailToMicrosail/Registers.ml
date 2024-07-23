@@ -156,26 +156,9 @@ let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Defi
   Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
-let generate_noconfusions (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
-  let has_registers =
-    not @@ List.is_empty register_definitions
-  in
-  let contents =
-    Auxlib.build_list (fun { add; _ } ->
-        add @@ PP.string "Local Set Transparent Obligations.";
-        add @@ PP.string "";
-        if has_registers
-        then add @@ PP.string "Derive NoConfusion for RegName.";
-      )
-  in
-  let section =
-    Coq.section (Ast.Identifier.mk "TransparentObligations") PP.(separate hardline contents)
-  in
-  Some section
-
-
 let collect_identifiers (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
+
 
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
