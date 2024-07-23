@@ -686,13 +686,13 @@ let generation_block
     (contents : PP.document    ) : PP.document
   =
   let entry_block =
-    multiline_comment @@ PP.separate PP.space [
+    inline_comment @@ PP.separate PP.space [
       PP.string (StringOf.OCaml.position position);
       PP.string "ENTRY";
       label
     ]
   and exit_block =
-    multiline_comment @@ PP.separate PP.space [
+    inline_comment @@ PP.separate PP.space [
       PP.string (StringOf.OCaml.position position);
       PP.string "EXIT";
       label
@@ -700,6 +700,6 @@ let generation_block
   in
   PP.separate PP.hardline [
     entry_block;
-    contents;
+    PP.indent' contents;
     exit_block;
   ]
