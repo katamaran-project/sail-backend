@@ -5,7 +5,7 @@ module AC = AnnotationContext
 
 
 (* Name for the inductive type listing all variant/union types *)
-let records_inductive_type_identifier = Ast.Identifier.mk "Unions"
+let records_inductive_type_identifier = Ast.Identifier.mk "Records"
 
 
 let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC.t =
