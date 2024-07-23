@@ -818,7 +818,7 @@ let pp_include_mixin () : PP.document =
   Coq.include_module (PP.string "BaseMixin")
 
 
-let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document AC.t =
+let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   and variant_definitions =
@@ -832,8 +832,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     let base_module_name = "UntitledBase"
     and flag = Coq.Export
     and includes = [ "Base" ]
-    in
-    let* contents =
+    and contents =
       let sections = [
         pp_typedeclkit ();
         pp_enum_denote enum_definitions;
@@ -856,7 +855,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_include_mixin ();
       ]
       in
-      AC.return PP.(separate small_step sections)
+      PP.(separate small_step sections)
     in
-    AC.return @@ Coq.module' ~flag ~includes base_module_name contents
+    Coq.module' ~flag ~includes base_module_name contents
   end
