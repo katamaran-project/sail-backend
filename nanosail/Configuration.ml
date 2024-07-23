@@ -20,6 +20,7 @@ module C = struct
     let ignore_default_order              = bool     "ignore-default-order"             true
     let print_warnings                    = bool     "print-warnings"                   false
     let pretty_print_let                  = bool     "pretty-print-let"                 false
+    let show_generation_blocks            = bool     "show-generation-blocks"           true
     let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
     let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let ignore_definition_predicate       = callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"

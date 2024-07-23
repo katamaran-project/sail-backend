@@ -685,27 +685,32 @@ let generation_block
     (label    : PP.document    )
     (contents : PP.document    ) : PP.document
   =
-  let position_string =
-    let filename    = position.pos_fname
-    and line_number = position.pos_lnum
+  if
+    Configuration.(get show_generation_blocks)
+  then
+    let position_string =
+      let filename    = position.pos_fname
+      and line_number = position.pos_lnum
+      in
+      Printf.sprintf "%s:%d" filename line_number
     in
-    Printf.sprintf "%s:%d" filename line_number
-  in
-  let entry_block =
-    inline_comment @@ PP.separate PP.space [
-      PP.string "<<<<<";
-      PP.string position_string;
-      label
+    let entry_block =
+      inline_comment @@ PP.separate PP.space [
+        PP.string "<<<<<";
+        PP.string position_string;
+        label
+      ]
+    and exit_block =
+      inline_comment @@ PP.separate PP.space [
+        PP.string ">>>>>";
+        PP.string position_string;
+        label
+      ]
+    in
+    PP.separate PP.hardline [
+      entry_block;
+      PP.indent' contents;
+      exit_block;
     ]
-  and exit_block =
-    inline_comment @@ PP.separate PP.space [
-      PP.string ">>>>>";
-      PP.string position_string;
-      label
-    ]
-  in
-  PP.separate PP.hardline [
-    entry_block;
-    PP.indent' contents;
-    exit_block;
-  ]
+  else
+    contents
