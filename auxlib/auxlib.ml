@@ -14,13 +14,13 @@ let (|.|) p1 p2 x =
 
 let minimum ns =
   match ns with
-  | []    -> failwith "Cannot find minimum of empty list"
+  | []    -> raise (Invalid_argument "Cannot determine minimum of empty list")
   | n::ns -> List.fold_left ~f:min ~init:n ns
 
 
 let maximum ns =
   match ns with
-  | []    -> failwith "Cannot find maximum of empty list"
+  | []    -> raise (Invalid_argument "Cannot determine maximum of empty list")
   | n::ns -> List.fold_left ~f:max ~init:n ns
 
 
