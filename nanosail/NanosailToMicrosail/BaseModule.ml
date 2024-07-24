@@ -4,6 +4,11 @@ module AC = AnnotationContext
 open Monads.Notations.Star(AnnotationContext)
 
 
+
+let block loc label doc =
+  Coq.generation_block loc (PP.string label) doc
+
+
 (*
 
       #[export] Instance typedeclkit : TypeDeclKit :=
@@ -24,7 +29,7 @@ let pp_typedeclkit () : PP.document =
       "  |}.";
     ]
   in
-  PP.(separate_map hardline string coq_lines)
+  block [%here] "typedeclkit" @@ PP.(separate_map hardline string coq_lines)
 
 
 (*
