@@ -49,13 +49,16 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
 
 
 let generate_tag_match
-    ~(matched_identifier  : Ast.Identifier.t                                                )
-    ~(record_definitions  : Ast.Definition.Type.Record.t list                               )
-    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) AC.t) : PP.document AC.t
+    ?(scope               : string option                                                   = None)
+    ~(matched_identifier  : Ast.Identifier.t                                                      )
+    ~(record_definitions  : Ast.Definition.Type.Record.t list                                     )
+    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) AC.t      ) () : PP.document AC.t
   =
+  let scope = Option.map ~f:PP.string scope
+  in
   let* cases = AC.map ~f:record_case_handler record_definitions
   in
-  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
+  AC.return @@ Coq.match' ~scope (Identifier.pp matched_identifier) cases
 
 
 let collect_identifiers (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) : Ast.Identifier.t list =

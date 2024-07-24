@@ -558,7 +558,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
         in
         AC.return (pattern, expression)
       in
-      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
@@ -624,7 +624,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
         in
         AC.return (pattern, expression)
       in
-      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
@@ -698,7 +698,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
         in
         AC.return (pattern, expression)
       in
-      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler
+      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
