@@ -263,8 +263,9 @@ let definition
 
 
 let match'
-    (expression : PP.document                     )
-    (cases      : (PP.document * PP.document) list) : PP.document
+    ?(scope     : PP.document option              = None)
+    (expression : PP.document                           )
+    (cases      : (PP.document * PP.document) list      ) : PP.document
   =
   let match_line =
     PP.(
@@ -294,7 +295,9 @@ let match'
     List.map ~f:generate_case cases
   in
   let final_line =
-    PP.(string "end")
+    match scope with
+    | Some scope -> PP.(string "end" ^^ percent ^^ scope)
+    | None       -> PP.string "end"
   in
   let result_lines =
     Auxlib.build_list (fun { add; addall; _ } ->
