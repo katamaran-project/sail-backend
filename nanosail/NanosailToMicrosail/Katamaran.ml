@@ -128,21 +128,20 @@ let pretty_print ir =
   in
 
   let sections =
-    Auxlib.build_list @@
-      fun { add; addall; _ } -> begin
-          add    @@ pp_prelude;
-          add    @@ pp_register_definitions;
-          add    @@ pp_translated_type_definitions;
-          add    @@ pp_enum_tags;
-          add    @@ pp_variant_tags;
-          add    @@ pp_record_tags;
-          add    @@ pp_no_confusion;
-          add    @@ pp_eqdecs;
-          add    @@ pp_finite;
-          add    @@ pp_base_module;
-          add    @@ pp_value_definitions;
-          (* add    @@ pp_program; *)
-        end
+    [
+      pp_prelude;
+      pp_register_definitions;
+      pp_translated_type_definitions;
+      pp_enum_tags;
+      pp_variant_tags;
+      pp_record_tags;
+      pp_no_confusion;
+      pp_eqdecs;
+      pp_finite;
+      pp_base_module;
+      pp_value_definitions;
+      (* pp_program; *)
+    ]
   in
   PP.(separate_nonempty small_step sections)
 
