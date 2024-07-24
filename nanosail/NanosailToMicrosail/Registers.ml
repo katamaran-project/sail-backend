@@ -159,3 +159,17 @@ let collect_identifiers (_register_definitions : (Sail.sail_definition * Ast.Def
 
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
+
+
+let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
+  let register_identifiers =
+    List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+  in
+  let translated_register_identifiers =
+    List.map ~f:translate_regname register_identifiers
+  in
+  let identifier = Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and type_name  = Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and values     = List.map ~f:Identifier.pp translated_register_identifiers
+  in
+  Coq.finite_instance ~identifier ~type_name ~values

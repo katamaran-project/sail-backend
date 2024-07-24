@@ -5,3 +5,4 @@ val required_no_confusions            : (Sail.sail_definition * Ast.Definition.r
 val required_eqdecs                   : (Sail.sail_definition * Ast.Definition.register_definition) list -> Ast.Identifier.t list
 val regname_tag                       : Ast.Identifier.t
 val regname_inductive_type_identifier : Ast.Identifier.t
+val generate_register_finiteness      : (Sail.sail_definition * Ast.Definition.register_definition) list -> PP.document
