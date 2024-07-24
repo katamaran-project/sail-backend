@@ -68,7 +68,7 @@ let pretty_print ir =
   in
 
   let pp_base_module =
-    BaseModule.pp_base_module ir.definitions
+    Coq.generation_block [%here] (PP.string "Base Module") @@ BaseModule.pp_base_module ir.definitions
   in
 
   let pp_program =
@@ -84,7 +84,7 @@ let pretty_print ir =
   in
 
   let pp_finite =
-    Finite.generate ir.definitions
+    Coq.generation_block [%here] (PP.string "Finite") @@ Finite.generate ir.definitions
   in
 
   let pp_no_confusion =
@@ -127,19 +127,19 @@ let pretty_print ir =
 
   let sections =
     Auxlib.build_list @@
-      fun { add; addopt; addall } -> begin
+      fun { add; addall; _ } -> begin
           add    @@ pp_prelude;
-          addopt @@ pp_register_definitions;
+          add    @@ pp_register_definitions;
           addall @@ pp_translated_type_definitions;
           add    @@ pp_enum_tags;
           add    @@ pp_variant_tags;
           add    @@ pp_record_tags;
           add    @@ pp_no_confusion;
           add    @@ pp_eqdecs;
-          addopt @@ pp_finite;
+          add    @@ pp_finite;
           add    @@ pp_base_module;
           add    @@ pp_value_definitions;
-          add    @@ pp_program;
+          (* add    @@ pp_program; *)
         end
   in
   PP.(separate_nonempty small_step sections)
