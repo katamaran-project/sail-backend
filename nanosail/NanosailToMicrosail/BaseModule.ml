@@ -33,10 +33,11 @@ let pp_typedeclkit () : PP.document =
    
  *)
 let pp_denote_function
-      ~(denotations          : (PP.document * PP.document) list)
-      ~(parameter_identifier : PP.document                     )
-      ~(tag_type_identifier  : PP.document                     )
-      ~(function_identifier  : PP.document                     ) : PP.document AC.t
+    ?(scope                : PP.document option               = None)
+    ~(denotations          : (PP.document * PP.document) list       )
+    ~(parameter_identifier : PP.document                            )
+    ~(tag_type_identifier  : PP.document                            )
+    ~(function_identifier  : PP.document                            ) () : PP.document AC.t
   =
   let identifier  = function_identifier
   and parameters  = [ (parameter_identifier, Some tag_type_identifier) ]
@@ -45,7 +46,7 @@ let pp_denote_function
     let matched_expression = parameter_identifier
     and cases              = denotations
     in
-    Coq.match' matched_expression cases
+    Coq.match' ~scope matched_expression cases
   in
   AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
 
@@ -81,7 +82,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
 
 
 (*
@@ -110,7 +111,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
 
 
 (*
@@ -139,7 +140,7 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   and tag_type_identifier  = PP.string "Records"
   and function_identifier  = PP.string "record_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
 
 
 (*
@@ -191,7 +192,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_constructor"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier
+  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
 
 
 (*
