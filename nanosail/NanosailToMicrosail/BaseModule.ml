@@ -573,7 +573,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
             in
             let* t = Nanotype.pp_nanotype field_type
             in
-            AC.return PP.(separate space [ id; string "::"; t ])
+            AC.return PP.(separate space [ PP.dquotes id; string "::"; t ])
           in
           let* fields = AC.map ~f:pp_field record_definition.fields
           in
