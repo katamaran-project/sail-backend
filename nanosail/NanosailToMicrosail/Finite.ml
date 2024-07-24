@@ -26,7 +26,7 @@ let generate_register_finiteness (register_definitions : (Sail.sail_definition *
   Coq.finite_instance ~identifier ~type_name ~values
 
 
-let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document option =
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
   let finite_enums =
     let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
     in
@@ -34,25 +34,21 @@ let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP
   and finite_registers =
     let register_definitions = Ast.(select Extract.register_definition definitions)
     in
-    Some (generate_register_finiteness register_definitions)
+    generate_register_finiteness register_definitions
   in
   let finite_definitions =
     Auxlib.build_list @@
-      fun { addall; addopt; _ } -> begin
+      fun { addall; add; _ } -> begin
           addall finite_enums;
-          addopt finite_registers;
+          add    finite_registers;
         end
   in
-  if List.is_empty finite_definitions
-  then None
-  else begin
-      let parts =
-        Auxlib.build_list @@
-          fun { add; addall; _ } -> begin
-              add    @@ Coq.imports [ "stdpp.finite" ];
-              add    @@ Coq.local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
-              addall @@ finite_definitions;
-            end
-      in
-      Option.some @@ Coq.section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
+  let parts =
+    Auxlib.build_list @@
+    fun { add; addall; _ } -> begin
+      add    @@ Coq.imports [ "stdpp.finite" ];
+      add    @@ Coq.local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
+      addall @@ finite_definitions;
     end
+  in
+  Coq.section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
