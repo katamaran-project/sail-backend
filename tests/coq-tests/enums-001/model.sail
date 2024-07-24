@@ -3,4 +3,4 @@ default Order dec
 $include <prelude.sail>
 
 
-enum MyEnum = { x, y, z }
+enum MyEnum = { Foo, Bar, Baz }
