@@ -48,11 +48,13 @@ let pretty_print ir =
   in
 
   let pp_translated_type_definitions =
-    List.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
+    Coq.generation_block [%here] (PP.string "Translated Type Definitions") begin
+      PP.separate_map (PP.twice PP.hardline) (Auxlib.uncurry Types.pp_type_definition) type_definitions
+    end
   in
 
   let pp_register_definitions =
-    Registers.regname_inductive_type register_definitions;
+    Coq.generation_block [%here] (PP.string "Register Definitions") @@ Registers.regname_inductive_type register_definitions;
   in
 
   let pp_enum_tags =
@@ -130,7 +132,7 @@ let pretty_print ir =
       fun { add; addall; _ } -> begin
           add    @@ pp_prelude;
           add    @@ pp_register_definitions;
-          addall @@ pp_translated_type_definitions;
+          add    @@ pp_translated_type_definitions;
           add    @@ pp_enum_tags;
           add    @@ pp_variant_tags;
           add    @@ pp_record_tags;
