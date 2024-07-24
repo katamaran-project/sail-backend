@@ -104,7 +104,7 @@ let pretty_print (ir : Ast.program) =
   let pp_finite =
     let finite_definitions =
       let finite_enums =
-        List.map ~f:(Auxlib.uncurry Types.Enums.generate_enum_finiteness) enum_definitions
+        Types.Enums.generate_finiteness enum_definitions
       and finite_variants =
         Types.Variants.generate_finiteness variant_definitions
       and finite_registers =

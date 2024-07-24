@@ -59,7 +59,6 @@ let required_eqdecs        = collect_identifiers
 
 
 let generate_enum_finiteness
-      (_sail_definition : Sail.sail_definition      )
       (enum_definition  : Ast.Definition.Type.Enum.t)
   =
   let identifier = Identifier.pp @@ enum_definition.identifier
@@ -67,3 +66,9 @@ let generate_enum_finiteness
   and values     = List.map ~f:Identifier.pp enum_definition.cases
   in
   Coq.finite_instance ~identifier ~type_name ~values
+
+
+let generate_finiteness (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =
+  let definitions = List.map ~f:snd enum_definitions
+  in
+  List.map ~f:generate_enum_finiteness definitions
