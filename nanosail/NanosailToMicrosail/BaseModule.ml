@@ -652,7 +652,8 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
 *)
 let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
-    let matched_identifier = Ast.Identifier.mk "R"
+    let scope = Some "env"
+    and matched_identifier = Ast.Identifier.mk "R"
     in
     let identifier = PP.string "record_unfold"
     and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
@@ -701,7 +702,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
         in
         AC.return (pattern, expression)
       in
-      Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
+      Types.Records.generate_tag_match ~scope ~matched_identifier ~record_definitions ~record_case_handler ()
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
