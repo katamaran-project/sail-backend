@@ -56,3 +56,14 @@ let collect_identifiers (enum_definitions : (Sail.sail_definition * Ast.Definiti
 
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
+
+
+let generate_enum_finiteness
+      (_sail_definition : Sail.sail_definition      )
+      (enum_definition  : Ast.Definition.Type.Enum.t)
+  =
+  let identifier = Identifier.pp @@ enum_definition.identifier
+  and type_name  = Identifier.pp @@ enum_definition.identifier
+  and values     = List.map ~f:Identifier.pp enum_definition.cases
+  in
+  Coq.finite_instance ~identifier ~type_name ~values
