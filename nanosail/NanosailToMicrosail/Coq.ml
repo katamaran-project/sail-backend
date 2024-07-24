@@ -538,6 +538,12 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
   AC.return @@ PP.(separate hardline result_lines ^^ hardline ^^ eol)
 
 
+(*
+
+  #[export,program] Instance <identifier>_finite : Finite <type_name> :=
+    {| enum := [ <values> ] |}.
+   
+ *)
 let finite_instance
       ~(identifier : PP.document     )
       ~(type_name  : PP.document     )
