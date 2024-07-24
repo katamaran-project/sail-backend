@@ -654,6 +654,9 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
           let lambda_parameter = Ast.Identifier.mk "fields"
           in
           let lambda_body =
+            let constructor_identifier =
+              Types.Records.derive_constructor_from_identifier record_definition.identifier
+            in
             let arguments =
               let f (field_identifier, _field_type) =
                 PP.string @@ Printf.sprintf "%s.[??\"%s\"]"
@@ -662,7 +665,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
               in
               List.map ~f record_definition.fields
             in
-            Coq.application (PP.string "MkCap") arguments
+            Coq.application (Identifier.pp constructor_identifier) arguments
           in
           Coq.lambda (Identifier.pp lambda_parameter) lambda_body
         in
