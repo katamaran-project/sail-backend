@@ -53,10 +53,10 @@ let generate_constructors_inductive_type (variant_definition  : Ast.Definition.T
   and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
-  Coq.build_inductive_type identifier typ (fun add_constructor ->
-      AC.iter constructor_names
-        ~f:(fun case -> add_constructor @@ Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag case)
-    )
+  Coq.build_inductive_type identifier typ @@ fun add_constructor -> begin
+    AC.iter constructor_names
+      ~f:(fun case -> add_constructor @@ Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag case)
+  end
 
 
 let generate (variant_definition : Ast.Definition.Type.Variant.t) =
