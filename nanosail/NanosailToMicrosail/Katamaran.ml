@@ -5,9 +5,9 @@ module AC = AnnotationContext
 
 
 let pp_program_module
-      program_name
-      base_name
-      function_definitions
+      (program_name                          : string                                                                           )
+      (base_name                             : string                                                                           )
+      (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list)
   =
   let flag            = Coq.Import
