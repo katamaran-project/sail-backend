@@ -661,10 +661,10 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       (* recordt R -> NamedEnv Val (record_field_type R) *)
       let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp matched_identifier ]
       and return_type =
-        PP.simple_app [
+        PP.separate PP.space [
           PP.string "NamedEnv";
           PP.string "Val";
-          PP.parens @@ PP.simple_app [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
+          PP.parens @@ PP.separate PP.space [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
         ]
       in
       Some (Coq.function_type [ parameter_type ] return_type)
