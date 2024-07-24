@@ -6,7 +6,11 @@ module AC = AnnotationContext
 
 (* Name for the inductive type listing all variant/union types *)
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
-  
+
+
+let derive_variant_constructor_type =
+  TranslationSettings.derive_variant_constructor_type
+
 
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
@@ -45,7 +49,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
 
 
 let generate_constructors_inductive_type (variant_definition  : Ast.Definition.Type.Variant.t) =
-  let identifier = Identifier.pp @@ TranslationSettings.derive_variant_constructor_type variant_definition.identifier
+  let identifier = Identifier.pp @@ derive_variant_constructor_type variant_definition.identifier
   and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
   and constructor_names = List.map ~f:fst variant_definition.constructors
   in
@@ -117,7 +121,14 @@ let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Defin
   let variant_identifiers =
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
-  variants_inductive_type_identifier :: variant_identifiers
+  let variant_constructor_identifiers =
+    List.map ~f:derive_variant_constructor_type variant_identifiers
+  in
+  Auxlib.build_list @@ fun { add; addall; _ } -> begin
+    add    variants_inductive_type_identifier;
+    addall variant_identifiers               ;
+    addall variant_constructor_identifiers   ;
+  end
 
 
 let required_no_confusions = collect_identifiers
