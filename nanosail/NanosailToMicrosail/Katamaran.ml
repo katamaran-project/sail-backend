@@ -4,6 +4,10 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
+let block loc label contents =
+  Coq.generation_block loc (PP.string label) contents
+
+
 let pp_program_module
       (program_name                          : string                                                                           )
       (base_name                             : string                                                                           )
@@ -40,7 +44,9 @@ let pretty_print ir =
   in
 
   let pp_prelude =
-    Coq.generation_block [%here] (PP.string "Prelude") @@ Prelude.generate ()
+    block [%here] "Prelude" begin
+      Prelude.generate ()
+    end
   in
 
   let generate_section title contents =
@@ -48,29 +54,39 @@ let pretty_print ir =
   in
 
   let pp_translated_type_definitions =
-    Coq.generation_block [%here] (PP.string "Translated Type Definitions") begin
+    block [%here] "Translated Type Definitions" begin
       PP.separate_map (PP.twice PP.hardline) (Auxlib.uncurry Types.pp_type_definition) type_definitions
     end
   in
 
   let pp_register_definitions =
-    Coq.generation_block [%here] (PP.string "Register Definitions") @@ Registers.regname_inductive_type register_definitions;
+    block [%here] "Register Definitions" begin
+      Registers.regname_inductive_type register_definitions
+    end
   in
 
   let pp_enum_tags =
-    Coq.generation_block [%here] (PP.string "Enum Tags") @@ Types.Enums.generate_tags enum_definitions
+    block [%here] "Enum Tags" begin
+      Types.Enums.generate_tags enum_definitions
+    end
   in
 
   let pp_record_tags =
-    Coq.generation_block [%here] (PP.string "Record Tags") @@ Types.Records.generate_tags record_definitions
+    block [%here] "Record Tags" begin
+      Types.Records.generate_tags record_definitions
+    end
   in
   
   let pp_variant_tags =
-    Coq.generation_block [%here] (PP.string "Variant Tags") @@ Types.Variants.generate_tags variant_definitions;
+    block [%here] "Variant Tags" begin
+      Types.Variants.generate_tags variant_definitions;
+    end
   in
 
   let pp_base_module =
-    Coq.generation_block [%here] (PP.string "Base Module") @@ BaseModule.pp_base_module ir.definitions
+    block [%here] "Base Module" begin
+      BaseModule.pp_base_module ir.definitions
+    end
   in
 
   let pp_program =
@@ -86,7 +102,9 @@ let pretty_print ir =
   in
 
   let pp_finite =
-    Coq.generation_block [%here] (PP.string "Finite") @@ Finite.generate ir.definitions
+    block [%here] "Finite" begin
+      Finite.generate ir.definitions
+    end
   in
 
   let pp_no_confusion =
@@ -107,7 +125,9 @@ let pretty_print ir =
       in
       PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
-    Coq.generation_block [%here] (PP.string "No Confusion") @@ Coq.section section_identifier section_contents
+    block [%here] "No Confusion" begin
+      Coq.section section_identifier section_contents
+    end
   in
 
   let pp_eqdecs =
@@ -120,7 +140,9 @@ let pretty_print ir =
     in
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
-    Coq.generation_block [%here] (PP.string "EqDec") @@ PP.separate PP.hardline coq_lines
+    block [%here] "EqDec" begin
+      PP.separate PP.hardline coq_lines
+    end
   in
 
   let pp_value_definitions =
