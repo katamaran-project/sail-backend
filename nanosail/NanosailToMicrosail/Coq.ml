@@ -312,7 +312,10 @@ let match'
 let match_pair matched_expressions cases =
   let left_patterns = List.map ~f:(Fn.compose fst fst) cases
   in
-  let left_patterns_max_width = Auxlib.maximum (List.map ~f:PPrint.requirement left_patterns)
+  let left_patterns_max_width =
+    if List.is_empty left_patterns
+    then 0
+    else Auxlib.maximum (List.map ~f:PPrint.requirement left_patterns)
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
