@@ -48,14 +48,23 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
   inductive_type
 
 
+let derive_constructor_tag (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  TranslationSettings.convert_constructor_name_to_tag identifier
+
+
+let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
+  let constructor_names = List.map ~f:fst variant_definition.constructors
+  in
+  List.map ~f:derive_constructor_tag constructor_names
+
+
 let generate_constructors_inductive_type (variant_definition  : Ast.Definition.Type.Variant.t) =
   let identifier = Identifier.pp @@ derive_variant_constructor_type variant_definition.identifier
-  and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
-  and constructor_names = List.map ~f:fst variant_definition.constructors
+  and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
+  and tags       = derive_constructor_tags variant_definition
   in
   Coq.build_inductive_type identifier typ @@ fun add_constructor -> begin
-    AC.iter constructor_names
-      ~f:(fun case -> add_constructor @@ Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag case)
+    AC.iter ~f:(fun tag -> add_constructor @@ Identifier.pp tag) tags
   end
 
 
@@ -133,3 +142,17 @@ let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Defin
 
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
+
+
+let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
+  let identifier = Identifier.pp @@ derive_variant_constructor_type variant_definition.identifier
+  and type_name  = Identifier.pp @@ variant_definition.identifier
+  and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
+  in
+  Coq.finite_instance ~identifier ~type_name ~values
+
+
+let generate_finiteness (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
+  let definitions = List.map ~f:snd variant_definitions
+  in
+  List.map ~f:generate_constructor_finiteness definitions

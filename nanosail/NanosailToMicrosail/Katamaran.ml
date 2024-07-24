@@ -36,8 +36,7 @@ let pp_program_module
 
 
 let pretty_print (ir : Ast.program) =
-  let definitions          = ir.definitions
-  and type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
+  let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
   and enum_definitions     = Ast.(select Extract.(type_definition of_enum    ) ir.definitions)
   and record_definitions   = Ast.(select Extract.(type_definition of_record  ) ir.definitions)
   and variant_definitions  = Ast.(select Extract.(type_definition of_variant ) ir.definitions)
@@ -106,12 +105,15 @@ let pretty_print (ir : Ast.program) =
     let finite_definitions =
       let finite_enums =
         List.map ~f:(Auxlib.uncurry Types.Enums.generate_enum_finiteness) enum_definitions
+      and finite_variants =
+        Types.Variants.generate_finiteness variant_definitions
       and finite_registers =
         Registers.generate_register_finiteness register_definitions
       in
       Auxlib.build_list @@ fun { addall; add; _ } -> begin
         addall finite_enums;
         add    finite_registers;
+        addall finite_variants;
       end
     in
     let parts =
