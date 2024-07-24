@@ -262,7 +262,10 @@ let definition
     end
 
 
-let match' expression cases =
+let match'
+    (expression : PP.document                     )
+    (cases      : (PP.document * PP.document) list) : PP.document
+  =
   let match_line =
     PP.(
       separate space [
