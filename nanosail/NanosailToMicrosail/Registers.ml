@@ -60,22 +60,18 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
 
  *)
 let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
-  if List.is_empty register_definitions
-  then None
-  else begin
-      let register_names =
-        List.map ~f:(fun (_, def) -> def.identifier) register_definitions
-      in
-      let type_name = Identifier.pp regname_inductive_type_identifier
-      and typ = PP.string "Set"
-      in
-      let inductive_type =
-        Coq.build_inductive_type type_name typ (fun add_constructor ->
-            AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
-          )
-      in
-      Option.some @@ Coq.annotate inductive_type
-    end
+  let register_names =
+    List.map ~f:(fun (_, def) -> def.identifier) register_definitions
+  in
+  let type_name = Identifier.pp regname_inductive_type_identifier
+  and typ = PP.string "Set"
+  in
+  let inductive_type =
+    Coq.build_inductive_type type_name typ (fun add_constructor ->
+        AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
+      )
+  in
+  Coq.annotate inductive_type
 
 
 let instance_reg_eq_dec register_names =
