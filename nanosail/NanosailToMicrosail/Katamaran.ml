@@ -32,10 +32,10 @@ let pp_program_module
 
 let pretty_print ir =
   let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
-  and enum_definitions     = Ast.(select Extract.(type_definition of_enum) ir.definitions)
-  and record_definitions   = Ast.(select Extract.(type_definition of_record) ir.definitions)
-  and variant_definitions  = Ast.(select Extract.(type_definition of_variant) ir.definitions)
-  and register_definitions = Ast.(select Extract.register_definition ir.definitions)
+  and enum_definitions     = Ast.(select Extract.(type_definition of_enum    ) ir.definitions)
+  and record_definitions   = Ast.(select Extract.(type_definition of_record  ) ir.definitions)
+  and variant_definitions  = Ast.(select Extract.(type_definition of_variant ) ir.definitions)
+  and register_definitions = Ast.(select Extract.register_definition           ir.definitions)
   in
 
   let pp_prelude =
