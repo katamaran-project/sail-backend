@@ -105,12 +105,8 @@ let pretty_print (ir : Ast.program) =
   let pp_finite =
     let finite_definitions =
       let finite_enums =
-        let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
-        in
         List.map ~f:(Auxlib.uncurry Types.Enums.generate_enum_finiteness) enum_definitions
       and finite_registers =
-        let register_definitions = Ast.(select Extract.register_definition definitions)
-        in
         Registers.generate_register_finiteness register_definitions
       in
       Auxlib.build_list @@ fun { addall; add; _ } -> begin
