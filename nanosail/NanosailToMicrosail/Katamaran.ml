@@ -103,12 +103,6 @@ let pretty_print (ir : Ast.program) =
   in
 
   let pp_finite =
-    block [%here] "Finite" begin
-      Finite.generate ir.definitions
-    end
-  in
-
-  let pp_finite =
     let finite_enums =
       let enum_definitions = Ast.(select Extract.(type_definition of_enum) definitions)
       in
