@@ -34,9 +34,7 @@ let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP
   and finite_registers =
     let register_definitions = Ast.(select Extract.register_definition definitions)
     in
-    if List.is_empty register_definitions
-    then None
-    else Some (generate_register_finiteness register_definitions)
+    Some (generate_register_finiteness register_definitions)
   in
   let finite_definitions =
     Auxlib.build_list @@
