@@ -146,7 +146,7 @@ let required_eqdecs        = collect_identifiers
 
 let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
   let identifier = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
-  and type_name  = Identifier.pp @@ variant_definition.identifier
+  and type_name  = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
   in
   Coq.finite_instance ~identifier ~type_name ~values
