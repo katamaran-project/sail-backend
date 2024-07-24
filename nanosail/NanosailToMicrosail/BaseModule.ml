@@ -585,9 +585,21 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
   let result =
     let matched_identifier = Ast.Identifier.mk "R"
     in
-    let identifier = PP.string "record_fold"
-    and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
-    and result_type = Some (PP.(separate space [ string "recordt"; Identifier.pp matched_identifier ]))
+    let identifier =
+      PP.string "record_fold"
+    and parameters =
+      [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
+    and result_type =
+      let parameter_type =
+        PP.separate PP.space [
+          PP.string "NamedEnv";
+          PP.string "Val";
+          PP.parens (PP.separate PP.space [ PP.string "record_field_type"; Identifier.pp matched_identifier ])
+        ]
+      and result_type =
+        PP.separate PP.space [ PP.string "recordt"; Identifier.pp matched_identifier ]
+      in
+      Some (Coq.function_type [ parameter_type ] result_type)
     in
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
