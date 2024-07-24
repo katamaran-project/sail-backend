@@ -7,6 +7,9 @@ module AC = AnnotationContext
 (* Name for the inductive type listing all variant/union types *)
 let records_inductive_type_identifier = Ast.Identifier.mk "Records"
 
+let derive_constructor_from_identifier identifier =
+  TranslationSettings.derive_record_constructor_from_identifier identifier
+
 
 let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC.t =
   let generate_field field_identifier field_type =
@@ -14,10 +17,11 @@ let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC
     in
     AC.return (Identifier.pp field_identifier, field_type')
   in
-  let* identifier  = AC.return @@ Identifier.pp record_definition.identifier
-  and* type_name   = AC.return @@ Identifier.pp @@ Ast.Identifier.mk "Set"
-  and* constructor = AC.return @@ Identifier.pp @@ Ast.Identifier.add_prefix "Mk" record_definition.identifier (* todo: allow custom name *)
-  and* fields      = AC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
+  let identifier  = Identifier.pp record_definition.identifier
+  and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
+  and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
+  in
+  let* fields     = AC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
   in
   AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
 
