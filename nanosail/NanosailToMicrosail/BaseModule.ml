@@ -87,7 +87,9 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Enum Denote" begin
+    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  end
 
 
 (*
@@ -116,7 +118,9 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Union Denote" begin
+    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  end
 
 
 (*
@@ -145,7 +149,9 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   and tag_type_identifier  = PP.string "Records"
   and function_identifier  = PP.string "record_denote"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Record Denote" begin
+    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  end
 
 
 (*
@@ -168,7 +174,9 @@ let pp_typedenotekit () : PP.document =
       "  |}.";
     ]
   in
-  PP.(separate_map hardline string coq_lines)
+  block [%here] "typedenotekit" begin
+    PP.(separate_map hardline string coq_lines)
+  end
 
 
 (*
@@ -197,7 +205,9 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_constructor"
   in
-  Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Union Constructor" begin
+    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  end
 
 
 (*
@@ -283,7 +293,9 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
   in
-  Coq.annotate result
+  block [%here] "Union Constructor Type" begin
+    Coq.annotate result
+  end
 
 
 
@@ -319,7 +331,9 @@ let pp_eqdec_and_finite_instances () : PP.document =
       "  ltac:(destruct R; auto with typeclass_instances).";
     ]
   in
-  PP.(separate_map hardline string coq_lines)
+  block [%here] "EqDec/Finite Instances" begin
+    PP.(separate_map hardline string coq_lines)
+  end
 
 
 (* Helper function for pp_union_fold and pp_union_unfold *)
@@ -433,7 +447,9 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.annotate result
+  block [%here] "Union Fold" begin
+    Coq.annotate result
+  end
 
 
 (*
@@ -519,7 +535,9 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.annotate result
+  block [%here] "Union Unfold" begin
+    Coq.annotate result
+  end
 
 
 (*
@@ -567,7 +585,9 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.annotate result
+  block [%here] "Record Field Type" begin
+    Coq.annotate result
+  end
 
 
 (*
@@ -636,8 +656,9 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.annotate result
-    
+  block [%here] "Record Fold" begin
+    Coq.annotate result
+  end
 
 (*
 
@@ -711,7 +732,9 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
     in
     AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  Coq.annotate result
+  block [%here] "Record Unfold" begin
+    Coq.annotate result
+  end
     
 
 (*
@@ -740,29 +763,31 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
 
  *)
 let pp_typedefkit_instance () : PP.document =
-  PP.lines [
-    "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
-    "  {| unionk           := union_constructor;";
-    "     unionk_ty        := union_constructor_type;";
-    "     recordf          := string;";
-    "     recordf_ty       := record_field_type;";
-    "     unionv_fold      := union_fold;";
-    "     unionv_unfold    := union_unfold;";
-    "     recordv_fold     := record_fold;";
-    "     recordv_unfold   := record_unfold;";
-    "  |}.";
-    "Proof.";
-    "  - abstract (now intros [] []).";
-    "  - abstract (intros [] [[] x]; cbn in x;";
-    "              repeat";
-    "                match goal with";
-    "                | x: unit     |- _ => destruct x";
-    "                | x: prod _ _ |- _ => destruct x";
-    "                end; auto).";
-    "  - abstract (now intros [] []).";
-    "  - abstract (intros []; now apply env.Forall_forall).";
-    "Defined.";
-  ]
+  block [%here] "Typedefkit" begin
+    PP.lines [
+      "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
+      "  {| unionk           := union_constructor;";
+      "     unionk_ty        := union_constructor_type;";
+      "     recordf          := string;";
+      "     recordf_ty       := record_field_type;";
+      "     unionv_fold      := union_fold;";
+      "     unionv_unfold    := union_unfold;";
+      "     recordv_fold     := record_fold;";
+      "     recordv_unfold   := record_unfold;";
+      "  |}.";
+      "Proof.";
+      "  - abstract (now intros [] []).";
+      "  - abstract (intros [] [[] x]; cbn in x;";
+      "              repeat";
+      "                match goal with";
+      "                | x: unit     |- _ => destruct x";
+      "                | x: prod _ _ |- _ => destruct x";
+      "                end; auto).";
+      "  - abstract (now intros [] []).";
+      "  - abstract (intros []; now apply env.Forall_forall).";
+      "Defined.";
+    ]
+  end
 
 
 (*
@@ -776,7 +801,9 @@ let pp_canonicals () : PP.document =
   let identifiers =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
-  PP.separate_map PP.hardline Coq.canonical identifiers
+  block [%here] "Canonicals" begin
+    PP.separate_map PP.hardline Coq.canonical identifiers
+  end
 
 
 (*
@@ -785,7 +812,9 @@ let pp_canonicals () : PP.document =
    
 *)
 let pp_varkit_instance () : PP.document =
-  PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
+  block [%here] "Varkit" begin
+    PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
+  end
 
 
 (*
@@ -817,7 +846,9 @@ let pp_varkit_instance () : PP.document =
 
 *)
 let pp_regdeclkit register_definitions : PP.document =
-  Registers.generate_regdeclkit register_definitions
+  block [%here] "RegDeclKit" begin
+    Registers.generate_regdeclkit register_definitions
+  end
 
 
 (*
@@ -833,7 +864,9 @@ let pp_memory_model () : PP.document =
   and content =
     Coq.comment @@ PP.string "TODO"
   in
-  Coq.section identifier content
+  block [%here] "Memory Model" begin
+    Coq.section identifier content
+  end
 
 
 (*
