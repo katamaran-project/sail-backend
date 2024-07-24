@@ -8,8 +8,8 @@ module AC = AnnotationContext
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let derive_variant_constructor_type =
-  TranslationSettings.derive_variant_constructor_type
+let derive_variant_constructor_type_identifier =
+  TranslationSettings.derive_variant_constructor_type_identifier
 
 
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
@@ -59,7 +59,7 @@ let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t)
 
 
 let generate_constructors_inductive_type (variant_definition  : Ast.Definition.Type.Variant.t) =
-  let identifier = Identifier.pp @@ derive_variant_constructor_type variant_definition.identifier
+  let identifier = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
   in
@@ -131,7 +131,7 @@ let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Defin
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
   let variant_constructor_identifiers =
-    List.map ~f:derive_variant_constructor_type variant_identifiers
+    List.map ~f:derive_variant_constructor_type_identifier variant_identifiers
   in
   Auxlib.build_list @@ fun { add; addall; _ } -> begin
     add    variants_inductive_type_identifier;
@@ -145,7 +145,7 @@ let required_eqdecs        = collect_identifiers
 
 
 let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
-  let identifier = Identifier.pp @@ derive_variant_constructor_type variant_definition.identifier
+  let identifier = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
   and type_name  = Identifier.pp @@ variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
   in

@@ -189,7 +189,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
     let denotation_pair_for variant_identifier =
       (
         Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
-        Identifier.pp @@ TranslationSettings.derive_variant_constructor_type variant_identifier
+        Identifier.pp @@ TranslationSettings.derive_variant_constructor_type_identifier variant_identifier
       )
     in
     List.map ~f:denotation_pair_for variant_identifiers
