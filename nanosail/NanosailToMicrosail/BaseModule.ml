@@ -4,9 +4,25 @@ module AC = AnnotationContext
 open Monads.Notations.Star(AnnotationContext)
 
 
-
 let block loc label doc =
   Coq.generation_block loc (PP.string label) doc
+
+
+(*
+
+  Import ctx.notations.
+  Import ctx.resolution.
+  Import env.notations.
+  Import stdpp.finite.
+
+*)
+let pp_imports () =
+  PP.lines [
+    "Import ctx.notations.";
+    "Import ctx.resolution.";
+    "Import env.notations.";
+    "Import stdpp.finite.";
+  ]
 
 
 (*
@@ -894,6 +910,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and includes = [ "Base" ]
     and contents =
       let sections = [
+        pp_imports ();
         pp_typedeclkit ();
         pp_enum_denote enum_definitions;
         pp_union_denote variant_definitions;
