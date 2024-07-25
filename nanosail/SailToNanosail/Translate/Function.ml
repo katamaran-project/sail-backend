@@ -8,11 +8,11 @@ module S = struct
   include Libsail.Anf
 end
 
-module TC       = TranslationContext
-module Bindings = Libsail.Ast_util.Bindings
+module TC        = TranslationContext
+module Bindings  = Libsail.Ast_util.Bindings
+module StringMap = Map.String
 
 open Base
-open ExtendedType
 open Monads.Notations.Star(TC)
 
 
