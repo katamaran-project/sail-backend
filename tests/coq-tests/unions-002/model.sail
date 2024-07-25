@@ -4,5 +4,5 @@ $include <prelude.sail>
 
 
 union instruction = {
-  Pop : unit
+  Pop : (int, int)
 }

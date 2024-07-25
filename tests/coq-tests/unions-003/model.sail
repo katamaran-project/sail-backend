@@ -3,38 +3,31 @@ default Order dec
 $include <prelude.sail>
 
 
-type regname = bits(2)
-type dst     = regname
-type src     = regname
-type imm     = bits(12)
-type imm_ext = bits(20)
-let imm_size = 12
-let imm_ext_size = 20
 
 
 scattered union ast
-union clause ast = JALR_CAP      : (dst, src)
-union clause ast = CJALR         : (dst, src, imm)
-union clause ast = CJAL	         : (dst, imm_ext)
-union clause ast = BNE           : (src, src, imm)
-union clause ast = LD            : (dst, src, imm)
-union clause ast = SD            : (src, src, imm)
-union clause ast = ADDI          : (dst, src, imm)
-union clause ast = ADD           : (dst, src, src)
-union clause ast = SUB           : (dst, src, src)
-union clause ast = SLT           : (dst, src, src)
-union clause ast = SLTI          : (dst, src, imm)
-union clause ast = SLTIU         : (dst, src, imm)
-union clause ast = SLTU          : (dst, src, src)
-union clause ast = CMOVE         : (dst, src)
-union clause ast = CINCOFFSET    : (dst, src, src)
-union clause ast = CANDPERM      : (dst, src, src)
-union clause ast = CSETBOUNDS    : (dst, src, src)
-union clause ast = CSETBOUNDSIMM : (dst, src, imm)
-union clause ast = CGETTAG       : (dst, src)
-union clause ast = CGETPERM      : (dst, src)
-union clause ast = CGETBASE      : (dst, src)
-union clause ast = CGETLEN       : (dst, src)
-union clause ast = CGETADDR      : (dst, src)
+union clause ast = JALR_CAP      : (int, int)
+union clause ast = CJALR         : (int, int, int)
+union clause ast = CJAL	         : (int, int)
+union clause ast = BNE           : (int, int, int)
+union clause ast = LD            : (int, int, int)
+union clause ast = SD            : (int, int, int)
+union clause ast = ADDI          : (int, int, int)
+union clause ast = ADD           : (int, int, int)
+union clause ast = SUB           : (int, int, int)
+union clause ast = SLT           : (int, int, int)
+union clause ast = SLTI          : (int, int, int)
+union clause ast = SLTIU         : (int, int, int)
+union clause ast = SLTU          : (int, int, int)
+union clause ast = CMOVE         : (int, int)
+union clause ast = CINCOFFSET    : (int, int, int)
+union clause ast = CANDPERM      : (int, int, int)
+union clause ast = CSETBOUNDS    : (int, int, int)
+union clause ast = CSETBOUNDSINT : (int, int, int)
+union clause ast = CGETTAG       : (int, int)
+union clause ast = CGETPERM      : (int, int)
+union clause ast = CGETBASE      : (int, int)
+union clause ast = CGETLEN       : (int, int)
+union clause ast = CGETADDR      : (int, int)
 union clause ast = FAIL          : unit
 union clause ast = RET           : unit
