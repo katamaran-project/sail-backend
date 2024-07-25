@@ -16,6 +16,8 @@ let string_of_document document =
 let template_prelude (translation : Ast.program) =
   let nullary_string_function id func =
     (id, Slang.Helpers.Function.to_string id func)
+  and nullary_boolean_function id func =
+    (id, Slang.Helpers.Function.to_bool id func)
   in
 
   let full_translation =
@@ -57,10 +59,20 @@ let template_prelude (translation : Ast.program) =
     nullary_string_function id f
   in
 
+  let untranslated_definitions_predicate =
+    let id = "untranslated_definitions?"
+    in
+    let f () =
+      List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
+    in
+    nullary_boolean_function id f
+  in
+
   let exported = [
     full_translation;
     ignored_definitions;
     untranslated_definitions;
+    untranslated_definitions_predicate;
   ]
   in
   EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
