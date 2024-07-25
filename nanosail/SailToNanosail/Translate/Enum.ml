@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open TypeAbbreviation
 
 
 let translate_enum
