@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open TypeQuantifier
 open Enum
 
 
@@ -29,7 +28,7 @@ let translate_record
     TC.return @@ (field_identifier', field_type')
   in
   let* identifier      = Identifier.translate_identifier [%here] identifier
-  and* type_quantifier = translate_type_quantifier type_quantifier
+  and* type_quantifier = TypeQuantifier.translate_type_quantifier type_quantifier
   and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
   in
   TC.return @@ Ast.Definition.Type.Record {
