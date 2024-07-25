@@ -15,16 +15,7 @@ let string_of_document document =
 
 let template_prelude (translation : Ast.program) =
   let nullary_string_function id func =
-    let f (arguments : Slang.Value.t list) =
-      match arguments with
-      | [] -> begin
-          let string = func ()
-          in
-          EC.return @@ Slang.Value.Mk.string string
-        end
-      | _  -> failwith @@ Printf.sprintf "%s does not expect arguments" id
-    in
-    (id, Slang.Functions.mk_strict_function f)
+    (id, Slang.Helpers.to_string id func)
   in
 
   let full_translation =
