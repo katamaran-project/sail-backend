@@ -12,7 +12,6 @@ module TC       = TranslationContext
 module Bindings = Libsail.Ast_util.Bindings
 
 open Base
-open Identifier
 open Nanotype
 open ExtendedType
 open Monads.Notations.Star(TC)
@@ -75,7 +74,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
        | S.L_real _   -> TC.not_yet_implemented [%here] location
      end
   | P_id id -> begin
-      let* x  = translate_identifier [%here] id in
+      let* x  = Identifier.translate_identifier [%here] id in
       let* ty = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
       TC.return [(x, ty)]
@@ -191,7 +190,7 @@ let rec expression_of_aval
         (identifier : S.id                       )
         (lvar       : S.typ Libsail.Ast_util.lvar) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
-    let* id' = translate_identifier [%here] identifier
+    let* id' = Identifier.translate_identifier [%here] identifier
     in
     match lvar with
     | Local (_, typ) -> begin
@@ -310,14 +309,14 @@ let with_destructured_record
   match value with
   | S.AV_id (record_identifier, lvar) -> begin
       let* record_identifier =
-        translate_identifier [%here] record_identifier
+        Identifier.translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) =
         type_from_lvar lvar location
       in
       match t with
       | S.Typ_id record_type_identifier -> begin
           let* record_type_identifier =
-            translate_identifier [%here] record_type_identifier
+            Identifier.translate_identifier [%here] record_type_identifier
           in
           let* lookup_result =
             TC.lookup_type_of_kind Ast.Extract.of_record record_type_identifier
@@ -419,8 +418,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             statement_of_aexp nil_clause
 
           and* when_cons =
-            let* id_head = translate_identifier [%here] id_h
-            and* id_tail = translate_identifier [%here] id_t
+            let* id_head = Identifier.translate_identifier [%here] id_h
+            and* id_tail = Identifier.translate_identifier [%here] id_t
             and* clause = statement_of_aexp cons_clause
             in
             TC.return (id_head, id_tail, clause)
@@ -458,8 +457,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             let* expression, _expression_type, named_statements = expression_of_aval location matched
             in
             TC.return (Ast.Statement.Expression expression, named_statements)
-          and* id_fst = translate_identifier [%here] id_l
-          and* id_snd = translate_identifier [%here] id_r
+          and* id_fst = Identifier.translate_identifier [%here] id_l
+          and* id_snd = Identifier.translate_identifier [%here] id_r
           and* body   = statement_of_aexp clause
           in
           TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.Product { matched; id_fst; id_snd; body })
@@ -612,7 +611,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
                    x, y, z must all be simple identifiers, no nested patterns are supported
                  *)
-                let* variant_tag_identifier = translate_identifier [%here] variant_tag_identifier
+                let* variant_tag_identifier = Identifier.translate_identifier [%here] variant_tag_identifier
                 in
                 let AP_aux (subpattern, _environment, subpattern_location) = subpattern
                 in
@@ -623,7 +622,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                       let S.AP_aux (tuple_pattern, _env, tuple_pattern_location) = tuple_pattern
                       in
                       match tuple_pattern with
-                      | Libsail.Anf.AP_id (identifier, _typ) -> translate_identifier [%here] identifier
+                      | Libsail.Anf.AP_id (identifier, _typ) -> Identifier.translate_identifier [%here] identifier
                       | Libsail.Anf.AP_tuple _               -> TC.not_yet_implemented [%here] tuple_pattern_location
                       | Libsail.Anf.AP_global (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
                       | Libsail.Anf.AP_app (_, _, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
@@ -638,7 +637,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
                   end
                 | S.AP_id (identifier, _typ) -> begin
-                    let* identifier = translate_identifier [%here] identifier
+                    let* identifier = Identifier.translate_identifier [%here] identifier
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
@@ -732,7 +731,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (field_identifier : S.id        )
         (_field_type      : S.typ       ) : Ast.Statement.t TC.t
     =
-    let* field_identifier = translate_identifier [%here] field_identifier
+    let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
       fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> (
@@ -757,7 +756,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           (arguments           : S.typ S.aval list)
           (_typ                : S.typ            )
     =
-    let* receiver_identifier' = translate_identifier [%here] receiver_identifier
+    let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
     let argument_expressions, _argument_expression_types, unflattened_named_statements =
@@ -797,10 +796,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (body        : S.typ S.aexp        )
         (_typ2       : S.typ               )
     =
-    let* id' = translate_identifier [%here] identifier  (* todo rename to record fields *)
+    let* id'   = Identifier.translate_identifier [%here] identifier  (* todo rename to record fields *)
     and* typ1' = Nanotype.nanotype_of_sail_type typ1
-    and* s1  = statement_of_aexp expression
-    and* s2  = statement_of_aexp body
+    and* s1    = statement_of_aexp expression
+    and* s2    = statement_of_aexp body
     in
     TC.return @@ Ast.Statement.Let {
                      variable_identifier = id';
@@ -851,7 +850,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       and field_identifier, value            = pair
       in
       let* field_identifier =
-        translate_identifier [%here] field_identifier
+        Identifier.translate_identifier [%here] field_identifier
       in
       (* Generate fresh name for variable that will be assigned the value of the field *)
       let* variable_identifier =
@@ -894,7 +893,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     =
     match lhs with
     | Libsail.Anf.AL_id (id, _loc) -> begin
-        let* id_in_lhs = translate_identifier [%here] id
+        let* id_in_lhs = Identifier.translate_identifier [%here] id
         in
         let* is_register = TC.is_register id_in_lhs
         in
@@ -1036,7 +1035,7 @@ let translate_function_definition
   | [function_clause] -> begin
       let* parts = extract_function_parts function_clause
       in
-      let* function_name          = translate_identifier [%here] parts.identifier
+      let* function_name          = Identifier.translate_identifier [%here] parts.identifier
       and* parameters             = translate_parameter_bindings parts.parameter_bindings
       and* return_type            = translate_return_type parts.return_type
       and* function_body          = translate_body parts.body
