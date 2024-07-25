@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Enum
 
 
 let translate_record
