@@ -36,7 +36,6 @@
                                (contains? '(
                                             "option"
                                             "register_value"
-                                            "bits"
                                             "regstate")
                                           identifier)))
 
