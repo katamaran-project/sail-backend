@@ -60,7 +60,7 @@ let template_prelude (translation : Ast.program) =
   in
 
   let untranslated_definitions_predicate =
-    let id = "untranslated_definitions?"
+    let id = "untranslated-definitions?"
     in
     let f () =
       List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
@@ -126,8 +126,7 @@ let process_template_streams
   let process_block () =
     let code = String.concat ~sep:"\n" @@ List.rev !block_acc
     in
-    let generated_output =
-      run_code translation code
+    let generated_output = run_code translation code
     in
     output_line generated_output
   in
