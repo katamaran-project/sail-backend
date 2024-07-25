@@ -14,7 +14,7 @@ let string_of_document document =
 
 
 let template_prelude (translation : Ast.program) =
-  let nullary_function id func =
+  let nullary_string_function id func =
     let f (arguments : Slang.Value.t list) =
       match arguments with
       | [] -> begin
@@ -33,7 +33,7 @@ let template_prelude (translation : Ast.program) =
     let f () =
       string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
     in
-    nullary_function id f
+    nullary_string_function id f
   in
 
   let ignored_definitions =
@@ -48,7 +48,7 @@ let template_prelude (translation : Ast.program) =
       in
       string_of_document formatted_ignored_definitions
     in
-    nullary_function id f
+    nullary_string_function id f
   in
 
   let untranslated_definitions =
@@ -63,7 +63,7 @@ let template_prelude (translation : Ast.program) =
       in
       string_of_document formatted_untranslated_definitions
     in
-    nullary_function id f
+    nullary_string_function id f
   in
 
   let exported = [
