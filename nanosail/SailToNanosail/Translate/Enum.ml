@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
 open TypeAbbreviation
 
 
@@ -21,8 +20,8 @@ let translate_enum
       (identifier             : S.id       )
       (cases                  : S.id list  ) : Ast.Definition.Type.t TC.t
   =
-  let* identifier' = translate_identifier [%here] identifier
-  and* cases'      = TC.map ~f:(translate_identifier [%here]) cases
+  let* identifier' = Identifier.translate_identifier [%here] identifier
+  and* cases'      = TC.map ~f:(Identifier.translate_identifier [%here]) cases
   in
   TC.return @@ Ast.Definition.Type.Enum {
       identifier = identifier';
