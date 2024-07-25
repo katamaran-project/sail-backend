@@ -15,7 +15,7 @@ let string_of_document document =
 
 let template_prelude (translation : Ast.program) =
   let nullary_string_function id func =
-    (id, Slang.Helpers.to_string id func)
+    (id, Slang.Helpers.Function.to_string id func)
   in
 
   let full_translation =
