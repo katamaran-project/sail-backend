@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
 open TypeQuantifier
 open Enum
 
@@ -25,11 +24,11 @@ let translate_record
   =
   let translate_field (field_type : S.typ) (field_identifier : S.id) =
     let* field_type'       = Nanotype.nanotype_of_sail_type field_type
-    and* field_identifier' = translate_identifier [%here] field_identifier
+    and* field_identifier' = Identifier.translate_identifier [%here] field_identifier
     in
     TC.return @@ (field_identifier', field_type')
   in
-  let* identifier      = translate_identifier [%here] identifier
+  let* identifier      = Identifier.translate_identifier [%here] identifier
   and* type_quantifier = translate_type_quantifier type_quantifier
   and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
   in
