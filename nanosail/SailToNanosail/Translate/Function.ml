@@ -12,7 +12,6 @@ module TC       = TranslationContext
 module Bindings = Libsail.Ast_util.Bindings
 
 open Base
-open Nanotype
 open ExtendedType
 open Monads.Notations.Star(TC)
 
@@ -51,7 +50,7 @@ let statement_of_lvar
 
 
 let translate_return_type (sail_type : Libsail.Ast.typ) : Ast.Type.t TC.t =
-  nanotype_of_sail_type sail_type
+  Nanotype.nanotype_of_sail_type sail_type
 
 
 let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t  =
@@ -75,7 +74,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
      end
   | P_id id -> begin
       let* x  = Identifier.translate_identifier [%here] id in
-      let* ty = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      let* ty = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
       TC.return [(x, ty)]
     end
@@ -85,7 +84,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
       TC.return @@ List.concat pats'
     end
   | S.P_wild -> begin
-      let* typ = nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      let* typ = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       and* id  = TC.generate_unique_identifier "_"
       in
       TC.return [(id, typ)]
@@ -962,7 +961,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (target_type : S.typ       ) : Ast.Statement.t TC.t
     =
     let* translated_expression = statement_of_aexp expression
-    and* translated_type       = nanotype_of_sail_type target_type
+    and* translated_type       = Nanotype.nanotype_of_sail_type target_type
     in
     TC.return @@ Ast.Statement.Cast (translated_expression, translated_type)
 
