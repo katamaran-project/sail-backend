@@ -11,6 +11,7 @@ module Prelude             = Prelude
 module Exception           = Exception
 module Functions           = Functions
 module Destructuring       = Destructuring
+module Helpers             = Helpers
 
 
 let extend_environment = EnvironmentBuilder.extend_environment
