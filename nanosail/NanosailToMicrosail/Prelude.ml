@@ -49,7 +49,7 @@ let generate_definitions () =
 
 let generate_import_default_base () =
   PP.string "Import DefaultBase."
-    
+
 
 let generate () =
   PP.(separate (twice hardline) [

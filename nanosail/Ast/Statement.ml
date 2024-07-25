@@ -17,7 +17,7 @@ type t =
   let <variable_identifier> : <binding_statement_type> = <binding_statement>
   in
   <body>
-*)                             
+*)
 and let_data =
   {
     variable_identifier    : Identifier.t;

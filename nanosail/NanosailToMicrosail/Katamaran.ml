@@ -76,7 +76,7 @@ let pretty_print (ir : Ast.program) =
       Types.Records.generate_tags record_definitions
     end
   in
-  
+
   let pp_variant_tags =
     block [%here] "Variant Tags" begin
       Types.Variants.generate_tags variant_definitions;

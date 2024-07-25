@@ -542,7 +542,7 @@ let build_inductive_type identifier ?(parameters = []) typ constructor_generator
 
   #[export,program] Instance <identifier>_finite : Finite <type_name> :=
     {| enum := [ <values> ] |}.
-   
+
  *)
 let finite_instance
       ~(identifier : PP.document     )

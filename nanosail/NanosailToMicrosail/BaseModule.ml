@@ -33,7 +33,7 @@ let pp_imports () =
            unioni := Unions;
            recordi := Records;
         |}.
-   
+
  *)
 let pp_typedeclkit () : PP.document =
   let coq_lines = [
@@ -51,7 +51,7 @@ let pp_typedeclkit () : PP.document =
 (*
 
    Helper function to define denote functions, such as enum_denote.
-   
+
  *)
 let pp_denote_function
     ?(scope                : PP.document option               = None)
@@ -81,7 +81,7 @@ let pp_denote_function
         | permission => Permission
         | regname    => RegName
         end.
-   
+
  *)
 let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document =
   let denotations =
@@ -98,7 +98,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
       )
     in
     regname_denotation :: List.map ~f:denotation_pair_for enum_identifiers
-  in      
+  in
   let parameter_identifier = PP.string "e"
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
@@ -147,7 +147,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
        match R with
        | capability => Capability
        end.
-   
+
  *)
 let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let denotations =
@@ -261,7 +261,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
          | kret           => ty.unit
          end
        end.
-   
+
  *)
 let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
   let result =
@@ -329,7 +329,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
     ltac:(destruct U; cbn; auto with typeclass_instances).
   #[export] Instance eqdec_record_denote R : EqDec (record_denote R) :=
     ltac:(destruct R; auto with typeclass_instances).
-   
+
  *)
 let pp_eqdec_and_finite_instances () : PP.document =
   let coq_lines = [
@@ -376,12 +376,12 @@ let pp_match_variant_constructors
     AC.return (pattern, expression)
   in
   Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
-  
+
 
 (*
 
    Generates code for union_fold.
-   
+
      Definition union_fold (U : unioni) : { K & Val (union_constructor_type U K) } -> uniont U :=
        match U with
        | instruction => fun Kv =>
@@ -613,7 +613,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
      Definition record_fold (R : recordi) : NamedEnv Val (record_field_type R) -> recordt R :=
        match R with
        | capability =>
-   
+
            fun fields =>
            MkCap
              fields.[??"cap_permission"]
@@ -621,7 +621,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
              fields.[??"cap_end"]
              fields.[??"cap_cursor"]
        end%exp.
-   
+
  *)
 let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
@@ -682,7 +682,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
 (*
 
    Generates code for record_unfold.
-   
+
      Definition record_unfold (R : recordi) : recordt R -> NamedEnv Val (record_field_type R) :=
        match R  with
        | capability =>
@@ -693,7 +693,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
              ► ("cap_end"        ∷ ty.addr ↦ cap_end c)
              ► ("cap_cursor"     ∷ ty.addr ↦ cap_cursor c)
        end%env.
-   
+
 *)
 let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
   let result =
@@ -754,7 +754,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
   block [%here] "Record Unfold" begin
     Coq.annotate result
   end
-    
+
 
 (*
 
@@ -828,7 +828,7 @@ let pp_canonicals () : PP.document =
 (*
 
   #[export] Instance varkit : VarKit := DefaultVarKit.
-   
+
 *)
 let pp_varkit_instance () : PP.document =
   block [%here] "Varkit" begin
@@ -889,9 +889,9 @@ let pp_memory_model () : PP.document =
 
 
 (*
-   
+
    Include BaseMixin.
-   
+
 *)
 let pp_include_mixin () : PP.document =
   Coq.include_module (PP.string "BaseMixin")

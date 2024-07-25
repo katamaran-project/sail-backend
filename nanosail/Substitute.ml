@@ -59,7 +59,7 @@ module Subst = struct
       | True                     -> True
       | False                    -> False
     in
-    
+
     aux
 end
 
