@@ -54,7 +54,7 @@ module rec Type : sig
     | Enum        of Identifier.t
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
-    (* | Ty_union *)                                  (* TODO add *)
+    | Variant     of Identifier.t
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
 
@@ -92,7 +92,7 @@ end = struct
     | Enum        of Identifier.t
     | Bitvector   of NumericExpression.t
     | Tuple       of t list
-    (* | Ty_union *)                                  (* TODO add *)
+    | Variant     of Identifier.t
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
 
@@ -108,6 +108,7 @@ end = struct
     | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
     | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
     | Record id        -> Printf.sprintf "Type.Record(%s)" (Identifier.string_of id)
+    | Variant id       -> Printf.sprintf "Type.Variant(%s)" (Identifier.string_of id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs

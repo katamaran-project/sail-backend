@@ -36,16 +36,21 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return @@ PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
 
+  and pp_record identifier =
+    let tag = TranslationSettings.convert_record_name_to_tag identifier
+    in
+    AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
+
+  and pp_variant identifier =
+    let tag = TranslationSettings.convert_variant_name_to_tag identifier
+    in
+    AC.return @@ PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.string_of tag
+
   and pp_product t1 t2 =
     let* t1' = pp_nanotype t1
     and* t2' = pp_nanotype t2
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
-
-  and pp_record identifier =
-    let tag = TranslationSettings.convert_record_name_to_tag identifier
-    in
-    AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
   and ty s =
     AC.return @@ Identifier.pp @@ Ast.Identifier.mk @@ "ty." ^ s
@@ -57,6 +62,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Int                              -> ty "int"
    | String                           -> ty "string"
    | Record id                        -> pp_record id
+   | Variant id                       -> pp_variant id
    | Product (t1, t2)                 -> pp_product t1 t2
    | Sum (_, _)                       -> AC.not_yet_implemented [%here]
    | Application (constructor, targs) -> pp_application constructor targs
@@ -66,7 +72,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | Bitvector nexpr                  -> pp_bitvector nexpr
 
 
-and coq_type_of_nanotype (nanotype : Ast.Type.t) =
+and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
   let coq_type_of_bitvector_type n =
     let* n' = Numeric.Expression.pp n
     in
@@ -95,6 +101,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Tuple _ts           -> AC.not_yet_implemented [%here]
   | Record _id          -> AC.not_yet_implemented [%here]
   | Enum _id            -> AC.not_yet_implemented [%here] (* todo lookup Coq Inductive type corresponding to the enum named id *)
+  | Variant _id         -> AC.not_yet_implemented [%here] (* todo lookup Coq Inductive type corresponding to the variant named id *)
   | Product (_, _)      -> AC.not_yet_implemented [%here]
   | Sum (_, _)          -> AC.not_yet_implemented [%here]
 
