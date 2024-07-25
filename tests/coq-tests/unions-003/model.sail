@@ -3,8 +3,6 @@ default Order dec
 $include <prelude.sail>
 
 
-
-
 scattered union ast
 union clause ast = JALR_CAP      : (int, int)
 union clause ast = CJALR         : (int, int, int)
