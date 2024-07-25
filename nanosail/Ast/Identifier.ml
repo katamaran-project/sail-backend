@@ -2,7 +2,6 @@ open Base
 
 
 module Impl = struct
-
   module T = struct
     type t = Id of string
 
@@ -46,4 +45,3 @@ module Map = struct
 end
 
 include Impl
-
