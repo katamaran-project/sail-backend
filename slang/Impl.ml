@@ -90,64 +90,34 @@ struct
     | Cons (h1, t1) -> begin
         match v2 with
         | Cons (h2, t2)           -> equal h1 h2 && equal t1 t2
-        | Integer _               -> false
-        | Symbol _                -> false
-        | String _                -> false
-        | Bool _                  -> false
-        | Nil                     -> false
-        | Callable _              -> false
+        | _                       -> false
       end
     | Integer n1 -> begin
         match v2 with
-        | Cons (_, _)             -> false
         | Integer n2              -> Int.equal n1 n2
-        | Symbol _                -> false
-        | String _                -> false
-        | Bool _                  -> false
-        | Nil                     -> false
-        | Callable _              -> false
+        | _                       -> false
       end
     | Symbol s1 -> begin
         match v2 with
-        | Cons (_, _)              -> false
-        | Integer _                -> false
-        | Symbol s2                -> String.equal s1 s2
-        | String _                 -> false
-        | Bool _                   -> false
-        | Nil                      -> false
-        | Callable _               -> false
+        | Symbol s2               -> String.equal s1 s2
+        | _                       -> false
       end
     | String s1 -> begin
         match v2 with
-        | Cons (_, _)             -> false
-        | Integer _               -> false
-        | Symbol _                -> false
         | String s2               -> String.equal s1 s2
-        | Bool _                  -> false
-        | Nil                     -> false
-        | Callable _              -> false
+        | _                       -> false
       end
     | Bool b1 -> begin
         match v2 with
-        | Cons (_, _)              -> false
-        | Integer _                -> false
-        | Symbol _                 -> false
-        | String _                 -> false
         | Bool b2                  -> Bool.equal b1 b2
-        | Nil                      -> false
-        | Callable _               -> false
+        | _                       -> false
       end
     | Nil -> begin
         match v2 with
-        | Cons (_, _)             -> false
-        | Integer _               -> false
-        | Symbol _                -> false
-        | String _                -> false
-        | Bool _                  -> false
         | Nil                     -> true
-        | Callable _              -> false
+        | _                       -> false
       end
-    | Callable _ -> false
+    | Callable _                  -> false
 
 
   let falsey (value : t) =
