@@ -89,35 +89,35 @@ struct
     match v1 with
     | Cons (h1, t1) -> begin
         match v2 with
-        | Cons (h2, t2)           -> equal h1 h2 && equal t1 t2
-        | _                       -> false
+        | Cons (h2, t2)   -> equal h1 h2 && equal t1 t2
+        | _               -> false
       end
     | Integer n1 -> begin
         match v2 with
-        | Integer n2              -> Int.equal n1 n2
-        | _                       -> false
+        | Integer n2      -> Int.equal n1 n2
+        | _               -> false
       end
     | Symbol s1 -> begin
         match v2 with
-        | Symbol s2               -> String.equal s1 s2
-        | _                       -> false
+        | Symbol s2       -> String.equal s1 s2
+        | _               -> false
       end
     | String s1 -> begin
         match v2 with
-        | String s2               -> String.equal s1 s2
-        | _                       -> false
+        | String s2       -> String.equal s1 s2
+        | _               -> false
       end
     | Bool b1 -> begin
         match v2 with
-        | Bool b2                  -> Bool.equal b1 b2
-        | _                       -> false
+        | Bool b2         -> Bool.equal b1 b2
+        | _               -> false
       end
     | Nil -> begin
         match v2 with
-        | Nil                     -> true
-        | _                       -> false
+        | Nil             -> true
+        | _               -> false
       end
-    | Callable _                  -> false
+    | Callable _          -> false
 
 
   let falsey (value : t) =
