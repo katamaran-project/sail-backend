@@ -84,7 +84,6 @@ struct
       end
 
 
-  (* Deal with all cases explicitly so as to get a compiler error when we add more value types *)
   let rec equal (v1 : t) (v2 : t) : bool =
     match v1 with
     | Cons (h1, t1) -> begin
