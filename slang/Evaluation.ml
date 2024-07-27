@@ -57,6 +57,7 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
   | Value.Bool _         -> return ast
   | Value.Nil            -> return ast
   | Value.Callable _     -> return ast
+  | Value.Reference _    -> return ast
 
 and evaluate_call func arguments =
   match func with
@@ -66,6 +67,7 @@ and evaluate_call func arguments =
   | Value.String _       -> raise @@ SlangError "strings are not callable"
   | Value.Bool _         -> raise @@ SlangError "bools are not callable"
   | Value.Nil            -> raise @@ SlangError "nil is not callable"
+  | Value.Reference _    -> raise @@ SlangError "references are not callable"
   | Value.Callable f     -> evaluate_callable f arguments
 
 and evaluate_callable native_function arguments =

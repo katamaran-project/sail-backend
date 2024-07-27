@@ -10,6 +10,7 @@ module rec Value : sig
     | Bool           of bool
     | Nil
     | Callable       of callable
+    | Reference      of Address.t
 
   and callable = t list -> t EvaluationContext.t
 
@@ -41,6 +42,7 @@ module rec Value : sig
     val is_bool           : t -> bool
     val is_nil            : t -> bool
     val is_callable       : t -> bool
+    val is_reference      : t -> bool
   end
 end
 =
@@ -53,6 +55,7 @@ struct
     | Bool           of bool
     | Nil
     | Callable       of callable
+    | Reference      of Address.t
 
   and callable = t list -> t EvaluationContext.t
 
@@ -79,6 +82,7 @@ struct
     | Bool false           -> "#f"
     | Nil                  -> "()"
     | Callable _           -> "<callable>"
+    | Reference _          -> "<ref>"
     | Cons (car, cdr)      -> begin
         match cons_to_list value with
         | Some vs -> "(" ^ (String.concat ~sep:" " @@ List.map ~f:to_string vs) ^ ")"
@@ -116,6 +120,11 @@ struct
     | Nil -> begin
         match v2 with
         | Nil             -> true
+        | _               -> false
+      end
+    | Reference x -> begin
+        match v2 with
+        | Reference y     -> Address.equal x y
         | _               -> false
       end
     | Callable _          -> false
@@ -180,6 +189,11 @@ struct
     let is_callable value =
       match value with
       | Callable _       -> true
+      | _                -> false
+
+    let is_reference value =
+      match value with
+      | Reference _      -> true
       | _                -> false
   end
 end
