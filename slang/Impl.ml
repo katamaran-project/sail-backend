@@ -185,7 +185,9 @@ struct
 end
 
 and EvaluationContext : sig
-  type state = Value.t Environment.t
+  type environment = Value.t Environment.t
+  type heap        = Value.t Heap.t
+  type state       = environment * heap
 
   type 'a t
 
@@ -213,7 +215,9 @@ and EvaluationContext : sig
 end
 =
 struct
-  type state = Value.t Environment.t
+  type environment = Value.t Environment.t
+  type heap        = Value.t Heap.t
+  type state       = environment * heap
 
   module Monad = Monads.State.Make(struct type t = state end)
 
@@ -222,14 +226,14 @@ struct
 
   type 'a t = 'a Monad.t
 
-  let empty_state             = Environment.empty
+  let empty_state : state     = (Environment.empty, Heap.empty)
 
   let return                  = Monad.return
   let bind                    = Monad.bind
   let ignore x                = bind x @@ fun _ -> return ()
-
-  let current_environment     = Monad.get
-  let set_current_environment = Monad.put
+   
+  let current_environment     = Monad.bind Monad.get @@ fun (environment, _) -> Monad.return environment
+  let set_current_environment environment = Monad.bind Monad.get @@ fun (_, heap) -> Monad.put (environment, heap)
   let current_state           = Monad.get
   let set_current_state       = Monad.put
 
@@ -240,7 +244,7 @@ struct
     in
     let env' = Environment.bind env identifier value
     in
-    Monad.put env'
+    set_current_environment env'
 
   let lookup identifier =
     let open Monads.Notations.Star(Monad)
