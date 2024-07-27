@@ -1,3 +1,10 @@
+let full =
+  let get x   = x
+  and set _ x = x
+  in
+  (get, set)
+
+
 module Pair = struct
   let first =
     let get (x, _)   = x

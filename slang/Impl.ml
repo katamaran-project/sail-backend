@@ -1,6 +1,11 @@
 open Base
 
 
+module Error = struct
+  type t = Foo
+end
+
+
 module rec Value : sig
   type t =
     | Cons           of t * t
@@ -202,22 +207,30 @@ and EvaluationContext : sig
   type environment = Value.t Environment.t
   type heap        = Value.t Heap.t
   type state       = environment * heap
+  type 'a result   =
+    | Success of 'a
+    | Failure of Error.t
 
+  type 'a accessor = (state -> 'a) * (state -> 'a -> state)
   type 'a t
 
   val empty_state             : state
 
   val return                  : 'a -> 'a t
+  val fail                    : Error.t -> 'a t
   val ignore                  : 'a t -> unit t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val lift                    : f:('a -> 'b) -> 'a t -> 'b t
-  val run_with_state          : 'a t -> state -> 'a * state
-  val run                     : 'a t -> 'a * state
+  val run_with_state          : 'a t -> state -> 'a result * state
+  val run                     : 'a t -> 'a result * state
 
-  val current_environment     : Value.t Environment.t t
-  val set_current_environment : Value.t Environment.t -> unit t
-  val current_state           : state t
-  val set_current_state       : state -> unit t
+  val get                     : 'a accessor -> 'a t
+  val put                     : 'a accessor -> 'a -> unit t
+
+  val state                   : state accessor
+  val environment             : environment accessor
+  val heap                    : heap accessor
+  
   val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
 
@@ -232,42 +245,56 @@ struct
   type environment = Value.t Environment.t
   type heap        = Value.t Heap.t
   type state       = environment * heap
+  type 'a result   =
+    | Success of 'a
+    | Failure of Error.t
 
-  module Monad = Monads.State.Make(struct type t = state end)
+  type 'a accessor = (state -> 'a) * (state -> 'a -> state)
+  
+  module Monad = Monads.StateResult.Make(struct type t = state end) (Error)
 
   include Monads.Util.Make(Monad)
 
 
   type 'a t = 'a Monad.t
 
-  let empty_state : state     = (Environment.empty, Heap.empty)
+  let empty_state : state
+    = (Environment.empty, Heap.empty)
 
   let return                  = Monad.return
+  let fail                    = Monad.fail
   let bind                    = Monad.bind
   let ignore x                = bind x @@ fun _ -> return ()
-   
-  let current_environment     = Monad.bind Monad.get @@ fun (environment, _) -> Monad.return environment
-  let set_current_environment environment = Monad.bind Monad.get @@ fun (_, heap) -> Monad.put (environment, heap)
-  let current_state           = Monad.get
-  let set_current_state       = Monad.put
+
+  let get = Monad.get
+  let put = Monad.put
+
+  let state       = Monads.Accessors.full
+  let environment = Monads.Accessors.Pair.first
+  let heap        = Monads.Accessors.Pair.second
 
   let add_binding identifier value =
     let open Monads.Notations.Star(Monad)
     in
-    let* env = current_environment
+    let* env = get environment
     in
     let env' = Environment.bind env identifier value
     in
-    set_current_environment env'
+    put environment env'
 
   let lookup identifier =
     let open Monads.Notations.Star(Monad)
     in
-    let* env = current_environment
+    let* env = get environment
     in
     return @@ Environment.lookup env identifier
 
-  let run_with_state = Monad.run
+  let run_with_state (f : 'a t) (state : state) : 'a result * state =
+    let result, state' = Monad.run f state
+    in
+    match result with
+    | Monad.Success value -> (Success value, state')
+    | Monad.Failure error -> (Failure error, state')
 
   let run p = run_with_state p empty_state
 end

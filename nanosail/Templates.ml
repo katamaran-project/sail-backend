@@ -103,9 +103,9 @@ let run_code
   in
   let value, _state = Slang.EvaluationContext.run program
   in
-  match value with
-   | Slang.Value.String string -> string
-   | _                         -> failwith "Code should produce string"
+  match value with  
+   | Success (Slang.Value.String string) -> string
+   | _                                   -> failwith "Code should produce string"
 
 
 (* Processes a single template, given the input and output as channels *)

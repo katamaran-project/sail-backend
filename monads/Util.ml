@@ -76,4 +76,7 @@ module Make (M : Sig.Monad) = struct
 
   let compose (g : 'b -> 'c M.t) (f : 'a -> 'b M.t) (x : 'a) =
     M.bind (f x) g
+
+  let ignore f =
+    M.bind f @@ fun _ -> M.return ()
 end

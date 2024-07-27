@@ -20,8 +20,14 @@ let test_run input expected =
       in
       let (actual, _)  = Slang.EvaluationContext.run program
       in
-      let msg =
-        Printf.sprintf "expected = %s != %s = actual" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
-      in
-      assert_equal ~msg expected actual
+      match actual with
+      | Slang.EvaluationContext.Success actual -> begin
+          let msg =
+            Printf.sprintf "expected = %s != %s = actual" (Slang.Value.to_string expected) (Slang.Value.to_string actual)
+          in
+          assert_equal ~msg expected actual
+        end
+      | Slang.EvaluationContext.Failure _error -> begin
+          assert_failure "evaluation failed"
+        end
     end

@@ -19,10 +19,10 @@ let bind_parameters parameters arguments =
 let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =
   let open EC
   in
-  let* old_env = current_environment in
-  let* ()      = set_current_environment env in
+  let* old_env = get environment in
+  let* ()      = put environment env in
   let* result  = func in
-  let* ()      = set_current_environment old_env
+  let* ()      = put environment old_env
   in
   return result
 
@@ -82,13 +82,13 @@ and evaluate_many asts =
   | None   -> return Value.Nil
   | Some x -> return x
 
-let mk_closure environment parameters body : Value.callable =
+let mk_closure env parameters body : Value.callable =
   let rec callable arguments =
     let open EC
     in
     let* evaluated_arguments = map ~f:evaluate arguments
     in
-    with_environment environment begin
+    with_environment env begin
       let* () = bind_parameters parameters evaluated_arguments
       in
       let* () = add_binding "recurse" (Value.Callable callable)
@@ -98,11 +98,11 @@ let mk_closure environment parameters body : Value.callable =
   in
   callable
 
-let mk_macro environment parameters body : Value.callable =
+let mk_macro env parameters body : Value.callable =
   let rec callable arguments =
     let open EC
     in
-    with_environment environment begin
+    with_environment env begin
       let* () = bind_parameters parameters arguments
       in
       let* () = add_binding "recurse" (Value.Callable callable)
