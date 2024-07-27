@@ -28,6 +28,8 @@ module rec Value : sig
     val string          : string   -> t
     val bool            : bool     -> t
     val callable        : callable -> t
+
+    val nil             : t
   end
 
   module Predicate : sig
@@ -135,6 +137,8 @@ struct
     let integer  n   = Integer n
     let bool     b   = Bool b
     let callable f   = Callable f
+
+    let nil          = Nil
   end
 
   module Predicate = struct
