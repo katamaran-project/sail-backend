@@ -6,7 +6,7 @@ type address = Address of int
 (* Polymorphic so as to prevent cyclic dependencies *)
 type 'a t = Heap of (Int.t, 'a, Int.comparator_witness) Map.t
 
-let empty = Map.empty (module Int)
+let empty : 'a t = Heap (Map.empty (module Int))
 
 let read (Heap heap : 'a t) (Address address : address) : 'a =
   Map.find_exn heap address
