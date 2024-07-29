@@ -37,10 +37,25 @@ let read_refcell =
   (id, impl)
 
 
+let write_refcell =
+  let id = "@="
+  and impl args =
+    match args with
+    | [ Value.Reference address; value ] -> begin
+        let* () = EC.heap_update address value
+        in
+        EC.return Value.Nil
+      end
+    | _ -> EC.fail "@= expects a reference and a value"
+  in
+  (id, impl)
+  
+
 let initialize =
   let definitions = [
     create_refcell;
     read_refcell;
+    write_refcell;
   ]
   in
   let pairs =
