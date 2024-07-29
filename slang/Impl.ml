@@ -261,6 +261,8 @@ struct
   
   module Monad = Monads.StateResult.Make(struct type t = state end) (Error)
 
+  open Monads.Notations.Star(Monad)
+      
   include Monads.Util.Make(Monad)
 
 
@@ -282,8 +284,6 @@ struct
   let heap        = Monads.Accessors.Pair.second
 
   let add_binding identifier value =
-    let open Monads.Notations.Star(Monad)
-    in
     let* env = get environment
     in
     let env' = Environment.bind env identifier value
@@ -291,15 +291,11 @@ struct
     put environment env'
 
   let lookup (identifier : string) : Value.t option t =
-    let open Monads.Notations.Star(Monad)
-    in
     let* env = get environment
     in
     return @@ Environment.lookup env identifier
 
   let heap_allocate (initial_value : Value.t) : Address.t t =
-    let open Monads.Notations.Star(Monad)
-    in
     let* original_heap = get heap
     in
     let (updated_heap, address) = Heap.allocate original_heap initial_value
@@ -309,8 +305,6 @@ struct
     return address
 
   let heap_access (address : Address.t) : Value.t t =
-    let open Monads.Notations.Star(Monad)
-    in
     let* current_heap = get heap
     in
     match Heap.read current_heap address with
@@ -318,8 +312,6 @@ struct
     | None       -> failwith "Bug, should not happen; somehow an address was forged"
 
   let heap_update (address : Address.t) (value : Value.t) : unit t =
-    let open Monads.Notations.Star(Monad)
-    in
     let* original_heap = get heap
     in
     let updated_heap = Heap.write original_heap address value
