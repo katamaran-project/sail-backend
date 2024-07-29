@@ -164,3 +164,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
   | DEF_internal_mutrec _          -> false
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
 
+
+
+let tag_as_generated (id : Ast.Identifier.t) =
+  Ast.Identifier.add_prefix "ж" id
