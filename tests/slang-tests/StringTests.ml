@@ -9,10 +9,12 @@ let string_join_tests =
   in
   let test_cases =
     [
-      ( {|
+      (
+        {|
            (join " " '("a" "b" "c"))
-        |}, String "a b c" );
-
+        |},
+        String "a b c"
+      );
     ]
   in
   "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
