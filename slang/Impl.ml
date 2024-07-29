@@ -28,12 +28,13 @@ module rec Value : sig
   val is_keyword   : string -> bool
 
   module Mk : sig
-    val cons            : t -> t   -> t
-    val integer         : int      -> t
-    val symbol          : string   -> t
-    val string          : string   -> t
-    val bool            : bool     -> t
-    val callable        : callable -> t
+    val cons            : t -> t    -> t
+    val integer         : int       -> t
+    val symbol          : string    -> t
+    val string          : string    -> t
+    val bool            : bool      -> t
+    val callable        : callable  -> t
+    val reference       : Address.t -> t
 
     val nil             : t
   end
@@ -145,12 +146,13 @@ struct
     String.is_prefix ~prefix:":" id
 
   module Mk = struct
-    let symbol   s   = Symbol s
-    let string   s   = String s
-    let cons     x y = Cons (x, y)
-    let integer  n   = Integer n
-    let bool     b   = Bool b
-    let callable f   = Callable f
+    let symbol    s   = Symbol s
+    let string    s   = String s
+    let cons      x y = Cons (x, y)
+    let integer   n   = Integer n
+    let bool      b   = Bool b
+    let callable  f   = Callable f
+    let reference a   = Reference a 
 
     let nil          = Nil
   end
