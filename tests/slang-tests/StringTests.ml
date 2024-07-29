@@ -4,6 +4,64 @@ open OUnit2
 open Shared
 
 
+let string_literals =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      (
+        {|
+           "a"
+        |},
+        String "a"
+      );
+      (
+        {|
+           "b"
+        |},
+        String "b"
+      );
+      (
+        {|
+           "xyz"
+        |},
+        String "xyz"
+      );
+      (
+        {|
+           "\""
+        |},
+        String {|"|}
+      );
+      (
+        {|
+           "\"abc\""
+        |},
+        String {|"abc"|}
+      );
+      (
+        {|
+           "\n"
+        |},
+        String "\n"
+      );
+      (
+        {|
+           "\n"
+        |},
+        String "\n"
+      );
+      (
+        {|
+           "\\"
+        |},
+        String "\\"
+      );
+    ]
+  in
+  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let string_join_tests =
   let open Slang.Value
   in
@@ -59,5 +117,6 @@ let string_join_tests =
 
 let tests =
   "evaluation tests" >::: [
+    string_literals;
     string_join_tests;
   ]
