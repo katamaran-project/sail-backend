@@ -285,7 +285,7 @@ struct
     in
     put environment env'
 
-  let lookup identifier =
+  let lookup (identifier : string) : Value.t option t =
     let open Monads.Notations.Star(Monad)
     in
     let* env = get environment
