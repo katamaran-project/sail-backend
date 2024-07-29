@@ -17,14 +17,14 @@ let addition =
     in
     let result = List.fold_left ~f:Int.(+) ~init:0 ns
     in
-    EV.return @@ Some (Value.Integer result)
+    EC.return @@ Some (Value.Integer result)
 
   and add_strings evaluated_args =
     let=?? strings = List.map ~f:C.string evaluated_args
     in
     let result = String.concat strings
     in
-    EV.return @@ Some (Value.String result)
+    EC.return @@ Some (Value.String result)
 
   in
   (id, mk_multimethod [ add_integers; add_strings; error id ])
@@ -34,7 +34,7 @@ let subtraction =
   let id = "-"
 
   and impl args =
-    let* evaluated_args = EV.map ~f:evaluate args
+    let* evaluated_args = EC.map ~f:evaluate args
     in
     let=!! ns = List.map ~f:C.integer evaluated_args
     in
@@ -43,7 +43,7 @@ let subtraction =
       | [n]   -> -n
       | n::ns -> List.fold_left ~f:Int.(-) ~init:n ns
     in
-    EV.return @@ Value.Integer result
+    EC.return @@ Value.Integer result
   in
   (id, impl)
 
@@ -56,21 +56,21 @@ let multiplication =
     in
     let result = List.fold_left ~f:Int.( * ) ~init:1 ns
     in
-    EV.return @@ Some (Value.Integer result)
+    EC.return @@ Some (Value.Integer result)
 
   and multiply_string_with_int evaluated_args =
     let=? string, integer = C.map2 C.string C.integer evaluated_args
     in
     let result = String.concat @@ List.init integer ~f:(Fn.const string)
     in
-    EV.return @@ Some (Value.String result)
+    EC.return @@ Some (Value.String result)
 
   and multiply_int_with_string evaluated_args =
     let=? integer, string = C.map2 C.integer C.string evaluated_args
     in
     let result = String.concat @@ List.init integer ~f:(Fn.const string)
     in
-    EV.return @@ Some (Value.String result)
+    EC.return @@ Some (Value.String result)
 
   in
   (id, mk_multimethod [
@@ -85,7 +85,7 @@ let division =
   let id = "/"
 
   and impl args =
-    let* evaluated_args = EV.map ~f:evaluate args
+    let* evaluated_args = EC.map ~f:evaluate args
     in
     let=!! ns = List.map ~f:C.integer evaluated_args
     in
@@ -94,7 +94,7 @@ let division =
       | [_]   -> raise @@ Exception.SlangError "invalid division"
       | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
     in
-    EV.return @@ Value.Integer result
+    EC.return @@ Value.Integer result
   in
   (id, impl)
 
@@ -105,7 +105,7 @@ let modulo =
   let impl args =
     let=! (x, y) = C.(map2 integer integer) args
     in
-    EV.return @@ Some (Value.Integer (x % y))
+    EC.return @@ Some (Value.Integer (x % y))
   in
   (id, mk_multimethod [ impl; error id ])
 
