@@ -32,13 +32,6 @@ let template_prelude (translation : Ast.program) =
     EC.heap_update generated_output_reference extended_output
   in
 
-  (* Converts the document to a string and adds it to the list of generated strings; not exported directly *)
-  let generate_document (document : PP.document) =
-    let* () = generate_string @@ string_of_document document
-    in
-    EC.return Slang.Value.Nil
-  in
-
   (* Returns generated strings in concatenated form *)
   let fetch_generated =
     let* generated_string_list = EC.heap_access generated_output_reference
@@ -50,9 +43,7 @@ let template_prelude (translation : Ast.program) =
     | None -> failwith "Bug: somehow the list got corrupted"
   in
 
-  let nullary_unit_function id func =
-    (id, Slang.Helpers.Function.to_unit id func)
-  and nullary_string_function id func =
+  let nullary_string_function id func =
     (id, Slang.Helpers.Function.to_string id func)
   and nullary_boolean_function id func =
     (id, Slang.Helpers.Function.to_bool id func)
