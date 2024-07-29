@@ -9,6 +9,7 @@ let tests =
     Evaluation_tests.tests;
     Type_tests.tests;
     Advanced_tests.tests;
+    Heap_tests.tests;
   ]
 
 
