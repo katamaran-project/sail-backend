@@ -27,8 +27,8 @@ module C = struct
     let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
     let template_files                    = string_to_string "template"
 
-    let template_block_left_delimiter     = ConfigLib.Setting.mk "(*<"
-    let template_block_right_delimiter    = ConfigLib.Setting.mk ">*)"
+    let template_block_left_delimiter     = string "template-block-left-delimiter"  "(*<"
+    let template_block_right_delimiter    = string "template-block-right-delimiter" ">*)"
 
     let _ = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
           let=! left, right = C.(map2 C.string C.string) evaluated_arguments
