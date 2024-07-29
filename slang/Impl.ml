@@ -236,6 +236,9 @@ and EvaluationContext : sig
   val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
 
+  (* Heap related functions *)
+  val heap_allocate           : Value.t -> Address.t t
+
   (* Useful extra functionality *)
   val map                     : f:('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : f:('a -> unit t) -> 'a list -> unit t
