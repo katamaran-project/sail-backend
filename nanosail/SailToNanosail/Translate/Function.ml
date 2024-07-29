@@ -851,7 +851,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* field_identifier =
         Identifier.translate_identifier [%here] field_identifier
       in
-      (* Generate fresh name for variable that will be assigned the value of the field *)
+      (* Generate x1fresh name for variable that will be assigned the value of the field *)
       let* variable_identifier =
         TC.generate_unique_identifier @@ "updated_" ^ (Ast.Identifier.string_of field_identifier)
       in
