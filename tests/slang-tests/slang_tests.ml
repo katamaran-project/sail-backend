@@ -3,7 +3,7 @@ open OUnit2
 
 let tests =
   "all tests" >::: [
-    Continuation_tests.tests;
+    ContinuationTests.tests;
     Tokenizer_tests.tests;
     Parser_tests.tests;
     Evaluation_tests.tests;
