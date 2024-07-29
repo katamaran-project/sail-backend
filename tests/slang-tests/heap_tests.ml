@@ -20,6 +20,23 @@ let heap_access_tests =
   "accessing" >::: List.map ~f:(uncurry test_run) test_cases
 
 
+let heap_update_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    [
+      ( {|
+          (define r (ref 1))
+          (@= r 2)
+          (@ r)
+        |}
+      , Integer 2
+      )
+    ]
+  in
+  "updating" >::: List.map ~f:(uncurry test_run) test_cases
+
+
 let tests =
   "heap tests" >::: [
     heap_access_tests;
