@@ -4,6 +4,8 @@ open Monads.Notations.Star(Slang.EvaluationContext)
 module EC = Slang.EvaluationContext
 module PP = PPrint
 
+open Slang.Prelude.Shared
+
 
 let string_of_document document =
   let text_width = Configuration.(get output_width)
@@ -19,7 +21,7 @@ let template_prelude (translation : Ast.program) =
     EC.heap_allocate Slang.Value.Nil
   in
 
-  (* Adds the given string to the list of generated strings *)
+  (* Adds the given string to the list of generated strings; not exported directly *)
   let generate_string (str : string) =
     let* current_output =
       EC.heap_access generated_output_reference
@@ -30,7 +32,7 @@ let template_prelude (translation : Ast.program) =
     EC.heap_update generated_output_reference extended_output
   in
 
-  (* Converts the document to a string and adds it to the list of generated strings *)
+  (* Converts the document to a string and adds it to the list of generated strings; not exported directly *)
   let generate_document (document : PP.document) =
     let* () = generate_string @@ string_of_document document
     in
@@ -54,7 +56,20 @@ let template_prelude (translation : Ast.program) =
     (id, Slang.Helpers.Function.to_bool id func)
   in
 
-  let full_translation =
+  (* (generate string1 string2 ...) *)
+  let exported_generate =
+    let id = "generate"
+    and impl args =
+      let=?? strings = List.map ~f:Slang.Converters.string args
+      in
+      let* () = EC.iter ~f:generate_string strings
+      in
+      EC.return (Some Slang.Value.Nil)
+    in
+      (id, Slang.Value.Callable (Slang.Functions.mk_multimethod [ impl; error id ]))
+  in
+  
+  let exported_full_translation =
     let id = "full-translation"
     in
     let f () =
@@ -63,7 +78,7 @@ let template_prelude (translation : Ast.program) =
     nullary_unit_function id f
   in
 
-  let ignored_definitions =
+  let exported_ignored_definitions =
     let id = "ignored-definitions"
     in
     let f () =
@@ -78,7 +93,7 @@ let template_prelude (translation : Ast.program) =
     nullary_unit_function id f
   in
 
-  let untranslated_definitions =
+  let exported_untranslated_definitions =
     let id = "untranslated-definitions"
     in
     let f () =
@@ -93,7 +108,7 @@ let template_prelude (translation : Ast.program) =
     nullary_unit_function id f
   in
 
-  let untranslated_definitions_predicate =
+  let exported_untranslated_definitions_predicate =
     let id = "untranslated-definitions?"
     in
     let f () =
@@ -102,11 +117,12 @@ let template_prelude (translation : Ast.program) =
     nullary_boolean_function id f
   in
 
-  let exported = [
-    full_translation;
-    ignored_definitions;
-    untranslated_definitions;
-    untranslated_definitions_predicate;
+  let exported : (string * Slang.Value.t) list = [
+    exported_generate;
+    exported_full_translation;
+    exported_ignored_definitions;
+    exported_untranslated_definitions;
+    exported_untranslated_definitions_predicate;
   ]
   in
   let* () = EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
