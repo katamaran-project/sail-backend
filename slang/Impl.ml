@@ -239,6 +239,7 @@ and EvaluationContext : sig
   (* Heap related functions *)
   val heap_allocate           : Value.t -> Address.t t
   val heap_access             : Address.t -> Value.t t
+  val heap_update             : Address.t -> Value.t -> unit t
 
   (* Useful extra functionality *)
   val map                     : f:('a -> 'b t) -> 'a list -> 'b list t
@@ -315,6 +316,15 @@ struct
     match Heap.read current_heap address with
     | Some value -> return value
     | None       -> failwith "Bug, should not happen; somehow an address was forged"
+
+  let heap_update (address : Address.t) (value : Value.t) : unit t =
+    let open Monads.Notations.Star(Monad)
+    in
+    let* original_heap = get heap
+    in
+    let updated_heap = Heap.write original_heap address value
+    in
+    put heap updated_heap
 
   let run_with_state (f : 'a t) (state : state) : 'a result * state =
     let result, state' = Monad.run f state
