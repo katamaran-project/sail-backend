@@ -10,6 +10,7 @@ let tests =
     TypeTests.tests;
     AdvancedTests.tests;
     HeapTests.tests;
+    StringTests.tests;
   ]
 
 
