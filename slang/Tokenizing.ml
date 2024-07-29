@@ -58,10 +58,11 @@ and read_string (seq : char Sequence.t) =
         match char with
         | '\\' -> begin
             match Sequence.next tail with
-            | None             -> failwith "unfinished string"
-            | Some ('"', tail) -> collect_string_chars ('"' :: acc) @@ tail
-            | Some ('n', tail) -> collect_string_chars ('\n' :: acc) @@ tail
-            | Some (_  , tail) -> collect_string_chars ('\\' :: acc) @@ tail
+            | None              -> failwith "unfinished string"
+            | Some ('"' , tail) -> collect_string_chars ('"'  :: acc) @@ tail
+            | Some ('n' , tail) -> collect_string_chars ('\n' :: acc) @@ tail
+            | Some ('\\', tail) -> collect_string_chars ('\\' :: acc) @@ tail
+            | Some (_   , tail) -> collect_string_chars ('\\' :: acc) @@ tail
           end
         | '"'  -> yield (T.String (String.of_char_list @@ List.rev acc)) >>= continue
         | _    -> collect_string_chars (char :: acc) @@ tail
