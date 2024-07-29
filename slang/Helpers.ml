@@ -12,6 +12,12 @@ module Function = struct
     Functions.mk_strict_function slang_function
 
 
+  (* unit -> string *)
   let to_string = to_type Value.Mk.string
-  let to_bool   = to_type Value.Mk.bool
+
+  (* unit -> bool *)
+  let to_bool = to_type Value.Mk.bool
+
+  (* unit -> unit *)
+  let to_unit = to_type (fun () -> Value.Mk.nil)    
 end
