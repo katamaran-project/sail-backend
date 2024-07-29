@@ -6,7 +6,7 @@ let tests =
     ContinuationTests.tests;
     Tokenizer_tests.tests;
     Parser_tests.tests;
-    Evaluation_tests.tests;
+    EvaluationTests.tests;
     Type_tests.tests;
     AdvancedTests.tests;
     HeapTests.tests;
