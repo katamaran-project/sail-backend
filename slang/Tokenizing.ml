@@ -28,7 +28,7 @@ let rec read_next_token (seq : char Sequence.t) =
 
 and read_boolean (seq : char Sequence.t) =
   match Sequence.next seq with
-  | None     -> failwith "no more input"
+  | None -> failwith "no more input"
   | Some (char, tail) -> begin
       match char with
       | '#' -> begin
