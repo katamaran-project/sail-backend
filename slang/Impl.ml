@@ -268,13 +268,13 @@ struct
   let empty_state : state
     = (Environment.empty, Heap.empty)
 
-  let return                  = Monad.return
-  let fail                    = Monad.fail
-  let bind                    = Monad.bind
-  let ignore x                = bind x @@ fun _ -> return ()
+  let return      = Monad.return
+  let fail        = Monad.fail
+  let bind        = Monad.bind
+  let ignore x    = bind x @@ fun _ -> return ()
 
-  let get = Monad.get
-  let put = Monad.put
+  let get         = Monad.get
+  let put         = Monad.put
 
   let state       = Monads.Accessors.full
   let environment = Monads.Accessors.Pair.first
