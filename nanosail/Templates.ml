@@ -52,6 +52,8 @@ let template_prelude (translation : Ast.program) =
 
   let nullary_unit_function id func =
     (id, Slang.Helpers.Function.to_unit id func)
+  and nullary_string_function id func =
+    (id, Slang.Helpers.Function.to_string id func)
   and nullary_boolean_function id func =
     (id, Slang.Helpers.Function.to_bool id func)
   in
@@ -73,9 +75,9 @@ let template_prelude (translation : Ast.program) =
     let id = "full-translation"
     in
     let f () =
-      EC.ignore @@ generate_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+      EC.return @@ string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
     in
-    nullary_unit_function id f
+    nullary_string_function id f
   in
 
   let exported_ignored_definitions =
@@ -88,9 +90,9 @@ let template_prelude (translation : Ast.program) =
       let formatted_ignored_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions)
       in
-      EC.ignore @@ generate_document @@ formatted_ignored_definitions
+      EC.return @@ string_of_document @@ formatted_ignored_definitions
     in
-    nullary_unit_function id f
+    nullary_string_function id f
   in
 
   let exported_untranslated_definitions =
@@ -103,9 +105,9 @@ let template_prelude (translation : Ast.program) =
       let formatted_untranslated_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
       in
-      EC.ignore @@ generate_document formatted_untranslated_definitions
+      EC.return @@ string_of_document formatted_untranslated_definitions
     in
-    nullary_unit_function id f
+    nullary_string_function id f
   in
 
   let exported_untranslated_definitions_predicate =
