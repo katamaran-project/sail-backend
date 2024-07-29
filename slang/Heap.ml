@@ -27,5 +27,4 @@ let allocate (Heap (map, n) : 'a t) (value : 'a) =
   let updated_n =
     n + 1
   in
-  Heap (updated_map, updated_n)
-
+  (Heap (updated_map, updated_n), Address.mk n)
