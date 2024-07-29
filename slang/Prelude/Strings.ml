@@ -21,7 +21,6 @@ let join =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-
 let initialize =
   let definitions = [
     join;
