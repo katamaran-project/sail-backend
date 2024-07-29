@@ -27,7 +27,7 @@ let test_run input expected =
           in
           assert_equal ~msg expected actual
         end
-      | Slang.EvaluationContext.Failure _error -> begin
-          assert_failure "evaluation failed"
+      | Slang.EvaluationContext.Failure error -> begin
+          assert_failure @@ "evaluation failed:" ^ error
         end
     end
