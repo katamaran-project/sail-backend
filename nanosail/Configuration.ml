@@ -125,7 +125,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     in
     match result with
     | C.EC.Success result -> Slang.Value.truthy result
-    | C.EC.Failure _ -> failwith "Error while reading configuration"
+    | C.EC.Failure _      -> failwith "Error while reading configuration"
 
   and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
     let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
