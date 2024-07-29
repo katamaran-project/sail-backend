@@ -18,7 +18,7 @@ let create_refcell =
       end
     | _ -> EC.fail "ref expects one argument"
   in
-  (id, impl)
+  (id, Functions.mk_strict_function impl)
 
 
 let read_refcell =
@@ -30,9 +30,11 @@ let read_refcell =
         in
         EC.return value
       end
-    | _ -> EC.fail "@ expects a reference as single argument"
+    | [ nonreference ] -> EC.fail @@ "@ expects a reference as single argument; instead got " ^ (Value.to_string nonreference)
+    | []               -> EC.fail @@ "@ expects a reference as single argument; instead got no arguments"
+    | _                -> EC.fail @@ "@ expects a reference as single argument; instead got more arguments"
   in
-  (id, impl)
+  (id, Functions.mk_strict_function impl)
 
 
 let write_refcell =
@@ -46,7 +48,7 @@ let write_refcell =
       end
     | _ -> EC.fail "@= expects a reference and a value"
   in
-  (id, impl)
+  (id, Functions.mk_strict_function impl)
   
 
 let initialize =
@@ -57,6 +59,6 @@ let initialize =
   ]
   in
   let pairs =
-    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
+    List.map ~f:(fun (id, c) -> (id, c)) definitions
   in
   EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs
