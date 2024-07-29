@@ -224,16 +224,19 @@ and EvaluationContext : sig
   val run_with_state          : 'a t -> state -> 'a result * state
   val run                     : 'a t -> 'a result * state
 
+  (* State related functions *)
   val get                     : 'a accessor -> 'a t
   val put                     : 'a accessor -> 'a -> unit t
 
   val state                   : state accessor
   val environment             : environment accessor
   val heap                    : heap accessor
-  
+
+  (* Environment related functions *)
   val add_binding             : string -> Value.t -> unit t
   val lookup                  : string -> Value.t option t
 
+  (* Useful extra functionality *)
   val map                     : f:('a -> 'b t) -> 'a list -> 'b list t
   val iter                    : f:('a -> unit t) -> 'a list -> unit t
   val exists                  : f:('a -> bool t) -> 'a list -> bool t
