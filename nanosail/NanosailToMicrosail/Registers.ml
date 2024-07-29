@@ -89,11 +89,14 @@ let instance_reg_eq_dec register_names =
         then add wildcard_case;
       )
   in
+  let id1 = Configuration.tag_as_generated @@ Ast.Identifier.mk "x"
+  and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
+  in
   PP.(
     separate hardline [
       utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-      utf8string "  fun '(existT σ x) '(existT τ y) =>";
-      indent' (Coq.match_pair (string "x", string "y") cases) ^^ Coq.eol;
+      PP.(string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>");
+      indent' (Coq.match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
   )
