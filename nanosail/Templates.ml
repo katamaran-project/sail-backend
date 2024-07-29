@@ -14,8 +14,26 @@ let string_of_document document =
 
 
 let template_prelude (translation : Ast.program) =
-  let nullary_string_function id func =
-    (id, Slang.Helpers.Function.to_string id func)
+  let* generated_output_reference = EC.heap_allocate Slang.Value.Nil
+  in
+  let generate_string (str : string) =
+    let* current_output =
+      EC.heap_access generated_output_reference
+    in
+    let extended_output =
+      Slang.Value.Cons (Slang.Value.String str, current_output)
+    in
+    EC.heap_update generated_output_reference extended_output
+  in
+      
+  let generate_document (document : PP.document) =
+    let* () = generate_string @@ string_of_document document
+    in
+    EC.return Slang.Value.Nil
+  in
+
+  let nullary_unit_function id func =
+    (id, Slang.Helpers.Function.to_unit id func)
   and nullary_boolean_function id func =
     (id, Slang.Helpers.Function.to_bool id func)
   in
@@ -24,9 +42,9 @@ let template_prelude (translation : Ast.program) =
     let id = "full-translation"
     in
     let f () =
-      string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+      EC.ignore @@ generate_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
     in
-    nullary_string_function id f
+    nullary_unit_function id f
   in
 
   let ignored_definitions =
@@ -39,9 +57,9 @@ let template_prelude (translation : Ast.program) =
       let formatted_ignored_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions)
       in
-      string_of_document formatted_ignored_definitions
+      EC.ignore @@ generate_document @@ formatted_ignored_definitions
     in
-    nullary_string_function id f
+    nullary_unit_function id f
   in
 
   let untranslated_definitions =
@@ -54,16 +72,16 @@ let template_prelude (translation : Ast.program) =
       let formatted_untranslated_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
       in
-      string_of_document formatted_untranslated_definitions
+      EC.ignore @@ generate_document formatted_untranslated_definitions
     in
-    nullary_string_function id f
+    nullary_unit_function id f
   in
 
   let untranslated_definitions_predicate =
     let id = "untranslated-definitions?"
     in
     let f () =
-      List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
+      EC.return @@ List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
     in
     nullary_boolean_function id f
   in
