@@ -5,7 +5,7 @@ let tests =
   "all tests" >::: [
     ContinuationTests.tests;
     TokenizerTests.tests;
-    Parser_tests.tests;
+    ParserTests.tests;
     EvaluationTests.tests;
     Type_tests.tests;
     AdvancedTests.tests;
