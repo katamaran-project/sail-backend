@@ -14,8 +14,12 @@ let string_of_document document =
 
 
 let template_prelude (translation : Ast.program) =
-  let* generated_output_reference = EC.heap_allocate Slang.Value.Nil
+  (* Allocate a refcell that holds a list of generated strings (in reverse order, for efficiency purposes) *)
+  let* generated_output_reference =
+    EC.heap_allocate Slang.Value.Nil
   in
+
+  (* Adds the given string to the list of generated strings *)
   let generate_string (str : string) =
     let* current_output =
       EC.heap_access generated_output_reference
@@ -25,11 +29,23 @@ let template_prelude (translation : Ast.program) =
     in
     EC.heap_update generated_output_reference extended_output
   in
-      
+
+  (* Converts the document to a string and adds it to the list of generated strings *)
   let generate_document (document : PP.document) =
     let* () = generate_string @@ string_of_document document
     in
     EC.return Slang.Value.Nil
+  in
+
+  (* Returns generated strings in concatenated form *)
+  let fetch_generated =
+    let* generated_string_list = EC.heap_access generated_output_reference
+    in
+    match Slang.Converters.(list string) generated_string_list with
+    | Some strings -> begin
+        EC.return @@ String.concat ~sep:"" @@ List.rev strings
+      end
+    | None -> failwith "Bug: somehow the list got corrupted"
   in
 
   let nullary_unit_function id func =
@@ -93,7 +109,9 @@ let template_prelude (translation : Ast.program) =
     untranslated_definitions_predicate;
   ]
   in
-  EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
+  let* () = EC.iter exported ~f:(fun (id, callable) -> EC.add_binding id callable)
+  in
+  EC.return fetch_generated
 
 
 let is_template_block_start line =
@@ -115,15 +133,17 @@ let run_code
       (source      : string     ) : string =
   let program =
     let* () = Slang.Prelude.initialize
-    and* () = template_prelude translation
+    and* fetch_generated = template_prelude translation
     in
-    Slang.Evaluation.evaluate_string source
+    let* _ = Slang.Evaluation.evaluate_string source
+    in
+    fetch_generated
   in
   let value, _state = Slang.EvaluationContext.run program
   in
   match value with  
-   | Success (Slang.Value.String string) -> string
-   | _                                   -> failwith "Code should produce string"
+   | Success string -> string
+   | _              -> failwith "Code should produce string"
 
 
 (* Processes a single template, given the input and output as channels *)
