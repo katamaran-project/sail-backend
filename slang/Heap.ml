@@ -7,8 +7,8 @@ type 'a t = Heap of (Int.t, 'a, Int.comparator_witness) Map.t * int
 let empty : 'a t = Heap (Map.empty (module Int), 0)
 
 
-let read (Heap (map, _) : 'a t) (address : Address.t) : 'a =
-  Map.find_exn map @@ Address.to_int address
+let read (Heap (map, _) : 'a t) (address : Address.t) : 'a option =
+  Map.find map @@ Address.to_int address
 
 
 let write (Heap (map, n) : 'a t) (address : Address.t) (value : 'a) : 'a t =
