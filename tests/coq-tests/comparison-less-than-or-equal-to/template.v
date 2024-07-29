@@ -1,11 +1,14 @@
 (*<
-  (full-translation)
+  (generate (full-translation))
+
+  (if (untranslated-definitions?)
+    (generate "\n\nUNTRANSLATED DEFINITIONS"))
 >*)
 
 (*
 
 (*<
-  (untranslated-definitions)
+  (generate (untranslated-definitions))
 >*)
 
 *)

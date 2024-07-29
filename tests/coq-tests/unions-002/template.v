@@ -1,5 +1,8 @@
 (*<
-  (full-translation)
+  (generate (full-translation))
+
+  (if (untranslated-definitions?)
+    (generate "\n\nUNTRANSLATED DEFINITIONS"))
 >*)
 
 Theorem test : forall instr : instruction, exists x : Z, exists y : Z, instr = Pop x y.
@@ -10,7 +13,7 @@ Qed.
 (*
 
 (*<
-  (untranslated-definitions)
+  (generate (untranslated-definitions))
 >*)
 
 *)

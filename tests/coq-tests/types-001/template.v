@@ -1,14 +1,14 @@
 (*<
-  (full-translation)
->*)
+  (generate (full-translation))
 
-Theorem foo_def : foo = bitvector 2.
-Proof. trivial. Qed.
+  (if (untranslated-definitions?)
+    (generate "\n\nUNTRANSLATED DEFINITIONS"))
+>*)
 
 (*
 
 (*<
-  (untranslated-definitions)
+  (generate (untranslated-definitions))
 >*)
 
 *)
