@@ -4,7 +4,7 @@ open OUnit2
 let tests =
   "all tests" >::: [
     ContinuationTests.tests;
-    Tokenizer_tests.tests;
+    TokenizerTests.tests;
     Parser_tests.tests;
     EvaluationTests.tests;
     Type_tests.tests;
