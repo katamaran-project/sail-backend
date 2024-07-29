@@ -2,7 +2,7 @@ open Base
 
 
 module Error = struct
-  type t = Foo
+  type t = string
 end
 
 
