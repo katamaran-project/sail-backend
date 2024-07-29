@@ -114,7 +114,7 @@ let template_prelude (translation : Ast.program) =
     let id = "untranslated-definitions?"
     in
     let f () =
-      EC.return @@ List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
+      EC.return @@ not @@ List.is_empty @@ Ast.(select Extract.untranslated_definition translation.definitions)
     in
     nullary_boolean_function id f
   in
