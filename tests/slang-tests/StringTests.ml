@@ -4,7 +4,7 @@ open OUnit2
 open Shared
 
 
-let string_literals =
+let string_literal_tests =
   let open Slang.Value
   in
   let test_cases =
@@ -117,6 +117,6 @@ let string_join_tests =
 
 let tests =
   "evaluation tests" >::: [
-    string_literals;
+    string_literal_tests;
     string_join_tests;
   ]
