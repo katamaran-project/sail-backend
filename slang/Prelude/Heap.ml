@@ -23,9 +23,24 @@ let create_refcell =
   (id, impl)
 
 
+let read_refcell =
+  let id = "@"
+  and impl args =
+    match args with
+    | [ Value.Reference address ] -> begin
+        let* value = EC.heap_access address
+        in
+        EC.return value
+      end
+    | _ -> EC.fail "@ expects a reference as single argument"
+  in
+  (id, impl)
+
+
 let initialize =
   let definitions = [
     create_refcell;
+    read_refcell;
   ]
   in
   let pairs =
