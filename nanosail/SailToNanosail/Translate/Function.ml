@@ -85,7 +85,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
     end
   | S.P_wild -> begin
       let* typ = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
-      and* id  = TC.generate_unique_identifier "_"
+      and* id  = TC.generate_unique_identifier ~underscore:true ()
       in
       TC.return [(id, typ)]
     end
@@ -204,7 +204,7 @@ let rec expression_of_aval
         let* unique_id =
           let prefix = Printf.sprintf "reg_%s_" (Ast.Identifier.string_of id')
           in
-          TC.generate_unique_identifier prefix
+          TC.generate_unique_identifier ~prefix ()
         in
         let named_statements =
           [(unique_id, typ', Ast.Statement.ReadRegister id')]
@@ -326,7 +326,7 @@ let with_destructured_record
                 List.map ~f:fst record_type_definition.fields
               in
               let* variable_identifiers =
-                TC.map ~f:(fun x -> TC.generate_unique_identifier @@ Ast.Identifier.string_of x) field_identifiers
+                TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.string_of x) ()) field_identifiers
               in
               let* body =
                 body_generator {
@@ -656,7 +656,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   let (constructor_tag, fields) = variant_constructor
                   in
                   let* field_vars =
-                    TC.map ~f:(fun _ -> TC.generate_unique_identifier "_x") fields
+                    TC.map ~f:(fun _ -> TC.generate_unique_identifier ~underscore:true ()) fields
                   in
                   let acc' = match Ast.Identifier.Map.add acc ~key:constructor_tag ~data:(field_vars, translated_clause) with
                     | `Duplicate -> acc   (* constructor has already been dealt with previously, so ignore this case *)
@@ -851,9 +851,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* field_identifier =
         Identifier.translate_identifier [%here] field_identifier
       in
-      (* Generate x1fresh name for variable that will be assigned the value of the field *)
+      (* Generate fresh name for variable that will be assigned the value of the field *)
       let* variable_identifier =
-        TC.generate_unique_identifier @@ "updated_" ^ (Ast.Identifier.string_of field_identifier)
+        TC.generate_unique_identifier ~prefix:("updated_" ^ (Ast.Identifier.string_of field_identifier)) ()
       in
       (* Convert assigned expression to statement *)
       let* (field_type, named_statement) =
