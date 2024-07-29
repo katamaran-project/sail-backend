@@ -56,8 +56,15 @@ and read_string (seq : char Sequence.t) =
           read_next_token tail
         in
         match char with
-        | '"' -> yield (T.String (String.of_char_list @@ List.rev acc)) >>= continue
-        | _   -> collect_string_chars (char :: acc) @@ tail
+        | '\\' -> begin
+            match Sequence.next tail with
+            | None             -> failwith "unfinished string"
+            | Some ('"', tail) -> collect_string_chars ('"' :: acc) @@ tail
+            | Some ('n', tail) -> collect_string_chars ('\n' :: acc) @@ tail
+            | Some (_  , tail) -> collect_string_chars ('\\' :: acc) @@ tail
+          end
+        | '"'  -> yield (T.String (String.of_char_list @@ List.rev acc)) >>= continue
+        | _    -> collect_string_chars (char :: acc) @@ tail
       end
   in
   match Sequence.next seq with
