@@ -289,6 +289,17 @@ struct
     in
     return @@ Environment.lookup env identifier
 
+  let heap_allocate (initial_value : Value.t) : Address.t t =
+    let open Monads.Notations.Star(Monad)
+    in
+    let* original_heap = get heap
+    in
+    let (updated_heap, address) = Heap.allocate original_heap initial_value
+    in
+    let* () = put heap updated_heap
+    in
+    return address
+
   let run_with_state (f : 'a t) (state : state) : 'a result * state =
     let result, state' = Monad.run f state
     in
