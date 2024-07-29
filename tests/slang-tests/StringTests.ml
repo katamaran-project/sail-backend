@@ -11,9 +11,45 @@ let string_join_tests =
     [
       (
         {|
+           (join " " '("a"))
+        |},
+        String "a"
+      );
+      (
+        {|
+           (join " " '("a" "b"))
+        |},
+        String "a b"
+      );
+      (
+        {|
            (join " " '("a" "b" "c"))
         |},
         String "a b c"
+      );
+      (
+        {|
+           (join " " '("abc" "xyz" "123"))
+        |},
+        String "abc xyz 123"
+      );
+      (
+        {|
+           (join "" '("abc" "xyz" "123"))
+        |},
+        String "abcxyz123"
+      );
+      (
+        {|
+           (join "," '("abc" "xyz" "123"))
+        |},
+        String "abc,xyz,123"
+      );
+      (
+        {|
+           (join ", " '("abc" "xyz" "123"))
+        |},
+        String "abc, xyz, 123"
       );
     ]
   in
