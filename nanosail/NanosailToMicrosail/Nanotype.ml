@@ -89,6 +89,11 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
     in
     AC.return @@ PP.separate PP.space (t :: ts')
 
+  and coq_type_of_tuple ts =
+    let* ts' = AC.map ~f:coq_type_of_nanotype ts
+    in
+    AC.return @@ Coq.pp_tuple_type ts'
+
   in
   match nanotype with
   | Unit                -> AC.return @@ PP.string "Datatypes.unit"
@@ -98,7 +103,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Bitvector n         -> coq_type_of_bitvector_type n
   | List t              -> coq_type_of_list_type t
   | Application (t, ts) -> coq_type_of_application t ts
-  | Tuple _ts           -> AC.not_yet_implemented [%here]
+  | Tuple ts            -> coq_type_of_tuple ts
   | Record id           -> AC.return @@ Identifier.pp id
   | Enum id             -> AC.return @@ Identifier.pp id
   | Variant id          -> AC.return @@ Identifier.pp id
