@@ -31,14 +31,14 @@ module State = struct
     }
 
   let next_id =
-    let get (state : t) : int = state.next_id
-    and set (state : t) (next_id : int) : t = { state with next_id }
+    let get (state : t)                 : int = state.next_id
+    and set (state : t) (next_id : int) : t   = { state with next_id }
     in
     (get, set)
 
   let mapping =
-    let get (state : t) : mapping = state.mapping
-    and set (state : t) (mapping : mapping) : t = { state with mapping }
+    let get (state : t)                     : mapping = state.mapping
+    and set (state : t) (mapping : mapping) : t       = { state with mapping }
     in
     (get, set)
 end
