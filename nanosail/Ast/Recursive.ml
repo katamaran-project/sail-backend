@@ -1,3 +1,8 @@
+(*
+  Groups recursive modules
+  Modules defined in here are aliased and should only be referred to by their alias.
+*)
+
 open Base
 
 

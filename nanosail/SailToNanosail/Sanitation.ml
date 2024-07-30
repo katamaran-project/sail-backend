@@ -20,31 +20,31 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
       and abbreviation = type_abbreviation_definition.abbreviation
       in
       match abbreviation with
-      | TA_numeric_expression (type_quantifier, numeric_expression) ->
+      | NumericExpression (type_quantifier, numeric_expression) ->
         begin
           let type_quantifier', numeric_expression' = Substitute.Sanitize.numeric_expression type_quantifier numeric_expression
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.Type.Abbreviation.TA_numeric_expression (type_quantifier', numeric_expression')
+            abbreviation = Ast.Definition.Type.Abbreviation.NumericExpression (type_quantifier', numeric_expression')
           }
         end
-      | TA_numeric_constraint (type_quantifier, numeric_constraint) ->
+      | NumericConstraint (type_quantifier, numeric_constraint) ->
         begin
           let type_quantifier', numeric_constraint' = Substitute.Sanitize.numeric_constraint type_quantifier numeric_constraint
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.Type.Abbreviation.TA_numeric_constraint (type_quantifier', numeric_constraint')
+            abbreviation = Ast.Definition.Type.Abbreviation.NumericConstraint (type_quantifier', numeric_constraint')
           }
         end
-      | TA_alias (type_quantifier, nanotype) ->
+      | Alias (type_quantifier, nanotype) ->
         begin
           let type_quantifier', nanotype' = Substitute.Sanitize.nanotype type_quantifier nanotype
           in
           {
             identifier = identifier;
-            abbreviation = Ast.Definition.Type.Abbreviation.TA_alias (type_quantifier', nanotype')
+            abbreviation = Ast.Definition.Type.Abbreviation.Alias (type_quantifier', nanotype')
           }
         end
     in

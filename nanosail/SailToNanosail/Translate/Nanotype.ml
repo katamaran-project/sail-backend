@@ -39,9 +39,9 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
             let _ = identifier (* todo remove this *)
             in
             match abbreviation with
-            | Ast.Definition.Type.Abbreviation.TA_numeric_expression (_, _)    -> TC.not_yet_implemented [%here] location
-            | Ast.Definition.Type.Abbreviation.TA_numeric_constraint (_, _)    -> TC.not_yet_implemented [%here] location
-            | Ast.Definition.Type.Abbreviation.TA_alias (type_quantifier, typ) -> begin
+            | Ast.Definition.Type.Abbreviation.NumericExpression (_, _)     -> TC.not_yet_implemented [%here] location
+            | Ast.Definition.Type.Abbreviation.NumericConstraint (_, _)     -> TC.not_yet_implemented [%here] location
+            | Ast.Definition.Type.Abbreviation.Alias (type_quantifier, typ) -> begin
                 match type_quantifier with
                 | []   -> TC.return @@ Ast.Type.Alias (identifier', typ)
                 | _::_ -> TC.not_yet_implemented [%here] location

@@ -74,9 +74,9 @@ module Type = struct
 
   module Abbreviation = struct
     type type_abbreviation = (* todo find better name *)
-      | TA_numeric_expression of type_quantifier * NumericExpression.t
-      | TA_numeric_constraint of type_quantifier * NumericConstraint.t
-      | TA_alias              of type_quantifier * Type.t
+      | NumericExpression of type_quantifier * NumericExpression.t
+      | NumericConstraint of type_quantifier * NumericConstraint.t
+      | Alias             of type_quantifier * Type.t
 
     type t =
       {
