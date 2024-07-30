@@ -376,7 +376,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
        let Id_aux (unwrapped_identifier, identifier_location) = identifier
        in
        match unwrapped_identifier with
-       | Id "atom" -> extended_return_type_of_atom type_arguments
+       | Id "atom"      -> extended_return_type_of_atom type_arguments
        | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
        | Id string -> begin
            let message =
