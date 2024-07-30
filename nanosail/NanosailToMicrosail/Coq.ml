@@ -43,14 +43,14 @@ let is_single_line string =
 
 
 let pp_inline_comment comment =
-  PP.(separate space @@ [
+  PP.(separate space [
       left_comment_delimiter;
       comment;
       right_comment_delimiter
     ])
 
 
-let multiline_comment comment =
+let pp_multiline_comment comment =
   PP.separate PP.hardline [
     left_comment_delimiter;
     PP.indent' comment;
