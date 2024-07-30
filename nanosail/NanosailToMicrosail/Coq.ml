@@ -64,25 +64,9 @@ let comment comment =
   if
     is_single_line str
   then
-    PP.(
-      concat [
-        left_comment_delimiter;
-        space;
-        string (String.rstrip str);
-        space;
-        right_comment_delimiter
-      ]
-    )
+    pp_inline_comment comment
   else
-    PP.(
-      concat [
-        left_comment_delimiter;
-        hardline;
-        indent' comment;
-        hardline;
-        right_comment_delimiter
-      ]
-    )
+    pp_multiline_comment comment
 
 
 let add_comment
