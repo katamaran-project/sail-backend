@@ -70,7 +70,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | List typ                         -> pp_list typ
    | Tuple ts                         -> pp_tuple ts
    | Bitvector nexpr                  -> pp_bitvector nexpr
-   | Alias _id                        -> AC.not_yet_implemented [%here]
+   | Alias (_, _)                     -> AC.not_yet_implemented [%here]
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
@@ -116,7 +116,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Variant id          -> AC.return @@ Identifier.pp id
   | Product (t1, t2)    -> coq_type_of_product t1 t2
   | Sum (_, _)          -> AC.not_yet_implemented [%here]
-  | Alias id            -> AC.return @@ Identifier.pp id
+  | Alias (id, _)       -> AC.return @@ Identifier.pp id
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
   match type_argument with

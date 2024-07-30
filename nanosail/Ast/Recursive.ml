@@ -57,7 +57,7 @@ module rec Type : sig
     | Variant     of Identifier.t
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
-    | Alias       of Identifier.t
+    | Alias       of Identifier.t * t
   
   val to_string : t -> string
   val equal     : t -> t -> bool
@@ -96,7 +96,7 @@ end = struct
     | Variant     of Identifier.t
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
-    | Alias       of Identifier.t
+    | Alias       of Identifier.t * t
 
   let rec to_string (t : t) : string =
     match t with
@@ -111,7 +111,7 @@ end = struct
     | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
     | Record id        -> Printf.sprintf "Type.Record(%s)" (Identifier.string_of id)
     | Variant id       -> Printf.sprintf "Type.Variant(%s)" (Identifier.string_of id)
-    | Alias id         -> Printf.sprintf "Type.Alias(%s)" (Identifier.string_of id)
+    | Alias (id, _)    -> Printf.sprintf "Type.Alias(%s)" (Identifier.string_of id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs
