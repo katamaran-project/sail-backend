@@ -168,3 +168,6 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
 
 let tag_as_generated (id : Ast.Identifier.t) =
   Ast.Identifier.add_prefix "ж" id
+
+let tag_as_type_alias (id : Ast.Identifier.t) =
+  Ast.Identifier.add_prefix "ty_" id
