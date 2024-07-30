@@ -70,7 +70,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | List typ                         -> pp_list typ
    | Tuple ts                         -> pp_tuple ts
    | Bitvector nexpr                  -> pp_bitvector nexpr
-   | Alias (_, _)                     -> AC.not_yet_implemented [%here]
+   | Alias (_, typ)                   -> pp_nanotype typ
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
