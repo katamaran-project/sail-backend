@@ -194,8 +194,8 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-
   in
+
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -280,8 +280,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_bounded_le = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
   and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
   and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
-
   in
+
   let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
   match unwrapped_numeric_constraint with
@@ -308,8 +308,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
 
 let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
-
   in
+
   let extended_return_type_of_atom (type_arguments : S.typ_arg list) =
     match type_arguments with
     | [ type_argument ] -> begin
@@ -325,8 +325,8 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-
   in
+
   let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) =
     match type_arguments with
     | [ type_argument ] -> begin
@@ -342,8 +342,8 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
-
   in
+
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
