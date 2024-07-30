@@ -27,6 +27,17 @@ let pp_imports () =
 
 (*
 
+   Local Open Scope string_scope.
+
+ *)
+let pp_open_string_scope () =
+  PP.lines [
+    "Local Open Scope string_scope."
+  ]
+
+
+(*
+
       #[export] Instance typedeclkit : TypeDeclKit :=
         {|
            enumi := Enums;
@@ -914,6 +925,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and contents =
       let sections = [
         pp_imports ();
+        pp_open_string_scope ();
         pp_typedeclkit ();
         pp_enum_denote enum_definitions;
         pp_union_denote variant_definitions;
