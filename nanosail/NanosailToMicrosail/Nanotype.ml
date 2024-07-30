@@ -94,6 +94,12 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
     in
     AC.return @@ Coq.pp_tuple_type ts'
 
+  and coq_type_of_product t1 t2 =
+    let* t1' = coq_type_of_nanotype t1
+    and* t2' = coq_type_of_nanotype t2
+    in
+    AC.return @@ Coq.pp_tuple_type [ t1'; t2' ]
+
   in
   match nanotype with
   | Unit                -> AC.return @@ PP.string "Datatypes.unit"
@@ -107,7 +113,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Record id           -> AC.return @@ Identifier.pp id
   | Enum id             -> AC.return @@ Identifier.pp id
   | Variant id          -> AC.return @@ Identifier.pp id
-  | Product (_, _)      -> AC.not_yet_implemented [%here]
+  | Product (t1, t2)    -> coq_type_of_product t1 t2
   | Sum (_, _)          -> AC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document AC.t =
