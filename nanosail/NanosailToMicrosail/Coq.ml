@@ -375,21 +375,6 @@ let require
   sentence @@ PP.hanging_list ~adaptive:false (PP.separate PP.space words) libraries
 
 
-(* let require_import name = *)
-(*   PP.separate PP.space [ *)
-(*     PP.string "Require"; *)
-(*     PP.string "Import"; *)
-(*     PP.string name *)
-(*   ] *)
-
-
-(* let require_imports src names = *)
-(*   let first = PP.(string src ^^ space ^^ string "Require Import") *)
-(*   and rest = List.map ~f:PP.string names *)
-(*   in *)
-(*   PP.(sentence @@ hanging_list ~adaptive:false (string "From") (first :: rest)) *)
-
-
 let imports names =
   PP.(sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
