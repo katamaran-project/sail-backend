@@ -27,24 +27,10 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
     end
 
   | TA_alias (quantifier, typ) -> begin
-      let identifier  = Identifier.pp identifier
+      let  identifier  = Identifier.pp identifier
       in
-      let* body =
-        match typ with
-        | Nanosail__Ast__Recursive.Type.Int                -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Bool               -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.String             -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.List _             -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Product (_, _)     -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Sum (_, _)         -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Unit               -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Enum id            -> AC.return @@ Identifier.pp id
-        | Nanosail__Ast__Recursive.Type.Bitvector _        -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Tuple _            -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Variant _          -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Record _           -> AC.not_yet_implemented [%here]
-        | Nanosail__Ast__Recursive.Type.Application (_, _) -> AC.not_yet_implemented [%here]
-      and* parameters = PPSail.pp_type_quantifier quantifier
+      let* body        = Nanotype.coq_type_of_nanotype typ
+      and* parameters  = PPSail.pp_type_quantifier quantifier
       in
       AC.return @@ Coq.definition ~identifier ~parameters body;
     end
