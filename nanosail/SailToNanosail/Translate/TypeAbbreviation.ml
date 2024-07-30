@@ -25,6 +25,7 @@ let translate_type_abbreviation
   let* quantifier' = TypeQuantifier.translate_type_quantifier quantifier
   and* identifier' = Identifier.translate_identifier [%here] identifier
   in
+
   let* type_abbreviation =
     match unwrapped_type_argument with
     | A_nexp numeric_expression -> begin
@@ -32,15 +33,15 @@ let translate_type_abbreviation
         in
         TC.return @@ Ast.Definition.Type.Abbreviation.NumericExpression (quantifier', numeric_expression')
       end
-    | A_typ typ -> begin
-        let* typ' = Nanotype.nanotype_of_sail_type typ
-        in
-        TC.return @@ Ast.Definition.Type.Abbreviation.Alias (quantifier', typ')
-      end
     | A_bool numeric_constraint -> begin
         let* numeric_constraint' = Numeric.translate_numeric_constraint numeric_constraint
         in
         TC.return @@ Ast.Definition.Type.Abbreviation.NumericConstraint (quantifier', numeric_constraint')
+      end
+    | A_typ typ -> begin
+        let* typ' = Nanotype.nanotype_of_sail_type typ
+        in
+        TC.return @@ Ast.Definition.Type.Abbreviation.Alias (quantifier', typ')
       end
   in
   TC.return @@ Ast.Definition.Type.Abbreviation { identifier = identifier'; abbreviation = type_abbreviation }
