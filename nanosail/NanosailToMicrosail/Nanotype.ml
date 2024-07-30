@@ -100,7 +100,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Application (t, ts) -> coq_type_of_application t ts
   | Tuple _ts           -> AC.not_yet_implemented [%here]
   | Record _id          -> AC.not_yet_implemented [%here]
-  | Enum _id            -> AC.not_yet_implemented [%here] (* todo lookup Coq Inductive type corresponding to the enum named id *)
+  | Enum id             -> AC.return @@ Identifier.pp id
   | Variant _id         -> AC.not_yet_implemented [%here] (* todo lookup Coq Inductive type corresponding to the variant named id *)
   | Product (_, _)      -> AC.not_yet_implemented [%here]
   | Sum (_, _)          -> AC.not_yet_implemented [%here]
