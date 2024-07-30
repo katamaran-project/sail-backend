@@ -353,11 +353,41 @@ let integer i =
   else pp_i
 
 
-let require_imports src names =
-  let first = PP.(string src ^^ space ^^ string "Require Import")
-  and rest = List.map ~f:PP.string names
+let require
+    ?(from     : string option = None )
+    ?(import   : bool          = false)
+    (libraries : string list          )
+  =
+  let from_words =
+    match from with
+    | Some s -> [ PP.string "From"; PP.string s ]
+    | None   -> []
+  and require_words =
+    [ PP.string "Require" ]
+  and import_words =
+    if import
+    then [ PP.string "Import" ]
+    else []
   in
-  PP.(sentence @@ hanging_list ~adaptive:false (string "From") (first :: rest))
+  let words     = List.concat [ from_words; require_words; import_words ]
+  and libraries = List.map ~f:PP.string libraries
+  in
+  sentence @@ PP.hanging_list ~adaptive:false (PP.separate PP.space words) libraries
+
+
+(* let require_import name = *)
+(*   PP.separate PP.space [ *)
+(*     PP.string "Require"; *)
+(*     PP.string "Import"; *)
+(*     PP.string name *)
+(*   ] *)
+
+
+(* let require_imports src names = *)
+(*   let first = PP.(string src ^^ space ^^ string "Require Import") *)
+(*   and rest = List.map ~f:PP.string names *)
+(*   in *)
+(*   PP.(sentence @@ hanging_list ~adaptive:false (string "From") (first :: rest)) *)
 
 
 let imports names =

@@ -45,7 +45,7 @@ let pretty_print (ir : Ast.program) =
 
   let pp_prelude =
     block [%here] "Prelude" begin
-      Prelude.generate ()
+      Prelude.generate_base_prelude ()
     end
   in
 

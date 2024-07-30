@@ -8,10 +8,10 @@ let generate_require_imports () =
       )
   in
   PP.(separate (twice hardline) [
-      Coq.require_imports "Coq" coq_imports;
-      Coq.require_imports "Katamaran" [ "Semantics.Registers"; "Bitvector"; "Program" ];
-      Coq.require_imports "stdpp" [ "finite" ];
-      Coq.require_imports "Equations" [ "Equations" ];
+      Coq.require ~from:(Some "Coq"      ) ~import:true coq_imports;
+      Coq.require ~from:(Some "Katamaran") ~import:true [ "Semantics.Registers"; "Bitvector"; "Program" ];
+      Coq.require ~from:(Some "stdpp"    ) ~import:true [ "finite" ];
+      Coq.require ~from:(Some "Equations") ~import:true [ "Equations" ];
     ])
 
 
@@ -59,3 +59,12 @@ let generate () =
       generate_definitions ();
       generate_import_default_base ();
     ])
+
+
+let generate_base_prelude () =
+  PP.separate PP.hardline [
+    Coq.require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
+    Coq.require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
+    Coq.require ~from:(Some "Equations") ~import:true  [ "Equations" ];
+    Coq.require                          ~import:true  [ "Katamaran.Base" ];
+  ]
