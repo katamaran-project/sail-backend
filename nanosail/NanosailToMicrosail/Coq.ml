@@ -744,3 +744,8 @@ let generation_block
     ]
   else
     contents
+
+
+let pp_tuple_type ts =
+  PP.separate (PP.string " * ") ts
+
