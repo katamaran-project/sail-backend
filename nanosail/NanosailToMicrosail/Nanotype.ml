@@ -99,7 +99,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | List t              -> coq_type_of_list_type t
   | Application (t, ts) -> coq_type_of_application t ts
   | Tuple _ts           -> AC.not_yet_implemented [%here]
-  | Record _id          -> AC.not_yet_implemented [%here]
+  | Record id           -> AC.return @@ Identifier.pp id
   | Enum id             -> AC.return @@ Identifier.pp id
   | Variant id          -> AC.return @@ Identifier.pp id
   | Product (_, _)      -> AC.not_yet_implemented [%here]
