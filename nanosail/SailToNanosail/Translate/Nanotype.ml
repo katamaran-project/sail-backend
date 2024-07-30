@@ -103,7 +103,9 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   and nanotype_of_tuple (items : Libsail.Ast.typ list) =
     let* items' = TC.map ~f:nanotype_of_sail_type items
     in
-    TC.return @@ Ast.Type.Tuple items'
+    match items' with
+    | [ t1; t2 ] -> TC.return @@ Ast.Type.Product (t1, t2) (* represent pairs using products *)
+    | _          -> TC.return @@ Ast.Type.Tuple items'
 
   in
   match typ with
