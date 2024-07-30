@@ -31,6 +31,7 @@ module Subst = struct
       | Variant id              -> Variant id
       | Product (t1, t2)        -> Product (aux t1, aux t2)
       | Sum (t1, t2)            -> Sum (aux t1, aux t2)
+      | Alias id                -> Alias id
     in
     aux
 
