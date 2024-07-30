@@ -35,7 +35,7 @@ let translate_as_binary_operator
       let* annotation_index = AC.create_annotation_from_string message
       and* translation      = default_translation original_function_name operands
       in
-      AC.return @@ PP.(separate space [ translation; Coq.inline_comment (string @@ Int.to_string annotation_index) ])
+      AC.return @@ PP.(separate space [ translation; Coq.pp_inline_comment (string @@ Int.to_string annotation_index) ])
     end
 
 

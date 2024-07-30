@@ -42,7 +42,7 @@ let is_single_line string =
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
 
-let inline_comment comment =
+let pp_inline_comment comment =
   PP.(separate space @@ [
       left_comment_delimiter;
       comment;
@@ -725,13 +725,13 @@ let generation_block
       Printf.sprintf "%s:%d" filename line_number
     in
     let entry_block =
-      inline_comment @@ PP.separate PP.space [
+      pp_inline_comment @@ PP.separate PP.space [
         PP.string "<<<<<";
         PP.string position_string;
         label
       ]
     and exit_block =
-      inline_comment @@ PP.separate PP.space [
+      pp_inline_comment @@ PP.separate PP.space [
         PP.string ">>>>>";
         PP.string position_string;
         label
