@@ -35,11 +35,22 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
         let* typ : Ast.Definition.Type.t option = TC.lookup_type identifier'
         in
         match typ with
-        | None                  -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
-        | Some (Abbreviation _) -> TC.not_yet_implemented [%here] location
+        | Some (Abbreviation { identifier; abbreviation }) -> begin
+            match abbreviation with
+            | Ast.Definition.Type.Abbreviation.TA_numeric_expression (_, _) -> TC.not_yet_implemented [%here] location
+            | Ast.Definition.Type.Abbreviation.TA_numeric_constraint (_, _) -> TC.not_yet_implemented [%here] location
+            | Ast.Definition.Type.Abbreviation.TA_alias (type_quantifier, typ) -> begin
+                match type_quantifier with
+                | [] -> begin
+                    TC.not_yet_implemented [%here] location
+                  end
+                | _::_ -> TC.not_yet_implemented [%here] location
+              end
+          end
         | Some (Variant _)      -> TC.return @@ Ast.Type.Variant identifier'
         | Some (Record _)       -> TC.return @@ Ast.Type.Record identifier'
         | Some (Enum _)         -> TC.return @@ Ast.Type.Enum identifier'
+        | None                  -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
       end
 
   (*
