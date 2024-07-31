@@ -119,18 +119,20 @@ let reg_finite register_names =
     in
     Coq.list (List.map ~f:enum_value_of_register_name register_names)
   in
-  PP.(
-    separate hardline (
-      [
-        utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-        PP.indent' (
-          Coq.record_value [
-            (string "enum", enum_values)
-              ]
-        )
-      ]
+  Coq.generation_block [%here] (PP.string "REG_finite Instance") begin
+    PP.(
+      separate hardline (
+        [
+          utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
+          PP.indent' (
+            Coq.record_value [
+              (string "enum", enum_values)
+            ]
+          )
+        ]
+      )
     )
-  )
+  end
 
 let obligation_tactic =
   PP.(
