@@ -27,7 +27,9 @@ let reg_inductive_type register_definitions =
         AC.iter ~f:make_constructor register_definitions
       )
   in
-  Coq.annotate inductive_type
+  Coq.generation_block [%here] (PP.string "Reg Inductive Type") begin
+    Coq.annotate inductive_type
+  end
 
 
 let no_confusion_for_reg () =
