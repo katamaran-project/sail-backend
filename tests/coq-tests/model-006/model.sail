@@ -25,6 +25,7 @@ union Instruction = {
     Addition   : (regid, regid, regid),
     Compare    : (regid, regid),
     JumpIfLess : regid,
+    Halt       : unit
 }
 
 
@@ -108,3 +109,8 @@ function clause execute(JumpIfLess(r_target)) = {
   };
   Running
 }
+
+function clause execute(Halt()) = {
+  Halted
+}
+
