@@ -194,3 +194,7 @@ let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
 
 let reified_record_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.update (fun x -> "R" ^ String.lowercase x) identifier
+
+
+let reified_variant_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  Ast.Identifier.update (fun x -> "U" ^ String.lowercase x) identifier

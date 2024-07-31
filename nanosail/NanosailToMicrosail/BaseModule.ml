@@ -136,7 +136,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
     in
     let denotation_pair_for variant_identifier =
       (
-        Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
+        Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
         Identifier.pp variant_identifier
       )
     in
@@ -223,7 +223,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
     in
     let denotation_pair_for variant_identifier =
       (
-        Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_identifier,
+        Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
         Identifier.pp @@ TranslationSettings.derive_variant_constructor_type_identifier variant_identifier
       )
     in
@@ -310,7 +310,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
             AC.return @@ Coq.match' (PP.string "k") constructor_cases
           in
           AC.return (
-            Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier,
+            Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
             PP.(string "fun k => " ^^ align match_constructor_cases)
           )
         in
@@ -373,7 +373,7 @@ let pp_match_variant_constructors
     let parameter_identifier = Ast.Identifier.mk "Kv"
     in
     let pattern =
-      Identifier.pp @@ TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
+      Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier
     in
     let* expression =
       let* lambda_body =

@@ -42,7 +42,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
   and pp_variant identifier =
-    let tag = TranslationSettings.convert_variant_name_to_tag identifier
+    let tag = Identifier.reified_variant_name identifier
     in
     AC.return @@ PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.string_of tag
 

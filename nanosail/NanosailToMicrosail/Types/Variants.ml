@@ -85,7 +85,7 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
   let identifier = Identifier.pp variants_inductive_type_identifier
   and typ = PP.string "Set"
   and tag_of_variant (variant_definition : Ast.Definition.Type.Variant.t) =
-    let id = TranslationSettings.convert_variant_name_to_tag variant_definition.identifier
+    let id = Identifier.reified_variant_name variant_definition.identifier
     in
     Identifier.pp id
   in
