@@ -66,14 +66,14 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
   end
 
 
-let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
+let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
   let inductive_type = generate_inductive_type variant_definition
   and constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
-  AC.return @@ PP.separate (PP.twice PP.hardline) [
-                   inductive_type;
-                   constructors_inductive_type
-                 ]
+  PP.separate (PP.twice PP.hardline) [
+    inductive_type;
+    constructors_inductive_type
+  ]
 
 
 let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
