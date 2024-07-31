@@ -22,8 +22,9 @@ register cmp : Comparison
 union Instruction = {
     Read       : (regid, regid),
     Write      : (regid, regid),
-//    Add        : (regid, regid, regid),
-    Compare    : (regid, regid)
+    Addition   : (regid, regid, regid),
+    Compare    : (regid, regid),
+    JumpIfLess : regid,
 }
 
 
@@ -80,14 +81,14 @@ function clause execute(Write(r_address, r_word)) = {
   Running
 }
 
-/* function clause execute(Add(source1, source2, target)) = { */
-/*   let value1 = read_register(source1); */
-/*   let value2 = read_register(source2); */
-/*   let sum = value1 + value2; */
-/*   write_register(target, sum); */
-/*   next_instruction(); */
-/*   Running */
-/* } */
+function clause execute(Addition(source1, source2, target)) = {
+  let value1 = read_register(source1);
+  let value2 = read_register(source2);
+  let sum = value1 + value2;
+  write_register(target, sum);
+  next_instruction();
+  Running
+}
 
 function clause execute(Compare(x, y)) = {
   let v1 = read_register(x);
@@ -96,5 +97,14 @@ function clause execute(Compare(x, y)) = {
   else if v1 > v2 then cmp = Greater
   else cmp = Equal;
   next_instruction();
+  Running
+}
+
+function clause execute(JumpIfLess(r_target)) = {
+  let target = read_register(r_target);
+  match cmp {
+    Less => pc = target,
+    _    => next_instruction ()
+  };
   Running
 }
