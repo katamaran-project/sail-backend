@@ -13,7 +13,7 @@ let pp_type_definition
       (type_definition : Ast.Definition.Type.t) : PP.document
   =
   let document =
-    match type_definition with
+    match type_definition with (* todo have generate functions return PP.document instead of PP.document AC.t, like how it's done for variants *)
     | Abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | Enum enum           -> Enums.generate enum
     | Variant variant     -> AC.return @@ Variants.generate variant
