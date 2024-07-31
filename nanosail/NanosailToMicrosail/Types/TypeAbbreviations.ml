@@ -34,14 +34,6 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
         and* parameters  = PPSail.pp_type_quantifier quantifier
         in
         AC.return @@ Coq.definition ~identifier ~parameters body;
-      and* musail_alias =
-        let tagged_identifier = Configuration.reified_alias identifier
-        in
-        let  identifier = Identifier.pp tagged_identifier
-        in
-        let* body       = Nanotype.pp_nanotype typ (* todo also do parameters? *)
-        in
-        AC.return @@ Coq.definition ~identifier body
       in
-      AC.return @@ PP.separate PP.hardline [ coq_alias; musail_alias ]
+      AC.return coq_alias
     end
