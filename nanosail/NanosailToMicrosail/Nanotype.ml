@@ -52,6 +52,11 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     in
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
+  and pp_alias id _typ =
+    let ty_id = Configuration.tag_as_type_alias id
+    in
+    AC.return @@ Identifier.pp ty_id
+
   and ty s =
     AC.return @@ Identifier.pp @@ Ast.Identifier.mk @@ "ty." ^ s
 
@@ -70,7 +75,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
    | List typ                         -> pp_list typ
    | Tuple ts                         -> pp_tuple ts
    | Bitvector nexpr                  -> pp_bitvector nexpr
-   | Alias (_, typ)                   -> pp_nanotype typ
+   | Alias (id, typ)                  -> pp_alias id typ
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
