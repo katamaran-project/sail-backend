@@ -102,6 +102,16 @@ let instance_reg_eq_dec register_names =
       string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
     ]
   )
+  Coq.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
+    PP.(
+      separate hardline [
+        utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
+        PP.(string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>");
+        indent' (Coq.match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
+        string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
+      ]
+    )
+  end
 
 
 let reg_finite register_names =
