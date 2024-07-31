@@ -50,7 +50,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     let* t1' = pp_nanotype t1
     and* t2' = pp_nanotype t2
     in
-    AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
+    AC.return PP.(separate space [ string "ty.prod"; parens t1'; parens t2' ])
 
   and pp_alias id _typ =
     AC.return @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
