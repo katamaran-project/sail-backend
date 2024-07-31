@@ -104,7 +104,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
     in
     let denotation_pair_for enum_identifier =
       (
-        Identifier.pp @@ Identifier.derive_tag_from_enum_name enum_identifier,
+        Identifier.pp @@ Identifier.reified_enum_name enum_identifier,
         Identifier.pp enum_identifier
       )
     in
