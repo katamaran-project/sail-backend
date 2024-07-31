@@ -41,7 +41,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
             add_constructor ~typ:typ' (Identifier.pp constructor))
       end
   in
-  Coq.generation_block [%here] (PP.string "Union Inductive Type") begin
+  Coq.generation_block [%here] PP.(string "Union Inductive Type for " ^^ Identifier.pp variant_definition.identifier) begin
     Coq.annotate inductive_type
   end
 
@@ -57,15 +57,18 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
   in
-  Coq.build_inductive_type identifier typ @@ fun add_constructor -> begin
+  let inductive_type = Coq.build_inductive_type identifier typ @@ fun add_constructor -> begin
     AC.iter ~f:(fun tag -> add_constructor @@ Identifier.pp tag) tags
+  end
+  in
+  Coq.generation_block [%here] PP.(string "Constructors Inductive Type for" ^^ Identifier.pp variant_definition.identifier) begin
+    Coq.annotate inductive_type
   end
 
 
 let generate (variant_definition : Ast.Definition.Type.Variant.t) =
   let inductive_type = generate_inductive_type variant_definition
-  in
-  let* constructors_inductive_type = generate_constructors_inductive_type variant_definition
+  and constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
   AC.return @@ PP.separate (PP.twice PP.hardline) [
                    inductive_type;
