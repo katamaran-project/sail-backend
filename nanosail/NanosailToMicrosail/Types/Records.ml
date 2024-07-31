@@ -33,7 +33,7 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
   let identifier = Identifier.pp records_inductive_type_identifier
   and typ = PP.string "Set"
   and tag_of_record (record_definition : Ast.Definition.Type.Record.t) =
-    let id = TranslationSettings.convert_record_name_to_tag record_definition.identifier
+    let id = Identifier.reified_record_name record_definition.identifier
     in
     Identifier.pp id
   in

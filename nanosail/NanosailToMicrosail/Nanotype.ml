@@ -37,7 +37,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return @@ PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
 
   and pp_record identifier =
-    let tag = TranslationSettings.convert_record_name_to_tag identifier
+    let tag = Identifier.reified_record_name identifier
     in
     AC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 

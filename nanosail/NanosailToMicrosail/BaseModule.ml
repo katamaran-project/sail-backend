@@ -167,7 +167,7 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
     in
     let denotation_pair_for record_identifier =
       (
-        Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_identifier,
+        Identifier.pp @@ Identifier.reified_record_name record_identifier,
         Identifier.pp record_identifier
       )
     in
@@ -592,7 +592,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
         let pattern =
-          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+          Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         in
         let* expression =
           let pp_field (field_identifier, field_type) =
@@ -660,7 +660,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
         let pattern =
-          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+          Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         and expression =
           let lambda_parameter = Ast.Identifier.mk "fields"
           in
@@ -728,7 +728,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
         let pattern =
-          Identifier.pp @@ TranslationSettings.convert_record_name_to_tag record_definition.identifier
+          Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         in
         let* expression =
           let lambda_parameter = Ast.Identifier.mk "r"
