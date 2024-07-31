@@ -224,7 +224,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
     let denotation_pair_for variant_identifier =
       (
         Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-        Identifier.pp @@ Identifier.reified_variant_constructor_name variant_identifier
+        Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_identifier
       )
     in
     List.map ~f:denotation_pair_for variant_identifiers

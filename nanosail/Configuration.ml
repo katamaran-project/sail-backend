@@ -200,5 +200,5 @@ let reified_variant_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.update (fun x -> "U" ^ String.lowercase x) identifier
 
 
-let reified_variant_constructor_name (variant_identifier : Ast.Identifier.t) : Ast.Identifier.t =
+let reified_variant_constructors_collection_name (variant_identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.add_suffix "Constructor" variant_identifier
