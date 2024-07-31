@@ -135,12 +135,14 @@ let reg_finite register_names =
   end
 
 let obligation_tactic =
-  PP.(
-    separate hardline [
-      string "Local Obligation Tactic :=";
-      string "  finite_from_eqdec."
-    ]
-  )
+  Coq.generation_block [%here] (PP.string "Obligation Tactic") begin
+    PP.(
+      separate hardline [
+        string "Local Obligation Tactic :=";
+        string "  finite_from_eqdec."
+      ]
+    )
+  end
 
 let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
