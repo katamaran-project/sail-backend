@@ -71,7 +71,9 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
         AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
       )
   in
-  Coq.annotate inductive_type
+  Coq.generation_block [%here] (PP.string "Regname Inductive Type") begin
+    Coq.annotate inductive_type
+  end
 
 
 let instance_reg_eq_dec register_names =
