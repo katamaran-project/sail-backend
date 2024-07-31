@@ -24,7 +24,7 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
   let identifier = Identifier.pp enums_inductive_type_identifier
   and typ = PP.string "Set"
   and tag_of_enum (enum_definition : Ast.Definition.Type.Enum.t) =
-    let id = TranslationSettings.convert_enum_name_to_tag enum_definition.identifier
+    let id = Identifier.derive_tag_from_enum_name enum_definition.identifier
     in
     Identifier.pp id
   in

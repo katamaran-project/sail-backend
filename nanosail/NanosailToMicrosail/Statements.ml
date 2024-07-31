@@ -72,7 +72,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document AC.t =
         and* cases' = Ast.Identifier.Map.fold cases ~init:(AC.return []) ~f:translate_case
         in
         let matched_type =
-          Identifier.pp @@ TranslationSettings.convert_enum_name_to_tag matched_type
+          Identifier.pp @@ Identifier.derive_tag_from_enum_name matched_type
         in
         AC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
           add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
