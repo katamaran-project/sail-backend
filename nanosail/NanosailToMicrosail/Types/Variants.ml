@@ -66,7 +66,7 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
   end
 
 
-let generate (variant_definition : Ast.Definition.Type.Variant.t) =
+let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
   let inductive_type = generate_inductive_type variant_definition
   and constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
