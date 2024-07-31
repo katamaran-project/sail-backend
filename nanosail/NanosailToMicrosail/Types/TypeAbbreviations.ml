@@ -35,7 +35,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
         in
         AC.return @@ Coq.definition ~identifier ~parameters body;
       and* musail_alias =
-        let tagged_identifier = Configuration.tag_as_reified identifier
+        let tagged_identifier = Configuration.reified_alias identifier
         in
         let  identifier = Identifier.pp tagged_identifier
         in

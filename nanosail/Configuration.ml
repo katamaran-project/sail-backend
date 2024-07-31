@@ -169,6 +169,7 @@ let tag_as_generated (id : Ast.Identifier.t) =
   Ast.Identifier.add_prefix "ж" id
 
 let tag_as_reified (id : Ast.Identifier.t) =
+let reified_alias (id : Ast.Identifier.t) =
   Ast.Identifier.add_prefix "ty_" id
 
 let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =

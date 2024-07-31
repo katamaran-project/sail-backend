@@ -53,7 +53,7 @@ let rec pp_nanotype (typ : Ast.Type.t) =
     AC.return PP.(separate space [ string "ty.prod"; t1'; t2' ])
 
   and pp_alias id _typ =
-    let ty_id = Configuration.tag_as_reified id
+    let ty_id = Configuration.reified_alias id
     in
     AC.return @@ Identifier.pp ty_id
 
