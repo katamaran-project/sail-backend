@@ -41,7 +41,9 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
             add_constructor ~typ:typ' (Identifier.pp constructor))
       end
   in
-  Coq.annotate inductive_type
+  Coq.generation_block [%here] (PP.string "Union Inductive Type") begin
+    Coq.annotate inductive_type
+  end
 
 
 let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
