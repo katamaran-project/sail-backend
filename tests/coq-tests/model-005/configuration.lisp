@@ -28,7 +28,9 @@
                   "concat_str_dec"
                   "regval_of_bit"
                   "MyEnum_of_num"
-                  "num_of_MyEnum")
+                  "num_of_MyEnum"
+                  "Comparison_of_regval"
+                  "regval_of_Comparison")
 
 (ignore-definition-predicate (lambda (identifier)
                                (contains? '(

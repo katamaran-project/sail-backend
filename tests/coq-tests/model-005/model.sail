@@ -16,7 +16,7 @@ register r3 : word
 register r4 : word
 
 register pc : address
-/* register cmp : Comparison */
+register cmp : Comparison
 
 
 union Instruction = {

@@ -7,6 +7,8 @@
 
 (*
 
+  UNTRANSLATED DEFINITIONS
+
 (*<
   (generate (untranslated-definitions))
 >*)
