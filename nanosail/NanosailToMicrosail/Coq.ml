@@ -733,3 +733,11 @@ let generation_block
 let pp_tuple_type ts =
   PP.separate (PP.string " * ") ts
 
+
+let pp_notation notation expression =
+  Coq.sentence @@ PP.separate PP.space [
+    PP.string "Notation";
+    PP.dquotes notation;
+    PP.string ":=";
+    PP.parens expression
+  ]
