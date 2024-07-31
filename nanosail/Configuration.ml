@@ -206,3 +206,7 @@ let reified_variant_constructors_collection_name (variant_identifier : Ast.Ident
 
 let reified_variant_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.update (fun x -> "K" ^ String.lowercase x) identifier
+
+
+let record_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  Ast.Identifier.add_prefix "Mk" identifier

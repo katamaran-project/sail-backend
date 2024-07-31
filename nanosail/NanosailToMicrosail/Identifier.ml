@@ -23,3 +23,7 @@ let reified_variant_constructors_collection_name (identifier : Ast.Identifier.t)
 
 let reified_variant_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Configuration.reified_variant_constructor_name identifier
+
+
+let record_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
+  Configuration.record_constructor_name identifier

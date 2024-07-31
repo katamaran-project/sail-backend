@@ -8,7 +8,7 @@ module AC = AnnotationContext
 let records_inductive_type_identifier = Ast.Identifier.mk "Records"
 
 let derive_constructor_from_identifier identifier =
-  TranslationSettings.derive_record_constructor_from_identifier identifier
+  Identifier.record_constructor_name identifier
 
 
 let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC.t =

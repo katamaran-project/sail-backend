@@ -1,4 +1,3 @@
-module TranslationSettings = TranslationSettings
 module AnnotationContext   = AnnotationContext
 module Coq                 = Coq
 module Identifier          = Identifier
