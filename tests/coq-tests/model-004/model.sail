@@ -3,6 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 
+type word    = int
 type address = int
 
 
@@ -11,12 +12,12 @@ enum Mode = { Running, Halted }
 union Instruction = {
     Increment  : unit,
     Decrement  : unit,
-    JumpIfZero : int,
+    JumpIfZero : address,
     Halt       : unit
 }
 
-register eax : int
-register eip : int
+register eax : word
+register eip : address
 
 
 
