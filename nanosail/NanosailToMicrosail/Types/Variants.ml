@@ -8,10 +8,6 @@ module AC = AnnotationContext
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let derive_variant_constructor_type_identifier =
-  TranslationSettings.derive_variant_constructor_type_identifier
-
-
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
@@ -58,8 +54,8 @@ let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t)
   List.map ~f:derive_constructor_tag constructor_names
 
 
-let generate_constructors_inductive_type (variant_definition  : Ast.Definition.Type.Variant.t) =
-  let identifier = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
+let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) =
+  let identifier = Identifier.pp @@ Identifier.reified_variant_constructor_name variant_definition.identifier
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
   in
@@ -131,7 +127,7 @@ let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Defin
     List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
   in
   let variant_constructor_identifiers =
-    List.map ~f:derive_variant_constructor_type_identifier variant_identifiers
+    List.map ~f:Identifier.reified_variant_constructor_name variant_identifiers
   in
   Auxlib.build_list @@ fun { add; addall; _ } -> begin
     add    variants_inductive_type_identifier;
@@ -145,8 +141,8 @@ let required_eqdecs        = collect_identifiers
 
 
 let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
-  let identifier = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
-  and type_name  = Identifier.pp @@ derive_variant_constructor_type_identifier variant_definition.identifier
+  let identifier = Identifier.pp @@ Identifier.reified_variant_constructor_name variant_definition.identifier
+  and type_name  = Identifier.pp @@ Identifier.reified_variant_constructor_name variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
   in
   Coq.finite_instance ~identifier ~type_name ~values
