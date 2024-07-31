@@ -3,4 +3,4 @@ let pp (identifier : Ast.Identifier.t) =
 
 
 let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  TranslationSettings.convert_enum_name_to_tag' identifier
+  Configuration.reified_enum_name identifier
