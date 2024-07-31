@@ -8,7 +8,7 @@ module AC = AnnotationContext
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document AC.t =
+let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
   let inductive_type =
@@ -41,7 +41,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
             add_constructor ~typ:typ' (Identifier.pp constructor))
       end
   in
-  inductive_type
+  Coq.annotate inductive_type
 
 
 let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
@@ -61,8 +61,9 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
 
 
 let generate (variant_definition : Ast.Definition.Type.Variant.t) =
-  let* inductive_type = generate_inductive_type variant_definition
-  and* constructors_inductive_type = generate_constructors_inductive_type variant_definition
+  let inductive_type = generate_inductive_type variant_definition
+  in
+  let* constructors_inductive_type = generate_constructors_inductive_type variant_definition
   in
   AC.return @@ PP.separate (PP.twice PP.hardline) [
                    inductive_type;
