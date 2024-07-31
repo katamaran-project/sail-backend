@@ -33,12 +33,14 @@ let reg_inductive_type register_definitions =
 
 
 let no_confusion_for_reg () =
-  Coq.section (Ast.Identifier.mk "TransparentObligations") (
+  Coq.generation_block [%here] (PP.string "No Confusion for Reg") begin
+    Coq.section (Ast.Identifier.mk "TransparentObligations") (
       PP.(separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
         ])
     )
+  end
 
 
 let reg_definition () =
