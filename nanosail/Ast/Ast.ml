@@ -71,11 +71,11 @@ module Extract = struct
 
   let of_alias (type_definition : Definition.Type.t) =
     match type_definition with
-    | Definition.Type.Abbreviation { abbreviation; _ } -> begin
+    | Definition.Type.Abbreviation { identifier; abbreviation } -> begin
         match abbreviation with
         | Definition.Type.Abbreviation.NumericExpression (_, _) -> None
         | Definition.Type.Abbreviation.NumericConstraint (_, _) -> None
-        | Definition.Type.Abbreviation.Alias (quant, t)         -> Some (quant, t)
+        | Definition.Type.Abbreviation.Alias (quant, t)         -> Some (identifier, quant, t)
       end
     | _ -> None
 
