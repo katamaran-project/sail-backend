@@ -44,14 +44,10 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
   inductive_type
 
 
-let derive_constructor_tag (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Identifier.reified_variant_constructor_name identifier
-
-
 let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
   let constructor_names = List.map ~f:fst variant_definition.constructors
   in
-  List.map ~f:derive_constructor_tag constructor_names
+  List.map ~f:Identifier.reified_variant_constructor_name constructor_names
 
 
 let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) =
