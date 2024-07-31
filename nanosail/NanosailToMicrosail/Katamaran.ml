@@ -171,6 +171,8 @@ let pretty_print (ir : Ast.program) =
     ValueDefinitions.generate ir.definitions
   in
 
+  let _ = pp_program in (* remove this *)
+  
   let sections =
     [
       pp_prelude;
