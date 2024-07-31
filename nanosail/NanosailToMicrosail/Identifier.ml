@@ -15,3 +15,5 @@ let reified_record_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
 
 let reified_variant_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.update (fun x -> "U" ^ String.lowercase x) identifier
+  Configuration.reified_variant_name identifier
+
