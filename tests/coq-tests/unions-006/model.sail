@@ -4,5 +4,5 @@ $include <prelude.sail>
 
 
 union Instruction = {
-    Add        : (int, int, int),
+    IAdd        : (int, int, int),
 }
