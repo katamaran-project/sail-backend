@@ -69,13 +69,13 @@ module Extract = struct
     | Abbreviation x -> Some x
     | _              -> None
 
-  let of_abbreviation_of_type (type_definition : Definition.Type.t) =
+  let of_alias (type_definition : Definition.Type.t) =
     match type_definition with
     | Definition.Type.Abbreviation { abbreviation; _ } -> begin
         match abbreviation with
         | Definition.Type.Abbreviation.NumericExpression (_, _) -> None
         | Definition.Type.Abbreviation.NumericConstraint (_, _) -> None
-        | Definition.Type.Abbreviation.Alias (id, t)            -> Some (id, t)
+        | Definition.Type.Abbreviation.Alias (quant, t)         -> Some (quant, t)
       end
     | _ -> None
 
