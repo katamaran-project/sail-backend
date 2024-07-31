@@ -45,7 +45,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
 
 
 let derive_constructor_tag (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  TranslationSettings.convert_constructor_name_to_tag identifier
+  Identifier.reified_variant_constructor_name identifier
 
 
 let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =

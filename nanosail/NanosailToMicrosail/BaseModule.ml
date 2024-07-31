@@ -291,7 +291,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                 let (constructor_identifier, constructor_field_types) = constructor
                 in
                 let pp_constructor_tag =
-                  Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier
+                  Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_identifier
                 in
                 let* pp_constructor_field_types =
                   let packed_type =
@@ -460,7 +460,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
           in
           let parts = [
             PP.string "existT";
-            Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+            Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_identifier;
             fields
           ]
           in
@@ -552,7 +552,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
           in
           PP.(separate space [
               string "existT";
-              Identifier.pp @@ TranslationSettings.convert_constructor_name_to_tag constructor_identifier;
+              Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_identifier;
               tuple
             ])
         in
