@@ -30,9 +30,10 @@ let translate_variant
       in
       let field_nanotypes =
         match typ' with
-        | Tuple ts -> ts
-        | Unit     -> []
-        | _        -> [ typ' ]
+        | Tuple ts         -> ts
+        | Product (t1, t2) -> [t1; t2]
+        | Unit             -> []
+        | _                -> [ typ' ]
       in
       TC.return @@ (identifier', field_nanotypes)
     in
