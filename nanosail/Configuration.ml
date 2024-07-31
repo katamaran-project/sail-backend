@@ -168,25 +168,6 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
 let tag_as_generated (id : Ast.Identifier.t) =
   Ast.Identifier.add_prefix "ж" id
 
-(*
-
-   A type alias is translated into two Coq definitions: a Coq type and a muSail type.
-
-   For example,
-
-     type word = int
-
-   is translated to
-
-     Definition address := Z.
-     Definition ty_address := ty.int.
-
-   This function returns the name of the second definitions.
-   
- *)
-let reified_alias (id : Ast.Identifier.t) =
-  Ast.Identifier.add_prefix "ty_" id
-
 
 let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
   Ast.Identifier.update (fun x -> "E" ^ String.lowercase x) identifier
