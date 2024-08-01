@@ -72,6 +72,9 @@ let collect_identifiers (record_definitions : (Sail.sail_definition * Ast.Defini
   records_inductive_type_identifier :: record_identifiers
 
 
+let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
+  [ record_definition.identifier ]
+
 let extra_eqdec_identifiers () =
   [ records_inductive_type_identifier ]
 

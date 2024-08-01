@@ -163,8 +163,8 @@ let pretty_print (ir : Ast.program) =
         match type_definition with
         | Ast.Definition.Type.Abbreviation _                  -> [ ]
         | Ast.Definition.Type.Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
-        | Ast.Definition.Type.Enum         enum_definition    -> [ enum_definition.identifier ]
-        | Ast.Definition.Type.Record       record_definition  -> [ record_definition.identifier ]
+        | Ast.Definition.Type.Enum         enum_definition    -> Types.Enums.eqdec_identifiers_for enum_definition
+        | Ast.Definition.Type.Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
       in
       let eqdecs_from_definitions =
         List.concat_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
