@@ -78,5 +78,13 @@ let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : A
 let extra_eqdec_identifiers () =
   [ records_inductive_type_identifier ]
 
+
+let no_confusion_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
+  [ record_definition.identifier ]
+
+let extra_no_confusion_identifiers () =
+  [ records_inductive_type_identifier ]
+
+
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers

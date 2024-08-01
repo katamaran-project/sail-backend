@@ -62,6 +62,14 @@ let extra_eqdec_identifiers () =
   [ enums_inductive_type_identifier ]
 
 
+let no_confusion_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =
+  [ enum_definition.identifier ]
+
+
+let extra_no_confusion_identifiers () =
+  [ enums_inductive_type_identifier ]
+
+
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
 

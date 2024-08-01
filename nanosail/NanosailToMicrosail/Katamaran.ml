@@ -134,11 +134,22 @@ let pretty_print (ir : Ast.program) =
     in
     let section_contents =
       let no_confusion_identifiers =
+        let no_confusion_identifier_from_definition _sail_definition (type_definitions : Ast.Definition.Type.t) =
+          match type_definitions with
+          | Ast.Definition.Type.Abbreviation _                  -> [ ]
+          | Ast.Definition.Type.Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
+          | Ast.Definition.Type.Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
+          | Ast.Definition.Type.Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
+        in
+        let no_confusions_from_definitions =
+          List.concat_map ~f:(Auxlib.uncurry no_confusion_identifier_from_definition) type_definitions
+        in
         List.concat [
-          Types.Enums.required_no_confusions enum_definitions;
-          Types.Variants.required_no_confusions variant_definitions;
-          Types.Records.required_no_confusions record_definitions;
-          Registers.required_no_confusions register_definitions;
+          no_confusions_from_definitions;
+          Types.Enums.extra_no_confusion_identifiers ();
+          Types.Variants.extra_no_confusion_identifiers ();
+          Types.Records.extra_no_confusion_identifiers ();
+          Registers.extra_no_confusion_identifiers ();
         ]
       in
       let transparent_obligations =
