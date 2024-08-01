@@ -153,12 +153,20 @@ let pretty_print (ir : Ast.program) =
   in
 
   let pp_eqdecs =
-    let eqdec_identifiers = List.concat [
-        Types.Enums.required_eqdecs enum_definitions;
-        Types.Variants.required_eqdecs variant_definitions;
-        Types.Records.required_eqdecs record_definitions;
-        Registers.required_eqdecs register_definitions;
-      ]
+    (*
+      Collect identifiers for which to declare EqDec
+      Note: order is important
+      If EqDecs are in wrong order, Coq will silently fail
+    *)
+    let eqdec_identifiers =
+      let eqdec_identifier_from_definition _sail_definition (type_definition : Ast.Definition.Type.t) =
+        match type_definition with
+        | Ast.Definition.Type.Abbreviation _                  -> None
+        | Ast.Definition.Type.Variant      variant_definition -> Some variant_definition.identifier
+        | Ast.Definition.Type.Enum         enum_definition    -> Some enum_definition.identifier
+        | Ast.Definition.Type.Record       record_definition  -> Some record_definition.identifier
+      in
+      List.filter_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
     in
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
