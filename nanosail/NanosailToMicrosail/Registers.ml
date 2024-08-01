@@ -168,14 +168,6 @@ let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Defi
   Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
-let collect_identifiers (_register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : Ast.Identifier.t list =
-  [ regname_inductive_type_identifier ]
-
-
-let required_no_confusions = collect_identifiers
-let required_eqdecs        = collect_identifiers
-
-
 let extra_eqdec_identifiers () =
   [ regname_inductive_type_identifier ]
 
