@@ -124,20 +124,6 @@ let generate_constructor_match
   AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
-let collect_identifiers (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : Ast.Identifier.t list =
-  let variant_identifiers =
-    List.map ~f:(fun (_, vd) -> vd.identifier) variant_definitions
-  in
-  let variant_constructor_identifiers =
-    List.map ~f:Identifier.reified_variant_constructors_collection_name variant_identifiers
-  in
-  Auxlib.build_list @@ fun { add; addall; _ } -> begin
-    add    variants_inductive_type_identifier;
-    addall variant_identifiers               ;
-    addall variant_constructor_identifiers   ;
-  end
-
-
 (*
 
    Given a variant definition, returns which EqDecs are required.
@@ -167,12 +153,6 @@ let no_confusion_identifiers_for (variant_definition : Ast.Definition.Type.Varia
 
 let extra_no_confusion_identifiers () =
   [ variants_inductive_type_identifier ]
-
-
-
-
-let required_no_confusions = collect_identifiers
-let required_eqdecs        = collect_identifiers
 
 
 let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
