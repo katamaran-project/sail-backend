@@ -65,15 +65,9 @@ let generate_tag_match
   AC.return @@ Coq.match' ~scope (Identifier.pp matched_identifier) cases
 
 
-let collect_identifiers (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) : Ast.Identifier.t list =
-  let record_identifiers =
-    List.map ~f:(fun (_, rd) -> rd.identifier) record_definitions
-  in
-  records_inductive_type_identifier :: record_identifiers
-
-
 let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
   [ record_definition.identifier ]
+
 
 let extra_eqdec_identifiers () =
   [ records_inductive_type_identifier ]
@@ -82,9 +76,6 @@ let extra_eqdec_identifiers () =
 let no_confusion_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
   [ record_definition.identifier ]
 
+
 let extra_no_confusion_identifiers () =
   [ records_inductive_type_identifier ]
-
-
-let required_no_confusions = collect_identifiers
-let required_eqdecs        = collect_identifiers
