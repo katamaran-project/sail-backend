@@ -54,6 +54,14 @@ let collect_identifiers (enum_definitions : (Sail.sail_definition * Ast.Definiti
   enums_inductive_type_identifier :: enum_identifiers
 
 
+let eqdec_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =
+  [ enum_definition.identifier ]
+
+
+let extra_eqdec_identifiers () =
+  [ enums_inductive_type_identifier ]
+
+
 let required_no_confusions = collect_identifiers
 let required_eqdecs        = collect_identifiers
 
