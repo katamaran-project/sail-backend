@@ -47,13 +47,6 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
   Coq.annotate inductive_type
 
 
-let collect_identifiers (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : Ast.Identifier.t list =
-  let enum_identifiers =
-    List.map ~f:(fun (_, ed) -> ed.identifier) enum_definitions
-  in
-  enums_inductive_type_identifier :: enum_identifiers
-
-
 let eqdec_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =
   [ enum_definition.identifier ]
 
@@ -68,10 +61,6 @@ let no_confusion_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) 
 
 let extra_no_confusion_identifiers () =
   [ enums_inductive_type_identifier ]
-
-
-let required_no_confusions = collect_identifiers
-let required_eqdecs        = collect_identifiers
 
 
 let generate_enum_finiteness
