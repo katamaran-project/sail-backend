@@ -2,7 +2,7 @@
   (generate (full-translation))
 
   (if (untranslated-definitions?)
-    (generate "\n\nUNTRANSLATED DEFINITIONS"))
+    (generate "\n\nTheorem UNTRANSLATED_DEFINITIONS : False. Qed.")
 >*)
 
 Theorem test : forall instr : instruction, exists x : Z, exists y : Z, instr = Pop x y.
