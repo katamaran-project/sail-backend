@@ -161,12 +161,21 @@ let pretty_print (ir : Ast.program) =
     let eqdec_identifiers =
       let eqdec_identifier_from_definition _sail_definition (type_definition : Ast.Definition.Type.t) =
         match type_definition with
-        | Ast.Definition.Type.Abbreviation _                  -> None
-        | Ast.Definition.Type.Variant      variant_definition -> Some variant_definition.identifier
-        | Ast.Definition.Type.Enum         enum_definition    -> Some enum_definition.identifier
-        | Ast.Definition.Type.Record       record_definition  -> Some record_definition.identifier
+        | Ast.Definition.Type.Abbreviation _                  -> [ ]
+        | Ast.Definition.Type.Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
+        | Ast.Definition.Type.Enum         enum_definition    -> [ enum_definition.identifier ]
+        | Ast.Definition.Type.Record       record_definition  -> [ record_definition.identifier ]
       in
-      List.filter_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
+      let eqdecs_from_definitions =
+        List.concat_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
+      in
+      List.concat [
+        eqdecs_from_definitions;
+        Types.Enums.extra_eqdec_identifiers ();
+        Types.Variants.extra_eqdec_identifiers ();
+        Types.Records.extra_eqdec_identifiers ();
+        Registers.extra_eqdec_identifiers ();
+      ]
     in
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
