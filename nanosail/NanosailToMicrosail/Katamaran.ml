@@ -133,6 +133,10 @@ let pretty_print (ir : Ast.program) =
     let section_identifier = Ast.Identifier.mk "TransparentObligations"
     in
     let section_contents =
+      (*
+        Collect identifiers for which to declare NoConfusion
+        Note: order is important
+      *)
       let no_confusion_identifiers =
         let no_confusion_identifier_from_definition _sail_definition (type_definitions : Ast.Definition.Type.t) =
           match type_definitions with
