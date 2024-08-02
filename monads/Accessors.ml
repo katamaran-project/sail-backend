@@ -53,7 +53,7 @@ module List = struct
     and set value x =
       match get' value with
       | []    -> raise (AccessorError "no head")
-      | _::xs -> set' (x::xs)
+      | _::xs -> set' value (x::xs)
     in
     (get, set)
 end
