@@ -33,6 +33,7 @@ open Monads.Notations.Star(Monad)
 
 
 let initial_state = []
+let initial_state = ([], 0)
 
 
 let new_frame =
