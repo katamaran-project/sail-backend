@@ -61,12 +61,9 @@ let pp_multiline_comment comment =
 let comment comment =
   let str = PP.string_of_document comment
   in
-  if
-    is_single_line str
-  then
-    pp_inline_comment comment
-  else
-    pp_multiline_comment comment
+  if is_single_line str
+  then pp_inline_comment comment
+  else pp_multiline_comment comment
 
 
 let add_comment
