@@ -10,6 +10,7 @@ module type S = sig
 
   val get     : 'a accessor -> 'a t
   val put     : 'a accessor -> 'a -> unit t
+  val update  : 'a accessor -> ('a -> 'a) -> unit t
   val run     : 'a t -> state -> ('a result * state)
   val fail    : error -> 'a t
   val recover : 'a t -> (error -> 'a t) -> 'a t
@@ -46,6 +47,9 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
   let put (accessor : 'a accessor) (x : 'a) : unit t =
     SM.bind (SM.put accessor x) return
 
+  let update (accessor : 'a accessor) (f : 'a -> 'a) : unit t =
+    bind (get accessor) @@ fun x -> put accessor (f x)
+  
   let recover (f : 'a t) (error_handler: error -> 'a t) =
     SM.bind f (fun result ->
         match result with
