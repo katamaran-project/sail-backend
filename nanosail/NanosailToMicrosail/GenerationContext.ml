@@ -108,16 +108,10 @@ let block (f : PP.document t) : PP.document t =
 
 
 let add_annotation (document : PP.document) : int t =
-  let annotation = Annotation document
+  let* () = update annotations @@ fun xs -> (Annotation document) :: xs
   in
-  let* original_annotations = get annotations
-  in
-  let index = List.length original_annotations
-  and updated_annotations = annotation :: original_annotations
-  in
-  let* () = put annotations updated_annotations
-  in
-  return index
+  next_index
+
 
 
 let add_comment (document : PP.document) : unit t =
