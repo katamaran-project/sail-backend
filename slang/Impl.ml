@@ -281,7 +281,7 @@ struct
   let get         = Monad.get
   let put         = Monad.put
 
-  let state       = Monads.Accessors.full
+  let state       = Monads.Accessors.id
   let environment = Monads.Accessors.Pair.first
   let heap        = Monads.Accessors.Pair.second
 

@@ -1,4 +1,4 @@
-let full =
+let id =
   let get x   = x
   and set _ x = x
   in
