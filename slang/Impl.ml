@@ -282,8 +282,8 @@ struct
   let put         = Monad.put
 
   let state       = Monads.Accessors.id
-  let environment = Monads.Accessors.Pair.first
-  let heap        = Monads.Accessors.Pair.second
+  let environment = Monads.Accessors.(Pair.first id)
+  let heap        = Monads.Accessors.(Pair.second id)
 
   let add_binding identifier value =
     let* env = get environment
