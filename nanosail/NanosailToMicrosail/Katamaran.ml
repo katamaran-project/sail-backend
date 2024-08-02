@@ -35,7 +35,7 @@ let pp_program_module
     contents
 
 
-let pretty_print (ir : Ast.program) =
+let pretty_print (ir : Ast.program) : PP.document =
   let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
   and enum_definitions     = Ast.(select Extract.(type_definition of_enum    ) ir.definitions)
   and record_definitions   = Ast.(select Extract.(type_definition of_record  ) ir.definitions)
