@@ -170,3 +170,11 @@ let generation_block
     ]
   else
     return @@ contents
+
+
+let generate (f : PP.document t) : PP.document =
+  let result, _ = Monad.run f initial_state
+  in
+  match result with
+  | Monad.Success result -> result
+  | Monad.Failure error -> failwith @@ "Error occurred during generation: " ^ error
