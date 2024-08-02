@@ -1,4 +1,10 @@
-let id =
+type ('a, 't) getter   = 'a -> 't
+type ('a, 't) setter   = 'a -> 't -> 'a
+type ('a, 't) accessor = ('a, 't) getter * ('a, 't) setter
+
+exception AccessorError of string
+
+let id : ('a, 'a) accessor =
   let get x   = x
   and set _ x = x
   in
@@ -6,36 +12,48 @@ let id =
 
 
 module Pair = struct
-  let first =
-    let get (x, _)   = x
-    and set (_, y) x = (x, y)
+  let first (subaccessor : ('a, 'b * 'c) accessor) =
+    let (get', set') = subaccessor
+    in
+    let get value =
+      let (x, _) = get' value
+      in
+      x
+    and set value x =
+      let (_, y) = get' value
+      in
+      set' value (x, y)
     in
     (get, set)
 
-  let second =
-    let get (_, y)   = y
-    and set (x, _) y = (x, y)
+  let second (subaccessor : ('a, 'b * 'c) accessor) =
+    let (get', set') = subaccessor
+    in
+    let get value =
+      let (_, y) = get' value
+      in
+      y
+    and set value y =
+      let (x, _) = get' value
+      in
+      set' value (x, y)
     in
     (get, set)
 end
 
 
-module Triple = struct
-  let first =
-    let get (x, _, _)   = x
-    and set (_, y, z) x = (x, y, z)
+module List = struct
+  let head (subaccessor : ('a, 'b list) accessor) =
+    let (get', set') = subaccessor
     in
-    (get, set)
-
-  let second =
-    let get (_, y, _)   = y
-    and set (x, _, z) y = (x, y, z)
-    in
-    (get, set)
-
-  let third =
-    let get (_, _, z)   = z
-    and set (x, y, _) z = (x, y, z)
+    let get value =
+      match get' value with
+      | []    -> raise (AccessorError "no head")
+      | x::_  -> x
+    and set value x =
+      match get' value with
+      | []    -> raise (AccessorError "no head")
+      | _::xs -> set' (x::xs)
     in
     (get, set)
 end
