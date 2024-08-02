@@ -94,7 +94,7 @@ let convert_frame_to_document (frame : frame) =
   PP.(separate (twice hardline) [ pp_comments; pp_annotations ])
 
 
-let block (f : PP.document t) =
+let block (f : PP.document t) : PP.document t =
   let* (document, frame) = with_fresh_frame f
   in
   if is_empty_frame frame
