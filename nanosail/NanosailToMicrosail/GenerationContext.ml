@@ -32,7 +32,6 @@ let index       : (state, int            ) Monads.Accessors.accessor = Monads.Ac
 open Monads.Notations.Star(Monad)
 
 
-let initial_state = []
 let initial_state = ([], 0)
 
 
