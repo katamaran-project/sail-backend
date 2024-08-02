@@ -66,11 +66,11 @@ let comment comment =
   else pp_multiline_comment comment
 
 
-let add_comment
+let add_comments
     ~(comments : PP.document)
-    ~(doc      : PP.document) : PP.document
+    ~(document : PP.document) : PP.document
   =
-  PP.separate PP.hardline [ comment comments; doc ]
+  PP.separate PP.hardline [ comment comments; document ]
 
 
 let original_sail_code source =
