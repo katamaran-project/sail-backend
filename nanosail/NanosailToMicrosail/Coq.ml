@@ -101,7 +101,7 @@ let original_sail_code (source : PP.document) : PP.document =
     )
 
 
-let original_sail_codes sources =
+let original_sail_codes (sources : PP.document list) : PP.document =
   let combined_sources =
     PP.(separate hardline sources)
   in
