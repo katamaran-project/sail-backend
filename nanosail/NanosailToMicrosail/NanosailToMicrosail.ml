@@ -1,4 +1,3 @@
-module AnnotationContext    = AnnotationContext
 module GenerationContext    = GenerationContext
 module Coq                  = Coq
 module Identifier           = Identifier
