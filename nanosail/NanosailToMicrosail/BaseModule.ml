@@ -38,8 +38,6 @@ let pp_open_string_scope () : PP.document GC.t =
 
 
 let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.type_quantifier * Ast.Type.t) list) : PP.document GC.t =
-  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
-  in
   let pp_alias_notation (id, _type_quantifier, typ) =
     let notation =
       Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
@@ -905,8 +903,6 @@ let pp_varkit_instance () : PP.document GC.t =
 
 *)
 let pp_regdeclkit register_definitions : PP.document GC.t = (* todo have it return PP.document GC.t *)
-  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
-  in
   let result =
     let* regdeclkit = Registers.pp_regdeclkit register_definitions
     in
@@ -945,8 +941,6 @@ let pp_include_mixin () : PP.document GC.t =
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
-  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
-  in
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   and variant_definitions =
