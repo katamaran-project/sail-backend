@@ -37,7 +37,7 @@ let reg_inductive_type (register_definitions : Ast.Definition.register_definitio
   end
 
 
-let no_confusion_for_reg () =
+let no_confusion_for_reg () : PP.document =
   Coq.generation_block [%here] (PP.string "No Confusion for Reg") begin
     Coq.section (Ast.Identifier.mk "TransparentObligations") (
       PP.(separate hardline [
@@ -48,7 +48,7 @@ let no_confusion_for_reg () =
   end
 
 
-let reg_definition () =
+let reg_definition () : PP.document =
   PP.utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 
@@ -68,7 +68,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
  *)
-let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) =
+let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -85,7 +85,7 @@ let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.D
   end
 
 
-let instance_reg_eq_dec register_names =
+let instance_reg_eq_dec (register_names : PP.document list) : PP.document =
   let cases =
     let cs =
       List.map ~f:(fun register_name ->
@@ -115,7 +115,7 @@ let instance_reg_eq_dec register_names =
   end
 
 
-let reg_finite register_names =
+let reg_finite (register_names : PP.document list) : PP.document =
   let enum_values =
     let enum_value_of_register_name register_name =
       PP.(
@@ -143,7 +143,8 @@ let reg_finite register_names =
     )
   end
 
-let obligation_tactic =
+
+let obligation_tactic : PP.document =
   Coq.generation_block [%here] (PP.string "Obligation Tactic") begin
     PP.(
       separate hardline [
