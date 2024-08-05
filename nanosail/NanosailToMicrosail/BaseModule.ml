@@ -38,23 +38,24 @@ let pp_open_string_scope () : PP.document GC.t =
   ]
 
 
-let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.type_quantifier * Ast.Type.t) list) : PP.document =
+let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.type_quantifier * Ast.Type.t) list) : PP.document GC.t =
+  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
+  in
   let pp_alias_notation (id, _type_quantifier, typ) =
     let notation =
       Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
     in
     let* expression =
-      Nanotype.pp_nanotype typ
+      Nanotype.pp_nanotype' typ
     in
-    AC.return @@ Coq.pp_notation notation expression
+    GC.return @@ Coq.pp_notation notation expression
   in
-  block [%here] "Notations for Aliases" begin
-    let result =
-      let* notations = AC.map ~f:pp_alias_notation alias_definitions
+  GC.generation_block [%here] (PP.string "Notations for Aliases") begin
+    GC.block begin
+      let notations = List.map ~f:pp_alias_notation alias_definitions
       in
-      AC.return @@ PP.separate PP.hardline notations
-    in
-    Coq.annotate result
+      GC.vertical notations
+    end
   end
 
 
@@ -953,7 +954,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       let sections = [
         pp_imports ();
         pp_open_string_scope ();
-        GC.return @@ pp_alias_notations alias_definitions;
+        pp_alias_notations alias_definitions;
         GC.return @@ pp_typedeclkit ();
         GC.return @@ pp_enum_denote enum_definitions;
         GC.return @@ pp_union_denote variant_definitions;
