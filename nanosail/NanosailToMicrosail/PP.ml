@@ -149,3 +149,11 @@ let build_lines (body : build_lines_context -> unit) =
 
 let lines (strings : string list) : document =
   separate_map hardline string strings
+
+
+let vertical ?(spacing = 1) documents =
+  separate (repeat spacing hardline) documents
+
+
+let vertical_strings ?(spacing = 1) strings =
+  vertical ~spacing @@ List.map ~f:utf8string strings

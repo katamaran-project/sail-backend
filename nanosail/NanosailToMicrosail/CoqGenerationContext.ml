@@ -153,11 +153,3 @@ let pp_inductive_type
       )
   in
   return @@ PP.(separate hardline result_lines ^^ hardline ^^ Coq.eol)
-
-
-let vertical ?(spacing = 1) documents =
-  return @@ PP.separate (PP.repeat spacing PP.hardline) documents
-
-
-let vertical_strings ?(spacing = 1) strings =
-  vertical ~spacing @@ List.map ~f:(fun s -> PP.utf8string s) strings

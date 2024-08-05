@@ -146,7 +146,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
 
 let pp_obligation_tactic () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "Obligation Tactic") begin
-    GC.vertical_strings [
+    GC.return @@ PP.vertical_strings [
         "Local Obligation Tactic :=";
         "  finite_from_eqdec."
       ]
@@ -171,7 +171,7 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
       pp_reg_finite register_names
     ]
     in
-    GC.vertical ~spacing:2 items
+    GC.return @@ PP.vertical ~spacing:2 items
   in
   GC.return @@ Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 

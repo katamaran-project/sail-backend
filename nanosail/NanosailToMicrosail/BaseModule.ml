@@ -19,7 +19,7 @@ let block loc label doc =
 
 *)
 let pp_imports () : PP.document GC.t =
-  GC.vertical_strings [
+  GC.return @@ PP.vertical_strings [
     "Import ctx.notations.";
     "Import ctx.resolution.";
     "Import env.notations.";
@@ -33,7 +33,7 @@ let pp_imports () : PP.document GC.t =
 
  *)
 let pp_open_string_scope () : PP.document GC.t =
-  GC.vertical_strings [
+  GC.return @@ PP.vertical_strings [
     "Local Open Scope string_scope."
   ]
 
@@ -54,7 +54,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
     GC.block begin
       let* notations = GC.map ~f:pp_alias_notation alias_definitions
       in
-      GC.vertical notations
+      GC.return @@ PP.vertical notations
     end
   end
 
@@ -70,7 +70,8 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
 
  *)
 let pp_typedeclkit () : PP.document GC.t =
-  let coq_lines = [
+  let coq_lines =
+    PP.vertical_strings [
       "#[export] Instance typedeclkit : TypeDeclKit :=";
       "  {|";
       "     enumi   := Enums;";
@@ -79,7 +80,7 @@ let pp_typedeclkit () : PP.document GC.t =
       "  |}.";
     ]
   in
-  GC.generation_block [%here] (PP.string "typedeclkit") @@ GC.vertical_strings coq_lines
+  GC.generation_block [%here] (PP.string "typedeclkit") @@ GC.return coq_lines
 
 
 (*
@@ -976,7 +977,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         GC.return @@ pp_include_mixin ();
       ]
       in
-      GC.vertical ~spacing:2 sections
+      GC.return @@ PP.vertical ~spacing:2 sections
     in
     GC.return @@ Coq.module' ~flag ~includes base_module_name contents
   end
