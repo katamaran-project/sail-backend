@@ -1,7 +1,7 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC      = AnnotationContext
+module GC      = GenerationContext
 module Big_int = Nat_big_num
 
 
@@ -47,11 +47,11 @@ module Prec = struct
 end
 
 
-let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : Prec.ast AC.t =
+let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : Prec.ast GC.t =
   let rec ast_of_int_expression integer_expression =
     match integer_expression with
-    | Ast.ExtendedType.IntExpression.Var identifier    -> AC.return @@ Prec.variable identifier
-    | Ast.ExtendedType.IntExpression.Constant k        -> AC.return @@ Prec.constant k
+    | Ast.ExtendedType.IntExpression.Var identifier    -> GC.return @@ Prec.variable identifier
+    | Ast.ExtendedType.IntExpression.Constant k        -> GC.return @@ Prec.constant k
     | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
     | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
     | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
@@ -60,13 +60,13 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
   and unary_operation f operand =
     let* operand' = ast_of_int_expression operand
     in
-    AC.return @@ f operand'
+    GC.return @@ f operand'
 
   and binary_operation f left right =
     let* left'  = ast_of_int_expression left
     and* right' = ast_of_int_expression right
     in
-    AC.return @@ f left' right'
+    GC.return @@ f left' right'
 
   and addition       l r = binary_operation Prec.addition l r
   and subtraction    l r = binary_operation Prec.subtraction l r
@@ -77,15 +77,15 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
   ast_of_int_expression integer_expression
 
 
-let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t) : PP.document AC.t =
+let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t) : PP.document GC.t =
   match extended_type with
-  | Int k        -> AC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
-  | Bool k       -> AC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
-  | Other s      -> AC.return @@ PP.string s
+  | Int k        -> GC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
+  | Bool k       -> GC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
+  | Other s      -> GC.return @@ PP.string s
   | Tuple ts     -> begin
-      let* ts' = AC.map ~f:pp_extended_parameter_type ts (* todo add parentheses around each t of ts *)
+      let* ts' = GC.map ~f:pp_extended_parameter_type ts (* todo add parentheses around each t of ts *)
       in
-      AC.return @@ PP.(separate (string " * ") ts')
+      GC.return @@ PP.(separate (string " * ") ts')
     end
   | Unknown ud   -> begin
       let* annotation_index =
@@ -96,30 +96,30 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location ud.sail_location;
             ]
         in
-        AC.create_annotation_from_document annotation_document
+        GC.add_annotation annotation_document
       in
-      AC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
+      GC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
     end
 
 
-let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document AC.t =
+let pp_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : PP.document GC.t =
   let* result = ast_of_int_expression integer_expression
   in
-  AC.return @@ Prec.output_of result
+  GC.return @@ Prec.output_of result
 
 
-let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : Prec.ast AC.t =
+let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : Prec.ast GC.t =
   let rec binary_operation f left right =
     let* left'  = ast_of_bool_expression left
     and* right' = ast_of_bool_expression right
     in
-    AC.return @@ f left' right'
+    GC.return @@ f left' right'
 
   and comparison f left right =
     let* left'  = ast_of_int_expression left
     and* right' = ast_of_int_expression right
     in
-    AC.return @@ f left' right'
+    GC.return @@ f left' right'
 
   and conjunction l r              = binary_operation Prec.conjunction              l r
   and disjunction l r              = binary_operation Prec.disjunction              l r
@@ -132,7 +132,7 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
 
   and ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
     match bool_expression with
-    | Var identifier                     -> AC.return @@ Prec.variable identifier
+    | Var identifier                     -> GC.return @@ Prec.variable identifier
     | And (left, right)                  -> conjunction              left right
     | Or  (left, right)                  -> disjunction              left right
     | Equal (left, right)                -> equality                 left right
@@ -145,17 +145,17 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
   ast_of_bool_expression bool_expression
 
 
-let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document AC.t =
+let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : PP.document GC.t =
   let* result = ast_of_bool_expression bool_expression
   in
-  AC.return @@ Prec.output_of result
+  GC.return @@ Prec.output_of result
 
 
-let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document AC.t =
+let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document GC.t =
   match extended_type with
   | Int int_expression   -> pp_int_expression int_expression
   | Bool bool_expression -> pp_bool_expression bool_expression
-  | Other id             -> AC.return @@ PP.string id
+  | Other id             -> GC.return @@ PP.string id
   | Unknown unknown_data -> begin
       let* annotation_index =
         let annotation_document =
@@ -165,15 +165,15 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location unknown_data.sail_location;
             ]
         in
-        AC.create_annotation_from_document annotation_document
+        GC.add_annotation annotation_document
       in
-      AC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
+      GC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
     end
 
 
 let pp_extended_function_type
       (ft  : Ast.Definition.FunctionType.t)
-      (eft : Ast.ExtendedFunctionType.t   ) : PP.document AC.t
+      (eft : Ast.ExtendedFunctionType.t   ) : PP.document GC.t
   =
   let parameter_names =
     List.map ~f:(fun (id, _) -> Ast.Identifier.string_of id) ft.parameters
@@ -183,9 +183,9 @@ let pp_extended_function_type
     eft.extended_return_type
   in
   let* pp_parameter_names =
-    AC.return @@ List.map ~f:(fun name -> PP.(string "parameter " ^^ PP.string name)) parameter_names
+    GC.return @@ List.map ~f:(fun name -> PP.(string "parameter " ^^ PP.string name)) parameter_names
   and* pp_parameter_extended_types =
-    AC.map ~f:pp_extended_parameter_type parameter_extended_types
+    GC.map ~f:pp_extended_parameter_type parameter_extended_types
   in
   let pp_parameter_pairs =
     List.zip_exn pp_parameter_names pp_parameter_extended_types
@@ -193,9 +193,9 @@ let pp_extended_function_type
   let* pp_return_value_pair =
     let* ret = pp_extended_return_value_type return_extended_type
     in
-    AC.return (PP.string "return value", ret)
+    GC.return (PP.string "return value", ret)
   in
   let pairs =
     List.append pp_parameter_pairs [pp_return_value_pair]
   in
-  AC.return @@ PP.description_list pairs
+  GC.return @@ PP.description_list pairs
