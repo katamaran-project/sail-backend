@@ -1,5 +1,5 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
 module AC = AnnotationContext
 module GC = CoqGenerationContext
@@ -14,32 +14,32 @@ let regname_tag =
   Ast.Identifier.mk "regname"
 
 
-let reg_inductive_type (register_definitions : Ast.Definition.register_definition list) : PP.document =
+let pp_reg_inductive_type (register_definitions : Ast.Definition.register_definition list) : PP.document GC.t =
   let identifier = PP.string "Reg"
   and typ = PP.string "Ty -> Set"
   in
   let inductive_type =
-    Coq.build_inductive_type identifier typ (fun add_constructor ->
-        let make_constructor (register_definition : Ast.Definition.register_definition) =
+    GC.pp_inductive_type identifier typ (fun add_constructor ->
+        let make_constructor (register_definition : Ast.Definition.register_definition) : unit GC.t =
           let identifier = Identifier.pp register_definition.identifier
           in
-          let* register_type = Nanotype.pp_nanotype register_definition.typ
+          let* register_type = Nanotype.pp_nanotype' register_definition.typ
           in
           let typ = PP.(separate space [ string "Reg"; parens register_type  ])
           in
           add_constructor ~typ:typ identifier
         in
-        AC.iter ~f:make_constructor register_definitions
+        GC.iter ~f:make_constructor register_definitions
       )
   in
-  Coq.generation_block [%here] (PP.string "Reg Inductive Type") begin
-    Coq.annotate inductive_type
+  GC.generation_block [%here] (PP.string "Reg Inductive Type") begin
+    GC.block inductive_type
   end
 
 
-let no_confusion_for_reg () : PP.document =
-  Coq.generation_block [%here] (PP.string "No Confusion for Reg") begin
-    Coq.section (Ast.Identifier.mk "TransparentObligations") (
+let pp_no_confusion_for_reg () : PP.document GC.t =
+  GC.generation_block [%here] (PP.string "No Confusion for Reg") begin
+    GC.return @@ Coq.section (Ast.Identifier.mk "TransparentObligations") (
       PP.(separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
@@ -48,8 +48,8 @@ let no_confusion_for_reg () : PP.document =
   end
 
 
-let reg_definition () : PP.document =
-  PP.utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+let pp_reg_definition () : PP.document GC.t =
+  GC.return @@ PP.utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 
 let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
@@ -85,7 +85,7 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   end
 
 
-let instance_reg_eq_dec (register_names : PP.document list) : PP.document =
+let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
   let cases =
     let cs =
       List.map ~f:(fun register_name ->
@@ -103,11 +103,11 @@ let instance_reg_eq_dec (register_names : PP.document list) : PP.document =
   let id1 = Configuration.tag_as_generated @@ Ast.Identifier.mk "x"
   and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
   in
-  Coq.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
-    PP.(
+  GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
+    GC.return @@ PP.(
       separate hardline [
         utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-        PP.(string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>");
+        string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>";
         indent' (Coq.match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
         string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
       ]
@@ -115,7 +115,7 @@ let instance_reg_eq_dec (register_names : PP.document list) : PP.document =
   end
 
 
-let reg_finite (register_names : PP.document list) : PP.document =
+let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   let enum_values =
     let enum_value_of_register_name register_name =
       PP.(
@@ -128,9 +128,9 @@ let reg_finite (register_names : PP.document list) : PP.document =
     in
     Coq.list (List.map ~f:enum_value_of_register_name register_names)
   in
-  Coq.generation_block [%here] (PP.string "REG_finite Instance") begin
-    PP.(
-      separate hardline (
+  GC.generation_block [%here] (PP.string "REG_finite Instance") begin
+    GC.return @@ PP.(
+      Coq.sentence @@ separate hardline (
         [
           utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
           PP.indent' (
@@ -144,35 +144,34 @@ let reg_finite (register_names : PP.document list) : PP.document =
   end
 
 
-let obligation_tactic () : PP.document =
-  Coq.generation_block [%here] (PP.string "Obligation Tactic") begin
-    PP.(
-      separate hardline [
-        string "Local Obligation Tactic :=";
-        string "  finite_from_eqdec."
+let pp_obligation_tactic () : PP.document GC.t =
+  GC.generation_block [%here] (PP.string "Obligation Tactic") begin
+    GC.vertical_strings [
+        "Local Obligation Tactic :=";
+        "  finite_from_eqdec."
       ]
-    )
   end
 
 
-let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
+(* todo rename *)
+let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
   let register_names =
     let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
       Identifier.pp (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
   in
-  let section_contents =
-    Coq.sentence @@ PP.(separate (twice hardline) [
-      reg_inductive_type @@ List.map ~f:snd register_definitions;
-      no_confusion_for_reg ();
-      reg_definition ();
-      instance_reg_eq_dec register_names;
-      obligation_tactic ();
-      reg_finite register_names
-    ])
+  let* section_contents =
+    GC.vertical ~spacing:2 [
+      pp_reg_inductive_type @@ List.map ~f:snd register_definitions;
+      pp_no_confusion_for_reg ();
+      pp_reg_definition ();
+      pp_instance_reg_eq_dec register_names;
+      pp_obligation_tactic ();
+      pp_reg_finite register_names
+    ]
   in
-  Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
+  GC.return @@ Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
 let extra_eqdec_identifiers () : Ast.Identifier.t list =
@@ -183,6 +182,7 @@ let extra_no_confusion_identifiers () : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
 
 
+(* todo rename *)
 let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
