@@ -931,6 +931,8 @@ let pp_include_mixin () : PP.document =
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
+  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
+  in
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   and variant_definitions =
@@ -946,33 +948,34 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     let base_module_name = "UntitledBase"
     and flag = Coq.Export
     and includes = [ "Base" ]
-    and contents =
+    in
+    let* contents =
       let sections = [
-        pp_imports ();
-        pp_open_string_scope ();
-        pp_alias_notations alias_definitions;
-        pp_typedeclkit ();
-        pp_enum_denote enum_definitions;
-        pp_union_denote variant_definitions;
-        pp_record_denote record_definitions;
-        pp_typedenotekit ();
-        pp_union_constructor variant_definitions;
-        pp_union_constructor_type variant_definitions;
-        pp_eqdec_and_finite_instances ();
-        pp_union_fold variant_definitions;
-        pp_union_unfold variant_definitions;
-        pp_record_field_type record_definitions;
-        pp_record_fold record_definitions;
-        pp_record_unfold record_definitions;
-        pp_typedefkit_instance ();
-        pp_canonicals ();
-        pp_varkit_instance ();
-        pp_regdeclkit register_definitions;
-        pp_memory_model ();
-        pp_include_mixin ();
+        GC.return @@ pp_imports ();
+        GC.return @@ pp_open_string_scope ();
+        GC.return @@ pp_alias_notations alias_definitions;
+        GC.return @@ pp_typedeclkit ();
+        GC.return @@ pp_enum_denote enum_definitions;
+        GC.return @@ pp_union_denote variant_definitions;
+        GC.return @@ pp_record_denote record_definitions;
+        GC.return @@ pp_typedenotekit ();
+        GC.return @@ pp_union_constructor variant_definitions;
+        GC.return @@ pp_union_constructor_type variant_definitions;
+        GC.return @@ pp_eqdec_and_finite_instances ();
+        GC.return @@ pp_union_fold variant_definitions;
+        GC.return @@ pp_union_unfold variant_definitions;
+        GC.return @@ pp_record_field_type record_definitions;
+        GC.return @@ pp_record_fold record_definitions;
+        GC.return @@ pp_record_unfold record_definitions;
+        GC.return @@ pp_typedefkit_instance ();
+        GC.return @@ pp_canonicals ();
+        GC.return @@ pp_varkit_instance ();
+        GC.return @@ pp_regdeclkit register_definitions;
+        GC.return @@ pp_memory_model ();
+        GC.return @@ pp_include_mixin ();
       ]
       in
-      PP.(separate small_step sections)
+      GC.vertical ~spacing:2 sections
     in
     GC.return @@ Coq.module' ~flag ~includes base_module_name contents
   end
