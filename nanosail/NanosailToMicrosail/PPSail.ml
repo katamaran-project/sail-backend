@@ -1,35 +1,7 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
 module GC = GenerationContext
-
-
-(* todo remove *)
-let pp_bind (arg, t) =
-  AC.return @@ PP.(utf8string ("\"" ^ (Ast.Identifier.string_of arg) ^ "\" ∷ " ) ^^ t)
-
-
-(* todo remove *)
-let pp_kind (kind : Ast.Kind.t) =
-  match kind with
-  | Type -> AC.not_yet_implemented [%here]
-  | Int  -> AC.return @@ PP.string @@ "nat"
-  | Bool -> AC.not_yet_implemented [%here]
-
-
-(* todo remove *)
-let pp_type_quantifier quantifier =
-  let open Monads.Notations.Star(AnnotationContext)
-  in
-  let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = Identifier.pp identifier
-    in
-    let* kind' = pp_kind kind
-    in
-    AC.return (identifier', Some kind')
-  in
-  AC.map ~f:pp_type_quantifier_item quantifier
 
 
 (* todo rename *)
