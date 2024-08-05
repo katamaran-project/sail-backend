@@ -1,7 +1,7 @@
 open Base
 
 module AC = AnnotationContext
-module GC = CoqGenerationContext
+module GC = GenerationContext
 
 open Monads.Notations.Star(AnnotationContext)
 

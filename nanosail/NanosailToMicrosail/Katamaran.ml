@@ -2,7 +2,7 @@ open Base
 open Monads.Notations.Star(GenerationContext)
 
 module AC = AnnotationContext
-module GC = CoqGenerationContext
+module GC = GenerationContext
 
 let block loc label contents =
   Coq.generation_block loc (PP.string label) contents

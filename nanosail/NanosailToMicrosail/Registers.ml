@@ -2,7 +2,7 @@ open Base
 open Monads.Notations.Star(GenerationContext)
 
 module AC = AnnotationContext
-module GC = CoqGenerationContext
+module GC = GenerationContext
 
 
 (* Name for the inductive type listing all registers *)

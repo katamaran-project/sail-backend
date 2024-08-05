@@ -1,6 +1,5 @@
 module AnnotationContext    = AnnotationContext
 module GenerationContext    = GenerationContext
-module CoqGenerationContext = CoqGenerationContext
 module Coq                  = Coq
 module Identifier           = Identifier
 module Sail                 = Sail

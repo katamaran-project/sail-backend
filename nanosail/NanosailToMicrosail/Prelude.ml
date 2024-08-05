@@ -1,4 +1,4 @@
-module GC = CoqGenerationContext
+module GC = GenerationContext
   
 
 let pp_require_imports () : PP.document =
