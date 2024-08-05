@@ -12,23 +12,27 @@ let pp_program_module
       (program_name                          : string                                                                           )
       (base_name                             : string                                                                           )
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
   let flag            = Coq.Import
   and identifier      = program_name ^ "Program"
   and base_identifier = base_name ^ "Base" in
   let includes        = [ "Program"; base_identifier ]
-  and contents =
-    PP.(separate (twice hardline) [
+  in
+  let* contents =
+    let* function_definition_kit =
+      FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
+    in
+    GC.return @@ PP.(separate (twice hardline) [
       FunDeclKit.generate @@ List.map ~f:snd function_definitions;
       Coq.sentence @@ string @@ "Include FunDeclMixin " ^ base_identifier;
-      FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions;
+      function_definition_kit;
       Coq.sentence @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
       ForeignKit.pp_foreign_kit;
       Coq.sentence @@ string @@ "Include ProgramMixin " ^ base_identifier;
     ])
   in
-  Coq.module'
+  GC.return @@ Coq.module'
     ~flag:flag
     ~includes:includes
     identifier
@@ -93,16 +97,15 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Base Module") base_module
   in
 
-  let pp_program =
-    generate_section
-      "PROGRAM"
-      (
-        pp_program_module
-          ir.program_name
-          "Default"
-          Ast.(select Extract.function_definition ir.definitions)
-          Ast.(select Extract.top_level_type_constraint_definition ir.definitions)
-      )
+  let pp_program : PP.document GC.t =
+    let* program_module =
+      pp_program_module
+        ir.program_name
+        "Default"
+        Ast.(select Extract.function_definition ir.definitions)
+        Ast.(select Extract.top_level_type_constraint_definition ir.definitions)
+    in
+    GC.return @@ generate_section "PROGRAM" program_module
   in
 
   let pp_finite : PP.document GC.t =
@@ -226,7 +229,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       pp_finite;
       pp_base_module;
       pp_value_definitions;
-      (* GC.return @@ pp_program; *)
+      (* pp_program; *)
     ]
   in
   GC.return @@ PP.(separate_nonempty small_step sections)
