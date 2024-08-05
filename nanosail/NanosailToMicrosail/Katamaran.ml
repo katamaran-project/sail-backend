@@ -1,8 +1,8 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
 module AC = AnnotationContext
-
+module GC = GenerationContext
 
 let block loc label contents =
   Coq.generation_block loc (PP.string label) contents
@@ -35,7 +35,7 @@ let pp_program_module
     contents
 
 
-let pretty_print (ir : Ast.program) : PP.document =
+let pretty_print (ir : Ast.program) : PP.document GC.t =
   let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
   and enum_definitions     = Ast.(select Extract.(type_definition of_enum    ) ir.definitions)
   and record_definitions   = Ast.(select Extract.(type_definition of_record  ) ir.definitions)
@@ -206,24 +206,30 @@ let pretty_print (ir : Ast.program) : PP.document =
 
   let _ = pp_program in (* remove this *)
   
-  let sections =
+  let* sections = GC.sequence
     [
-      pp_prelude;
-      pp_register_definitions;
-      pp_translated_type_definitions;
-      pp_enum_tags;
-      pp_variant_tags;
-      pp_record_tags;
-      pp_no_confusion;
-      pp_eqdecs;
-      pp_finite;
-      pp_base_module;
-      pp_value_definitions;
-      (* pp_program; *)
+      GC.return @@ pp_prelude;
+      GC.return @@ pp_register_definitions;
+      GC.return @@ pp_translated_type_definitions;
+      GC.return @@ pp_enum_tags;
+      GC.return @@ pp_variant_tags;
+      GC.return @@ pp_record_tags;
+      GC.return @@ pp_no_confusion;
+      GC.return @@ pp_eqdecs;
+      GC.return @@ pp_finite;
+      GC.return @@ pp_base_module;
+      GC.return @@ pp_value_definitions;
+      (* GC.return @@ pp_program; *)
     ]
   in
-  PP.(separate_nonempty small_step sections)
+  GC.return @@ PP.(separate_nonempty small_step sections)
 
 
-let output_document_to_channel len out doc =
+let full_translation (ir : Ast.program) : PP.document =
+  GC.generate @@ pretty_print ir
+
+
+let output_document_to_channel len out (document : PP.document GC.t) =
+  let doc = GC.generate document
+  in
   PP.(ToChannel.pretty 1. len out (doc ^^ small_step))
