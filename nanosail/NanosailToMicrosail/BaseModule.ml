@@ -1,6 +1,8 @@
 open Base
 
 module AC = AnnotationContext
+module GC = CoqGenerationContext
+
 open Monads.Notations.Star(AnnotationContext)
 
 
@@ -895,8 +897,8 @@ let pp_varkit_instance () : PP.document =
   End RegDeclKit.
 
 *)
-let pp_regdeclkit register_definitions : PP.document =
-  block [%here] "RegDeclKit" begin
+let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP.document GC.t *)
+  GC.generate @@ GC.generation_block [%here] (PP.string "RegDeclKit") begin
     Registers.generate_regdeclkit register_definitions
   end
 
