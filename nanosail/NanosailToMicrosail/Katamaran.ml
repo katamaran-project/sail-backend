@@ -140,10 +140,10 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       let no_confusion_identifiers =
         let no_confusion_identifier_from_definition _sail_definition (type_definitions : Ast.Definition.Type.t) =
           match type_definitions with
-          | Ast.Definition.Type.Abbreviation _                  -> [ ]
-          | Ast.Definition.Type.Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
-          | Ast.Definition.Type.Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
-          | Ast.Definition.Type.Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
+          | Abbreviation _                  -> [ ]
+          | Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
+          | Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
+          | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
         in
         let no_confusions_from_definitions =
           List.concat_map ~f:(Auxlib.uncurry no_confusion_identifier_from_definition) type_definitions
