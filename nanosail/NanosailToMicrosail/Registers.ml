@@ -154,6 +154,7 @@ let obligation_tactic () : PP.document =
     )
   end
 
+
 let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
     let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
