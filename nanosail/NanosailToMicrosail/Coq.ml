@@ -58,6 +58,7 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
   ]
 
 
+(* todo rename to pp_comment *)
 let comment (comment : PP.document) : PP.document =
   let str = PP.string_of_document comment
   in
