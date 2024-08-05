@@ -177,10 +177,10 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     let eqdec_identifiers =
       let eqdec_identifier_from_definition _sail_definition (type_definition : Ast.Definition.Type.t) =
         match type_definition with
-        | Ast.Definition.Type.Abbreviation _                  -> [ ]
-        | Ast.Definition.Type.Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
-        | Ast.Definition.Type.Enum         enum_definition    -> Types.Enums.eqdec_identifiers_for enum_definition
-        | Ast.Definition.Type.Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
+        | Abbreviation _                  -> [ ]
+        | Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
+        | Enum         enum_definition    -> Types.Enums.eqdec_identifiers_for enum_definition
+        | Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
       in
       let eqdecs_from_definitions =
         List.concat_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
