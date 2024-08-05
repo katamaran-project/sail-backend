@@ -899,7 +899,7 @@ let pp_varkit_instance () : PP.document =
 *)
 let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP.document GC.t *)
   GC.generate @@ GC.generation_block [%here] (PP.string "RegDeclKit") begin
-    Registers.generate_regdeclkit register_definitions
+    Registers.pp_regdeclkit register_definitions
   end
 
 

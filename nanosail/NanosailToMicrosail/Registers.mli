@@ -1,4 +1,4 @@
-val generate_regdeclkit               : (Sail.sail_definition * Ast.Definition.register_definition) list -> PP.document CoqGenerationContext.t
+val pp_regdeclkit                     : (Sail.sail_definition * Ast.Definition.register_definition) list -> PP.document CoqGenerationContext.t
 val pp_regname_inductive_type         : (Sail.sail_definition * Ast.Definition.register_definition) list -> PP.document CoqGenerationContext.t
 val translate_regname                 : Ast.Identifier.t -> Ast.Identifier.t
 val regname_tag                       : Ast.Identifier.t

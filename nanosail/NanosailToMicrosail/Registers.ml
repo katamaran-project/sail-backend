@@ -154,7 +154,7 @@ let pp_obligation_tactic () : PP.document GC.t =
 
 
 (* todo rename *)
-let generate_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
+let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
   let register_names =
     let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
       Identifier.pp (snd pair).identifier
