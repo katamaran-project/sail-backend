@@ -63,9 +63,7 @@ let extra_no_confusion_identifiers () =
   [ enums_inductive_type_identifier ]
 
 
-let generate_enum_finiteness
-      (enum_definition  : Ast.Definition.Type.Enum.t)
-  =
+let generate_enum_finiteness (enum_definition  : Ast.Definition.Type.Enum.t) =
   let identifier = Identifier.pp @@ enum_definition.identifier
   and type_name  = Identifier.pp @@ enum_definition.identifier
   and values     = List.map ~f:Identifier.pp enum_definition.cases
