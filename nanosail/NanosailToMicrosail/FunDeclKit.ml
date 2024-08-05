@@ -11,7 +11,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
       let* parameter_bindings =
         let* pp_parameter_bindings =
           let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
-            let* t' = Nanotype.pp_nanotype' t
+            let* t' = Nanotype.pp_nanotype t
             in
             GC.return (id, t')
           in
@@ -21,7 +21,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         in
         GC.return @@ Coq.list ps
       in
-      let* return_type = Nanotype.pp_nanotype' function_definition.function_type.return_type
+      let* return_type = Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       GC.return PP.(
           concat [
@@ -58,7 +58,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
   let contents =
     PP.separate PP.small_step [
         inductive_type_declaration;
-        PP.separate_map PP.hardline PP.utf8string [
+        PP.vertical_strings [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
             "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
             "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";

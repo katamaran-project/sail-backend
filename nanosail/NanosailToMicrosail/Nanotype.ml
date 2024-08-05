@@ -6,16 +6,14 @@ module GC = GenerationContext
 open Monads.Notations.Star(GenerationContext)
 
 
-(* todo rename *)
-let rec pp_nanotype' (typ : Ast.Type.t) : PP.document GC.t =
-  
+let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   let pp_tuple elts =
-    let* elts' = GC.map ~f:pp_nanotype' elts
+    let* elts' = GC.map ~f:pp_nanotype elts
     in
     GC.return PP.(separate space [ string "ty.tuple"; Coq.list elts' ])
 
   and pp_list element_type =
-    let* element_type' = pp_nanotype' element_type
+    let* element_type' = pp_nanotype element_type
     in
     GC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.list"; element_type' ]
 
@@ -23,7 +21,7 @@ let rec pp_nanotype' (typ : Ast.Type.t) : PP.document GC.t =
       (constructor    : Ast.Type.t             )
       (type_arguments : Ast.TypeArgument.t list) : PP.document GC.t
     =
-    let* constructor' = pp_nanotype' constructor
+    let* constructor' = pp_nanotype constructor
     in
     let* type_arguments' =
       GC.map ~f:(GC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
@@ -51,8 +49,8 @@ let rec pp_nanotype' (typ : Ast.Type.t) : PP.document GC.t =
     GC.return @@ PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.string_of tag
 
   and pp_product t1 t2 =
-    let* t1' = pp_nanotype' t1
-    and* t2' = pp_nanotype' t2
+    let* t1' = pp_nanotype t1
+    and* t2' = pp_nanotype t2
     in
     GC.return PP.(separate space [ string "ty.prod"; parens t1'; parens t2' ])
 
@@ -80,31 +78,31 @@ let rec pp_nanotype' (typ : Ast.Type.t) : PP.document GC.t =
    | Alias (id, typ)                  -> pp_alias id typ
 
 
-and coq_type_of_nanotype' (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
+and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
   let coq_type_of_bitvector_type n =
     let* n' = Numeric.Expression.pp' n
     in
     GC.return @@ PP.(string "bv" ^^ space ^^ n')
 
   and coq_type_of_list_type t =
-    let* t' = coq_type_of_nanotype' t
+    let* t' = coq_type_of_nanotype t
     in
     GC.return @@ PP.(separate space [ string "list"; parens t' ])
 
   and coq_type_of_application t ts =
-    let* t   = coq_type_of_nanotype' t
+    let* t   = coq_type_of_nanotype t
     and* ts' = GC.map ~f:(Fn.compose (GC.lift ~f:PP.parens) pp_type_argument) ts
     in
     GC.return @@ PP.separate PP.space (t :: ts')
 
   and coq_type_of_tuple ts =
-    let* ts' = GC.map ~f:coq_type_of_nanotype' ts
+    let* ts' = GC.map ~f:coq_type_of_nanotype ts
     in
     GC.return @@ Coq.pp_tuple_type ts'
 
   and coq_type_of_product t1 t2 =
-    let* t1' = coq_type_of_nanotype' t1
-    and* t2' = coq_type_of_nanotype' t2
+    let* t1' = coq_type_of_nanotype t1
+    and* t2' = coq_type_of_nanotype t2
     in
     GC.return @@ Coq.pp_tuple_type [ t1'; t2' ]
 
@@ -127,6 +125,6 @@ and coq_type_of_nanotype' (nanotype : Ast.Type.t) = (* todo check if this does w
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
   match type_argument with
-  | Type t              -> pp_nanotype' t
+  | Type t              -> pp_nanotype t
   | NumericExpression e -> Numeric.Expression.pp' e
   | Bool nc             -> Numeric.Constraint.pp' nc

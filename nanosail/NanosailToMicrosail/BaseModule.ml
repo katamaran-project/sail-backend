@@ -45,7 +45,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
       Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
     in
     let* expression =
-      Nanotype.pp_nanotype' typ
+      Nanotype.pp_nanotype typ
     in
     GC.return @@ Coq.pp_notation notation expression
   in
@@ -333,7 +333,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                     | [x; y] -> Ast.Type.Product (x, y)
                     | xs     -> Ast.Type.Tuple xs
                   in
-                  Nanotype.pp_nanotype' packed_type
+                  Nanotype.pp_nanotype packed_type
                 in
                 GC.return @@ (pp_constructor_tag, pp_constructor_field_types)
               in
@@ -627,7 +627,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
           let pp_field (field_identifier, field_type) =
             let id = Identifier.pp field_identifier
             in
-            let* t = Nanotype.pp_nanotype' field_type
+            let* t = Nanotype.pp_nanotype field_type
             in
             GC.return PP.(separate space [ PP.dquotes id; string "::"; t ])
           in
@@ -765,7 +765,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
           let* lambda_body =
             let* bindings =
               let make_binding (field_identifier, field_type) =
-                let* field_type' = Nanotype.pp_nanotype' field_type
+                let* field_type' = Nanotype.pp_nanotype field_type
                 in
                 GC.return @@ PP.separate PP.space [
                   PP.utf8string "►";

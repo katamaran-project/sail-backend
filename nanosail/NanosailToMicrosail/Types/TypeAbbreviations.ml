@@ -30,7 +30,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
       let* coq_alias =
         let  identifier  = Identifier.pp identifier
         in
-        let* body        = Nanotype.coq_type_of_nanotype' typ
+        let* body        = Nanotype.coq_type_of_nanotype typ
         and* parameters  = PPSail.pp_type_quantifier' quantifier
         in
         GC.return @@ Coq.definition ~identifier ~parameters body;

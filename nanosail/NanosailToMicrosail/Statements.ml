@@ -106,7 +106,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     in
     let  variable_identifier'    = Identifier.pp variable_identifier in
     let* binding_statement'      = pp_statement binding_statement
-    and* binding_statement_type' = Nanotype.pp_nanotype' binding_statement_type
+    and* binding_statement_type' = Nanotype.pp_nanotype binding_statement_type
     and* body_statement'         = pp_statement body_statement
     in
     if

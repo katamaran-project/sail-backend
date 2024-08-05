@@ -14,7 +14,7 @@ let pp_function_definition
       let* bindings =
         let* parameters : (Ast.Identifier.t * PP.document) list =
           let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
-            let* t' = Nanotype.pp_nanotype' t
+            let* t' = Nanotype.pp_nanotype t
             in
             GC.return (id, t')
           in
@@ -25,7 +25,7 @@ let pp_function_definition
         GC.return @@ Coq.list docs
       in
       let* result_type =
-        Nanotype.pp_nanotype' function_definition.function_type.return_type
+        Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       GC.return @@ Some (
         PP.hanging_list (PP.string "Stm") [

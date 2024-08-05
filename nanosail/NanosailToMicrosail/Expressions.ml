@@ -59,7 +59,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     | String s         -> GC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
     | Unit             -> GC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
     | Prod (_, _) as v -> begin
-        let* tuple_type' = Nanotype.pp_nanotype' (ty_of_val v)
+        let* tuple_type' = Nanotype.pp_nanotype (ty_of_val v)
         in
         let value' = pp_value v
         in
