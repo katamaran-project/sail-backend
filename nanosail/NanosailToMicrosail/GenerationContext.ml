@@ -113,8 +113,8 @@ let add_annotation (annotation : PP.document) : int t =
   next_index
 
 
-let add_comment (document : PP.document) : unit t =
-  let comment = Comment document
+let add_comment (comment : PP.document) : unit t =
+  let comment = Comment comment
   in
   update comments (fun cs -> comment :: cs)
 
