@@ -36,6 +36,7 @@ module Untranslated = struct
 end
 
 
+(* todo put in separate module *)
 type register_definition =
   {
     identifier : Identifier.t;
