@@ -42,7 +42,7 @@ let is_single_line (string : string) : bool =
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
 
 
-let pp_inline_comment comment =
+let pp_inline_comment (comment : PP.document) : PP.document =
   PP.(separate space [
       left_comment_delimiter;
       comment;
