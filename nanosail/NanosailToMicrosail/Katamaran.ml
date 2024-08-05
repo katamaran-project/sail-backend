@@ -50,8 +50,8 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_register_definitions =
-    block [%here] "Register Definitions" begin
-      Registers.regname_inductive_type register_definitions
+    GC.generation_block [%here] (PP.string "Register Definitions") begin
+      Registers.pp_regname_inductive_type register_definitions
     end
   in
 

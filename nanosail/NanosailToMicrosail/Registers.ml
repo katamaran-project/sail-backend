@@ -68,7 +68,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
  *)
-let regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
+let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
