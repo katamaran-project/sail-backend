@@ -204,7 +204,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     end
   in
 
-  let pp_value_definitions =
+  let pp_value_definitions : PP.document GC.t =
     ValueDefinitions.generate ir.definitions
   in
 
@@ -222,7 +222,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       pp_eqdecs;
       pp_finite;
       pp_base_module;
-      GC.return @@ pp_value_definitions;
+      pp_value_definitions;
       (* GC.return @@ pp_program; *)
     ]
   in

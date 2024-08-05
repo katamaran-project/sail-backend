@@ -1,5 +1,7 @@
 open Base
 
+module GC = GenerationContext
+
 
 let pp_value (value : Ast.Value.t) : PP.document =
   match value with
@@ -23,10 +25,10 @@ let pp_value_definition (value_definition : Ast.Definition.value_definition) : P
   definition
 
 
-let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) =
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
   let value_definitions =
     List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
   in
   let coq_lines = List.map ~f:pp_value_definition value_definitions
   in
-  PP.(separate hardline coq_lines)
+  GC.return @@ PP.vertical coq_lines
