@@ -555,7 +555,7 @@ let build_inductive_type
 let finite_instance
       ~(identifier : PP.document     )
       ~(type_name  : PP.document     )
-      ~(values     : PP.document list)
+      ~(values     : PP.document list) : PP.document
   =
   let enum_values =
     PP.(group (separate (semi ^^ break 1) values))
