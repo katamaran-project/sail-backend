@@ -453,6 +453,7 @@ let annotate (f : PP.document AC.t) : PP.document =
                  add document)))
 
 
+(* todo remove *)
 let build_inductive_type
      (identifier : PP.document                          )
     ?(parameters : (PP.document * PP.document) list = [])
