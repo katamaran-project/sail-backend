@@ -18,8 +18,8 @@ let block loc label doc =
   Import stdpp.finite.
 
 *)
-let pp_imports () =
-  PP.lines [
+let pp_imports () : PP.document GC.t =
+  GC.vertical_strings [
     "Import ctx.notations.";
     "Import ctx.resolution.";
     "Import env.notations.";
@@ -951,7 +951,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     in
     let* contents =
       let sections = [
-        GC.return @@ pp_imports ();
+        pp_imports ();
         GC.return @@ pp_open_string_scope ();
         GC.return @@ pp_alias_notations alias_definitions;
         GC.return @@ pp_typedeclkit ();
