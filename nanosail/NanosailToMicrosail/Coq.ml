@@ -56,8 +56,7 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
   ]
 
 
-(* todo rename to pp_comment *)
-let comment (comment : PP.document) : PP.document =
+let pp_comment (comment : PP.document) : PP.document =
   let str = PP.string_of_document comment
   in
   if is_single_line str
@@ -69,7 +68,7 @@ let add_comments
     ~(comments : PP.document)
     ~(document : PP.document) : PP.document
   =
-  PP.separate PP.hardline [ comment comments; document ]
+  PP.separate PP.hardline [ pp_comment comments; document ]
 
 
 let original_sail_code (source : PP.document) : PP.document =
@@ -521,7 +520,7 @@ let build_lines (f : build_lines_context -> unit) : PP.document =
       line;
       lines;
       empty_line;
-      comment = fun d -> line @@ comment d;
+      comment = fun d -> line @@ pp_comment d;
     }
     in
     f ctx

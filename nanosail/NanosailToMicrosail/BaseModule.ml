@@ -922,7 +922,7 @@ let pp_regdeclkit register_definitions : PP.document GC.t =
 let pp_memory_model () : PP.document GC.t =
   let identifier = Ast.Identifier.mk "MemoryModel"
   and content =
-    Coq.comment @@ PP.string "TODO"
+    Coq.pp_comment @@ PP.string "TODO"
   in
   genblock [%here] "Memory Model" begin
     Coq.section identifier content
