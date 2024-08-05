@@ -50,7 +50,7 @@ let pp_inline_comment (comment : PP.document) : PP.document =
     ])
 
 
-let pp_multiline_comment comment =
+let pp_multiline_comment (comment : PP.document) : PP.document =
   PP.separate PP.hardline [
     left_comment_delimiter;
     PP.indent' comment;
