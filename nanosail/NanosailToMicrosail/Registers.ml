@@ -184,8 +184,7 @@ let extra_no_confusion_identifiers () : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
 
 
-(* todo rename *)
-let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
+let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in

@@ -45,17 +45,15 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_prelude =
-    let* prelude =
+    GC.generation_block [%here] (PP.string "Prelude") @@* begin
       Prelude.generate_base_prelude ()
-    in
-    GC.generation_block [%here] (PP.string "Prelude") prelude
+    end
   in
 
   let pp_register_definitions =
-    let* register_definitions =
+    GC.generation_block [%here] (PP.string "Register Definitions") @@* begin
       Registers.pp_regname_inductive_type register_definitions
-    in
-    GC.generation_block [%here] (PP.string "Register Definitions") register_definitions
+    end
   in
 
   let generate_section title contents =
@@ -112,7 +110,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       and finite_variants =
         Types.Variants.generate_finiteness variant_definitions
       and finite_registers =
-        GC.generate @@ Registers.generate_register_finiteness register_definitions (* todo *)
+        GC.generate @@ Registers.pp_register_finiteness register_definitions (* todo *)
       in
       Auxlib.build_list @@ fun { addall; add; _ } -> begin
         addall finite_enums;
