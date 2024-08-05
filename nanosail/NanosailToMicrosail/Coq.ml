@@ -401,29 +401,6 @@ let record_value fields =
 
 
 (* todo remove *)
-let annotate (f : PP.document AC.t) : PP.document =
-  let (document, annotations) = AC.collect_annotations f
-  in
-  let pp_annotations =
-    let pp_annotation index annotation =
-      PP.(concat [
-          string (Int.to_string index);
-          space;
-          colon;
-          space;
-          align (AC.document_of_annotation annotation)
-        ])
-    in
-    List.mapi ~f:pp_annotation annotations
-  in
-  PPrint.(separate hardline
-            (Auxlib.build_list (fun { add; _ } ->
-                 if not (List.is_empty annotations)
-                 then add @@ comment (separate hardline pp_annotations);
-                 add document)))
-
-
-(* todo remove *)
 let build_inductive_type
      (identifier : PP.document                          )
     ?(parameters : (PP.document * PP.document) list = [])
