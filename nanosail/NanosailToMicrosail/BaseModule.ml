@@ -119,7 +119,7 @@ let pp_denote_function
         end.
 
  *)
-let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document =
+let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.document GC.t =
   let denotations =
     let regname_denotation =
       (Identifier.pp Registers.regname_tag, Identifier.pp Registers.regname_inductive_type_identifier)
@@ -139,7 +139,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  block [%here] "Enum Denote" begin
+  GC.generation_block [%here] (PP.string "Enum Denote") begin
     Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
   end
 
@@ -963,7 +963,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_open_string_scope ();
         pp_alias_notations alias_definitions;
         pp_typedeclkit ();
-        GC.return @@ pp_enum_denote enum_definitions;
+        pp_enum_denote enum_definitions;
         GC.return @@ pp_union_denote variant_definitions;
         GC.return @@ pp_record_denote record_definitions;
         GC.return @@ pp_typedenotekit ();
