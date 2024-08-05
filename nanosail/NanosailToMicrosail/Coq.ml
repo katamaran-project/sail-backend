@@ -58,7 +58,7 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
   ]
 
 
-let comment comment =
+let comment (comment : PP.document) : PP.document =
   let str = PP.string_of_document comment
   in
   if is_single_line str
