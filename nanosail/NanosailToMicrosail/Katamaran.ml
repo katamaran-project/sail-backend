@@ -5,11 +5,6 @@ module AC = AnnotationContext
 module GC = GenerationContext
 
 
-(* todo remove *)
-let block loc label contents =
-  Coq.generation_block loc (PP.string label) contents
-
-
 let genblock loc label contents =
   GC.generation_block loc (PP.string label) contents
 
@@ -134,7 +129,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
         addall @@ finite_definitions;
       end
     in
-    block [%here] "Finite" begin
+    genblock [%here] "Finite" begin
       Coq.section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
     end
   in
@@ -173,7 +168,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       in
       PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
-    block [%here] "No Confusion" begin
+    genblock [%here] "No Confusion" begin
       Coq.section section_identifier section_contents
     end
   in
@@ -205,7 +200,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     in
     let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
     in
-    block [%here] "EqDec" begin
+    genblock [%here] "EqDec" begin
       PP.separate PP.hardline coq_lines
     end
   in
@@ -224,9 +219,9 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       pp_enum_tags;
       pp_variant_tags;
       pp_record_tags;
-      GC.return @@ pp_no_confusion;
-      GC.return @@ pp_eqdecs;
-      GC.return @@ pp_finite;
+      pp_no_confusion;
+      pp_eqdecs;
+      pp_finite;
       pp_base_module;
       GC.return @@ pp_value_definitions;
       (* GC.return @@ pp_program; *)
