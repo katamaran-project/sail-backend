@@ -4,7 +4,7 @@ open Monads.Notations.Star(AnnotationContext)
 module AC = AnnotationContext
 
 
-let rec pp_nanotype (typ : Ast.Type.t) =
+let rec pp_nanotype (typ : Ast.Type.t) : PP.document AC.t =
   let pp_tuple elts =
     let* elts' = AnnotationContext.map ~f:pp_nanotype elts
     in
