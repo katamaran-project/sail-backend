@@ -80,6 +80,7 @@ let template_prelude (translation : Ast.program) =
         List.map ~f:fst @@ Ast.(select Extract.ignored_definition translation.definitions)
       in
       let formatted_ignored_definitions =
+        (* todo improve this *)
         let open Monads.Notations.Star(GC)
         in
         let result =
