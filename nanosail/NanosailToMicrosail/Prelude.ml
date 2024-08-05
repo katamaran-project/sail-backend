@@ -1,7 +1,7 @@
 module GC = GenerationContext
   
 
-let generate_require_imports () =
+let generate_require_imports () : PP.document =
   let coq_imports =
     Auxlib.build_list (fun { add; _ } ->
         if Configuration.(get use_list_notations) then add "Lists.List";
@@ -18,7 +18,7 @@ let generate_require_imports () =
     ])
 
 
-let generate_imports () =
+let generate_imports () : PP.document =
   let imports =
     Auxlib.build_list (fun { add; _ } ->
         add "ctx.notations";
@@ -29,7 +29,7 @@ let generate_imports () =
   Coq.imports imports
 
 
-let generate_open_scopes () =
+let generate_open_scopes () : PP.document =
   let scopes =
     Auxlib.build_list (fun { add; _ } ->
         add "string_scope";
@@ -39,7 +39,7 @@ let generate_open_scopes () =
   Coq.open_scopes scopes
 
 
-let generate_definitions () =
+let generate_definitions () : PP.document =
   let definitions = [
       Coq.definition
         ~identifier:(PP.string "bitvector")
@@ -50,11 +50,11 @@ let generate_definitions () =
   PP.(separate hardline definitions)
 
 
-let generate_import_default_base () =
+let generate_import_default_base () : PP.document =
   PP.string "Import DefaultBase."
 
 
-let generate () =
+let generate () : PP.document =
   PP.(separate (twice hardline) [
       generate_require_imports ();
       generate_imports ();
