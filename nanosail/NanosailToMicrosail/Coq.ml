@@ -28,7 +28,7 @@ let left_comment_delimiter  = PP.string "(*"
 let right_comment_delimiter = PP.string "*)"
 
 
-let ends_on_newline string =
+let ends_on_newline (string : string) : bool =
   String.is_suffix string ~suffix:"\n"
 
 
