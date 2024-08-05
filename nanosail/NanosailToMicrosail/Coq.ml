@@ -142,7 +142,7 @@ let list (items : PP.document list) : PP.document =
     PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
 
 
-let product v1 v2 =
+let product (v1 : PP.document) (v2 : PP.document) : PP.document =
   PP.(soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen)
 
 
