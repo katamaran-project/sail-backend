@@ -30,7 +30,7 @@ let pp_program_module
       Coq.sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
       function_definition_kit;
       Coq.sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
-      ForeignKit.pp_foreign_kit;
+      ForeignKit.pp_foreign_kit ();
       Coq.sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
     ]
   in
