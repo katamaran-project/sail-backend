@@ -138,13 +138,11 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) =
 let generation_block
     (position : Lexing.position)
     (label    : PP.document    )
-    (contents : PP.document t  ) : PP.document t
+    (contents : PP.document    ) : PP.document t
   =
   if
     Configuration.(get show_generation_blocks)
   then
-    let* contents = contents
-    in
     let position_string =
       let filename    = position.pos_fname
       and line_number = position.pos_lnum
@@ -170,7 +168,7 @@ let generation_block
       exit_block;
     ]
   else
-    contents
+    return contents
 
 
 let generate (f : PP.document t) : PP.document =
@@ -182,3 +180,95 @@ let generate (f : PP.document t) : PP.document =
 
 
 include Monads.Util.Make(Monad)
+
+
+let pp_inductive_type
+     (identifier : PP.document                          )
+    ?(parameters : (PP.document * PP.document) list = [])
+     (typ        : PP.document                          )
+      constructor_generator                               : PP.document t
+  =
+  let* constructors =
+    let result = ref []
+    in
+    let generate_case
+          ?(parameters  : PP.document = PP.empty)
+          ?(typ         : PP.document = PP.empty)
+           (identifier  : PP.document           ) =
+      result := (identifier, parameters, typ) :: !result;
+      return ()
+    in
+    let* _ = constructor_generator generate_case in
+    return @@ List.rev !result
+  in
+  let first_line =
+    let parameters' =
+      List.map parameters ~f:(
+          fun (identifier, typ) ->
+            PP.(parens @@ separate space [ identifier; colon; typ ])
+        )
+    in
+    PP.(
+      separate space (
+        Auxlib.build_list (fun { add; addall; _ } ->
+            add @@ string "Inductive";
+            add identifier;
+            addall parameters';
+            if requirement typ > 0
+            then
+              (
+                add colon;
+                add typ
+              );
+            add @@ string ":="
+          )
+      )
+    )
+  in
+  let constructor_lines =
+    let pairs =
+      List.map constructors ~f:(fun (id, params, typ) ->
+          PP.(
+            separate space (
+              Auxlib.build_list (fun { add; _ } ->
+                  add id;
+                  if requirement params > 0
+                  then add params
+                )
+            ),
+            typ
+          )
+        )
+    in
+    let longest_left_part =
+      if List.is_empty pairs
+      then 0
+      else
+        Auxlib.maximum (
+            List.map ~f:(fun (left, _) -> PP.requirement left) pairs
+          )
+    in
+    let make_line (left, right) =
+      PP.(
+        (twice space) ^^ separate space (
+          Auxlib.build_list (fun { add; _ } ->
+              add @@ string "|";
+              add @@ pad_right longest_left_part left;
+              if requirement right > 0
+              then (
+                add colon;
+                add right
+              )
+            )
+        )
+      )
+    in
+    List.map ~f:make_line pairs
+  in
+  let result_lines =
+    Auxlib.build_list (fun { add; addall; _ } ->
+        add first_line;
+        addall constructor_lines
+      )
+  in
+  return @@ PP.(separate hardline result_lines ^^ hardline ^^ Coq.eol)

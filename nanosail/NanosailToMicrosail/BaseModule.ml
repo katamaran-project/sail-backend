@@ -50,13 +50,14 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
     in
     GC.return @@ Coq.pp_notation notation expression
   in
-  GC.generation_block [%here] (PP.string "Notations for Aliases") begin
+  let* result =
     GC.block begin
       let* notations = GC.map ~f:pp_alias_notation alias_definitions
       in
       GC.return @@ PP.vertical notations
     end
-  end
+  in
+  GC.generation_block [%here] (PP.string "Notations for Aliases") result
 
 
 (*
@@ -80,7 +81,7 @@ let pp_typedeclkit () : PP.document GC.t =
       "  |}.";
     ]
   in
-  GC.generation_block [%here] (PP.string "typedeclkit") @@ GC.return coq_lines
+  GC.generation_block [%here] (PP.string "typedeclkit") coq_lines
 
 
 (*
@@ -900,9 +901,14 @@ let pp_varkit_instance () : PP.document =
 
 *)
 let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP.document GC.t *)
-  GC.generate @@ GC.generation_block [%here] (PP.string "RegDeclKit") begin
-    Registers.pp_regdeclkit register_definitions
-  end
+  let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
+  in
+  let result =
+    let* regdeclkit = Registers.pp_regdeclkit register_definitions
+    in
+    GC.generation_block [%here] (PP.string "RegDeclKit") regdeclkit
+  in
+  GC.generate result
 
 
 (*

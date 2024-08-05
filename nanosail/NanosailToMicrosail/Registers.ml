@@ -18,28 +18,28 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.register_defini
   let identifier = PP.string "Reg"
   and typ = PP.string "Ty -> Set"
   in
-  let inductive_type =
-    GC.pp_inductive_type identifier typ (fun add_constructor ->
-        let make_constructor (register_definition : Ast.Definition.register_definition) : unit GC.t =
-          let identifier = Identifier.pp register_definition.identifier
+  let* inductive_type =
+    GC.block begin
+      GC.pp_inductive_type identifier typ (fun add_constructor ->
+          let make_constructor (register_definition : Ast.Definition.register_definition) : unit GC.t =
+            let identifier = Identifier.pp register_definition.identifier
+            in
+            let* register_type = Nanotype.pp_nanotype' register_definition.typ
+            in
+            let typ = PP.(separate space [ string "Reg"; parens register_type  ])
+            in
+            add_constructor ~typ:typ identifier
           in
-          let* register_type = Nanotype.pp_nanotype' register_definition.typ
-          in
-          let typ = PP.(separate space [ string "Reg"; parens register_type  ])
-          in
-          add_constructor ~typ:typ identifier
-        in
-        GC.iter ~f:make_constructor register_definitions
-      )
+          GC.iter ~f:make_constructor register_definitions
+        )
+    end
   in
-  GC.generation_block [%here] (PP.string "Reg Inductive Type") begin
-    GC.block inductive_type
-  end
+  GC.generation_block [%here] (PP.string "Reg Inductive Type") inductive_type
 
 
 let pp_no_confusion_for_reg () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "No Confusion for Reg") begin
-    GC.return @@ Coq.section (Ast.Identifier.mk "TransparentObligations") (
+    Coq.section (Ast.Identifier.mk "TransparentObligations") (
       PP.(separate hardline [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
@@ -75,14 +75,14 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   let type_name = Identifier.pp regname_inductive_type_identifier
   and typ = PP.string "Set"
   in
-  let inductive_type =
-    GC.pp_inductive_type type_name typ (fun add_constructor ->
-        GC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
-      )
+  let* inductive_type =
+    GC.block begin
+      GC.pp_inductive_type type_name typ (fun add_constructor ->
+          GC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
+        )
+    end
   in
-  GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
-    GC.block inductive_type
-  end
+  GC.generation_block [%here] (PP.string "Regname Inductive Type") inductive_type
 
 
 let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
@@ -104,7 +104,7 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
   in
   GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
-    GC.return @@ PP.(
+    PP.(
       separate hardline [
         utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
         string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>";
@@ -129,7 +129,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
     Coq.list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.generation_block [%here] (PP.string "REG_finite Instance") begin
-    GC.return @@ PP.(
+    PP.(
       Coq.sentence @@ separate hardline (
         [
           utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
@@ -146,7 +146,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
 
 let pp_obligation_tactic () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "Obligation Tactic") begin
-    GC.return @@ PP.vertical_strings [
+    PP.vertical_strings [
         "Local Obligation Tactic :=";
         "  finite_from_eqdec."
       ]

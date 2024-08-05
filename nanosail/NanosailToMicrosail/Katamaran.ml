@@ -44,15 +44,17 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_prelude =
-    GC.generation_block [%here] (PP.string "Prelude") begin
+    let* prelude =
       Prelude.generate_base_prelude ()
-    end
+    in
+    GC.generation_block [%here] (PP.string "Prelude") prelude
   in
 
   let pp_register_definitions =
-    GC.generation_block [%here] (PP.string "Register Definitions") begin
+    let* register_definitions =
       Registers.pp_regname_inductive_type register_definitions
-    end
+    in
+    GC.generation_block [%here] (PP.string "Register Definitions") register_definitions
   in
 
   let generate_section title contents =
@@ -84,9 +86,10 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_base_module =
-    GC.generation_block [%here] (PP.string "Base Module") begin
+    let* base_module =
       BaseModule.pp_base_module ir.definitions
-    end
+    in
+    GC.generation_block [%here] (PP.string "Base Module") base_module
   in
 
   let pp_program =
