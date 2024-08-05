@@ -272,3 +272,22 @@ let pp_inductive_type
       )
   in
   return @@ PP.(separate hardline result_lines ^^ hardline ^^ Coq.eol)
+
+
+(* todo move this to PPSail.ml *)
+let pp_sail_definition sail_definition =
+  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+
+
+let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t
+  =
+  if
+    Configuration.(get include_original_code)
+  then
+    add_comment @@ Coq.original_sail_code @@ pp_sail_definition original
+  else
+    return ()
+
+
+let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
+  iter ~f:add_original_definition originals

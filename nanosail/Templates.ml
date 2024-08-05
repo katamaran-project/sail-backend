@@ -1,10 +1,11 @@
 open Base
 open Monads.Notations.Star(Slang.EvaluationContext)
+open Slang.Prelude.Shared
 
 module EC = Slang.EvaluationContext
+module GC = NanosailToMicrosail.GenerationContext
 module PP = PPrint
 
-open Slang.Prelude.Shared
 
 
 let string_of_document document =
@@ -79,9 +80,17 @@ let template_prelude (translation : Ast.program) =
         List.map ~f:fst @@ Ast.(select Extract.ignored_definition translation.definitions)
       in
       let formatted_ignored_definitions =
-        PPrint.(separate (twice hardline) @@ List.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions)
+        let open Monads.Notations.Star(GC)
+        in
+        let result =
+          let* ignored_definitions' =
+            GC.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions
+          in
+          GC.return @@ NanosailToMicrosail.PP.vertical ~spacing:2 ignored_definitions'
+        in
+        GC.generate result
       in
-      EC.return @@ string_of_document @@ formatted_ignored_definitions
+      EC.return @@ string_of_document formatted_ignored_definitions
     in
     nullary_string_function id f
   in

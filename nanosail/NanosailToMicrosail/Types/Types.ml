@@ -22,5 +22,7 @@ let pp_type_definition
     | Record record       -> Records.generate record
   in
   GC.block begin
-    GC.return @@ PPSail.annotate_with_original_definition original document
+    let* () = GC.add_original_definition original
+    in
+    GC.return @@ document
   end

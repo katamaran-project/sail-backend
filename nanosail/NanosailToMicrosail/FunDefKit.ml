@@ -54,7 +54,11 @@ let pp_function_definition
       )
   in
   (* todo annotate using GC.add_comment *)
-  GC.block @@ GC.return @@ PPSail.annotate_with_original_definitions original_sail_code coq_definition
+  GC.block begin
+    let* () = GC.add_original_definitions original_sail_code
+    in
+    GC.return @@ coq_definition
+  end
 
 
 let pp_function_definitions
