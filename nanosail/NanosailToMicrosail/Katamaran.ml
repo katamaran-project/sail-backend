@@ -136,7 +136,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     end
   in
 
-  let pp_no_confusion =
+  let pp_no_confusion : PP.document GC.t =
     let section_identifier = Ast.Identifier.mk "TransparentObligations"
     in
     let section_contents =
