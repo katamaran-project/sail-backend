@@ -49,6 +49,12 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     end
   in
 
+  let pp_register_definitions =
+    block [%here] "Register Definitions" begin
+      Registers.regname_inductive_type register_definitions
+    end
+  in
+
   let generate_section title contents =
     PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
   in
@@ -56,12 +62,6 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   let pp_translated_type_definitions =
     block [%here] "Translated Type Definitions" begin
       PP.separate_map (PP.twice PP.hardline) (Auxlib.uncurry Types.pp_type_definition) type_definitions
-    end
-  in
-
-  let pp_register_definitions =
-    block [%here] "Register Definitions" begin
-      Registers.regname_inductive_type register_definitions
     end
   in
 
