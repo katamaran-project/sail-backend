@@ -138,8 +138,7 @@ let pp_list (items : PP.document list) : PP.document =
     PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
 
 
-(* todo rename to pp_product *)
-let product
+let pp_product
     (v1 : PP.document)
     (v2 : PP.document) : PP.document
   =

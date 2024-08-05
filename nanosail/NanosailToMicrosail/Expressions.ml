@@ -37,7 +37,7 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
   | Bool b        -> PP.string (Bool.to_string b)
   | Int i         -> Coq.integer i
   | String s      -> PP.(dquotes @@ string s)
-  | Prod (v1, v2) -> Coq.product (pp_value v1) (pp_value v2)
+  | Prod (v1, v2) -> Coq.pp_product (pp_value v1) (pp_value v2)
 
 
 let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
