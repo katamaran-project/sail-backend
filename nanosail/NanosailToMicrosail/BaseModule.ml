@@ -154,7 +154,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
        end.
 
  *)
-let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -170,7 +170,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  block [%here] "Union Denote" begin
+  GC.generation_block [%here] (PP.string "Union Denote") begin
     Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
   end
 
@@ -964,7 +964,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_alias_notations alias_definitions;
         pp_typedeclkit ();
         pp_enum_denote enum_definitions;
-        GC.return @@ pp_union_denote variant_definitions;
+        pp_union_denote variant_definitions;
         GC.return @@ pp_record_denote record_definitions;
         GC.return @@ pp_typedenotekit ();
         GC.return @@ pp_union_constructor variant_definitions;
