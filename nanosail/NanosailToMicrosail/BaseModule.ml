@@ -902,7 +902,7 @@ let pp_varkit_instance () : PP.document GC.t =
   End RegDeclKit.
 
 *)
-let pp_regdeclkit register_definitions : PP.document GC.t = (* todo have it return PP.document GC.t *)
+let pp_regdeclkit register_definitions : PP.document GC.t =
   let result =
     let* regdeclkit = Registers.pp_regdeclkit register_definitions
     in
