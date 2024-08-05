@@ -15,4 +15,4 @@ let pp_foreign_kit () : PP.document GC.t =
       "Proof. destruct f. Qed."
     ]
   in
-  GC.return @@ Coq.section title contents
+  GC.return @@ Coq.pp_section title contents

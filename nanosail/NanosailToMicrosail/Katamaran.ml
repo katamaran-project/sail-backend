@@ -139,7 +139,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       end
     in
     genblock [%here] "Finite" begin
-      Coq.section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
+      Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
     end
   in
 
@@ -178,7 +178,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
     genblock [%here] "No Confusion" begin
-      Coq.section section_identifier section_contents
+      Coq.pp_section section_identifier section_contents
     end
   in
 

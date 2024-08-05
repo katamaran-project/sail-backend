@@ -925,7 +925,7 @@ let pp_memory_model () : PP.document GC.t =
     Coq.pp_comment @@ PP.string "TODO"
   in
   genblock [%here] "Memory Model" begin
-    Coq.section identifier content
+    Coq.pp_section identifier content
   end
 
 

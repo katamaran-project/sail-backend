@@ -121,4 +121,4 @@ let pp_function_definition_kit
           )
       end
   in
-  GC.return @@ Coq.section (Ast.Identifier.mk "FunDefKit") contents
+  GC.return @@ Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents

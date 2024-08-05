@@ -145,7 +145,7 @@ let pp_product
   PP.(soft_surround 1 0 lparen (v1 ^^ comma ^^ break 1 ^^ v2) rparen)
 
 
-let section identifier contents =
+let pp_section identifier contents =
   let first_line = PP.(string "Section" ^^ space ^^ Identifier.pp identifier ^^ eol)
   and last_line  = PP.(string "End" ^^ space ^^ Identifier.pp identifier ^^ eol)
   in

@@ -65,4 +65,4 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
           ]
       ]
   in
-  GC.return @@ Coq.section (Ast.Identifier.mk "FunDeclKit") contents
+  GC.return @@ Coq.pp_section (Ast.Identifier.mk "FunDeclKit") contents
