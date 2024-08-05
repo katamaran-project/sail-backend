@@ -138,7 +138,7 @@ let eqdec_identifiers_for (variant_definition : Ast.Definition.Type.Variant.t) :
   [ inductive_type_identifier; constructors_inductive_type_identifier ]
 
 
-let extra_eqdec_identifiers () =
+let extra_eqdec_identifiers () : Ast.Identifier.t list =
   [ variants_inductive_type_identifier ]
 
 
@@ -155,7 +155,7 @@ let extra_no_confusion_identifiers () =
   [ variants_inductive_type_identifier ]
 
 
-let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) =
+let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and type_name  = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
