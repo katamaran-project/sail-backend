@@ -69,7 +69,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
         |}.
 
  *)
-let pp_typedeclkit () : PP.document =
+let pp_typedeclkit () : PP.document GC.t =
   let coq_lines = [
       "#[export] Instance typedeclkit : TypeDeclKit :=";
       "  {|";
@@ -79,7 +79,7 @@ let pp_typedeclkit () : PP.document =
       "  |}.";
     ]
   in
-  block [%here] "typedeclkit" @@ PP.(separate_map hardline string coq_lines)
+  GC.generation_block [%here] (PP.string "typedeclkit") @@ GC.vertical_strings coq_lines
 
 
 (*
@@ -955,7 +955,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_imports ();
         pp_open_string_scope ();
         pp_alias_notations alias_definitions;
-        GC.return @@ pp_typedeclkit ();
+        pp_typedeclkit ();
         GC.return @@ pp_enum_denote enum_definitions;
         GC.return @@ pp_union_denote variant_definitions;
         GC.return @@ pp_record_denote record_definitions;
