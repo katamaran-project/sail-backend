@@ -24,7 +24,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
     in
     let* type_quantifier' =
       GC.map type_quantifier ~f:(fun (id, kind) ->
-          let* kind' = PPSail.pp_kind' kind
+          let* kind' = PPSail.pp_kind kind
           in
           GC.return (Identifier.pp id, kind')
         )
