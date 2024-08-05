@@ -52,7 +52,7 @@ let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t)
   List.map ~f:Identifier.reified_variant_constructor_name constructor_names
 
 
-let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) =
+let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
