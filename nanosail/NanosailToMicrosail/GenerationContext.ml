@@ -113,7 +113,6 @@ let add_annotation (document : PP.document) : int t =
   next_index
 
 
-
 let add_comment (document : PP.document) : unit t =
   let comment = Comment document
   in
