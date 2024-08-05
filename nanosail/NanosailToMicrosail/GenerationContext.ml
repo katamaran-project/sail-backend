@@ -107,8 +107,8 @@ let block (f : PP.document t) : PP.document t =
   end
 
 
-let add_annotation (document : PP.document) : int t =
-  let* () = update annotations @@ fun xs -> (Annotation document) :: xs
+let add_annotation (annotation : PP.document) : int t =
+  let* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
   in
   next_index
 
