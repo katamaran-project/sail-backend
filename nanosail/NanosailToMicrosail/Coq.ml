@@ -32,7 +32,7 @@ let ends_on_newline (string : string) : bool =
   String.is_suffix string ~suffix:"\n"
 
 
-let count_newlines string =
+let count_newlines (string : string) : int =
   String.count string ~f:(Char.equal '\n')
 
 
