@@ -453,7 +453,12 @@ let annotate (f : PP.document AC.t) : PP.document =
                  add document)))
 
 
-let build_inductive_type identifier ?(parameters = []) typ constructor_generator =
+let build_inductive_type
+    (identifier : PP.document)
+    ?(parameters = [])
+    (typ : PP.document)
+    constructor_generator : PP.document AC.t
+  =
   let* constructors =
     let result = ref []
     in
