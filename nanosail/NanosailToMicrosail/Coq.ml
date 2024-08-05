@@ -36,7 +36,7 @@ let count_newlines (string : string) : int =
   String.count string ~f:(Char.equal '\n')
 
 
-let is_single_line string =
+let is_single_line (string : string) : bool =
   let newline_count = count_newlines string
   in
   newline_count = 0 || (newline_count = 1 && ends_on_newline string)
