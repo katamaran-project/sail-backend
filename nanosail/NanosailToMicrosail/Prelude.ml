@@ -1,3 +1,6 @@
+module GC = GenerationContext
+  
+
 let generate_require_imports () =
   let coq_imports =
     Auxlib.build_list (fun { add; _ } ->
@@ -61,8 +64,8 @@ let generate () =
     ])
 
 
-let generate_base_prelude () =
-  PP.separate PP.hardline [
+let generate_base_prelude () : PP.document GC.t =
+  GC.return @@ PP.separate PP.hardline [
     Coq.require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
     Coq.require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
     Coq.require ~from:(Some "Equations") ~import:true  [ "Equations" ];

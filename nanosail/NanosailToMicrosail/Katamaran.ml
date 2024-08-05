@@ -44,7 +44,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_prelude =
-    block [%here] "Prelude" begin
+    GC.generation_block [%here] (PP.string "Prelude") begin
       Prelude.generate_base_prelude ()
     end
   in
@@ -208,7 +208,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   
   let* sections = GC.sequence
     [
-      GC.return @@ pp_prelude;
+      pp_prelude;
       GC.return @@ pp_register_definitions;
       GC.return @@ pp_translated_type_definitions;
       GC.return @@ pp_enum_tags;
