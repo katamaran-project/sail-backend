@@ -105,19 +105,22 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       )
   in
 
-  let pp_finite =
-    let finite_definitions =
+  let pp_finite : PP.document GC.t =
+    let* finite_definitions =
       let finite_enums =
         Types.Enums.generate_finiteness enum_definitions
       and finite_variants =
         Types.Variants.generate_finiteness variant_definitions
-      and finite_registers =
-        GC.generate @@ Registers.pp_register_finiteness register_definitions (* todo *)
       in
-      Auxlib.build_list @@ fun { addall; add; _ } -> begin
-        addall finite_enums;
-        add    finite_registers;
-        addall finite_variants;
+      let* finite_registers =
+        Registers.pp_register_finiteness register_definitions
+      in
+      GC.return begin
+        Auxlib.build_list @@ fun { addall; add; _ } -> begin
+          addall finite_enums;
+          add    finite_registers;
+          addall finite_variants;
+        end
       end
     in
     let parts =
