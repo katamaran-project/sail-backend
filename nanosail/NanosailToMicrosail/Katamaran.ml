@@ -20,11 +20,13 @@ let pp_program_module
   let includes        = [ "Program"; base_identifier ]
   in
   let* contents =
-    let* function_definition_kit =
+    let* function_declaration_kit =
+      FunDeclKit.generate @@ List.map ~f:snd function_definitions;
+    and* function_definition_kit =
       FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
     in
     GC.return @@ PP.(separate (twice hardline) [
-      FunDeclKit.generate @@ List.map ~f:snd function_definitions;
+      function_declaration_kit;
       Coq.sentence @@ string @@ "Include FunDeclMixin " ^ base_identifier;
       function_definition_kit;
       Coq.sentence @@ string @@"Include DefaultRegStoreKit " ^ base_identifier;
