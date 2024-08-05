@@ -432,6 +432,7 @@ let annotate_with_original_definitions originals translation =
     translation
 
 
+(* todo remove *)
 let annotate (f : PP.document AC.t) : PP.document =
   let (document, annotations) = AC.collect_annotations f
   in
