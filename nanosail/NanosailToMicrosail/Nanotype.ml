@@ -8,7 +8,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   let pp_tuple elts =
     let* elts' = GC.map ~f:pp_nanotype elts
     in
-    GC.return PP.(separate space [ string "ty.tuple"; Coq.list elts' ])
+    GC.return PP.(separate space [ string "ty.tuple"; Coq.pp_list elts' ])
 
   and pp_list element_type =
     let* element_type' = pp_nanotype element_type

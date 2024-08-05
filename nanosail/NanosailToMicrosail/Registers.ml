@@ -125,7 +125,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
         ]
       )
     in
-    Coq.list (List.map ~f:enum_value_of_register_name register_names)
+    Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.generation_block [%here] (PP.string "REG_finite Instance") begin
     PP.(

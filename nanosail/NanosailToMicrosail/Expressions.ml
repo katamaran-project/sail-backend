@@ -109,7 +109,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         then
           let* expressions = GC.map ~f:pp_expression lst
           in
-          GC.return @@ Coq.list expressions
+          GC.return @@ Coq.pp_list expressions
         else
           pp_list lst
       in
@@ -119,9 +119,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       GC.return @@ PP.(simple_app [
                        string "exp_record";
                        Identifier.pp type_identifier;
-                       Coq.list @@ List.map
-                                     variable_identifiers
-                                     ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
+                       Coq.pp_list begin
+                         List.map variable_identifiers ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
+                       end
                      ])
     end
   | Enum identifier -> GC.return @@ Identifier.pp identifier

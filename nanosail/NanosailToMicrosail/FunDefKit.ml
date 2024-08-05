@@ -22,7 +22,7 @@ let pp_function_definition
         in
         let docs = List.map ~f:PPSail.pp_bind parameters
         in
-        GC.return @@ Coq.list docs
+        GC.return @@ Coq.pp_list docs
       in
       let* result_type =
         Nanotype.pp_nanotype function_definition.function_type.return_type

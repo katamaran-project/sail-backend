@@ -19,7 +19,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         in
         let ps = List.map ~f:PPSail.pp_bind pp_parameter_bindings
         in
-        GC.return @@ Coq.list ps
+        GC.return @@ Coq.pp_list ps
       in
       let* return_type = Nanotype.pp_nanotype function_definition.function_type.return_type
       in

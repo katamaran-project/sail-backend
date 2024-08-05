@@ -631,7 +631,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
           in
           let* fields = GC.map ~f:pp_field record_definition.fields
           in
-          GC.return @@ Coq.list fields
+          GC.return @@ Coq.pp_list fields
         in
         GC.return (pattern, expression)
       in
