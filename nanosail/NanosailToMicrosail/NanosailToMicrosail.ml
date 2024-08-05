@@ -18,3 +18,4 @@ module ValueDefinitions     = ValueDefinitions
 module PP                   = PP
 module BaseModule           = BaseModule
 module Kind                 = Kind
+module TypeQuantifier       = TypeQuantifier
