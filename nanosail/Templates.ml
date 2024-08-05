@@ -66,7 +66,7 @@ let template_prelude (translation : Ast.program) =
     let id = "full-translation"
     in
     let f () =
-      EC.return @@ string_of_document @@ NanosailToMicrosail.Katamaran.pretty_print translation
+      EC.return @@ string_of_document @@ NanosailToMicrosail.Katamaran.full_translation translation
     in
     nullary_string_function id f
   in
