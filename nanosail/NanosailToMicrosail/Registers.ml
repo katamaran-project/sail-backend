@@ -68,7 +68,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
  *)
-let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
+let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -76,12 +76,12 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   and typ = PP.string "Set"
   in
   let inductive_type =
-    Coq.build_inductive_type type_name typ (fun add_constructor ->
-        AC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
+    GC.pp_inductive_type type_name typ (fun add_constructor ->
+        GC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
       )
   in
-  Coq.generation_block [%here] (PP.string "Regname Inductive Type") begin
-    Coq.annotate inductive_type
+  GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
+    GC.block inductive_type
   end
 
 
@@ -183,7 +183,7 @@ let extra_no_confusion_identifiers () : Ast.Identifier.t list =
 
 
 (* todo rename *)
-let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document =
+let generate_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -194,4 +194,4 @@ let generate_register_finiteness (register_definitions : (Sail.sail_definition *
   and type_name  = Identifier.pp @@ Ast.Identifier.mk "RegName"
   and values     = List.map ~f:Identifier.pp translated_register_identifiers
   in
-  Coq.finite_instance ~identifier ~type_name ~values
+  GC.return @@ Coq.finite_instance ~identifier ~type_name ~values
