@@ -1,9 +1,8 @@
 open Base
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
 module GC = GenerationContext
 
-open Monads.Notations.Star(AnnotationContext)
 
 
 let block loc label doc =
@@ -94,7 +93,7 @@ let pp_denote_function
     ~(denotations          : (PP.document * PP.document) list       )
     ~(parameter_identifier : PP.document                            )
     ~(tag_type_identifier  : PP.document                            )
-    ~(function_identifier  : PP.document                            ) () : PP.document AC.t
+    ~(function_identifier  : PP.document                            ) () : PP.document GC.t
   =
   let identifier  = function_identifier
   and parameters  = [ (parameter_identifier, Some tag_type_identifier) ]
@@ -105,7 +104,7 @@ let pp_denote_function
     in
     Coq.match' ~scope matched_expression cases
   in
-  AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
+  GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
 
 
 (*
@@ -139,8 +138,10 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  block [%here] "Enum Denote" begin
-    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Enum Denote" @@* begin
+    GC.block begin
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    end
   end
 
 
@@ -170,8 +171,10 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  block [%here] "Union Denote" begin
-    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Union Denote" @@* begin
+    GC.block begin
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    end
   end
 
 
@@ -201,8 +204,10 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   and tag_type_identifier  = PP.string "Records"
   and function_identifier  = PP.string "record_denote"
   in
-  block [%here] "Record Denote" begin
-    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  block [%here] "Record Denote" @@* begin
+    GC.block begin
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    end
   end
 
 
