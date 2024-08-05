@@ -11,8 +11,8 @@ type comment        = Comment of PP.document
 type frame          = annotation list * comment list
 type state          = frame list * int
 
-module Monad          = Monads.StateResult.Make (struct type t = state end) (Error)
-type   'a t           = 'a Monad.t
+module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
+type   'a t         = 'a Monad.t
 
 let return  = Monad.return
 let bind    = Monad.bind
