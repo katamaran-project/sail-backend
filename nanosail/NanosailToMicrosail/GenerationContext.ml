@@ -139,11 +139,13 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) =
 let generation_block
     (position : Lexing.position)
     (label    : PP.document    )
-    (contents : PP.document    ) : PP.document t
+    (contents : PP.document t  ) : PP.document t
   =
   if
     Configuration.(get show_generation_blocks)
   then
+    let* contents = contents
+    in
     let position_string =
       let filename    = position.pos_fname
       and line_number = position.pos_lnum
@@ -169,7 +171,7 @@ let generation_block
       exit_block;
     ]
   else
-    return @@ contents
+    contents
 
 
 let generate (f : PP.document t) : PP.document =
