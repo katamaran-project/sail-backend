@@ -1,5 +1,4 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
 
 module GC = GenerationContext
 

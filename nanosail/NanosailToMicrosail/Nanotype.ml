@@ -1,9 +1,7 @@
 open Base
-
-module AC = AnnotationContext
-module GC = GenerationContext
-
 open Monads.Notations.Star(GenerationContext)
+
+module GC = GenerationContext
 
 
 let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
