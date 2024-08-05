@@ -400,38 +400,6 @@ let record_value fields =
   PP.(delimited_sequence ldelim rdelim semi items)
 
 
-let annotate_with_original_definition original translation =
-  if
-    Configuration.(get include_original_code)
-  then
-    PP.(
-      concat [
-        original_sail_code @@ PPSail.pp_sail_definition original;
-        hardline;
-        translation
-      ]
-    )
-  else
-    translation
-
-
-let annotate_with_original_definitions originals translation =
-  if
-    Configuration.(get include_original_code)
-  then
-    PP.(
-      concat begin
-        Auxlib.build_list begin fun { add; _ } ->
-          add @@ original_sail_codes (List.map ~f:PPSail.pp_sail_definition originals);
-          add hardline;
-          add translation
-        end
-      end
-    )
-  else
-    translation
-
-
 (* todo remove *)
 let annotate (f : PP.document AC.t) : PP.document =
   let (document, annotations) = AC.collect_annotations f

@@ -1,23 +1,23 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
+module GC = GenerationContext
 
 
 (* Name for the inductive type listing all enum types *)
 let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
-let generate (enum_definition : Ast.Definition.Type.Enum.t) : PP.document AC.t =
+let generate (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
   let identifier = Identifier.pp enum_definition.identifier
   and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
   in
-  Coq.build_inductive_type identifier typ (fun add_constructor ->
-      AC.iter ~f:add_constructor @@ List.map ~f:Identifier.pp enum_definition.cases
+  GC.pp_inductive_type identifier typ (fun add_constructor ->
+      GC.iter ~f:add_constructor @@ List.map ~f:Identifier.pp enum_definition.cases
     )
 
 
-let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =
+let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : PP.document GC.t =
   let enum_definitions =
     List.map ~f:snd enum_definitions
   in
@@ -28,23 +28,22 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
     in
     Identifier.pp id
   in
-  let inductive_type =
-    Coq.build_inductive_type
+  GC.block begin
+    GC.pp_inductive_type
       identifier
       typ
       (
         fun add_constructor -> begin
             let* () = add_constructor @@ Identifier.pp Registers.regname_tag
             in
-            AC.iter
+            GC.iter
               ~f:(fun enum_identifier ->
                   add_constructor @@ tag_of_enum enum_identifier
                 )
               enum_definitions
           end
       )
-  in
-  Coq.annotate inductive_type
+  end
 
 
 let eqdec_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =

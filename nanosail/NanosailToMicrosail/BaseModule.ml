@@ -5,7 +5,7 @@ module GC = GenerationContext
 
 
 
-let block loc label doc =
+let genblock loc label doc =
   GC.generation_block loc (PP.string label) doc
 
 
@@ -56,7 +56,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
       GC.return @@ PP.vertical notations
     end
   in
-  block [%here] "Notations for Aliases" result
+  genblock [%here] "Notations for Aliases" result
 
 
 (*
@@ -80,7 +80,7 @@ let pp_typedeclkit () : PP.document GC.t =
       "  |}.";
     ]
   in
-  block [%here] "typedeclkit" coq_lines
+  genblock [%here] "typedeclkit" coq_lines
 
 
 (*
@@ -138,7 +138,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  block [%here] "Enum Denote" @@* begin
+  genblock [%here] "Enum Denote" @@* begin
     GC.block begin
       pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
     end
@@ -171,7 +171,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  block [%here] "Union Denote" @@* begin
+  genblock [%here] "Union Denote" @@* begin
     GC.block begin
       pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
     end
@@ -204,7 +204,7 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
   and tag_type_identifier  = PP.string "Records"
   and function_identifier  = PP.string "record_denote"
   in
-  block [%here] "Record Denote" @@* begin
+  genblock [%here] "Record Denote" @@* begin
     GC.block begin
       pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
     end
@@ -231,7 +231,7 @@ let pp_typedenotekit () : PP.document GC.t =
       "  |}.";
     ]
   in
-  block [%here] "typedenotekit" begin
+  genblock [%here] "typedenotekit" begin
     PP.(separate_map hardline string coq_lines)
   end
 
@@ -262,8 +262,10 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_constructor"
   in
-  block [%here] "Union Constructor" begin
-    Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+  genblock [%here] "Union Constructor" @@* begin
+    GC.block begin
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    end
   end
 
 
@@ -305,7 +307,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
 
  *)
 let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
-  let result =
+  genblock [%here] "Union Constructor Type" @@* begin
     let identifier  = PP.string "union_constructor_type"
     and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
     and result_type = Some (PP.string "union_constructor u -> Ty")
@@ -331,27 +333,24 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                     | [x; y] -> Ast.Type.Product (x, y)
                     | xs     -> Ast.Type.Tuple xs
                   in
-                  Nanotype.pp_nanotype packed_type
+                  Nanotype.pp_nanotype' packed_type
                 in
-                AC.return @@ (pp_constructor_tag, pp_constructor_field_types)
+                GC.return @@ (pp_constructor_tag, pp_constructor_field_types)
               in
-              AC.map ~f:pp_constructor_case variant_definition.constructors
+              GC.map ~f:pp_constructor_case variant_definition.constructors
             in
-            AC.return @@ Coq.match' (PP.string "k") constructor_cases
+            GC.return @@ Coq.match' (PP.string "k") constructor_cases
           in
-          AC.return (
+          GC.return (
             Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
             PP.(string "fun k => " ^^ align match_constructor_cases)
           )
         in
-        AC.map ~f:pp_variant_case variant_definitions
+        GC.map ~f:pp_variant_case variant_definitions
       in
-      AC.return @@ Coq.match' matched_expression cases
+      GC.return @@ Coq.match' matched_expression cases
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type body
-  in
-  block [%here] "Union Constructor Type" begin
-    Coq.annotate result
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
   end
 
 
@@ -388,7 +387,7 @@ let pp_eqdec_and_finite_instances () : PP.document GC.t =
       "  ltac:(destruct R; auto with typeclass_instances).";
     ]
   in
-  block [%here] "EqDec/Finite Instances" begin
+  genblock [%here] "EqDec/Finite Instances" begin
     PP.(separate_map hardline string coq_lines)
   end
 
@@ -397,9 +396,9 @@ let pp_eqdec_and_finite_instances () : PP.document GC.t =
 let pp_match_variant_constructors
     ~(matched_identifier  : Ast.Identifier.t                  )
     ~(variant_definitions : Ast.Definition.Type.Variant.t list)
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) AC.t) : PP.document AC.t
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) GC.t) : PP.document GC.t
   =
-  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : (PP.document * PP.document) AC.t =
+  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : (PP.document * PP.document) GC.t =
     let parameter_identifier = Ast.Identifier.mk "Kv"
     in
     let pattern =
@@ -412,9 +411,9 @@ let pp_match_variant_constructors
           ~variant_definition
           ~constructor_case_handler
       in
-      AC.return @@ Coq.lambda (Identifier.pp parameter_identifier) lambda_body
+      GC.return @@ Coq.lambda (Identifier.pp parameter_identifier) lambda_body
     in
-    AC.return (pattern, expression)
+    GC.return (pattern, expression)
   in
   Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
 
@@ -465,7 +464,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
     let* contents =
       let matched_identifier = Ast.Identifier.mk "U"
       in
-      let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : (PP.document * PP.document) AC.t =
+      let constructor_case_handler (variant_constructor : Ast.Definition.Type.Variant.constructor) : (PP.document * PP.document) GC.t =
         let (constructor_identifier, constructor_field_types) = variant_constructor
         in
         let field_variables =
@@ -498,14 +497,14 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
         and expression =
           PP.(separate space @@ Identifier.pp constructor_identifier :: field_variables)
         in
-        AC.return (pattern, expression)
+        GC.return (pattern, expression)
       in
       pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  block [%here] "Union Fold" begin
-    Coq.annotate result
+  genblock [%here] "Union Fold" @@* begin
+    GC.block result
   end
 
 
@@ -555,7 +554,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
     let* contents =
       let matched_identifier = Ast.Identifier.mk "U"
       in
-      let constructor_case_handler (constructor_identifier, field_types) : (PP.document * PP.document) AC.t =
+      let constructor_case_handler (constructor_identifier, field_types) : (PP.document * PP.document) GC.t =
         let field_names =
           let generate_identifier index =
             Identifier.pp @@ Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Int.to_string index
@@ -586,14 +585,14 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
               tuple
             ])
         in
-        AC.return (pattern, expression)
+        GC.return (pattern, expression)
       in
       pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  block [%here] "Union Unfold" begin
-    Coq.annotate result
+  genblock [%here] "Union Unfold" @@* begin
+    GC.block result
   end
 
 
@@ -620,7 +619,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
     and result_type = Some (PP.string "NCtx string Ty")
     in
     let* contents =
-      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) GC.t =
         let pattern =
           Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         in
@@ -628,22 +627,22 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
           let pp_field (field_identifier, field_type) =
             let id = Identifier.pp field_identifier
             in
-            let* t = Nanotype.pp_nanotype field_type
+            let* t = Nanotype.pp_nanotype' field_type
             in
-            AC.return PP.(separate space [ PP.dquotes id; string "::"; t ])
+            GC.return PP.(separate space [ PP.dquotes id; string "::"; t ])
           in
-          let* fields = AC.map ~f:pp_field record_definition.fields
+          let* fields = GC.map ~f:pp_field record_definition.fields
           in
-          AC.return @@ Coq.list fields
+          GC.return @@ Coq.list fields
         in
-        AC.return (pattern, expression)
+        GC.return (pattern, expression)
       in
       Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  block [%here] "Record Field Type" begin
-    Coq.annotate result
+  genblock [%here] "Record Field Type" @@* begin
+    GC.block result
   end
 
 
@@ -688,7 +687,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
       Some (Coq.function_type [ parameter_type ] result_type)
     in
     let* contents =
-      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) GC.t =
         let pattern =
           Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         and expression =
@@ -710,14 +709,14 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
           in
           Coq.lambda (Identifier.pp lambda_parameter) lambda_body
         in
-        AC.return (pattern, expression)
+        GC.return (pattern, expression)
       in
       Types.Records.generate_tag_match ~scope ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  block [%here] "Record Fold" begin
-    Coq.annotate result
+  genblock [%here] "Record Fold" @@* begin
+    GC.block result
   end
 
 (*
@@ -756,7 +755,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       Some (Coq.function_type [ parameter_type ] return_type)
     in
     let* contents =
-      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) AC.t =
+      let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) GC.t =
         let pattern =
           Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
         in
@@ -766,9 +765,9 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
           let* lambda_body =
             let* bindings =
               let make_binding (field_identifier, field_type) =
-                let* field_type' = Nanotype.pp_nanotype field_type
+                let* field_type' = Nanotype.pp_nanotype' field_type
                 in
-                AC.return @@ PP.separate PP.space [
+                GC.return @@ PP.separate PP.space [
                   PP.utf8string "►";
                   PP.parens @@ PP.separate PP.space [
                     PP.dquotes @@ Identifier.pp field_identifier;
@@ -780,20 +779,20 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
                   ]
                 ]
               in
-              AC.map ~f:make_binding record_definition.fields
+              GC.map ~f:make_binding record_definition.fields
             in
-            AC.return PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
+            GC.return PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
           in
-          AC.return @@ Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+          GC.return @@ Coq.lambda (Identifier.pp lambda_parameter) lambda_body
         in
-        AC.return (pattern, expression)
+        GC.return (pattern, expression)
       in
       Types.Records.generate_tag_match ~scope ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    AC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
   in
-  block [%here] "Record Unfold" begin
-    Coq.annotate result
+  genblock [%here] "Record Unfold" @@* begin
+    GC.block result
   end
 
 
@@ -823,7 +822,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
 
  *)
 let pp_typedefkit_instance () : PP.document GC.t =
-  block [%here] "Typedefkit" begin
+  genblock [%here] "Typedefkit" begin
     PP.vertical_strings [
       "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
       "  {| unionk           := union_constructor;";
@@ -861,7 +860,7 @@ let pp_canonicals () : PP.document GC.t =
   let identifiers =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
-  block [%here] "Canonicals" begin
+  genblock [%here] "Canonicals" begin
     PP.separate_map PP.hardline Coq.canonical identifiers
   end
 
@@ -872,7 +871,7 @@ let pp_canonicals () : PP.document GC.t =
 
 *)
 let pp_varkit_instance () : PP.document GC.t =
-  block [%here] "Varkit" begin
+  genblock [%here] "Varkit" begin
     PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
   end
 
@@ -911,7 +910,7 @@ let pp_regdeclkit register_definitions : PP.document GC.t = (* todo have it retu
   let result =
     let* regdeclkit = Registers.pp_regdeclkit register_definitions
     in
-    GC.generation_block [%here] (PP.string "RegDeclKit") regdeclkit
+    genblock [%here] "RegDeclKit" regdeclkit
   in
   result
 
@@ -929,7 +928,7 @@ let pp_memory_model () : PP.document GC.t =
   and content =
     Coq.comment @@ PP.string "TODO"
   in
-  block [%here] "Memory Model" begin
+  genblock [%here] "Memory Model" begin
     Coq.section identifier content
   end
 
@@ -940,7 +939,7 @@ let pp_memory_model () : PP.document GC.t =
 
 *)
 let pp_include_mixin () : PP.document GC.t =
-  block [%here] "Base Mixin" begin
+  genblock [%here] "Base Mixin" begin
     Coq.include_module (PP.string "BaseMixin")
   end
 

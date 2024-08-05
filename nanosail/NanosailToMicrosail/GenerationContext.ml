@@ -94,6 +94,7 @@ let convert_frame_to_document (frame : frame) =
   PP.(separate (twice hardline) [ pp_comments; pp_annotations ])
 
 
+(* todo f should be type PP.document *)
 let block (f : PP.document t) : PP.document t =
   let* (document, frame) = with_fresh_frame f
   in

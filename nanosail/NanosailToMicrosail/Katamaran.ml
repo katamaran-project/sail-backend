@@ -5,8 +5,13 @@ module AC = AnnotationContext
 module GC = GenerationContext
 
 
+(* todo remove *)
 let block loc label contents =
   Coq.generation_block loc (PP.string label) contents
+
+
+let genblock loc label contents =
+  GC.generation_block loc (PP.string label) contents
 
 
 let pp_program_module
@@ -60,26 +65,29 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
   in
 
-  let pp_translated_type_definitions =
-    block [%here] "Translated Type Definitions" begin
-      PP.separate_map (PP.twice PP.hardline) (Auxlib.uncurry Types.pp_type_definition) type_definitions
+  let pp_translated_type_definitions : PP.document GC.t =
+    genblock [%here] "Translated Type Definitions" @@* begin
+      let* type_definitions' =
+        GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
+      in
+      GC.return @@ PP.vertical ~spacing:2 type_definitions'
     end
   in
 
-  let pp_enum_tags =
-    block [%here] "Enum Tags" begin
+  let pp_enum_tags : PP.document GC.t =
+    genblock [%here] "Enum Tags" @@* begin
       Types.Enums.generate_tags enum_definitions
     end
   in
 
   let pp_record_tags =
-    block [%here] "Record Tags" begin
+    genblock [%here] "Record Tags" @@* begin
       Types.Records.generate_tags record_definitions
     end
   in
 
   let pp_variant_tags =
-    block [%here] "Variant Tags" begin
+    genblock [%here] "Variant Tags" @@* begin
       Types.Variants.generate_tags variant_definitions;
     end
   in
@@ -212,10 +220,10 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     [
       pp_prelude;
       pp_register_definitions;
-      GC.return @@ pp_translated_type_definitions;
-      GC.return @@ pp_enum_tags;
-      GC.return @@ pp_variant_tags;
-      GC.return @@ pp_record_tags;
+      pp_translated_type_definitions;
+      pp_enum_tags;
+      pp_variant_tags;
+      pp_record_tags;
       GC.return @@ pp_no_confusion;
       GC.return @@ pp_eqdecs;
       GC.return @@ pp_finite;

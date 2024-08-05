@@ -1,7 +1,7 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
+module GC = GenerationContext
 
 
 (* Name for the inductive type listing all variant/union types *)
@@ -11,19 +11,19 @@ let derive_constructor_from_identifier identifier =
   Identifier.record_constructor_name identifier
 
 
-let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document AC.t =
+let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document GC.t =
   let generate_field field_identifier field_type =
-    let* field_type' = Nanotype.coq_type_of_nanotype field_type
+    let* field_type' = Nanotype.coq_type_of_nanotype' field_type
     in
-    AC.return (Identifier.pp field_identifier, field_type')
+    GC.return (Identifier.pp field_identifier, field_type')
   in
   let identifier  = Identifier.pp record_definition.identifier
   and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
   and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
   in
-  let* fields     = AC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
+  let* fields     = GC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
   in
-  AC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
+  GC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
 
 
 let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
@@ -37,32 +37,31 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
     in
     Identifier.pp id
   in
-  let inductive_type =
-    Coq.build_inductive_type
+  GC.block begin
+    GC.pp_inductive_type
       identifier
       typ
       (fun add_constructor ->
-        AC.iter
+        GC.iter
           ~f:(fun record_identifier ->
             add_constructor @@ tag_of_record record_identifier
           )
           record_definitions
       )
-  in
-  Coq.annotate inductive_type
+  end
 
 
 let generate_tag_match
     ?(scope               : string option                                                   = None)
     ~(matched_identifier  : Ast.Identifier.t                                                      )
     ~(record_definitions  : Ast.Definition.Type.Record.t list                                     )
-    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) AC.t      ) () : PP.document AC.t
+    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) GC.t      ) () : PP.document GC.t
   =
   let scope = Option.map ~f:PP.string scope
   in
-  let* cases = AC.map ~f:record_case_handler record_definitions
+  let* cases = GC.map ~f:record_case_handler record_definitions
   in
-  AC.return @@ Coq.match' ~scope (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.match' ~scope (Identifier.pp matched_identifier) cases
 
 
 let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =

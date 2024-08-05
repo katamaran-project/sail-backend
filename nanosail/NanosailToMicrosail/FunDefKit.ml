@@ -6,7 +6,7 @@ module AC = AnnotationContext
 
 let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
-      type_constraint =
+      (type_constraint           : (Sail.sail_definition * 'a) option                                      ) =
   let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
   let coq_definition =
@@ -53,7 +53,7 @@ let pp_function_definition
         add sail_function_definition;
       )
   in
-  Coq.annotate_with_original_definitions
+  PPSail.annotate_with_original_definitions
     original_sail_code
     (Coq.annotate coq_definition)
 

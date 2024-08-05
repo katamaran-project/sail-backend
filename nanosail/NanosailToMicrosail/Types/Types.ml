@@ -1,6 +1,8 @@
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC                = AnnotationContext
+(* todo define mli file in order to hide module aliases *)
+module GC                = GenerationContext
+  
 module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
 module Enums             = Enums
@@ -10,13 +12,15 @@ module ExtendedType      = ExtendedType
 
 let pp_type_definition
       (original        : Sail.sail_definition )
-      (type_definition : Ast.Definition.Type.t) : PP.document
+      (type_definition : Ast.Definition.Type.t) : PP.document GC.t
   =
-  let document =
-    match type_definition with (* todo have generate functions return PP.document instead of PP.document AC.t, like how it's done for variants *)
+  let* document =
+    match type_definition with
     | Abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | Enum enum           -> Enums.generate enum
-    | Variant variant     -> AC.return @@ Variants.generate variant
+    | Variant variant     -> Variants.generate variant
     | Record record       -> Records.generate record
   in
-  Coq.annotate_with_original_definition original @@ Coq.annotate document
+  GC.block begin
+    GC.return @@ PPSail.annotate_with_original_definition original document
+  end

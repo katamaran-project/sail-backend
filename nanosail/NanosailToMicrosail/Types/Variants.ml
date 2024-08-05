@@ -1,14 +1,14 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
+module GC = GenerationContext
 
 
 (* Name for the inductive type listing all variant/union types *)
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
+let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
   let inductive_type =
@@ -16,33 +16,36 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
       Identifier.pp identifier
     in
     let pp_constructor_types (field_nanotypes : Ast.Type.t list) =
-      let* ts = AC.map ~f:Nanotype.coq_type_of_nanotype field_nanotypes
+      let* ts = GC.map ~f:Nanotype.coq_type_of_nanotype' field_nanotypes
       in
       let ts = ts @ [ identifier' ]
       in
-      AC.return @@ PP.separate (PP.string " -> ") ts
+      GC.return @@ PP.separate (PP.string " -> ") ts
     in
     let* type_quantifier' =
-      AC.map type_quantifier ~f:(fun (id, kind) ->
-          let* kind' = PPSail.pp_kind kind
+      GC.map type_quantifier ~f:(fun (id, kind) ->
+          let* kind' = PPSail.pp_kind' kind
           in
-          AC.return (Identifier.pp id, kind')
+          GC.return (Identifier.pp id, kind')
         )
     in
-    Coq.build_inductive_type
+    GC.pp_inductive_type
       identifier'
       ~parameters: type_quantifier'
       (PP.string "Set")
       begin
         fun add_constructor ->
-        AC.iter constructors ~f:(fun (constructor, typ) ->
+        GC.iter constructors ~f:(fun (constructor, typ) ->
             let* typ' = pp_constructor_types typ
             in
             add_constructor ~typ:typ' (Identifier.pp constructor))
       end
   in
-  Coq.generation_block [%here] PP.(string "Union Inductive Type for " ^^ Identifier.pp variant_definition.identifier) begin
-    Coq.annotate inductive_type
+  let block_label =
+    PP.(string "Union Inductive Type for " ^^ Identifier.pp variant_definition.identifier)
+  in
+  GC.generation_block [%here] block_label @@* begin
+    GC.block inductive_type
   end
 
 
@@ -52,31 +55,35 @@ let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t)
   List.map ~f:Identifier.reified_variant_constructor_name constructor_names
 
 
-let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
+let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
   in
-  let inductive_type = Coq.build_inductive_type identifier typ @@ fun add_constructor -> begin
-    AC.iter ~f:(fun tag -> add_constructor @@ Identifier.pp tag) tags
+  GC.generation_block [%here] PP.(string "Constructors Inductive Type for" ^^ Identifier.pp variant_definition.identifier) @@* begin
+    GC.block begin
+      GC.pp_inductive_type identifier typ @@ fun add_constructor -> begin
+        GC.iter ~f:(fun tag -> add_constructor @@ Identifier.pp tag) tags
+      end
+    end
   end
+
+
+let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
+  let* inductive_type =
+    generate_inductive_type variant_definition
+  and* constructors_inductive_type =
+    generate_constructors_inductive_type variant_definition
   in
-  Coq.generation_block [%here] PP.(string "Constructors Inductive Type for" ^^ Identifier.pp variant_definition.identifier) begin
-    Coq.annotate inductive_type
+  GC.return begin
+    PP.vertical ~spacing:2 [
+      inductive_type;
+      constructors_inductive_type
+    ]
   end
 
 
-let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
-  let inductive_type = generate_inductive_type variant_definition
-  and constructors_inductive_type = generate_constructors_inductive_type variant_definition
-  in
-  PP.separate (PP.twice PP.hardline) [
-    inductive_type;
-    constructors_inductive_type
-  ]
-
-
-let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
+let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : PP.document GC.t =
   let variant_definitions =
     List.map ~f:snd variant_definitions
   in
@@ -87,41 +94,40 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
     in
     Identifier.pp id
   in
-  let inductive_type =
-    Coq.build_inductive_type
+  GC.block begin
+    GC.pp_inductive_type
       identifier
       typ
       (
         fun add_constructor -> begin
-            AC.iter
+            GC.iter
               ~f:(fun variant_identifier ->
                   add_constructor @@ tag_of_variant variant_identifier
                 )
               variant_definitions
           end
       )
-  in
-  Coq.annotate inductive_type
+  end
 
 
 let generate_tag_match
     ~(matched_identifier   : Ast.Identifier.t                                                 )
     ~(variant_definitions  : Ast.Definition.Type.Variant.t list                               )
-    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> (PP.document * PP.document) AC.t) : PP.document AC.t
+    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> (PP.document * PP.document) GC.t) : PP.document GC.t
   =
-  let* cases = AC.map ~f:variant_case_handler variant_definitions
+  let* cases = GC.map ~f:variant_case_handler variant_definitions
   in
-  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
 let generate_constructor_match
     ~(matched_identifier       : Ast.Identifier.t                                                      )
     ~(variant_definition       : Ast.Definition.Type.Variant.t                                         )
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) AC.t) : PP.document AC.t
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) GC.t) : PP.document GC.t
   =
-  let* cases = AC.map ~f:constructor_case_handler variant_definition.constructors
+  let* cases = GC.map ~f:constructor_case_handler variant_definition.constructors
   in
-  AC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
 
 
 (*
