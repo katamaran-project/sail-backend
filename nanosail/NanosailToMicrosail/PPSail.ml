@@ -64,4 +64,3 @@ let annotate_with_original_definitions originals translation =
     )
   else
     translation
-
