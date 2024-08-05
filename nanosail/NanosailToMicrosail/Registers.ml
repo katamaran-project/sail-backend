@@ -2,6 +2,7 @@ open Base
 open Monads.Notations.Star(AnnotationContext)
 
 module AC = AnnotationContext
+module GC = CoqGenerationContext
 
 
 (* Name for the inductive type listing all registers *)
@@ -9,7 +10,7 @@ let regname_inductive_type_identifier = Ast.Identifier.mk "RegName"
 
 let regname_tag = Ast.Identifier.mk "regname"
 
-let reg_inductive_type register_definitions =
+let reg_inductive_type (register_definitions : Ast.Definition.register_definition list) : PP.document =
   let identifier = PP.string "Reg"
   and typ = PP.string "Ty -> Set"
   in
