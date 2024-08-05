@@ -32,8 +32,8 @@ let pp_imports () : PP.document GC.t =
    Local Open Scope string_scope.
 
  *)
-let pp_open_string_scope () =
-  PP.lines [
+let pp_open_string_scope () : PP.document GC.t =
+  GC.vertical_strings [
     "Local Open Scope string_scope."
   ]
 
@@ -952,7 +952,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     let* contents =
       let sections = [
         pp_imports ();
-        GC.return @@ pp_open_string_scope ();
+        pp_open_string_scope ();
         GC.return @@ pp_alias_notations alias_definitions;
         GC.return @@ pp_typedeclkit ();
         GC.return @@ pp_enum_denote enum_definitions;
