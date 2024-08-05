@@ -1,34 +1,38 @@
 open Base
+open Monads.Notations.Star(GenerationContext)
+
 
 module GC = GenerationContext
 
 
-let pp_value (value : Ast.Value.t) : PP.document =
+let pp_value (value : Ast.Value.t) : PP.document GC.t =
   match value with
-  | Unit        -> PP.(string "tt")
-  | Int n       -> PP.(string @@ Z.to_string n)
-  | String _    -> PP.string "not yet implemented" (* todo *)
-  | Prod (_, _) -> PP.string "not yet implemented" (* todo *)
-  | Bool b      -> PP.string @@ if b then "true" else "false"
+  | Unit        -> GC.return @@ PP.(string "tt")
+  | Int n       -> GC.return @@ PP.(string @@ Z.to_string n)
+  | String _    -> GC.not_yet_implemented [%here]
+  | Prod (_, _) -> GC.not_yet_implemented [%here]
+  | Bool b      -> GC.return @@ PP.string @@ if b then "true" else "false"
 
 
-let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document =
+let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document GC.t =
   let { identifier; value } : Ast.Definition.value_definition = value_definition
   in
   let definition =
     let identifier = Identifier.pp identifier
     and result_type = None
-    and body = pp_value value
     in
-    Coq.definition ~identifier ~result_type body
+    let* body = pp_value value
+    in
+    GC.return @@ Coq.definition ~identifier ~result_type body
   in
   definition
 
 
 let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
-  let value_definitions =
-    List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
-  in
-  let coq_lines = List.map ~f:pp_value_definition value_definitions
+  let* coq_lines =
+    let value_definitions =
+      List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
+    in
+    GC.map ~f:pp_value_definition value_definitions
   in
   GC.return @@ PP.vertical coq_lines
