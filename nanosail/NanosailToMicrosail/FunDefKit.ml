@@ -53,7 +53,6 @@ let pp_function_definition
         add sail_function_definition;
       )
   in
-  (* todo annotate using GC.add_comment *)
   GC.block begin
     let* () = GC.add_original_definitions original_sail_code
     in
