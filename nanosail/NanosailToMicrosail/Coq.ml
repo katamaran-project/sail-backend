@@ -158,14 +158,14 @@ type module_flag =
   | NoFlag
 
 
-let sentence contents =
+let pp_sentence contents =
   PP.(contents ^^ eol)
 
 
 let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.(
-      sentence @@ separate space @@ Auxlib.build_list (fun { add; addall; _ } ->
+      pp_sentence @@ separate space @@ Auxlib.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
             match flag with
@@ -181,7 +181,7 @@ let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
           end;
         )
     )
-  and last_line = PP.(sentence @@ separate space [ string "End"; string identifier ])
+  and last_line = PP.(pp_sentence @@ separate space [ string "End"; string identifier ])
   in
   PP.indented_enclosed_lines first_line contents last_line
 
@@ -355,17 +355,17 @@ let require
   let words     = List.concat [ from_words; require_words; import_words ]
   and libraries = List.map ~f:PP.string libraries
   in
-  sentence @@ PP.hanging_list ~adaptive:false (PP.separate PP.space words) libraries
+  pp_sentence @@ PP.hanging_list ~adaptive:false (PP.separate PP.space words) libraries
 
 
 let imports names =
-  PP.(sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
+  PP.(pp_sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 
 let open_scopes scopes =
   let open_scope scope =
     PP.(
-      sentence @@ concat [
+      pp_sentence @@ concat [
         string "Local Open Scope";
         space;
         string scope;
@@ -433,7 +433,7 @@ let finite_instance
     ]
   )
   in
-  sentence declaration
+  pp_sentence declaration
 
 
 (* fields as (identifier, type) pairs *)
@@ -471,7 +471,7 @@ let record
           ]
     )
   in
-  sentence @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
+  pp_sentence @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
 
 
 let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
@@ -480,7 +480,7 @@ let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
       PP.(twice space ^^ Identifier.pp identifier)
     ]
   in
-  sentence PP.(separate hardline lines_of_code)
+  pp_sentence PP.(separate hardline lines_of_code)
 
 
 let derive
@@ -545,11 +545,11 @@ let function_type parameter_types result_type =
 
 
 let canonical identifier =
-  sentence @@ PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
+  pp_sentence @@ PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
 
 
 let include_module (name : PP.document) =
-  sentence @@ PP.simple_app [ PP.string "Include"; name ]
+  pp_sentence @@ PP.simple_app [ PP.string "Include"; name ]
 
 
 let generation_block
@@ -593,7 +593,7 @@ let pp_tuple_type ts =
 
 
 let pp_notation notation expression =
-  sentence @@ PP.separate PP.space [
+  pp_sentence @@ PP.separate PP.space [
     PP.string "Notation";
     PP.dquotes notation;
     PP.string ":=";

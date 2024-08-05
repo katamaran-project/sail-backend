@@ -129,7 +129,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   in
   GC.generation_block [%here] (PP.string "REG_finite Instance") begin
     PP.(
-      Coq.sentence @@ separate hardline (
+      Coq.pp_sentence @@ separate hardline (
         [
           utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
           PP.indent' (

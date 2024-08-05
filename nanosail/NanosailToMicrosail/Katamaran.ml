@@ -29,11 +29,11 @@ let pp_program_module
     in
     GC.return @@ PP.vertical ~spacing:2 [
       function_declaration_kit;
-      Coq.sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
+      Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
       function_definition_kit;
-      Coq.sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
+      Coq.pp_sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
       foreign_kit;
-      Coq.sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
+      Coq.pp_sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
     ]
   in
   GC.return @@ Coq.module'
