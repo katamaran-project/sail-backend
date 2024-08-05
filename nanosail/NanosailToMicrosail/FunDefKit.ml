@@ -1,47 +1,47 @@
 open Base
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
+module GC = GenerationContext
 
 
 let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
-      (type_constraint           : (Sail.sail_definition * 'a) option                                      ) =
+      (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t =
   let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
-  let coq_definition =
+  let* coq_definition =
     let* result_type =
       let* bindings =
         let* parameters : (Ast.Identifier.t * PP.document) list =
           let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
-            let* t' = Nanotype.pp_nanotype t
+            let* t' = Nanotype.pp_nanotype' t
             in
-            AC.return (id, t')
+            GC.return (id, t')
           in
-          AC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+          GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
         in
-        let* docs = AC.map ~f:PPSail.pp_bind parameters
+        let* docs = GC.map ~f:PPSail.pp_bind' parameters
         in
-        AC.return @@ Coq.list docs
+        GC.return @@ Coq.list docs
       in
       let* result_type =
-        Nanotype.pp_nanotype function_definition.function_type.return_type
+        Nanotype.pp_nanotype' function_definition.function_type.return_type
       in
-      AC.return @@ Some (
-                      PP.hanging_list (PP.string "Stm") [
-                          bindings;
-                          PP.parens result_type
-                        ]
-                    )
+      GC.return @@ Some (
+        PP.hanging_list (PP.string "Stm") [
+          bindings;
+          PP.parens result_type
+        ]
+      )
     in
     let* body =
       Statements.pp_statement function_definition.function_body
     in
     let* extended_function_type' = Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
     in
-    let* _ = AC.create_annotation_from_document extended_function_type'
+    let* () = GC.add_comment extended_function_type'
     in
-    AC.return @@ Coq.definition ~identifier ~result_type body
+    GC.return @@ Coq.definition ~identifier ~result_type body
   in
   let original_sail_code =
     Auxlib.build_list (fun { add; _ } ->
@@ -53,14 +53,13 @@ let pp_function_definition
         add sail_function_definition;
       )
   in
-  PPSail.annotate_with_original_definitions
-    original_sail_code
-    (Coq.annotate coq_definition)
+  (* todo annotate using GC.add_comment *)
+  GC.block @@ GC.return @@ PPSail.annotate_with_original_definitions original_sail_code coq_definition
 
 
 let pp_function_definitions
       (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) =
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document list GC.t =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match
@@ -76,12 +75,12 @@ let pp_function_definitions
         (fdef, find_type_constraint function_definition.function_name))
       function_definitions
   in
-  List.map ~f:(Auxlib.uncurry pp_function_definition) type_and_function_pairs
+  GC.map ~f:(Auxlib.uncurry pp_function_definition) type_and_function_pairs
 
 
 let pp_function_definition_kit
-      function_definitions
-      top_level_type_constraint_definitions =
+      (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t =
   let fundef =
     let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
     and implicit_parameters = [
@@ -108,12 +107,15 @@ let pp_function_definition_kit
     in
     Coq.definition ~identifier ~implicit_parameters ~parameters ~result_type body
   in
-  let contents =
-    PP.separate PP.small_step (
+  let* contents =
+    let* function_definitions =
+      pp_function_definitions function_definitions top_level_type_constraint_definitions
+    in
+    GC.return @@ PP.vertical ~spacing:2 begin
         Auxlib.build_list (fun { add; addall; _ } ->
-            addall @@ pp_function_definitions function_definitions top_level_type_constraint_definitions;
-            add fundef
+            addall function_definitions;
+            add    fundef
           )
-      )
+      end
   in
-  Coq.section (Ast.Identifier.mk "FunDefKit") contents
+  GC.return @@ Coq.section (Ast.Identifier.mk "FunDefKit") contents
