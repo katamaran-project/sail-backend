@@ -47,13 +47,13 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   and register_definitions = Ast.(select Extract.register_definition           ir.definitions)
   in
 
-  let pp_prelude =
+  let pp_prelude : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Prelude") @@* begin
       Prelude.generate_base_prelude ()
     end
   in
 
-  let pp_register_definitions =
+  let pp_register_definitions : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Register Definitions") @@* begin
       Registers.pp_regname_inductive_type register_definitions
     end
@@ -78,19 +78,19 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     end
   in
 
-  let pp_record_tags =
+  let pp_record_tags : PP.document GC.t =
     genblock [%here] "Record Tags" @@* begin
       Types.Records.generate_tags record_definitions
     end
   in
 
-  let pp_variant_tags =
+  let pp_variant_tags : PP.document GC.t =
     genblock [%here] "Variant Tags" @@* begin
       Types.Variants.generate_tags variant_definitions;
     end
   in
 
-  let pp_base_module =
+  let pp_base_module : PP.document GC.t =
     let* base_module =
       BaseModule.pp_base_module ir.definitions
     in
