@@ -162,7 +162,7 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
     List.map ~f:extract_identifier register_definitions
   in
   let* section_contents =
-    GC.vertical ~spacing:2 [
+    let* items = GC.sequence [
       pp_reg_inductive_type @@ List.map ~f:snd register_definitions;
       pp_no_confusion_for_reg ();
       pp_reg_definition ();
@@ -170,6 +170,8 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
       pp_obligation_tactic ();
       pp_reg_finite register_names
     ]
+    in
+    GC.vertical ~spacing:2 items
   in
   GC.return @@ Coq.section (Ast.Identifier.mk "RegDeclKit") section_contents
 

@@ -52,7 +52,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
   in
   GC.generation_block [%here] (PP.string "Notations for Aliases") begin
     GC.block begin
-      let notations = List.map ~f:pp_alias_notation alias_definitions
+      let* notations = GC.map ~f:pp_alias_notation alias_definitions
       in
       GC.vertical notations
     end
@@ -951,7 +951,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     and includes = [ "Base" ]
     in
     let* contents =
-      let sections = [
+      let* sections = GC.sequence [
         pp_imports ();
         pp_open_string_scope ();
         pp_alias_notations alias_definitions;
