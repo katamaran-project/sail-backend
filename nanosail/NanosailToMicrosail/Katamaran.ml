@@ -24,13 +24,15 @@ let pp_program_module
       FunDeclKit.generate @@ List.map ~f:snd function_definitions;
     and* function_definition_kit =
       FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
+    and* foreign_kit =
+      ForeignKit.pp_foreign_kit ()
     in
     GC.return @@ PP.vertical ~spacing:2 [
       function_declaration_kit;
       Coq.sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
       function_definition_kit;
       Coq.sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
-      ForeignKit.pp_foreign_kit ();
+      foreign_kit;
       Coq.sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
     ]
   in

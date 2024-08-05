@@ -1,9 +1,9 @@
-open Monads.Notations.Star(AnnotationContext)
+open Monads.Notations.Star(GenerationContext)
 
-module AC = AnnotationContext
+module GC = GenerationContext
 
 
-let pp_foreign_kit () =
+let pp_foreign_kit () : PP.document GC.t =
   let title = Ast.Identifier.mk "ForeignKit"
   and contents =
     PP.(separate_map hardline utf8string [
@@ -15,4 +15,4 @@ let pp_foreign_kit () =
       "Proof. destruct f. Qed."
     ])
   in
-  Coq.section title contents
+  GC.return @@ Coq.section title contents
