@@ -6,8 +6,8 @@ module GC = GenerationContext
 
 
 module rec Expression : sig
-  val pp  : Ast.Numeric.Expression.t -> PP.document AC.t
-  val pp' : Ast.Numeric.Expression.t -> PP.document GC.t
+  val pp  : Ast.Numeric.Expression.t -> PP.document AC.t (* todo remove *)
+  val pp' : Ast.Numeric.Expression.t -> PP.document GC.t (* todo rename *)
 end = struct
   let pp (numeric_expression : Ast.Numeric.Expression.t) =
     let rec pp level (numexp : Ast.Numeric.Expression.t) =
@@ -47,8 +47,8 @@ end = struct
 end
 
 and Constraint : sig
-  val pp  : Ast.Numeric.Constraint.t -> PP.document AC.t
-  val pp' : Ast.Numeric.Constraint.t -> PP.document GC.t
+  val pp  : Ast.Numeric.Constraint.t -> PP.document AC.t (* todo remove *)
+  val pp' : Ast.Numeric.Constraint.t -> PP.document GC.t (* todo rename *)
 end = struct
  let pp (numeric_constraint : Ast.Numeric.Constraint.t) =
    match numeric_constraint with
