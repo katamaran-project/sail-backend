@@ -74,7 +74,7 @@ let add_comments
   PP.separate PP.hardline [ comment comments; document ]
 
 
-let original_sail_code source =
+let original_sail_code (source : PP.document) : PP.document =
   let str = PP.string_of_document source
   in
   if
