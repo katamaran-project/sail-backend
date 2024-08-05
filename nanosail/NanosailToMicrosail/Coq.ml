@@ -1,7 +1,6 @@
 open Base
 open Monads.Notations.Star(AnnotationContext)
 
-module AC      = AnnotationContext
 module Big_int = Nat_big_num
 
 
