@@ -7,7 +7,7 @@ open Monads.Notations.Star(AnnotationContext)
 
 
 let block loc label doc =
-  Coq.generation_block loc (PP.string label) doc
+  GC.generation_block loc (PP.string label) doc
 
 
 (*
@@ -57,7 +57,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
       GC.return @@ PP.vertical notations
     end
   in
-  GC.generation_block [%here] (PP.string "Notations for Aliases") result
+  block [%here] "Notations for Aliases" result
 
 
 (*
@@ -81,7 +81,7 @@ let pp_typedeclkit () : PP.document GC.t =
       "  |}.";
     ]
   in
-  GC.generation_block [%here] (PP.string "typedeclkit") coq_lines
+  block [%here] "typedeclkit" coq_lines
 
 
 (*
@@ -139,7 +139,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
   and tag_type_identifier  = PP.string "Enums"
   and function_identifier  = PP.string "enum_denote"
   in
-  GC.generation_block [%here] (PP.string "Enum Denote") begin
+  block [%here] "Enum Denote" begin
     Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
   end
 
@@ -170,7 +170,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
   and tag_type_identifier  = PP.string "Unions"
   and function_identifier  = PP.string "union_denote"
   in
-  GC.generation_block [%here] (PP.string "Union Denote") begin
+  block [%here] "Union Denote" begin
     Coq.annotate @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
   end
 
@@ -185,7 +185,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
        end.
 
  *)
-let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.document GC.t =
   let denotations =
     let record_identifiers =
       List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions
@@ -216,7 +216,7 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
     |}.
 
  *)
-let pp_typedenotekit () : PP.document =
+let pp_typedenotekit () : PP.document GC.t =
   let coq_lines = [
       "#[export] Instance typedenotekit : TypeDenoteKit typedeclkit :=";
       "  {|";
@@ -241,7 +241,7 @@ let pp_typedenotekit () : PP.document =
        end.
 
  *)
-let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
   let denotations =
     let variant_identifiers =
       List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
@@ -299,7 +299,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
        end.
 
  *)
-let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
   let result =
     let identifier  = PP.string "union_constructor_type"
     and parameters  = [ (PP.string "u", Some (PP.string "Unions")) ]
@@ -367,7 +367,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
     ltac:(destruct R; auto with typeclass_instances).
 
  *)
-let pp_eqdec_and_finite_instances () : PP.document =
+let pp_eqdec_and_finite_instances () : PP.document GC.t =
   let coq_lines = [
       "#[export] Instance eqdec_enum_denote E : EqDec (enum_denote E) :=";
       "  ltac:(destruct E; auto with typeclass_instances).";
@@ -451,7 +451,7 @@ let pp_match_variant_constructors
        end.
 
  *)
-let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
   let result =
     let identifier = PP.string "union_fold"
     and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
@@ -541,7 +541,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
        end.
 
 *)
-let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document =
+let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.document GC.t =
   let result =
     let identifier = PP.string "union_unfold"
     and parameters = [ (PP.string "U", Some (PP.string "unioni")) ]
@@ -606,7 +606,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
        end.
 
  *)
-let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list) : PP.document GC.t =
   let result =
     let matched_identifier = Ast.Identifier.mk "R"
     in
@@ -659,7 +659,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
        end%exp.
 
  *)
-let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document GC.t =
   let result =
     let scope =
       Some "exp"
@@ -731,7 +731,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
        end%env.
 
 *)
-let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document =
+let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.document GC.t =
   let result =
     let scope = Some "env"
     and matched_identifier = Ast.Identifier.mk "R"
@@ -817,9 +817,9 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
   Defined.
 
  *)
-let pp_typedefkit_instance () : PP.document =
+let pp_typedefkit_instance () : PP.document GC.t =
   block [%here] "Typedefkit" begin
-    PP.lines [
+    PP.vertical_strings [
       "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
       "  {| unionk           := union_constructor;";
       "     unionk_ty        := union_constructor_type;";
@@ -852,7 +852,7 @@ let pp_typedefkit_instance () : PP.document =
   Canonical typedefkit.
 
 *)
-let pp_canonicals () : PP.document =
+let pp_canonicals () : PP.document GC.t =
   let identifiers =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
@@ -866,7 +866,7 @@ let pp_canonicals () : PP.document =
   #[export] Instance varkit : VarKit := DefaultVarKit.
 
 *)
-let pp_varkit_instance () : PP.document =
+let pp_varkit_instance () : PP.document GC.t =
   block [%here] "Varkit" begin
     PP.string "#[export] Instance varkit : VarKit := DefaultVarKit."
   end
@@ -900,7 +900,7 @@ let pp_varkit_instance () : PP.document =
   End RegDeclKit.
 
 *)
-let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP.document GC.t *)
+let pp_regdeclkit register_definitions : PP.document GC.t = (* todo have it return PP.document GC.t *)
   let open Monads.Notations.Star(GenerationContext) (* todo remove this *)
   in
   let result =
@@ -908,7 +908,7 @@ let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP
     in
     GC.generation_block [%here] (PP.string "RegDeclKit") regdeclkit
   in
-  GC.generate result
+  result
 
 
 (*
@@ -919,7 +919,7 @@ let pp_regdeclkit register_definitions : PP.document = (* todo have it return PP
 
 
 *)
-let pp_memory_model () : PP.document =
+let pp_memory_model () : PP.document GC.t =
   let identifier = Ast.Identifier.mk "MemoryModel"
   and content =
     Coq.comment @@ PP.string "TODO"
@@ -934,8 +934,10 @@ let pp_memory_model () : PP.document =
    Include BaseMixin.
 
 *)
-let pp_include_mixin () : PP.document =
-  Coq.include_module (PP.string "BaseMixin")
+let pp_include_mixin () : PP.document GC.t =
+  block [%here] "Base Mixin" begin
+    Coq.include_module (PP.string "BaseMixin")
+  end
 
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
@@ -965,22 +967,22 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_typedeclkit ();
         pp_enum_denote enum_definitions;
         pp_union_denote variant_definitions;
-        GC.return @@ pp_record_denote record_definitions;
-        GC.return @@ pp_typedenotekit ();
-        GC.return @@ pp_union_constructor variant_definitions;
-        GC.return @@ pp_union_constructor_type variant_definitions;
-        GC.return @@ pp_eqdec_and_finite_instances ();
-        GC.return @@ pp_union_fold variant_definitions;
-        GC.return @@ pp_union_unfold variant_definitions;
-        GC.return @@ pp_record_field_type record_definitions;
-        GC.return @@ pp_record_fold record_definitions;
-        GC.return @@ pp_record_unfold record_definitions;
-        GC.return @@ pp_typedefkit_instance ();
-        GC.return @@ pp_canonicals ();
-        GC.return @@ pp_varkit_instance ();
-        GC.return @@ pp_regdeclkit register_definitions;
-        GC.return @@ pp_memory_model ();
-        GC.return @@ pp_include_mixin ();
+        pp_record_denote record_definitions;
+        pp_typedenotekit ();
+        pp_union_constructor variant_definitions;
+        pp_union_constructor_type variant_definitions;
+        pp_eqdec_and_finite_instances ();
+        pp_union_fold variant_definitions;
+        pp_union_unfold variant_definitions;
+        pp_record_field_type record_definitions;
+        pp_record_fold record_definitions;
+        pp_record_unfold record_definitions;
+        pp_typedefkit_instance ();
+        pp_canonicals ();
+        pp_varkit_instance ();
+        pp_regdeclkit register_definitions;
+        pp_memory_model ();
+        pp_include_mixin ();
       ]
       in
       GC.return @@ PP.vertical ~spacing:2 sections
