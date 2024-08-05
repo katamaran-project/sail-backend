@@ -84,7 +84,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let pp_base_module =
-    block [%here] "Base Module" begin
+    GC.generation_block [%here] (PP.string "Base Module") begin
       BaseModule.pp_base_module ir.definitions
     end
   in
@@ -217,7 +217,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       GC.return @@ pp_no_confusion;
       GC.return @@ pp_eqdecs;
       GC.return @@ pp_finite;
-      GC.return @@ pp_base_module;
+      pp_base_module;
       GC.return @@ pp_value_definitions;
       (* GC.return @@ pp_program; *)
     ]

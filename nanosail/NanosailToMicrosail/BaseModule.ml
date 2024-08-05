@@ -930,7 +930,7 @@ let pp_include_mixin () : PP.document =
   Coq.include_module (PP.string "BaseMixin")
 
 
-let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document =
+let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
   let enum_definitions =
     List.map ~f:snd Ast.(select Extract.(type_definition of_enum) definitions)
   and variant_definitions =
@@ -974,5 +974,5 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       in
       PP.(separate small_step sections)
     in
-    Coq.module' ~flag ~includes base_module_name contents
+    GC.return @@ Coq.module' ~flag ~includes base_module_name contents
   end
