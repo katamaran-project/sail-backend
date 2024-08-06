@@ -246,7 +246,7 @@ let vertical_strings ?(spacing = 1) strings =
      first
        second
    
- *)
+*)
 let horizontal_or_indent (first : document) (second : document) =
   let open PPrint
   in
@@ -259,6 +259,15 @@ let horizontal_or_indent (first : document) (second : document) =
   end
 
 
+(*
+     a b c d
+
+   or
+
+     a
+     b
+     c
+     d
+*)
 let horizontal_or_vertical (documents : document list) =
   PPrint.(group @@ separate (break 1) documents)
-
