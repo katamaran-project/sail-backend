@@ -85,7 +85,7 @@ let template_prelude (translation : Ast.program) =
           let* ignored_definitions' =
             GC.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions
           in
-          GC.return @@ NanosailToMicrosail.PP.vertical ~spacing:2 ignored_definitions'
+          GC.return @@ PP.vertical ~spacing:2 ignored_definitions'
         in
         GC.generate result
       in

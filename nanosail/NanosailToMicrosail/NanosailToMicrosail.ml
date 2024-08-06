@@ -15,7 +15,6 @@ module Katamaran            = Katamaran
 module Ignored              = Ignored
 module Untranslated         = Untranslated
 module ValueDefinitions     = ValueDefinitions
-module PP                   = PP
 module BaseModule           = BaseModule
 module Kind                 = Kind
 module TypeQuantifier       = TypeQuantifier

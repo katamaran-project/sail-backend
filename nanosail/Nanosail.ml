@@ -1,5 +1,6 @@
 module Ast                 = Ast
 module Configuration       = Configuration
+module PP                  = PP
 module Auxlib              = Auxlib
 module Substitute          = Substitute
 module SailToNanosail      = SailToNanosail
