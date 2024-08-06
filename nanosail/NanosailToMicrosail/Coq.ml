@@ -25,6 +25,10 @@ let eol = PP.dot
 let left_comment_delimiter  = PP.string "(*"
 let right_comment_delimiter = PP.string "*)"
 
+let list_left_delimiter    = PP.lbracket
+let list_right_delimiter   = PP.rbracket
+let list_item_separator    = PP.semi
+
 let record_left_delimiter  = PP.string "{|"
 let record_right_delimiter = PP.string "|}"
 let record_field_separator = PP.semi
@@ -397,7 +401,11 @@ let finite_instance
       ~(values     : PP.document list) : PP.document
   =
   let enum_values =
-    PP.(group (separate (semi ^^ break 1) values))
+    PP.delimited_list
+      ~left_delimiter:list_left_delimiter
+      ~right_delimiter:list_right_delimiter
+      ~separator:list_item_separator
+      ~items:values
   in
   let declaration =
   PP.(
@@ -415,9 +423,7 @@ let finite_instance
         string "{|";
         string "enum";
         string ":=";
-        string "[";
         align @@ enum_values;
-        string "]";
         string "|}"
       ]
     ]
