@@ -26,7 +26,7 @@ let left_comment_delimiter  = PP.string "(*"
 let right_comment_delimiter = PP.string "*)"
 
 let record_left_delimiter  = PP.string "{|"
-let record_right_delimiter = PP.string "||"
+let record_right_delimiter = PP.string "|}"
 let record_field_separator = PP.semi
 
 
