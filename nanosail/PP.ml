@@ -42,12 +42,13 @@ let underscore = PPrint.underscore
 
 let (^^)     = PPrint.(^^)
 
+let twice         = PPrint.twice
+let hardline      = PPrint.hardline
+
 
 (* todo remove *)
-let twice         = PPrint.twice
 let separate      = PPrint.separate
 let separate_map  = PPrint.separate_map
-let hardline      = PPrint.hardline
 let concat        = PPrint.concat
 let soft_surround = PPrint.soft_surround
 let break         = PPrint.break
