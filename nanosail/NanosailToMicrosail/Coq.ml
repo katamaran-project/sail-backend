@@ -374,19 +374,15 @@ let open_scopes scopes =
 let record_value (fields : (PP.document * PP.document) list) : PP.document =
   let items =
     let item_of_field (field_name, field_value) =
-      PP.(
-        group begin
-          concat [
-            field_name ^^ space ^^ string ":=";
-            break 1;
-            align field_value
-          ]
-        end
-      )
+      PP.separate PP.space [
+        field_name;
+        PP.string ":=";
+        field_value
+      ]
     in
     List.map ~f:item_of_field fields
   in
-  PP.(delimited_sequence record_right_delimiter record_right_delimiter record_field_separator items)
+  PP.(delimited_list ~left_delimiter:record_left_delimiter ~right_delimiter:record_right_delimiter ~items:items ~separator:record_field_separator)
 
 
 (*
