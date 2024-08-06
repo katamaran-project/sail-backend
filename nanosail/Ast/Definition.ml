@@ -177,9 +177,9 @@ module Select = struct
     match type_definition with
     | Type.Abbreviation { identifier; abbreviation } -> begin
         match abbreviation with
-        | Type.Abbreviation.NumericExpression (_, _) -> None (* todo cleanup: remove qualifiers *)
-        | Type.Abbreviation.NumericConstraint (_, _) -> None
-        | Type.Abbreviation.Alias (quant, t)         -> Some (identifier, quant, t)
+        | NumericExpression (_, _) -> None
+        | NumericConstraint (_, _) -> None
+        | Alias (quant, t)         -> Some (identifier, quant, t)
       end
     | _ -> None
 
