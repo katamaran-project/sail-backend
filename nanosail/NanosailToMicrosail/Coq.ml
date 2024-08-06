@@ -419,7 +419,7 @@ let finite_instance
         type_name;
         string ":=";
       ];
-      twice space ^^ PP.separate space [
+      twice space ^^ PP.horizontal [
         string "{|";
         string "enum";
         string ":=";
