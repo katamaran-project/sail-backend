@@ -219,23 +219,19 @@ let definition
                       add @@ align @@ separate space @@ pp_explicit_and_implicit_parameters
                     end
   in
+  let pp_return_type =
+    match result_type with
+    | None    -> []
+    | Some rt -> [ space; colon; space; rt ]
+  in
   let definition_line =
     concat begin
       Auxlib.build_list begin fun { add; addall; _ } ->
         add @@ string "Definition";
         add space;
         add identifier;
-        addall @@ pp_parameters;
-        begin
-          match result_type with
-          | None    -> ()
-          | Some rt -> begin
-              add space;
-              add colon;
-              add space;
-              add rt
-            end
-        end;
+        addall pp_parameters;
+        addall pp_return_type;
         add space;
         add @@ string ":=";
       end
