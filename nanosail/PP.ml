@@ -55,7 +55,7 @@ let align         = PPrint.align
 let group         = PPrint.group
 let ifflat        = PPrint.ifflat
 let requirement   = PPrint.requirement
-let infix         = PPrint.infix
+(* let infix         = PPrint.infix *)
 
 
 let write_to_channel
@@ -228,6 +228,10 @@ let lines (strings : string list) : document =
 
 let vertical ?(spacing = 1) documents =
   PPrint.(separate (repeat spacing hardline) documents)
+
+
+let horizontal documents =
+  PPrint.(separate space documents)
 
 
 let vertical_strings ?(spacing = 1) strings =
