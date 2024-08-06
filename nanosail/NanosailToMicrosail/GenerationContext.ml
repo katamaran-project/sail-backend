@@ -276,7 +276,19 @@ let pp_inductive_type
 
 (* todo move this to PPSail.ml *)
 let pp_sail_definition sail_definition =
-  Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  let document =
+    Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  in
+  let str =
+    PP.string_of_document ~page_width:200 document
+  in
+  let lines =
+    String.split_lines str
+  in
+  let nonempty_lines =
+    List.filter ~f:(fun line -> not @@ String.is_empty line) lines
+  in
+  PP.vertical_strings nonempty_lines
 
 
 let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t
