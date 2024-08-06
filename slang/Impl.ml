@@ -1,3 +1,8 @@
+(*
+    Groups mutually recursive modules.
+
+    These modules should not be accessed directly, but rather through their aliases.
+*)
 open Base
 
 
