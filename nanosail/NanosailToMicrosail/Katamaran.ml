@@ -236,7 +236,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       (* pp_program; *)
     ]
   in
-  GC.return @@ PP.(separate_nonempty small_step sections)
+  GC.return @@ PP.(separate_nonempty (twice hardline) sections)
 
 
 let full_translation (ir : Ast.program) : PP.document =
@@ -246,4 +246,4 @@ let full_translation (ir : Ast.program) : PP.document =
 let output_document_to_channel len out (document : PP.document GC.t) =
   let doc = GC.generate document
   in
-  PP.(ToChannel.pretty 1. len out (doc ^^ small_step))
+  PP.(ToChannel.pretty 1. len out (doc ^^ twice hardline))

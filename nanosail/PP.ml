@@ -5,10 +5,6 @@ include PPrint
 
 let indent' ?(level = 2) doc = blank level ^^ align doc
 
-let small_step = twice hardline
-
-let big_step   = twice small_step
-
 
 let delimited_sequence left_delimiter right_delimiter separator items =
   concat [
