@@ -277,3 +277,22 @@ let build_horizontal ?(spacing = 1) (builder : document Auxlib.list_builder -> u
     Auxlib.build_list builder
   in
   horizontal ~spacing items
+
+
+let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
+  let flattened_layout =
+    build_horizontal @@ fun { add; addall; _ } -> begin
+      add    left_delimiter;
+      addall items;
+      add    right_delimiter;
+    end
+  and unflattened_layout =
+    vertical [
+      left_delimiter;
+      indent' @@ vertical items;
+      right_delimiter;
+    ]
+  in
+  PPrint.group begin
+    PPrint.ifflat flattened_layout unflattened_layout
+  end
