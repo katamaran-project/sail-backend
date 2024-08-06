@@ -193,7 +193,7 @@ let definition
       ?(result_type         : PP.document option                      = None)
        (body                : PP.document                                   ) : PP.document
   =
-  let open PP
+  let open PP (* todo remove *)
   in
   let pp_parameters =
     let pp_implicit_parameters =
@@ -214,28 +214,25 @@ let definition
     let pp_explicit_and_implicit_parameters =
       List.concat [ pp_implicit_parameters; pp_explicit_parameters ]
     in
-    Auxlib.build_list @@ fun { add; _ } -> begin
-                      if not @@ List.is_empty parameters then add space;
-                      add @@ align @@ separate space @@ pp_explicit_and_implicit_parameters
-                    end
+    if List.is_empty pp_explicit_and_implicit_parameters
+    then PP.empty
+    else PP.space ^^ PP.horizontal_or_vertical pp_explicit_and_implicit_parameters
   in
   let pp_return_type =
     match result_type with
-    | None    -> []
-    | Some rt -> [ space; colon; space; rt ]
+    | None    -> PP.empty
+    | Some rt -> PP.(space ^^ horizontal [ PP.colon; rt ])
   in
   let definition_line =
-    concat begin
-      Auxlib.build_list begin fun { add; addall; _ } ->
-        add @@ string "Definition";
-        add space;
-        add identifier;
-        addall pp_parameters;
-        addall pp_return_type;
-        add space;
-        add @@ string ":=";
-      end
-    end
+    PP.horizontal ~spacing:0 [
+      PP.string "Definition";
+      PP.space;
+      identifier;
+      pp_parameters;
+      pp_return_type;
+      PP.space;
+      string ":=";
+    ]
   in
   pp_sentence @@ PP.horizontal_or_indent definition_line body
 
