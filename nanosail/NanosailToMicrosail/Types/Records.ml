@@ -61,7 +61,7 @@ let generate_tag_match
   in
   let* cases = GC.map ~f:record_case_handler record_definitions
   in
-  GC.return @@ Coq.match' ~scope (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.pp_match ~scope (Identifier.pp matched_identifier) cases
 
 
 let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =

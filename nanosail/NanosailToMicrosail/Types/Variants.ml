@@ -117,7 +117,7 @@ let generate_tag_match
   =
   let* cases = GC.map ~f:variant_case_handler variant_definitions
   in
-  GC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.pp_match (Identifier.pp matched_identifier) cases
 
 
 let generate_constructor_match
@@ -127,7 +127,7 @@ let generate_constructor_match
   =
   let* cases = GC.map ~f:constructor_case_handler variant_definition.constructors
   in
-  GC.return @@ Coq.match' (Identifier.pp matched_identifier) cases
+  GC.return @@ Coq.pp_match (Identifier.pp matched_identifier) cases
 
 
 (*

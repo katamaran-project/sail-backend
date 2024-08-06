@@ -106,7 +106,7 @@ let pp_function_definition_kit
         in
         List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
       in
-      Coq.match' matched_expression cases
+      Coq.pp_match matched_expression cases
     in
     Coq.definition ~identifier ~implicit_parameters ~parameters ~result_type body
   in

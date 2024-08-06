@@ -235,8 +235,7 @@ let definition
   pp_sentence @@ PP.horizontal_or_indent definition_line body
 
 
-(* todo pp_match *)
-let match'
+let pp_match
     ?(scope     : PP.document option              = None)
     (expression : PP.document                           )
     (cases      : (PP.document * PP.document) list      ) : PP.document
@@ -316,7 +315,7 @@ let match_pair matched_expressions cases =
       ]
     )
   in
-  match' matched_expression aligned_cases
+  pp_match matched_expression aligned_cases
 
 
 let integer i =

@@ -100,7 +100,7 @@ let pp_denote_function
     let matched_expression = parameter_identifier
     and cases              = denotations
     in
-    Coq.match' ~scope matched_expression cases
+    Coq.pp_match ~scope matched_expression cases
   in
   GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
 
@@ -337,7 +337,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
               in
               GC.map ~f:pp_constructor_case variant_definition.constructors
             in
-            GC.return @@ Coq.match' (PP.string "k") constructor_cases
+            GC.return @@ Coq.pp_match (PP.string "k") constructor_cases
           in
           GC.return (
             Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
@@ -346,7 +346,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
         in
         GC.map ~f:pp_variant_case variant_definitions
       in
-      GC.return @@ Coq.match' matched_expression cases
+      GC.return @@ Coq.pp_match matched_expression cases
     in
     GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
   end
