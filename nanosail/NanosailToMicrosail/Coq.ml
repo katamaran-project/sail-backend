@@ -87,23 +87,12 @@ let original_sail_code (source : PP.document) : PP.document =
   if
     is_single_line str
   then
-    PP.(
-      horizontal [
-        left_comment_delimiter;
-        string (String.rstrip str);
-        right_comment_delimiter
-      ]
-    )
+    PP.string (String.rstrip str)
   else
-    PP.(
-      vertical [
-        left_comment_delimiter;
-        indent' source;
-        right_comment_delimiter
-      ]
-    )
+    PP.indent' source
 
 
+(* todo check where this is used, and possibly get rid of comment delimiters *)
 let original_sail_codes (sources : PP.document list) : PP.document =
   let combined_sources =
     PP.(separate hardline sources)
