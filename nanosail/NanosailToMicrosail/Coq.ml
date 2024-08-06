@@ -419,13 +419,15 @@ let finite_instance
         type_name;
         string ":=";
       ];
-      twice space ^^ PP.horizontal [
-        string "{|";
-        string "enum";
-        string ":=";
-        align @@ enum_values;
-        string "|}"
-      ]
+      PP.indent' begin
+        PP.horizontal [
+          string "{|";
+          string "enum";
+          string ":=";
+          align @@ enum_values;
+          string "|}"
+        ]
+      end
     ]
   )
   in
