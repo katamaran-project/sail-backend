@@ -271,3 +271,10 @@ let horizontal_or_indent (first : document) (second : document) =
 *)
 let horizontal_or_vertical (documents : document list) =
   PPrint.(group @@ separate (break 1) documents)
+
+
+let build_horizontal ?(spacing = 1) (builder : document Auxlib.list_builder -> unit) : document =
+  let items =
+    Auxlib.build_list builder
+  in
+  horizontal ~spacing items
