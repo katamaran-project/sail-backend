@@ -53,7 +53,7 @@ let soft_surround = PPrint.soft_surround
 let break         = PPrint.break
 let align         = PPrint.align
 let group         = PPrint.group
-let ifflat        = PPrint.ifflat
+(* let ifflat        = PPrint.ifflat *)
 let requirement   = PPrint.requirement
 
 
@@ -235,3 +235,25 @@ let horizontal documents =
 
 let vertical_strings ?(spacing = 1) strings =
   PPrint.(vertical ~spacing @@ List.map ~f:utf8string strings)
+
+
+(*
+
+     first second
+
+   or
+
+     first
+       second
+   
+ *)
+let horizontal_or_indent (first : document) (second : document) =
+  let open PPrint
+  in
+  group begin
+    concat [
+      first;
+      break 1;
+      ifflat second (indent' second)
+    ]
+  end

@@ -219,29 +219,29 @@ let definition
                       add @@ align @@ separate space @@ pp_explicit_and_implicit_parameters
                     end
   in
-  group begin
-      concat begin
-          Auxlib.build_list begin fun { add; addall; _ } ->
-            add @@ string "Definition";
-            add space;
-            add identifier;
-            addall @@ pp_parameters;
-            begin
-              match result_type with
-              | None    -> ()
-              | Some rt ->
-                 add space;
-                 add colon;
-                 add space;
-                 add rt
-            end;
-            add space;
-            add @@ string ":=";
-            add @@ break 1;
-            add @@ ifflat body (indent' body)
+  let definition_line =
+    concat begin
+      Auxlib.build_list begin fun { add; addall; _ } ->
+        add @@ string "Definition";
+        add space;
+        add identifier;
+        addall @@ pp_parameters;
+        begin
+          match result_type with
+          | None    -> ()
+          | Some rt -> begin
+              add space;
+              add colon;
+              add space;
+              add rt
             end
-        end ^^ eol
+        end;
+        add space;
+        add @@ string ":=";
+      end
     end
+  in
+  pp_sentence @@ PP.horizontal_or_indent definition_line body
 
 
 (* todo pp_match *)
