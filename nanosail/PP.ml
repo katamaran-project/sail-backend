@@ -257,3 +257,8 @@ let horizontal_or_indent (first : document) (second : document) =
       ifflat second (indent' second)
     ]
   end
+
+
+let horizontal_or_vertical (documents : document list) =
+  PPrint.(group @@ separate (break 1) documents)
+
