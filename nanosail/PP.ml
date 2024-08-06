@@ -7,7 +7,7 @@ type requirement = PPrint.requirement (* todo remove *)
 
 let empty     = PPrint.empty
 let string    = PPrint.utf8string
-let utf8string = PPrint.utf8string (* todo remove *)                  
+let utf8string = PPrint.utf8string (* todo remove *)
 
 let plus      = PPrint.plus
 let star      = PPrint.star
