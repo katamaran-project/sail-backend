@@ -22,13 +22,13 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | Append               -> GC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let rec ty_of_val (value : Ast.Value.t) : Ast.Type.t =
+let rec type_of_value (value : Ast.Value.t) : Ast.Type.t =
   match value with
   | Unit          -> Unit
   | Bool _        -> Bool
   | Int _         -> Int
   | String _      -> String
-  | Prod (v1, v2) -> Tuple [ty_of_val v1; ty_of_val v2]
+  | Prod (v1, v2) -> Tuple [type_of_value v1; type_of_value v2]
 
 
 let rec pp_value (value : Ast.Value.t) : PP.document =
@@ -59,7 +59,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     | String s         -> GC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
     | Unit             -> GC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
     | Prod (_, _) as v -> begin
-        let* tuple_type' = Nanotype.pp_nanotype (ty_of_val v)
+        let* tuple_type' = Nanotype.pp_nanotype (type_of_value v)
         in
         let value' = pp_value v
         in
