@@ -16,5 +16,6 @@ module Ignored              = Ignored
 module Untranslated         = Untranslated
 module ValueDefinitions     = ValueDefinitions
 module BaseModule           = BaseModule
+module ProgramModule        = ProgramModule
 module Kind                 = Kind
 module TypeQuantifier       = TypeQuantifier

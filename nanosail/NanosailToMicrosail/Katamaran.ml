@@ -8,41 +8,6 @@ let genblock loc label contents =
   GC.generation_block loc (PP.string label) contents
 
 
-let pp_program_module
-      (program_name                          : string                                                                           )
-      (base_name                             : string                                                                           )
-      (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
-  =
-  let flag            = Coq.Import
-  and identifier      = program_name ^ "Program"
-  and base_identifier = base_name ^ "Base" in
-  let includes        = [ "Program"; base_identifier ]
-  in
-  let* contents =
-    let* function_declaration_kit =
-      FunDeclKit.generate @@ List.map ~f:snd function_definitions;
-    and* function_definition_kit =
-      FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
-    and* foreign_kit =
-      ForeignKit.pp_foreign_kit ()
-    in
-    GC.return @@ PP.vertical ~spacing:2 [
-      function_declaration_kit;
-      Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
-      function_definition_kit;
-      Coq.pp_sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
-      foreign_kit;
-      Coq.pp_sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
-    ]
-  in
-  GC.return @@ Coq.module'
-    ~flag:flag
-    ~includes:includes
-    identifier
-    contents
-
-
 let pretty_print (ir : Ast.program) : PP.document GC.t =
   let type_definitions     = Ast.(select Extract.(type_definition of_anything) ir.definitions)
   and enum_definitions     = Ast.(select Extract.(type_definition of_enum    ) ir.definitions)
@@ -103,7 +68,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
 
   let pp_program : PP.document GC.t =
     let* program_module =
-      pp_program_module
+      ProgramModule.pp_program_module
         ir.program_name
         "Default"
         Ast.(select Extract.function_definition ir.definitions)
