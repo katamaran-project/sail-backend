@@ -215,24 +215,22 @@ let definition
       List.concat [ pp_implicit_parameters; pp_explicit_parameters ]
     in
     if List.is_empty pp_explicit_and_implicit_parameters
-    then PP.empty
-    else PP.space ^^ PP.horizontal_or_vertical pp_explicit_and_implicit_parameters
+    then None
+    else Some (PP.horizontal_or_vertical pp_explicit_and_implicit_parameters)
   in
   let pp_return_type =
     match result_type with
-    | None    -> PP.empty
-    | Some rt -> PP.(space ^^ horizontal [ PP.colon; rt ])
+    | None    -> None
+    | Some rt -> Some (PP.(horizontal [ PP.colon; rt ]))
   in
   let definition_line =
-    PP.horizontal ~spacing:0 [
-      PP.string "Definition";
-      PP.space;
-      identifier;
-      pp_parameters;
-      pp_return_type;
-      PP.space;
-      string ":=";
-    ]
+    PP.build_horizontal @@ fun { add; addopt; _ } -> begin
+      add    @@ PP.string "Definition";
+      add    @@ identifier;
+      addopt @@ pp_parameters;
+      addopt @@ pp_return_type;
+      add    @@ string ":=";
+    end
   in
   pp_sentence @@ PP.horizontal_or_indent definition_line body
 
