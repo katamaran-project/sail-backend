@@ -1,3 +1,4 @@
+open Base
 include Recursive
 
 
@@ -122,3 +123,88 @@ type t =
   | UntranslatedDefinition           of Untranslated.t
   | ValueDefinition                  of value_definition
   | IgnoredDefinition
+
+
+module Select = struct
+  let select
+      (extractor   : t -> 'a option                 )
+      (definitions : (Sail.sail_definition * t) list)
+    =
+    let lift_extractor extractor (sail_definition, definition) =
+      Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
+    in
+    List.filter_map ~f:(lift_extractor extractor) definitions
+
+
+  let identity x = Some x
+
+  let function_definition (definition : t) =
+    match definition with
+    | FunctionDefinition x -> Some x
+    | _                    -> None
+
+  let type_definition
+      (of_kind    : Type.t -> 'a option)
+      (definition : t                  )
+    =
+    match definition with
+    | TypeDefinition x -> of_kind x
+    | _                -> None
+
+  let of_anything = Option.some
+
+  let of_enum (type_definition : Type.t) =
+    match type_definition with
+    | Enum x -> Some x
+    | _      -> None
+
+  let of_variant (type_definition : Type.t) =
+    match type_definition with
+    | Variant x -> Some x
+    | _         -> None
+
+  let of_record (type_definition : Type.t) =
+    match type_definition with
+    | Record x -> Some x
+    | _        -> None
+
+  let of_abbreviation (type_definition : Type.t) =
+    match type_definition with
+    | Abbreviation x -> Some x
+    | _              -> None
+
+  let of_alias (type_definition : Type.t) =
+    match type_definition with
+    | Type.Abbreviation { identifier; abbreviation } -> begin
+        match abbreviation with
+        | Type.Abbreviation.NumericExpression (_, _) -> None (* todo cleanup: remove qualifiers *)
+        | Type.Abbreviation.NumericConstraint (_, _) -> None
+        | Type.Abbreviation.Alias (quant, t)         -> Some (identifier, quant, t)
+      end
+    | _ -> None
+
+  let register_definition (definition : t) =
+    match definition with
+    | RegisterDefinition x -> Some x
+    | _                    -> None
+
+  let untranslated_definition (definition : t) =
+    match definition with
+    | UntranslatedDefinition x -> Some x
+    | _                        -> None
+
+  let ignored_definition (definition : t) =
+    match definition with
+    | IgnoredDefinition -> Some ()
+    | _                 -> None
+
+  let top_level_type_constraint_definition (definition : t) =
+    match definition with
+    | TopLevelTypeConstraintDefinition x -> Some x
+    | _                                  -> None
+
+  let value_definition (definition : t) =
+    match definition with
+    | ValueDefinition x -> Some x
+    | _                 -> None
+end

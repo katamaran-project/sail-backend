@@ -318,7 +318,7 @@ let with_destructured_record
             Identifier.translate_identifier [%here] record_type_identifier
           in
           let* lookup_result =
-            TC.lookup_type_of_kind Ast.Select.of_record record_type_identifier
+            TC.lookup_type_of_kind Ast.Definition.Select.of_record record_type_identifier
           in
           match lookup_result with
           | Some record_type_definition -> begin

@@ -9,11 +9,11 @@ let genblock loc label contents =
 
 
 let pretty_print (ir : Ast.program) : PP.document GC.t =
-  let type_definitions     = Ast.Select.(select (type_definition of_anything) ir.definitions)
-  and enum_definitions     = Ast.Select.(select (type_definition of_enum    ) ir.definitions)
-  and record_definitions   = Ast.Select.(select (type_definition of_record  ) ir.definitions)
-  and variant_definitions  = Ast.Select.(select (type_definition of_variant ) ir.definitions)
-  and register_definitions = Ast.Select.(select register_definition           ir.definitions)
+  let type_definitions     = Ast.Definition.Select.(select (type_definition of_anything) ir.definitions)
+  and enum_definitions     = Ast.Definition.Select.(select (type_definition of_enum    ) ir.definitions)
+  and record_definitions   = Ast.Definition.Select.(select (type_definition of_record  ) ir.definitions)
+  and variant_definitions  = Ast.Definition.Select.(select (type_definition of_variant ) ir.definitions)
+  and register_definitions = Ast.Definition.Select.(select register_definition           ir.definitions)
   in
 
   let pp_prelude : PP.document GC.t =
@@ -71,8 +71,8 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       ProgramModule.pp_program_module
         ir.program_name
         "Default"
-        Ast.Select.(select function_definition ir.definitions)
-        Ast.Select.(select top_level_type_constraint_definition ir.definitions)
+        Ast.Definition.Select.(select function_definition ir.definitions)
+        Ast.Definition.Select.(select top_level_type_constraint_definition ir.definitions)
     in
     GC.return @@ generate_section "PROGRAM" program_module
   in

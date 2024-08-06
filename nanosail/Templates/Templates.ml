@@ -75,7 +75,7 @@ let template_prelude (translation : Ast.program) =
     in
     let f () =
       let ignored_definitions =
-        List.map ~f:fst @@ Ast.Select.(select ignored_definition translation.definitions)
+        List.map ~f:fst @@ Ast.Definition.Select.(select ignored_definition translation.definitions)
       in
       let formatted_ignored_definitions =
         (* todo improve this *)
@@ -99,7 +99,7 @@ let template_prelude (translation : Ast.program) =
     in
     let f () =
       let untranslated_definitions =
-        Ast.Select.(select untranslated_definition translation.definitions)
+        Ast.Definition.Select.(select untranslated_definition translation.definitions)
       in
       let formatted_untranslated_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
@@ -113,7 +113,7 @@ let template_prelude (translation : Ast.program) =
     let id = "untranslated-definitions?"
     in
     let f () =
-      EC.return @@ not @@ List.is_empty @@ Ast.Select.(select untranslated_definition translation.definitions)
+      EC.return @@ not @@ List.is_empty @@ Ast.Definition.Select.(select untranslated_definition translation.definitions)
     in
     nullary_boolean_function id f
   in
