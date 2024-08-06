@@ -53,7 +53,6 @@ let soft_surround = PPrint.soft_surround
 let break         = PPrint.break
 let align         = PPrint.align
 let group         = PPrint.group
-(* let ifflat        = PPrint.ifflat *)
 let requirement   = PPrint.requirement
 
 
