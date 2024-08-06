@@ -1,12 +1,71 @@
 open Base
 
-include PPrint
+
+type document    = PPrint.document
+type requirement = PPrint.requirement (* todo remove *)
 
 
-let indent' ?(level = 2) doc = blank level ^^ align doc
+let empty     = PPrint.empty
+let string    = PPrint.utf8string
+let utf8string = PPrint.utf8string (* todo remove *)                  
+
+let plus      = PPrint.plus
+let star      = PPrint.star
+let minus     = PPrint.minus
+let equals    = PPrint.equals
+
+let lparen    = PPrint.lparen
+let rparen    = PPrint.rparen
+let langle    = PPrint.langle
+let rangle    = PPrint.rangle
+let lbracket  = PPrint.lbracket
+let rbracket  = PPrint.rbracket
+let lbrace    = PPrint.lbrace
+let rbrace    = PPrint.rbrace
+
+let braces    = PPrint.braces
+let parens    = PPrint.parens
+let dquotes   = PPrint.dquotes
+let brackets  = PPrint.brackets
+
+let dot       = PPrint.dot
+let bang      = PPrint.bang
+let semi      = PPrint.semi
+let comma     = PPrint.comma
+let colon     = PPrint.colon
+let space     = PPrint.space
+
+let ampersand = PPrint.ampersand
+let percent   = PPrint.percent
+let bar       = PPrint.bar
+let underscore = PPrint.underscore
+
+let (^^)     = PPrint.(^^)
+
+
+(* todo remove *)
+let twice         = PPrint.twice
+let separate      = PPrint.separate
+let separate_map  = PPrint.separate_map
+let hardline      = PPrint.hardline
+let concat        = PPrint.concat
+let soft_surround = PPrint.soft_surround
+let break         = PPrint.break
+let align         = PPrint.align
+let group         = PPrint.group
+let ifflat        = PPrint.ifflat
+let requirement   = PPrint.requirement
+let infix         = PPrint.infix
+
+module ToChannel  = PPrint.ToChannel (* todo remove *)
+
+
+let indent' ?(level = 2) doc = PPrint.(blank level ^^ align doc)
 
 
 let delimited_sequence left_delimiter right_delimiter separator items =
+  let open PPrint
+  in
   concat [
     left_delimiter;
     align (
@@ -28,6 +87,8 @@ let delimited_sequence left_delimiter right_delimiter separator items =
       xs[2]
 *)
 let hanging_list ?(adaptive = true) x xs =
+  let open PPrint
+  in
   if
     adaptive
   then
@@ -45,6 +106,8 @@ let hanging_list ?(adaptive = true) x xs =
 
 
 let simple_app terms =
+  let open PPrint
+  in
   match terms with
   | []    -> empty
   | [x]   -> x
@@ -62,6 +125,8 @@ let simple_app terms =
 
 
 let indented_enclosed_lines starting_line indented ending_line =
+  let open PPrint
+  in
   separate hardline [
     starting_line;
     indent' indented;
@@ -70,6 +135,8 @@ let indented_enclosed_lines starting_line indented ending_line =
 
 
 let pad_right width document =
+  let open PPrint
+  in
   let document_width =
     requirement document
   in
@@ -89,6 +156,8 @@ let string_of_document ?(page_width = 80) document =
 
 
 let separate_nonempty separator items =
+  let open PPrint
+  in
   let is_nonempty item =
     requirement item > 0
   in
@@ -107,6 +176,8 @@ let separate_nonempty separator items =
     description2
 *)
 let description_list (items : (document * document) list) : document =
+  let open PPrint
+  in
   let render_item (header, description) =
     separate hardline [ header; indent' description ]
   in
@@ -114,7 +185,7 @@ let description_list (items : (document * document) list) : document =
 
 
 let line_nl (d : document) : document =
-  d ^^ hardline
+  PPrint.(d ^^ hardline)
 
 
 type build_lines_context =
@@ -126,6 +197,8 @@ type build_lines_context =
 
 
 let build_lines (body : build_lines_context -> unit) =
+  let open PPrint
+  in
   let reversed_accumulated_lines = ref []
   in
   let accumulate (line : document) : unit =
@@ -144,12 +217,12 @@ let build_lines (body : build_lines_context -> unit) =
 
 
 let lines (strings : string list) : document =
-  separate_map hardline string strings
+  PPrint.(separate_map hardline string strings)
 
 
 let vertical ?(spacing = 1) documents =
-  separate (repeat spacing hardline) documents
+  PPrint.(separate (repeat spacing hardline) documents)
 
 
 let vertical_strings ?(spacing = 1) strings =
-  vertical ~spacing @@ List.map ~f:utf8string strings
+  PPrint.(vertical ~spacing @@ List.map ~f:utf8string strings)
