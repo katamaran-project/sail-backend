@@ -371,7 +371,7 @@ let open_scopes scopes =
   PP.(separate hardline (List.map ~f:open_scope scopes))
 
 
-let record_value fields =
+let record_value (fields : (PP.document * PP.document) list) : PP.document =
   let items =
     let item_of_field (field_name, field_value) =
       PP.(
