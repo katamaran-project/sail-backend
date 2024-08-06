@@ -57,7 +57,13 @@ let ifflat        = PPrint.ifflat
 let requirement   = PPrint.requirement
 let infix         = PPrint.infix
 
-module ToChannel  = PPrint.ToChannel (* todo remove *)
+
+let write_to_channel
+    (text_width     : PPrint.requirement )
+    (output_channel : Stdio.Out_channel.t)
+    (document       : document           )
+  =
+  PPrint.(ToChannel.pretty 1. text_width output_channel document)
 
 
 let indent' ?(level = 2) doc = PPrint.(blank level ^^ align doc)

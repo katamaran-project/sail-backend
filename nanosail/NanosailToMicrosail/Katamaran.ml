@@ -206,9 +206,3 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
 
 let full_translation (ir : Ast.program) : PP.document =
   GC.generate @@ pretty_print ir
-
-
-let output_document_to_channel len out (document : PP.document GC.t) =
-  let doc = GC.generate document
-  in
-  PP.(ToChannel.pretty 1. len out (doc ^^ twice hardline))
