@@ -229,8 +229,8 @@ let vertical ?(spacing = 1) documents =
   PPrint.(separate (repeat spacing hardline) documents)
 
 
-let horizontal documents =
-  PPrint.(separate space documents)
+let horizontal ?(spacing = 1) documents =
+  PPrint.(separate (repeat spacing space) documents)
 
 
 let vertical_strings ?(spacing = 1) strings =
