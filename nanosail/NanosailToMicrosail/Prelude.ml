@@ -1,5 +1,5 @@
 module GC = GenerationContext
-  
+
 
 let pp_require_imports () : PP.document =
   let coq_imports =

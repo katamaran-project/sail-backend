@@ -219,7 +219,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   in
 
   let _ = pp_program in (* remove this *)
-  
+
   let* sections = GC.sequence
     [
       pp_prelude;

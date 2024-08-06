@@ -63,7 +63,7 @@ module rec Type : sig
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
     | Alias       of Identifier.t * t
-  
+
   val to_string : t -> string
   val equal     : t -> t -> bool
 end = struct

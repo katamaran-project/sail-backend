@@ -157,7 +157,7 @@ struct
     let integer   n   = Integer n
     let bool      b   = Bool b
     let callable  f   = Callable f
-    let reference a   = Reference a 
+    let reference a   = Reference a
 
     let nil          = Nil
   end
@@ -265,11 +265,11 @@ struct
     | Failure of Error.t
 
   type 'a accessor = (state -> 'a) * (state -> 'a -> state)
-  
+
   module Monad = Monads.StateResult.Make(struct type t = state end) (Error)
 
   open Monads.Notations.Star(Monad)
-      
+
   include Monads.Util.Make(Monad)
 
 

@@ -139,7 +139,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     match result with
     | C.EC.Success result -> Slang.Value.truthy result
     | C.EC.Failure _      -> failwith "Error while reading configuration"
-    
+
 
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
     get ignore_default_order

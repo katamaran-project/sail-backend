@@ -49,7 +49,7 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
 
   let update (accessor : 'a accessor) (f : 'a -> 'a) : unit t =
     bind (get accessor) @@ fun x -> put accessor (f x)
-  
+
   let recover (f : 'a t) (error_handler: error -> 'a t) =
     SM.bind f (fun result ->
         match result with

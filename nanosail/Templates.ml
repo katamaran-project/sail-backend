@@ -62,7 +62,7 @@ let template_prelude (translation : Ast.program) =
     in
       (id, Slang.Value.Callable (Slang.Functions.mk_multimethod [ impl; error id ]))
   in
-  
+
   let exported_full_translation =
     let id = "full-translation"
     in
@@ -160,7 +160,7 @@ let run_code
   in
   let value, _state = Slang.EvaluationContext.run program
   in
-  match value with  
+  match value with
    | Success string -> string
    | _              -> failwith "Code should produce string"
 

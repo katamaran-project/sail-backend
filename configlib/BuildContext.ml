@@ -126,7 +126,7 @@ module M (_ : sig end) = struct
     export_strict_function export_as script_function;
     setting
 
-  
+
   (*
     Creates a Slang function named <export_as> that takes a list of strings as argument.
     Calling this function causes a ref cell to be set to this list of strings.

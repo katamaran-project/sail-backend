@@ -49,7 +49,7 @@ let write_refcell =
     | _ -> EC.fail "@= expects a reference and a value"
   in
   (id, Functions.mk_strict_function impl)
-  
+
 
 let initialize =
   let definitions = [

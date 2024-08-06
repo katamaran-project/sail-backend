@@ -20,7 +20,7 @@ let fail    = Monad.fail
 
 let get     = Monad.get
 let put     = Monad.put
-let update  = Monad.update                
+let update  = Monad.update
 
 let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Pair.first id)
 let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Pair.first id)
@@ -72,7 +72,7 @@ let next_index =
   let* () = put index @@ i + 1
   in
   return i
-    
+
 
 let convert_frame_to_document (frame : frame) =
   let annotations, comments = frame

@@ -133,7 +133,7 @@ let generate_constructor_match
 (*
 
    Given a variant definition, returns which EqDecs are required.
-   
+
  *)
 let eqdec_identifiers_for (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
   let inductive_type_identifier =

@@ -2,7 +2,7 @@ open Monads.Notations.Star(GenerationContext)
 
 (* todo define mli file in order to hide module aliases *)
 module GC                = GenerationContext
-  
+
 module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
 module Enums             = Enums

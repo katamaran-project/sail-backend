@@ -17,5 +17,5 @@ module Function = struct
   let to_bool = to_type Value.Mk.bool
 
   (* unit -> unit *)
-  let to_unit = to_type (fun () -> Value.Mk.nil)    
+  let to_unit = to_type (fun () -> Value.Mk.nil)
 end
