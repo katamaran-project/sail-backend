@@ -55,7 +55,6 @@ let align         = PPrint.align
 let group         = PPrint.group
 let ifflat        = PPrint.ifflat
 let requirement   = PPrint.requirement
-(* let infix         = PPrint.infix *)
 
 
 let write_to_channel
