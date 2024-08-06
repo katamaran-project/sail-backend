@@ -25,11 +25,17 @@ let eol = PP.dot
 let left_comment_delimiter  = PP.string "(*"
 let right_comment_delimiter = PP.string "*)"
 
+let record_left_delimiter  = PP.string "{|"
+let record_right_delimiter = PP.string "||"
+let record_field_separator = PP.semi
 
+
+(* todo move *)
 let ends_on_newline (string : string) : bool =
   String.is_suffix string ~suffix:"\n"
 
 
+(* todo move *)
 let count_newlines (string : string) : int =
   String.count string ~f:(Char.equal '\n')
 
@@ -366,9 +372,7 @@ let open_scopes scopes =
 
 
 let record_value fields =
-  let ldelim = PP.string "{| "
-  and rdelim = PP.string " |}"
-  and items =
+  let items =
     let item_of_field (field_name, field_value) =
       PP.(
         group begin
@@ -382,7 +386,7 @@ let record_value fields =
     in
     List.map ~f:item_of_field fields
   in
-  PP.(delimited_sequence ldelim rdelim semi items)
+  PP.(delimited_sequence record_right_delimiter record_right_delimiter record_field_separator items)
 
 
 (*
