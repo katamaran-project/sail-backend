@@ -228,8 +228,8 @@ let vertical ?(spacing = 1) documents =
   PPrint.(separate (repeat spacing hardline) documents)
 
 
-let horizontal ?(spacing = 1) documents =
-  PPrint.(separate (repeat spacing space) documents)
+let horizontal ?(separator = space) documents =
+  PPrint.(separate separator documents)
 
 
 let vertical_strings ?(spacing = 1) strings =
@@ -272,16 +272,16 @@ let horizontal_or_vertical (documents : document list) =
   PPrint.(group @@ separate (break 1) documents)
 
 
-let build_horizontal ?(spacing = 1) (builder : document Auxlib.list_builder -> unit) : document =
+let build_horizontal ?(separator = space) (builder : document Auxlib.list_builder -> unit) : document =
   let items =
     Auxlib.build_list builder
   in
-  horizontal ~spacing items
+  horizontal ~separator items
 
 
 let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   let flattened_layout =
-    build_horizontal @@ fun { add; addall; _ } -> begin
+    build_horizontal ~separator @@ fun { add; addall; _ } -> begin
       add    left_delimiter;
       addall items;
       add    right_delimiter;
