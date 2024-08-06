@@ -284,7 +284,7 @@ let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   let flattened_layout =
     horizontal ~separator:space [
       left_delimiter;
-      horizontal ~separator items;
+      horizontal ~separator:PPrint.(separator ^^ space) items;
       right_delimiter
     ]
 
