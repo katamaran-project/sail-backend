@@ -137,7 +137,7 @@ let lookup_type_of_kind
 
 
 let lookup_type =
-  lookup_type_of_kind (Ast.Extract.of_anything)
+  lookup_type_of_kind Ast.Select.of_anything
 
 
 (* Looks up type of register with given name *)

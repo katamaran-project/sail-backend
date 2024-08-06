@@ -31,7 +31,7 @@ let pp_value_definition (value_definition : Ast.Definition.value_definition) : P
 let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
   let* coq_lines =
     let value_definitions =
-      List.map ~f:snd @@ Ast.(select Extract.value_definition definitions)
+      List.map ~f:snd @@ Ast.Select.(select value_definition definitions)
     in
     GC.map ~f:pp_value_definition value_definitions
   in

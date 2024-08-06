@@ -31,7 +31,17 @@ type program = {
   }
 
 
-module Extract = struct
+module Select = struct
+  let select
+      (extractor   : Definition.t -> 'a option                 )
+      (definitions : (Sail.sail_definition * Definition.t) list)
+    =
+    let lift_extractor extractor (sail_definition, definition) =
+      Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
+    in
+    List.filter_map ~f:(lift_extractor extractor) definitions
+
+
   let identity x = Some x
 
   let function_definition (definition : Definition.t) =
@@ -104,13 +114,3 @@ module Extract = struct
     | ValueDefinition x -> Some x
     | _                 -> None
 end
-
-
-let select
-    (extractor   : Definition.t -> 'a option                 )
-    (definitions : (Sail.sail_definition * Definition.t) list)
-  =
-  let lift_extractor extractor (sail_definition, definition) =
-    Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
-  in
-  List.filter_map ~f:(lift_extractor extractor) definitions
