@@ -56,7 +56,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
     end
   in
   let contents =
-    PP.vertical ~spacing:2 [
+    PP.vertical ~separator:PP.hardline [
         inductive_type_declaration;
         PP.vertical_strings [
             "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";

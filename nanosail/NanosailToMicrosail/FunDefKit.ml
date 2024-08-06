@@ -114,7 +114,7 @@ let pp_function_definition_kit
     let* function_definitions =
       pp_function_definitions function_definitions top_level_type_constraint_definitions
     in
-    GC.return @@ PP.vertical ~spacing:2 begin
+    GC.return @@ PP.vertical ~separator:PP.(twice hardline) begin
         Auxlib.build_list (fun { add; addall; _ } ->
             addall function_definitions;
             add    fundef

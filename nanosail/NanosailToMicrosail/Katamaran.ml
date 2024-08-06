@@ -37,7 +37,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       let* type_definitions' =
         GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
       in
-      GC.return @@ PP.vertical ~spacing:2 type_definitions'
+      GC.return @@ PP.vertical ~separator:PP.(twice hardline) type_definitions'
     end
   in
 

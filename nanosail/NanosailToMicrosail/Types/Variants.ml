@@ -76,7 +76,7 @@ let generate (variant_definition : Ast.Definition.Type.Variant.t) : PP.document 
     generate_constructors_inductive_type variant_definition
   in
   GC.return begin
-    PP.vertical ~spacing:2 [
+    PP.vertical ~separator:PP.(twice hardline) [
       inductive_type;
       constructors_inductive_type
     ]

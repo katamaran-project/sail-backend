@@ -24,7 +24,7 @@ let pp_program_module
     and* foreign_kit =
       ForeignKit.pp_foreign_kit ()
     in
-    GC.return @@ PP.vertical ~spacing:2 [
+    GC.return @@ PP.vertical ~separator:PP.(twice hardline) [
       function_declaration_kit;
       Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
       function_definition_kit;

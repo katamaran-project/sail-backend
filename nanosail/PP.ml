@@ -224,16 +224,16 @@ let lines (strings : string list) : document =
   PPrint.(separate_map hardline string strings)
 
 
-let vertical ?(spacing = 1) documents =
-  PPrint.(separate (repeat spacing hardline) documents)
+let vertical ?(separator = PPrint.hardline) documents =
+  PPrint.(separate separator documents)
 
 
 let horizontal ?(separator = space) documents =
   PPrint.(separate separator documents)
 
 
-let vertical_strings ?(spacing = 1) strings =
-  PPrint.(vertical ~spacing @@ List.map ~f:utf8string strings)
+let vertical_strings ?(separator = PPrint.hardline) strings =
+  PPrint.(vertical ~separator @@ List.map ~f:utf8string strings)
 
 
 (*
@@ -290,7 +290,7 @@ let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   and unflattened_layout =
     vertical [
       left_delimiter;
-      indent' @@ vertical items;
+      indent' @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
       right_delimiter;
     ]
   in
