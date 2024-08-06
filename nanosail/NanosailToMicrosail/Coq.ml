@@ -409,7 +409,7 @@ let finite_instance
   in
   let declaration =
   PP.(
-    separate hardline [
+    vertical [
       separate space [
         string "#[export,program]";
         string "Instance";
