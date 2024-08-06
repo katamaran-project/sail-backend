@@ -4,8 +4,6 @@ open Slang.Prelude.Shared
 
 module EC = Slang.EvaluationContext
 module GC = NanosailToMicrosail.GenerationContext
-module PP = PPrint
-
 
 
 let string_of_document document =
