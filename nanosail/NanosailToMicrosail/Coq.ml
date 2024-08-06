@@ -88,21 +88,17 @@ let original_sail_code (source : PP.document) : PP.document =
     is_single_line str
   then
     PP.(
-      concat [
+      horizontal [
         left_comment_delimiter;
-        space;
         string (String.rstrip str);
-        space;
         right_comment_delimiter
       ]
     )
   else
     PP.(
-      concat [
+      vertical [
         left_comment_delimiter;
-        twice hardline;
         indent' source;
-        hardline;
         right_comment_delimiter
       ]
     )
