@@ -21,13 +21,14 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         in
         GC.return @@ Coq.pp_list ps
       in
-      let* return_type = Nanotype.pp_nanotype function_definition.function_type.return_type
+      let* return_type =
+        Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       GC.return PP.(
           concat [
               string "Fun";
               space;
-              align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ]
+              align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ] (* todo check this *)
             ]
         )
     in
