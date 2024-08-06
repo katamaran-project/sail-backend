@@ -93,7 +93,13 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     | _      -> begin
         let* binop' = pp_infix_binary_operation binary_operator
         in
-        GC.return @@ PP.infix 2 1 binop' e1' e2'
+        GC.return begin
+          PP.horizontal [
+            PP.parens e1';
+            binop';
+            PP.parens e2';
+          ]
+        end
       end
   in
   match expression with
