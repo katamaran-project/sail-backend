@@ -27,15 +27,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
           concat [
               string "Fun";
               space;
-              align (
-                  group (
-                      concat [
-                          parameter_bindings;
-                          break 1;
-                          parens return_type
-                        ]
-                    )
-                )
+              align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ]
             ]
         )
     in
