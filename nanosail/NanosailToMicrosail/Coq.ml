@@ -29,10 +29,12 @@ let comment_delimiters      = (comment_left_delimiter, comment_right_delimiter)
 let list_left_delimiter    = PP.lbracket
 let list_right_delimiter   = PP.rbracket
 let list_item_separator    = PP.semi
+let list_delimiters        = (list_left_delimiter, list_right_delimiter)
 
 let record_left_delimiter  = PP.string "{|"
 let record_right_delimiter = PP.string "|}"
 let record_field_separator = PP.semi
+let record_delimiters      = (record_left_delimiter, record_right_delimiter)
 
 let tuple_left_delimiter   = PP.lparen
 let tuple_right_delimiter  = PP.rparen
@@ -311,7 +313,7 @@ let record_value (fields : (PP.document * PP.document) list) : PP.document =
     in
     List.map ~f:item_of_field fields
   in
-  PP.(delimited_list ~left_delimiter:record_left_delimiter ~right_delimiter:record_right_delimiter ~items:items ~separator:PP.(record_field_separator ^^ space)) 
+  PP.(delimited_list ~delimiters:record_delimiters ~items:items ~separator:PP.(record_field_separator ^^ space)) 
 
 
 (*
@@ -327,8 +329,7 @@ let finite_instance
   =
   let enum_values =
     PP.delimited_list
-      ~left_delimiter:list_left_delimiter
-      ~right_delimiter:list_right_delimiter
+      ~delimiters:list_delimiters
       ~separator:list_item_separator
       ~items:values
   in
