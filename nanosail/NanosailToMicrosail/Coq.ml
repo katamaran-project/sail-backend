@@ -407,7 +407,7 @@ let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   pp_sentence PP.(separate hardline lines_of_code)
 
 
-let derive
+let pp_derive
       (class_identifier : Ast.Identifier.t)
       (type_identifier  : Ast.Identifier.t) : PP.document =
   let str =
@@ -420,11 +420,11 @@ let derive
 
 
 let derive_eqdec_for (identifier : Ast.Identifier.t) =
-  derive (Ast.Identifier.mk "EqDec") identifier
+  pp_derive (Ast.Identifier.mk "EqDec") identifier
 
 
 let derive_no_confusion_for (identifier : Ast.Identifier.t) =
-  derive (Ast.Identifier.mk "NoConfusion") identifier
+  pp_derive (Ast.Identifier.mk "NoConfusion") identifier
 
 
 type build_lines_context =
