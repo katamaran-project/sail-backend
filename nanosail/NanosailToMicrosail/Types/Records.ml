@@ -23,7 +23,7 @@ let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document GC
   in
   let* fields     = GC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
   in
-  GC.return @@ Coq.record ~identifier ~type_name ~constructor ~fields
+  GC.return @@ Coq.pp_record ~identifier ~type_name ~constructor ~fields
 
 
 let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =

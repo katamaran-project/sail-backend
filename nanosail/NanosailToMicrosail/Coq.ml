@@ -361,7 +361,7 @@ let pp_finite_instance
 
 
 (* fields as (identifier, type) pairs *)
-let record
+let pp_record
       ~(identifier  : PP.document                     )
       ~(type_name   : PP.document                     )
       ~(constructor : PP.document                     )
