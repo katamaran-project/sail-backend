@@ -18,6 +18,8 @@ module Operator = struct
   let greater_than_or_equals_to = PP.(rangle ^^ equals)
 end
 
+let arrow = PP.string "->"
+
 (* End of line symbol *)
 let eol = PP.dot
 
@@ -453,11 +455,8 @@ let pp_lambda parameter body =
   PP.(separate space [ string "fun"; parameter; string "=>"; align body ])
 
 
-let application f args =
+let pp_application f args =
   PP.(f ^^ space ^^ align (separate space args))
-
-
-let arrow = PP.string "->"
 
 
 let function_type parameter_types result_type =

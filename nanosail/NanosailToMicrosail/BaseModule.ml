@@ -703,7 +703,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
               in
               List.map ~f record_definition.fields
             in
-            Coq.application (Identifier.pp constructor_identifier) arguments
+            Coq.pp_application (Identifier.pp constructor_identifier) arguments
           in
           Coq.pp_lambda (Identifier.pp lambda_parameter) lambda_body
         in
