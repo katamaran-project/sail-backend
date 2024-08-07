@@ -51,7 +51,6 @@ let separate      = PPrint.separate
 let separate_map  = PPrint.separate_map
 let concat        = PPrint.concat
 let soft_surround = PPrint.soft_surround
-let break         = PPrint.break
 let align         = PPrint.align
 
 
