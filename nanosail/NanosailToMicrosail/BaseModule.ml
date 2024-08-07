@@ -936,7 +936,7 @@ let pp_memory_model () : PP.document GC.t =
 *)
 let pp_include_mixin () : PP.document GC.t =
   genblock [%here] "Base Mixin" begin
-    Coq.include_module (PP.string "BaseMixin")
+    Coq.pp_include_module (PP.string "BaseMixin")
   end
 
 

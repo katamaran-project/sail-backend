@@ -471,7 +471,7 @@ let pp_canonical identifier =
   pp_sentence @@ PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
 
 
-let include_module (name : PP.document) =
+let pp_include_module (name : PP.document) =
   pp_sentence @@ PP.simple_app [ PP.string "Include"; name ]
 
 
