@@ -459,7 +459,7 @@ let pp_application f args =
   PP.(f ^^ space ^^ align (separate space args))
 
 
-let function_type parameter_types result_type =
+let pp_function_type parameter_types result_type =
   PP.separate PP.space @@ Auxlib.build_list @@ fun { addall; add; _ } -> begin
     addall parameter_types;
     add arrow;

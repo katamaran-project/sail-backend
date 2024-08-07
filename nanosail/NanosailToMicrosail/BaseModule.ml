@@ -682,7 +682,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
       and result_type =
         PP.separate PP.space [ PP.string "recordt"; Identifier.pp matched_identifier ]
       in
-      Some (Coq.function_type [ parameter_type ] result_type)
+      Some (Coq.pp_function_type [ parameter_type ] result_type)
     in
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) GC.t =
@@ -750,7 +750,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
           PP.parens @@ PP.separate PP.space [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
         ]
       in
-      Some (Coq.function_type [ parameter_type ] return_type)
+      Some (Coq.pp_function_type [ parameter_type ] return_type)
     in
     let* contents =
       let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.document * PP.document) GC.t =
