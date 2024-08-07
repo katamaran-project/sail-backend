@@ -291,21 +291,6 @@ let pp_sail_definition sail_definition =
   PP.vertical_strings lines
 
 
-let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t
-  =
-  if
-    Configuration.(get include_original_code)
-  then
-    add_comment begin
-      PP.vertical ~separator:PP.(twice hardline) [
-        PP.string "Original Sail code";
-        PP.indent' @@ pp_sail_definition original
-      ]
-    end
-  else
-    return ()
-
-
 let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
   if
     Configuration.(get include_original_code)
@@ -321,3 +306,6 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
   else
     return ()
 
+
+let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t =
+  add_original_definitions [ original ]
