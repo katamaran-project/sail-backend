@@ -9,25 +9,26 @@ let generate
   =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with
-    | Libsail.Parse_ast.Range (start, stop) ->
-       if String.equal start.pos_fname stop.pos_fname
-       then (
-         if start.pos_lnum = stop.pos_lnum
-         then
-           Printf.sprintf "%s line %d chars %d-%d"
-             start.pos_fname
-             start.pos_lnum
-             (start.pos_cnum - start.pos_bol)
-             (stop.pos_cnum - stop.pos_bol)
-         else
-           Printf.sprintf "%s from line %d:%d to line %d:%d"
-             start.pos_fname
-             start.pos_lnum
-             (start.pos_cnum - start.pos_bol)
-             stop.pos_lnum
-             (stop.pos_cnum - stop.pos_bol)
-       )
-       else StringOf.Sail.location location
+    | Libsail.Parse_ast.Range (start, stop) -> begin
+        if String.equal start.pos_fname stop.pos_fname
+        then (
+          if start.pos_lnum = stop.pos_lnum
+          then
+            Printf.sprintf "File \"%s\" line %d chars %d-%d"
+              start.pos_fname
+              start.pos_lnum
+              (start.pos_cnum - start.pos_bol)
+              (stop.pos_cnum - stop.pos_bol)
+          else
+            Printf.sprintf "File \"%s\" from line %d:%d to line %d:%d"
+              start.pos_fname
+              start.pos_lnum
+              (start.pos_cnum - start.pos_bol)
+              stop.pos_lnum
+              (stop.pos_cnum - stop.pos_bol)
+        )
+        else StringOf.Sail.location location
+      end
     | _ -> StringOf.Sail.location location
   in
   let {
@@ -46,8 +47,8 @@ let generate
     | None         -> Printf.sprintf "No message"
   in
   PP.(
-    vertical [
-      GC.pp_sail_definition sail_definition;
+    enclose_vertically (PP.string "----", PP.string "----") @@ vertical [
+      indent @@ GC.pp_sail_definition sail_definition ^^ hardline;
       string ocaml_location_string;
       string sail_location_string;
       string message_string
