@@ -87,11 +87,14 @@ let convert_frame_to_document (frame : frame) =
           align annotation
         ])
     in
-    PP.separate PP.hardline @@ List.mapi ~f:pp_annotation annotations
+    List.mapi ~f:pp_annotation annotations
   and pp_comments =
-    PP.(separate_map (twice hardline) (fun (Comment c) -> c) comments)
+    List.map ~f:(fun (Comment c) -> c) comments
   in
-  PP.(separate (twice hardline) [ pp_comments; pp_annotations ])
+  PP.build_vertical @@ fun { addall; _ } -> begin
+    addall pp_comments;
+    addall pp_annotations
+  end
 
 
 let block (f : PP.document t) : PP.document t =
