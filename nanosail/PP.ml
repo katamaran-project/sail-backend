@@ -245,7 +245,7 @@ let vertical_strings ?(separator = PPrint.hardline) strings =
 
      first
        second
-   
+
 *)
 let horizontal_or_indent (first : document) (second : document) =
   let open PPrint
@@ -343,7 +343,7 @@ let delimited_list ~delimiters ~items ~separator =
     enclose_vertically delimiters begin
       indent @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
     end
-  in  
+  in
   PPrint.group begin
     PPrint.ifflat flattened_layout unflattened_layout
   end

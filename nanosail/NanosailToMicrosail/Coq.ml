@@ -313,7 +313,7 @@ let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
     in
     List.map ~f:item_of_field fields
   in
-  PP.(delimited_list ~delimiters:record_delimiters ~items:items ~separator:PP.(record_field_separator ^^ space)) 
+  PP.(delimited_list ~delimiters:record_delimiters ~items:items ~separator:PP.(record_field_separator ^^ space))
 
 
 (*
