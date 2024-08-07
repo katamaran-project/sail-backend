@@ -475,42 +475,6 @@ let pp_include_module (name : PP.document) =
   pp_sentence @@ PP.simple_app [ PP.string "Include"; name ]
 
 
-let generation_block
-    (position : Lexing.position)
-    (label    : PP.document    )
-    (contents : PP.document    ) : PP.document
-  =
-  if
-    Configuration.(get show_generation_blocks)
-  then
-    let position_string =
-      let filename    = position.pos_fname
-      and line_number = position.pos_lnum
-      in
-      Printf.sprintf "%s:%d" filename line_number
-    in
-    let entry_block =
-      pp_inline_comment @@ PP.separate PP.space [
-        PP.string "<<<<<";
-        PP.string position_string;
-        label
-      ]
-    and exit_block =
-      pp_inline_comment @@ PP.separate PP.space [
-        PP.string ">>>>>";
-        PP.string position_string;
-        label
-      ]
-    in
-    PP.separate PP.hardline [
-      entry_block;
-      PP.indent contents;
-      exit_block;
-    ]
-  else
-    contents
-
-
 let pp_tuple_type ts =
   PP.separate (PP.string " * ") ts
 
