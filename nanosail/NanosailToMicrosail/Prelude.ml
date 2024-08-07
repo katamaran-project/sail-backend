@@ -36,7 +36,7 @@ let pp_open_scopes () : PP.document =
         add "list_scope";
       )
   in
-  Coq.open_scopes scopes
+  Coq.pp_open_scopes scopes
 
 
 let pp_definitions () : PP.document =

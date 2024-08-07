@@ -290,7 +290,7 @@ let imports names =
   PP.(pp_sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 
-let open_scopes scopes =
+let pp_open_scopes scopes =
   let open_scope scope =
     PP.(
       pp_sentence @@ horizontal [
