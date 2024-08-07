@@ -172,7 +172,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
         Registers.extra_eqdec_identifiers ();
       ]
     in
-    let coq_lines = List.map ~f:Coq.derive_eqdec_for eqdec_identifiers
+    let coq_lines = List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
     in
     genblock [%here] "EqDec" begin
       PP.separate PP.hardline coq_lines

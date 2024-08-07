@@ -419,7 +419,7 @@ let pp_derive
   PP.string str
 
 
-let derive_eqdec_for (identifier : Ast.Identifier.t) =
+let pp_derive_eqdec_for (identifier : Ast.Identifier.t) =
   pp_derive (Ast.Identifier.mk "EqDec") identifier
 
 
