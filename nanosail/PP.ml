@@ -63,6 +63,9 @@ let write_to_channel
   PPrint.(ToChannel.pretty 1. text_width output_channel document)
 
 
+let is_empty doc =
+  Int.equal (PPrint.requirement doc) 0
+
 let indent' ?(level = 2) doc = PPrint.(blank level ^^ align doc)
 
 
