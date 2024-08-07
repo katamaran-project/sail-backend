@@ -26,7 +26,7 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
   match value with
   | Unit          -> PP.string "tt"
   | Bool b        -> PP.string (Bool.to_string b)
-  | Int i         -> Coq.integer i
+  | Int i         -> Coq.pp_integer i
   | String s      -> PP.(dquotes @@ string s)
   | Prod (v1, v2) -> Coq.pp_product (pp_value v1) (pp_value v2)
 
@@ -46,7 +46,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     match value with
     | Bool true        -> GC.return @@ PP.string "exp_true"
     | Bool false       -> GC.return @@ PP.string "exp_false"
-    | Int n            -> GC.return @@ PP.(simple_app [string "exp_int"; Coq.integer n])
+    | Int n            -> GC.return @@ PP.(simple_app [string "exp_int"; Coq.pp_integer n])
     | String s         -> GC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
     | Unit             -> GC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
     | Prod (_, _) as v -> begin

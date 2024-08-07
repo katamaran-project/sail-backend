@@ -256,7 +256,7 @@ let pp_match_pair matched_expressions cases =
   pp_match matched_expression aligned_cases
 
 
-let integer i =
+let pp_integer i =
   let pp_i = PP.(string (Big_int.to_string i ^ "%Z"))
   in
   if Big_int.less i Z.zero
