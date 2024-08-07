@@ -3,7 +3,11 @@ open Monads.Notations.Star(Slang.EvaluationContext)
 open Slang.Prelude.Shared
 
 module EC = Slang.EvaluationContext
-module GC = NanosailToMicrosail.GenerationContext
+
+module GC = struct
+  include NanosailToMicrosail.GenerationContext
+  include Monads.Util.Make(NanosailToMicrosail.GenerationContext)
+end
 
 
 let string_of_document document =

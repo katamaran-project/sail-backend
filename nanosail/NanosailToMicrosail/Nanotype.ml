@@ -1,7 +1,10 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
 
 
 let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =

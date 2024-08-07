@@ -1,7 +1,11 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
+
 
 
 let generate (function_definitions : Ast.Definition.Function.t list) =

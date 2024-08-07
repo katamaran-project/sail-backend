@@ -1,7 +1,10 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
 
 
 let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.document GC.t =

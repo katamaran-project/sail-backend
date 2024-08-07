@@ -23,9 +23,3 @@ val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit
 val add_original_definitions : Libsail.Type_check.tannot Libsail.Ast.def list -> unit t
 
 val pp_sail_definition : Libsail.Type_check.tannot Libsail.Ast.def -> PPrint.document
-
-val map      : f:('a -> 'b t) -> 'a list -> 'b list t
-val iter     : f:('a -> 'b t) -> 'a list -> unit t
-val compose  : ('b -> 'c t) -> ('a -> 'b t) -> 'a -> 'c t
-val lift     : f:('a -> 'b) -> 'a t -> 'b t
-val sequence : 'a t list -> 'a list t

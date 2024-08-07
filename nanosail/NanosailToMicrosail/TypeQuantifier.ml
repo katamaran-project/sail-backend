@@ -1,6 +1,9 @@
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
 
 
 let pp_type_quantifier quantifier =

@@ -1,7 +1,10 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
 
 
 (* Name for the inductive type listing all variant/union types *)
