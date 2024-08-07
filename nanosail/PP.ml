@@ -307,7 +307,7 @@ let pp_binary_operation (operator : document) (operands : document list) =
 
 
 let enclose
-    ?(separator : document            = space)
+    ?(separator  : document           = space)
      (delimiters : document * document       )
      (enclosed   : document                  ) : document
   =
