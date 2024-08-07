@@ -120,7 +120,7 @@ let add_comment (comment : PP.document) : unit t =
   update comments (fun cs -> comment :: cs)
 
 
-let not_yet_implemented ?(message = "") (position : Lexing.position) =
+let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.document t =
   let annotation_document =
     let message_suffix =
       if String.is_empty message
