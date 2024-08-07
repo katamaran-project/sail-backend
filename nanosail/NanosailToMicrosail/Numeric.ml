@@ -15,9 +15,9 @@ end = struct
       in
       match numexp with
       | Constant z   -> PP.string (Z.to_string z)
-      | Add (x, y)   -> parens_if 0 @@ PP.pp_binary_operation PP.plus  [pp 0 x; pp 0 y]
-      | Minus (x, y) -> parens_if 0 @@ PP.pp_binary_operation PP.minus [pp 0 x; pp 0 y]
-      | Times (x, y) -> parens_if 1 @@ PP.pp_binary_operation PP.star  [pp 1 x; pp 1 y]
+      | Add (x, y)   -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
+      | Minus (x, y) -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.subtraction    [pp 0 x; pp 0 y]
+      | Times (x, y) -> parens_if 1 @@ PP.pp_binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
       | Neg x        -> parens_if 2 @@ PP.(minus ^^ pp 3 x)
       | Id id        -> Identifier.pp id
       | Var id       -> Identifier.pp id
