@@ -217,7 +217,7 @@ let pp_inductive_type
             add @@ string "Inductive";
             add identifier;
             addall parameters';
-            if requirement typ > 0
+            if measure typ > 0
             then
               (
                 add colon;
@@ -235,7 +235,7 @@ let pp_inductive_type
             separate space (
               Auxlib.build_list (fun { add; _ } ->
                   add id;
-                  if requirement params > 0
+                  if measure params > 0
                   then add params
                 )
             ),
@@ -248,7 +248,7 @@ let pp_inductive_type
       then 0
       else
         Auxlib.maximum (
-            List.map ~f:(fun (left, _) -> PP.requirement left) pairs
+            List.map ~f:(fun (left, _) -> PP.measure left) pairs
           )
     in
     let make_line (left, right) =
@@ -257,7 +257,7 @@ let pp_inductive_type
           Auxlib.build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ pad_right longest_left_part left;
-              if requirement right > 0
+              if measure right > 0
               then (
                 add colon;
                 add right

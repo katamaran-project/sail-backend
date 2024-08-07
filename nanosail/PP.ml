@@ -4,46 +4,47 @@ open Base
 type document    = PPrint.document
 
 
-let empty     = PPrint.empty
-let string    = PPrint.utf8string
+let empty      = PPrint.empty
+let string     = PPrint.utf8string
 let utf8string = PPrint.utf8string (* todo remove *)
 
-let plus      = PPrint.plus
-let star      = PPrint.star
-let minus     = PPrint.minus
-let equals    = PPrint.equals
+let plus       = PPrint.plus
+let star       = PPrint.star
+let minus      = PPrint.minus
+let equals     = PPrint.equals
 
-let lparen    = PPrint.lparen
-let rparen    = PPrint.rparen
-let langle    = PPrint.langle
-let rangle    = PPrint.rangle
-let lbracket  = PPrint.lbracket
-let rbracket  = PPrint.rbracket
-let lbrace    = PPrint.lbrace
-let rbrace    = PPrint.rbrace
+let lparen     = PPrint.lparen
+let rparen     = PPrint.rparen
+let langle     = PPrint.langle
+let rangle     = PPrint.rangle
+let lbracket   = PPrint.lbracket
+let rbracket   = PPrint.rbracket
+let lbrace     = PPrint.lbrace
+let rbrace     = PPrint.rbrace
 
-let braces    = PPrint.braces
-let parens    = PPrint.parens
-let dquotes   = PPrint.dquotes
-let brackets  = PPrint.brackets
+let braces     = PPrint.braces
+let parens     = PPrint.parens
+let dquotes    = PPrint.dquotes
+let brackets   = PPrint.brackets
 
-let dot       = PPrint.dot
-let bang      = PPrint.bang
-let semi      = PPrint.semi
-let comma     = PPrint.comma
-let colon     = PPrint.colon
-let space     = PPrint.space
+let dot        = PPrint.dot
+let bang       = PPrint.bang
+let semi       = PPrint.semi
+let comma      = PPrint.comma
+let colon      = PPrint.colon
+let space      = PPrint.space
 
-let ampersand = PPrint.ampersand
-let percent   = PPrint.percent
-let bar       = PPrint.bar
+let ampersand  = PPrint.ampersand
+let percent    = PPrint.percent
+let bar        = PPrint.bar
 let underscore = PPrint.underscore
 
-let (^^)     = PPrint.(^^)
+let (^^)       = PPrint.(^^)
 
-let twice         = PPrint.twice
-let hardline      = PPrint.hardline
+let twice      = PPrint.twice
+let hardline   = PPrint.hardline
 
+let measure    = PPrint.requirement
 
 (* todo remove *)
 let separate      = PPrint.separate
@@ -52,7 +53,6 @@ let concat        = PPrint.concat
 let soft_surround = PPrint.soft_surround
 let break         = PPrint.break
 let align         = PPrint.align
-let requirement   = PPrint.requirement
 
 
 let write_to_channel

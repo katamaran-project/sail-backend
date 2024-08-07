@@ -203,7 +203,7 @@ let pp_match
   in
   let case_lines =
     let longest_pattern_width =
-      let widths = List.map ~f:(fun pattern -> PP.requirement pattern) (List.map ~f:fst cases)
+      let widths = List.map ~f:(fun pattern -> PP.measure pattern) (List.map ~f:fst cases)
       in
       Auxlib.maximum (0 :: widths)
     in
@@ -396,7 +396,7 @@ let record
   in
   let fields' =
     let longest_field_length =
-      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.requirement fst) fields
+      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.measure fst) fields
     in
     List.map fields ~f:(
       fun (id, t) ->
