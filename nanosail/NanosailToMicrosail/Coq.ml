@@ -81,38 +81,6 @@ let add_comments
   PP.separate PP.hardline [ pp_comment comments; document ]
 
 
-(* todo check where this is used, and possibly get rid of comment delimiters *)
-let original_sail_codes (sources : PP.document list) : PP.document =
-  let combined_sources =
-    PP.(separate hardline sources)
-  in
-  let str =
-    PP.string_of_document combined_sources
-  in
-  if
-    is_single_line str
-  then
-    PP.(
-      concat [
-        left_comment_delimiter;
-        space;
-        string (String.rstrip str);
-        space;
-        right_comment_delimiter
-      ]
-    )
-  else
-    PP.(
-      concat [
-        left_comment_delimiter;
-        twice hardline;
-        indent' combined_sources;
-        hardline;
-        right_comment_delimiter
-      ]
-    )
-
-
 let pp_list (items : PP.document list) : PP.document =
   if
     List.is_empty items
