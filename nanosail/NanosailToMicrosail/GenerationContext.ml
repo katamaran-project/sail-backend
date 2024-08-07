@@ -285,7 +285,6 @@ let pp_sail_definition sail_definition =
   let lines =
     List.map ~f:String.rstrip @@ String.split_lines str
   in
-  Stdio.printf "Sail definition\n[%s]\ncounts %d lines\n\n" str (List.length lines);
   PP.vertical_strings @@ List.map ~f:(fun line -> ">>> [" ^ line ^ "]") lines
 
 
