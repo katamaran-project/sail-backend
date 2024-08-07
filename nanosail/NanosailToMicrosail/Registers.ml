@@ -102,12 +102,15 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   let id1 = Configuration.tag_as_generated @@ Ast.Identifier.mk "x"
   and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
   in
+  let pp_id1 = Identifier.pp id1
+  and pp_id2 = Identifier.pp id2
+  in
   GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
     PP.(
       separate hardline [
         utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-        string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>";
-        indent (Coq.pp_match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
+        string "  fun '(existT σ " ^^ pp_id1 ^^ string ") '(existT τ " ^^ pp_id2 ^^ string ") =>";
+        indent (Coq.pp_match_pair (pp_id1, pp_id2) cases) ^^ Coq.eol;
         string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
       ]
     )
