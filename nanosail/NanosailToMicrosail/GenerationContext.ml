@@ -288,7 +288,7 @@ let pp_sail_definition sail_definition =
   let lines =
     List.map ~f:String.rstrip @@ String.split_lines str
   in
-  PP.vertical_strings @@ List.map ~f:(fun line -> ">>> [" ^ line ^ "]") lines
+  PP.vertical_strings lines
 
 
 let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t
@@ -296,7 +296,12 @@ let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.de
   if
     Configuration.(get include_original_code)
   then
-    add_comment @@ Coq.original_sail_code @@ pp_sail_definition original
+    add_comment begin
+      PP.vertical ~separator:PP.(twice hardline) [
+        PP.string "Original Sail code";
+        PP.indent' @@ pp_sail_definition original
+      ]
+    end
   else
     return ()
 
