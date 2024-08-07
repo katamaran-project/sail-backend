@@ -50,7 +50,6 @@ let measure    = PPrint.requirement
 let separate      = PPrint.separate
 let separate_map  = PPrint.separate_map
 let concat        = PPrint.concat
-let soft_surround = PPrint.soft_surround
 let align         = PPrint.align
 
 
