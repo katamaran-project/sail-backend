@@ -104,7 +104,7 @@ let pp_sentence contents =
   PP.(contents ^^ eol)
 
 
-let module' ?(flag = NoFlag) ?(includes = []) identifier contents =
+let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.(
       pp_sentence @@ separate space @@ Auxlib.build_list (fun { add; addall; _ } ->

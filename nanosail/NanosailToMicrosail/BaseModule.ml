@@ -985,5 +985,5 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       in
       GC.return @@ PP.vertical ~separator:PP.(twice hardline) sections
     in
-    GC.return @@ Coq.module' ~flag ~includes base_module_name contents
+    GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
   end

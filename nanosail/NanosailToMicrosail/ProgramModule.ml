@@ -33,7 +33,7 @@ let pp_program_module
       Coq.pp_sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
     ]
   in
-  GC.return @@ Coq.module'
+  GC.return @@ Coq.pp_module
     ~flag:flag
     ~includes:includes
     identifier
