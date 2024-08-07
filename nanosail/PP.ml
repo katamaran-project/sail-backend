@@ -306,6 +306,12 @@ let pp_binary_operation (operator : document) (operands : document list) =
   horizontal ~separator:(space ^^ operator ^^ space) operands
 
 
+(*
+
+   [ enclosed ]
+
+   separator can be used to specify how to separate the delimiters from the enclosed document
+*)
 let enclose
     ?(separator  : document           = space)
      (delimiters : document * document       )
