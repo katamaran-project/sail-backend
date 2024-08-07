@@ -280,7 +280,7 @@ let build_horizontal ?(separator = space) (builder : document Auxlib.list_builde
   horizontal ~separator items
 
 
-let build_vertical ?(separator = space) (builder : document Auxlib.list_builder -> unit) : document =
+let build_vertical ?(separator = hardline) (builder : document Auxlib.list_builder -> unit) : document =
   let items =
     Auxlib.build_list builder
   in
