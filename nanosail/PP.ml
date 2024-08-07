@@ -287,29 +287,6 @@ let build_vertical ?(separator = space) (builder : document Auxlib.list_builder 
   vertical ~separator items
 
 
-let delimited_list ~delimiters ~items ~separator =
-  let left_delimiter, right_delimiter = delimiters
-  in
-  let flattened_layout =
-    horizontal ~separator:space [
-      left_delimiter;
-      horizontal ~separator:PPrint.(separator ^^ space) items;
-      right_delimiter
-    ]
-
-  and unflattened_layout =
-    vertical [
-      left_delimiter;
-      indent @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
-      right_delimiter;
-    ]
-  in
-  
-  PPrint.group begin
-    PPrint.ifflat flattened_layout unflattened_layout
-  end
-
-
 let is_single_line (document : document) : bool =
   let ends_on_newline (string : string) : bool =
     String.is_suffix string ~suffix:"\n"
@@ -341,3 +318,26 @@ let enclose
     enclosed;
     right_delimiter
   ]
+
+
+let delimited_list ~delimiters ~items ~separator =
+  let left_delimiter, right_delimiter = delimiters
+  in
+  let flattened_layout =
+    horizontal ~separator:space [
+      left_delimiter;
+      horizontal ~separator:PPrint.(separator ^^ space) items;
+      right_delimiter
+    ]
+
+  and unflattened_layout =
+    vertical [
+      left_delimiter;
+      indent @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
+      right_delimiter;
+    ]
+  in
+  
+  PPrint.group begin
+    PPrint.ifflat flattened_layout unflattened_layout
+  end
