@@ -325,3 +325,17 @@ let is_single_line (document : document) : bool =
 
 let pp_binary_operation (operator : document) (operands : document list) =
   horizontal ~separator:(space ^^ operator ^^ space) operands
+
+
+let enclose
+    ?(separator : document            = space)
+     (delimiters : document * document       )
+     (enclosed   : document                  ) : document
+  =
+  let left_delimiter, right_delimiter = delimiters
+  in
+  horizontal ~separator [
+    left_delimiter;
+    enclosed;
+    right_delimiter
+  ]
