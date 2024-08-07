@@ -81,17 +81,6 @@ let add_comments
   PP.separate PP.hardline [ pp_comment comments; document ]
 
 
-let original_sail_code (source : PP.document) : PP.document =
-  let str = PP.string_of_document source
-  in
-  if
-    is_single_line str
-  then
-    PP.string (String.rstrip str)
-  else
-    PP.indent' source
-
-
 (* todo check where this is used, and possibly get rid of comment delimiters *)
 let original_sail_codes (sources : PP.document list) : PP.document =
   let combined_sources =
