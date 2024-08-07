@@ -79,11 +79,8 @@ let convert_frame_to_document (frame : frame) =
   in
   let pp_annotations =
     let pp_annotation index (Annotation annotation) =
-      PP.(concat [
+      PP.(horizontal ~separator:(space ^^ colon ^^ space) [
           brackets @@ string @@ Int.to_string index;
-          space;
-          colon;
-          space;
           align annotation
         ])
     in

@@ -236,10 +236,8 @@ let match_pair matched_expressions cases =
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
         PP.(
-          concat [
+          horizontal ~separator:(comma ^^ space) [
             pad_right left_patterns_max_width left;
-            comma;
-            space;
             right
           ],
           expression
@@ -250,10 +248,8 @@ let match_pair matched_expressions cases =
     let left, right = matched_expressions
     in
     PP.(
-      concat [
+      horizontal ~separator:(comma ^^ space) [
         left;
-        comma;
-        space;
         right
       ]
     )
@@ -298,9 +294,8 @@ let imports names =
 let open_scopes scopes =
   let open_scope scope =
     PP.(
-      pp_sentence @@ concat [
+      pp_sentence @@ horizontal [
         string "Local Open Scope";
-        space;
         string scope;
       ]
     )
