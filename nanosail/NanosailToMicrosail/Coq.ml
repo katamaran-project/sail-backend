@@ -24,6 +24,7 @@ let eol = PP.dot
 (* Comment delimiters *)
 let comment_left_delimiter  = PP.string "(*"
 let comment_right_delimiter = PP.string "*)"
+let comment_delimiters      = (comment_left_delimiter, comment_right_delimiter)
 
 let list_left_delimiter    = PP.lbracket
 let list_right_delimiter   = PP.rbracket
@@ -38,11 +39,7 @@ let tuple_right_delimiter  = PP.rparen
 
 
 let pp_inline_comment (comment : PP.document) : PP.document =
-  PP.(separate space [
-      comment_left_delimiter;
-      comment;
-      comment_right_delimiter
-    ])
+  PP.enclose comment_delimiters comment
 
 
 let pp_multiline_comment (comment : PP.document) : PP.document =
