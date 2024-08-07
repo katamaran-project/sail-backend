@@ -302,6 +302,11 @@ let is_single_line (document : document) : bool =
   is_single_line @@ string_of_document document
 
 
+(*
+
+  a + b + c + d
+   
+*)
 let pp_binary_operation (operator : document) (operands : document list) =
   horizontal ~separator:(space ^^ operator ^^ space) operands
 
