@@ -264,7 +264,7 @@ let pp_integer i =
   else pp_i
 
 
-let require
+let pp_require
     ?(from     : string option = None )
     ?(import   : bool          = false)
     (libraries : string list          )

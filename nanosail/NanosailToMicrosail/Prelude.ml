@@ -11,10 +11,10 @@ let pp_require_imports () : PP.document =
       )
   in
   PP.(separate (twice hardline) [
-      Coq.require ~from:(Some "Coq"      ) ~import:true coq_imports;
-      Coq.require ~from:(Some "Katamaran") ~import:true [ "Semantics.Registers"; "Bitvector"; "Program" ];
-      Coq.require ~from:(Some "stdpp"    ) ~import:true [ "finite" ];
-      Coq.require ~from:(Some "Equations") ~import:true [ "Equations" ];
+      Coq.pp_require ~from:(Some "Coq"      ) ~import:true coq_imports;
+      Coq.pp_require ~from:(Some "Katamaran") ~import:true [ "Semantics.Registers"; "Bitvector"; "Program" ];
+      Coq.pp_require ~from:(Some "stdpp"    ) ~import:true [ "finite" ];
+      Coq.pp_require ~from:(Some "Equations") ~import:true [ "Equations" ];
     ])
 
 
@@ -66,8 +66,8 @@ let generate () : PP.document =
 
 let generate_base_prelude () : PP.document GC.t =
   GC.return @@ PP.separate PP.hardline [
-    Coq.require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
-    Coq.require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
-    Coq.require ~from:(Some "Equations") ~import:true  [ "Equations" ];
-    Coq.require                          ~import:true  [ "Katamaran.Base" ];
+    Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
+    Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
+    Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
+    Coq.pp_require                          ~import:true  [ "Katamaran.Base" ];
   ]
