@@ -307,4 +307,17 @@ let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.de
 
 
 let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
-  iter ~f:add_original_definition originals
+  if
+    Configuration.(get include_original_code)
+  then
+    add_comment begin
+      PP.vertical ~separator:PP.(twice hardline) [
+        PP.string "Original Sail code";        
+        PP.indent' @@ PP.vertical begin
+          List.map ~f:pp_sail_definition originals
+        end
+      ]
+    end
+  else
+    return ()
+
