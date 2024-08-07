@@ -45,12 +45,12 @@ let twice      = PPrint.twice
 let hardline   = PPrint.hardline
 
 let measure    = PPrint.requirement
+let align      = PPrint.align
 
 (* todo remove *)
 let separate      = PPrint.separate
 let separate_map  = PPrint.separate_map
 let concat        = PPrint.concat
-let align         = PPrint.align
 
 
 let write_to_channel
