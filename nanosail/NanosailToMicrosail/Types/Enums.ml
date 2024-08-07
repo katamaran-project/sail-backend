@@ -67,7 +67,7 @@ let generate_enum_finiteness (enum_definition  : Ast.Definition.Type.Enum.t) =
   and type_name  = Identifier.pp @@ enum_definition.identifier
   and values     = List.map ~f:Identifier.pp enum_definition.cases
   in
-  Coq.finite_instance ~identifier ~type_name ~values
+  Coq.pp_finite_instance ~identifier ~type_name ~values
 
 
 let generate_finiteness (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =

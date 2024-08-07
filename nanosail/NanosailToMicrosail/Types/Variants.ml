@@ -166,7 +166,7 @@ let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Va
   and type_name  = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition
   in
-  Coq.finite_instance ~identifier ~type_name ~values
+  Coq.pp_finite_instance ~identifier ~type_name ~values
 
 
 let generate_finiteness (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =

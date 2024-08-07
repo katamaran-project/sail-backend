@@ -193,4 +193,4 @@ let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.D
   and type_name  = Identifier.pp @@ Ast.Identifier.mk "RegName"
   and values     = List.map ~f:Identifier.pp translated_register_identifiers
   in
-  GC.return @@ Coq.finite_instance ~identifier ~type_name ~values
+  GC.return @@ Coq.pp_finite_instance ~identifier ~type_name ~values

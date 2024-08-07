@@ -322,7 +322,7 @@ let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
     {| enum := [ <values> ] |}.
 
  *)
-let finite_instance
+let pp_finite_instance
       ~(identifier : PP.document     )
       ~(type_name  : PP.document     )
       ~(values     : PP.document list) : PP.document
