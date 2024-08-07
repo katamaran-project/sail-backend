@@ -6,7 +6,8 @@ module GC = GenerationContext
 
 let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
-      (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t =
+      (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t
+  =
   let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
   in
   let* coq_definition =
