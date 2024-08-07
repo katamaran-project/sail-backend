@@ -449,7 +449,7 @@ let build_lines (f : build_lines_context -> unit) : PP.document =
   end
 
 
-let lambda parameter body =
+let pp_lambda parameter body =
   PP.(separate space [ string "fun"; parameter; string "=>"; align body ])
 
 

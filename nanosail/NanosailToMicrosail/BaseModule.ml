@@ -409,7 +409,7 @@ let pp_match_variant_constructors
           ~variant_definition
           ~constructor_case_handler
       in
-      GC.return @@ Coq.lambda (Identifier.pp parameter_identifier) lambda_body
+      GC.return @@ Coq.pp_lambda (Identifier.pp parameter_identifier) lambda_body
     in
     GC.return (pattern, expression)
   in
@@ -705,7 +705,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
             in
             Coq.application (Identifier.pp constructor_identifier) arguments
           in
-          Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+          Coq.pp_lambda (Identifier.pp lambda_parameter) lambda_body
         in
         GC.return (pattern, expression)
       in
@@ -781,7 +781,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
             in
             GC.return PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
           in
-          GC.return @@ Coq.lambda (Identifier.pp lambda_parameter) lambda_body
+          GC.return @@ Coq.pp_lambda (Identifier.pp lambda_parameter) lambda_body
         in
         GC.return (pattern, expression)
       in
