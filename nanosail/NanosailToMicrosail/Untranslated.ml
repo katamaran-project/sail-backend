@@ -46,12 +46,10 @@ let generate
     | None         -> Printf.sprintf "No message"
   in
   PP.(
-    concat [
+    vertical [
       GC.pp_sail_definition sail_definition;
       string ocaml_location_string;
-      hardline;
       string sail_location_string;
-      hardline;
       string message_string
     ]
   )
