@@ -320,24 +320,30 @@ let enclose
   ]
 
 
-let delimited_list ~delimiters ~items ~separator =
+let enclose_vertically
+    ?(separator : document            = hardline)
+     (delimiters : document * document          )
+     (enclosed   : document                     ) : document
+  =
   let left_delimiter, right_delimiter = delimiters
   in
-  let flattened_layout =
-    horizontal ~separator:space [
-      left_delimiter;
-      horizontal ~separator:PPrint.(separator ^^ space) items;
-      right_delimiter
-    ]
+  vertical ~separator [
+    left_delimiter;
+    enclosed;
+    right_delimiter
+  ]
 
+
+let delimited_list ~delimiters ~items ~separator =
+  let flattened_layout =
+    enclose delimiters begin
+      horizontal ~separator:PPrint.(separator ^^ space) items;
+    end
   and unflattened_layout =
-    vertical [
-      left_delimiter;
+    enclose_vertically delimiters begin
       indent @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
-      right_delimiter;
-    ]
-  in
-  
+    end
+  in  
   PPrint.group begin
     PPrint.ifflat flattened_layout unflattened_layout
   end

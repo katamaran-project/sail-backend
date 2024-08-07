@@ -133,7 +133,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
         [
           utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
           PP.indent begin
-            Coq.record_value [
+            Coq.pp_record_value [
               (string "enum", enum_values)
             ]
           end
