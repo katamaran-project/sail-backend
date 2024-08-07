@@ -287,6 +287,7 @@ let build_vertical ?(separator = space) (builder : document Auxlib.list_builder 
   vertical ~separator items
 
 
+(* Checks if document fits on a single line *)
 let is_single_line (document : document) : bool =
   let ends_on_newline (string : string) : bool =
     String.is_suffix string ~suffix:"\n"
