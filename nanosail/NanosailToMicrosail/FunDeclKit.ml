@@ -25,11 +25,10 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       GC.return PP.(
-          concat [
-              string "Fun";
-              space;
-              align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ] (* todo check this *)
-            ]
+          horizontal [
+            string "Fun";
+            align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ] (* todo check this *)
+          ]
         )
     in
     GC.return (name, function_type)
