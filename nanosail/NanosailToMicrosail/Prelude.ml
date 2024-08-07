@@ -41,7 +41,7 @@ let pp_open_scopes () : PP.document =
 
 let pp_definitions () : PP.document =
   let definitions = [
-      Coq.definition
+      Coq.pp_definition
         ~identifier:(PP.string "bitvector")
         ~parameters:[(PP.string "n", Some (PP.string "nat"))]
         (PP.string "bv n");

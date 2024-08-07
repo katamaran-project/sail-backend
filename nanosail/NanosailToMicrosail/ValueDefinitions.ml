@@ -23,7 +23,7 @@ let pp_value_definition (value_definition : Ast.Definition.value_definition) : P
     in
     let* body = pp_value value
     in
-    GC.return @@ Coq.definition ~identifier ~result_type body
+    GC.return @@ Coq.pp_definition ~identifier ~result_type body
   in
   definition
 

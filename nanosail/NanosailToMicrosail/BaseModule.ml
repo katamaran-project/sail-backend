@@ -102,7 +102,7 @@ let pp_denote_function
     in
     Coq.pp_match ~scope matched_expression cases
   in
-  GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
+  GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type body
 
 
 (*
@@ -348,7 +348,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
       in
       GC.return @@ Coq.pp_match matched_expression cases
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type body
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type body
   end
 
 
@@ -499,7 +499,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
       in
       pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type contents
   in
   genblock [%here] "Union Fold" @@* begin
     GC.block result
@@ -587,7 +587,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
       in
       pp_match_variant_constructors ~variant_definitions ~matched_identifier ~constructor_case_handler
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type contents
   in
   genblock [%here] "Union Unfold" @@* begin
     GC.block result
@@ -637,7 +637,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
       in
       Types.Records.generate_tag_match ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type contents
   in
   genblock [%here] "Record Field Type" @@* begin
     GC.block result
@@ -711,7 +711,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
       in
       Types.Records.generate_tag_match ~scope ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type contents
   in
   genblock [%here] "Record Fold" @@* begin
     GC.block result
@@ -787,7 +787,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       in
       Types.Records.generate_tag_match ~scope ~matched_identifier ~record_definitions ~record_case_handler ()
     in
-    GC.return @@ Coq.definition ~identifier ~parameters ~result_type contents
+    GC.return @@ Coq.pp_definition ~identifier ~parameters ~result_type contents
   in
   genblock [%here] "Record Unfold" @@* begin
     GC.block result

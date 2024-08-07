@@ -14,7 +14,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
       let* body        = Numeric.Expression.pp numexpr
       and* parameters  = TypeQuantifier.pp_type_quantifier quantifier
       in
-      GC.return @@ Coq.definition ~identifier ~parameters body
+      GC.return @@ Coq.pp_definition ~identifier ~parameters body
     end
 
   | NumericConstraint (quantifier, numconstraint) -> begin
@@ -23,7 +23,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
       let* body        = Numeric.Constraint.pp numconstraint
       and* parameters  = TypeQuantifier.pp_type_quantifier quantifier
       in
-      GC.return @@ Coq.definition ~identifier ~parameters body
+      GC.return @@ Coq.pp_definition ~identifier ~parameters body
     end
 
   | Alias (quantifier, typ) -> begin
@@ -33,7 +33,7 @@ let generate (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.docum
         let* body        = Nanotype.coq_type_of_nanotype typ
         and* parameters  = TypeQuantifier.pp_type_quantifier quantifier
         in
-        GC.return @@ Coq.definition ~identifier ~parameters body;
+        GC.return @@ Coq.pp_definition ~identifier ~parameters body;
       in
       GC.return coq_alias
     end

@@ -128,7 +128,7 @@ let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
   PP.indented_enclosed_lines first_line contents last_line
 
 
-let definition
+let pp_definition
       ~(identifier          : PP.document                                   )
       ?(implicit_parameters : (PP.document * PP.document option) list = []  )
       ?(parameters          : (PP.document * PP.document option) list = []  )

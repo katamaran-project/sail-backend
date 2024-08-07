@@ -42,7 +42,7 @@ let pp_function_definition
     in
     let* () = GC.add_comment extended_function_type'
     in
-    GC.return @@ Coq.definition ~identifier ~result_type body
+    GC.return @@ Coq.pp_definition ~identifier ~result_type body
   in
   let original_sail_code =
     Auxlib.build_list (fun { add; _ } ->
@@ -109,7 +109,7 @@ let pp_function_definition_kit
       in
       Coq.pp_match matched_expression cases
     in
-    Coq.definition ~identifier ~implicit_parameters ~parameters ~result_type body
+    Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
   in
   let* contents =
     let* function_definitions =
