@@ -2,7 +2,6 @@ open Base
 
 
 type document    = PPrint.document
-type requirement = PPrint.requirement (* todo remove *)
 
 
 let empty     = PPrint.empty
