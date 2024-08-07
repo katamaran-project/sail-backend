@@ -22,11 +22,11 @@ let get     = Monad.get
 let put     = Monad.put
 let update  = Monad.update
 
-let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Pair.first id)
+let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Pair.first id             )
 let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Pair.first id)
-let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame)
-let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame)
-let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Pair.second id)
+let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame     )
+let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame     )
+let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Pair.second id            )
 
 
 open Monads.Notations.Star(Monad)
