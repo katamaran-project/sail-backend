@@ -6,8 +6,6 @@ module GC = struct
   include Monads.Util.Make(GenerationContext)
 end
 
-module Big_int = Nat_big_num
-
 
 module PPOutput = struct
   type t = PP.document
