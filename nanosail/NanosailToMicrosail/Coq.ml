@@ -423,7 +423,7 @@ let pp_derive_eqdec_for (identifier : Ast.Identifier.t) =
   pp_derive (Ast.Identifier.mk "EqDec") identifier
 
 
-let derive_no_confusion_for (identifier : Ast.Identifier.t) =
+let pp_derive_no_confusion_for (identifier : Ast.Identifier.t) =
   pp_derive (Ast.Identifier.mk "NoConfusion") identifier
 
 

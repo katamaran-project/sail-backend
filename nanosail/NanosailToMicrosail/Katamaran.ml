@@ -138,7 +138,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       let transparent_obligations =
         PP.string "Local Set Transparent Obligations."
       and no_confusion_lines =
-        PP.separate_map PP.hardline Coq.derive_no_confusion_for no_confusion_identifiers
+        PP.separate_map PP.hardline Coq.pp_derive_no_confusion_for no_confusion_identifiers
       in
       PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
     in
