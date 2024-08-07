@@ -280,15 +280,13 @@ let pp_sail_definition sail_definition =
     Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
   let str =
-    PP.string_of_document ~page_width:200 document
+    String.rstrip @@ PP.string_of_document ~page_width:200 document
   in
   let lines =
-    String.split_lines str
+    List.map ~f:String.rstrip @@ String.split_lines str
   in
-  let nonempty_lines =
-    List.filter ~f:(fun line -> not @@ String.is_empty line) lines
-  in
-  PP.vertical_strings nonempty_lines
+  Stdio.printf "Sail definition\n[%s]\ncounts %d lines\n\n" str (List.length lines);
+  PP.vertical_strings @@ List.map ~f:(fun line -> ">>> [" ^ line ^ "]") lines
 
 
 let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t
