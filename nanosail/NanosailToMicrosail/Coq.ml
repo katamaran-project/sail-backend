@@ -467,7 +467,7 @@ let pp_function_type parameter_types result_type =
   end
 
 
-let canonical identifier =
+let pp_canonical identifier =
   pp_sentence @@ PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
 
 

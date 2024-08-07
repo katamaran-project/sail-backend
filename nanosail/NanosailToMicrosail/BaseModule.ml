@@ -859,7 +859,7 @@ let pp_canonicals () : PP.document GC.t =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
   genblock [%here] "Canonicals" begin
-    PP.separate_map PP.hardline Coq.canonical identifiers
+    PP.separate_map PP.hardline Coq.pp_canonical identifiers
   end
 
 
