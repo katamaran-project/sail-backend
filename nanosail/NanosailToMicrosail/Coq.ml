@@ -61,7 +61,7 @@ let pp_inline_comment (comment : PP.document) : PP.document =
 let pp_multiline_comment (comment : PP.document) : PP.document =
   PP.separate PP.hardline [
     left_comment_delimiter;
-    PP.indent' comment;
+    PP.indent comment;
     right_comment_delimiter
   ]
 
@@ -361,7 +361,7 @@ let finite_instance
         type_name;
         string ":=";
       ];
-      PP.indent' begin
+      PP.indent begin
         PP.horizontal [
           string "{|";
           string "enum";
@@ -411,7 +411,7 @@ let record
           ]
     )
   in
-  pp_sentence @@ PP.(first_line ^^ hardline ^^ indent' (constructor ^^ hardline ^^ indent' body))
+  pp_sentence @@ PP.(first_line ^^ hardline ^^ indent (constructor ^^ hardline ^^ indent body))
 
 
 let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
@@ -521,7 +521,7 @@ let generation_block
     in
     PP.separate PP.hardline [
       entry_block;
-      PP.indent' contents;
+      PP.indent contents;
       exit_block;
     ]
   else

@@ -66,7 +66,8 @@ let write_to_channel
 let is_empty doc =
   Int.equal (PPrint.requirement doc) 0
 
-let indent' ?(level = 2) doc = PPrint.(blank level ^^ align doc)
+
+let indent ?(level = 2) doc = PPrint.(blank level ^^ align doc)
 
 
 let delimited_sequence left_delimiter right_delimiter separator items =
@@ -135,7 +136,7 @@ let indented_enclosed_lines starting_line indented ending_line =
   in
   separate hardline [
     starting_line;
-    indent' indented;
+    indent indented;
     ending_line
   ]
 
@@ -185,7 +186,7 @@ let description_list (items : (document * document) list) : document =
   let open PPrint
   in
   let render_item (header, description) =
-    separate hardline [ header; indent' description ]
+    separate hardline [ header; indent description ]
   in
   separate hardline @@ List.map ~f:render_item items
 
@@ -255,7 +256,7 @@ let horizontal_or_indent (first : document) (second : document) =
     concat [
       first;
       break 1;
-      ifflat second (indent' second)
+      ifflat second (indent second)
     ]
   end
 
@@ -299,7 +300,7 @@ let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   and unflattened_layout =
     vertical [
       left_delimiter;
-      indent' @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
+      indent @@ vertical ~separator:PPrint.(separator ^^ hardline) items;
       right_delimiter;
     ]
   in

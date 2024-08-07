@@ -167,7 +167,7 @@ let generation_block
     in
     return @@ PP.separate PP.hardline [
       entry_block;
-      PP.indent' contents;
+      PP.indent contents;
       exit_block;
     ]
   else
@@ -298,7 +298,7 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
     add_comment begin
       PP.vertical ~separator:PP.(twice hardline) [
         PP.string "Original Sail code";        
-        PP.indent' @@ PP.vertical begin
+        PP.indent @@ PP.vertical begin
           List.map ~f:pp_sail_definition originals
         end
       ]

@@ -107,7 +107,7 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
       separate hardline [
         utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
         string "  fun '(existT σ " ^^ (Identifier.pp id1) ^^ string ") '(existT τ " ^^ (Identifier.pp id2) ^^ string ") =>";
-        indent' (Coq.match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
+        indent (Coq.match_pair (Identifier.pp id1, Identifier.pp id2) cases) ^^ Coq.eol;
         string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
       ]
     )
@@ -132,7 +132,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
       Coq.pp_sentence @@ separate hardline (
         [
           utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-          PP.indent' (
+          PP.indent (
             Coq.record_value [
               (string "enum", enum_values)
             ]
