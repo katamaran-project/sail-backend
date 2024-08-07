@@ -271,7 +271,7 @@ let pp_inductive_type
         addall constructor_lines
       )
   in
-  return @@ PP.(separate hardline result_lines ^^ hardline ^^ Coq.eol)
+  return @@ Coq.pp_sentence @@ PP.(separate hardline result_lines ^^ hardline)
 
 
 (* todo move this to PPSail.ml *)

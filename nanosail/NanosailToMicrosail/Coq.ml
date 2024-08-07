@@ -42,6 +42,11 @@ let tuple_left_delimiter   = PP.lparen
 let tuple_right_delimiter  = PP.rparen
 
 
+
+let pp_sentence contents =
+  PP.(contents ^^ eol)
+
+
 let pp_inline_comment (comment : PP.document) : PP.document =
   PP.enclose comment_delimiters comment
 
@@ -90,8 +95,8 @@ let pp_product
 
 
 let pp_section identifier contents =
-  let first_line = PP.(string "Section" ^^ space ^^ Identifier.pp identifier ^^ eol)
-  and last_line  = PP.(string "End" ^^ space ^^ Identifier.pp identifier ^^ eol)
+  let first_line = pp_sentence @@ PP.(string "Section" ^^ space ^^ Identifier.pp identifier)
+  and last_line  = pp_sentence @@ PP.(string "End" ^^ space ^^ Identifier.pp identifier)
   in
   PP.indented_enclosed_lines first_line contents last_line
 
@@ -100,10 +105,6 @@ type module_flag =
   | Import
   | Export
   | NoFlag
-
-
-let pp_sentence contents =
-  PP.(contents ^^ eol)
 
 
 let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
