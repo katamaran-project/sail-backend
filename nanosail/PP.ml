@@ -334,6 +334,20 @@ let enclose_vertically
   ]
 
 
+(*
+
+   [ a; b; c; d ]
+
+   or
+
+   [
+     a;
+     b;
+     c;
+     d
+   ]
+   
+*)
 let delimited_list ~delimiters ~items ~separator =
   let flattened_layout =
     enclose delimiters begin
