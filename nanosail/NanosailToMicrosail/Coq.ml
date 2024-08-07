@@ -224,7 +224,7 @@ let pp_match
   PP.(separate hardline result_lines)
 
 
-let match_pair matched_expressions cases =
+let pp_match_pair matched_expressions cases =
   let left_patterns = List.map ~f:(Fn.compose fst fst) cases
   in
   let left_patterns_max_width =
