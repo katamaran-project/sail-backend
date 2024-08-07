@@ -37,22 +37,6 @@ let tuple_left_delimiter   = PP.lparen
 let tuple_right_delimiter  = PP.rparen
 
 
-(* todo move *)
-let ends_on_newline (string : string) : bool =
-  String.is_suffix string ~suffix:"\n"
-
-
-(* todo move *)
-let count_newlines (string : string) : int =
-  String.count string ~f:(Char.equal '\n')
-
-
-let is_single_line (string : string) : bool =
-  let newline_count = count_newlines string
-  in
-  newline_count = 0 || (newline_count = 1 && ends_on_newline string)
-
-
 let pp_inline_comment (comment : PP.document) : PP.document =
   PP.(separate space [
       comment_left_delimiter;
@@ -70,9 +54,7 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
 
 
 let pp_comment (comment : PP.document) : PP.document =
-  let str = PP.string_of_document comment
-  in
-  if is_single_line str
+  if PP.is_single_line comment
   then pp_inline_comment comment
   else pp_multiline_comment comment
 

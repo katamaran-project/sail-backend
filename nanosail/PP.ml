@@ -307,3 +307,18 @@ let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   PPrint.group begin
     PPrint.ifflat flattened_layout unflattened_layout
   end
+
+
+let is_single_line (document : document) : bool =
+  let ends_on_newline (string : string) : bool =
+    String.is_suffix string ~suffix:"\n"
+  in
+  let count_newlines (string : string) : int =
+    String.count string ~f:(Char.equal '\n')
+  in
+  let is_single_line (string : string) : bool =
+    let newline_count = count_newlines string
+    in
+    newline_count = 0 || (newline_count = 1 && ends_on_newline string)
+  in
+  is_single_line @@ string_of_document document
