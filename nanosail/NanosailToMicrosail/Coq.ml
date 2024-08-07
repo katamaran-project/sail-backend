@@ -286,7 +286,7 @@ let pp_require
   pp_sentence @@ PP.hanging_list ~adaptive:false (PP.separate PP.space words) libraries
 
 
-let imports names =
+let pp_imports names =
   PP.(pp_sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
 
 

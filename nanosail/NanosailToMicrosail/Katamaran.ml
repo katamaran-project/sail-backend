@@ -98,7 +98,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     let parts =
       Auxlib.build_list @@
       fun { add; addall; _ } -> begin
-        add    @@ Coq.imports [ "stdpp.finite" ];
+        add    @@ Coq.pp_imports [ "stdpp.finite" ];
         add    @@ Coq.local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
         addall @@ finite_definitions;
       end

@@ -26,7 +26,7 @@ let pp_imports () : PP.document =
         if Configuration.(get use_list_notations) then add "ListNotations";
       )
   in
-  Coq.imports imports
+  Coq.pp_imports imports
 
 
 let pp_open_scopes () : PP.document =
