@@ -278,6 +278,13 @@ let build_horizontal ?(separator = space) (builder : document Auxlib.list_builde
   horizontal ~separator items
 
 
+let build_vertical ?(separator = space) (builder : document Auxlib.list_builder -> unit) : document =
+  let items =
+    Auxlib.build_list builder
+  in
+  vertical ~separator items
+
+
 let delimited_list ~left_delimiter ~right_delimiter ~items ~separator =
   let flattened_layout =
     horizontal ~separator:space [
