@@ -33,6 +33,9 @@ let record_left_delimiter  = PP.string "{|"
 let record_right_delimiter = PP.string "|}"
 let record_field_separator = PP.semi
 
+let tuple_left_delimiter   = PP.lparen
+let tuple_right_delimiter  = PP.rparen
+
 
 (* todo move *)
 let ends_on_newline (string : string) : bool =
@@ -97,9 +100,9 @@ let pp_product
   let open PP
   in
   horizontal ~separator:empty [
-    lparen;
+    tuple_left_delimiter;
     horizontal_or_vertical ~separator:comma [v1; v2];
-    rparen
+    tuple_right_delimiter;
   ]
 
 
