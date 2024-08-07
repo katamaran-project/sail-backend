@@ -14,13 +14,14 @@ type state          = frame list * int
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
 type   'a t         = 'a Monad.t
 
-let return  = Monad.return
-let bind    = Monad.bind
-let fail    = Monad.fail
+let return          = Monad.return
+let bind            = Monad.bind
+let fail            = Monad.fail
 
-let get     = Monad.get
-let put     = Monad.put
-let update  = Monad.update
+let get             = Monad.get
+let put             = Monad.put
+let update          = Monad.update
+
 
 let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Pair.first id             )
 let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Pair.first id)
