@@ -398,7 +398,7 @@ let pp_record
   pp_sentence @@ PP.(first_line ^^ hardline ^^ indent (constructor ^^ hardline ^^ indent body))
 
 
-let local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
+let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   let lines_of_code = [
       PP.string "Local Obligation Tactic :=";
       PP.(twice space ^^ Identifier.pp identifier)
