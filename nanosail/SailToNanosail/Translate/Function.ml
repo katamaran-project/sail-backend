@@ -586,7 +586,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (variant_definition : Ast.Definition.Type.Variant.t) =
+    and match_variant (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Statement.t TC.t =
       let process_case
           (acc  : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
           (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp                )
