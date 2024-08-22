@@ -376,6 +376,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   let S.AE_aux (unwrapped_expression, _environment, location) = expression
   in
 
+  (*
+    Translation of a match expression
+
+    match <matched> {
+      pattern1 => expression1,
+      pattern2 => expression2,
+      ...
+    }
+   *)
   let statement_of_match
         (location : S.l                                              )
         (matched  : S.typ S.aval                                     )
