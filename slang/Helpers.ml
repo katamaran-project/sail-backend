@@ -1,9 +1,14 @@
+open Monads.Notations.Star(EvaluationContext)
+
+
 module Function = struct
   let to_type (value_constructor : 'a -> Value.t) (id : string) (f : unit -> 'a EvaluationContext.t) =
     let slang_function (arguments : Value.t list) =
       match arguments with
       | [] -> begin
-          EvaluationContext.bind (f ()) @@ fun result -> EvaluationContext.return @@ value_constructor result
+          let* result = f ()
+          in
+          EvaluationContext.return @@ value_constructor result
         end
       | _  -> failwith @@ Printf.sprintf "%s function does not expect arguments" id
     in
