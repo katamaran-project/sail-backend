@@ -2,7 +2,11 @@ open Monads.Notations.Star(EvaluationContext)
 
 
 module Function = struct
-  let to_type (value_constructor : 'a -> Value.t) (id : string) (f : unit -> 'a EvaluationContext.t) =
+  let to_type
+      (value_constructor : 'a -> Value.t                 )
+      (id                : string                        )
+      (f                 : unit -> 'a EvaluationContext.t)
+    =
     let slang_function (arguments : Value.t list) =
       match arguments with
       | [] -> begin
