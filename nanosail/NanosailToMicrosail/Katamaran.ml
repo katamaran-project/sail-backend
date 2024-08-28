@@ -190,18 +190,18 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
 
   let* sections = GC.sequence
     [
-      pp_prelude;
-      pp_register_definitions;
-      pp_translated_type_definitions;
-      pp_enum_tags;
-      pp_variant_tags;
-      pp_record_tags;
-      pp_no_confusion;
-      pp_eqdecs;
-      pp_finite;
-      pp_base_module;
-      pp_value_definitions;
-      (* pp_program; *)
+      (* pp_prelude; *)
+      (* pp_register_definitions; *)
+      (* pp_translated_type_definitions; *)
+      (* pp_enum_tags; *)
+      (* pp_variant_tags; *)
+      (* pp_record_tags; *)
+      (* pp_no_confusion; *)
+      (* pp_eqdecs; *)
+      (* pp_finite; *)
+      (* pp_base_module; *)
+      (* pp_value_definitions; *)
+      pp_program;
     ]
   in
   GC.return @@ PP.(separate_nonempty (twice hardline) sections)
