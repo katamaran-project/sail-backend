@@ -186,7 +186,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     ValueDefinitions.generate ir.definitions
   in
 
-  let _ = pp_program in (* remove this *)
+  let _ = (pp_prelude, pp_register_definitions, pp_translated_type_definitions, pp_enum_tags, pp_variant_tags, pp_record_tags, pp_no_confusion, pp_eqdecs, pp_finite, pp_base_module, pp_value_definitions) in (* remove this *)
 
   let* sections = GC.sequence
     [
