@@ -376,6 +376,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   let S.AE_aux (unwrapped_expression, _environment, location) = expression
   in
 
+  (*
+    Translation of a match expression
+
+    match <matched> {
+      pattern1 => expression1,
+      pattern2 => expression2,
+      ...
+    }
+   *)
   let statement_of_match
         (location : S.l                                              )
         (matched  : S.typ S.aval                                     )
@@ -586,10 +595,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     (*
         MATCHING VARIANTS
     *)
-    and match_variant (variant_definition : Ast.Definition.Type.Variant.t) =
+    and match_variant (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Statement.t TC.t =
       let process_case
           (acc  : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-          (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp                )
+          (case : S.typ S.apat * S.typ S.aexp * S.typ S.aexp                    ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
         =
         let (pattern, condition, clause) = case
         in
@@ -640,13 +649,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
+                | S.AP_wild _typ     -> begin
+                    let* identifier = TC.generate_unique_identifier ~underscore:true ()
+                    in
+                    TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
+                  end
                 | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
                 | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_wild _        -> TC.not_yet_implemented [%here] subpattern_location
               end
             | S.AP_wild _ -> begin
                 (* only adds to table if constructor is missing *)

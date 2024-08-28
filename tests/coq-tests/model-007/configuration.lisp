@@ -30,7 +30,10 @@
                   "MyEnum_of_num"
                   "num_of_MyEnum"
                   "Comparison_of_regval"
-                  "regval_of_Comparison")
+                  "regval_of_Comparison"
+                  "regval_of_Capability"
+                  "RegisterContents_of_regval"
+                  "regval_of_RegisterContents")
 
 (ignore-definition-predicate (lambda (identifier)
                                (contains? '(
