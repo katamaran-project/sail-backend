@@ -177,7 +177,7 @@ let generate (f : PP.document t) : PP.document =
   in
   match result with
   | Monad.Success result -> result
-  | Monad.Failure error -> failwith @@ "Error occurred during generation: " ^ error
+  | Monad.Failure error  -> failwith @@ "Error occurred during generation: " ^ error
 
 
 include Monads.Util.Make(Monad)
