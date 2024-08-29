@@ -236,6 +236,6 @@ let process_template
 let process (translation : Ast.program) =
   let sanitized_translation = SailToNanosail.coqify_identifiers translation
   in
-  let templates = Configuration.(get template_files)
+  let templates = Configuration.(get template_translations)
   in
-  List.iter ~f:(fun (i, o) -> process_template sanitized_translation i o) templates
+  List.iter ~f:(fun { template_filename; output_filename } -> process_template sanitized_translation template_filename output_filename) templates
