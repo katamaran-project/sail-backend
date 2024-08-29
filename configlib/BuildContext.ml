@@ -16,8 +16,8 @@ module M (_ : sig end) = struct
 
 
   let export_callable
-        (identifier : string              )
-        (callable   : Slang.Value.callable)
+      (identifier : string              )
+      (callable   : Slang.Value.callable)
     =
     exported_functions := (identifier, callable) :: !exported_functions
 
