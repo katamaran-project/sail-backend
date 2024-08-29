@@ -44,7 +44,7 @@ module M (_ : sig end) = struct
 
   let export_strict_function
         (export_as : string                  )
-        (process   : Slang.Value.t list -> 'a)
+        (process   : Slang.Value.t list -> 'a) : unit
     =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
