@@ -13,4 +13,4 @@ else
 fi
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
-$COQ microsail.v
+$COQ base.v
