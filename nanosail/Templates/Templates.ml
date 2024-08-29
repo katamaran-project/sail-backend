@@ -2,6 +2,8 @@ open Base
 open Monads.Notations.Star(Slang.EvaluationContext)
 open Slang.Prelude.Shared
 
+module Blocks = Blocks
+
 module EC = Slang.EvaluationContext
 
 module GC = struct
@@ -173,50 +175,25 @@ let process_template_streams
     (input_channel  : Stdio.In_channel.t )
     (output_channel : Stdio.Out_channel.t)
   =
-  let inside_template_block = ref false
-  and block_acc = ref []
-  in
-  let accumulate_line line =
-    block_acc := line :: !block_acc
-  and output_line line =
+  let output_line line =
     Stdio.Out_channel.output_lines output_channel [line]
   in
-
-  let process_block () =
-    let code = String.concat ~sep:"\n" @@ List.rev !block_acc
+  let next_line () =
+    Stdio.In_channel.input_line input_channel
+  and is_block_entry line =
+    is_template_block_start line
+  and is_block_exit line =
+    is_template_block_end line
+  and process_out_of_block_line line =
+    output_line line
+  and process_block lines =
+    let code = String.concat ~sep:"\n" lines
     in
     let generated_output = run_code translation code
     in
     output_line generated_output
   in
-
-  let start_new_block () =
-    if !inside_template_block
-    then failwith "Nested template blocks are not allowed"
-    else inside_template_block := true
-
-  and finish_block () =
-    if !inside_template_block
-    then begin
-      process_block ();
-      inside_template_block := false;
-      block_acc := []
-    end
-    else failwith "Unexpected end of template block"
-
-  and process_line line =
-    if !inside_template_block
-    then accumulate_line line
-    else output_line line
-  in
-
-  Stdio.In_channel.iter_lines input_channel ~f:begin fun line ->
-    if is_template_block_start line
-    then start_new_block ()
-    else if is_template_block_end line
-    then finish_block ()
-    else process_line line
-  end
+  Blocks.process_lines ~next_line ~is_block_entry ~is_block_exit ~process_out_of_block_line ~process_block
 
 
 (* Processes a single template, given the names of the input and output files *)
