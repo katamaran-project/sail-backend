@@ -31,11 +31,11 @@ module C = struct
     let template_block_right_delimiter    = string "template-block-right-delimiter" ">*)"
 
     let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
-          let=! left, right = C.(map2 C.string C.string) evaluated_arguments
-          in
-          ConfigLib.Setting.set template_block_left_delimiter left;
-          ConfigLib.Setting.set template_block_right_delimiter right
-        end
+        let=! left, right = C.(map2 C.string C.string) evaluated_arguments
+        in
+        ConfigLib.Setting.set template_block_left_delimiter left;
+        ConfigLib.Setting.set template_block_right_delimiter right
+      end
   end
 end
 
