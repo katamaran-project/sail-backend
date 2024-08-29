@@ -11,76 +11,65 @@ let genblock loc label contents =
   GC.generation_block loc (PP.string label) contents
 
 
-let pretty_print (ir : Ast.program) : PP.document GC.t =
-  let type_definitions     = Ast.Definition.Select.(select (type_definition of_anything) ir.definitions)
-  and enum_definitions     = Ast.Definition.Select.(select (type_definition of_enum    ) ir.definitions)
-  and record_definitions   = Ast.Definition.Select.(select (type_definition of_record  ) ir.definitions)
-  and variant_definitions  = Ast.Definition.Select.(select (type_definition of_variant ) ir.definitions)
-  and register_definitions = Ast.Definition.Select.(select register_definition           ir.definitions)
-  in
+class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
+  val all_definitions      = intermediate_representation.definitions
+  val type_definitions     = Ast.Definition.Select.(select (type_definition of_anything) intermediate_representation.definitions)
+  val enum_definitions     = Ast.Definition.Select.(select (type_definition of_enum    ) intermediate_representation.definitions)
+  val record_definitions   = Ast.Definition.Select.(select (type_definition of_record  ) intermediate_representation.definitions)
+  val variant_definitions  = Ast.Definition.Select.(select (type_definition of_variant ) intermediate_representation.definitions)
+  val register_definitions = Ast.Definition.Select.(select register_definition           intermediate_representation.definitions)
+  val program_name         = intermediate_representation.program_name
 
-  let pp_prelude : PP.document GC.t =
+  method pp_prelude : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Prelude") @@* begin
       Prelude.generate_base_prelude ()
     end
-  in
 
-  let pp_register_definitions : PP.document GC.t =
+  method pp_register_definitions : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Register Definitions") @@* begin
       Registers.pp_regname_inductive_type register_definitions
     end
-  in
 
-  let generate_section title contents =
-    PP.(string (Printf.sprintf "(*** %s ***)" title) ^^ twice hardline ^^ contents)
-  in
-
-  let pp_translated_type_definitions : PP.document GC.t =
+  method pp_translated_type_definitions : PP.document GC.t =
     genblock [%here] "Translated Type Definitions" @@* begin
       let* type_definitions' =
         GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
       in
       GC.return @@ PP.vertical ~separator:PP.(twice hardline) type_definitions'
     end
-  in
 
-  let pp_enum_tags : PP.document GC.t =
+  method pp_enum_tags : PP.document GC.t =
     genblock [%here] "Enum Tags" @@* begin
       Types.Enums.generate_tags enum_definitions
     end
-  in
 
-  let pp_record_tags : PP.document GC.t =
+  method pp_record_tags : PP.document GC.t =
     genblock [%here] "Record Tags" @@* begin
       Types.Records.generate_tags record_definitions
     end
-  in
 
-  let pp_variant_tags : PP.document GC.t =
+  method pp_variant_tags : PP.document GC.t =
     genblock [%here] "Variant Tags" @@* begin
       Types.Variants.generate_tags variant_definitions;
     end
-  in
 
-  let pp_base_module : PP.document GC.t =
+  method pp_base_module : PP.document GC.t =
     let* base_module =
-      BaseModule.pp_base_module ir.definitions
+      BaseModule.pp_base_module all_definitions
     in
     GC.generation_block [%here] (PP.string "Base Module") base_module
-  in
 
-  let pp_program : PP.document GC.t =
+  method pp_program : PP.document GC.t =
     let* program_module =
       ProgramModule.pp_program_module
-        ir.program_name
+        program_name
         "Default"
-        Ast.Definition.Select.(select function_definition ir.definitions)
-        Ast.Definition.Select.(select top_level_type_constraint_definition ir.definitions)
+        Ast.Definition.Select.(select function_definition all_definitions)
+        Ast.Definition.Select.(select top_level_type_constraint_definition all_definitions)
     in
-    GC.return @@ generate_section "PROGRAM" program_module
-  in
+    GC.return @@ program_module
 
-  let pp_finite : PP.document GC.t =
+  method pp_finite : PP.document GC.t =
     let* finite_definitions =
       let finite_enums =
         Types.Enums.generate_finiteness enum_definitions
@@ -109,9 +98,8 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     genblock [%here] "Finite" begin
       Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
     end
-  in
 
-  let pp_no_confusion : PP.document GC.t =
+  method pp_no_confusion : PP.document GC.t =
     let section_identifier = Ast.Identifier.mk "TransparentObligations"
     in
     let section_contents =
@@ -148,9 +136,8 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     genblock [%here] "No Confusion" begin
       Coq.pp_section section_identifier section_contents
     end
-  in
 
-  let pp_eqdecs =
+  method pp_eqdecs : PP.document GC.t =
     (*
       Collect identifiers for which to declare EqDec
       Note: order is important
@@ -180,28 +167,35 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
     genblock [%here] "EqDec" begin
       PP.separate PP.hardline coq_lines
     end
+
+  method pp_value_definitions : PP.document GC.t =
+    ValueDefinitions.generate all_definitions
+
+  method pp_base : PP.document GC.t =
+    let* sections = GC.sequence [
+      self#pp_prelude;
+      self#pp_register_definitions;
+      self#pp_translated_type_definitions;
+      self#pp_enum_tags;
+      self#pp_variant_tags;
+      self#pp_record_tags;
+      self#pp_no_confusion;
+      self#pp_eqdecs;
+      self#pp_finite;
+      self#pp_base_module;
+      self#pp_value_definitions;
+    ]
+    in
+    GC.return @@ PP.(separate_nonempty (twice hardline) sections)
+end
+
+
+let pretty_print (ir : Ast.program) : PP.document GC.t =
+  let katamaran = new katamaran ir
   in
-
-  let pp_value_definitions : PP.document GC.t =
-    ValueDefinitions.generate ir.definitions
-  in
-
-  let _ = (pp_prelude, pp_register_definitions, pp_translated_type_definitions, pp_enum_tags, pp_variant_tags, pp_record_tags, pp_no_confusion, pp_eqdecs, pp_finite, pp_base_module, pp_value_definitions) in (* remove this *)
-
   let* sections = GC.sequence
     [
-      (* pp_prelude; *)
-      (* pp_register_definitions; *)
-      (* pp_translated_type_definitions; *)
-      (* pp_enum_tags; *)
-      (* pp_variant_tags; *)
-      (* pp_record_tags; *)
-      (* pp_no_confusion; *)
-      (* pp_eqdecs; *)
-      (* pp_finite; *)
-      (* pp_base_module; *)
-      (* pp_value_definitions; *)
-      pp_program;
+      katamaran#pp_program;
     ]
   in
   GC.return @@ PP.(separate_nonempty (twice hardline) sections)
