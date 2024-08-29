@@ -13,3 +13,10 @@ let mk initial_value =
 
 let get (Setting (getter, _    )) = getter ()
 let set (Setting (_,     setter)) = setter
+
+let update setting (f : 'a -> 'a) =
+  let value = get setting
+  in
+  let updated_value = f value
+  in
+  set setting updated_value
