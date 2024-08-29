@@ -22,11 +22,11 @@ type categorized_line =
    
  *)
 let process_lines
-    (next_line                 : unit        -> string option)
-    (is_block_entry            : string      -> bool         )
-    (is_block_exit             : string      -> bool         )
-    (process_out_of_block_line : string      -> unit         )
-    (process_block             : string list -> unit         ) : unit
+    ~(next_line                 : unit        -> string option)
+    ~(is_block_entry            : string      -> bool         )
+    ~(is_block_exit             : string      -> bool         )
+    ~(process_out_of_block_line : string      -> unit         )
+    ~(process_block             : string list -> unit         ) : unit
   =
   let categorize_line (line : string) : categorized_line =
     if is_block_entry line
