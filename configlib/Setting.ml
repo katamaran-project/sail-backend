@@ -11,6 +11,5 @@ let mk initial_value =
   in
   Setting (get, set)
 
-let get (Setting (x, _)) = x ()
-let set (Setting (_, x)) = x
-
+let get (Setting (getter, _    )) = getter ()
+let set (Setting (_,     setter)) = setter
