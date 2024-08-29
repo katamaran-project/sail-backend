@@ -47,5 +47,5 @@
                 )
               identifier)))
 
-(template "base.template.v" "base.v")
-(template "machine.template.v" "machine.v")
+(template "base.template.v")
+(template "machine.template.v")
