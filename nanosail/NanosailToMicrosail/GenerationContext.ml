@@ -36,10 +36,12 @@ open Monads.Notations.Star(Monad)
 let initial_state = ([], 0)
 
 
+(* Creates a fresh frame and pushes it onto the frame stack *)
 let push_new_frame =
   Monad.update frames (fun frames -> ([], []) :: frames)
 
 
+(* Pops the last frame from the frame stack *)
 let pop_frame =
   let* frame = get top_frame
   in
@@ -53,6 +55,7 @@ let pop_frame =
   return frame
 
 
+(* Evaluates f inside a fresh frame *)
 let with_fresh_frame f =
   let* ()     = push_new_frame
   and* result = f
@@ -67,6 +70,7 @@ let is_empty_frame frame =
   | _        -> false
 
 
+(* Returns a fresh index *)
 let next_index =
   let* i  = get index
   in
