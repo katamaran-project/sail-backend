@@ -1,5 +1,6 @@
-/machine.v
-/base.v
+microsail.v
+machine.v
+base.v
 /intermediate_rewrite_*
 *.glob
 *.vo
