@@ -54,8 +54,8 @@ let pp_import_default_base () : PP.document =
   PP.string "Import DefaultBase."
 
 
-let generate () : PP.document =
-  PP.(separate (twice hardline) [
+let generate_program_prelude () : PP.document GC.t =
+  GC.return @@ PP.(separate (twice hardline) [
       pp_require_imports ();
       pp_imports ();
       pp_open_scopes ();
