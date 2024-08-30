@@ -1,7 +1,0 @@
-/microsail.v
-/intermediate_rewrite_*
-*.glob
-*.vo
-*.vok
-*.vos
-*.aux
