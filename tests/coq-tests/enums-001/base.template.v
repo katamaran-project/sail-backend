@@ -1,8 +1,10 @@
 (*<
-  (generate (full-translation))
+  (generate (base-translation))
+>*)
 
+(*<
   (if (untranslated-definitions?)
-    (generate "\n\nTheorem UNTRANSLATED_DEFINITIONS : False. Qed."))
+    (generate "Theorem UNTRANSLATED_DEFINITIONS : False. Qed."))
 >*)
 
 (*
