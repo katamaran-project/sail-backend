@@ -66,7 +66,8 @@ let pp_function_definition
 
 let pp_function_definitions
       (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document list GC.t =
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document list GC.t
+  =
   let type_and_function_pairs =
     let find_type_constraint function_name =
       match
