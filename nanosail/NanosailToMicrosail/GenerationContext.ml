@@ -71,7 +71,7 @@ let is_empty_frame frame =
 
 
 (* Returns a fresh index *)
-let next_index =
+let fresh_index =
   let* i  = get index
   in
   let* () = put index @@ i + 1
@@ -115,7 +115,7 @@ let block (f : PP.document t) : PP.document t =
 let add_annotation (annotation : PP.document) : int t =
   let* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
   in
-  next_index
+  fresh_index
 
 
 let add_comment (comment : PP.document) : unit t =
