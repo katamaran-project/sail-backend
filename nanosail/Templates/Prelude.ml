@@ -20,7 +20,6 @@ let string_of_document document =
   Stdlib.Buffer.contents buffer
 
 
-
 let nullary_string_function id func =
   (id, Slang.Helpers.Function.to_string id func)
   
@@ -29,7 +28,7 @@ let nullary_boolean_function id func =
   (id, Slang.Helpers.Function.to_bool id func)
 
 
-let prelude (translation : Ast.program) =
+let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   (* Allocate a refcell that holds a list of generated strings (in reverse order, for efficiency purposes) *)
   let* generated_output_reference =
     EC.heap_allocate Slang.Value.Nil
@@ -71,10 +70,10 @@ let prelude (translation : Ast.program) =
   in
 
   let exported_full_translation =
-    let id = "full-translation"
+    let id = "base-translation"
     in
     let f () =
-      EC.return @@ string_of_document @@ NanosailToMicrosail.Katamaran.full_translation translation
+      EC.return @@ string_of_document @@ GC.generate translation#pp_base
     in
     nullary_string_function id f
   in
@@ -84,7 +83,7 @@ let prelude (translation : Ast.program) =
     in
     let f () =
       let ignored_definitions =
-        List.map ~f:fst @@ Ast.Definition.Select.(select ignored_definition translation.definitions)
+        List.map ~f:fst translation#ignored_definitions
       in
       let formatted_ignored_definitions =
         (* todo improve this *)
@@ -108,7 +107,7 @@ let prelude (translation : Ast.program) =
     in
     let f () =
       let untranslated_definitions =
-        Ast.Definition.Select.(select untranslated_definition translation.definitions)
+        translation#untranslated_definitions
       in
       let formatted_untranslated_definitions =
         PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
@@ -122,7 +121,7 @@ let prelude (translation : Ast.program) =
     let id = "untranslated-definitions?"
     in
     let f () =
-      EC.return @@ not @@ List.is_empty @@ Ast.Definition.Select.(select untranslated_definition translation.definitions)
+      EC.return @@ not @@ List.is_empty translation#untranslated_definitions
     in
     nullary_boolean_function id f
   in
