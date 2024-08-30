@@ -87,6 +87,7 @@ let inside_frame : bool t =
   return @@ not @@ List.is_empty frame_stack
 
 
+(* Ensures that there is a frame on the frame stack *)
 let assert_inside_frame : unit t =
   let* result = inside_frame
   in
@@ -95,6 +96,7 @@ let assert_inside_frame : unit t =
   else return ()
 
 
+(* Ensures that there is no frame on the frame stack *)
 let assert_outside_frame : unit t =
   let* result = inside_frame
   in
@@ -140,6 +142,7 @@ let block (f : PP.document t) : PP.document t =
   end
 
 
+(* Adds annotation to the current frame *)
 let add_annotation (annotation : PP.document) : int t =
   let* () = assert_inside_frame
   and* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
@@ -147,6 +150,7 @@ let add_annotation (annotation : PP.document) : int t =
   fresh_index
 
 
+(* Adds comment to the current frame *)
 let add_comment (comment : PP.document) : unit t =
   let* () = assert_inside_frame
   in
@@ -207,6 +211,7 @@ let generation_block
     return contents
 
 
+(* Computes the document described by f *)
 let generate (f : PP.document t) : PP.document =
   let result, _ =
     Logging.(surround debug [%here] "Generation" @@ fun () -> Monad.run f initial_state)
