@@ -29,6 +29,7 @@ let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Ac
 let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame     )
 let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Pair.second id            )
 
+exception FrameException of string
 
 open Monads.Notations.Star(Monad)
 
@@ -79,6 +80,21 @@ let fresh_index =
   return i
 
 
+(* Checks whether there are any frames on the stack *)
+let inside_frame : bool t =
+  let* frame_stack = get frames
+  in
+  return @@ not @@ List.is_empty frame_stack
+
+
+let assert_inside_frame : unit t =
+  let* result = inside_frame
+  in
+  if not result
+  then raise @@ FrameException "should only be executed while within a frame"
+  else return ()
+
+
 let convert_frame_to_document (frame : frame) =
   let annotations, comments = frame
   in
@@ -99,6 +115,10 @@ let convert_frame_to_document (frame : frame) =
   end
 
 
+(*
+   Computes f and gathers all comments/annotations during its execution.
+   Produces the result of f and prepends all comments/annotations
+*)
 let block (f : PP.document t) : PP.document t =
   let* (document, frame) = with_fresh_frame f
   in
@@ -113,12 +133,15 @@ let block (f : PP.document t) : PP.document t =
 
 
 let add_annotation (annotation : PP.document) : int t =
-  let* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
+  let* () = assert_inside_frame
+  and* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
   in
   fresh_index
 
 
 let add_comment (comment : PP.document) : unit t =
+  let* () = assert_inside_frame
+  in
   let comment = Comment comment
   in
   update comments (fun cs -> comment :: cs)
