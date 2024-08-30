@@ -50,11 +50,11 @@ module List = struct
     in
     let get value =
       match get' value with
-      | []    -> raise (AccessorError "no head")
+      | []    -> raise @@ AccessorError "no head"
       | x::_  -> x
     and set value x =
       match get' value with
-      | []    -> raise (AccessorError "no head")
+      | []    -> raise @@ AccessorError "no head"
       | _::xs -> set' value (x::xs)
     in
     (get, set)
