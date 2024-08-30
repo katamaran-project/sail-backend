@@ -43,7 +43,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_register_definitions : PP.document GC.t =
-    GC.generation_block [%here] (PP.string "Register Definitions") @@* begin
+    genblock [%here] "Register Definitions" @@* begin
       Registers.pp_regname_inductive_type register_definitions
     end
 
