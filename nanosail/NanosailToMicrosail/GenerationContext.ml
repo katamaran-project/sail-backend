@@ -95,6 +95,14 @@ let assert_inside_frame : unit t =
   else return ()
 
 
+let assert_outside_frame : unit t =
+  let* result = inside_frame
+  in
+  if result
+  then return ()
+  else raise @@ FrameException "should only be executed while there are no frames on the frame stack"
+
+
 let convert_frame_to_document (frame : frame) =
   let annotations, comments = frame
   in
