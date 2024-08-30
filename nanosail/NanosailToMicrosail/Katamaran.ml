@@ -12,14 +12,26 @@ let genblock loc label contents =
 
 
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
-  val all_definitions      = intermediate_representation.definitions
-  val type_definitions     = Ast.Definition.Select.(select (type_definition of_anything) intermediate_representation.definitions)
-  val enum_definitions     = Ast.Definition.Select.(select (type_definition of_enum    ) intermediate_representation.definitions)
-  val record_definitions   = Ast.Definition.Select.(select (type_definition of_record  ) intermediate_representation.definitions)
-  val variant_definitions  = Ast.Definition.Select.(select (type_definition of_variant ) intermediate_representation.definitions)
-  val register_definitions = Ast.Definition.Select.(select register_definition           intermediate_representation.definitions)
-  val program_name         = intermediate_representation.program_name
+  val program_name             = intermediate_representation.program_name
+  val all_definitions          = intermediate_representation.definitions
+  val type_definitions         = Ast.Definition.Select.(select (type_definition of_anything) intermediate_representation.definitions)
+  val enum_definitions         = Ast.Definition.Select.(select (type_definition of_enum    ) intermediate_representation.definitions)
+  val record_definitions       = Ast.Definition.Select.(select (type_definition of_record  ) intermediate_representation.definitions)
+  val variant_definitions      = Ast.Definition.Select.(select (type_definition of_variant ) intermediate_representation.definitions)
+  val register_definitions     = Ast.Definition.Select.(select register_definition           intermediate_representation.definitions)
+  val ignored_definitions      = Ast.Definition.Select.(select ignored_definition            intermediate_representation.definitions)
+  val untranslated_definitions = Ast.Definition.Select.(select untranslated_definition       intermediate_representation.definitions)
 
+  method program_name             = program_name
+  method all_definitions          = all_definitions
+  method type_definitions         = type_definitions
+  method enum_definitions         = enum_definitions
+  method record_definitions       = record_definitions
+  method variant_defintions       = variant_definitions
+  method register_definitions     = register_definitions
+  method ignored_definitions      = ignored_definitions
+  method untranslated_definitions = untranslated_definitions
+  
   method pp_prelude : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Prelude") @@* begin
       Prelude.generate_base_prelude ()
