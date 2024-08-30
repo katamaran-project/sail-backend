@@ -33,7 +33,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method untranslated_definitions = untranslated_definitions
   
   method pp_base_prelude : PP.document GC.t =
-    GC.generation_block [%here] (PP.string "Prelude") @@* begin
+    genblock [%here] "Prelude" @@* begin
       Prelude.generate_base_prelude ()
     end
 
