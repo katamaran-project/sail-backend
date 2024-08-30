@@ -29,12 +29,13 @@ let debug message =
 
 
 let surround
-    (logger  : string -> unit)
-    (caption : string        )
-    (f       : unit -> 'a    ) : 'a
+    (logger   : string -> unit )
+    (position : Lexing.position)
+    (caption  : string         )
+    (f        : unit -> 'a     ) : 'a
   =
   let enter_block () =
-    logger @@ Printf.sprintf " IN %s" caption;
+    logger @@ Printf.sprintf " IN %s (%s)" caption (StringOf.OCaml.position position);
   and exited_block_successfully () =
     logger @@ Printf.sprintf "OUT %s" caption;
   and exited_block_with_exception () =
