@@ -32,7 +32,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method ignored_definitions      = ignored_definitions
   method untranslated_definitions = untranslated_definitions
   
-  method pp_prelude : PP.document GC.t =
+  method pp_base_prelude : PP.document GC.t =
     GC.generation_block [%here] (PP.string "Prelude") @@* begin
       Prelude.generate_base_prelude ()
     end
@@ -185,7 +185,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
 
   method pp_base : PP.document GC.t =
     let* sections = GC.sequence [
-      self#pp_prelude;
+      self#pp_base_prelude;
       self#pp_register_definitions;
       self#pp_translated_type_definitions;
       self#pp_enum_tags;
