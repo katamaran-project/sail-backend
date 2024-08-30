@@ -78,6 +78,15 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     nullary_string_function id f
   in
 
+  let exported_program_translation =
+    let id = "program-translation"
+    in
+    let f () =
+      EC.return @@ string_of_document @@ GC.generate translation#pp_program
+    in
+    nullary_string_function id f
+  in
+  
   let exported_ignored_definitions =
     let id = "ignored-definitions"
     in
@@ -129,6 +138,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   let exported : (string * Slang.Value.t) list = [
     exported_generate;
     exported_base_translation;
+    exported_program_translation;
     exported_ignored_definitions;
     exported_untranslated_definitions;
     exported_untranslated_definitions_predicate;
