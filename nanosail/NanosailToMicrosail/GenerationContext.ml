@@ -214,7 +214,14 @@ let generation_block
 (* Computes the document described by f *)
 let generate (f : PP.document t) : PP.document =
   let result, _ =
-    Logging.(surround debug [%here] "Generation" @@ fun () -> Monad.run f initial_state)
+    (* Add an extra check to f to ensure there are no open frames left *)
+    let wrapped_f =
+      let* result = f
+      and* () = assert_outside_frame
+      in
+      return result
+    in
+    Monad.run wrapped_f initial_state
   in
   match result with
   | Monad.Success result -> result
