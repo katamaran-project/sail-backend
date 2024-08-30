@@ -87,7 +87,8 @@ let pp_function_definitions
 
 let pp_function_definition_kit
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t =
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
+  =
   let fundef =
     let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
     and implicit_parameters = [
