@@ -69,7 +69,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
       (id, Slang.Value.Callable (Slang.Functions.mk_multimethod [ impl; error id ]))
   in
 
-  let exported_full_translation =
+  let exported_base_translation =
     let id = "base-translation"
     in
     let f () =
@@ -128,7 +128,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
 
   let exported : (string * Slang.Value.t) list = [
     exported_generate;
-    exported_full_translation;
+    exported_base_translation;
     exported_ignored_definitions;
     exported_untranslated_definitions;
     exported_untranslated_definitions_predicate;
