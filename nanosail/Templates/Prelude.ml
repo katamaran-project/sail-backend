@@ -21,6 +21,14 @@ let string_of_document document =
 
 
 
+let nullary_string_function id func =
+  (id, Slang.Helpers.Function.to_string id func)
+  
+
+let nullary_boolean_function id func =
+  (id, Slang.Helpers.Function.to_bool id func)
+
+
 let prelude (translation : Ast.program) =
   (* Allocate a refcell that holds a list of generated strings (in reverse order, for efficiency purposes) *)
   let* generated_output_reference =
@@ -47,12 +55,6 @@ let prelude (translation : Ast.program) =
         EC.return @@ String.concat ~sep:"" @@ List.rev strings
       end
     | None -> failwith "Bug: somehow the list got corrupted"
-  in
-
-  let nullary_string_function id func =
-    (id, Slang.Helpers.Function.to_string id func)
-  and nullary_boolean_function id func =
-    (id, Slang.Helpers.Function.to_bool id func)
   in
 
   (* (generate string1 string2 ...) *)
