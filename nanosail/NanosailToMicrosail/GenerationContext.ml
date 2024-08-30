@@ -173,7 +173,8 @@ let generation_block
 
 
 let generate (f : PP.document t) : PP.document =
-  let result, _ = Monad.run f initial_state
+  let result, _ =
+    Logging.(surround debug [%here] "Generation" @@ fun () -> Monad.run f initial_state)
   in
   match result with
   | Monad.Success result -> result
