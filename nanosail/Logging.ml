@@ -9,6 +9,10 @@ let info message =
   log message
 
 
+let debug message =
+  log message
+
+
 (* todo move to better place *)
 (* let try_finally *)
 (*     (f       : unit -> 'a  ) *)
