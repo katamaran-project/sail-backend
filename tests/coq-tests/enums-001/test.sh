@@ -14,3 +14,4 @@ fi
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 $COQ base.v
+$COQ machine.v
