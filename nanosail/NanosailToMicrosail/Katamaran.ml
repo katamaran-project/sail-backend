@@ -76,7 +76,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     in
     GC.generation_block [%here] (PP.string "Base Module") base_module
 
-  method pp_program : PP.document GC.t =
+  method pp_program_module : PP.document GC.t =
     let* program_module =
       ProgramModule.pp_program_module
         program_name
@@ -202,6 +202,14 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       self#pp_base_module;
       self#pp_value_definitions;
     ]
+    in
+    GC.return @@ PP.(separate_nonempty (twice hardline) sections)
+
+  method pp_program : PP.document GC.t =
+    let* sections = GC.sequence [
+        self#pp_program_prelude;
+        self#pp_program_module;
+      ]
     in
     GC.return @@ PP.(separate_nonempty (twice hardline) sections)
 end
