@@ -1,1 +1,3 @@
-(* machine template *)
+(*<
+  (generate (program-translation))
+>*)
