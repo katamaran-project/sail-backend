@@ -24,16 +24,16 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   val function_definitions                  = Ast.Definition.Select.(select function_definition                  intermediate_representation.definitions)
   val top_level_type_constraint_definitions = Ast.Definition.Select.(select top_level_type_constraint_definition intermediate_representation.definitions)
 
-  method program_name             = program_name
-  method all_definitions          = all_definitions
-  method type_definitions         = type_definitions
-  method enum_definitions         = enum_definitions
-  method record_definitions       = record_definitions
-  method variant_definitions      = variant_definitions
-  method register_definitions     = register_definitions
-  method ignored_definitions      = ignored_definitions
-  method untranslated_definitions = untranslated_definitions
-  method function_definitions     = function_definitions
+  method program_name                          = program_name
+  method all_definitions                       = all_definitions
+  method type_definitions                      = type_definitions
+  method enum_definitions                      = enum_definitions
+  method record_definitions                    = record_definitions
+  method variant_definitions                   = variant_definitions
+  method register_definitions                  = register_definitions
+  method ignored_definitions                   = ignored_definitions
+  method untranslated_definitions              = untranslated_definitions
+  method function_definitions                  = function_definitions
   method top_level_type_constraint_definitions = top_level_type_constraint_definitions
   
   method pp_base_prelude : PP.document GC.t =
