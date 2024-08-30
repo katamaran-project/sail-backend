@@ -49,4 +49,6 @@
                 )
               identifier)))
 
-(template "template.v" "microsail.v")
+(template "base.template.v")
+(template "machine.template.v")
+
