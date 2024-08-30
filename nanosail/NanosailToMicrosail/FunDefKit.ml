@@ -127,4 +127,7 @@ let pp_function_definition_kit
           )
       end
   in
-  GC.return @@ Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
+  let section =
+    Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
+  in
+  GC.return section
