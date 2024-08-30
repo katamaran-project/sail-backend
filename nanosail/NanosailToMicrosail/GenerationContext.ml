@@ -36,7 +36,7 @@ open Monads.Notations.Star(Monad)
 let initial_state = ([], 0)
 
 
-let new_frame =
+let push_new_frame =
   Monad.update frames (fun frames -> ([], []) :: frames)
 
 
@@ -54,7 +54,7 @@ let pop_frame =
 
 
 let with_fresh_frame f =
-  let* ()     = new_frame
+  let* ()     = push_new_frame
   and* result = f
   and* frame  = pop_frame
   in
