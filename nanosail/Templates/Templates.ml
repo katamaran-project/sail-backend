@@ -20,20 +20,6 @@ let string_of_document document =
   Stdlib.Buffer.contents buffer
 
 
-let is_template_block_start line =
-  let left_delimiter =
-    Configuration.(get template_block_left_delimiter)
-  in
-  String.equal (String.rstrip line) left_delimiter
-
-
-let is_template_block_end line =
-  let right_delimiter =
-    Configuration.(get template_block_right_delimiter)
-  in
-  String.equal (String.rstrip line) right_delimiter
-
-
 let run_code
       (translation : Ast.program)
       (source      : string     ) : string =
@@ -64,9 +50,15 @@ let process_template_streams
   let next_line () =
     Stdio.In_channel.input_line input_channel
   and is_block_entry line =
-    is_template_block_start line
+    let left_delimiter =
+      Configuration.(get template_block_left_delimiter)
+    in
+    String.equal (String.rstrip line) left_delimiter
   and is_block_exit line =
-    is_template_block_end line
+    let right_delimiter =
+      Configuration.(get template_block_right_delimiter)
+    in
+    String.equal (String.rstrip line) right_delimiter
   and process_out_of_block_line line =
     output_line line
   and process_block lines =
