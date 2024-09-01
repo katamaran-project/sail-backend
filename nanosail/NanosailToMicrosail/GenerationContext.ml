@@ -47,14 +47,14 @@ let log
 
 (* Creates a fresh frame and pushes it onto the frame stack *)
 let push_new_frame =
-  let* () = return @@ Logging.debug "Pushing frame"
+  let* () = log Logging.debug "Pushing frame"
   in
   Monad.update frames (fun frames -> ([], []) :: frames)
 
 
 (* Pops the last frame from the frame stack *)
 let pop_frame =
-  let* () = return @@ Logging.debug "Popping frame"
+  let* () = log Logging.debug "Popping frame"
   in
   let* frame = get top_frame
   in
