@@ -24,3 +24,5 @@ val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit
 val add_original_definitions : Libsail.Type_check.tannot Libsail.Ast.def list -> unit t
 
 val pp_sail_definition : Libsail.Type_check.tannot Libsail.Ast.def -> PPrint.document
+
+val log : (string -> unit) -> string -> unit t
