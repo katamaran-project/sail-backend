@@ -7,6 +7,7 @@ module type S = sig
 
   val get : 'a accessor -> 'a t
   val put : 'a accessor -> 'a -> unit t
+  val act : (unit -> 'a) -> 'a t
   val run : 'a t -> state -> ('a * state)
 end
 
@@ -34,4 +35,6 @@ module Make (S : sig type t end) : (S with type state = S.t) = struct
     let* s = M.get
     in
     M.put @@ f s x
+
+  let act = M.act
 end
