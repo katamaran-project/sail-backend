@@ -5,6 +5,7 @@ module type S = sig
 
   val get : state t
   val put : state -> unit t
+  val act : (unit -> 'a) -> 'a t
   val run : 'a t -> state -> ('a * state)
 end
 
@@ -33,4 +34,7 @@ module Make (S : sig type t end) : (S with type state = S.t) = struct
 
   let put s =
     State (fun _ -> ((), s))
+
+  let act f =
+    State (fun s -> (f (), s))
 end
