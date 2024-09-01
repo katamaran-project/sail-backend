@@ -38,6 +38,13 @@ open Monads.Notations.Star(Monad)
 let initial_state = ([], 0)
 
 
+let log
+    (logger  : string -> unit)
+    (message : string        ) : unit t
+  =
+  act (fun () -> logger message)
+
+
 (* Creates a fresh frame and pushes it onto the frame stack *)
 let push_new_frame =
   let* () = return @@ Logging.debug "Pushing frame"
@@ -360,10 +367,3 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
 
 let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t =
   add_original_definitions [ original ]
-
-
-let log
-    (logger  : string -> unit)
-    (message : string        ) : unit t
-  =
-  act (fun () -> logger message)
