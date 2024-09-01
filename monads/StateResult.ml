@@ -48,6 +48,9 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
   let put (accessor : 'a accessor) (x : 'a) : unit t =
     SM.bind (SM.put accessor x) return
 
+  let act (action : unit -> 'a) : 'a t =
+    SM.bind (SM.act action) return
+
   let update (accessor : 'a accessor) (f : 'a -> 'a) : unit t =
     bind (get accessor) @@ fun x -> put accessor (f x)
 
