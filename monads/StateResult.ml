@@ -10,6 +10,7 @@ module type S = sig
 
   val get     : 'a accessor -> 'a t
   val put     : 'a accessor -> 'a -> unit t
+  val act     : (unit -> 'a) -> 'a t
   val update  : 'a accessor -> ('a -> 'a) -> unit t
   val run     : 'a t -> state -> ('a result * state)
   val fail    : error -> 'a t
