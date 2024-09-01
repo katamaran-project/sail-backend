@@ -1,5 +1,6 @@
 type 'a t
 
+val act    : (unit -> 'a) -> 'a t
 val return : 'a -> 'a t
 val bind   : 'a t -> ('a -> 'b t) -> 'b t
 val fail   : string -> 'a t

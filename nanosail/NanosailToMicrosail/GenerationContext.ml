@@ -20,6 +20,7 @@ let fail            = Monad.fail
 
 let get             = Monad.get
 let put             = Monad.put
+let act             = Monad.act
 let update          = Monad.update
 
 
