@@ -7,7 +7,6 @@ module GC = struct
 end
 
 
-
 let generate (function_definitions : Ast.Definition.Function.t list) =
   let pp_function_declaration (function_definition : Ast.Definition.Function.t) =
     let name = Identifier.pp function_definition.function_name in
