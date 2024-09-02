@@ -955,7 +955,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     Ast.Definition.Select.(select register_definition definitions)
   in
   begin
-    let base_module_name = "UntitledBase"
+    let base_module_name = Configuration.(get base_name)
     and flag = Coq.Export
     and includes = [ "Base" ]
     in
