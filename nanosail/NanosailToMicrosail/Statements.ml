@@ -79,7 +79,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
         in
         GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
           add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
-          addall cases'
+          addall cases';
+          add @@ PP.string "end"
         end
       end
 
