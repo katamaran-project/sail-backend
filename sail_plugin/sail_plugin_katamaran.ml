@@ -26,7 +26,6 @@ module CLI = struct
     let check                = mk_option "check"
     let list_notations       = mk_option "list notations"
     let width                = mk_option "width"
-    let program_name         = mk_option "program name"
     let include_original     = mk_option "add original"
     let print_rewrites       = mk_option "print rewrites"
     let config_file          = mk_option "config"
@@ -44,9 +43,6 @@ let katamaran_options = [
     "use list notations");
   (CLI.Arg.width,
     Stdlib.Arg.Set_int Options.width,
-    "set a custom width for the output");
-  (CLI.Arg.program_name,
-   Stdlib.Arg.Set_string Options.program_name,
     "set a custom width for the output");
   (CLI.Arg.include_original,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
