@@ -22,12 +22,14 @@ let genblock loc label doc =
 
 *)
 let pp_imports () : PP.document GC.t =
-  GC.return @@ PP.vertical_strings [
-    "Import ctx.notations.";
-    "Import ctx.resolution.";
-    "Import env.notations.";
-    "Import stdpp.finite.";
-  ]
+  genblock [%here] "Imports" begin
+    GC.return @@ PP.vertical_strings [
+      "Import ctx.notations.";
+      "Import ctx.resolution.";
+      "Import env.notations.";
+      "Import stdpp.finite.";
+    ]
+  end
 
 
 (*
