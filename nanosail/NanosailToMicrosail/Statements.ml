@@ -59,31 +59,40 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
       end
 
     | Enum { matched; matched_type; cases } -> begin
-        let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list GC.t) =
-          let* acc
-          and* pattern = GC.return @@ Identifier.pp key
-          and* clause = pp_statement data
+        if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
+        then
+          match Ast.Identifier.Map.data cases with
+          | [ clause ] -> begin
+              pp_statement clause
+            end
+          | _      -> GC.fail "expected exactly one case for unit-typed matches"
+        else begin
+          let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list GC.t) =
+            let* acc
+            and* pattern = GC.return @@ Identifier.pp key
+            and* clause = pp_statement data
+            in
+            GC.return @@ PP.(separate space [
+                string "|";
+                pattern;
+                string " => ";
+                clause
+              ] :: acc)
           in
-          GC.return @@ PP.(separate space [
-              string "|";
-              pattern;
-              string " => ";
-              clause
-            ] :: acc)
-        in
-        let* matched' = pp_par_statement matched
-        and* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
-        in
-        let matched_type =
-          Identifier.pp @@ Identifier.reified_enum_name matched_type
-        in
-        GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-          add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
-          addall cases';
-          add @@ PP.string "end"
+          let* matched' = pp_par_statement matched
+          and* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
+          in
+          let matched_type =
+            Identifier.pp @@ Identifier.reified_enum_name matched_type
+          in
+          GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+            add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
+            addall cases';
+            add @@ PP.string "end"
+          end
         end
       end
-
+        
     | Variant { matched; cases } -> begin
         let _ = matched
         and _ = cases
