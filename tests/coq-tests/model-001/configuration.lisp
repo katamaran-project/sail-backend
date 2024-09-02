@@ -1,5 +1,7 @@
 (use-list-notations)
 
+(base-name "ModelBase")
+
 (ignore-all-overloads)
 (ignore-pragmas "include_start"
                 "include_end"
