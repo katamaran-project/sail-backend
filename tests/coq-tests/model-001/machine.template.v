@@ -1,4 +1,4 @@
-Require Import base.
+Require Export base.
 
 (*<
   (generate (program-translation))

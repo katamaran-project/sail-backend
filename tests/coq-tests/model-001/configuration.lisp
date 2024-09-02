@@ -2,6 +2,8 @@
 
 (base-name "ModelBase")
 
+(show-generation-blocks)
+
 (ignore-all-overloads)
 (ignore-pragmas "include_start"
                 "include_end"
