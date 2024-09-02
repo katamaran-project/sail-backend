@@ -24,6 +24,7 @@ module C = struct
     let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
     let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let base_name                         = string   "base-name"                        "UntitledBase"
+    let program_name                      = string   "program-name"                     "ModelProgram"
     let ignore_definition_predicate       = callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
     let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
 
