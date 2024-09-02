@@ -7,70 +7,78 @@ module GC = struct
 end
 
 
+let genblock loc label doc =
+  let* doc = doc
+  in
+  GC.generation_block loc label doc
+
+
 let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
       (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t
   =
-  GC.block begin
-    let* () = GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
-    in
-    let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
-    in
-    let* coq_definition =
-      let* result_type =
-        let* bindings =
-          let* parameters : (Ast.Identifier.t * PP.document) list =
-            let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
-              let* t' = Nanotype.pp_nanotype t
-              in
-              GC.return (id, t')
-            in
-            GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
-          in
-          let docs = List.map ~f:PPSail.pp_bind parameters
-          in
-          GC.return @@ Coq.pp_list docs
-        in
+  genblock [%here] PP.(string "Function Definition " ^^ Identifier.pp function_definition.function_name) begin
+    GC.block begin
+      let* () = GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
+      in
+      let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+      in
+      let* coq_definition =
         let* result_type =
-          Nanotype.pp_nanotype function_definition.function_type.return_type
+          let* bindings =
+            let* parameters : (Ast.Identifier.t * PP.document) list =
+              let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
+                let* t' = Nanotype.pp_nanotype t
+                in
+                GC.return (id, t')
+              in
+              GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+            in
+            let docs = List.map ~f:PPSail.pp_bind parameters
+            in
+            GC.return @@ Coq.pp_list docs
+          in
+          let* result_type =
+            Nanotype.pp_nanotype function_definition.function_type.return_type
+          in
+          GC.return @@ Some (
+            PP.hanging_list (PP.string "Stm") [
+              bindings;
+              PP.parens result_type
+            ]
+          )
         in
-        GC.return @@ Some (
-          PP.hanging_list (PP.string "Stm") [
-            bindings;
-            PP.parens result_type
-          ]
-        )
+        let* body =
+          Statements.pp_statement function_definition.function_body
+        in
+        let* extended_function_type' =
+          Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+        in
+        let* () = GC.add_comment begin
+            PP.vertical [
+              PP.string "Extended type";
+              PP.indent extended_function_type'
+            ]
+          end
+        in
+        GC.return @@ Coq.pp_definition ~identifier ~result_type body
       in
-      let* body =
-        Statements.pp_statement function_definition.function_body
+      let original_sail_code =
+        Auxlib.build_list (fun { add; _ } ->
+            (
+              match type_constraint with
+              | Some (sail_type_constraint, _) -> add sail_type_constraint
+              | None                           -> ()
+            );
+            add sail_function_definition;
+          )
       in
-      let* extended_function_type' =
-        Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+      let* () = GC.add_original_definitions original_sail_code
       in
-      let* () = GC.add_comment begin
-          PP.vertical [
-            PP.string "Extended type";
-            PP.indent extended_function_type'
-          ]
-        end
-      in
-      GC.return @@ Coq.pp_definition ~identifier ~result_type body
-    in
-    let original_sail_code =
-      Auxlib.build_list (fun { add; _ } ->
-          (
-            match type_constraint with
-            | Some (sail_type_constraint, _) -> add sail_type_constraint
-            | None                           -> ()
-          );
-          add sail_function_definition;
-        )
-    in
-    let* () = GC.add_original_definitions original_sail_code
-    in
-    GC.return @@ coq_definition
+      GC.return @@ coq_definition
+    end
   end
-
+    
 
 let pp_function_definitions
       (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)
