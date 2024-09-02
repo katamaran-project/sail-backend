@@ -50,7 +50,7 @@ let pp_definitions () : PP.document =
   PP.(separate hardline definitions)
 
 
-let pp_import_default_base () : PP.document =
+let pp_import_base () : PP.document =
   PP.string "Import DefaultBase."
 
 
@@ -60,7 +60,7 @@ let generate_program_prelude () : PP.document GC.t =
       pp_imports ();
       pp_open_scopes ();
       pp_definitions ();
-      pp_import_default_base ();
+      pp_import_base ();
     ])
 
 
