@@ -47,7 +47,12 @@ let pp_function_definition
       let* extended_function_type' =
         Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
       in
-      let* () = GC.add_comment extended_function_type'
+      let* () = GC.add_comment begin
+          PP.vertical [
+            PP.string "Extended type";
+            PP.indent extended_function_type'
+          ]
+        end
       in
       GC.return @@ Coq.pp_definition ~identifier ~result_type body
     in
