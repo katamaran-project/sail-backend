@@ -2,7 +2,7 @@
 
 (base-name "ModelBase")
 
-(show-generation-blocks)
+; (show-generation-blocks)
 
 (ignore-all-overloads)
 (ignore-pragmas "include_start"
@@ -32,7 +32,8 @@
                   "concat_str_dec"
                   "regval_of_bit"
                   "MyEnum_of_num"
-                  "num_of_MyEnum")
+                  "num_of_MyEnum"
+                  "Instruction_of_num")
 
 (ignore-definition-predicate (lambda (identifier)
                                (contains? '(
