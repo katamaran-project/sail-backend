@@ -100,46 +100,49 @@ let pp_function_definition_kit
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
-  let* () = GC.log Logging.debug "Generation FunDefKit"
-  in
-  let fundef =
-    let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
-    and implicit_parameters = [
+  let* contents =
+    let* () = GC.log Logging.debug "Generation FunDefKit"
+    in
+    let fundef =
+      let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
+      and implicit_parameters = [
         (PP.utf8string "Δ", None);
         (PP.utf8string "τ", None);
       ]
-    and parameters = [
+      and parameters = [
         (PP.utf8string "f", Some (PP.utf8string "Fun Δ τ"))
       ]
-    and result_type = Some (PP.utf8string "Stm Δ τ")
-    and body =
-      let matched_expression =
-        PP.utf8string "f in Fun Δ τ return Stm Δ τ"
-      and cases =
-        let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
-          (
-            Identifier.pp function_definition.function_name,
-            Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
-          )
+      and result_type = Some (PP.utf8string "Stm Δ τ")
+      and body =
+        let matched_expression =
+          PP.utf8string "f in Fun Δ τ return Stm Δ τ"
+        and cases =
+          let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+            (
+              Identifier.pp function_definition.function_name,
+              Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+            )
+          in
+          List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
         in
-        List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
+        Coq.pp_match matched_expression cases
       in
-      Coq.pp_match matched_expression cases
+      Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
     in
-    Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
-  in
-  let* contents =
-    let* function_definitions =
-      pp_function_definitions function_definitions top_level_type_constraint_definitions
-    in
-    GC.return @@ PP.vertical ~separator:PP.(twice hardline) begin
+    let* contents =
+      let* function_definitions =
+        pp_function_definitions function_definitions top_level_type_constraint_definitions
+      in
+      GC.return @@ PP.vertical ~separator:PP.(twice hardline) begin
         Auxlib.build_list (fun { add; addall; _ } ->
             addall function_definitions;
             add    fundef
           )
       end
+    in
+    let section =
+      Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
+    in
+    GC.return section
   in
-  let section =
-    Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
-  in
-  GC.return @@ section
+  GC.generation_block [%here] (PP.string "FunDefKit") contents
