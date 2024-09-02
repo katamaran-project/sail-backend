@@ -26,6 +26,5 @@ let tuple_to_list (t : Type.t) : Type.t list =
 
 
 type program = {
-    program_name : string;
     definitions  : (Sail.sail_definition * Definition.t) list   (* All translated definitions; original order preserved *)
   }

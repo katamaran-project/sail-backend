@@ -87,7 +87,7 @@ let katamaran_target
       (_                : Libsail.Type_check.env                        )
   =
   if !Options.print_rewrites then print_rewrites ();
-  let translation = Nanosail.SailToNanosail.translate ast !Options.program_name
+  let translation = Nanosail.SailToNanosail.translate ast
   in
   Nanosail.Templates.process translation
 

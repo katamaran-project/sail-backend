@@ -85,7 +85,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     end
   end
 
-let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : Ast.program =
+let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) : Ast.program =
   let translate =
     let* () = Prelude.register_types ()
     in
@@ -94,5 +94,5 @@ let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) name : Ast.
   let (result, _context) = TC.run translate
   in
   match result with
-  | TC.Success definitions -> { program_name = name; definitions = definitions }
+  | TC.Success definitions -> { definitions = definitions }
   | TC.Failure _           -> failwith "Bug: failures should have been recovered from earlier"

@@ -11,7 +11,6 @@ let genblock loc label doc =
 
 
 let pp_program_module
-      (program_name                          : string                                                                           )
       (base_name                             : string                                                                           )
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t

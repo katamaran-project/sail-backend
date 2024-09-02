@@ -101,6 +101,5 @@ let coqify_identifiers (program : Ast.program) : Ast.program =
     )
   in
   {
-    program_name = program.program_name;
     definitions  = List.map ~f:(uncurry sanitize_definition) program.definitions
   }

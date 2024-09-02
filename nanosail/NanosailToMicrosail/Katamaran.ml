@@ -12,7 +12,6 @@ let genblock loc label contents =
 
 
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
-  val program_name                          = intermediate_representation.program_name
   val all_definitions                       = intermediate_representation.definitions
   val type_definitions                      = Ast.Definition.Select.(select (type_definition of_anything)        intermediate_representation.definitions)
   val enum_definitions                      = Ast.Definition.Select.(select (type_definition of_enum    )        intermediate_representation.definitions)
@@ -24,7 +23,6 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   val function_definitions                  = Ast.Definition.Select.(select function_definition                  intermediate_representation.definitions)
   val top_level_type_constraint_definitions = Ast.Definition.Select.(select top_level_type_constraint_definition intermediate_representation.definitions)
 
-  method program_name                          = program_name
   method all_definitions                       = all_definitions
   method type_definitions                      = type_definitions
   method enum_definitions                      = enum_definitions
@@ -83,7 +81,6 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method pp_program_module : PP.document GC.t =
     let* program_module =
       ProgramModule.pp_program_module
-        program_name
         "Default"
         function_definitions
         top_level_type_constraint_definitions
