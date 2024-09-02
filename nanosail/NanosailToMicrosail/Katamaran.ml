@@ -81,7 +81,6 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method pp_program_module : PP.document GC.t =
     let* program_module =
       ProgramModule.pp_program_module
-        "Default"
         function_definitions
         top_level_type_constraint_definitions
     in

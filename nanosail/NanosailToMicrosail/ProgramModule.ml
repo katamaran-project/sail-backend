@@ -11,14 +11,14 @@ let genblock loc label doc =
 
 
 let pp_program_module
-      (base_name                             : string                                                                           )
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
   genblock [%here] "Program Module" begin
     let flag            = Coq.Import
     and identifier      = Configuration.(get program_name)
-    and base_identifier = base_name ^ "Base" in
+    and base_identifier = Configuration.(get base_name)
+    in
     let includes        = [ "Program"; base_identifier ]
     in
     let* contents =
