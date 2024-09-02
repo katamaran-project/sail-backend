@@ -149,7 +149,6 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
           ]
         )
 
-
   and pp_sequence_statement
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PPrint.document GC.t
