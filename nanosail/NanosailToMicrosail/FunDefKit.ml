@@ -108,7 +108,7 @@ let pp_function_definition_kit
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
-  let* contents =
+  genblock [%here] (PP.string "FunDefKit") begin
     let* () = GC.log Logging.debug "Generation FunDefKit"
     in
     let fundef =
@@ -152,5 +152,4 @@ let pp_function_definition_kit
       Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
     in
     GC.return section
-  in
-  GC.generation_block [%here] (PP.string "FunDefKit") contents
+  end
