@@ -51,7 +51,7 @@ let pp_definitions () : PP.document =
 
 
 let pp_import_base () : PP.document =
-  PP.string "Import DefaultBase."
+  Coq.pp_imports ["DefaultBase"]
 
 
 let generate_program_prelude () : PP.document GC.t =
