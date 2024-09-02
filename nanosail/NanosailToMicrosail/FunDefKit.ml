@@ -44,7 +44,8 @@ let pp_function_definition
       let* body =
         Statements.pp_statement function_definition.function_body
       in
-      let* extended_function_type' = Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+      let* extended_function_type' =
+        Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
       in
       let* () = GC.add_comment extended_function_type'
       in
