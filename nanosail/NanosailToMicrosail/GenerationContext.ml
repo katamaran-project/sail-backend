@@ -127,7 +127,7 @@ let convert_frame_to_document (frame : frame) =
   and pp_comments =
     List.map ~f:(fun (Comment c) -> c) comments
   in
-  PP.build_vertical @@ fun { addall; _ } -> begin
+  PP.build_vertical ~separator:(PP.twice PP.hardline) @@ fun { addall; _ } -> begin
     addall pp_comments;
     addall pp_annotations
   end
