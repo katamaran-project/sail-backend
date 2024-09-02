@@ -18,7 +18,7 @@ let pp_program_module
   =
   genblock [%here] "Program Module" begin
     let flag            = Coq.Import
-    and identifier      = program_name ^ "Program"
+    and identifier      = Configuration.(get program_name)
     and base_identifier = base_name ^ "Base" in
     let includes        = [ "Program"; base_identifier ]
     in
