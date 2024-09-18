@@ -3,9 +3,8 @@
 pass_count=0
 fail_count=0
 
-for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
+for dir in `find -mindepth 1 -maxdepth 1 -type d | sort | grep FAIL`; do
     pushd $dir > /dev/null;
-    echo "Testing $(basename `pwd`)";
     ./test.sh > /dev/null 2> /dev/null;
     if [ $? != 0 ]; then
         echo "FAILED $dir";
@@ -18,3 +17,7 @@ done
 
 echo PASS $pass_count
 echo FAIL $fail_count
+
+
+printf "%(%Y-%m-%d)T PASS:$pass_count FAIL:$fail_count\n" >> results.txt
+
