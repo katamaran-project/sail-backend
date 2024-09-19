@@ -170,7 +170,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     GC.return @@ PP.simple_app [
       Identifier.pp @@ Ast.Identifier.mk "stm_write_register";
       Identifier.pp register_identifier;
-      rhs'
+      PP.parens rhs'
     ]
 
   and pp_destructure_record_statement (destructure_record : Ast.Statement.destructure_record) : PPrint.document GC.t =
