@@ -1,0 +1,12 @@
+default Order dec
+
+$include <prelude.sail>
+
+
+register r1 : int
+
+
+val foo : unit -> unit
+function foo () = {
+  r1 = r1 + 1;
+}
