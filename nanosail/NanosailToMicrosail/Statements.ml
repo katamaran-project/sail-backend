@@ -165,11 +165,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     let register_identifier = Identifier.pp args.register_identifier
     and rhs = Identifier.pp args.written_value
     in
-    GC.return @@ PP.simple_app [
-      Identifier.pp @@ Ast.Identifier.mk "stm_write_register";
-      register_identifier;
-      PP.(parens @@ simple_app [string "exp_var"; dquotes rhs]);
-    ]
+    GC.return begin
+      PP.simple_app [
+        Identifier.pp @@ Ast.Identifier.mk "stm_write_register";
+        register_identifier;
+        PP.(parens @@ simple_app [string "exp_var"; dquotes rhs]);
+      ]
+    end
 
   and pp_destructure_record_statement (args: Ast.Statement.destructure_record_arguments) : PPrint.document GC.t =
     let {
