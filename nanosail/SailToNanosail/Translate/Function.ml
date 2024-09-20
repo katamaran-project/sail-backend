@@ -386,9 +386,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     }
    *)
   let statement_of_match
-        (location : S.l                                              )
-        (matched  : S.typ S.aval                                     )
-        (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t =
+      (location : S.l                                              )
+      (matched  : S.typ S.aval                                     )
+      (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t =
 
     (*
         MATCHING LISTS
