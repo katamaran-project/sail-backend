@@ -901,7 +901,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
   and statement_of_assignment
         (lhs : Libsail.Ast.typ Libsail.Anf.alexp)
-        (rhs : Libsail.Ast.typ Libsail.Anf.aexp )
+        (rhs : Libsail.Ast.typ Libsail.Anf.aexp ) : Ast.Statement.t TC.t
     =
     match lhs with
     | Libsail.Anf.AL_id (id, _loc) -> begin
