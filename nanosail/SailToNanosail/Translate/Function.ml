@@ -942,16 +942,41 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         if is_register
         then begin
+          (*
+               r1 = expr
+
+             becomes
+
+               let _ = let x = expr
+                       in
+                       r1 = x
+               in
+               ()
+
+             This is necessary for the following reasons:
+             - Sail does not make the distinction between expressions and statements, whereas muSail does
+             - In Sail, the type of assignment if unit, but not in muSail
+           *)
           let* rhs_identifier = TC.generate_unique_identifier ()            
           and* translated_rhs = statement_of_aexp rhs
           and* rhs_type       = Nanotype.nanotype_of_sail_type lhs_type;
           in
-          TC.return begin
+          let write_register_translation =
             Ast.Statement.Let {
               variable_identifier    = rhs_identifier;
               binding_statement_type = rhs_type;
               binding_statement      = translated_rhs;
               body_statement         = Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = rhs_identifier }
+            }
+          in
+          let* dummy_variable = TC.generate_unique_identifier ()
+          in
+          TC.return begin
+            Ast.Statement.Let {
+              variable_identifier    = dummy_variable;
+              binding_statement_type = rhs_type;
+              binding_statement      = write_register_translation;
+              body_statement         = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit)
             }
           end
         end
