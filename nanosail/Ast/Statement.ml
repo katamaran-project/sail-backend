@@ -6,7 +6,7 @@ type t =
   | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
   | Let               of let_data
-  | DestructureRecord of destructure_record
+  | DestructureRecord of destructure_record_data
   | Seq               of t * t
   | ReadRegister      of Identifier.t
   | WriteRegister     of Identifier.t * t
@@ -68,7 +68,7 @@ and match_pattern_variant =
     cases      : (Identifier.t list * t) Identifier.Map.t
   }
 
-and destructure_record =
+and destructure_record_data =
   {
     record_type_identifier : Identifier.t     ;   (* name of the record                                              *)
     field_identifiers      : Identifier.t list;   (* names of the record's fields                                    *)
