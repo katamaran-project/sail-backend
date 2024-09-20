@@ -161,10 +161,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PPrint.document GC.t =
     GC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp register_identifier ])
 
-  and pp_write_register_statement
-      (register_identifier : Ast.Identifier.t)
-      (rhs                 : Ast.Statement.t ) : PPrint.document GC.t
-    =
+  and pp_write_register_statement (args : Ast.Statement.write_register_arguments) : PPrint.document GC.t =
+    let register_identifier = args.register_identifier
+    and rhs = args.written_value
+    in
     let* rhs' = pp_statement rhs
     in
     GC.return @@ PP.simple_app [
@@ -224,7 +224,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
   | Let let_data                              -> pp_let_statement let_data
   | Seq (s1, s2)                              -> pp_sequence_statement s1 s2
   | ReadRegister register_identifier          -> pp_read_register_statement register_identifier
-  | WriteRegister (register_identifier, rhs)  -> pp_write_register_statement register_identifier rhs
+  | WriteRegister args                        -> pp_write_register_statement args
   | DestructureRecord destructure_record      -> pp_destructure_record_statement destructure_record
   | Cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
   | Fail message                              -> pp_fail_statement message

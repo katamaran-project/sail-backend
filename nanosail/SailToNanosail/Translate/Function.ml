@@ -913,7 +913,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         then begin
             let* translated_rhs = statement_of_aexp rhs
             in
-            TC.return @@ Ast.Statement.WriteRegister (id_in_lhs, translated_rhs)
+            TC.return @@ Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = translated_rhs }
           end
         else begin
             TC.not_yet_implemented ~message:"assignment to local variable" [%here] location

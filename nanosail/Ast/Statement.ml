@@ -9,7 +9,7 @@ type t =
   | DestructureRecord of destructure_record_data
   | Seq               of t * t
   | ReadRegister      of Identifier.t
-  | WriteRegister     of Identifier.t * t
+  | WriteRegister     of write_register_arguments
   | Cast              of t * Type.t
   | Fail              of string
 
@@ -24,6 +24,12 @@ and let_data =
     binding_statement_type : Type.t;
     binding_statement      : t;
     body_statement         : t;
+  }
+
+and write_register_arguments =
+  {
+    register_identifier  : Identifier.t;
+    written_value        : t
   }
 
 and match_pattern =
