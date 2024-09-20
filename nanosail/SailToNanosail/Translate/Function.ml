@@ -719,8 +719,39 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
       | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
       | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
+
+    and match_literal
+        (literal       : S.lit)
+        (_literal_type : S.typ) : Ast.Statement.t TC.t =
+      let L_aux (literal, _loc) = literal
+      in
+      match literal with
+      | S.L_unit     -> begin
+          match cases with
+          | [ case ] -> begin
+              let pattern, _condition, clause = case
+              in
+              let S.AP_aux (pattern, _type_check_environment, _loc) = pattern
+              in
+              match pattern with
+               | S.AP_id (_, _)   -> TC.not_yet_implemented [%here] location
+               | S.AP_wild _      -> statement_of_aexp clause
+               | _                -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
+            end
+          | _        -> TC.fail [%here] "Matching unit; expected exactly one case"
+        end
+      | S.L_zero     -> TC.not_yet_implemented [%here] location
+      | S.L_one      -> TC.not_yet_implemented [%here] location
+      | S.L_true     -> TC.not_yet_implemented [%here] location
+      | S.L_false    -> TC.not_yet_implemented [%here] location
+      | S.L_num _    -> TC.not_yet_implemented [%here] location
+      | S.L_hex _    -> TC.not_yet_implemented [%here] location
+      | S.L_bin _    -> TC.not_yet_implemented [%here] location
+      | S.L_string _ -> TC.not_yet_implemented [%here] location
+      | S.L_undef    -> TC.not_yet_implemented [%here] location
+      | S.L_real _   -> TC.not_yet_implemented [%here] location
+
     in
-    
     match matched with
     | S.AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
@@ -729,7 +760,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | S.Ast_util.Enum typ          -> match_typed typ
         | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
       end
-    | S.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
+    | S.AV_lit (literal, literal_type) -> match_literal literal literal_type
     | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
     | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
     | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
