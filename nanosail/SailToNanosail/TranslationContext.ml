@@ -177,4 +177,3 @@ let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Ide
   if underscore
   then return @@ Ast.Identifier.add_prefix "_" result
   else return result
-
