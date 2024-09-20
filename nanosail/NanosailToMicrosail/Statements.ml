@@ -108,14 +108,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
-  and pp_let_statement (let_data : Ast.Statement.let_data) : PPrint.document GC.t
+  and pp_let_statement (args : Ast.Statement.let_arguments) : PPrint.document GC.t
     =
     let {
         variable_identifier;
         binding_statement_type;
         binding_statement;
         body_statement
-      } : Ast.Statement.let_data = let_data
+      } : Ast.Statement.let_arguments = args
     in
     let  variable_identifier'    = Identifier.pp variable_identifier in
     let* binding_statement'      = pp_statement binding_statement

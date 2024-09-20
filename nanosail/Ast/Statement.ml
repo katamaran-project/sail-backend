@@ -5,7 +5,7 @@ type t =
   | Match             of match_pattern
   | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
-  | Let               of let_data
+  | Let               of let_arguments
   | DestructureRecord of destructure_record_data
   | Seq               of t * t
   | ReadRegister      of Identifier.t
@@ -18,7 +18,7 @@ type t =
   in
   <body>
 *)
-and let_data =
+and let_arguments =
   {
     variable_identifier    : Identifier.t;
     binding_statement_type : Type.t;
