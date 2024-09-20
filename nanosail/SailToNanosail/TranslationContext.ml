@@ -50,6 +50,7 @@ type 'a result = 'a Monad.result = Success of 'a     (* explicitly enumerating c
                                  | Failure of Error.t
 
 let return     = Monad.return
+let act        = Monad.act
 let error      = Monad.fail
 let bind       = Monad.bind
 let recover    = Monad.recover

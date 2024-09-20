@@ -16,6 +16,7 @@ type 'a result =
 
 
 val bind                       : 'a t -> ('a -> 'b t) -> 'b t
+val act                        : (unit -> 'a) -> 'a t
 val return                     : 'a -> 'a t
 val error                      : Error.t -> 'a t
 val not_yet_implemented        : ?message : string -> Lexing.position -> Libsail.Ast.l -> 'a t
