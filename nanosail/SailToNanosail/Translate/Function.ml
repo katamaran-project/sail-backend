@@ -904,20 +904,29 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (rhs : Libsail.Ast.typ Libsail.Anf.aexp ) : Ast.Statement.t TC.t
     =
     match lhs with
-    | Libsail.Anf.AL_id (id, _loc) -> begin
+    | Libsail.Anf.AL_id (id, lhs_type) -> begin
         let* id_in_lhs = Identifier.translate_identifier [%here] id
         in
         let* is_register = TC.is_register id_in_lhs
         in
         if is_register
         then begin
-            let* translated_rhs = statement_of_aexp rhs
-            in
-            TC.return @@ Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = translated_rhs }
+          let* rhs_identifier = TC.generate_unique_identifier ()            
+          and* translated_rhs = statement_of_aexp rhs
+          and* rhs_type       = Nanotype.nanotype_of_sail_type lhs_type;
+          in
+          TC.return begin
+            Ast.Statement.Let {
+              variable_identifier    = rhs_identifier;
+              binding_statement_type = rhs_type;
+              binding_statement      = translated_rhs;
+              body_statement         = Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = rhs_identifier }
+            }
           end
+        end
         else begin
-            TC.not_yet_implemented ~message:"assignment to local variable" [%here] location
-          end
+          TC.not_yet_implemented ~message:"assignment to local variable" [%here] location
+        end
       end
     | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
     | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location

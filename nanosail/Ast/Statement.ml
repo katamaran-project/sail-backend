@@ -29,7 +29,7 @@ and let_arguments =
 and write_register_arguments =
   {
     register_identifier  : Identifier.t;
-    written_value        : t
+    written_value        : Identifier.t;
   }
 
 and match_pattern =
