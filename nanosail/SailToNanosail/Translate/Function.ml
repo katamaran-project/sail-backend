@@ -719,8 +719,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
       | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
       | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
-
     in
+    
     match matched with
     | S.AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
