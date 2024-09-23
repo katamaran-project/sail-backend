@@ -59,24 +59,27 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
           body';
         ])
 
+    and pp_match_bool
+        (condition : Ast.Statement.t)
+        (when_true : Ast.Statement.t)
+        (when_false : Ast.Statement.t) : PPrint.document GC.t
+      =
+      let* condition'  = pp_par_statement condition
+      and* when_true'  = pp_par_statement when_true
+      and* when_false' = pp_par_statement when_false
+      in
+      GC.return @@ PP.(simple_app [
+          string "stm_if";
+          condition';
+          when_true';
+          when_false'
+        ])
+
     in
     match match_pattern with
     | List { matched; when_nil; when_cons }     -> pp_match_list matched when_nil when_cons
     | Product { matched; id_fst; id_snd; body } -> pp_match_product matched id_fst id_snd body
-
-    | Bool { condition; when_true; when_false } -> begin
-        let* condition'  = pp_par_statement condition
-        and* when_true'  = pp_par_statement when_true
-        and* when_false' = pp_par_statement when_false
-        in
-        GC.return @@ PP.(simple_app [
-            string "stm_if";
-            condition';
-            when_true';
-            when_false'
-          ])
-      end
-
+    | Bool { condition; when_true; when_false } -> pp_match_bool condition when_true when_false
     | Enum { matched; matched_type; cases } -> begin
         if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
         then
