@@ -487,30 +487,3 @@ let pp_notation notation expression =
     PP.string ":=";
     PP.parens expression
   ]
-
-
-let pp_match
-    (matched : PP.document                     )
-    (clauses : (PP.document * PP.document) list) : PP.document
-  =
-  let top_line =
-    PP.separate PP.space [
-      PP.string "match";
-      matched;
-      PP.string "with"
-    ]
-  and clause_lines =
-    let pp_clause
-        (pattern : PP.document)
-        (body    : PP.document) : PP.document
-      =
-      PP.separate PP.space [
-        PP.bar;
-        pattern;
-        arrow;
-        PP.indent body
-      ]
-    in
-    List.map ~f:(Auxlib.uncurry pp_clause) clauses
-  in
-  PP.separate PP.hardline @@ top_line :: clause_lines
