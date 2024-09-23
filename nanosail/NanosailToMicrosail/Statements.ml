@@ -118,17 +118,70 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       end
 
     and pp_match_variant
-        (matched      : Ast.Identifier.t                                                     )
-        (matched_type : Ast.Identifier.t                                                     )
-        (cases        : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
+        (matched      : Ast.Identifier.t                                              )
+        (matched_type : Ast.Identifier.t                                              )
+        (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
-      GC.return @@ PP.hanging_list
-        (PP.string "stm_match_union_alt")
-        [
-          Identifier.pp matched_type;
-          PP.parens @@ PPSail.pp_expression_of_identifier matched
-        ]
-
+      let lambda_parameter =
+        PP.string "K"
+      in
+      let* lambda_body =
+        let* cases' =
+          let pp_case
+              (constructor_id : Ast.Identifier.t     )
+              (bindings       : Ast.Identifier.t list)
+              (clause         : Ast.Statement.t      ) : (PP.document * PP.document) GC.t
+            =
+            let* clause =
+              let* pp_bindings =
+                match bindings with
+                | []     -> GC.fail "Should not occur: zero parameters are actually represented using a single unit parameters"
+                | [x]    -> GC.return begin
+                    PP.parens @@ PP.simple_app [
+                      PP.string "pat_var";
+                      PP.dquotes @@ Identifier.pp x
+                    ]
+                  end
+                | [x; y] -> GC.return begin
+                    PP.parens @@ PP.simple_app [
+                      PP.string "pat_pair";
+                      PP.dquotes @@ Identifier.pp x;
+                      PP.dquotes @@ Identifier.pp y
+                    ]
+                  end
+                | ids    -> GC.return begin
+                    PP.parens @@ PP.simple_app @@ (PP.string "pat_tuple") :: List.map ~f:(Fn.compose PP.dquotes Identifier.pp) ids
+                  end
+              and* pp_clause =
+                GC.lift ~f:PP.parens @@ pp_statement clause
+              in
+              GC.return @@ PP.hanging_list (PP.string "MkAlt") [ pp_bindings; pp_clause ]
+            in
+            GC.return (Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id, clause)
+          in
+          let pairs = Ast.Identifier.Map.to_alist cases
+          in
+          GC.map pairs ~f:(fun (k, (p, c)) -> pp_case k p c)
+        in
+        GC.return @@ Coq.pp_match lambda_parameter cases'
+      in
+      let match_statement =
+        let pp_matched_type =
+          Identifier.pp @@ Configuration.reified_variant_name matched_type
+        and pp_matched =
+          PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier matched
+        and pp_match_cases =
+          PP.parens @@ Coq.pp_lambda lambda_parameter lambda_body
+        in
+        PP.hanging_list
+          (PP.string "stm_match_union_alt")
+          [
+            pp_matched_type;
+            pp_matched;
+            pp_match_cases
+          ]
+      in
+      GC.return match_statement
     in
     match match_pattern with
     | MatchList { matched; when_nil; when_cons }     -> pp_match_list matched when_nil when_cons
