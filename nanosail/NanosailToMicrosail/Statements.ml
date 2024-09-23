@@ -43,10 +43,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
         ])
 
     and pp_match_product
-        (matched : Ast.Statement.t)
-        (id_fst : Ast.Identifier.t)
-        (id_snd : Ast.Identifier.t)
-        (body   : Ast.Statement.t) : PPrint.document GC.t
+        (matched : Ast.Statement.t )
+        (id_fst  : Ast.Identifier.t)
+        (id_snd  : Ast.Identifier.t)
+        (body    : Ast.Statement.t ) : PPrint.document GC.t
       =
       let* matched' = pp_par_statement matched
       and* body'    = pp_par_statement body
@@ -61,7 +61,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
 
     in
     match match_pattern with
-    | List { matched; when_nil; when_cons } -> pp_match_list matched when_nil when_cons
+    | List { matched; when_nil; when_cons }     -> pp_match_list matched when_nil when_cons
     | Product { matched; id_fst; id_snd; body } -> pp_match_product matched id_fst id_snd body
 
     | Bool { condition; when_true; when_false } -> begin
