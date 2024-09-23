@@ -700,22 +700,24 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       let* cases = TC.fold_left ~f:process_case ~init:Ast.Identifier.Map.empty cases
       in
-      let* statement =
+      let* match_statement =
         let* matched_expression, _matched_expression_type, named_statements = expression_of_aval location matched
+        and* matched_identifier = TC.generate_unique_identifier ~prefix:"matched" ()
         in
         let matched      = Ast.Statement.Expression matched_expression
         and matched_type = variant_definition.identifier
         in
-        let match_pattern : Ast.Statement.match_pattern_variant =
-          {
-            matched;
-            matched_type;
-            cases
+        let match_statement =
+          Ast.Statement.Let {
+            variable_identifier    = matched_identifier;
+            binding_statement_type = Ast.Type.Variant variant_definition.identifier;
+            binding_statement      = matched;
+            body_statement         = Ast.Statement.Match (Ast.Statement.MatchVariant { matched = matched_identifier; matched_type; cases })
           }
         in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (MatchVariant match_pattern)
+        TC.return @@ wrap_in_named_statements_context named_statements match_statement
       in
-      TC.return statement
+      TC.return match_statement
 
     and match_abbreviation (_type_abbreviation : Ast.Definition.Type.Abbreviation.t) =
       TC.not_yet_implemented [%here] location

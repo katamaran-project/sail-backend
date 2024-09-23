@@ -70,7 +70,7 @@ and match_pattern_enum =
 
 and match_pattern_variant =
   {
-    matched      : t;
+    matched      : Identifier.t;
     matched_type : Identifier.t;
     cases        : (Identifier.t list * t) Identifier.Map.t
   }

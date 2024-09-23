@@ -118,17 +118,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       end
 
     and pp_match_variant
-        (matched      : Ast.Statement.t                                                      )
+        (matched      : Ast.Identifier.t                                                     )
         (matched_type : Ast.Identifier.t                                                     )
         (cases        : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
-      let* matched' = pp_statement matched
-      in
       GC.return @@ PP.hanging_list
         (PP.string "stm_match_union_alt")
         [
           Identifier.pp matched_type;
-          PP.parens matched'
+          PP.parens @@ PPSail.pp_expression_of_identifier matched
         ]
 
     in
