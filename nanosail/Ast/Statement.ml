@@ -63,7 +63,7 @@ and match_pattern_bool =
 
 and match_pattern_enum =
   {
-    matched      : t;
+    matched      : Identifier.t;
     matched_type : Identifier.t;
     cases        : t Identifier.Map.t
   }

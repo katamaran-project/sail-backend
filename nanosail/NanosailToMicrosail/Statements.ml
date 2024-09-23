@@ -11,7 +11,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
     let* expression' = Expressions.pp_par_expression expression
     in
-    GC.return @@ PP.(simple_app [string "stm_exp"; expression'])
+    GC.return @@ PPSail.pp_statement_of_expression expression'
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
@@ -76,12 +76,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         ])
 
     and pp_match_enum
-        (matched      : Ast.Statement.t                     )
+        (matched      : Ast.Identifier.t                    )
         (matched_type : Ast.Identifier.t                    )
         (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
       =
-      if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
+      if
+        Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
       then
+        (* deal with a match against unit separately *)
         match Ast.Identifier.Map.data cases with
         | [ clause ] -> begin
             pp_statement clause
@@ -100,14 +102,16 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               clause
             ] :: acc)
         in
-        let* matched' = pp_par_statement matched
-        and* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
+        let matched' =
+          PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier matched
+        in
+        let* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
         in
         let matched_type =
           Identifier.pp @@ Identifier.reified_enum_name matched_type
         in
         GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-          add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
+          add @@ PP.(separate space [ string "match:"; parens matched'; string "in"; matched_type; string "with" ]);
           addall cases';
           add @@ PP.string "end"
         end
@@ -118,7 +122,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (matched_type : Ast.Identifier.t                                                     )
         (cases        : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
-      GC.not_yet_implemented [%here]
+      let* matched' = pp_statement matched
+      in
+      GC.return @@ PP.hanging_list
+        (PP.string "stm_match_union_alt")
+        [
+          Identifier.pp matched_type;
+          PP.parens matched'
+        ]
 
     in
     match match_pattern with

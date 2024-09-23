@@ -582,13 +582,22 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       and* cases = TC.fold_left ~f:process_case ~init:Ast.Identifier.Map.empty cases
       in
       let matched_type =
-        enum_definition.identifier
+        Ast.Type.Enum enum_definition.identifier
       in
-      let match_statement = Ast.Statement.Match (Ast.Statement.Enum {
-          matched;
-          matched_type;
-          cases
-        })
+      let* matched_identifier =
+        TC.generate_unique_identifier ~prefix:"matched" ()
+      in
+      let match_statement =
+        Ast.Statement.Let {
+          variable_identifier    = matched_identifier;
+          binding_statement_type = matched_type;
+          binding_statement      = matched;
+          body_statement         = Ast.Statement.Match (Ast.Statement.Enum {
+              matched            = matched_identifier;
+              matched_type       = enum_definition.identifier;
+              cases
+            })
+        }
       in
       TC.return @@ wrap_in_named_statements_context named_statements match_statement
 
