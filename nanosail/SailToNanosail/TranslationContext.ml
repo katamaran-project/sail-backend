@@ -118,8 +118,7 @@ let register (definition : Ast.Definition.t) =
 
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
-(* todo rename lookup_type to lookup_type_definition *)
-let lookup_type_of_kind
+let lookup_type_definition_of_kind
       (extractor  : Ast.Definition.Type.t -> 'a option)
       (identifier : Ast.Identifier.t                  ) : 'a option t
   =
@@ -138,8 +137,8 @@ let lookup_type_of_kind
   return @@ Option.bind type_definition ~f:extractor
 
 
-let lookup_type =
-  lookup_type_of_kind Ast.Definition.Select.of_anything
+let lookup_type_definition =
+  lookup_type_definition_of_kind Ast.Definition.Select.of_anything
 
 
 (* Looks up type of register with given name *)

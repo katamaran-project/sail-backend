@@ -32,9 +32,9 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
     | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
     | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
     | _           -> begin
-        let* typ : Ast.Definition.Type.t option = TC.lookup_type identifier'
+        let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
         in
-        match typ with
+        match type_definition with
         | Some (Abbreviation { identifier; abbreviation }) -> begin
             let _ = identifier (* todo remove this *)
             in

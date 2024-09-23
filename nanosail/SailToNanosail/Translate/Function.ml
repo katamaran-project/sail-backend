@@ -318,7 +318,7 @@ let with_destructured_record
             Identifier.translate_identifier [%here] record_type_identifier
           in
           let* lookup_result =
-            TC.lookup_type_of_kind Ast.Definition.Select.of_record record_type_identifier
+            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_record record_type_identifier
           in
           match lookup_result with
           | Some record_type_definition -> begin
@@ -479,7 +479,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
       match type_identifier with
       | S.Id id -> begin
-          let* lookup_result = TC.lookup_type @@ Ast.Identifier.mk id
+          let* lookup_result = TC.lookup_type_definition @@ Ast.Identifier.mk id
           in
           match lookup_result with
           | Some (Abbreviation def) -> match_abbreviation def
