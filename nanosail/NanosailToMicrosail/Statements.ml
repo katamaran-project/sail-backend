@@ -117,9 +117,6 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (matched : Ast.Statement.t                                                      )
         (cases   : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
-      let _ = matched
-      and _ = cases
-      in
       GC.not_yet_implemented [%here]
 
     in
