@@ -70,8 +70,9 @@ and match_pattern_enum =
 
 and match_pattern_variant =
   {
-    matched    : t;
-    cases      : (Identifier.t list * t) Identifier.Map.t
+    matched      : t;
+    matched_type : Identifier.t;
+    cases        : (Identifier.t list * t) Identifier.Map.t
   }
 
 and destructure_record_arguments =

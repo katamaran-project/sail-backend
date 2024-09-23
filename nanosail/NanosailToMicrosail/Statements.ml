@@ -114,8 +114,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       end
 
     and pp_match_variant
-        (matched : Ast.Statement.t                                                      )
-        (cases   : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
+        (matched      : Ast.Statement.t                                                      )
+        (matched_type : Ast.Identifier.t                                                     )
+        (cases        : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
       GC.not_yet_implemented [%here]
 
@@ -125,7 +126,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     | Product { matched; id_fst; id_snd; body } -> pp_match_product matched id_fst id_snd body
     | Bool { condition; when_true; when_false } -> pp_match_bool condition when_true when_false
     | Enum { matched; matched_type; cases }     -> pp_match_enum matched matched_type cases
-    | Variant { matched; cases }                -> pp_match_variant matched cases
+    | Variant { matched; matched_type; cases }  -> pp_match_variant matched matched_type cases
 
   and pp_call_statement
       (function_identifier : Ast.Identifier.t     )

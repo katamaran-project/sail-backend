@@ -694,9 +694,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* statement =
         let* matched_expression, _matched_expression_type, named_statements = expression_of_aval location matched
         in
-        let matched = Ast.Statement.Expression matched_expression
+        let matched      = Ast.Statement.Expression matched_expression
+        and matched_type = variant_definition.identifier
         in
-        let match_pattern : Ast.Statement.match_pattern_variant = { matched; cases }
+        let match_pattern : Ast.Statement.match_pattern_variant =
+          {
+            matched;
+            matched_type;
+            cases
+          }
         in
         TC.return @@ wrap_in_named_statements_context named_statements @@ Match (Variant match_pattern)
       in
