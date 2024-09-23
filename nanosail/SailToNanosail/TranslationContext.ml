@@ -118,6 +118,7 @@ let register (definition : Ast.Definition.t) =
 
    The extractor (see Ast.Extract) can be used to get a specific kind of type
 *)
+(* todo rename lookup_type to lookup_type_definition *)
 let lookup_type_of_kind
       (extractor  : Ast.Definition.Type.t -> 'a option)
       (identifier : Ast.Identifier.t                  ) : 'a option t
