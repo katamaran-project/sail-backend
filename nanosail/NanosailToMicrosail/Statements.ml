@@ -75,45 +75,50 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
           when_false'
         ])
 
+    and pp_match_enum
+        (matched : Ast.Statement.t)
+        (matched_type : Ast.Identifier.t)
+        (cases : Ast.Statement.t Ast.Identifier.Map.t) : PPrint.document GC.t
+      =
+      if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
+      then
+        match Ast.Identifier.Map.data cases with
+        | [ clause ] -> begin
+            pp_statement clause
+          end
+        | _      -> GC.fail "expected exactly one case for unit-typed matches"
+      else begin
+        let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list GC.t) =
+          let* acc
+          and* pattern = GC.return @@ Identifier.pp key
+          and* clause = pp_statement data
+          in
+          GC.return @@ PP.(separate space [
+              string "|";
+              pattern;
+              string " => ";
+              clause
+            ] :: acc)
+        in
+        let* matched' = pp_par_statement matched
+        and* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
+        in
+        let matched_type =
+          Identifier.pp @@ Identifier.reified_enum_name matched_type
+        in
+        GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+          add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
+          addall cases';
+          add @@ PP.string "end"
+        end
+      end
+
     in
     match match_pattern with
     | List { matched; when_nil; when_cons }     -> pp_match_list matched when_nil when_cons
     | Product { matched; id_fst; id_snd; body } -> pp_match_product matched id_fst id_snd body
     | Bool { condition; when_true; when_false } -> pp_match_bool condition when_true when_false
-    | Enum { matched; matched_type; cases } -> begin
-        if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
-        then
-          match Ast.Identifier.Map.data cases with
-          | [ clause ] -> begin
-              pp_statement clause
-            end
-          | _      -> GC.fail "expected exactly one case for unit-typed matches"
-        else begin
-          let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list GC.t) =
-            let* acc
-            and* pattern = GC.return @@ Identifier.pp key
-            and* clause = pp_statement data
-            in
-            GC.return @@ PP.(separate space [
-                string "|";
-                pattern;
-                string " => ";
-                clause
-              ] :: acc)
-          in
-          let* matched' = pp_par_statement matched
-          and* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
-          in
-          let matched_type =
-            Identifier.pp @@ Identifier.reified_enum_name matched_type
-          in
-          GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-            add @@ PP.(separate space [ string "match:"; matched'; string "in"; matched_type; string "with" ]);
-            addall cases';
-            add @@ PP.string "end"
-          end
-        end
-      end
+    | Enum { matched; matched_type; cases }     -> pp_match_enum matched matched_type cases
         
     | Variant { matched; cases } -> begin
         let _ = matched
