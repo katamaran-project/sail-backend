@@ -60,8 +60,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
         ])
 
     and pp_match_bool
-        (condition : Ast.Statement.t)
-        (when_true : Ast.Statement.t)
+        (condition  : Ast.Statement.t)
+        (when_true  : Ast.Statement.t)
         (when_false : Ast.Statement.t) : PPrint.document GC.t
       =
       let* condition'  = pp_par_statement condition
