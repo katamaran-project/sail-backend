@@ -7,13 +7,13 @@ module GC = struct
 end
 
 
-let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
-  let pp_expression_statement (expression : Ast.Expression.t) : PPrint.document GC.t =
+let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+  let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
     let* expression' = Expressions.pp_par_expression expression
     in
     GC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
-  and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PPrint.document GC.t =
+  and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
 
        match <matched> {
@@ -25,7 +25,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     let pp_match_list
         (matched   : Ast.Statement.t                                      )
         (when_nil  : Ast.Statement.t                                      )
-        (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PPrint.document GC.t
+        (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
       =      
       let id_head, id_tail, when_cons_body = when_cons
       in
@@ -46,7 +46,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
         (matched : Ast.Statement.t )
         (id_fst  : Ast.Identifier.t)
         (id_snd  : Ast.Identifier.t)
-        (body    : Ast.Statement.t ) : PPrint.document GC.t
+        (body    : Ast.Statement.t ) : PP.document GC.t
       =
       let* matched' = pp_par_statement matched
       and* body'    = pp_par_statement body
@@ -62,7 +62,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     and pp_match_bool
         (condition  : Ast.Statement.t)
         (when_true  : Ast.Statement.t)
-        (when_false : Ast.Statement.t) : PPrint.document GC.t
+        (when_false : Ast.Statement.t) : PP.document GC.t
       =
       let* condition'  = pp_par_statement condition
       and* when_true'  = pp_par_statement when_true
@@ -78,7 +78,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     and pp_match_enum
         (matched      : Ast.Statement.t                     )
         (matched_type : Ast.Identifier.t                    )
-        (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PPrint.document GC.t
+        (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
       =
       if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
       then
@@ -129,13 +129,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
 
   and pp_call_statement
       (function_identifier : Ast.Identifier.t     )
-      (arguments           : Ast.Expression.t list) : PPrint.document GC.t
+      (arguments           : Ast.Expression.t list) : PP.document GC.t
     =
     let* pretty_printed_arguments = GC.map ~f:Expressions.pp_par_expression arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
-  and pp_let_statement (args : Ast.Statement.let_arguments) : PPrint.document GC.t
+  and pp_let_statement (args : Ast.Statement.let_arguments) : PP.document GC.t
     =
     let {
         variable_identifier;
@@ -178,17 +178,17 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
 
   and pp_sequence_statement
       (left  : Ast.Statement.t)
-      (right : Ast.Statement.t) : PPrint.document GC.t
+      (right : Ast.Statement.t) : PP.document GC.t
     =
       let* left'  = pp_par_statement left
       and* right' = pp_par_statement right
       in
       GC.return @@ PP.(simple_app [ string "stm_seq"; left'; right' ])
 
-  and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PPrint.document GC.t =
+  and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp register_identifier ])
 
-  and pp_write_register_statement (args : Ast.Statement.write_register_arguments) : PPrint.document GC.t =
+  and pp_write_register_statement (args : Ast.Statement.write_register_arguments) : PP.document GC.t =
     let register_identifier = Identifier.pp args.register_identifier
     and rhs = Identifier.pp args.written_value
     in
@@ -200,7 +200,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
       ]
     end
 
-  and pp_destructure_record_statement (args: Ast.Statement.destructure_record_arguments) : PPrint.document GC.t =
+  and pp_destructure_record_statement (args: Ast.Statement.destructure_record_arguments) : PP.document GC.t =
     let {
       record_type_identifier;
       field_identifiers;
@@ -235,12 +235,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
 
   and pp_cast_statement
       (statement_to_be_cast : Ast.Statement.t)
-      (_target_type         : Ast.Type.t     ) : PPrint.document GC.t
+      (_target_type         : Ast.Type.t     ) : PP.document GC.t
     =
     Stdio.printf "Warning: ignored cast\n";
     pp_statement statement_to_be_cast
 
-  and pp_fail_statement (message : string) : PPrint.document GC.t =
+  and pp_fail_statement (message : string) : PP.document GC.t =
     GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "fail"; PP.string message ]
 
   in
