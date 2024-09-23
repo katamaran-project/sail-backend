@@ -76,9 +76,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
         ])
 
     and pp_match_enum
-        (matched : Ast.Statement.t)
-        (matched_type : Ast.Identifier.t)
-        (cases : Ast.Statement.t Ast.Identifier.Map.t) : PPrint.document GC.t
+        (matched      : Ast.Statement.t                     )
+        (matched_type : Ast.Identifier.t                    )
+        (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PPrint.document GC.t
       =
       if Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
       then
