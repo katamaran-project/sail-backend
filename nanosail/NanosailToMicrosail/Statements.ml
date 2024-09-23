@@ -14,23 +14,29 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     GC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PPrint.document GC.t =
+    let pp_match_list
+        (matched   : Ast.Statement.t                                      )
+        (when_nil  : Ast.Statement.t                                      )
+        (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PPrint.document GC.t
+      =
+      let id_head, id_tail, when_cons_body = when_cons
+      in
+      let* matched'   = pp_par_statement matched
+      and* when_nil'  = pp_par_statement when_nil
+      and* when_cons' = pp_par_statement when_cons_body
+      in
+      GC.return @@ PP.(simple_app [
+          string "stm_match_list";
+          matched';
+          when_nil';
+          dquotes @@ Identifier.pp id_head;
+          dquotes @@ Identifier.pp id_tail;
+          when_cons';
+        ])
+    in
+    
     match match_pattern with
-    | List { matched; when_nil; when_cons } -> begin
-        let id_head, id_tail, when_cons_body = when_cons
-        in
-        let* matched'   = pp_par_statement matched
-        and* when_nil'  = pp_par_statement when_nil
-        and* when_cons' = pp_par_statement when_cons_body
-        in
-        GC.return @@ PP.(simple_app [
-            string "stm_match_list";
-            matched';
-            when_nil';
-            dquotes @@ Identifier.pp id_head;
-            dquotes @@ Identifier.pp id_tail;
-            when_cons';
-          ])
-      end
+    | List { matched; when_nil; when_cons } -> pp_match_list matched when_nil when_cons
 
     | Product { matched; id_fst; id_snd; body } -> begin
         let* matched' = pp_par_statement matched
