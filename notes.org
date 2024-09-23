@@ -70,6 +70,118 @@
 ** DONE Use monads in Base Module
 ** TODO Matching statements
 *** Investigate ~stm_match_union_alt~
+
+#+begin_src sail
+  union clause ast = JALR_CAP      : (dst, src)
+  union c lause ast = CJALR         : (dst, src, imm)
+  union clause ast = CJAL	         : (dst, imm_ext)
+  union clause ast = BNE           : (src, src, imm)
+  union clause ast = LD            : (dst, src, imm)
+  union clause ast = SD            : (src, src, imm)
+  union clause ast = ADDI          : (dst, src, imm)
+  union clause ast = ADD           : (dst, src, src)
+  union clause ast = SUB           : (dst, src, src)
+  union clause ast = SLT           : (dst, src, src)
+  union clause ast = SLTI          : (dst, src, imm)
+  union clause ast = SLTIU         : (dst, src, imm)
+  union clause ast = SLTU          : (dst, src, src)
+  union clause ast = CMOVE         : (dst, src)
+  union clause ast = CINCOFFSET    : (dst, src, src)
+  union clause ast = CANDPERM      : (dst, src, src)
+  union clause ast = CSETBOUNDS    : (dst, src, src)
+  union clause ast = CSETBOUNDSIMM : (dst, src, imm)
+  union clause ast = CGETTAG       : (dst, src)
+  union clause ast = CGETPERM      : (dst, src)
+  union clause ast = CGETBASE      : (dst, src)
+  union clause ast = CGETLEN       : (dst, src)
+  union clause ast = CGETADDR      : (dst, src)
+  union clause ast = FAIL          : unit
+  union clause ast = RET           : unit
+
+  function clause execute(JALR_CAP(cd, cs)) =
+    execute(CJALR(cd, cs, sail_zeros(imm_size)))
+
+  function clause execute(CJALR(cd, cs, imm)) = {
+    let npc = nextPC();
+    writeReg(cd) = Cap(npc);
+    let c = readRegCap(cs);
+    if not(canIncrCursor(c, imm))
+    then throw(CapabilityCursorCannotBeModified())
+    else {
+      let imm = sail_zero_extend(imm, integer_size);  // TODO Why sail_zero_extend and not sail_sign_extend?
+      let c' = updatePCPerm({c with cap_cursor = c.cap_cursor + imm}); // TODO shouldn't cursor[0] should be set to 0?
+      PC = c';
+      true
+    }
+  }
+
+  function clause execute(CJAL(cd, imm)) = {
+    let npc = nextPC();
+    writeReg(cd) = Cap(npc);
+    addPC(sail_shiftleft(sail_zero_extend(imm, integer_size), 1));
+    true
+  }
+#+end_src
+
+#+begin_src coq
+      Definition fun_exec_instr : Stm [i :: ty.instr] ty.bool :=
+      stm_match_union_alt
+        instruction (exp_var i)
+        (fun K =>
+           match K with
+           | kjalr_cap      => MkAlt (pat_pair "cd" "cs")
+                                     (call exec_jalr_cap (exp_var "cd") (exp_var "cs"))%exp
+           | kcjalr         => MkAlt (pat_tuple ("cd" , "cs" , "imm"))
+                                     (call exec_cjalr (exp_var "cd") (exp_var "cs") (exp_var "imm"))%exp
+           | kcjal          => MkAlt (pat_pair "cd" "imm")
+                                     (call exec_cjal (exp_var "cd") (exp_var "imm"))%exp
+           | kbne           => MkAlt (pat_tuple ("rs1" , "rs2" , "imm"))
+                                     (call exec_bne (exp_var "rs1") (exp_var "rs2") (exp_var "imm"))%exp
+           | kcmove         => MkAlt (pat_pair "cd" "cs")
+                                     (call exec_cmove (exp_var "cd") (exp_var "cs"))%exp
+           | kld            => MkAlt (pat_tuple ("cd" , "cs" , "imm"))
+                                     (call exec_ld (exp_var "cd") (exp_var "cs") (exp_var "imm"))%exp
+           | ksd            => MkAlt (pat_tuple ("rs1" , "rs2" , "imm"))
+                                     (call exec_sd (exp_var "rs1") (exp_var "rs2") (exp_var "imm"))%exp
+           | kcincoffset    => MkAlt (pat_tuple ("cd" , "cs" , "rs"))
+                                     (call exec_cincoffset (exp_var "cd") (exp_var "cs") (exp_var "rs"))%exp
+           | kcandperm      => MkAlt (pat_tuple ("cd" , "cs" , "rs"))
+                                     (call exec_candperm (exp_var "cd") (exp_var "cs") (exp_var "rs"))%exp
+           | kcsetbounds    => MkAlt (pat_tuple ("cd" , "cs" , "rs"))
+                                     (call exec_csetbounds (exp_var "cd") (exp_var "cs") (exp_var "rs"))%exp
+           | kcsetboundsimm => MkAlt (pat_tuple ("cd" , "cs" , "imm"))
+                                     (call exec_csetboundsimm (exp_var "cd") (exp_var "cs") (exp_var "imm"))%exp
+           | kaddi          => MkAlt (pat_tuple ("rd" , "rs" , "imm"))
+                                     (call exec_addi (exp_var "rd") (exp_var "rs") (exp_var "imm"))%exp
+           | kadd           => MkAlt (pat_tuple ("rd" , "rs1" , "rs2"))
+                                     (call exec_add (exp_var "rd") (exp_var "rs1") (exp_var "rs2"))%exp
+           | ksub           => MkAlt (pat_tuple ("rd" , "rs1" , "rs2"))
+                                     (call exec_sub (exp_var "rd") (exp_var "rs1") (exp_var "rs2"))%exp
+           | kslt           => MkAlt (pat_tuple ("rd" , "rs1" , "rs2"))
+                                     (call exec_slt (exp_var "rd") (exp_var "rs1") (exp_var "rs2"))%exp
+           | kslti          => MkAlt (pat_tuple ("rd" , "rs" , "imm"))
+                                     (call exec_slti (exp_var "rd") (exp_var "rs") (exp_var "imm"))%exp
+           | ksltu          => MkAlt (pat_tuple ("rd" , "rs1" , "rs2"))
+                                     (call exec_sltu (exp_var "rd") (exp_var "rs1") (exp_var "rs2"))%exp
+           | ksltiu         => MkAlt (pat_tuple ("rd" , "rs" , "imm"))
+                                     (call exec_sltiu (exp_var "rd") (exp_var "rs") (exp_var "imm"))%exp
+           | kcgettag       => MkAlt (pat_pair "rd" "cs")
+                                     (call exec_cgettag (exp_var "rd") (exp_var "cs"))%exp
+           | kcgetperm      => MkAlt (pat_pair "rd" "cs")
+                                     (call exec_cgetperm (exp_var "rd") (exp_var "cs"))%exp
+           | kcgetbase      => MkAlt (pat_pair "rd" "cs")
+                                     (call exec_cgetbase (exp_var "rd") (exp_var "cs"))%exp
+           | kcgetlen       => MkAlt (pat_pair "rd" "cs")
+                                     (call exec_cgetlen (exp_var "rd") (exp_var "cs"))%exp
+           | kcgetaddr      => MkAlt (pat_pair "rd" "cs")
+                                     (call exec_cgetaddr (exp_var "rd") (exp_var "cs"))%exp
+           | kfail          => MkAlt pat_unit
+                                     (call exec_fail)%exp
+           | kret           => MkAlt pat_unit
+                                     (call exec_ret)%exp
+           end).
+#+end_src
+
 ** TODO match |> notation (enums, unions/variants)
 
 For the pattern matching on unions I suggest using https://github.com/katamaran-project/katamaran/blob/6b50d42d5fa4027be887fbd39ccadd3acd57b688/theories/Syntax/Statements.v#L181-L188
