@@ -26,8 +26,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
             string "stm_match_list";
             matched';
             when_nil';
-            dquotes (Identifier.pp id_head);
-            dquotes (Identifier.pp id_tail);
+            dquotes @@ Identifier.pp id_head;
+            dquotes @@ Identifier.pp id_tail;
             when_cons';
           ])
       end
