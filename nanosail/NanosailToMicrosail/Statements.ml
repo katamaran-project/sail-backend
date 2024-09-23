@@ -14,11 +14,19 @@ let rec pp_statement (statement : Ast.Statement.t) : PPrint.document GC.t =
     GC.return @@ PP.(simple_app [string "stm_exp"; expression'])
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PPrint.document GC.t =
+    (*
+
+       match <matched> {
+         [||]               => when_nil,
+         id_head :: id_tail => when_cons_body
+       }
+       
+    *)
     let pp_match_list
         (matched   : Ast.Statement.t                                      )
         (when_nil  : Ast.Statement.t                                      )
         (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PPrint.document GC.t
-      =
+      =      
       let id_head, id_tail, when_cons_body = when_cons
       in
       let* matched'   = pp_par_statement matched
