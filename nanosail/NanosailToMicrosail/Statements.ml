@@ -113,19 +113,22 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         end
       end
 
+    and pp_match_variant
+        (matched : Ast.Statement.t                                                      )
+        (cases   : (Ast.Identifier.Impl.T.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
+      =
+      let _ = matched
+      and _ = cases
+      in
+      GC.not_yet_implemented [%here]
+
     in
     match match_pattern with
     | List { matched; when_nil; when_cons }     -> pp_match_list matched when_nil when_cons
     | Product { matched; id_fst; id_snd; body } -> pp_match_product matched id_fst id_snd body
     | Bool { condition; when_true; when_false } -> pp_match_bool condition when_true when_false
     | Enum { matched; matched_type; cases }     -> pp_match_enum matched matched_type cases
-        
-    | Variant { matched; cases } -> begin
-        let _ = matched
-        and _ = cases
-        in
-        GC.not_yet_implemented [%here]
-      end
+    | Variant { matched; cases }                -> pp_match_variant matched cases
 
   and pp_call_statement
       (function_identifier : Ast.Identifier.t     )
