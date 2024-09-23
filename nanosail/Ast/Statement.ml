@@ -33,11 +33,11 @@ and write_register_arguments =
   }
 
 and match_pattern =
-  | List    of match_pattern_list
-  | Product of match_pattern_product
-  | Bool    of match_pattern_bool
-  | Enum    of match_pattern_enum
-  | Variant of match_pattern_variant
+  | MatchList    of match_pattern_list
+  | MatchProduct of match_pattern_product
+  | MatchBool    of match_pattern_bool
+  | MatchEnum    of match_pattern_enum
+  | MatchVariant of match_pattern_variant
 
 and match_pattern_list =
   {

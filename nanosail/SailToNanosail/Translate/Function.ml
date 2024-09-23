@@ -34,7 +34,7 @@ let create_if_statement
       ~(when_true  : Ast.Statement.t)
       ~(when_false : Ast.Statement.t) : Ast.Statement.t
   =
-  Ast.Statement.Match (Bool { condition; when_true; when_false })
+  Ast.Statement.Match (MatchBool { condition; when_true; when_false })
 
 
 let statement_of_lvar
@@ -433,7 +433,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             TC.return (id_head, id_tail, clause)
           in
           let match_pattern =
-            Ast.Statement.List {
+            Ast.Statement.MatchList {
                 matched;
                 when_cons;
                 when_nil;
@@ -469,7 +469,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           and* id_snd = Identifier.translate_identifier [%here] id_r
           and* body   = statement_of_aexp clause
           in
-          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.Product { matched; id_fst; id_snd; body })
+          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MatchProduct { matched; id_fst; id_snd; body })
         end
       | _ -> TC.not_yet_implemented [%here] location
 
@@ -592,7 +592,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           variable_identifier    = matched_identifier;
           binding_statement_type = matched_type;
           binding_statement      = matched;
-          body_statement         = Ast.Statement.Match (Ast.Statement.Enum {
+          body_statement         = Ast.Statement.Match (Ast.Statement.MatchEnum {
               matched            = matched_identifier;
               matched_type       = enum_definition.identifier;
               cases
@@ -713,7 +713,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             cases
           }
         in
-        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (Variant match_pattern)
+        TC.return @@ wrap_in_named_statements_context named_statements @@ Match (MatchVariant match_pattern)
       in
       TC.return statement
 
@@ -879,7 +879,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     and* when_true = statement_of_aexp then_clause
     and* when_false = statement_of_aexp else_clause
     in
-    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (Bool { condition; when_true; when_false })
+    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (MatchBool { condition; when_true; when_false })
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
