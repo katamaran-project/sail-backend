@@ -15,8 +15,8 @@ let pp_bind
 (*
    exp_var "<id>"
 *)
-let pp_expression_of_identifier (id : Ast.Identifier.t) : PP.document =
-  PP.simple_app [ PP.string "exp_var"; PP.dquotes @@ Identifier.pp id ]
+let pp_expression_of_identifier (identifier : PP.document) : PP.document =
+  PP.simple_app [ PP.string "exp_var"; PP.dquotes @@ identifier ]
 
 
 (*
