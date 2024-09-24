@@ -479,9 +479,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
       match type_identifier with
       | S.Id id -> begin
-          let* lookup_result = TC.lookup_type_definition @@ Ast.Identifier.mk id
+          let* type_definition = TC.lookup_type_definition @@ Ast.Identifier.mk id
           in
-          match lookup_result with
+          match type_definition with
           | Some (Abbreviation def) -> match_abbreviation def
           | Some (Variant def)      -> match_variant def
           | Some (Enum def)         -> match_enum def
