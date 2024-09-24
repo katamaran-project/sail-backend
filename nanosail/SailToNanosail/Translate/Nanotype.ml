@@ -125,9 +125,9 @@ and nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
               | _::_ -> TC.not_yet_implemented [%here] location
             end
         end
-      | Some (Variant _)      -> TC.return @@ Ast.Type.Variant identifier'
-      | Some (Record _)       -> TC.return @@ Ast.Type.Record identifier'
-      | Some (Enum _)         -> TC.return @@ Ast.Type.Enum identifier'
-      | None                  -> TC.fail [%here] (Printf.sprintf "Unknown type %s" id_as_string)
+      | Some (Variant _) -> TC.return @@ Ast.Type.Variant identifier'
+      | Some (Record _)  -> TC.return @@ Ast.Type.Record identifier'
+      | Some (Enum _)    -> TC.return @@ Ast.Type.Enum identifier'
+      | None             -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id_as_string
     end
 
