@@ -487,3 +487,7 @@ let pp_notation notation expression =
     PP.string ":=";
     PP.parens expression
   ]
+
+
+let pp_scope scope_name scoped_expression =
+  PP.(parens scoped_expression ^^ string "%" ^^ scope_name)
