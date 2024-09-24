@@ -71,7 +71,7 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       (left    : Libsail.Ast.n_constraint                                                        )
       (right   : Libsail.Ast.n_constraint                                                        ) : Ast.Numeric.Constraint.t TC.t
     =
-      let* left' = translate_numeric_constraint left
+      let* left'  = translate_numeric_constraint left
       and* right' = translate_numeric_constraint right
       in
       TC.return @@ factory left' right'
