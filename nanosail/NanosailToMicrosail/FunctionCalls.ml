@@ -15,7 +15,7 @@ let default_translation
       addall @@ arguments
     end
   in
-  GC.return @@ PP.simple_app terms
+  GC.return @@ Coq.pp_scope (PP.string "exp") (PP.simple_app terms)
 
 
 let translate_as_binary_operator
