@@ -75,6 +75,18 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       and* right' = translate_numeric_constraint right
       in
       TC.return @@ factory left' right'
+
+  and translate_application
+      (function_identifier : Libsail.Ast.id          )
+      (arguments           : Libsail.Ast.typ_arg list) : Ast.Numeric.Constraint.t TC.t
+    =
+    let Id_aux (function_identifier, function_identifier_location) = function_identifier
+    in
+    match function_identifier with
+    | Libsail.Ast.Id function_name       -> begin
+        TC.not_yet_implemented ~message:function_name [%here] function_identifier_location
+      end
+     | Libsail.Ast.Operator operator_name -> TC.not_yet_implemented ~message:operator_name [%here] function_identifier_location
   in
 
   let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
@@ -95,10 +107,10 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   | S.NC_bounded_gt (x, y)                     -> translate_bounded_gt x y
   | S.NC_bounded_le (x, y)                     -> translate_bounded_le x y
   | S.NC_bounded_lt (x, y)                     -> translate_bounded_lt x y
+  | S.NC_app (function_id, arguments)          -> translate_application function_id arguments
   | S.NC_or (x, y)                             -> translate_or x y
   | S.NC_and (x, y)                            -> translate_and x y
   | S.NC_set (Kid_aux (Var kind_id, _loc), ns) -> TC.return @@ Ast.Numeric.Constraint.Set (Ast.Identifier.mk kind_id, ns)
   | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ Ast.Numeric.Constraint.Var (Ast.Identifier.mk kind_id)
   | S.NC_true                                  -> TC.return @@ Ast.Numeric.Constraint.True
   | S.NC_false                                 -> TC.return @@ Ast.Numeric.Constraint.False
-  | S.NC_app (_, _)                            -> TC.not_yet_implemented [%here] numeric_constraint_location
