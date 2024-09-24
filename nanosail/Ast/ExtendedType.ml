@@ -70,5 +70,6 @@ module ReturnValue = struct
     | Int     of IntExpression.t
     | Bool    of BoolExpression.t
     | Other   of string
+    | Tuple   of t list
     | Unknown of unknown_data
 end

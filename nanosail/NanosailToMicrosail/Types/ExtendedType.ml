@@ -153,11 +153,12 @@ let pp_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) : P
   GC.return @@ Prec.output_of result
 
 
-let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document GC.t =
+let rec pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.t) : PP.document GC.t =
   match extended_type with
   | Int int_expression   -> pp_int_expression int_expression
   | Bool bool_expression -> pp_bool_expression bool_expression
   | Other id             -> GC.return @@ PP.string id
+  | Tuple ts             -> pp_tuple ts
   | Unknown unknown_data -> begin
       let* annotation_index =
         let annotation_document =
@@ -171,6 +172,13 @@ let pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnValue.
       in
       GC.return @@ PP.string @@ Printf.sprintf "?[%d]" annotation_index
     end
+
+and pp_tuple (extended_types : Ast.ExtendedType.ReturnValue.t list) : PP.document GC.t =
+  let* pp_extended_types = GC.map ~f:(fun x -> GC.lift ~f:PP.parens @@ pp_extended_return_value_type x) extended_types
+  in
+  GC.return @@ PP.parens begin
+    PP.(separate (string " * ") pp_extended_types)
+  end
 
 
 let pp_extended_function_type

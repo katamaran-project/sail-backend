@@ -306,7 +306,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
     end
 
 
-let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.ReturnValue.t Monad.t =
+let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.ReturnValue.t Monad.t =
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
 
@@ -349,7 +349,13 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
    | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
-   | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
+   | Typ_tuple ts         -> begin
+       let+ ts' = map ~f:extended_return_type_of_sail_type ts
+       in
+       let tuple = Ast.ExtendedType.ReturnValue.Tuple ts'
+       in
+       Monad.return tuple
+     end
    | Typ_exist (_, _, _)  -> begin
        let unknown_data : Ast.ExtendedType.unknown_data =
          {
