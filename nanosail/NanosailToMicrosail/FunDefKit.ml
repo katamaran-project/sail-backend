@@ -34,7 +34,7 @@ let pp_function_definition
               in
               GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
             in
-            let docs = List.map ~f:PPSail.pp_bind parameters
+            let docs = List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
             in
             GC.return @@ Coq.pp_list docs
           in
