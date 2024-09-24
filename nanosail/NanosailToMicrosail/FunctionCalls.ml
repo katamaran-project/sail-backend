@@ -34,5 +34,8 @@ let translate
     (arguments           : PP.document list ) : PP.document GC.t
   =
   match Ast.Identifier.string_of function_identifier with
-  | "add_bits_int" -> translate_as_binary_operator function_identifier "+" arguments
+  | "add_bits_int" -> begin
+      (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
+      translate_as_binary_operator function_identifier "+" arguments
+    end
   | _              -> GC.return @@ PPSail.pp_call function_identifier arguments
