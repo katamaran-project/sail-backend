@@ -4,20 +4,6 @@ open Monads.Notations.Star(GenerationContext)
 module GC = GenerationContext
 
 
-let default_translation
-    (function_identifier : Ast.Identifier.t)
-    (arguments           : PP.document list) : PP.document GC.t
-  =
-  let terms =
-    Auxlib.build_list @@ fun { add; addall; _ } -> begin
-      add @@ PP.string "call";
-      add @@ Identifier.pp function_identifier;
-      addall @@ arguments
-    end
-  in
-  GC.return @@ Coq.pp_scope (PP.string "exp") (PP.simple_app terms)
-
-
 let translate_as_binary_operator
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
@@ -33,7 +19,8 @@ let translate_as_binary_operator
           (List.length operands)
       in
       let* annotation_index = GC.add_annotation message
-      and* translation      = default_translation original_function_name operands
+      in
+      let translation = PPSail.pp_call original_function_name operands
       in
       GC.return @@ PP.(separate space [
           translation;
@@ -48,4 +35,4 @@ let translate
   =
   match Ast.Identifier.string_of function_identifier with
   | "add_bits_int" -> translate_as_binary_operator function_identifier "+" arguments
-  | _              -> default_translation function_identifier arguments
+  | _              -> GC.return @@ PPSail.pp_call function_identifier arguments
