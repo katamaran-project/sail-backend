@@ -360,7 +360,7 @@ let extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Ret
        in
        Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown unknown_data
      end
-   | Typ_id id            -> begin
+   | Typ_id id -> begin
        let Id_aux (unwrapped_id, id_location) = id
        in
        match unwrapped_id with
