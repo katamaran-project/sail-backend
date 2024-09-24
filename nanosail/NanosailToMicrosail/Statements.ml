@@ -149,8 +149,17 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                       PP.dquotes @@ Identifier.pp y
                     ]
                   end
-                | ids    -> GC.return begin
-                    PP.parens @@ PP.simple_app @@ (PP.string "pat_tuple") :: List.map ~f:(Fn.compose PP.dquotes Identifier.pp) ids
+                | ids -> begin
+                    let pp_variable_tuple =
+                      let pp_quoted_identifiers =
+                        List.map ~f:(Fn.compose PP.dquotes Identifier.pp) ids
+                      in
+                      let pp_comma_separated_quoted_identifiers =
+                        PP.separate (PP.string ", ") pp_quoted_identifiers
+                      in
+                      PP.parens pp_comma_separated_quoted_identifiers
+                    in
+                    GC.return @@ PP.parens @@ PP.simple_app @@ [ PP.string "pat_tuple"; pp_variable_tuple ]
                   end
               and* pp_clause =
                 GC.lift ~f:PP.parens @@ pp_statement clause
