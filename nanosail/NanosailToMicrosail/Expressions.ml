@@ -39,7 +39,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     match expressions with
     | []      -> GC.return @@ PP.string "nil"
     | x :: xs -> begin
-        let* x'  = pp_par_expression x
+        let* x'  = GC.lift ~f:PP.parens @@ pp_expression x
         and* xs' = pp_list xs
         in
         GC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
@@ -69,8 +69,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (e1              : Ast.Expression.t    )
       (e2              : Ast.Expression.t    ) : PP.document GC.t
     =
-    let* e1' = pp_par_expression e1
-    and* e2' = pp_par_expression e2
+    let* e1' = GC.lift ~f:PP.parens @@ pp_expression e1
+    and* e2' = GC.lift ~f:PP.parens @@ pp_expression e2
     in
     let pp id =
       GC.return @@ PP.(simple_app [
@@ -99,8 +99,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   match expression with
   | Var v              -> GC.return PP.(simple_app [string "exp_var"; dquotes (Identifier.pp v)])
   | Val v              -> pp_value v
-  | Neg e              -> let* e' = pp_par_expression e in GC.return @@ PP.(string "- " ^^ e')
-  | Not e              -> let* e' = pp_par_expression e in GC.return @@ PP.(simple_app [string "exp_not"; e'])
+  | Neg e              -> let* e' = GC.lift ~f:PP.parens @@ pp_expression e in GC.return @@ PP.(string "- " ^^ e')
+  | Not e              -> let* e' = GC.lift ~f:PP.parens @@ pp_expression e in GC.return @@ PP.(simple_app [string "exp_not"; e'])
   | Binop (bo, e1, e2) -> pp_binary_operation bo e1 e2
   | List lst           -> begin
       let* lst' =
@@ -125,8 +125,3 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
                      ])
     end
   | Enum identifier -> GC.return @@ Identifier.pp identifier
-
-and pp_par_expression (expression : Ast.Expression.t) : PP.document GC.t =
-  let* expression' = pp_expression expression
-  in
-  GC.return @@ PP.parens expression'

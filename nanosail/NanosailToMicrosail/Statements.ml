@@ -9,7 +9,7 @@ end
 
 let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
-    let* expression' = Expressions.pp_par_expression expression
+    let* expression' = Expressions.pp_expression expression
     in
     GC.return @@ PPSail.pp_statement_of_expression expression'
 
@@ -194,7 +194,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PP.document GC.t
     =
-    let* pretty_printed_arguments = GC.map ~f:Expressions.pp_par_expression arguments
+    let* pretty_printed_arguments = GC.map ~f:(fun e -> GC.lift ~f:PP.parens @@ Expressions.pp_expression e) arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
