@@ -11,7 +11,6 @@ end
 
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
-open Identifier
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
@@ -21,7 +20,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   let rec nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
     let Id_aux (_, location) = identifier
     in
-    let* identifier' = translate_identifier [%here] identifier
+    let* identifier' = Identifier.translate_identifier [%here] identifier
     in
     let id_as_string = Ast.Identifier.string_of identifier'
     in
@@ -63,7 +62,7 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
       (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
     =
     let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
-    and* identifier'     = translate_identifier [%here] identifier
+    and* identifier'     = Identifier.translate_identifier [%here] identifier
     in
     match (Ast.Identifier.string_of identifier'), type_arguments' with
     | "list" , [ Type t ]    -> TC.return @@ Ast.Type.List t
