@@ -109,7 +109,7 @@ and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeAr
 and nanotype_of_existential
     (ids         : Libsail.Ast.kinded_id list)
     (constraints : Libsail.Ast.n_constraint  )
-    (typ         : Libsail.Ast.typ           )
+    (typ         : Libsail.Ast.typ           ) : Ast.Type.t TC.t
   =
   let ids'                = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
   and numeric_constraint' = StringOf.Sail.n_constraint constraints
