@@ -103,7 +103,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             ] :: acc)
         in
         let matched' =
-          PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier (Identifier.pp matched)
+          PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
         in
         let* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
         in
@@ -169,7 +169,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         let pp_matched_type =
           Identifier.pp @@ Configuration.reified_variant_name matched_type
         and pp_matched =
-          PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier (Identifier.pp matched)
+          PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
         and pp_match_cases =
           PP.parens @@ Coq.pp_lambda lambda_parameter lambda_body
         in
