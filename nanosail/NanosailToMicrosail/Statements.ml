@@ -243,10 +243,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PP.document GC.t
     =
-      let* left'  = pp_par_statement left
-      and* right' = pp_par_statement right
+      let* pp_left  = pp_par_statement left
+      and* pp_right = pp_par_statement right
       in
-      GC.return @@ PP.(simple_app [ string "stm_seq"; left'; right' ])
+      GC.return @@ PP.(simple_app [ string "stm_seq"; pp_left; pp_right ])
 
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp register_identifier ])
