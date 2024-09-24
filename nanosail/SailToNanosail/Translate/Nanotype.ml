@@ -12,7 +12,6 @@ end
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
-open Numeric
 
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
@@ -111,12 +110,13 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
   | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
 
+
 and translate_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
   let S.A_aux (unwrapped_type_argument, _location) = type_argument
   in
   match unwrapped_type_argument with
   | A_nexp e -> begin
-      let* e' = translate_numeric_expression e
+      let* e' = Numeric.translate_numeric_expression e
       in
       TC.return @@ Ast.TypeArgument.NumericExpression e'
     end
@@ -126,7 +126,7 @@ and translate_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgu
       TC.return @@ Ast.TypeArgument.Type t'
     end
   | A_bool b -> begin
-      let* b' = translate_numeric_constraint b
+      let* b' = Numeric.translate_numeric_constraint b
       in
       TC.return @@ Ast.TypeArgument.Bool b'
     end
