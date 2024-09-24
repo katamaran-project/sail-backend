@@ -80,13 +80,13 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       (function_identifier : Libsail.Ast.id          )
       (arguments           : Libsail.Ast.typ_arg list) : Ast.Numeric.Constraint.t TC.t
     =
-    let Id_aux (function_identifier, function_identifier_location) = function_identifier
+    let* function_identifier' =
+      translate_identifier [%here] function_identifier
+    and* arguments' =
+      TC.return [] (* todo translate arguments *)
     in
-    match function_identifier with
-    | Libsail.Ast.Id function_name       -> begin
-        TC.not_yet_implemented ~message:function_name [%here] function_identifier_location
-      end
-     | Libsail.Ast.Operator operator_name -> TC.not_yet_implemented ~message:operator_name [%here] function_identifier_location
+    TC.return @@ Ast.Numeric.Constraint.App (function_identifier', arguments')
+    
   in
 
   let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
