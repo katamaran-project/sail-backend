@@ -48,4 +48,4 @@ let translate
   =
   match Ast.Identifier.string_of function_identifier with
   | "add_bits_int" -> translate_as_binary_operator function_identifier "+" arguments
-  | _ -> default_translation function_identifier arguments
+  | _              -> default_translation function_identifier arguments
