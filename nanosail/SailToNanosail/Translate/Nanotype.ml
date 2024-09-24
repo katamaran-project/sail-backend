@@ -73,7 +73,7 @@ and nanotype_of_type_constructor
     (identifier     : S.id          )
     (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
   =
-  let* type_arguments' = TC.map ~f:nanotype_of_type_argument type_arguments
+  let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
   and* identifier'     = translate_identifier [%here] identifier
   in
   match (Ast.Identifier.string_of identifier'), type_arguments' with
@@ -86,7 +86,7 @@ and nanotype_of_type_constructor
       TC.return @@ Ast.Type.Application (constructor, type_arguments')
     end
 
-and nanotype_of_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
+and translate_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
   let S.A_aux (unwrapped_type_argument, _location) = type_argument
   in
   match unwrapped_type_argument with
