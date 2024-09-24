@@ -14,8 +14,6 @@ end
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
-open Identifier
-
 
 let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : Ast.Numeric.Expression.t TC.t =
   let translate_binary_operation
@@ -48,7 +46,7 @@ let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : A
       TC.return @@ Ast.Numeric.Expression.Neg x'
     end
   | Nexp_id identifier -> begin
-      let* identifier' = translate_identifier [%here] identifier
+      let* identifier' = Identifier.translate_identifier [%here] identifier
       in
       TC.return @@ Ast.Numeric.Expression.Id identifier'
     end
@@ -81,7 +79,7 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       (arguments           : Libsail.Ast.typ_arg list) : Ast.Numeric.Constraint.t TC.t
     =
     let* function_identifier' =
-      translate_identifier [%here] function_identifier
+      Identifier.translate_identifier [%here] function_identifier
     and* arguments' =
       TC.return [] (* todo translate arguments *)
     in
