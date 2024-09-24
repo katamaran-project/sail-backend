@@ -71,7 +71,7 @@ and nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
 *)
 and nanotype_of_type_constructor
     (identifier     : S.id          )
-    (type_arguments : S.typ_arg list)
+    (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
   =
   let* type_arguments' = TC.map ~f:nanotype_of_type_argument type_arguments
   and* identifier'     = translate_identifier [%here] identifier
@@ -123,7 +123,7 @@ and nanotype_of_existential
   end;
   nanotype_of_sail_type typ
 
-and nanotype_of_tuple (items : Libsail.Ast.typ list) =
+and nanotype_of_tuple (items : Libsail.Ast.typ list) : Ast.Type.t TC.t =
   let* items' = TC.map ~f:nanotype_of_sail_type items
   in
   match items' with
