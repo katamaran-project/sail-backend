@@ -10,7 +10,7 @@ let translate_as_binary_operator
     (operands               : PP.document list ) : PP.document GC.t
   =
   match operands with
-  | [x; y] -> GC.return @@ PP.(parens @@ separate space [x; string operator; y])
+  | [x; y] -> GC.return @@ PPSail.pp_statement_of_expression @@ PP.(parens @@ separate space [x; string operator; y])
   | _      -> begin
       let message =
         PP.string @@ Printf.sprintf
@@ -38,4 +38,5 @@ let translate
       (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
       translate_as_binary_operator function_identifier "+" arguments
     end
+  | "neq_bool"     -> translate_as_binary_operator function_identifier "!=" arguments
   | _              -> GC.return @@ PPSail.pp_call function_identifier arguments
