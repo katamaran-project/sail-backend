@@ -479,19 +479,37 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
       match type_identifier with
       | S.Id id -> begin
-          let* type_definition = TC.lookup_type_definition @@ Ast.Identifier.mk id
-          in
-          match type_definition with
-          | Some (Abbreviation def) -> match_abbreviation def
-          | Some (Variant def)      -> match_variant def
-          | Some (Enum def)         -> match_enum def
-          | Some (Record def)       -> match_record def
-          | None                    -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+          if
+            String.equal id "unit"
+          then
+            match_unit ()
+          else begin
+            let* type_definition = TC.lookup_type_definition @@ Ast.Identifier.mk id
+            in
+            match type_definition with
+            | Some (Abbreviation def) -> match_abbreviation def
+            | Some (Variant def)      -> match_variant def
+            | Some (Enum def)         -> match_enum def
+            | Some (Record def)       -> match_record def
+            | None                    -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+          end
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
     (*
-        MATCHING ENUMS
+       MATCHING UNIT       
+    *)
+    and match_unit () =
+      match cases with
+      | [case] -> begin
+          let (_, _, body) = case
+          in
+          statement_of_aexp body
+        end
+      | _      -> TC.fail [%here] "Expected exactly one case when matching unit"
+
+    (*
+       MATCHING ENUMS
     *)
     and match_enum (enum_definition : Ast.Definition.Type.Enum.t) =
       (* the matched variable has type enum as described by enum_definition *)
