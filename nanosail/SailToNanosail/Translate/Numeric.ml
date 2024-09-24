@@ -75,8 +75,8 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       and* right' = translate_numeric_constraint right
       in
       TC.return @@ factory left' right'
-
   in
+
   let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
   and translate_not_equal  = translate_comparison       @@ fun l r -> NotEqual   (l, r)
   and translate_bounded_ge = translate_comparison       @@ fun l r -> BoundedGE  (l, r)
@@ -85,7 +85,6 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
   and translate_bounded_lt = translate_comparison       @@ fun l r -> BoundedLT  (l, r)
   and translate_or         = translate_binary_operation @@ fun l r -> Or         (l, r)
   and translate_and        = translate_binary_operation @@ fun l r -> And        (l, r)
-
   in
   let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
   in
