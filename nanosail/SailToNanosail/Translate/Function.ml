@@ -214,7 +214,17 @@ let rec expression_of_aval
     | Enum typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
         in
-        TC.return (Ast.Expression.Enum id', typ', [])
+        let* type_identifier =
+          match typ' with
+          | Ast.Type.Enum type_identifier -> TC.return type_identifier
+          | _                             -> TC.fail [%here] "Expected enum type"
+        in
+        let enum_args : Ast.Expression.enum_arguments = {
+          type_identifier = type_identifier;
+          constructor_identifier = id'
+        }
+        in
+        TC.return (Ast.Expression.Enum enum_args, typ', [])
       end
     | Unbound _    -> TC.not_yet_implemented [%here] location
 

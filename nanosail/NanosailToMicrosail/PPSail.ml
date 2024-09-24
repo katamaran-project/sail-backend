@@ -41,3 +41,15 @@ let pp_call
     end
   in
   Coq.pp_scope (PP.string "exp") (PP.simple_app terms)
+
+
+
+let pp_expression_value
+    (typ   : PP.document)
+    (value : PP.document) : PP.document
+  =
+  PP.simple_app [
+    PP.string "exp_val";
+    PP.parens typ;
+    PP.parens value
+  ]

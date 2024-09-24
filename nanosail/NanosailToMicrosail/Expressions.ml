@@ -124,4 +124,11 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
                        end
                      ])
     end
-  | Enum identifier -> GC.return @@ Identifier.pp identifier
+  | Enum args -> begin
+      let enum_type =
+        PP.simple_app [ PP.string "ty.enum"; Identifier.pp @@ Configuration.reified_enum_name args.type_identifier ]
+      and enum_constructor =
+        Identifier.pp args.constructor_identifier
+      in
+      GC.return @@ PPSail.pp_expression_value enum_type enum_constructor
+    end
