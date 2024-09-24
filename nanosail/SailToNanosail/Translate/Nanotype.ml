@@ -128,6 +128,6 @@ and nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
       | Some (Variant _)      -> TC.return @@ Ast.Type.Variant identifier'
       | Some (Record _)       -> TC.return @@ Ast.Type.Record identifier'
       | Some (Enum _)         -> TC.return @@ Ast.Type.Enum identifier'
-      | None                  -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
+      | None                  -> TC.fail [%here] (Printf.sprintf "Unknown type %s" id_as_string)
     end
 
