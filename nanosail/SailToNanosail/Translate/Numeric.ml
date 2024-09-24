@@ -86,7 +86,6 @@ and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint)
       TC.return [] (* todo translate arguments *)
     in
     TC.return @@ Ast.Numeric.Constraint.App (function_identifier', arguments')
-    
   in
 
   let translate_equal      = translate_comparison       @@ fun l r -> Equal      (l, r)
