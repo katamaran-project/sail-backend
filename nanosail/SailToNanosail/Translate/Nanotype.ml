@@ -17,47 +17,10 @@ open Numeric
 
 let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   (*
-    Types are representing as strings in Sail.
-  *)
-  let rec nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
-    let* identifier' = translate_identifier [%here] identifier
-    in
-    let id_as_string = Ast.Identifier.string_of identifier'
-    in
-    match id_as_string with
-    | "bool"      -> TC.return @@ Ast.Type.Bool
-    | "int"       -> TC.return @@ Ast.Type.Int
-    | "unit"      -> TC.return @@ Ast.Type.Unit
-    | "string"    -> TC.return @@ Ast.Type.String
-    | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
-    | _           -> begin
-        let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
-        in
-        match type_definition with
-        | Some (Abbreviation { identifier; abbreviation }) -> begin
-            let _ = identifier (* todo remove this *)
-            in
-            match abbreviation with
-            | Ast.Definition.Type.Abbreviation.NumericExpression (_, _)     -> TC.not_yet_implemented [%here] location
-            | Ast.Definition.Type.Abbreviation.NumericConstraint (_, _)     -> TC.not_yet_implemented [%here] location
-            | Ast.Definition.Type.Abbreviation.Alias (type_quantifier, typ) -> begin
-                match type_quantifier with
-                | []   -> TC.return @@ Ast.Type.Alias (identifier', typ)
-                | _::_ -> TC.not_yet_implemented [%here] location
-              end
-          end
-        | Some (Variant _)      -> TC.return @@ Ast.Type.Variant identifier'
-        | Some (Record _)       -> TC.return @@ Ast.Type.Record identifier'
-        | Some (Enum _)         -> TC.return @@ Ast.Type.Enum identifier'
-        | None                  -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
-      end
-
-  (*
      Sail represents types with parameters with Typ_app (id, type_args).
      This function translates these to their corresponding nanotype.
   *)
-  and nanotype_of_type_constructor
+  let rec nanotype_of_type_constructor
       (identifier     : S.id          )
       (type_arguments : S.typ_arg list)
     =
@@ -128,3 +91,43 @@ let rec nanotype_of_sail_type (S.Typ_aux (typ, location)) : Ast.Type.t TC.t =
   | Typ_var _                       -> TC.not_yet_implemented [%here] location
   | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
   | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
+
+(*
+  Types are representing as strings in Sail.
+*)
+and nanotype_of_identifier (identifier : S.id) : Ast.Type.t TC.t =
+  let Id_aux (_, location) = identifier
+  in
+  let* identifier' = translate_identifier [%here] identifier
+  in
+  let id_as_string = Ast.Identifier.string_of identifier'
+  in
+  match id_as_string with
+  | "bool"      -> TC.return @@ Ast.Type.Bool
+  | "int"       -> TC.return @@ Ast.Type.Int
+  | "unit"      -> TC.return @@ Ast.Type.Unit
+  | "string"    -> TC.return @@ Ast.Type.String
+  | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
+  | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
+  | _           -> begin
+      let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
+      in
+      match type_definition with
+      | Some (Abbreviation { identifier; abbreviation }) -> begin
+          let _ = identifier (* todo remove this *)
+          in
+          match abbreviation with
+          | Ast.Definition.Type.Abbreviation.NumericExpression (_, _)     -> TC.not_yet_implemented [%here] location
+          | Ast.Definition.Type.Abbreviation.NumericConstraint (_, _)     -> TC.not_yet_implemented [%here] location
+          | Ast.Definition.Type.Abbreviation.Alias (type_quantifier, typ) -> begin
+              match type_quantifier with
+              | []   -> TC.return @@ Ast.Type.Alias (identifier', typ)
+              | _::_ -> TC.not_yet_implemented [%here] location
+            end
+        end
+      | Some (Variant _)      -> TC.return @@ Ast.Type.Variant identifier'
+      | Some (Record _)       -> TC.return @@ Ast.Type.Record identifier'
+      | Some (Enum _)         -> TC.return @@ Ast.Type.Enum identifier'
+      | None                  -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location (* todo is actually a failure *)
+    end
+
