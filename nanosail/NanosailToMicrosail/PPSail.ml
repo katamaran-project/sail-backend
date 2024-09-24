@@ -3,10 +3,13 @@ open Monads.Notations.Star(GenerationContext)
 
 
 (*
-   "<argument>" :: <typ>
+   "<argument>" ∷ <typ>
 *)
-let pp_bind argument typ =
-  PP.(utf8string ("\"" ^ (Ast.Identifier.string_of argument) ^ "\" ∷ " ) ^^ typ)
+let pp_bind
+    (argument : PP.document)
+    (typ      : PP.document) : PP.document
+  =
+  PP.(separate space [dquotes argument; utf8string " ∷ "; typ ])
 
 
 (*

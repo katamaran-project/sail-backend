@@ -21,9 +21,11 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         let* parameter_bindings =
           let* pp_parameter_bindings =
             let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
+              let id' = Identifier.pp id
+              in
               let* t' = Nanotype.pp_nanotype t
               in
-              GC.return (id, t')
+              GC.return (id', t')
             in
             GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
           in
