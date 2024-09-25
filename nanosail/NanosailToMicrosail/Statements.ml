@@ -97,14 +97,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         | [ clause ] -> begin
             pp_statement clause
           end
-        | _      -> GC.fail "expected exactly one case for unit-typed matches"
+        | _ -> GC.fail "expected exactly one case for unit-typed matches"
       else begin
+        let pp_matched_type : PP.document =
+          Identifier.pp @@ Identifier.reified_enum_name matched_type
+        and pp_matched_statement : PP.document =
+          PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
+        in
         let pp_using_match_notation () =
-          let pp_matched_type : PP.document =
-            Identifier.pp @@ Identifier.reified_enum_name matched_type
-          and pp_matched_statement : PP.document =
-            PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
-          in
           let* pp_cases : PP.document list =
             let pp_case
                 (constructor_identifier : Ast.Identifier.t)
@@ -134,11 +134,6 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         and pp_using_stm_match_enum () =
           let pp_lambda_parameter : PP.document =
             PP.string "K"
-          in
-          let pp_matched_type : PP.document =
-            Identifier.pp @@ Identifier.reified_enum_name matched_type
-          and pp_matched_statement : PP.document =
-            PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
           in
           let* pp_cases : PP.document =
             let pp_case
