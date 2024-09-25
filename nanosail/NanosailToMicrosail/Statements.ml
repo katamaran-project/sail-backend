@@ -129,9 +129,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
       let* pp_cases =
         let pp_case_triple
-            (constructor_id : Ast.Identifier.t)
-            (bindings : Ast.Identifier.t list)
-            (clause : Ast.Statement.t) : (PP.document * PP.document * PP.document) GC.t
+            (constructor_id : Ast.Identifier.t     )
+            (bindings       : Ast.Identifier.t list)
+            (clause         : Ast.Statement.t      ) : (PP.document * PP.document * PP.document) GC.t
           =
           let pp_constructor =
             Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
