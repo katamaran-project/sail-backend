@@ -115,8 +115,38 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         and pp_matched_statement : PP.document =
           PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
         in
+        (*
+           Translates match statement using muSail's special notation.
+
+           For example,
+
+             enum MyEnum = { x, y }
+
+             val foo : MyEnum -> int
+             function foo(e) = match e {
+               x => 1,
+               y => 2
+             }
+
+           has its match expression converted to
+
+             match: (stm_exp (exp_var "жmatched0")) in Emyenum with
+             | x  =>  stm_exp (exp_int 1%Z)
+             | y  =>  stm_exp (exp_int 2%Z)
+             end
+           
+        *)
         let pp_using_match_notation () =
           let* pp_cases : PP.document list =
+            (*
+               Converts a match case
+
+                 Foo => statement
+
+               to
+
+                 | Foo => statement
+            *)
             let pp_case
                 (constructor_identifier : Ast.Identifier.t)
                 (clause_statement       : Ast.Statement.t ) : PP.document GC.t
@@ -136,12 +166,43 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             in
             GC.map ~f:(Auxlib.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
           in
+          (*
+             Generates final translation of match
+
+               match: <matched> in <type> with
+               | c1 -> stm
+               | c2 -> stm
+               end
+          *)
           GC.return @@ PP.vertical @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
             add @@ PP.(separate space [ string "match:"; parens pp_matched_statement; string "in"; pp_matched_type; string "with" ]);
             addall pp_cases;
             add @@ PP.string "end"
           end
 
+        (*
+           Alternative match translation function.
+           Uses stm_match_enum.
+           
+           For example,
+
+             enum MyEnum = { x, y }
+
+             val foo : MyEnum -> int
+             function foo(e) = match e {
+               x => 1,
+               y => 2
+             }
+
+           has its match expression converted to
+
+             stm_match_enum Emyenum
+                            (stm_exp (exp_var "жmatched0"))
+                            (fun K => match K with
+                                      | x => stm_exp (exp_int 1%Z)
+                                      | y => stm_exp (exp_int 2%Z)
+                                      end)
+        *)
         and pp_using_stm_match_enum () =
           let pp_lambda_parameter : PP.document =
             PP.string "K"
