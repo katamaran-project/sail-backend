@@ -204,10 +204,16 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                       end)
         *)
         and pp_using_stm_match_enum () =
+          (*
+             todo: should perhaps be a generated unique id
+          *)
           let pp_lambda_parameter : PP.document =
             PP.string "K"
           in
           let* pp_cases : PP.document =
+            (*
+               Translates a match into a pair of PP.documents
+            *)
             let pp_case
                 (constructor_identifier : Ast.Identifier.t)
                 (clause_statement       : Ast.Statement.t ) : (PP.document * PP.document) GC.t
@@ -220,14 +226,24 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               in
               GC.return (pp_constructor, pp_clause)
             in
+            (*
+               Generates the body of the lambda
+            *)
             let* pp_lambda_body =
               let* pp_match_cases =
                 GC.map ~f:(Auxlib.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
               in
+              (* Generate Coq match expression *)
               GC.return @@ Coq.pp_match pp_lambda_parameter pp_match_cases
             in
+            (* Wrap everything in a lambda *)
             GC.return @@ Coq.pp_lambda pp_lambda_parameter pp_lambda_body
           in
+          (*
+             Puts everything together
+
+               stm_match_enum <type> <matched> <lambda>
+          *)
           GC.return @@ PP.hanging_list
             (PP.string "stm_match_enum")
             [
@@ -236,6 +252,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               PP.parens pp_cases;
             ]
         in
+        (*
+           Pick between pretty and ugly printing
+           Note that pretty printing is only available for up to 14 cases
+           (notations are hardcoded in Katamaran codebase up to 14 cases)
+        *)
         if Configuration.(get pretty_print_match_enum) && Ast.Identifier.Map.length cases <= 14
         then pp_using_match_notation ()
         else pp_using_stm_match_enum ()
