@@ -155,7 +155,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               PP.parens pp_cases;
             ]
         in
-        pp_using_stm_match_enum ()
+        if Configuration.(get pretty_print_match_enum) && Ast.Identifier.Map.length cases <= 14
+        then pp_using_match_notation ()
+        else pp_using_stm_match_enum ()
       end
       
     (*
