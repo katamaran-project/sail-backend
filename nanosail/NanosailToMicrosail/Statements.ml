@@ -117,16 +117,32 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         end
       end
 
+    (*
+       Pretty prints a match where the matched value has a union/variant type.
+
+       stm_match_union_alt_list <reified union type>
+                                <statement evaluating to matched value>
+                                [ existT <reified union constructor1> (MkAlt <identifiers1> <clause1 statement>);
+                                  existT <reified union constructor2> (MkAlt <identifiers2> <clause2 statement>);
+                                  ... ]
+                                Logic.I
+    *)
     and pp_match_variant
         (matched      : Ast.Identifier.t                                              )
         (matched_type : Ast.Identifier.t                                              )
         (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
+      (* Reified union type *)
       let pp_matched_type = 
         Identifier.pp @@ Configuration.reified_variant_name matched_type
+          
+      (* Statement whose value is being matched *)
       and pp_matched_statement =
         PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
+          
       in
+
+      (* List of match cases *)
       let* pp_cases =
         let pp_case_triple
             (constructor_id : Ast.Identifier.t     )
