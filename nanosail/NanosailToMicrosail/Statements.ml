@@ -89,31 +89,36 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             pp_statement clause
           end
         | _      -> GC.fail "expected exactly one case for unit-typed matches"
-      else begin
+      else begin        
         let pp_using_match_notation () =
-          let translate_case ~(key : Ast.Identifier.t) ~(data : Ast.Statement.t) (acc : PP.document list GC.t) =
-            let* acc
-            and* pattern = GC.return @@ Identifier.pp key
-            and* clause = pp_statement data
-            in
-            GC.return @@ PP.(separate space [
-                string "|";
-                pattern;
-                string " => ";
-                clause
-              ] :: acc)
-          in
-          let pp_matched =
+          let pp_matched_type : PP.document =
+            Identifier.pp @@ Identifier.reified_enum_name matched_type
+          and pp_matched_statement : PP.document =
             PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
           in
-          let* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
+          let* pp_cases : PP.document list =
+            let pp_case
+                (constructor_identifier : Ast.Identifier.t)
+                (clause_statement       : Ast.Statement.t ) : PP.document GC.t
+              =
+              let pp_pattern =
+                Identifier.pp constructor_identifier
+              in
+              let* pp_clause =
+                pp_statement clause_statement
+              in
+              GC.return @@ PP.(separate space [
+                  string "|";
+                  pp_pattern;
+                  string " => ";
+                  pp_clause
+                ])
+            in
+            GC.map ~f:(Auxlib.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
           in
-          let matched_type =
-            Identifier.pp @@ Identifier.reified_enum_name matched_type
-          in
-          GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-            add @@ PP.(separate space [ string "match:"; parens pp_matched; string "in"; matched_type; string "with" ]);
-            addall cases';
+          GC.return @@ PP.vertical @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+            add @@ PP.(separate space [ string "match:"; parens pp_matched_statement; string "in"; pp_matched_type; string "with" ]);
+            addall pp_cases;
             add @@ PP.string "end"
           end
           
