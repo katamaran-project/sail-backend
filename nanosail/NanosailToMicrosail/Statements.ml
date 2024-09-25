@@ -77,6 +77,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           when_false'
         ])
 
+    (*
+       Translates a match against enums.
+
+       Two translations are supported:
+       - pretty printed using the special match notation (see pp_using_match_notation)
+       - ugly printed using the raw pp_match_enum
+    *)
     and pp_match_enum
         (matched      : Ast.Identifier.t                    )
         (matched_type : Ast.Identifier.t                    )
