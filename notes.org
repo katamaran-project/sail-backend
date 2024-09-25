@@ -227,6 +227,18 @@ For a union type U and scrutinee s it takes a list of alternatives altsand a wel
     |> KReadWrite pat_unit => stm_exp (Some E_SAMO_Access_Fault)
     |> KExecute pat_unit   => stm_exp (Some E_Fetch_Access_Fault)
   end
+
+  Definition fun_foo : Stm [ "u"  ∷  ty.union Umyunion ] (ty.int) :=
+    stm_let
+      "жmatched1"
+      (ty.union Umyunion)
+      (stm_exp (exp_var "u"))
+      (stm_match_union_alt_list
+         Umyunion
+         (stm_exp (exp_var "жmatched1"))
+         [ existT Kpush (MkAlt pat_unit (stm_exp (exp_int 1%Z))) ]
+         Logic.I).
+
 #+end_src
 
 
