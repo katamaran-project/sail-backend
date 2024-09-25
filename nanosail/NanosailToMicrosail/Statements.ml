@@ -16,10 +16,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
 
-       match <matched> {
-         [||]               => when_nil,
-         id_head :: id_tail => when_cons_body
-       }
+       Converts the following Sail code
+
+         match <matched> {
+           [||]               => when_nil,
+           id_head :: id_tail => when_cons_body
+         }
 
     *)
     let pp_match_list
