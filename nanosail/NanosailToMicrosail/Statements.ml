@@ -99,8 +99,19 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           end
         | _ -> GC.fail "expected exactly one case for unit-typed matches"
       else begin
+        (*
+           Reified enum type
+        *)
         let pp_matched_type : PP.document =
           Identifier.pp @@ Identifier.reified_enum_name matched_type
+
+        (*
+           Statement whose value is being matched
+
+           Nanosail only supports matching against variables, and muSail expects a statement,
+           so we start with an identifier, which we turn into an expression, which we
+           turn into a statement.
+        *)
         and pp_matched_statement : PP.document =
           PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
         in
@@ -193,9 +204,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (*
          Statement whose value is being matched
 
-         Nanosail only supports matching against variables, so we
-         have a identifier, which we turn into an expression, which we
-         turn into a statement, since muSail's matching works on statements.
+         Nanosail only supports matching against variables, and muSail expects a statement,
+         so we start with an identifier, which we turn into an expression, which we
+         turn into a statement.
       *)
       and pp_matched_statement =
         PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
