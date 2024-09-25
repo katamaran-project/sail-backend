@@ -306,7 +306,7 @@ let is_single_line (document : document) : bool =
 (*
 
   a + b + c + d
-   
+
 *)
 let pp_binary_operation (operator : document) (operands : document list) =
   horizontal ~separator:(space ^^ operator ^^ space) operands
@@ -359,7 +359,7 @@ let enclose_vertically
      c;
      d
    ]
-   
+
 *)
 let delimited_list ~delimiters ~items ~separator =
   let flattened_layout =

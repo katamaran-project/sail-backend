@@ -5,7 +5,7 @@ type categorized_line =
   | BlockEntry
   | BlockExit
   | Line of string
-  
+
 
 (*
 
@@ -19,7 +19,7 @@ type categorized_line =
      Called with each line that appears outside a block
    process_block
      Called with lines making up a block
-   
+
  *)
 let process_lines
     ~(next_line                 : unit        -> string option)
@@ -35,11 +35,11 @@ let process_lines
     then BlockExit
     else Line line
   in
-  
+
   let categorize_next_line () : categorized_line option =
     Option.map (next_line ()) ~f:categorize_line
   in
-  
+
   let rec process_line_outside_block (line_index : int) : unit =
     match categorize_next_line () with
     | Some BlockEntry  -> process_line_inside_block [] (line_index + 1)

@@ -22,7 +22,7 @@ let string_of_document document =
 
 let nullary_string_function id func =
   (id, Slang.Helpers.Function.to_string id func)
-  
+
 
 let nullary_boolean_function id func =
   (id, Slang.Helpers.Function.to_bool id func)
@@ -86,7 +86,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     in
     nullary_string_function id f
   in
-  
+
   let exported_ignored_definitions =
     let id = "ignored-definitions"
     in

@@ -20,13 +20,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
          [||]               => when_nil,
          id_head :: id_tail => when_cons_body
        }
-       
+
     *)
     let pp_match_list
         (matched   : Ast.Statement.t                                      )
         (when_nil  : Ast.Statement.t                                      )
         (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
-      =      
+      =
       let id_head, id_tail, when_cons_body = when_cons
       in
       let* matched'   = pp_par_statement matched
@@ -89,7 +89,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             pp_statement clause
           end
         | _      -> GC.fail "expected exactly one case for unit-typed matches"
-      else begin        
+      else begin
         let pp_using_match_notation () =
           let pp_matched_type : PP.document =
             Identifier.pp @@ Identifier.reified_enum_name matched_type
@@ -121,7 +121,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             addall pp_cases;
             add @@ PP.string "end"
           end
-          
+
         and pp_using_stm_match_enum () =
           let pp_lambda_parameter : PP.document =
             PP.string "K"
@@ -164,7 +164,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         then pp_using_match_notation ()
         else pp_using_stm_match_enum ()
       end
-      
+
     (*
        Pretty prints a match where the matched value has a union/variant type.
 
@@ -183,9 +183,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (*
          Reified union type
       *)
-      let pp_matched_type = 
+      let pp_matched_type =
         Identifier.pp @@ Configuration.reified_variant_name matched_type
-          
+
       (*
          Statement whose value is being matched
 
@@ -195,7 +195,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       *)
       and pp_matched_statement =
         PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
-          
+
       in
 
       (* List of match cases *)
@@ -222,7 +222,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
              Two : becomes pat_pair "<id1>" "<id2>"
 
              Three or more : becomes pat_tuple ("<id1>", "<id2>", ...)
-             
+
           *)
           and pp_pattern =
             match bindings with
@@ -291,7 +291,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             pp_matched_statement;
             Coq.pp_list pp_cases;
             PP.string "Logic.I"
-          ]          
+          ]
       end
     in
     match match_pattern with

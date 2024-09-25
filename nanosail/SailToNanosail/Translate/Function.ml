@@ -507,7 +507,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
     (*
-       MATCHING UNIT       
+       MATCHING UNIT
     *)
     and match_unit () =
       match cases with
@@ -1002,7 +1002,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
              - Sail does not make the distinction between expressions and statements, whereas muSail does
              - In Sail, the type of assignment if unit, but not in muSail
            *)
-          let* rhs_identifier = TC.generate_unique_identifier ()            
+          let* rhs_identifier = TC.generate_unique_identifier ()
           and* translated_rhs = statement_of_aexp rhs
           and* rhs_type       = Nanotype.nanotype_of_sail_type lhs_type;
           in

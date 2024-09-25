@@ -40,7 +40,7 @@ let test_act =
   in
   let set_flag () =
     flag := true
-  in  
+  in
   "act" >:: fun _ ->
     let monadic =
       let* () = act set_flag
@@ -51,7 +51,7 @@ let test_act =
     let _ = IntState.run monadic 0
     in
     assert_equal true (!flag)
-      
+
 
 let test_suite =
   "state monad test suite" >::: [

@@ -52,7 +52,7 @@ module C = struct
         template_filename : string;
         output_filename   : string;
       }
-    
+
     let template_translations = ConfigLib.Setting.mk ([] : template_translation list)
 
     let () =

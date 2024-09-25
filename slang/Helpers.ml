@@ -5,9 +5,9 @@ module Function = struct
   (*
 
      Given an OCaml function func with type
-     
+
        unit -> 'a EC.t
-     
+
      convert it to an equivalent Slang function that takes no parameters and returns
      the result of func () as a Slang value (e.g., OCaml strings are converted to Slang strings, etc.)
 
@@ -19,7 +19,7 @@ module Function = struct
      func
        function running in evaluation context that returns OCaml value that
        needs converting
-     
+
    *)
   let to_type
       (value_constructor : 'a -> Value.t                 )

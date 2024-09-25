@@ -80,7 +80,7 @@ let pp_function_definition
       GC.return @@ coq_definition
     end
   end
-    
+
 
 let pp_function_definitions
       (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)

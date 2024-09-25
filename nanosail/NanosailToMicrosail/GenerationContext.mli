@@ -4,7 +4,7 @@ val act    : (unit -> 'a) -> 'a t
 val return : 'a -> 'a t
 val bind   : 'a t -> ('a -> 'b t) -> 'b t
 val fail   : string -> 'a t
-    
+
 val generate            : PP.document t -> PP.document
 val block               : PP.document t -> PP.document t
 val add_annotation      : PP.document -> int t
