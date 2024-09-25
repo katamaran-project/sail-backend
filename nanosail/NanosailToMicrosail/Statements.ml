@@ -241,8 +241,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           [
             pp_matched_type;
             pp_matched_statement;
-            (Coq.pp_list pp_cases);
-            (PP.string "Logic.I")
+            Coq.pp_list pp_cases;
+            PP.string "Logic.I"
           ]          
       end
     in
