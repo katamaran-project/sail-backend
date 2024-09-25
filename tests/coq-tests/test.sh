@@ -7,9 +7,10 @@ for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
     pushd $dir > /dev/null;
     ./test.sh > /dev/null 2> /dev/null;
     if [ $? != 0 ]; then
-        echo "FAILED $dir";
+        echo "FAIL $dir";
         fail_count=$(($fail_count+1));
     else
+        echo "PASS $dir";
         pass_count=$(($pass_count+1));
     fi
     popd > /dev/null;
