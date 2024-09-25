@@ -116,8 +116,46 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             addall cases';
             add @@ PP.string "end"
           end
+          
+        and pp_using_stm_match_enum () =
+          let pp_lambda_parameter : PP.document =
+            PP.string "K"
+          in
+          let pp_matched_type : PP.document =
+            Identifier.pp @@ Identifier.reified_enum_name matched_type
+          and pp_matched_statement : PP.document =
+            PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
+          in
+          let* pp_cases : PP.document =
+            let pp_case
+                (constructor_identifier : Ast.Identifier.t)
+                (clause_statement       : Ast.Statement.t ) : (PP.document * PP.document) GC.t
+              =
+              let pp_constructor =
+                Identifier.pp constructor_identifier
+              in
+              let* pp_clause =
+                pp_statement clause_statement
+              in
+              GC.return (pp_constructor, pp_clause)
+            in
+            let* pp_lambda_body =
+              let* pp_match_cases =
+                GC.map ~f:(Auxlib.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
+              in
+              GC.return @@ Coq.pp_match pp_lambda_parameter pp_match_cases
+            in
+            GC.return @@ Coq.pp_lambda pp_lambda_parameter pp_lambda_body
+          in
+          GC.return @@ PP.hanging_list
+            (PP.string "stm_match_enum")
+            [
+              pp_matched_type;
+              PP.parens pp_matched_statement;
+              PP.parens pp_cases;
+            ]
         in
-        pp_using_match_notation ()
+        pp_using_stm_match_enum ()
       end
       
     (*
