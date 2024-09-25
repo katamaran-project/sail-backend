@@ -132,11 +132,19 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (matched_type : Ast.Identifier.t                                              )
         (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
       =
-      (* Reified union type *)
+      (*
+         Reified union type
+      *)
       let pp_matched_type = 
         Identifier.pp @@ Configuration.reified_variant_name matched_type
           
-      (* Statement whose value is being matched *)
+      (*
+         Statement whose value is being matched
+
+         Nanosail only supports matching against variables, so we
+         have a identifier, which we turn into an expression, which we
+         turn into a statement, since muSail's matching works on statements.
+      *)
       and pp_matched_statement =
         PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
           
@@ -151,6 +159,23 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           =
           let pp_constructor =
             Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
+          (*
+
+             The pattern's translation depends on how many fields the union cases carries with it.
+
+             Zero : never occurs.
+
+                        union Foo { Bar : unit }
+
+                    In this example, Bar has one field of type unit.
+
+             One : becomes pat_var "<id>"
+
+             Two : becomes pat_pair "<id1>" "<id2>"
+
+             Three or more : becomes pat_tuple ("<id1>", "<id2>", ...)
+             
+          *)
           and pp_pattern =
             match bindings with
             | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
@@ -183,6 +208,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           let* pp_clause =
             pp_statement clause
           in
+          (*
+             Construct output for single case
+
+               existT <constructor> (MkAlt <pattern> <clause>)
+          *)
           GC.return @@ PP.simple_app [
             PP.string "existT";
             pp_constructor;
@@ -197,6 +227,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         in
         GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
       in
+      (*
+         Constructor final output for match
+
+           stm_match_union_alt_list <type>
+                                    <matched>
+                                    [<case1>; <case2>; ...]
+                                    Logic.I
+      *)
       GC.return begin
         PP.hanging_list
           (PP.string "stm_match_union_alt_list")
