@@ -144,10 +144,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
 
       (* List of match cases *)
       let* pp_cases =
-        let pp_case_triple
+        let pp_case
             (constructor_id : Ast.Identifier.t     )
             (bindings       : Ast.Identifier.t list)
-            (clause         : Ast.Statement.t      ) : (PP.document * PP.document * PP.document) GC.t
+            (clause         : Ast.Statement.t      ) : PP.document GC.t
           =
           let pp_constructor =
             Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
@@ -183,14 +183,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           let* pp_clause =
             pp_statement clause
           in
-          GC.return (pp_constructor, pp_pattern, pp_clause)
-        in
-        let pp_case
-            (pp_constructor : PP.document)
-            (pp_pattern : PP.document)
-            (pp_clause : PP.document) : PP.document
-          =
-          PP.simple_app [
+          GC.return @@ PP.simple_app [
             PP.string "existT";
             pp_constructor;
             PP.parens begin
@@ -202,10 +195,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             end
           ]
         in
-        let* triples =
-          GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case_triple constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
-        in
-        GC.return @@ List.map ~f:(Auxlib.uncurry3 pp_case) triples
+        GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
       in
       GC.return begin
         PP.hanging_list
