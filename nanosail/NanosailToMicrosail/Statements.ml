@@ -103,7 +103,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                 clause
               ] :: acc)
           in
-          let matched' =
+          let pp_matched =
             PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
           in
           let* cases' = Ast.Identifier.Map.fold cases ~init:(GC.return []) ~f:translate_case
@@ -112,7 +112,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             Identifier.pp @@ Identifier.reified_enum_name matched_type
           in
           GC.return @@ PP.separate PP.hardline @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-            add @@ PP.(separate space [ string "match:"; parens matched'; string "in"; matched_type; string "with" ]);
+            add @@ PP.(separate space [ string "match:"; parens pp_matched; string "in"; matched_type; string "with" ]);
             addall cases';
             add @@ PP.string "end"
           end
