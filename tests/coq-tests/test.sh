@@ -1,10 +1,13 @@
-#!/usr/bin/env bash
+s#!/usr/bin/env bash
 
 pass_count=0
 fail_count=0
 
-for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
-    pushd $dir > /dev/null;
+run_test() {
+    dir=$1
+
+    # pushd $dir > /dev/null; */
+    cd $dir;
     ./test.sh > /dev/null 2> /dev/null;
     if [ $? != 0 ]; then
         echo "FAIL $dir";
@@ -13,8 +16,14 @@ for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
         echo "PASS $dir";
         pass_count=$(($pass_count+1));
     fi
-    popd > /dev/null;
+    # popd > /dev/null;
+}
+
+for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
+    (run_test $dir)
 done
+
+
 
 echo PASS $pass_count
 echo FAIL $fail_count
