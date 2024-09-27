@@ -60,8 +60,8 @@ function next_instruction() = {
 }
 
 
-val read_register : regid -> RegisterContents
-function read_register(r) = {
+val my_read_register : regid -> RegisterContents
+function my_read_register(r) = {
   match r {
     regid1 => r1,
     regid2 => r2,
@@ -93,7 +93,7 @@ scattered function execute
 
 
 function clause execute(Read(r_address, r_target)) = {
-  match read_register(r_address) {
+  match my_read_register(r_address) {
     CapVal(capability) => {
       if is_in_range(capability) & capability.read_access then {
         let value = read_memory(capability.pointer);
@@ -108,11 +108,11 @@ function clause execute(Read(r_address, r_target)) = {
 }
 
 function clause execute(Write(r_address, r_word)) = {
-  match read_register(r_address) {
+  match my_read_register(r_address) {
     SimpleVal(_) => Halted,
     CapVal(capability) => {
       if is_in_range(capability) & capability.write_access then {
-        match read_register(r_word) {
+        match my_read_register(r_word) {
           CapVal(_) => Halted,
           SimpleVal(v) => {
             write_memory(capability.pointer, v);
@@ -127,10 +127,10 @@ function clause execute(Write(r_address, r_word)) = {
 }
 
 function clause execute(Addition(source1, source2, target)) = {
-  match read_register(source1) {
+  match my_read_register(source1) {
     CapVal(_) => Halted,
     SimpleVal(v1) => {
-      match read_register(source2) {
+      match my_read_register(source2) {
         CapVal(_) => Halted,
         SimpleVal(v2) => {
           let sum = v1 + v2;
@@ -144,10 +144,10 @@ function clause execute(Addition(source1, source2, target)) = {
 }
 
 function clause execute(Compare(x, y)) = {
-  match read_register(x) {
+  match my_read_register(x) {
     CapVal(_) => Halted,
     SimpleVal(v1) => {
-      match read_register(y) {
+      match my_read_register(y) {
         CapVal(_) => Halted,
         SimpleVal(v2) => {
           if v1 < v2
@@ -164,7 +164,7 @@ function clause execute(Compare(x, y)) = {
 }
 
 function clause execute(JumpIfLess(r_target)) = {
-  match read_register(r_target) {
+  match my_read_register(r_target) {
     SimpleVal(_) => Halted,
     CapVal(capability) => {
       match cmp {
