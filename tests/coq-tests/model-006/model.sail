@@ -29,9 +29,15 @@ union Instruction = {
 }
 
 
-val read_memory  = monadic { ocaml: "Platform.read_mem", c: "platform_read_mem", _: "read_mem" } : (address) -> word
-val write_memory = monadic { ocaml: "Platform.write_mem", c: "platform_write_mem", _: "write_mem" } : (address, word) -> unit
+val read_memory : address -> word
+function read_memory ptr = {
+  0
+}
 
+val write_memory : (address, word) -> unit
+function write_memory (ptr, value) = {
+  ()
+}
 
 
 val next_instruction : unit -> unit
