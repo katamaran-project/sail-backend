@@ -46,8 +46,8 @@ function next_instruction() = {
 }
 
 
-val read_register : regid -> word
-function read_register(r) = {
+val my_read_register : regid -> word
+function my_read_register(r) = {
   match r {
     regid1 => r1,
     regid2 => r2,
@@ -57,8 +57,8 @@ function read_register(r) = {
 }
 
 
-val write_register : (regid, word) -> unit
-function write_register(r, w) = {
+val my_write_register : (regid, word) -> unit
+function my_write_register(r, w) = {
   match r {
     regid1 => r1 = w,
     regid2 => r2 = w,
@@ -73,33 +73,33 @@ scattered function execute
 
 
 function clause execute(Read(r_address, r_target)) = {
-  let address = read_register(r_address);
+  let address = my_read_register(r_address);
   let word = read_memory(address);
-  write_register(r_target, word);
+  my_write_register(r_target, word);
   next_instruction();
   Running
 }
 
 function clause execute(Write(r_address, r_word)) = {
-  let address = read_register(r_address);
-  let word = read_register(r_word);
+  let address = my_read_register(r_address);
+  let word = my_read_register(r_word);
   write_memory(address, word);
   next_instruction();
   Running
 }
 
 function clause execute(Addition(source1, source2, target)) = {
-  let value1 = read_register(source1);
-  let value2 = read_register(source2);
+  let value1 = my_read_register(source1);
+  let value2 = my_read_register(source2);
   let sum = value1 + value2;
-  write_register(target, sum);
+  my_write_register(target, sum);
   next_instruction();
   Running
 }
 
 function clause execute(Compare(x, y)) = {
-  let v1 = read_register(x);
-  let v2 = read_register(y);
+  let v1 = my_read_register(x);
+  let v2 = my_read_register(y);
   if v1 < v2 then cmp = Less
   else if v1 > v2 then cmp = Greater
   else cmp = Equal;
@@ -108,7 +108,7 @@ function clause execute(Compare(x, y)) = {
 }
 
 function clause execute(JumpIfLess(r_target)) = {
-  let target = read_register(r_target);
+  let target = my_read_register(r_target);
   match cmp {
     Less => pc = target,
     _    => next_instruction ()
