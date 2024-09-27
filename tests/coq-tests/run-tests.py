@@ -14,15 +14,32 @@ pass_count = 0
 fail_count = 0
 
 
+log = open('log.txt', 'w')
+
+
 def run_test(directory_name, path):
     script_path = path / 'test.sh'
-    return subprocess.Popen(script_path, cwd=str(path), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return subprocess.Popen(script_path, cwd=str(path), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def wait_for_test(directory_name, path, process):
     global pass_count, fail_count
     
-    result = process.wait()
+    stdout, stderr = process.communicate()
+    result = process.returncode
+    print(f"""Test {directory_name}
+Exit code={result}
+Path={path}
+    
+STDOUT
+#{stdout}
+    
+STDERR
+#{stderr}
+
+--------------------------------------------------
+""", file=log)
+
     if result == 0:
         print(f"PASS {directory}")
         pass_count += 1
@@ -36,12 +53,12 @@ directory_names = sorted([entry for entry in os.listdir() if os.path.isdir(entry
 queue = []
 
 for directory_name in directory_names:
-    path = Path(directory_name).absolute()
     
     if len(queue) >= MAXIMUM_QUEUE_SIZE:
         directory, path, process = queue.pop(0)
         wait_for_test(directory, path, process)
 
+    path = Path(directory_name).absolute()
     process = run_test(directory_name, path)
     queue.append((directory_name, path, process))
 
@@ -55,3 +72,6 @@ with open('results.txt', 'a') as file:
     print(f"{formatted_today} PASS:{pass_count} FAIL:{fail_count}", file=file)
 
 print(f"PASS:{pass_count} FAIL:{fail_count}")
+
+
+log.close()
