@@ -90,7 +90,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     GC.return @@ PP.(simple_app [string "exp_not"; pp_operand])
 
-  and pp_list elements =
+  and pp_list (elements : Ast.Expression.t list) : PP.document GC.t =
     let rec pp_list_using_cons expressions =
       match expressions with
       | []           -> GC.return @@ PP.string "nil"
