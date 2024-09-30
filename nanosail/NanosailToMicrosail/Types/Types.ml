@@ -17,7 +17,7 @@ let pp_type_definition
   let* pp_type_def =
     match type_definition with
     | Abbreviation abbrev -> TypeAbbreviations.pp_type_abbreviation abbrev
-    | Enum enum           -> Enums.generate enum
+    | Enum enum           -> Enums.pp_enum_definition enum
     | Variant variant     -> Variants.generate variant
     | Record record       -> Records.generate record
   in

@@ -12,7 +12,7 @@ end
 let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
-let generate (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
+let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
   let identifier = Identifier.pp enum_definition.identifier
   and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
   in
