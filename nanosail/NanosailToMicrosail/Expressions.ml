@@ -60,7 +60,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (left_operand    : Ast.Expression.t    )
       (right_operand   : Ast.Expression.t    ) : PP.document GC.t
     =
-    let* pp_left_operand = GC.lift ~f:PP.parens @@ pp_expression left_operand
+    let* pp_left_operand  = GC.lift ~f:PP.parens @@ pp_expression left_operand
     and* pp_right_operand = GC.lift ~f:PP.parens @@ pp_expression right_operand
     in
     let pp id =
