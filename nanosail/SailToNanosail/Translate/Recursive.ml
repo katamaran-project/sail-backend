@@ -75,7 +75,7 @@ end = struct
       | "list"      -> nanotype_of_list type_arguments'
       | "atom"      -> nanotype_of_atom type_arguments'
       | "atom_bool" -> nanotype_of_atom_bool type_arguments'
-      | "bits"      -> nanotype_of_bitvector type_arguments'
+      | "bits"      -> nanotype_of_bits type_arguments'
       | _           -> begin
           let* constructor = nanotype_of_identifier identifier
           in
@@ -98,7 +98,7 @@ end = struct
       | [ _ ]                       -> TC.fail [%here] "List argument expected to be type"
       | _                           -> TC.fail [%here] "List should receive exactly one argument"
   
-    and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+    and nanotype_of_bits (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
       | [ _ ]                                                     -> TC.fail [%here] "bits argument expected to be numeric expression"
