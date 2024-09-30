@@ -46,6 +46,7 @@ end
 module Error = struct
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
+    | Failure of Lexing.position * string
 end
 
 module Monad = Monads.StateResult.Make(State)(Error)
@@ -102,6 +103,10 @@ let not_yet_implemented ?(message = "") ocaml_position sail_position =
     else Some message
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
+
+
+let fail ocaml_position message =
+  Monad.fail @@ Failure (ocaml_position, message)
 
 
 (*
@@ -341,7 +346,19 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
             Monad.return @@ Ast.ExtendedType.ReturnValue.Bool bool_expression
           end
       end
-    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
+  in
+
+  let extended_return_type_of_list (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ _ ] -> begin
+        Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+          ocaml_location = [%here];
+          sail_location = location;
+          annotation = "List not yet supported"
+        }
+      end
+    | _ -> fail [%here] "list should have only one type argument"
   in
 
   match unwrapped_sail_type with
@@ -384,6 +401,7 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
        match unwrapped_identifier with
        | Id "atom"      -> extended_return_type_of_atom type_arguments
        | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
+       | Id "list"      -> extended_return_type_of_list identifier_location type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
@@ -423,3 +441,6 @@ let determine_extended_type
       | Some message -> TC.not_yet_implemented ~message:message ocaml_location source_location
       | None         -> TC.not_yet_implemented ocaml_location source_location
     end
+  | Monad.Failure (Error.Failure (ocaml_location, message)) ->
+      TC.fail ocaml_location message
+
