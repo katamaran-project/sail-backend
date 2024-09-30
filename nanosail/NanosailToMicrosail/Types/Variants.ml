@@ -73,16 +73,18 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
 
 
 let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
-  let* inductive_type =
-    generate_inductive_type variant_definition
-  and* constructors_inductive_type =
-    generate_constructors_inductive_type variant_definition
-  in
-  GC.return begin
-    PP.vertical ~separator:PP.(twice hardline) [
-      inductive_type;
-      constructors_inductive_type
-    ]
+  GC.generation_block' [%here] (PP.string "Variant definition") begin
+    let* inductive_type =
+      generate_inductive_type variant_definition
+    and* constructors_inductive_type =
+      generate_constructors_inductive_type variant_definition
+    in
+    GC.return begin
+      PP.vertical ~separator:PP.(twice hardline) [
+        inductive_type;
+        constructors_inductive_type
+      ]
+    end
   end
 
 
