@@ -72,11 +72,11 @@ end = struct
       and* identifier'     = Identifier.translate_identifier [%here] identifier
       in
       match Ast.Identifier.string_of identifier' with
-      | "list"                 -> nanotype_of_list type_arguments'
-      | "atom"                 -> nanotype_of_atom type_arguments'
-      | "atom_bool"            -> nanotype_of_atom_bool type_arguments'
-      | "bits"                 -> nanotype_of_bitvector type_arguments'
-      | _                      -> begin
+      | "list"      -> nanotype_of_list type_arguments'
+      | "atom"      -> nanotype_of_atom type_arguments'
+      | "atom_bool" -> nanotype_of_atom_bool type_arguments'
+      | "bits"      -> nanotype_of_bitvector type_arguments'
+      | _           -> begin
           let* constructor = nanotype_of_identifier identifier
           in
           TC.return @@ Ast.Type.Application (constructor, type_arguments')
