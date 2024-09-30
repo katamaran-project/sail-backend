@@ -764,14 +764,14 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
             let* lambda_body =
               let* bindings =
                 let make_binding (field_identifier, field_type) =
-                  let* field_type' = Nanotype.pp_nanotype field_type
+                  let* pp_field_type = Nanotype.pp_nanotype field_type
                   in
                   GC.return @@ PP.separate PP.space [
                     PP.utf8string "►";
                     PP.parens @@ PP.separate PP.space [
                       PP.dquotes @@ Identifier.pp field_identifier;
                       PP.utf8string "∷";
-                      field_type';
+                      pp_field_type;
                       PP.utf8string "↦";
                       Identifier.pp field_identifier;
                       Identifier.pp lambda_parameter
