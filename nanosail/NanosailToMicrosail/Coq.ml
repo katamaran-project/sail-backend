@@ -381,7 +381,7 @@ let pp_record
       ]
     )
   in
-  let fields' =
+  let pp_fields =
     let longest_field_length =
       Auxlib.maximum @@ List.map ~f:(Fn.compose PP.measure fst) fields
     in
@@ -393,7 +393,7 @@ let pp_record
   let body =
     PP.(separate hardline [
             lbrace;
-            twice space ^^ align (separate hardline fields');
+            twice space ^^ align (separate hardline pp_fields);
             rbrace
           ]
     )
