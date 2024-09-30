@@ -26,17 +26,7 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
 
 
 let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
-  let rec pp_list expressions =
-    match expressions with
-    | []           -> GC.return @@ PP.string "nil"
-    | head :: tail -> begin
-        let* pp_head = GC.lift ~f:PP.parens @@ pp_expression head
-        and* pp_tail = pp_list tail
-        in
-        GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
-      end
-      
-  and pp_value (value : Ast.Value.t) : PP.document GC.t =
+  let rec pp_value (value : Ast.Value.t) : PP.document GC.t =
     match value with
     | Bool true        -> GC.return @@ PP.string "exp_true"
     | Bool false       -> GC.return @@ PP.string "exp_false"
@@ -100,6 +90,29 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     GC.return @@ PP.(simple_app [string "exp_not"; pp_operand])
 
+  and pp_list elements =
+    let rec pp_list_using_cons expressions =
+      match expressions with
+      | []           -> GC.return @@ PP.string "nil"
+      | head :: tail -> begin
+          let* pp_head = GC.lift ~f:PP.parens @@ pp_expression head
+          and* pp_tail = pp_list_using_cons tail
+          in
+          GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
+        end
+    in
+    let* pp_elements =
+      if
+        Configuration.(get use_list_notations)
+      then
+        let* expressions = GC.map ~f:pp_expression elements
+        in
+        GC.return @@ Coq.pp_list expressions
+      else
+        pp_list_using_cons elements
+    in
+    GC.return @@ PP.(simple_app [string "exp_list"; pp_elements])
+
   in
   match expression with
   | Variable identifier -> pp_variable identifier
@@ -107,19 +120,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Neg expression      -> pp_negation expression
   | Not expression      -> pp_logical_negation expression
   | Binop (op, e1, e2)  -> pp_binary_operation op e1 e2
-  | List lst            -> begin
-      let* lst' =
-        if
-          Configuration.(get use_list_notations)
-        then
-          let* expressions = GC.map ~f:pp_expression lst
-          in
-          GC.return @@ Coq.pp_list expressions
-        else
-          pp_list lst
-      in
-      GC.return @@ PP.(simple_app [string "exp_list"; lst'])
-    end
+  | List elements       -> pp_list elements
   | Record { type_identifier; variable_identifiers } -> begin
       GC.return @@ PP.(simple_app [
                        string "exp_record";
