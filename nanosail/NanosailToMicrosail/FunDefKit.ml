@@ -27,12 +27,12 @@ let pp_function_definition
         let* result_type =
           let* bindings =
             let* parameters : (PP.document * PP.document) list =
-              let pp (id : Ast.Identifier.t) (t : Ast.Type.t) =
+              let pp (id : Ast.Identifier.t) (typ : Ast.Type.t) =
                 let pp_id = Identifier.pp id
                 in
-                let* t' = Nanotype.pp_nanotype t
+                let* pp_typ = Nanotype.pp_nanotype typ
                 in
-                GC.return (pp_id, t')
+                GC.return (pp_id, pp_typ)
               in
               GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
             in
