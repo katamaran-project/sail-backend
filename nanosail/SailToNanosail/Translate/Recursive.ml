@@ -180,10 +180,12 @@ end = struct
     let translate_sum   = translate_binary_operation @@ fun l r -> Add   (l, r)
     and translate_minus = translate_binary_operation @@ fun l r -> Minus (l, r)
     and translate_times = translate_binary_operation @@ fun l r -> Times (l, r)
-    in
-
-    let translate_constant (constant : Z.t) : Ast.Numeric.Expression.t TC.t =
+    and translate_constant (constant : Z.t) : Ast.Numeric.Expression.t TC.t =
       TC.return @@ Ast.Numeric.Expression.Constant constant
+    and translate_variable (id : S.kid) : Ast.Numeric.Expression.t TC.t =
+      let Kid_aux (Var string, _location) = id
+      in
+      TC.return @@ Ast.Numeric.Expression.Var (Ast.Identifier.mk string)
     in
     
     let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) =
@@ -191,7 +193,7 @@ end = struct
     in
     match unwrapped_numeric_expression with
     | Nexp_constant constant                     -> translate_constant constant
-    | Nexp_var (Kid_aux (Var string, _location)) -> TC.return @@ Ast.Numeric.Expression.Var (Ast.Identifier.mk string)
+    | Nexp_var kid                               -> translate_variable kid
     | Nexp_times (x, y)                          -> translate_times x y
     | Nexp_sum (x, y)                            -> translate_sum x y
     | Nexp_minus (x, y)                          -> translate_minus x y
