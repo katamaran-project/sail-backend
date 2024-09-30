@@ -91,9 +91,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     GC.return @@ PPSail.pp_expression_of_identifier @@ Identifier.pp identifier
 
   and pp_negation (operand : Ast.Expression.t) =
-    let* e' = GC.lift ~f:PP.parens @@ pp_expression operand
+    let* pp_operand = GC.lift ~f:PP.parens @@ pp_expression operand
     in
-    GC.return @@ PP.(string "- " ^^ e')
+    GC.return @@ PP.(separate space [minus; pp_operand])
 
   in
   match expression with
