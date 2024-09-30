@@ -64,7 +64,7 @@ end = struct
     Sail represents types with parameters with Typ_app (id, type_args).
     This function translates these to their corresponding nanotype.
   *)
-    and nanotype_of_type_constructor
+    and nanotype_of_application
         (identifier     : S.id          )
         (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
       =
@@ -132,7 +132,7 @@ end = struct
     match typ with
     | Typ_tuple items                 -> nanotype_of_tuple items
     | Typ_id id                       -> nanotype_of_identifier id
-    | Typ_app (identifier, type_args) -> nanotype_of_type_constructor identifier type_args
+    | Typ_app (identifier, type_args) -> nanotype_of_application identifier type_args
     | Typ_exist (ids, nc, typ)        -> nanotype_of_existential ids nc typ
     | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
     | Typ_var _                       -> TC.not_yet_implemented [%here] location
