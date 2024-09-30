@@ -44,7 +44,7 @@ let statement_of_lvar
   =
   match lvar with
   | Libsail.Ast_util.Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
-  | Libsail.Ast_util.Local (_, _) -> TC.return @@ Ast.Statement.Expression (Ast.Expression.Var identifier)
+  | Libsail.Ast_util.Local (_, _) -> TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable identifier)
   | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
   | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -196,7 +196,7 @@ let rec expression_of_aval
         let* typ' =
           Nanotype.nanotype_of_sail_type typ
         in
-        TC.return (Ast.Expression.Var id', typ', [])
+        TC.return (Ast.Expression.Variable id', typ', [])
       end
     | Register typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
@@ -209,7 +209,7 @@ let rec expression_of_aval
         let named_statements =
           [(unique_id, typ', Ast.Statement.ReadRegister id')]
         in
-        TC.return (Ast.Expression.Var unique_id, typ', named_statements)
+        TC.return (Ast.Expression.Variable unique_id, typ', named_statements)
       end
     | Enum typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
@@ -826,7 +826,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         match Auxlib.find_index_of ~f:(Ast.Identifier.equal field_identifier) field_identifiers with
         | Some selected_field_index -> begin
             let expression =
-              Ast.Expression.Var (List.nth_exn variable_identifiers selected_field_index)
+              Ast.Expression.Variable (List.nth_exn variable_identifiers selected_field_index)
             in
             TC.return @@ Ast.Statement.Expression expression
           end

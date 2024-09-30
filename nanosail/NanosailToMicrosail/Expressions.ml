@@ -102,12 +102,12 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   in
   match expression with
-  | Var identifier     -> pp_variable identifier
-  | Val value          -> pp_value value
-  | Neg expression     -> pp_negation expression
-  | Not expression     -> pp_logical_negation expression
-  | Binop (op, e1, e2) -> pp_binary_operation op e1 e2
-  | List lst           -> begin
+  | Variable identifier -> pp_variable identifier
+  | Val value           -> pp_value value
+  | Neg expression      -> pp_negation expression
+  | Not expression      -> pp_logical_negation expression
+  | Binop (op, e1, e2)  -> pp_binary_operation op e1 e2
+  | List lst            -> begin
       let* lst' =
         if
           Configuration.(get use_list_notations)
