@@ -49,5 +49,7 @@
                 )
               identifier)))
 
+(show-generation-blocks)
+
 (template "base.template.v")
 (template "machine.template.v")
