@@ -37,12 +37,12 @@ let rec pp_value (value : Ast.Value.t) : PP.document =
 let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   let rec pp_list expressions =
     match expressions with
-    | []      -> GC.return @@ PP.string "nil"
-    | x :: xs -> begin
-        let* x'  = GC.lift ~f:PP.parens @@ pp_expression x
-        and* xs' = pp_list xs
+    | []           -> GC.return @@ PP.string "nil"
+    | head :: tail -> begin
+        let* pp_head = GC.lift ~f:PP.parens @@ pp_expression head
+        and* pp_tail = pp_list tail
         in
-        GC.return @@ PP.(parens @@ simple_app [string "cons"; x'; xs'])
+        GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
       end
   in
   let pp_value (value : Ast.Value.t) : PP.document GC.t =
