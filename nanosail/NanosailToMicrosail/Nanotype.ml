@@ -9,30 +9,30 @@ end
 
 let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   let pp_tuple elts =
-    let* elts' = GC.map ~f:pp_nanotype elts
+    let* pp_elts = GC.map ~f:pp_nanotype elts
     in
-    GC.return PP.(separate space [ string "ty.tuple"; Coq.pp_list elts' ])
+    GC.return PP.(separate space [ string "ty.tuple"; Coq.pp_list pp_elts ])
 
   and pp_list element_type =
-    let* element_type' = pp_nanotype element_type
+    let* pp_element_type = pp_nanotype element_type
     in
-    GC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.list"; element_type' ]
+    GC.return @@ PP.parens @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.list"; pp_element_type ]
 
   and pp_application
       (constructor    : Ast.Type.t             )
       (type_arguments : Ast.TypeArgument.t list) : PP.document GC.t
     =
-    let* constructor' = pp_nanotype constructor
-    in
-    let* type_arguments' =
+    let* pp_constructor =
+      pp_nanotype constructor
+    and* pp_type_arguments =
       GC.map ~f:(GC.(compose (Fn.compose return PP.parens) pp_type_argument)) type_arguments
     in
-    GC.return @@ PP.parens @@ PP.simple_app (constructor' :: type_arguments')
+    GC.return @@ PP.parens @@ PP.simple_app (pp_constructor :: pp_type_arguments)
 
   and pp_bitvector nexpr =
-    let* nexpr' = Numeric.Expression.pp nexpr
+    let* pp_nexpr = Numeric.Expression.pp nexpr
     in
-    GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bvec"; nexpr' ]
+    GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bvec"; pp_nexpr ]
 
   and pp_enum identifier =
     let tag = Identifier.reified_enum_name identifier
