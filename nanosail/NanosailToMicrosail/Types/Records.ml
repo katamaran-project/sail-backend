@@ -15,19 +15,20 @@ let derive_constructor_from_identifier identifier =
 
 
 let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP.document GC.t =
-  let generate_field field_identifier field_type =
-    let* field_type' = Nanotype.coq_type_of_nanotype field_type
+  GC.generation_block' [%here] (PP.string "Record definition") begin
+    let generate_field field_identifier field_type =
+      let* field_type' = Nanotype.coq_type_of_nanotype field_type
+      in
+      GC.return (Identifier.pp field_identifier, field_type')
     in
-    GC.return (Identifier.pp field_identifier, field_type')
-  in
-  let identifier  = Identifier.pp record_definition.identifier
-  and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
-  and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
-  in
-  let* fields     = GC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
-  in
-  GC.return @@ Coq.pp_record ~identifier ~type_name ~constructor ~fields
-
+    let identifier  = Identifier.pp record_definition.identifier
+    and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
+    and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
+    in
+    let* fields     = GC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
+    in
+    GC.return @@ Coq.pp_record ~identifier ~type_name ~constructor ~fields
+  end
 
 let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
   let record_definitions =
@@ -45,11 +46,11 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
       identifier
       typ
       (fun add_constructor ->
-        GC.iter
-          ~f:(fun record_identifier ->
-            add_constructor @@ tag_of_record record_identifier
-          )
-          record_definitions
+         GC.iter
+           ~f:(fun record_identifier ->
+               add_constructor @@ tag_of_record record_identifier
+             )
+           record_definitions
       )
   end
 
