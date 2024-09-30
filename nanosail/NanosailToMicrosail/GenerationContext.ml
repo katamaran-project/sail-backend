@@ -183,6 +183,19 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.docume
   return nyi
 
 
+(*
+   If enabled (see configuration), surrounds <contents> by a tag and location. Helpful for debugging.
+
+   For example,
+   
+     generation_block [%here] (PP.string "Some label") (PP.string "Contents")
+
+   produces
+
+     (* <<<<< source-path:line-number Some label *)
+     Contents
+     (* >>>>> source-path:line-number Some label *)
+*)
 let generation_block
     (position : Lexing.position)
     (label    : PP.document    )
@@ -219,6 +232,9 @@ let generation_block
     return contents
 
 
+(*
+   Same as generation_block, except contents is a "PP.document t" instead of a "PP.document".
+*)
 let generation_block'
     (position : Lexing.position)
     (label    : PP.document    )
