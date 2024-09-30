@@ -89,12 +89,17 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   and pp_variable (identifier : Ast.Identifier.t) =
     GC.return @@ PPSail.pp_expression_of_identifier @@ Identifier.pp identifier
-    
+
+  and pp_negation (operand : Ast.Expression.t) =
+    let* e' = GC.lift ~f:PP.parens @@ pp_expression operand
+    in
+    GC.return @@ PP.(string "- " ^^ e')
+
   in
   match expression with
   | Var v              -> pp_variable v
   | Val v              -> pp_value v
-  | Neg e              -> let* e' = GC.lift ~f:PP.parens @@ pp_expression e in GC.return @@ PP.(string "- " ^^ e')
+  | Neg e              -> pp_negation e
   | Not e              -> let* e' = GC.lift ~f:PP.parens @@ pp_expression e in GC.return @@ PP.(simple_app [string "exp_not"; e'])
   | Binop (bo, e1, e2) -> pp_binary_operation bo e1 e2
   | List lst           -> begin
