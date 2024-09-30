@@ -1,2 +1,3 @@
 all:
-	./test.sh
+	./run-tests.py
+
