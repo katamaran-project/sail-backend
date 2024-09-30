@@ -29,7 +29,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     in
     GC.return @@ PP.parens @@ PP.simple_app (pp_constructor :: pp_type_arguments)
 
-  and pp_bitvector nexpr =
+  and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.document GC.t =
     let* pp_nexpr = Numeric.Expression.pp nexpr
     in
     GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bvec"; pp_nexpr ]
