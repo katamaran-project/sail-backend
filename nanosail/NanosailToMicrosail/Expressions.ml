@@ -25,15 +25,6 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | Append               -> GC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let rec pp_value (value : Ast.Value.t) : PP.document =
-  match value with
-  | Unit          -> PP.string "tt"
-  | Bool b        -> PP.string (Bool.to_string b)
-  | Int i         -> Coq.pp_integer i
-  | String s      -> PP.(dquotes @@ string s)
-  | Prod (v1, v2) -> Coq.pp_product (pp_value v1) (pp_value v2)
-
-
 let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   let rec pp_list expressions =
     match expressions with
@@ -45,7 +36,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
       end
   in
-  let pp_value (value : Ast.Value.t) : PP.document GC.t =
+  let rec pp_value (value : Ast.Value.t) : PP.document GC.t =
     match value with
     | Bool true        -> GC.return @@ PP.string "exp_true"
     | Bool false       -> GC.return @@ PP.string "exp_false"
@@ -55,7 +46,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     | Prod (_, _) as v -> begin
         let* pp_tuple_type = Nanotype.pp_nanotype (Ast.Value.type_of_value v)
         in
-        let pp_value' = pp_value v
+        let* pp_value' = pp_value v
         in
         GC.return @@ PP.simple_app [
           PP.string "exp_val";
