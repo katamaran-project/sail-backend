@@ -211,8 +211,8 @@ end = struct
     | Nexp_minus (x, y)           -> translate_minus x y
     | Nexp_neg numeric_expression -> translate_negation numeric_expression
     | Nexp_id identifier          -> translate_identifier identifier
-    | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
-    | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
+    | Nexp_exp _                  -> TC.not_yet_implemented [%here] numexp_location
+    | Nexp_app (_, _)             -> TC.not_yet_implemented [%here] numexp_location
 
   and translate_numeric_constraint (numeric_constraint : Libsail.Ast.n_constraint) : Ast.Numeric.Constraint.t TC.t =
     let translate_comparison
