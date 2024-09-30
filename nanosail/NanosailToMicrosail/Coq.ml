@@ -72,13 +72,25 @@ let add_comments
   PP.separate PP.hardline [ pp_comment comments; document ]
 
 
-let pp_list (items : PP.document list) : PP.document =
+let pp_list_using_notation (items : PP.document list) : PP.document =
   if
     List.is_empty items
   then
     PP.(lbracket ^^ rbracket)
   else
     PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
+
+
+let rec pp_list_using_cons (items : PP.document list) : PP.document =
+  match items with
+  | []         -> PP.string "nil"
+  | head::tail -> PP.(parens @@ simple_app [string "cons"; head; pp_list_using_cons tail])
+
+
+let pp_list ?(use_notation = true) (items : PP.document list) : PP.document =
+  if use_notation
+  then pp_list_using_notation items
+  else pp_list_using_cons items
 
 
 let pp_product

@@ -91,27 +91,13 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     GC.return @@ PP.(simple_app [string "exp_not"; pp_operand])
 
   and pp_list (elements : Ast.Expression.t list) : PP.document GC.t =
-    let rec pp_list_using_cons expressions =
-      match expressions with
-      | []           -> GC.return @@ PP.string "nil"
-      | head :: tail -> begin
-          let* pp_head = GC.lift ~f:PP.parens @@ pp_expression head
-          and* pp_tail = pp_list_using_cons tail
-          in
-          GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
-        end
-    in
     let* pp_elements =
-      if
-        Configuration.(get use_list_notations)
-      then
-        let* expressions = GC.map ~f:pp_expression elements
-        in
-        GC.return @@ Coq.pp_list expressions
-      else
-        pp_list_using_cons elements
+      GC.map ~f:pp_expression elements
     in
-    GC.return @@ PP.(simple_app [string "exp_list"; pp_elements])
+    let pp_list =
+      Coq.pp_list ~use_notation:Configuration.(get use_list_notations) pp_elements
+    in
+    GC.return @@ PP.(simple_app [string "exp_list"; pp_list])
 
   and pp_record
       (type_identifier      : Ast.Identifier.t     )
@@ -120,7 +106,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     GC.return @@ PP.(simple_app [
         string "exp_record";
         Identifier.pp type_identifier;
-        Coq.pp_list begin
+        Coq.pp_list_using_notation begin
           List.map variable_identifiers ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
         end
       ])
