@@ -95,12 +95,17 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     GC.return @@ PP.(separate space [minus; pp_operand])
 
+  and pp_logical_negation (operand : Ast.Expression.t) : PP.document GC.t =
+    let* pp_operand = GC.lift ~f:PP.parens @@ pp_expression operand
+    in
+    GC.return @@ PP.(simple_app [string "exp_not"; pp_operand])
+
   in
   match expression with
   | Var identifier     -> pp_variable identifier
   | Val value          -> pp_value value
   | Neg expression     -> pp_negation expression
-  | Not e              -> let* e' = GC.lift ~f:PP.parens @@ pp_expression e in GC.return @@ PP.(simple_app [string "exp_not"; e'])
+  | Not expression     -> pp_logical_negation expression
   | Binop (bo, e1, e2) -> pp_binary_operation bo e1 e2
   | List lst           -> begin
       let* lst' =
