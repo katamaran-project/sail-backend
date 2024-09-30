@@ -57,18 +57,18 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   in
   let pp_binary_operation
       (binary_operator : Ast.BinaryOperator.t)
-      (e1              : Ast.Expression.t    )
-      (e2              : Ast.Expression.t    ) : PP.document GC.t
+      (left_operand    : Ast.Expression.t    )
+      (right_operand   : Ast.Expression.t    ) : PP.document GC.t
     =
-    let* e1' = GC.lift ~f:PP.parens @@ pp_expression e1
-    and* e2' = GC.lift ~f:PP.parens @@ pp_expression e2
+    let* pp_left_operand = GC.lift ~f:PP.parens @@ pp_expression left_operand
+    and* pp_right_operand = GC.lift ~f:PP.parens @@ pp_expression right_operand
     in
     let pp id =
       GC.return @@ PP.(simple_app [
          string "exp_binop";
          string id;
-         e1';
-         e2'
+         pp_left_operand;
+         pp_right_operand
        ])
     in
     match binary_operator with
@@ -80,9 +80,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         in
         GC.return begin
           PP.horizontal [
-            PP.parens e1';
+            PP.parens pp_left_operand;
             binop';
-            PP.parens e2';
+            PP.parens pp_right_operand;
           ]
         end
       end
