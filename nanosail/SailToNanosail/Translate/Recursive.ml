@@ -72,7 +72,7 @@ end = struct
       and* identifier'     = Identifier.translate_identifier [%here] identifier
       in
       match (Ast.Identifier.string_of identifier'), type_arguments' with
-      | "list" , [ Type t ]    -> TC.return @@ Ast.Type.List t
+      | "list" , args          -> nanotype_of_list args
       | "atom", [ _ ]          -> TC.return Ast.Type.Int
       | "atom_bool", [ _ ]     -> TC.return Ast.Type.Bool
       | "bits", args           -> nanotype_of_bitvector args
@@ -82,6 +82,12 @@ end = struct
           TC.return @@ Ast.Type.Application (constructor, type_arguments')
         end
 
+    and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+      match args with
+      | [ Ast.TypeArgument.Type t ] -> TC.return @@ Ast.Type.List t
+      | [ _ ]                       -> TC.fail [%here] "List argument expected to be type"
+      | _                           -> TC.fail [%here] "List should receive exactly one argument"
+  
     and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
