@@ -34,22 +34,25 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     in
     GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bvec"; pp_nexpr ]
 
-  and pp_enum identifier =
+  and pp_enum (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag = Identifier.reified_enum_name identifier
     in
     GC.return @@ PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
 
-  and pp_record identifier =
+  and pp_record (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag = Identifier.reified_record_name identifier
     in
     GC.return @@ PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
 
-  and pp_variant identifier =
+  and pp_variant (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag = Identifier.reified_variant_name identifier
     in
     GC.return @@ PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.string_of tag
 
-  and pp_product t1 t2 =
+  and pp_product
+      (t1 : Ast.Type.t)
+      (t2 : Ast.Type.t) : PP.document GC.t
+    =
     let* t1' = pp_nanotype t1
     and* t2' = pp_nanotype t2
     in
