@@ -56,13 +56,13 @@ let pp_function_definition
         let* body =
           Statements.pp_statement function_definition.function_body
         in
-        let* extended_function_type' =
+        let* pp_extended_function_type =
           Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
         in
         let* () = GC.add_comment begin
             PP.vertical [
               PP.string "Extended type";
-              PP.indent extended_function_type'
+              PP.indent pp_extended_function_type
             ]
           end
         in
