@@ -83,7 +83,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   let coq_type_of_bitvector_type n =
     let* n' = Numeric.Expression.pp n
     in
-    GC.return @@ PP.(string "bv" ^^ space ^^ n')
+    GC.return @@ PP.(string "bvec" ^^ space ^^ n')
 
   and coq_type_of_list_type t =
     let* t' = coq_type_of_nanotype t
