@@ -113,6 +113,18 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     GC.return @@ PP.(simple_app [string "exp_list"; pp_elements])
 
+  and pp_record
+      (type_identifier      : Ast.Identifier.t     )
+      (variable_identifiers : Ast.Identifier.t list) : PP.document GC.t
+    =
+    GC.return @@ PP.(simple_app [
+        string "exp_record";
+        Identifier.pp type_identifier;
+        Coq.pp_list begin
+          List.map variable_identifiers ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
+        end
+      ])
+
   in
   match expression with
   | Variable identifier -> pp_variable identifier
@@ -121,15 +133,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Not expression      -> pp_logical_negation expression
   | Binop (op, e1, e2)  -> pp_binary_operation op e1 e2
   | List elements       -> pp_list elements
-  | Record { type_identifier; variable_identifiers } -> begin
-      GC.return @@ PP.(simple_app [
-                       string "exp_record";
-                       Identifier.pp type_identifier;
-                       Coq.pp_list begin
-                         List.map variable_identifiers ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
-                       end
-                     ])
-    end
+  | Record { type_identifier; variable_identifiers } -> pp_record type_identifier variable_identifiers
   | Enum args -> begin
       let enum_type =
         PP.simple_app [ PP.string "ty.enum"; Identifier.pp @@ Configuration.reified_enum_name args.type_identifier ]
