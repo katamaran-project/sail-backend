@@ -35,8 +35,9 @@ end = struct
       | "int"       -> TC.return @@ Ast.Type.Int
       | "unit"      -> TC.return @@ Ast.Type.Unit
       | "string"    -> TC.return @@ Ast.Type.String
-      | "atom"      -> TC.fail [%here] "Atoms should be intercepted higher up"
-      | "atom_bool" -> TC.fail [%here] "Atoms should be intercepted higher up"
+      | "atom"      -> TC.fail [%here] "Type atom should be intercepted higher up"
+      | "atom_bool" -> TC.fail [%here] "Type atom_bool should be intercepted higher up"
+      | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
       | _           -> begin
           let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
           in
@@ -57,8 +58,8 @@ end = struct
           | Some (Record _)  -> TC.return @@ Ast.Type.Record identifier'
           | Some (Enum _)    -> TC.return @@ Ast.Type.Enum identifier'
           | None             -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id_as_string
-        end
-
+        end  
+  
   (*
     Sail represents types with parameters with Typ_app (id, type_args).
     This function translates these to their corresponding nanotype.
@@ -72,14 +73,21 @@ end = struct
       in
       match (Ast.Identifier.string_of identifier'), type_arguments' with
       | "list" , [ Type t ]    -> TC.return @@ Ast.Type.List t
-      | "atom", [ _ ]             -> TC.return Ast.Type.Int
-      | "atom_bool", [ _ ]        -> TC.return Ast.Type.Bool
-      | _, _                      -> begin
+      | "atom", [ _ ]          -> TC.return Ast.Type.Int
+      | "atom_bool", [ _ ]     -> TC.return Ast.Type.Bool
+      | "bits", args           -> nanotype_of_bitvector args
+      | _, _                   -> begin
           let* constructor = nanotype_of_identifier identifier
           in
           TC.return @@ Ast.Type.Application (constructor, type_arguments')
         end
 
+    and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+      match args with
+      | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
+      | [ _ ]                                                     -> TC.fail [%here] "Bitvector argument expected to be numeric expression"
+      | _                                                         -> TC.fail [%here] "Bitvector should receive exactly one argument"
+  
     and nanotype_of_existential
         (ids         : Libsail.Ast.kinded_id list)
         (constraints : Libsail.Ast.n_constraint  )
