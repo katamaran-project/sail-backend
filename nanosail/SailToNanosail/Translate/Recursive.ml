@@ -74,7 +74,7 @@ end = struct
       match (Ast.Identifier.string_of identifier'), type_arguments' with
       | "list" , args          -> nanotype_of_list args
       | "atom", args           -> nanotype_of_atom args
-      | "atom_bool", [ _ ]     -> TC.return Ast.Type.Bool
+      | "atom_bool", args      -> nanotype_of_atom_bool args
       | "bits", args           -> nanotype_of_bitvector args
       | _, _                   -> begin
           let* constructor = nanotype_of_identifier identifier
@@ -86,6 +86,11 @@ end = struct
       match args with
       | [ _ ] -> TC.return Ast.Type.Int
       | _     -> TC.fail [%here] "atom expected to have exactly one argument"
+
+    and nanotype_of_atom_bool (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+      match args with
+      | [ _ ] -> TC.return Ast.Type.Bool
+      | _     -> TC.fail [%here] "atom_bool expected to have exactly one argument"
   
     and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
