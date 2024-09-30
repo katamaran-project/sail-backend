@@ -193,7 +193,12 @@ end = struct
       let* numeric_expression' = translate_numeric_expression numeric_expression
       in
       TC.return @@ Ast.Numeric.Expression.Neg numeric_expression'
-        
+
+    and translate_identifier (identifier : S.id) =
+        let* identifier' = Identifier.translate_identifier [%here] identifier
+        in
+        TC.return @@ Ast.Numeric.Expression.Id identifier'
+
     in    
     let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) =
       numeric_expression
@@ -205,11 +210,7 @@ end = struct
     | Nexp_sum (x, y)             -> translate_sum x y
     | Nexp_minus (x, y)           -> translate_minus x y
     | Nexp_neg numeric_expression -> translate_negation numeric_expression
-    | Nexp_id identifier -> begin
-        let* identifier' = Identifier.translate_identifier [%here] identifier
-        in
-        TC.return @@ Ast.Numeric.Expression.Id identifier'
-      end
+    | Nexp_id identifier          -> translate_identifier identifier
     | Nexp_exp _      -> TC.not_yet_implemented [%here] numexp_location
     | Nexp_app (_, _) -> TC.not_yet_implemented [%here] numexp_location
 
