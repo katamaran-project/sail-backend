@@ -219,6 +219,16 @@ let generation_block
     return contents
 
 
+let generation_block'
+    (position : Lexing.position)
+    (label    : PP.document    )
+    (contents : PP.document t  ) : PP.document t
+  =
+  let* contents
+  in
+  generation_block position label contents
+
+
 (* Computes the document described by f *)
 let generate (f : PP.document t) : PP.document =
   let result, _ =
