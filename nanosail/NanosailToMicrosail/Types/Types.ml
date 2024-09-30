@@ -18,7 +18,7 @@ let pp_type_definition
     match type_definition with
     | Abbreviation abbrev -> TypeAbbreviations.pp_type_abbreviation abbrev
     | Enum enum           -> Enums.pp_enum_definition enum
-    | Variant variant     -> Variants.generate variant
+    | Variant variant     -> Variants.pp_variant_definition variant
     | Record record       -> Records.generate record
   in
   GC.block begin
