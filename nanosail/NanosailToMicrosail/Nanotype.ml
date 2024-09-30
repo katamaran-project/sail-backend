@@ -32,7 +32,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   and pp_bitvector nexpr =
     let* nexpr' = Numeric.Expression.pp nexpr
     in
-    GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bitvector"; nexpr' ]
+    GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "ty.bvec"; nexpr' ]
 
   and pp_enum identifier =
     let tag = Identifier.reified_enum_name identifier
