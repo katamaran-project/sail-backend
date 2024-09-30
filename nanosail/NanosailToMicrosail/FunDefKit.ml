@@ -27,7 +27,10 @@ let pp_function_definition
         let* result_type =
           let* bindings =
             let* parameters : (PP.document * PP.document) list =
-              let pp (id : Ast.Identifier.t) (typ : Ast.Type.t) =
+              let pp
+                  (id  : Ast.Identifier.t)
+                  (typ : Ast.Type.t      ) : (PP.document * PP.document) GC.t
+                =
                 let pp_id = Identifier.pp id
                 in
                 let* pp_typ = Nanotype.pp_nanotype typ
