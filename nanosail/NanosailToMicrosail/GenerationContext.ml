@@ -285,7 +285,7 @@ let pp_inductive_type
     return @@ List.rev !result
   in
   let first_line =
-    let parameters' =
+    let pp_parameters =
       List.map parameters ~f:(
           fun (identifier, typ) ->
             PP.(parens @@ separate space [ identifier; colon; typ ])
@@ -296,7 +296,7 @@ let pp_inductive_type
         Auxlib.build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
-            addall parameters';
+            addall pp_parameters;
             if not @@ is_empty typ
             then
               (
