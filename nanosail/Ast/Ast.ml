@@ -4,6 +4,7 @@ open Base
 module Identifier           = Identifier
 module Numeric              = Numeric
 module Kind                 = Kind
+module UnaryOperator        = UnaryOperator
 module BinaryOperator       = BinaryOperator
 module Type                 = Nanotype
 module TypeArgument         = TypeArgument

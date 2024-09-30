@@ -80,6 +80,14 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variable (identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return @@ PPSail.pp_expression_of_identifier @@ Identifier.pp identifier
 
+  and pp_unary_operation
+      (operator : Ast.UnaryOperator.t)
+      (operand  : Ast.Expression.t   ) : PP.document GC.t
+    =
+    match operator with
+    | Ast.UnaryOperator.Neg -> pp_negation operand
+    | Ast.UnaryOperator.Not -> pp_logical_negation operand
+
   and pp_negation (operand : Ast.Expression.t) : PP.document GC.t =
     let* pp_operand = GC.lift ~f:PP.parens @@ pp_expression operand
     in
@@ -115,8 +123,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   match expression with
   | Variable identifier                              -> pp_variable identifier
   | Val value                                        -> pp_value value
-  | Neg expression                                   -> pp_negation expression
-  | Not expression                                   -> pp_logical_negation expression
+  | UnaryOperation (operator, operand)               -> pp_unary_operation operator operand
   | BinaryOperation (op, e1, e2)                     -> pp_binary_operation op e1 e2
   | List elements                                    -> pp_list elements
   | Record { type_identifier; variable_identifiers } -> pp_record type_identifier variable_identifiers
