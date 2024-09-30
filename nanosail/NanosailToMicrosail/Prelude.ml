@@ -39,17 +39,6 @@ let pp_open_scopes () : PP.document =
   Coq.pp_open_scopes scopes
 
 
-let pp_definitions () : PP.document =
-  let definitions = [
-      Coq.pp_definition
-        ~identifier:(PP.string "bitvector")
-        ~parameters:[(PP.string "n", Some (PP.string "nat"))]
-        (PP.string "bv n");
-    ]
-  in
-  PP.(separate hardline definitions)
-
-
 let pp_import_base () : PP.document =
   Coq.pp_imports [ Configuration.(get base_name) ]
 
@@ -59,7 +48,6 @@ let generate_program_prelude () : PP.document GC.t =
       pp_require_imports ();
       pp_imports ();
       pp_open_scopes ();
-      pp_definitions ();
       pp_import_base ();
     ])
 
