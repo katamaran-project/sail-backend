@@ -91,8 +91,8 @@ end = struct
     and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
-      | [ _ ]                                                     -> TC.fail [%here] "Bitvector argument expected to be numeric expression"
-      | _                                                         -> TC.fail [%here] "Bitvector should receive exactly one argument"
+      | [ _ ]                                                     -> TC.fail [%here] "bits argument expected to be numeric expression"
+      | _                                                         -> TC.fail [%here] "bits should receive exactly one argument"
   
     and nanotype_of_existential
         (ids         : Libsail.Ast.kinded_id list)
