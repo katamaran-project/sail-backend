@@ -13,12 +13,14 @@ let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
 let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
-  let identifier = Identifier.pp enum_definition.identifier
-  and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
-  in
-  GC.pp_inductive_type identifier typ (fun add_constructor ->
-      GC.iter ~f:add_constructor @@ List.map ~f:Identifier.pp enum_definition.cases
-    )
+  GC.generation_block' [%here] (PP.string "Enum definition") begin
+    let identifier = Identifier.pp enum_definition.identifier
+    and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
+    in
+    GC.pp_inductive_type identifier typ (fun add_constructor ->
+        GC.iter ~f:add_constructor @@ List.map ~f:Identifier.pp enum_definition.cases
+      )
+  end
 
 
 let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : PP.document GC.t =
