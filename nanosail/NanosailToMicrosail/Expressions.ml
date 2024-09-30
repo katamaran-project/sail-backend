@@ -35,8 +35,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         in
         GC.return @@ PP.(parens @@ simple_app [string "cons"; pp_head; pp_tail])
       end
-  in
-  let rec pp_value (value : Ast.Value.t) : PP.document GC.t =
+  and pp_value (value : Ast.Value.t) : PP.document GC.t =
     match value with
     | Bool true        -> GC.return @@ PP.string "exp_true"
     | Bool false       -> GC.return @@ PP.string "exp_false"
@@ -54,8 +53,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           pp_value'
         ]
       end
-  in
-  let pp_binary_operation
+  and pp_binary_operation
       (binary_operator : Ast.BinaryOperator.t)
       (left_operand    : Ast.Expression.t    )
       (right_operand   : Ast.Expression.t    ) : PP.document GC.t
