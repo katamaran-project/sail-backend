@@ -4,6 +4,6 @@ $include <prelude.sail>
 
 
 val foo : unit -> bool
-function foo(x) = {
+function foo() = {
   false
 }
