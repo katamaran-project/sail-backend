@@ -14,7 +14,7 @@ let derive_constructor_from_identifier identifier =
   Identifier.record_constructor_name identifier
 
 
-let generate (record_definition : Ast.Definition.Type.Record.t) : PP.document GC.t =
+let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP.document GC.t =
   let generate_field field_identifier field_type =
     let* field_type' = Nanotype.coq_type_of_nanotype field_type
     in

@@ -19,7 +19,7 @@ let pp_type_definition
     | Abbreviation abbrev -> TypeAbbreviations.pp_type_abbreviation abbrev
     | Enum enum           -> Enums.pp_enum_definition enum
     | Variant variant     -> Variants.pp_variant_definition variant
-    | Record record       -> Records.generate record
+    | Record record       -> Records.pp_record_definition record
   in
   GC.block begin
     let* () = GC.add_original_definition original
