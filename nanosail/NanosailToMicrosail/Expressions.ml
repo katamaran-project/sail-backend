@@ -117,7 +117,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Val value                                        -> pp_value value
   | Neg expression                                   -> pp_negation expression
   | Not expression                                   -> pp_logical_negation expression
-  | Binop (op, e1, e2)                               -> pp_binary_operation op e1 e2
+  | BinaryOperation (op, e1, e2)                     -> pp_binary_operation op e1 e2
   | List elements                                    -> pp_list elements
   | Record { type_identifier; variable_identifiers } -> pp_record type_identifier variable_identifiers
   | Enum args -> begin

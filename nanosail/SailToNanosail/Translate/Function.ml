@@ -169,7 +169,7 @@ let rec expression_of_aval
         let translation_expressions = List.map ~f:(fun (x, _, _) -> x) translation_triples
         and translation_types       = List.map ~f:(fun (_, x, _) -> x) translation_triples
         and translation_statements  = List.map ~f:(fun (_, _, x) -> x) translation_triples
-        and make_pair x y           = Ast.Expression.Binop (Pair, x, y)
+        and make_pair x y           = Ast.Expression.BinaryOperation (Pair, x, y)
         in
         let resulting_expression    = Auxlib.reduce ~f:make_pair translation_expressions
         in
@@ -859,7 +859,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t
       =
         match argument_expressions with
-        | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (Binop (operator, x, y))
+        | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
         | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
 
