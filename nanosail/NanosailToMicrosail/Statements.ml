@@ -9,9 +9,9 @@ end
 
 let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
-    let* expression' = Expressions.pp_expression expression
+    let* pp_expression = Expressions.pp_expression expression
     in
-    GC.return @@ PPSail.pp_statement_of_expression expression'
+    GC.return @@ PPSail.pp_statement_of_expression pp_expression
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
@@ -31,17 +31,17 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       =
       let id_head, id_tail, when_cons_body = when_cons
       in
-      let* matched'   = pp_par_statement matched
-      and* when_nil'  = pp_par_statement when_nil
-      and* when_cons' = pp_par_statement when_cons_body
+      let* pp_matched   = pp_par_statement matched
+      and* pp_when_nil  = pp_par_statement when_nil
+      and* pp_when_cons = pp_par_statement when_cons_body
       in
       GC.return @@ PP.(simple_app [
           string "stm_match_list";
-          matched';
-          when_nil';
+          pp_matched;
+          pp_when_nil;
           dquotes @@ Identifier.pp id_head;
           dquotes @@ Identifier.pp id_tail;
-          when_cons';
+          pp_when_cons;
         ])
 
     and pp_match_product
@@ -50,15 +50,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (id_snd  : Ast.Identifier.t)
         (body    : Ast.Statement.t ) : PP.document GC.t
       =
-      let* matched' = pp_par_statement matched
-      and* body'    = pp_par_statement body
+      let* pp_matched = pp_par_statement matched
+      and* pp_body    = pp_par_statement body
       in
       GC.return @@ PP.(simple_app [
           string "stm_match_prod";
-          matched';
+          pp_matched;
           dquotes (Identifier.pp id_fst);
           dquotes (Identifier.pp id_snd);
-          body';
+          pp_body;
         ])
 
     and pp_match_bool
@@ -66,15 +66,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (when_true  : Ast.Statement.t)
         (when_false : Ast.Statement.t) : PP.document GC.t
       =
-      let* condition'  = pp_par_statement condition
-      and* when_true'  = pp_par_statement when_true
-      and* when_false' = pp_par_statement when_false
+      let* pp_condition  = pp_par_statement condition
+      and* pp_when_true  = pp_par_statement when_true
+      and* pp_when_false = pp_par_statement when_false
       in
       GC.return @@ PP.(simple_app [
           string "stm_if";
-          condition';
-          when_true';
-          when_false'
+          pp_condition;
+          pp_when_true;
+          pp_when_false
         ])
 
     (*
@@ -415,10 +415,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         body_statement
       } : Ast.Statement.let_arguments = args
     in
-    let  variable_identifier'    = Identifier.pp variable_identifier in
-    let* binding_statement'      = pp_statement binding_statement
-    and* binding_statement_type' = Nanotype.pp_nanotype binding_statement_type
-    and* body_statement'         = pp_statement body_statement
+    let  pp_variable_identifier    = Identifier.pp variable_identifier in
+    let* pp_binding_statement      = pp_statement binding_statement
+    and* pp_binding_statement_type = Nanotype.pp_nanotype binding_statement_type
+    and* pp_body_statement         = pp_statement body_statement
     in
     if
       Configuration.(get pretty_print_let)
@@ -427,23 +427,23 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         simple_app [
             separate space [
                 string "let:";
-                dquotes variable_identifier';
+                dquotes pp_variable_identifier;
                 string "::";
-                binding_statement_type';
+                pp_binding_statement_type;
                 string ":="];
-            binding_statement';
+            pp_binding_statement;
             string "in";
-            body_statement'
+            pp_body_statement
           ]
         )
     else
       GC.return @@ PP.(
         simple_app [
             string "stm_let";
-            dquotes variable_identifier';
-            parens binding_statement_type';
-            parens binding_statement';
-            parens body_statement';
+            dquotes pp_variable_identifier;
+            parens pp_binding_statement_type;
+            parens pp_binding_statement;
+            parens pp_body_statement;
           ]
         )
 
