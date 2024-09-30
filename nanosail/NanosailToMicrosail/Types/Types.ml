@@ -14,7 +14,7 @@ let pp_type_definition
       (original        : Sail.sail_definition )
       (type_definition : Ast.Definition.Type.t) : PP.document GC.t
   =
-  let* document =
+  let* pp_type_def =
     match type_definition with
     | Abbreviation abbrev -> TypeAbbreviations.generate abbrev
     | Enum enum           -> Enums.generate enum
@@ -24,5 +24,5 @@ let pp_type_definition
   GC.block begin
     let* () = GC.add_original_definition original
     in
-    GC.return @@ document
+    GC.return @@ pp_type_def
   end
