@@ -488,7 +488,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             string "recordpat_snoc";
             acc;
             dquotes @@ Identifier.pp field_identifier;
-            Identifier.pp variable_identifier
+            dquotes @@ Identifier.pp variable_identifier
           ]))
       in
       List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
