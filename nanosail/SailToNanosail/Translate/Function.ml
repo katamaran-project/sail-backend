@@ -19,8 +19,8 @@ open Monads.Notations.Star(TC)
 (* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
 
 let type_from_lvar
-    (lvar : S.typ S.Ast_util.lvar)
-    (loc  : S.l                  ) : S.typ TC.t
+      (lvar : S.typ S.Ast_util.lvar)
+      (loc  : S.l                  ) : S.typ TC.t
   =
   match lvar with
   | S.Ast_util.Register t   -> TC.return t
@@ -38,9 +38,9 @@ let create_if_statement
 
 
 let statement_of_lvar
-    (identifier : Ast.Identifier.t        )
-    (lvar       : S.typ S.Ast_util.lvar   )
-    (location   : S.l                     ) : Ast.Statement.t TC.t
+      (identifier : Ast.Identifier.t        )
+      (lvar       : S.typ S.Ast_util.lvar   )
+      (location   : S.l                     ) : Ast.Statement.t TC.t
   =
   match lvar with
   | Libsail.Ast_util.Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
@@ -129,6 +129,21 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t 
   if List.contains_dup statement_names ~compare:Ast.Identifier.compare
   then failwith "BUG: two statements bear the same name"
   else flattened
+
+
+let translate_value (value : S.typ S.aval) : 
+
+
+let translate_bindings (bindings : S.typ S.aval Bindings.t) : Ast.Value.t Ast.Identifier.Map.t TC.t =
+  let add_to_map
+        (identifier : S.id        )
+        (value      : S.typ S.aval)
+        (map        : Ast.Value.t Ast.Identifier.Map.t) : Ast.Value.t Ast.Identifier.Map.t
+    =
+    let identifier' = Identifier.translate_identifier identifier
+    and value'      = translate_value value
+    in
+    Ast.
 
 
 (*
@@ -244,16 +259,49 @@ let rec expression_of_aval
         flatten_named_statements translation_statements
       )
 
+  and expression_of_record
+        (bindings : S.typ S.aval Bindings.t)
+        (typ      : S.typ                  ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+    =
+    let S.Typ_aux (unwrapped_type, _typ_location) = typ
+    in
+    (* Find out which record we're building *)
+    match unwrapped_type with
+    | Typ_id type_identifier -> begin
+        (* We know the record's name, we need the fields,
+           more specifically, the order they are defined in
+         *)
+        let* type_identifier' =
+          Identifier.translate_identifier [%here] type_identifier
+        in
+        let* type_definition =
+          TC.lookup_type_definition_of_kind Ast.Definition.Select.of_record type_identifier'
+        in
+        match type_definition with
+        | Some record_definition -> begin
+            let record_field_names =
+              List.map ~f:fst record_definition.fields
+            in
+            (* let record_field_values = *)
+            (*   let translated_bindings = *)
+            (*   List.map ~f:(fun field_identifier -> Bindings.find field_identifier bindings) record_field_names *)
+            (* in *)
+            TC.not_yet_implemented [%here] _typ_location
+          end
+        | None -> TC.fail [%here] @@ Printf.sprintf "Expected to find record definition for %s" @@ StringOf.Sail.id type_identifier
+      end
+    | _ -> TC.fail [%here] "Unexpected type"
+
   in
   match value with
-  | AV_tuple elements     -> expression_of_tuple elements
-  | AV_lit (literal, typ) -> expression_of_literal literal typ
-  | AV_id (id, lvar)      -> expression_of_identifier id lvar
-  | AV_list (list, typ)   -> expression_of_list list typ
-  | AV_ref (_, _)         -> TC.not_yet_implemented [%here] location
-  | AV_vector (_, _)      -> TC.not_yet_implemented [%here] location
-  | AV_record (_, _)      -> TC.not_yet_implemented [%here] location
-  | AV_cval (_, _)        -> TC.not_yet_implemented [%here] location
+  | AV_tuple elements         -> expression_of_tuple elements
+  | AV_lit (literal, typ)     -> expression_of_literal literal typ
+  | AV_id (id, lvar)          -> expression_of_identifier id lvar
+  | AV_list (list, typ)       -> expression_of_list list typ
+  | AV_record (bindings, typ) -> expression_of_record bindings typ
+  | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
+  | AV_vector (_, _)          -> TC.not_yet_implemented [%here] location
+  | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
 
 
 let make_sequence statements location =
