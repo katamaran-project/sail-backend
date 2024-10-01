@@ -124,10 +124,14 @@ let lookup_type_definition_of_kind
   =
   let predicate (definition : Ast.Definition.t) : Ast.Definition.Type.t option =
     match definition with
-    | TypeDefinition type_definition ->
-      if Ast.Identifier.equal identifier (Ast.Definition.Type.identifier type_definition)
-      then Some type_definition
-      else None
+    | TypeDefinition type_definition -> begin
+        if
+          Ast.Identifier.equal identifier (Ast.Definition.Type.identifier type_definition)
+        then
+          Some type_definition
+        else
+          None
+      end
     | _ -> None
   in
   let* definitions = Monad.get Context.definitions
