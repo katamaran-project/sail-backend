@@ -498,7 +498,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     in
     GC.return @@ PP.simple_app [
       Identifier.pp @@ Ast.Identifier.mk "stm_match_record";
-      Identifier.pp record_type_identifier;
+      Identifier.pp @@ Configuration.reified_record_name record_type_identifier;
       PP.parens destructured_record';
       pattern;
       body'
