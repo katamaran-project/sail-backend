@@ -111,13 +111,15 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (type_identifier      : Ast.Identifier.t     )
       (variable_identifiers : Ast.Identifier.t list) : PP.document GC.t
     =
-    GC.return @@ PP.(simple_app [
-        string "exp_record";
+    GC.return @@ PP.simple_app [
+        PP.string "exp_record";
         Identifier.pp @@ Configuration.reified_record_name type_identifier;
         Coq.pp_list_using_notation begin
-          List.map variable_identifiers ~f:(fun id -> simple_app [ string "exp_var"; Identifier.pp id ])
+            List.map
+              variable_identifiers
+              ~f:(fun id -> PP.(simple_app [ string "exp_var"; dquotes @@ Identifier.pp id ]))
         end
-      ])
+      ]
 
   in
   match expression with
