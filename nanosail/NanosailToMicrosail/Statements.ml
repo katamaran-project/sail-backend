@@ -508,7 +508,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (statement_to_be_cast : Ast.Statement.t)
       (_target_type         : Ast.Type.t     ) : PP.document GC.t
     =
-    Stdio.printf "Warning: ignored cast\n";
+    Logging.info "Warning: ignored cast\n";
     pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PP.document GC.t =
