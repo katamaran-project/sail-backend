@@ -501,7 +501,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       Identifier.pp @@ Configuration.reified_record_name record_type_identifier;
       PP.parens destructured_record';
       pattern;
-      body'
+      PP.parens body'
     ]
 
   and pp_cast_statement
