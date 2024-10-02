@@ -20,7 +20,7 @@ let rec pp (fexpr : t) : PP.document =
         let pp_positional =
           List.map ~f:pp positional
         and pp_keyword =
-          List.map ~f:(fun (k, v) -> PP.(string k ^^ equals ^^ pp v)) keyword
+          List.map ~f:(fun (k, v) -> PP.(string k ^^ equals ^^ indent (pp v))) keyword
         in
         List.concat [pp_positional; pp_keyword]
       and separator = PP.string ","
