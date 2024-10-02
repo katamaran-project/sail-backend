@@ -6,6 +6,7 @@ type t =
   | Bool        of bool
   | String      of string
   | Application of { head : string; positional : t list; keyword : (string * t) list }
+  | List        of t list
 
 
 let rec pp (fexpr : t) : PP.document =
@@ -26,6 +27,16 @@ let rec pp (fexpr : t) : PP.document =
       and separator = PP.string ","
       in
       PP.application ~head ~delimiters ~arguments ~separator
+    end
+  | List items -> begin
+      let delimiters =
+        (PP.lbracket, PP.rbracket)
+      and items =
+        List.map ~f:pp items
+      and separator =
+        PP.string ","
+      in
+      PP.(delimited_list ~delimiters ~items ~separator)
     end
 
 
@@ -51,3 +62,7 @@ let mk_application ?(positional = []) ?(keyword = []) head =
 
 let mk_symbol (name : string) : t =
   Application { head=name; positional = []; keyword = [] }
+
+
+let mk_list (items : t list) =
+  List items
