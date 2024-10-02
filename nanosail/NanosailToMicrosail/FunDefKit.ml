@@ -21,10 +21,10 @@ let pp_function_definition
     GC.block begin
       let* () = GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
       in
-      let identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+      let pp_identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
       in
       let* coq_definition =
-        let* result_type =
+        let* pp_result_type =
           let* bindings =
             let* parameters : (PP.document * PP.document) list =
               let pp
@@ -43,17 +43,17 @@ let pp_function_definition
             in
             GC.return @@ Coq.pp_list docs
           in
-          let* result_type =
+          let* pp_result_type =
             Nanotype.pp_nanotype function_definition.function_type.return_type
           in
           GC.return @@ Some (
             PP.hanging_list (PP.string "Stm") [
               bindings;
-              PP.parens result_type
+              PP.parens pp_result_type
             ]
           )
         in
-        let* body =
+        let* pp_body =
           Statements.pp_statement function_definition.function_body
         in
         let* pp_extended_function_type =
@@ -73,7 +73,7 @@ let pp_function_definition
             ]
           end
         in
-        GC.return @@ Coq.pp_definition ~identifier ~result_type body
+        GC.return @@ Coq.pp_definition ~identifier:pp_identifier ~result_type:pp_result_type pp_body
       in
       let original_sail_code =
         Auxlib.build_list (fun { add; _ } ->
