@@ -10,3 +10,4 @@ module Sail                = Sail
 module ExtendedInteger     = ExtendedInteger
 module ComparisonNotations = ComparisonNotations
 module PrecedenceFormatter = PrecedenceFormatter
+module FExpr               = FExpr
