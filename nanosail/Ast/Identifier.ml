@@ -29,6 +29,11 @@ module Impl = struct
 
   let add_suffix suffix =
     update (fun x -> x ^ suffix)
+
+  let to_fexpr (identifier : t) : FExpr.t =
+    FExpr.mk_application
+      ~positional:[FExpr.mk_string @@ string_of identifier]
+      "Identifier"
 end
 
 module Map = struct
