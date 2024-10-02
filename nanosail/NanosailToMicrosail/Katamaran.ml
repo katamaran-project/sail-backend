@@ -36,12 +36,12 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
 
   method pp_base_prelude : PP.document GC.t =
     genblock [%here] "Prelude" @@* begin
-      Prelude.generate_base_prelude ()
+      ProgramModule.generate_base_prelude ()
     end
 
   method pp_program_prelude : PP.document GC.t =
     genblock [%here] "Prelude" @@* begin
-      Prelude.generate_program_prelude ()
+      ProgramModule.generate_program_prelude ()
     end
 
   method pp_register_definitions : PP.document GC.t =
