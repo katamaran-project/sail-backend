@@ -20,8 +20,8 @@ let rec type_of_value (value : t) : Nanotype.t =
 
 let rec to_fexpr (value : t) : FExpr.t =
   match value with
-   | Unit          -> FExpr.Application { head="Unit"; positional=[]; keyword=[] }
-   | Bool b        -> FExpr.Bool b
-   | Int n         -> FExpr.Integer (Z.to_int n)
-   | String s      -> FExpr.String s
-   | Prod (v1, v2) -> FExpr.Application { head="Pair"; positional=[to_fexpr v1; to_fexpr v2]; keyword=[] }
+   | Unit          -> FExpr.mk_symbol "Unit"
+   | Bool b        -> FExpr.mk_bool b
+   | Int n         -> FExpr.mk_int @@ Z.to_int n
+   | String s      -> FExpr.mk_string s
+   | Prod (v1, v2) -> FExpr.mk_application ~positional:[to_fexpr v1; to_fexpr v2] "Prod"
