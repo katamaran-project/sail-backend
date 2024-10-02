@@ -152,22 +152,25 @@ let translate_bindings (bindings : S.typ S.aval Bindings.t) : Ast.Value.t Ast.Id
 
   Some Sail expressions need to be translated into microSail statements (e.g., reading from a register).
 
-  This function returns a pair:
+  This function returns a triple:
 
-  - The first element, of type Ast.expression, is the part of the Sail expression that fits in a microSail expression
-  - The second element, a list of "named statements" (i.e., triples of identifiers, types and statements), are the parts of the Sail expression
+  - The first element, of type Ast.Expression.t, is the part of the Sail expression that fits in a microSail expression
+  - The second element, of type Ast.Type.t, represents type of the first element
+  - The third element, a list of "named statements" (i.e., triples of identifiers, types and statements), are the parts of the Sail expression
   that were translated into microSail statements. Since the evaluation result of a statement can be referred in the resulting microSail expression,
   we also name each statement.
 
   For example, a result
 
-  (expr, [("a", t1, s1); ("b", t2, s2)])
+  (expr, t, [("a", t1, s1); ("b", t2, s2)])
 
   should be interpreted as
 
     let a : t1 = s1 in
     let b : t2 = s2 in
     expr
+
+  with expr : t
  *)
 let rec expression_of_aval
           (location : S.l         )
