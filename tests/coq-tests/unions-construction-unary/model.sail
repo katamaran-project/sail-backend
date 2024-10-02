@@ -10,5 +10,5 @@ union instruction = {
 
 val foo : unit -> instruction
 function foo () = {
-  Pop 5
+  Pop(5)
 }
