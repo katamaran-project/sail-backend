@@ -66,6 +66,13 @@ let pp_function_definition
             ]
           end
         in
+        let* () = GC.add_comment begin
+            PP.vertical [
+              PP.string "AST";
+              PP.indent @@ FExpr.pp @@ Ast.Statement.to_fexpr function_definition.function_body
+            ]
+          end
+        in
         GC.return @@ Coq.pp_definition ~identifier ~result_type body
       in
       let original_sail_code =
