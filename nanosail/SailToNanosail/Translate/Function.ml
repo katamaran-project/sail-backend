@@ -256,9 +256,10 @@ let rec expression_of_aval
     (* Find out which record we're building *)
     match unwrapped_type with
     | Typ_id type_identifier -> begin
-        (* We know the record's name, we need the fields,
+        (*
+           We know the record's name, we need the fields,
            more specifically, the order they are defined in
-         *)
+        *)
         let* type_identifier' =
           Identifier.translate_identifier [%here] type_identifier
         in
@@ -270,11 +271,29 @@ let rec expression_of_aval
             let record_field_names =
               List.map ~f:fst record_definition.fields
             in
-            (* let record_field_values = *)
-            (*   let translated_bindings = *)
-            (*   List.map ~f:(fun field_identifier -> Bindings.find field_identifier bindings) record_field_names *)
-            (* in *)
-            TC.not_yet_implemented [%here] _typ_location
+            let* mapping, named_statements =
+              translate_bindings location bindings
+            in
+            (*
+               List of variables that contain the values
+               for each of the record's fields
+            *)
+            let* field_value_identifiers =
+              TC.map
+                record_field_names
+                ~f:(fun record_field_name -> begin
+                      match Ast.Identifier.Map.find mapping record_field_name with
+                      | Some value_identifier -> TC.return value_identifier
+                      | None                  -> TC.fail [%here] "Field names in definition do not match those in literal"
+                    end)
+            in
+            let record =
+              Ast.Expression.Record {
+                type_identifier = type_identifier';
+                variable_identifiers = field_value_identifiers;
+              }
+            in
+            TC.return (record, Ast.Type.Record type_identifier', named_statements)
           end
         | None -> TC.fail [%here] @@ Printf.sprintf "Expected to find record definition for %s" @@ StringOf.Sail.id type_identifier
       end
