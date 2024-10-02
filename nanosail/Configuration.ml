@@ -13,7 +13,7 @@ module C = struct
   open Slang.Prelude.Shared
 
   module S = struct
-    let output_width                      = integer  "output-width"                     80
+    let output_width                      = integer  "output-width"                     200
     let use_list_notations                = bool     "use-list-notations"               false (* Use list notations                                                          *)
     let include_original_code             = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
     let ignore_overloads                  = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
