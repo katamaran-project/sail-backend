@@ -131,21 +131,6 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t 
   else flattened
 
 
-let translate_value (value : S.typ S.aval) : 
-
-
-let translate_bindings (bindings : S.typ S.aval Bindings.t) : Ast.Value.t Ast.Identifier.Map.t TC.t =
-  let add_to_map
-        (identifier : S.id        )
-        (value      : S.typ S.aval)
-        (map        : Ast.Value.t Ast.Identifier.Map.t) : Ast.Value.t Ast.Identifier.Map.t
-    =
-    let identifier' = Identifier.translate_identifier identifier
-    and value'      = translate_value value
-    in
-    Ast.
-
-
 (*
   Sail has only expressions, microSail makes the distinction between statements and expressions.
   Also, microSail statements can evaluate to a value, just like expressions do.
@@ -305,6 +290,49 @@ let rec expression_of_aval
   | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
   | AV_vector (_, _)          -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
+
+
+and translate_bindings
+    (location : S.l                    )
+    (bindings : S.typ S.aval Bindings.t) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+  =
+  let rec process_bindings
+      (binding_pairs    : (S.id * S.typ S.aval) list)
+      (mapping          : Ast.Identifier.t Ast.Identifier.Map.t)
+      (named_statements : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+    =
+    match binding_pairs with
+    | [] -> TC.return (mapping, named_statements)
+    | (identifier, value) :: rest -> begin
+        let* identifier' =
+          Identifier.translate_identifier [%here] identifier
+        and* value', value_type', extra_named_statements =
+          expression_of_aval location value
+        and* fresh_id =
+          TC.generate_unique_identifier ()
+        in
+        let extra_named_statement =
+          (fresh_id, value_type', Ast.Statement.Expression value')
+        and updated_mapping =
+          Ast.Identifier.Map.add_exn ~key:identifier' ~data:fresh_id mapping
+        in
+        let updated_named_statements =
+          List.concat [ named_statements; extra_named_statements; [extra_named_statement] ]
+        in
+        process_bindings rest updated_mapping updated_named_statements
+      end
+  in
+  let result =
+    let initial_binding_pairs    = Bindings.to_list bindings
+    and initial_mapping          = Ast.Identifier.Map.empty
+    and initial_named_statements = []
+    in
+    process_bindings
+      initial_binding_pairs
+      initial_mapping
+      initial_named_statements
+  in
+  result
 
 
 let make_sequence statements location =
