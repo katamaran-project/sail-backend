@@ -391,14 +391,4 @@ let delimited_list ~delimiters ~items ~separator =
 let application ~head ~delimiters ~arguments ~separator =
   let left_delimiter, right_delimiter = delimiters
   in
-  let single_line_layout =
-    head ^^ left_delimiter ^^ separate (separator ^^ space) arguments ^^ right_delimiter
-  and multi_line_layout =
-    let pp_arguments =
-      separate (separator ^^ hardline) arguments
-    in
-    head ^^ left_delimiter ^^ indent pp_arguments ^^ right_delimiter
-  in
-  PPrint.group begin
-    PPrint.ifflat single_line_layout multi_line_layout
-  end
+  head ^^ left_delimiter ^^ align (vertical ~separator:(separator ^^ hardline) arguments ^^ right_delimiter)
