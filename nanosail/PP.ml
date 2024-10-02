@@ -374,3 +374,31 @@ let delimited_list ~delimiters ~items ~separator =
   PPrint.group begin
     PPrint.ifflat flattened_layout unflattened_layout
   end
+
+
+(*
+
+   head[a, b, c, ...]
+
+   or
+
+   head[a,
+        b,
+        c,
+        ...]
+   
+*)
+let application ~head ~delimiters ~arguments ~separator =
+  let left_delimiter, right_delimiter = delimiters
+  in
+  let single_line_layout =
+    PP.(head ^^ left_delimiter ^^ separate separator arguments ^^ right_delimiter)
+  and multi_line_layout =
+    let pp_arguments =
+      PP.(separate (separator ^^ hardline) arguments)
+    in
+    PP.(head ^^ left_delimiter ^^ indent pp_arguments ^^ right_delimiter)
+  in
+  PPrint.group begin
+    PPrint.ifflat single_line_layout multi_line_layout
+  end
