@@ -32,3 +32,22 @@ let rec pp (fexpr : t) : PP.document =
 let to_string (fexpr : t) : string =
   PP.string_of_document @@ pp fexpr
 
+
+let mk_int (n : int) : t =
+  Integer n
+
+
+let mk_bool (b : bool) : t =
+  Bool b
+
+
+let mk_string (s : string) : t =
+  String s
+
+
+let mk_application ?(positional = []) ?(keyword = []) head =
+  Application { head; positional; keyword }
+
+
+let mk_symbol (name : string) : t =
+  Application { head=name; positional = []; keyword = [] }
