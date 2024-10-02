@@ -23,6 +23,7 @@ let pp_imports () : PP.document =
     Auxlib.build_list (fun { add; _ } ->
         add "ctx.notations";
         add "ctx.resolution";
+        add "env.notations";
         if Configuration.(get use_list_notations) then add "ListNotations";
       )
   in
