@@ -392,12 +392,12 @@ let application ~head ~delimiters ~arguments ~separator =
   let left_delimiter, right_delimiter = delimiters
   in
   let single_line_layout =
-    PP.(head ^^ left_delimiter ^^ separate separator arguments ^^ right_delimiter)
+    head ^^ left_delimiter ^^ separate (separator ^^ space) arguments ^^ right_delimiter
   and multi_line_layout =
     let pp_arguments =
-      PP.(separate (separator ^^ hardline) arguments)
+      separate (separator ^^ hardline) arguments
     in
-    PP.(head ^^ left_delimiter ^^ indent pp_arguments ^^ right_delimiter)
+    head ^^ left_delimiter ^^ indent pp_arguments ^^ right_delimiter
   in
   PPrint.group begin
     PPrint.ifflat single_line_layout multi_line_layout
