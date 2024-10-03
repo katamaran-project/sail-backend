@@ -48,18 +48,18 @@ module Function = struct
       function_body          : Statement.t;
     }
 
-  let to_fexpr (func : t) : FExpr.t =
+  let to_fexpr (function_definition : t) : FExpr.t =
     let function_name' =
-      Identifier.to_fexpr func.function_name
+      Identifier.to_fexpr function_definition.function_name
   
     and function_type' =
-      FunctionType.to_fexpr func.function_type
+      FunctionType.to_fexpr function_definition.function_type
 
     and extended_function_type' =
       FExpr.mk_string "TODO"
 
     and function_body' =
-      Statement.to_fexpr func.function_body
+      Statement.to_fexpr function_definition.function_body
 
     in
     let keyword =
