@@ -7,6 +7,7 @@ type t =
   | String      of string
   | Application of { head : string; positional : t list; keyword : (string * t) list }
   | List        of t list
+  | Nil
 
 
 let rec pp (fexpr : t) : PP.document =
@@ -14,6 +15,7 @@ let rec pp (fexpr : t) : PP.document =
   | Integer n        -> PP.string @@ Int.to_string n
   | Bool b           -> PP.string @@ Bool.to_string b
   | String s         -> PP.(dquotes @@ string s)
+  | Nil              -> PP.string "Nil"
   | Application { head; positional; keyword } -> begin
       let head = PP.string head
       and delimiters = (PP.lbracket, PP.rbracket)
@@ -66,3 +68,7 @@ let mk_symbol (name : string) : t =
 
 let mk_list (items : t list) =
   List items
+
+
+let mk_nil =
+  Nil
