@@ -472,11 +472,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     end
 
   and pp_destructure_record_statement
-        ~(record_type_identifier : Ast.Identifier.t)
-        ~(field_identifiers : Ast.Identifier.t list)
-        ~(variable_identifiers : Ast.Identifier.t list)
-        ~(destructured_record : Ast.Statement.t)
-        ~(body : Ast.Statement.t) : PP.document GC.t
+        ~(record_type_identifier : Ast.Identifier.t     )
+        ~(field_identifiers      : Ast.Identifier.t list)
+        ~(variable_identifiers   : Ast.Identifier.t list)
+        ~(destructured_record    : Ast.Statement.t      )
+        ~(body                   : Ast.Statement.t      ) : PP.document GC.t
     =
     let pattern =
       let pairs = List.zip_exn field_identifiers variable_identifiers
@@ -517,10 +517,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   | Expression expression                     -> pp_expression_statement expression
   | Match match_pattern                       -> pp_match_statement match_pattern
   | Call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
-  | Let { variable_identifier;
-          binding_statement_type;
-          binding_statement;
-          body_statement }                    -> pp_let_statement
+  | Let
+      { variable_identifier;
+        binding_statement_type;
+        binding_statement;
+        body_statement }                      -> pp_let_statement
                                                    ~variable_identifier
                                                    ~binding_statement_type
                                                    ~binding_statement
@@ -531,11 +532,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                     written_value }           -> pp_write_register_statement
                                                    ~register_identifier
                                                    ~written_value
-  | DestructureRecord { record_type_identifier;
-                        field_identifiers;
-                        variable_identifiers;
-                        destructured_record;
-                        body }                -> pp_destructure_record_statement
+  | DestructureRecord
+      { record_type_identifier;
+        field_identifiers;
+        variable_identifiers;
+        destructured_record;
+        body }                                -> pp_destructure_record_statement
                                                    ~record_type_identifier
                                                    ~field_identifiers
                                                    ~variable_identifiers
