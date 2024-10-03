@@ -47,6 +47,30 @@ module Function = struct
       extended_function_type : ExtendedFunctionType.t;
       function_body          : Statement.t;
     }
+
+  let to_fexpr (func : t) : FExpr.t =
+    let function_name' =
+      Identifier.to_fexpr func.function_name
+  
+    and function_type' =
+      FunctionType.to_fexpr func.function_type
+
+    and extended_function_type' =
+      FExpr.mk_string "TODO"
+
+    and function_body' =
+      Statement.to_fexpr func.function_body
+
+    in
+    let keyword =
+      [
+        ("name", function_name');
+        ("type", function_type');
+        ("extended_type", extended_function_type');
+        ("body", function_body');
+      ]
+    in
+    FExpr.mk_application ~keyword "Function"
 end
 
 
