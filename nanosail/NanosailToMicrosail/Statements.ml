@@ -406,15 +406,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
-  and pp_let_statement (args : Ast.Statement.let_arguments) : PP.document GC.t
+  and pp_let_statement
+        ~(variable_identifier    : Ast.Identifier.t)
+        ~(binding_statement_type : Ast.Type.t      )
+        ~(binding_statement      : Ast.Statement.t )
+        ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
     =
-    let {
-        variable_identifier;
-        binding_statement_type;
-        binding_statement;
-        body_statement
-      } : Ast.Statement.let_arguments = args
-    in
     let  pp_variable_identifier    = Identifier.pp variable_identifier in
     let* pp_binding_statement      = pp_statement binding_statement
     and* pp_binding_statement_type = Nanotype.pp_nanotype binding_statement_type
@@ -519,7 +516,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   | Expression expression                     -> pp_expression_statement expression
   | Match match_pattern                       -> pp_match_statement match_pattern
   | Call (function_identifier, arguments)     -> pp_call_statement function_identifier arguments
-  | Let let_data                              -> pp_let_statement let_data
+  | Let { variable_identifier;
+          binding_statement_type;
+          binding_statement;
+          body_statement }                    -> pp_let_statement
+                                                   ~variable_identifier
+                                                   ~binding_statement_type
+                                                   ~binding_statement
+                                                   ~body_statement
   | Seq (s1, s2)                              -> pp_sequence_statement s1 s2
   | ReadRegister register_identifier          -> pp_read_register_statement register_identifier
   | WriteRegister args                        -> pp_write_register_statement args

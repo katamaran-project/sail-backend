@@ -7,26 +7,21 @@ type t =
   | Match             of match_pattern
   | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
-  | Let               of let_arguments
+  (*
+    let <variable_identifier> : <binding_statement_type> = <binding_statement>
+    in
+    <body>
+  *)
+  | Let               of { variable_identifier    : Identifier.t;
+                           binding_statement_type : Type.t      ;
+                           binding_statement      : t           ;
+                           body_statement         : t           }
   | DestructureRecord of destructure_record_arguments
   | Seq               of t * t
   | ReadRegister      of Identifier.t
   | WriteRegister     of write_register_arguments
   | Cast              of t * Type.t
   | Fail              of string
-
-(*
-  let <variable_identifier> : <binding_statement_type> = <binding_statement>
-  in
-  <body>
-*)
-and let_arguments =
-  {
-    variable_identifier    : Identifier.t;
-    binding_statement_type : Type.t;
-    binding_statement      : t;
-    body_statement         : t;
-  }
 
 and write_register_arguments =
   {
