@@ -73,10 +73,10 @@ module Parameter = struct
   
     in  
     match extended_parameter_type with
-     | Tuple ts -> tuple_to_fexpr ts
-     | Int n -> int_to_fexpr n
-     | Bool n -> bool_to_fexpr n
-     | Other x -> other_to_fexpr x
+     | Tuple ts                                              -> tuple_to_fexpr ts
+     | Int n                                                 -> int_to_fexpr n
+     | Bool n                                                -> bool_to_fexpr n
+     | Other x                                               -> other_to_fexpr x
      | Unknown { ocaml_location; sail_location; annotation } -> unknown_to_fexpr ocaml_location sail_location annotation
 end
 
