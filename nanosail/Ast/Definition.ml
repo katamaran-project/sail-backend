@@ -82,6 +82,22 @@ module Untranslated = struct
       sail_location : Libsail.Parse_ast.l;
       message       : string option      ;
     }
+
+  let to_fexpr (untranslated_definition : t) =
+    let message' =
+      match untranslated_definition.message with
+      | Some message -> FExpr.mk_string message
+      | None         -> FExpr.mk_nil
+    in
+    let keyword =
+      [
+        ("filename", FExpr.mk_string untranslated_definition.filename);
+        ("line_number", FExpr.mk_int untranslated_definition.line_number);
+        ("sail_location", FExpr.mk_string @@ Sail.string_of_location untranslated_definition.sail_location);
+        ("message", message')
+      ]
+    in
+    FExpr.mk_application ~keyword "Def:Untranslated"
 end
 
 
