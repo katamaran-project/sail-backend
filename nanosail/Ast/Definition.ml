@@ -107,6 +107,15 @@ module Register = struct
       identifier : Identifier.t;
       typ        : Type.t      ;
     }
+
+  let to_fexpr (register_definition : t) : FExpr.t =
+    let keyword =
+      [
+        ("identifier", Identifier.to_fexpr register_definition.identifier);
+        ("type", Type.to_fexpr register_definition.typ);
+      ]
+    in
+    FExpr.mk_application ~keyword "Def:Register"
 end
 
 
