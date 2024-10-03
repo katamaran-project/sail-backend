@@ -1,3 +1,22 @@
+(*
+
+  F-Expressions are used for debugging: they provide a simple way to convert
+  data structures to text.
+
+  An F-expression is
+
+  - an integer (1, 2, 3, ...)
+  - a boolean (True/False)
+  - a string ("something")
+  - nil (Nil)
+  - a list ([x, y, z, ...])
+  - an application, which consists of
+    - a head
+    - positional arguments
+    - keyword arguments
+    An application is formatted as Head[pos1, pos2, ..., kw1=val1, kw2=val2, ...]
+  
+*)
 open Base
 
 
