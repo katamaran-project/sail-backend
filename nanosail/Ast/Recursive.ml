@@ -237,13 +237,16 @@ end = struct
     | False
 
   let rec to_string (numeric_constraint : t) =
+    let binop e1 op e2 =
+      Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)
+    in
     match numeric_constraint with
-    | Equal     (e1, e2)  -> Printf.sprintf "(%s == %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
-    | BoundedGE (e1, e2)  -> Printf.sprintf "(%s >= %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
-    | BoundedGT (e1, e2)  -> Printf.sprintf "(%s > %s)"  (NumericExpression.to_string e1) (NumericExpression.to_string e2)
-    | BoundedLE (e1, e2)  -> Printf.sprintf "(%s <= %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
-    | BoundedLT (e1, e2)  -> Printf.sprintf "(%s < %s)"  (NumericExpression.to_string e1) (NumericExpression.to_string e2)
-    | NotEqual  (e1, e2)  -> Printf.sprintf "(%s != %s)" (NumericExpression.to_string e1) (NumericExpression.to_string e2)
+    | Equal     (e1, e2)  -> binop e1 "==" e2
+    | BoundedGE (e1, e2)  -> binop e1 ">=" e2
+    | BoundedGT (e1, e2)  -> binop e1 ">"  e2
+    | BoundedLE (e1, e2)  -> binop e1 "<=" e2
+    | BoundedLT (e1, e2)  -> binop e1 "<"  e2
+    | NotEqual  (e1, e2)  -> binop e1 "!=" e2
     | Var id              -> Identifier.string_of id
     | True                -> "NC_true"
     | False               -> "NC_false"
