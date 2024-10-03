@@ -28,18 +28,13 @@ and match_pattern =
   | MatchList    of { matched   : t                               ;
                       when_cons : Identifier.t * Identifier.t * t ;
                       when_nil  : t                               }
-  | MatchProduct of match_pattern_product
+  | MatchProduct of { matched : t            ;
+                      id_fst  : Identifier.t ;
+                      id_snd  : Identifier.t ;
+                      body    : t            }
   | MatchBool    of match_pattern_bool
   | MatchEnum    of match_pattern_enum
   | MatchVariant of match_pattern_variant
-
-and match_pattern_product =
-  {
-    matched   : t;
-    id_fst    : Identifier.t;
-    id_snd    : Identifier.t;
-    body      : t;
-  }
 
 and match_pattern_bool =
   {
