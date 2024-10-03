@@ -25,18 +25,13 @@ type t =
   | Fail              of string
 
 and match_pattern =
-  | MatchList    of match_pattern_list
+  | MatchList    of { matched   : t                               ;
+                      when_cons : Identifier.t * Identifier.t * t ;
+                      when_nil  : t                               }
   | MatchProduct of match_pattern_product
   | MatchBool    of match_pattern_bool
   | MatchEnum    of match_pattern_enum
   | MatchVariant of match_pattern_variant
-
-and match_pattern_list =
-  {
-    matched   : t;
-    when_cons : Identifier.t * Identifier.t * t;
-    when_nil  : t;
-  }
 
 and match_pattern_product =
   {
