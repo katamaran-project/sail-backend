@@ -9,10 +9,11 @@ type type_quantifier = type_quantifier_item list
 
 
 module FunctionType = struct
-  type t = {
-    parameters  : (Identifier.t * Type.t) list;
-    return_type : Type.t
-  }
+  type t =
+    {
+      parameters  : (Identifier.t * Type.t) list;
+      return_type : Type.t
+    }
 end
 
 
