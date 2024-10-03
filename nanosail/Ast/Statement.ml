@@ -38,14 +38,9 @@ and match_pattern =
   | MatchEnum    of { matched      : Identifier.t       ;
                       matched_type : Identifier.t       ;
                       cases        : t Identifier.Map.t }
-  | MatchVariant of match_pattern_variant
-
-and match_pattern_variant =
-  {
-    matched      : Identifier.t;
-    matched_type : Identifier.t;
-    cases        : (Identifier.t list * t) Identifier.Map.t
-  }
+  | MatchVariant of { matched      : Identifier.t                             ;
+                      matched_type : Identifier.t                             ;
+                      cases        : (Identifier.t list * t) Identifier.Map.t }
 
 and destructure_record_arguments =
   {
