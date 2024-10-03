@@ -142,20 +142,20 @@ end = struct
 
   let rec to_fexpr (t : t) : FExpr.t =
     match t with
-    | Int                -> FExpr.mk_symbol "Int"
-    | Bool               -> FExpr.mk_symbol "Bool"
-    | String             -> FExpr.mk_symbol "String"
-    | List t             -> FExpr.mk_application ~positional:[to_fexpr t] "List"
-    | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Product"
-    | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Sum"
-    | Unit               -> FExpr.mk_symbol "Unit"
-    | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Enum"
-    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] "Bitvector"
-    | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Tuple"
-    | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Variant"
-    | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Record"
-    | Application (_, _) -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Application"
-    | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Alias"
+    | Int                -> FExpr.mk_symbol "Type:Int"
+    | Bool               -> FExpr.mk_symbol "Type:Bool"
+    | String             -> FExpr.mk_symbol "Type:String"
+    | List t             -> FExpr.mk_application ~positional:[to_fexpr t] "Type:List"
+    | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Product"
+    | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Sum"
+    | Unit               -> FExpr.mk_symbol "Type:Unit"
+    | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Enum"
+    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] "Type:Bitvector"
+    | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Type:Tuple"
+    | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Variant"
+    | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Record"
+    | Application (_, _) -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Type:Application"
+    | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Type:Alias"
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
