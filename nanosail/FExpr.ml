@@ -13,7 +13,7 @@ type t =
 let rec pp (fexpr : t) : PP.document =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
-  | Bool b           -> PP.string @@ Bool.to_string b
+  | Bool b           -> PP.string @@ if b then "True" else "False"
   | String s         -> PP.(dquotes @@ string s)
   | Nil              -> PP.string "Nil"
   | Application { head; positional; keyword } -> begin
