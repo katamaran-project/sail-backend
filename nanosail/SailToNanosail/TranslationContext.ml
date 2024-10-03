@@ -147,7 +147,7 @@ let lookup_type_definition =
 
 (* Looks up type of register with given name *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
-  let predicate (definition : Ast.Definition.t) : Ast.Definition.register_definition option =
+  let predicate (definition : Ast.Definition.t) : Ast.Definition.Register.t option =
     match definition with
     | RegisterDefinition register_definition ->
        begin

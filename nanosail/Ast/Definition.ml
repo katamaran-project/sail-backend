@@ -85,12 +85,13 @@ module Untranslated = struct
 end
 
 
-(* todo put in separate module *)
-type register_definition =
-  {
-    identifier : Identifier.t;
-    typ        : Type.t      ;
-  }
+module Register = struct
+  type t =
+    {
+      identifier : Identifier.t;
+      typ        : Type.t      ;
+    }
+end
 
 
 module Type = struct
@@ -167,7 +168,7 @@ type t =
   | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
   | FunctionDefinition               of Function.t
   | TypeDefinition                   of Type.t
-  | RegisterDefinition               of register_definition
+  | RegisterDefinition               of Register.t
   | UntranslatedDefinition           of Untranslated.t
   | ValueDefinition                  of value_definition
   | IgnoredDefinition

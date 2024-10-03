@@ -16,14 +16,14 @@ let regname_tag =
   Ast.Identifier.mk "regname"
 
 
-let pp_reg_inductive_type (register_definitions : Ast.Definition.register_definition list) : PP.document GC.t =
+let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
   let identifier = PP.string "Reg"
   and typ = PP.string "Ty -> Set"
   in
   let* inductive_type =
     GC.block begin
       GC.pp_inductive_type identifier typ (fun add_constructor ->
-          let make_constructor (register_definition : Ast.Definition.register_definition) : unit GC.t =
+          let make_constructor (register_definition : Ast.Definition.Register.t) : unit GC.t =
             let identifier = Identifier.pp register_definition.identifier
             in
             let* register_type = Nanotype.pp_nanotype register_definition.typ
@@ -69,8 +69,8 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   | translate_regname(R4)
   .
 
- *)
-let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
+*)
+let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -158,9 +158,9 @@ let pp_obligation_tactic () : PP.document GC.t =
   end
 
 
-let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
+let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
   let register_names =
-    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.register_definition) =
+    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.Register.t) =
       Identifier.pp (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
@@ -188,7 +188,7 @@ let extra_no_confusion_identifiers () : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
 
 
-let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.register_definition) list) : PP.document GC.t =
+let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
