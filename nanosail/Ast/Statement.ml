@@ -32,16 +32,11 @@ and match_pattern =
                       id_fst  : Identifier.t ;
                       id_snd  : Identifier.t ;
                       body    : t            }
-  | MatchBool    of match_pattern_bool
+  | MatchBool    of { condition : t  ;
+                      when_true : t  ;
+                      when_false : t }
   | MatchEnum    of match_pattern_enum
   | MatchVariant of match_pattern_variant
-
-and match_pattern_bool =
-  {
-    condition  : t;
-    when_true  : t;
-    when_false : t;
-  }
 
 and match_pattern_enum =
   {
