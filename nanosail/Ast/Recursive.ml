@@ -150,7 +150,7 @@ end = struct
     | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Sum"
     | Unit               -> FExpr.mk_symbol "Unit"
     | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Enum"
-    | Bitvector _        -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Bitvector"
+    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] "Bitvector"
     | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Tuple"
     | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Variant"
     | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Record"
