@@ -35,15 +35,10 @@ and match_pattern =
   | MatchBool    of { condition : t  ;
                       when_true : t  ;
                       when_false : t }
-  | MatchEnum    of match_pattern_enum
+  | MatchEnum    of { matched      : Identifier.t       ;
+                      matched_type : Identifier.t       ;
+                      cases        : t Identifier.Map.t }
   | MatchVariant of match_pattern_variant
-
-and match_pattern_enum =
-  {
-    matched      : Identifier.t;
-    matched_type : Identifier.t;
-    cases        : t Identifier.Map.t
-  }
 
 and match_pattern_variant =
   {
