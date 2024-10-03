@@ -4,7 +4,7 @@ open Base
 let rec repeat_string (string : string) (n : int) : string =
   if n = 0
   then ""
-  else string ^ (repeat string (n-1))
+  else string ^ (repeat_string string (n-1))
 
 
 let indent_strings (indentation : int) (strings : string list) : string list =
@@ -114,3 +114,12 @@ let description_list (items : (t * t) list) : t =
       ]
   in
   vertical @@ List.map ~f:(Auxlib.uncurry render_item) items
+
+
+let enclose
+      (layout     : t list -> t)
+      (delimiters : t * t      )
+      (enclosed   : t          ) : t =
+  let left_delimiter, right_delimiter = delimiters
+  in
+  layout [ left_delimiter; enclosed; right_delimiter ]
