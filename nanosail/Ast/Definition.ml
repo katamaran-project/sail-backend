@@ -70,7 +70,7 @@ module Function = struct
         ("body", function_body');
       ]
     in
-    FExpr.mk_application ~keyword "Function"
+    FExpr.mk_application ~keyword "Def:Function"
 end
 
 
