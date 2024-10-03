@@ -82,6 +82,7 @@ end
 
 (* OCaml requires this duplication for recursive modules *)
 module rec IntExpression : sig
+
   type t =
     | Var      of int
     | Constant of Z.t
@@ -89,7 +90,11 @@ module rec IntExpression : sig
     | Sub      of t * t
     | Mul      of t * t
     | Neg      of t
+
+  val to_fexpr : t -> FExpr.t
+
 end = struct
+
   type t =
     | Var      of int
     | Constant of Z.t
@@ -97,6 +102,16 @@ end = struct
     | Sub      of t * t
     | Mul      of t * t
     | Neg      of t
+
+  let rec to_fexpr (int_expression : t) : FExpr.t =
+    match int_expression with
+     | Var n        -> FExpr.mk_application ~positional:[FExpr.mk_int n] "IntExpr:Var"
+     | Constant n   -> FExpr.mk_application ~positional:[FExpr.mk_int @@ Z.to_int n] "IntExpr:Constant"
+     | Add (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Add"
+     | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Sub"
+     | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Mul"
+     | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
+  
 end and BoolExpression : sig
   type t =
     | Var                  of int
