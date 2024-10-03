@@ -161,4 +161,33 @@ module ReturnValue = struct
     | Other   of string
     | Tuple   of t list
     | Unknown of unknown_data
+
+  let rec to_fexpr (return_type : t) : FExpr.t =
+    match return_type with
+    | Int e        -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e] "Return:Int"
+    | Bool e       -> FExpr.mk_application ~positional:[BoolExpression.to_fexpr e] "Return:Bool"
+    | Other s      -> FExpr.mk_application ~positional:[FExpr.mk_string s] "Return:Other"
+    | Tuple ts     -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Return:Tuple"
+    | Unknown { ocaml_location; sail_location; annotation } -> begin
+        let ocaml_location' =
+          match ocaml_location with
+          | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
+             FExpr.mk_string @@ Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
+        
+        and sail_location' =
+          FExpr.mk_string @@ Sail.string_of_location sail_location
+        
+        and annotation' =
+          FExpr.mk_string annotation
+        
+        in
+        let keyword =
+          [
+            ("ocaml_location", ocaml_location');
+            ("sail_location", sail_location');
+            ("annotation", annotation');
+          ]
+        in
+        FExpr.mk_application ~keyword "Return:Unknown"
+      end
 end
