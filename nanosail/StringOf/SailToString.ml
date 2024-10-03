@@ -119,6 +119,7 @@ let definition
   Buffer.contents buffer
 
 
+(* todo remove this *)
 let rec string_of_location (location : Libsail.Parse_ast.l) =
   match location with
   | Unknown                 -> "UnknownLocation"
