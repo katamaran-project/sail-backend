@@ -15,7 +15,7 @@ module FunctionType = struct
       return_type : Type.t
     }
 
-  let to_fexpr (function_type : t) : FExpr.t =
+  let to_fexpr (function_type_definition : t) : FExpr.t =
     let parameters' =
       let parameter_to_fexpr
             (identifier : Identifier.t)
@@ -23,10 +23,10 @@ module FunctionType = struct
         =
         FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Parameter"
       in
-      FExpr.mk_list @@ List.map ~f:(Auxlib.uncurry parameter_to_fexpr) function_type.parameters
+      FExpr.mk_list @@ List.map ~f:(Auxlib.uncurry parameter_to_fexpr) function_type_definition.parameters
 
     and return_type' =
-      Type.to_fexpr function_type.return_type
+      Type.to_fexpr function_type_definition.return_type
 
     in
     let keyword =
