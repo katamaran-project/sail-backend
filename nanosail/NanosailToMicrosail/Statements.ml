@@ -471,15 +471,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       ]
     end
 
-  and pp_destructure_record_statement (args: Ast.Statement.destructure_record_arguments) : PP.document GC.t =
-    let {
-      record_type_identifier;
-      field_identifiers;
-      variable_identifiers;
-      destructured_record;
-      body
-    } : Ast.Statement.destructure_record_arguments = args
-    in
+  and pp_destructure_record_statement
+        ~(record_type_identifier : Ast.Identifier.t)
+        ~(field_identifiers : Ast.Identifier.t list)
+        ~(variable_identifiers : Ast.Identifier.t list)
+        ~(destructured_record : Ast.Statement.t)
+        ~(body : Ast.Statement.t) : PP.document GC.t
+    =
     let pattern =
       let pairs = List.zip_exn field_identifiers variable_identifiers
       in
@@ -533,7 +531,16 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                     written_value }           -> pp_write_register_statement
                                                    ~register_identifier
                                                    ~written_value
-  | DestructureRecord destructure_record      -> pp_destructure_record_statement destructure_record
+  | DestructureRecord { record_type_identifier;
+                        field_identifiers;
+                        variable_identifiers;
+                        destructured_record;
+                        body }                -> pp_destructure_record_statement
+                                                   ~record_type_identifier
+                                                   ~field_identifiers
+                                                   ~variable_identifiers
+                                                   ~destructured_record
+                                                   ~body
   | Cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
   | Fail message                              -> pp_fail_statement message
 

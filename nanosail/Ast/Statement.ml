@@ -16,7 +16,11 @@ type t =
                            binding_statement_type : Type.t       ;
                            binding_statement      : t            ;
                            body_statement         : t            }
-  | DestructureRecord of destructure_record_arguments
+  | DestructureRecord of { record_type_identifier : Identifier.t      ;
+                           field_identifiers      : Identifier.t list ;
+                           variable_identifiers   : Identifier.t list ;
+                           destructured_record    : t                 ;
+                           body                   : t                 }
   | Seq               of t * t
   | ReadRegister      of Identifier.t
   | WriteRegister     of { register_identifier : Identifier.t ;
@@ -41,15 +45,6 @@ and match_pattern =
   | MatchVariant of { matched      : Identifier.t                             ;
                       matched_type : Identifier.t                             ;
                       cases        : (Identifier.t list * t) Identifier.Map.t }
-
-and destructure_record_arguments =
-  {
-    record_type_identifier : Identifier.t     ;   (* name of the record                                              *)
-    field_identifiers      : Identifier.t list;   (* names of the record's fields                                    *)
-    variable_identifiers   : Identifier.t list;   (* names of the variables receiving the record's fields' values    *)
-    destructured_record    : t                ;   (* statement yield the record object                               *)
-    body                   : t                ;   (* body that can refer to record fields using variable_identifiers *)
-  }
 
 
 let rec to_fexpr (statement : t) : FExpr.t =
