@@ -40,12 +40,13 @@ end
 
 
 module Function = struct
-  type t = {
-    function_name          : Identifier.t;
-    function_type          : FunctionType.t;
-    extended_function_type : ExtendedFunctionType.t;
-    function_body          : Statement.t;
-  }
+  type t =
+    {
+      function_name          : Identifier.t;
+      function_type          : FunctionType.t;
+      extended_function_type : ExtendedFunctionType.t;
+      function_body          : Statement.t;
+    }
 end
 
 
