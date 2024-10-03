@@ -1,14 +1,17 @@
-let rec repeat (string : string) (n : int) : string =
+open Base
+
+
+let rec repeat_string (string : string) (n : int) : string =
   if n = 0
   then ""
   else string ^ (repeat string (n-1))
 
 
-let indent (indentation : int) (strings : string list) : string list =
+let indent_strings (indentation : int) (strings : string list) : string list =
   let indent string =
-    repeat " " indentation ^ string
+    repeat_string " " indentation ^ string
   in
-  List.map indent strings
+  List.map ~f:indent strings
 
 
 let split_last (xs : 'a list) : 'a list * 'a =
@@ -41,7 +44,7 @@ let rec to_strings  (document : t) : string list =
           List.concat [
               upper_left';
               [last_left' ^ first_right'];
-              indent (String.length last_left') bottom_right'
+              indent_strings (String.length last_left') bottom_right'
             ]
         end
     end
@@ -51,7 +54,7 @@ let rec to_strings  (document : t) : string list =
 
 
 let to_string (document : t) : string =
-  String.concat "\n" @@ to_strings document
+  String.concat ~sep:"\n" @@ to_strings document
 
 
 let empty = String ""
@@ -94,3 +97,20 @@ let hanging_list (documents : t list) : t =
   | []            -> empty
   | [d]           -> d
   | first :: rest -> horizontal [first; vertical rest]
+
+
+let indent ?(n = 2) (document : t) : t =
+  horizontal [
+      string @@ repeat_string " " n;
+      document
+    ]
+
+
+let description_list (items : (t * t) list) : t =
+  let render_item entry description =
+    vertical [
+        entry;
+        indent description;
+      ]
+  in
+  vertical @@ List.map ~f:(Auxlib.uncurry render_item) items
