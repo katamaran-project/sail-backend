@@ -21,6 +21,7 @@ let split_last (xs : 'a list) : 'a list * 'a =
 
 
 type t =
+  | Empty
   | String     of string
   | Horizontal of t * t
   | Vertical   of t * t
@@ -31,6 +32,7 @@ let space = String " "
 
 let rec to_strings  (document : t) : string list =
   match document with
+  | Empty -> []
   | String string -> [ string ]
   | Horizontal (left, right) -> begin
       let left'  = to_strings left
@@ -57,26 +59,38 @@ let to_string (document : t) : string =
   String.concat ~sep:"\n" @@ to_strings document
 
 
-let empty = String ""
+let empty = Empty
 
 
 let string s = String s
 
 
 let rec horizontal (documents : t list) : t =
+  let group d1 d2 =
+    match d1, d2 with
+    | Empty, _ -> d2
+    | _, Empty -> d1
+    | _, _     -> Horizontal (d1, d2)
+  in
   match documents with
   | []       -> empty
   | [d]      -> d
-  | [d1; d2] -> Horizontal (d1, d2)
-  | d::ds    -> Horizontal (d, horizontal ds)
+  | [d1; d2] -> group d1 d2
+  | d::ds    -> group d @@ horizontal ds
 
 
 let rec vertical (documents : t list) : t =
+  let group d1 d2 =
+    match d1, d2 with
+    | Empty, _ -> d2
+    | _, Empty -> d1
+    | _, _     -> Vertical (d1, d2)
+  in
   match documents with
   | []       -> String ""
   | [d]      -> d
-  | [d1; d2] -> Vertical (d1, d2)
-  | d::ds    -> Vertical (d, vertical ds)
+  | [d1; d2] -> group d1 d2
+  | d::ds    -> group d @@ vertical ds
 
 
 let separate
