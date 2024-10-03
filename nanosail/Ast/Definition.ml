@@ -35,7 +35,7 @@ module FunctionType = struct
         ("return_type", return_type');
       ]
     in
-    FExpr.mk_application ~keyword "FunctionType"
+    FExpr.mk_application ~keyword "Def:FunctionType"
 end
 
 
