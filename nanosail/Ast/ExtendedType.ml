@@ -54,13 +54,13 @@ module Parameter = struct
         match ocaml_location with
         | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
            FExpr.mk_string @@ Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
-  
+
       and sail_location' =
         FExpr.mk_string @@ Sail.string_of_location sail_location
 
       and annotation' =
         FExpr.mk_string annotation
-  
+
       in
       let keyword =
         [
@@ -70,8 +70,8 @@ module Parameter = struct
         ]
       in
       FExpr.mk_application ~keyword "ExtType:Param:Unknown"
-  
-    in  
+
+    in
     match extended_parameter_type with
      | Tuple ts                                              -> tuple_to_fexpr ts
      | Int n                                                 -> int_to_fexpr n
@@ -111,7 +111,7 @@ end = struct
      | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Sub"
      | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Mul"
      | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
-  
+
 end and BoolExpression : sig
 
   type t =
@@ -126,9 +126,9 @@ end and BoolExpression : sig
     | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
 
   val to_fexpr : t -> FExpr.t
-  
+
 end = struct
-         
+
   type t =
     | Var                  of int
     | And                  of t * t
@@ -173,13 +173,13 @@ module ReturnValue = struct
           match ocaml_location with
           | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
              FExpr.mk_string @@ Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
-        
+
         and sail_location' =
           FExpr.mk_string @@ Sail.string_of_location sail_location
-        
+
         and annotation' =
           FExpr.mk_string annotation
-        
+
         in
         let keyword =
           [

@@ -75,7 +75,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         FExpr.mk_application ~keyword "MatchList"
       end
-      
+
     | MatchProduct { matched; id_fst; id_snd; body } -> begin
         let keyword =
           [
@@ -87,7 +87,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         FExpr.mk_application ~keyword "MatchProduct"
       end
-      
+
     | MatchBool { condition; when_true; when_false } -> begin
         let keyword =
           [
@@ -98,7 +98,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         FExpr.mk_application ~keyword "MatchBool"
       end
-      
+
     | MatchEnum { matched; matched_type; cases } -> begin
         let cases' =
           let case_to_fexpr (enum_identifier, statement) =
@@ -118,7 +118,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         FExpr.mk_application ~keyword "MatchEnum"
       end
-      
+
     | MatchVariant { matched; matched_type; cases } -> begin
         let cases' =
           let case_to_fexpr (constructor, (identifiers, clause)) =

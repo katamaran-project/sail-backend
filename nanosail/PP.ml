@@ -386,7 +386,7 @@ let delimited_list ~delimiters ~items ~separator =
         b,
         c,
         ...]
-   
+
 *)
 let application ~head ~delimiters ~arguments ~separator =
   let left_delimiter, right_delimiter = delimiters

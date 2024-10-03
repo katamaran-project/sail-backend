@@ -15,7 +15,7 @@
     - positional arguments
     - keyword arguments
     An application is formatted as Head[pos1, pos2, ..., kw1=val1, kw2=val2, ...]
-  
+
 *)
 open Base
 

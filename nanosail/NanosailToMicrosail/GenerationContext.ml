@@ -187,7 +187,7 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.docume
    If enabled (see configuration), surrounds <contents> by a tag and location. Helpful for debugging.
 
    For example,
-   
+
      generation_block [%here] (PP.string "Some label") (PP.string "Contents")
 
    produces

@@ -44,7 +44,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           pp_value'
         ]
       end
-      
+
   and pp_binary_operation
       (binary_operator : Ast.BinaryOperator.t)
       (left_operand    : Ast.Expression.t    )

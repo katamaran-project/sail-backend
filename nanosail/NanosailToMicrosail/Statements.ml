@@ -134,7 +134,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
              | x  =>  stm_exp (exp_int 1%Z)
              | y  =>  stm_exp (exp_int 2%Z)
              end
-           
+
         *)
         let pp_using_match_notation () =
           let* pp_cases : PP.document list =
@@ -183,7 +183,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (*
            Alternative match translation function.
            Uses stm_match_enum.
-           
+
            For example,
 
              enum MyEnum = { x, y }
@@ -411,7 +411,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         ~(binding_statement_type : Ast.Type.t      )
         ~(binding_statement      : Ast.Statement.t )
         ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
-    = 
+    =
     let  pp_variable_identifier    = Identifier.pp variable_identifier in
     let* pp_binding_statement      = pp_statement binding_statement
     and* pp_binding_statement_type = Nanotype.pp_nanotype binding_statement_type

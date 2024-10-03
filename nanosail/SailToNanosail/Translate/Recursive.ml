@@ -58,8 +58,8 @@ end = struct
           | Some (Record _)  -> TC.return @@ Ast.Type.Record identifier'
           | Some (Enum _)    -> TC.return @@ Ast.Type.Enum identifier'
           | None             -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id_as_string
-        end  
-  
+        end
+
   (*
     Sail represents types with parameters with Typ_app (id, type_args).
     This function translates these to their corresponding nanotype.
@@ -91,19 +91,19 @@ end = struct
       match args with
       | [ _ ] -> TC.return Ast.Type.Bool
       | _     -> TC.fail [%here] "atom_bool expected to have exactly one argument"
-  
+
     and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.Type t ] -> TC.return @@ Ast.Type.List t
       | [ _ ]                       -> TC.fail [%here] "List argument expected to be type"
       | _                           -> TC.fail [%here] "List should receive exactly one argument"
-  
+
     and nanotype_of_bits (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
       | [ _ ]                                                     -> TC.fail [%here] "bits argument expected to be numeric expression"
       | _                                                         -> TC.fail [%here] "bits should receive exactly one argument"
-  
+
     and nanotype_of_existential
         (ids         : Libsail.Ast.kinded_id list)
         (constraints : Libsail.Ast.n_constraint  )
@@ -199,7 +199,7 @@ end = struct
         in
         TC.return @@ Ast.Numeric.Expression.Id identifier'
 
-    in    
+    in
     let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) =
       numeric_expression
     in

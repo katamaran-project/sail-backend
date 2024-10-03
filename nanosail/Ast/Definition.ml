@@ -51,7 +51,7 @@ module Function = struct
   let to_fexpr (function_definition : t) : FExpr.t =
     let function_name' =
       Identifier.to_fexpr function_definition.function_name
-  
+
     and function_type' =
       FunctionType.to_fexpr function_definition.function_type
 
