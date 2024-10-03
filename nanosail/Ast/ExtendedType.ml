@@ -113,6 +113,7 @@ end = struct
      | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
   
 end and BoolExpression : sig
+
   type t =
     | Var                  of int
     | And                  of t * t
@@ -123,7 +124,11 @@ end and BoolExpression : sig
     | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
     | GreaterThan          of IntExpression.t * IntExpression.t
     | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
+
+  val to_fexpr : t -> FExpr.t
+  
 end = struct
+         
   type t =
     | Var                  of int
     | And                  of t * t
@@ -134,7 +139,20 @@ end = struct
     | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
     | GreaterThan          of IntExpression.t * IntExpression.t
     | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
-    end
+
+  let rec to_fexpr (bool_expression : t) : FExpr.t =
+    match bool_expression with
+     | Var n                         -> FExpr.mk_application ~positional:[FExpr.mk_int n] "BoolExpr:Var"
+     | And (e1, e2)                  -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "BoolExpr:And"
+     | Or (e1, e2)                   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "BoolExpr:Or"
+     | Equal (e1, e2)                -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:Equal"
+     | NotEqual (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:NotEqual"
+     | LessThan (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:LessThan"
+     | LessThanOrEqualTo (e1, e2)    -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:LessThanOrEqualTo"
+     | GreaterThan (e1, e2)          -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThan"
+     | GreaterThanOrEqualTo (e1, e2) -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThanOrEqualTo"
+
+end
 
 module ReturnValue = struct
   type t =
