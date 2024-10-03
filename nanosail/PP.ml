@@ -320,9 +320,9 @@ let pp_binary_operation (operator : document) (operands : document list) =
 
 *)
 let enclose
-    ?(separator  : document           = space)
-     (delimiters : document * document       )
-     (enclosed   : document                  ) : document
+    ?(separator  : document            = space)
+     (delimiters : document * document        )
+     (enclosed   : document                   ) : document
   =
   let left_delimiter, right_delimiter = delimiters
   in
@@ -334,9 +334,9 @@ let enclose
 
 
 let enclose_vertically
-    ?(separator : document            = hardline)
-     (delimiters : document * document          )
-     (enclosed   : document                     ) : document
+    ?(separator : document             = hardline)
+     (delimiters : document * document           )
+     (enclosed   : document                      ) : document
   =
   let left_delimiter, right_delimiter = delimiters
   in
