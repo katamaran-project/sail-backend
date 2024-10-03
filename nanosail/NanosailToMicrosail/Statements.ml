@@ -411,7 +411,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         ~(binding_statement_type : Ast.Type.t      )
         ~(binding_statement      : Ast.Statement.t )
         ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
-    =
+    = 
     let  pp_variable_identifier    = Identifier.pp variable_identifier in
     let* pp_binding_statement      = pp_statement binding_statement
     and* pp_binding_statement_type = Nanotype.pp_nanotype binding_statement_type
@@ -456,15 +456,18 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp register_identifier ])
 
-  and pp_write_register_statement (args : Ast.Statement.write_register_arguments) : PP.document GC.t =
-    let register_identifier = Identifier.pp args.register_identifier
-    and rhs = Identifier.pp args.written_value
+  and pp_write_register_statement
+        ~(register_identifier : Ast.Identifier.t)
+        ~(written_value       : Ast.Identifier.t) : PP.document GC.t
+    =
+    let pp_register_identifier = Identifier.pp register_identifier
+    and pp_written_value = Identifier.pp written_value
     in
     GC.return begin
       PP.simple_app [
         Identifier.pp @@ Ast.Identifier.mk "stm_write_register";
-        register_identifier;
-        PP.(parens @@ simple_app [string "exp_var"; dquotes rhs]);
+        pp_register_identifier;
+        PP.(parens @@ simple_app [string "exp_var"; dquotes pp_written_value]);
       ]
     end
 
@@ -526,7 +529,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                                    ~body_statement
   | Seq (s1, s2)                              -> pp_sequence_statement s1 s2
   | ReadRegister register_identifier          -> pp_read_register_statement register_identifier
-  | WriteRegister args                        -> pp_write_register_statement args
+  | WriteRegister { register_identifier;
+                    written_value }           -> pp_write_register_statement
+                                                   ~register_identifier
+                                                   ~written_value
   | DestructureRecord destructure_record      -> pp_destructure_record_statement destructure_record
   | Cast (statement_to_be_cast, target_type)  -> pp_cast_statement statement_to_be_cast target_type
   | Fail message                              -> pp_fail_statement message

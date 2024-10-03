@@ -12,22 +12,17 @@ type t =
     in
     <body>
   *)
-  | Let               of { variable_identifier    : Identifier.t;
-                           binding_statement_type : Type.t      ;
-                           binding_statement      : t           ;
-                           body_statement         : t           }
+  | Let               of { variable_identifier    : Identifier.t ;
+                           binding_statement_type : Type.t       ;
+                           binding_statement      : t            ;
+                           body_statement         : t            }
   | DestructureRecord of destructure_record_arguments
   | Seq               of t * t
   | ReadRegister      of Identifier.t
-  | WriteRegister     of write_register_arguments
+  | WriteRegister     of { register_identifier : Identifier.t ;
+                           written_value       : Identifier.t }
   | Cast              of t * Type.t
   | Fail              of string
-
-and write_register_arguments =
-  {
-    register_identifier  : Identifier.t;
-    written_value        : Identifier.t;
-  }
 
 and match_pattern =
   | MatchList    of match_pattern_list
