@@ -12,10 +12,10 @@ type t =
     in
     <body>
   *)
-  | Let               of { variable_identifier    : Identifier.t ;
-                           binding_statement_type : Type.t       ;
-                           binding_statement      : t            ;
-                           body_statement         : t            }
+  | Let               of { variable_identifier    : Identifier.t      ;
+                           binding_statement_type : Type.t            ;
+                           binding_statement      : t                 ;
+                           body_statement         : t                 }
   | DestructureRecord of { record_type_identifier : Identifier.t      ;
                            field_identifiers      : Identifier.t list ;
                            variable_identifiers   : Identifier.t list ;
@@ -32,7 +32,7 @@ and match_pattern =
   | MatchList    of { matched   : t                               ;
                       when_cons : Identifier.t * Identifier.t * t ;
                       when_nil  : t                               }
-  | MatchProduct of { matched : t            ;
+  | MatchProduct of { matched : t                                 ;
                       id_fst  : Identifier.t ;
                       id_snd  : Identifier.t ;
                       body    : t            }
