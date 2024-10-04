@@ -160,6 +160,10 @@ let string_of_document ?(page_width = 80) document =
   Stdlib.Buffer.contents buffer
 
 
+let html_of_document document =
+  string_of_document document
+
+
 let separate_nonempty separator items =
   let open PPrint
   in
