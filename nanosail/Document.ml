@@ -50,8 +50,6 @@ module Make(Annotation : ANNOTATION) = struct
     | AnnotatedString { string; _ } -> String.length string
     | Concatenation (s1, s2)        -> length s1 + length s2
 
-  let space = String " "
-
 
   let to_annotated_strings (document : t) : annotated_string list =
     let rec to_annotated_strings
