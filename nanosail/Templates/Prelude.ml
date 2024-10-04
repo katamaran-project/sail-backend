@@ -13,11 +13,13 @@ end
 
 
 let string_of_document document =
-  let text_width = Configuration.(get output_width)
-  and buffer     = Stdlib.Buffer.create 10000
+  let page_width = Configuration.(get output_width)
   in
-  PPrint.ToBuffer.pretty 1.0 text_width buffer document;
-  Stdlib.Buffer.contents buffer
+  PP.string_of_document ~page_width document
+
+
+let html_of_document =
+  PP.html_of_document
 
 
 let nullary_string_function id func =
@@ -78,6 +80,15 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     nullary_string_function id f
   in
 
+  let exported_base_html_translation =
+    let id = "base-translation-html"
+    in
+    let f () =
+      EC.return @@ html_of_document @@ GC.generate translation#pp_base
+    in
+    nullary_string_function id f
+  in
+  
   let exported_program_translation =
     let id = "program-translation"
     in
@@ -138,6 +149,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   let exported : (string * Slang.Value.t) list = [
     exported_generate;
     exported_base_translation;
+    exported_base_html_translation;
     exported_program_translation;
     exported_ignored_definitions;
     exported_untranslated_definitions;
