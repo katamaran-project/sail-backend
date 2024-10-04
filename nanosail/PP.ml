@@ -154,7 +154,7 @@ let pad_right width document =
 
 
 let string_of_document ?(page_width = 80) document =
-  let buffer = Stdlib.Buffer.create 1000
+  let buffer = Stdlib.Buffer.create 10000
   in
   PPrint.ToBuffer.pretty 1.0 page_width buffer document;
   Stdlib.Buffer.contents buffer
