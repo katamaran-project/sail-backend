@@ -33,7 +33,7 @@ let rec pp (fexpr : t) : PP.document =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
   | Bool b           -> PP.string @@ if b then "True" else "False"
-  | String s         -> PP.(dquotes @@ string s)
+  | String s         -> PP.(surround dquotes @@ string s)
   | Nil              -> PP.string "Nil"
   | Application { head; positional; keyword } -> begin
       let head = PP.string head
@@ -42,7 +42,7 @@ let rec pp (fexpr : t) : PP.document =
         let pp_positional =
           List.map ~f:pp positional
         and pp_keyword =
-          List.map ~f:(fun (k, v) -> PP.(string k ^^ equals ^^ (pp v))) keyword
+          List.map ~f:(fun (k, v) -> PP.(horizontal [ string k; equals; pp v ])) keyword
         in
         List.concat [pp_positional; pp_keyword]
       and separator = PP.string ","

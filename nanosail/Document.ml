@@ -14,13 +14,6 @@ let indent_strings (indentation : int) (strings : string list) : string list =
   List.map indent strings
 
 
-let split_last (xs : 'a list) : 'a list * 'a =
-  match List.rev xs with
-  | []    -> failwith "error"
-  | x::xs -> (List.rev xs, x)
-
-
-
 module type ANNOTATION = sig
   type t
 
@@ -63,23 +56,25 @@ module Make(Annotation : ANNOTATION) = struct
           let left'  = to_annotated_strings accumulated_annotation left
           and right' = to_annotated_strings accumulated_annotation right
           in
-          let upper_left', last_left' = split_last left'
-          in
-          match right' with
-          | [] -> failwith "error"
-          | first_right' :: bottom_right' -> begin
-              let indentation =
-                AnnotatedString {
-                  string     = repeat_string " " (length last_left');
-                  annotation = Annotation.empty
-                }
-              in
-              List.concat [
-                upper_left';
-                [Concatenation (last_left', first_right')];
-                List.map (fun s -> Concatenation (indentation, s)) bottom_right'
-              ]
+          match Auxlib.split_last left' with
+          | Some (upper_left', last_left') -> begin
+              match right' with
+              | [] -> failwith "error"
+              | first_right' :: bottom_right' -> begin
+                  let indentation =
+                    AnnotatedString {
+                      string     = repeat_string " " (length last_left');
+                      annotation = Annotation.empty
+                    }
+                  in
+                  List.concat [
+                    upper_left';
+                    [Concatenation (last_left', first_right')];
+                    List.map (fun s -> Concatenation (indentation, s)) bottom_right'
+                  ]
+                end
             end
+          | None -> failwith "TODO"
         end
       | Vertical (top, bottom) -> begin
           List.concat [
@@ -134,7 +129,10 @@ module Make(Annotation : ANNOTATION) = struct
   let empty = Empty
 
 
-  let string s = String s
+  let string s =
+    if Int.equal 0 @@ String.length s
+    then Empty
+    else String s
 
 
   let rec horizontal (documents : t list) : t =
@@ -217,26 +215,13 @@ module Make(Annotation : ANNOTATION) = struct
     in
     layout [ left_delimiter; enclosed; right_delimiter ]
 
+  
+  let rec is_empty (document : t) : bool =
+    match document with
+     | Empty              -> true
+     | String _           -> false
+     | Horizontal (_, _)  -> false
+     | Vertical (_, _)    -> false
+     | Annotated (doc, _) -> is_empty doc
+  
 end
-
-
-module StringAnnotation = struct
-  type t = string
-
-  let empty = ""
-
-  let combine _ s2 = s2
-
-  let to_html s = s
-end
-
-module Doc = Make(StringAnnotation)
-
-open Doc
-
-let doc = annotate "upper" @@ horizontal [
-    vertical [ string "aaaaaaaaaaaa"; string "bbbbbbbb"; string "cccccccccccccc" ];
-    annotate "lower" @@ vertical [ string "dddddd"; string "eeee"; string "eeeeeeeeeeeee" ] ]
-
-
-let () = print_endline @@ to_html doc
