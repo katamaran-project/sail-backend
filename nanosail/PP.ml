@@ -390,9 +390,7 @@ let application ~head ~delimiters ~arguments ~separator =
   horizontal [
     head;
     left_delimiter;
-    vertical @@ Auxlib.map_except_last
-      ~f:(fun arg -> horizontal [arg; separator])
-      ~f_last:(fun arg -> arg)
-      arguments;
+    Doc.separate_vertically ~separator arguments;
     right_delimiter
   ]
+
