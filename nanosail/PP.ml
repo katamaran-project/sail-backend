@@ -110,9 +110,8 @@ let string_of_document (document : document) : string =
   Doc.to_string document
 
 
-(* todo *)
 let html_of_document document =
-  string_of_document document
+  Doc.to_html document
 
 
 let separate_horizontally
