@@ -134,7 +134,7 @@ type module_flag =
 let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.(
-      pp_sentence @@ separate space @@ Auxlib.build_list (fun { add; addall; _ } ->
+      pp_sentence @@ separate_horizontally ~separator:space @@ Auxlib.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
             match flag with
@@ -150,9 +150,12 @@ let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
           end;
         )
     )
-  and last_line = PP.(pp_sentence @@ separate space [ string "End"; string identifier ])
+  and last_line = PP.(pp_sentence @@ separate_horizontally ~separator:space [ string "End"; string identifier ])
   in
-  PP.indented_enclosed_lines first_line contents last_line
+  let delimiters =
+    (first_line, last_line)
+  in
+  PP.(surround ~layout:vertical delimiters (indent contents))
 
 
 let pp_definition
