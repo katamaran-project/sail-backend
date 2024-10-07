@@ -146,10 +146,15 @@ module Make(Annotation : ANNOTATION) = struct
     let rec html_of_annotated_string (s : annotated_string) : string =
       match s with
       | AnnotatedString {string; annotation} -> begin
-          Printf.sprintf
-            {|<span class="tooltipped">%s<div class="tooltip">%s</div></span>|}
-            (Html.escape_string string)
-            (Html.escape_string @@ Annotation.to_html annotation)
+          if
+            Annotation.is_empty annotation
+          then
+            Html.escape_string string
+          else
+            Printf.sprintf
+              {|<span class="tooltipped">%s<div class="tooltip">%s</div></span>|}
+              (Html.escape_string string)
+              (Html.escape_string @@ Annotation.to_html annotation)
         end
       | Concatenation (s1, s2) -> begin
           String.concat ~sep:"" [
