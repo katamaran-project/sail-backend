@@ -410,3 +410,7 @@ let repeat           = Doc.repeat
 let description_list = Doc.description_list
 let is_single_line   = Doc.is_single_line
 let hanging_list     = Doc.hanging_list
+let measure          = Doc.measure
+let measure_width    = Doc.measure_width
+let measure_height   = Doc.measure_height
+let pad_right        = Doc.pad_right
