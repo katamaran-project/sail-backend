@@ -19,7 +19,7 @@ let pp_require_imports () : PP.document =
         add "ZArith.BinInt"
       )
   in
-  PP.(separate (twice hardline) [
+  PP.(paragraphs [
       Coq.pp_require ~from:(Some "Coq"      ) ~import:true coq_imports;
       Coq.pp_require ~from:(Some "Katamaran") ~import:true [ "Semantics.Registers"; "Bitvector"; "Program" ];
       Coq.pp_require ~from:(Some "stdpp"    ) ~import:true [ "finite" ];
@@ -54,16 +54,16 @@ let pp_import_base () : PP.document =
 
 
 let generate_program_prelude () : PP.document GC.t =
-  GC.return @@ PP.(separate (twice hardline) [
+  GC.return @@ PP.paragraphs [
       pp_require_imports ();
       pp_imports ();
       pp_open_scopes ();
       pp_import_base ();
-    ])
+    ]
 
 
 let generate_base_prelude () : PP.document GC.t =
-  GC.return @@ PP.separate PP.hardline [
+  GC.return @@ PP.paragraphs [
     Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
     Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
     Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
@@ -90,7 +90,7 @@ let pp_program_module
       and* foreign_kit =
         ForeignKit.pp_foreign_kit ()
       in
-      GC.return @@ PP.vertical ~separator:PP.(twice hardline) [
+      GC.return @@ PP.paragraphs [
         function_declaration_kit;
         Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
         function_definition_kit;
