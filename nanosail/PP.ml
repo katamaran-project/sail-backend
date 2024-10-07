@@ -58,13 +58,9 @@ let bar        = Doc.bar
 let underscore = Doc.underscore
 
 let surround  = Doc.surround
-
-let is_empty (document : document) =
-  Doc.is_empty document
-
-
-let indent ?(level = 2) document =
-  Doc.indent ~level document
+let indent    = Doc.indent
+                  
+let is_empty  = Doc.is_empty
 
 
 (*
