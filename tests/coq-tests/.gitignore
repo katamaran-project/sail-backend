@@ -8,4 +8,5 @@ log.txt
 *.vok
 *.vos
 *.aux
-*.html
+base.html
+machine.html
