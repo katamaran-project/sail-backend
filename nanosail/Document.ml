@@ -146,7 +146,7 @@ module Make(Annotation : ANNOTATION) = struct
       match s with
       | AnnotatedString {string; annotation} -> begin
           Printf.sprintf
-            {|<span class="tooltipped">%s<div class="tooltip">%s</div></div>|}
+            {|<span class="tooltipped">%s<div class="tooltip">%s</div></span>|}
             (Html.escape_string string)
             (Html.escape_string @@ Annotation.to_html annotation)
         end
