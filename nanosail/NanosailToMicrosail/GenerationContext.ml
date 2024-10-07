@@ -376,7 +376,7 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
     Configuration.(get include_original_code)
   then
     add_comment begin
-      PP.vertical ~separator:PP.(twice hardline) [
+      PP.vertical @@ List.intersperse ~sep:PP.(string "") [
         PP.string "Original Sail code";
         PP.indent @@ PP.vertical begin
           List.map ~f:pp_sail_definition originals
