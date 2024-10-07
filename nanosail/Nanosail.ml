@@ -12,3 +12,4 @@ module ComparisonNotations = ComparisonNotations
 module PrecedenceFormatter = PrecedenceFormatter
 module FExpr               = FExpr
 module Document            = Document
+module Html                = Html
