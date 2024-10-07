@@ -347,4 +347,11 @@ module Make(Annotation : ANNOTATION) = struct
       horizontal [ document; padding ]
     else
       document
+
+
+  (*
+    Arranges items vertically with an empty line in between each
+  *)
+  let paragraphs (documents : t list) : t =
+    vertical @@ List.intersperse ~sep:(string "") documents
 end

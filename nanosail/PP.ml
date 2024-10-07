@@ -118,6 +118,7 @@ let measure               = Doc.measure
 let measure_width         = Doc.measure_width
 let measure_height        = Doc.measure_height
 let pad_right             = Doc.pad_right
+let paragraphs            = Doc.paragraphs
 
 
 (*
@@ -132,8 +133,3 @@ let pp_binary_operation (operator : document) (operands : document list) =
   separate_horizontally ~separator operands
 
 
-(*
-  Arranges items vertically with an empty line in between each
-*)
-let paragraphs (documents : document list) : document =
-  vertical @@ List.intersperse ~sep:(string "") documents
