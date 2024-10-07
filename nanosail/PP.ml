@@ -417,3 +417,10 @@ let pp_binary_operation (operator : document) (operands : document list) =
     horizontal [space; operator; ]
   in
   separate_horizontally ~separator operands
+
+
+(*
+  Arranges items vertically with an empty line in between each
+*)
+let paragraphs (documents : document list) : document =
+  vertical @@ List.intersperse ~sep:(string "") documents
