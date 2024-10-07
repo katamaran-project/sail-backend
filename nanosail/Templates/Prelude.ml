@@ -13,9 +13,7 @@ end
 
 
 let string_of_document document =
-  let page_width = Configuration.(get output_width)
-  in
-  PP.string_of_document ~page_width document
+  PP.string_of_document document
 
 
 let html_of_document =
@@ -113,7 +111,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
           let* ignored_definitions' =
             GC.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions
           in
-          GC.return @@ PP.vertical ~separator:PP.(twice hardline) ignored_definitions'
+          GC.return @@ PP.paragraphs ignored_definitions'
         in
         GC.generate result
       in
@@ -130,7 +128,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
         translation#untranslated_definitions
       in
       let formatted_untranslated_definitions =
-        PPrint.(separate (twice hardline) @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
+        PP.(paragraphs @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
       in
       EC.return @@ string_of_document formatted_untranslated_definitions
     in
