@@ -413,3 +413,4 @@ let separate_horizontally
 let repeat           = Doc.repeat
 let description_list = Doc.description_list
 let is_single_line   = Doc.is_single_line
+let hanging_list     = Doc.hanging_list
