@@ -30,19 +30,20 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     match value with
     | Bool true        -> GC.return @@ PP.string "exp_true"
     | Bool false       -> GC.return @@ PP.string "exp_false"
-    | Int n            -> GC.return @@ PP.(simple_app [string "exp_int"; Coq.pp_integer n])
-    | String s         -> GC.return @@ PP.(simple_app [string "exp_string"; dquotes (string s)])
-    | Unit             -> GC.return @@ PP.(simple_app [string "exp_val"; string "ty.unit"; string "tt"])
+    | Int n            -> GC.return @@ Coq.pp_application (PP.string "exp_int") [ Coq.pp_integer n]
+    | String s         -> GC.return @@ Coq.pp_application (PP.string "exp_string") [ PP.(surround dquotes @@ string s) ]
+    | Unit             -> GC.return @@ Coq.pp_application (PP.string "exp_val") [ PP.string "ty.unit"; PP.string "tt"]
     | Prod (_, _) as v -> begin
         let* pp_tuple_type = Nanotype.pp_nanotype (Ast.Value.type_of_value v)
         in
         let* pp_value' = pp_value v
         in
-        GC.return @@ PP.simple_app [
-          PP.string "exp_val";
-          pp_tuple_type;
-          pp_value'
-        ]
+        GC.return @@ Coq.pp_application
+                       (PP.string "exp_val")
+                       [
+                         pp_tuple_type;
+                         pp_value'
+                       ]
       end
 
   and pp_binary_operation
@@ -50,16 +51,16 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (left_operand    : Ast.Expression.t    )
       (right_operand   : Ast.Expression.t    ) : PP.document GC.t
     =
-    let* pp_left_operand  = GC.lift ~f:PP.parens @@ pp_expression left_operand
-    and* pp_right_operand = GC.lift ~f:PP.parens @@ pp_expression right_operand
+    let* pp_left_operand  = GC.lift ~f:PP.(surround parens) @@ pp_expression left_operand
+    and* pp_right_operand = GC.lift ~f:PP.(surround parens) @@ pp_expression right_operand
     in
     let pp id =
-      GC.return @@ PP.(simple_app [
-         string "exp_binop";
-         string id;
-         pp_left_operand;
-         pp_right_operand
-       ])
+      GC.return @@ Coq.pp_application (PP.string "exp_binop") [
+                       PP.string "exp_binop";
+                       PP.string id;
+                       pp_left_operand;
+                       pp_right_operand
+                     ]
     in
     match binary_operator with
     | Pair   -> pp "bop.pair"
@@ -70,9 +71,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         in
         GC.return begin
           PP.horizontal [
-            PP.parens pp_left_operand;
+            PP.(surround parens) pp_left_operand;
             binop';
-            PP.parens pp_right_operand;
+            PP.(surround parens) pp_right_operand;
           ]
         end
       end
@@ -89,14 +90,14 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     | Ast.UnaryOperator.Not -> pp_logical_negation operand
 
   and pp_negation (operand : Ast.Expression.t) : PP.document GC.t =
-    let* pp_operand = GC.lift ~f:PP.parens @@ pp_expression operand
+    let* pp_operand = GC.lift ~f:PP.(surround parens) @@ pp_expression operand
     in
-    GC.return @@ PP.(separate space [minus; pp_operand])
+    GC.return @@ PP.(separate_horizontally ~separator:space [minus; pp_operand])
 
   and pp_logical_negation (operand : Ast.Expression.t) : PP.document GC.t =
-    let* pp_operand = GC.lift ~f:PP.parens @@ pp_expression operand
+    let* pp_operand = GC.lift ~f:PP.(surround parens) @@ pp_expression operand
     in
-    GC.return @@ PP.(simple_app [string "exp_not"; pp_operand])
+    GC.return @@ Coq.pp_application (PP.string "exp_not") [ pp_operand ]
 
   and pp_list (elements : Ast.Expression.t list) : PP.document GC.t =
     let* pp_elements =
@@ -105,21 +106,20 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     let pp_list =
       Coq.pp_list ~use_notation:Configuration.(get use_list_notations) pp_elements
     in
-    GC.return @@ PP.(simple_app [string "exp_list"; pp_list])
+    GC.return @@ Coq.pp_application (PP.string "exp_list") [ pp_list ]
 
   and pp_record
       (type_identifier      : Ast.Identifier.t     )
       (variable_identifiers : Ast.Identifier.t list) : PP.document GC.t
     =
-    GC.return @@ PP.simple_app [
-        PP.string "exp_record";
-        Identifier.pp @@ Configuration.reified_record_name type_identifier;
-        Coq.pp_list_using_notation begin
-            List.map
-              variable_identifiers
-              ~f:(fun id -> PP.(simple_app [ string "exp_var"; dquotes @@ Identifier.pp id ]))
-        end
-      ]
+    GC.return @@ Coq.pp_application (PP.string "exp_record") [
+                     Identifier.pp @@ Configuration.reified_record_name type_identifier;
+                     Coq.pp_list_using_notation begin
+                         List.map
+                           variable_identifiers
+                           ~f:(fun id -> Coq.pp_application (PP.string "exp_var") [ PP.(surround dquotes) @@ Identifier.pp id ])
+                       end
+                   ]
 
   in
   match expression with
@@ -131,7 +131,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Record { type_identifier; variable_identifiers } -> pp_record type_identifier variable_identifiers
   | Enum args -> begin
       let enum_type =
-        PP.simple_app [ PP.string "ty.enum"; Identifier.pp @@ Configuration.reified_enum_name args.type_identifier ]
+        Coq.pp_application
+          (PP.string "ty.enum")
+          [ Identifier.pp @@ Configuration.reified_enum_name args.type_identifier ]
       and enum_constructor =
         Identifier.pp args.constructor_identifier
       in
