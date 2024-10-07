@@ -194,7 +194,9 @@ let pp_extended_function_type
     eft.extended_return_type
   in
   let* pp_parameter_names =
-    GC.return @@ List.map ~f:(fun name -> PP.(string "parameter " ^^ PP.string name)) parameter_names
+    GC.return begin
+        List.map ~f:(fun name -> PP.(horizontal [ string "parameter "; PP.string name ])) parameter_names
+      end
   and* pp_parameter_extended_types =
     GC.map ~f:pp_extended_parameter_type parameter_extended_types
   in

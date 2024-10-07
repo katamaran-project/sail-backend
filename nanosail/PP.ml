@@ -406,4 +406,5 @@ let separate_horizontally
   Doc.separate_horizontally ~separator items
 
 
-let repeat = Doc.repeat
+let repeat           = Doc.repeat
+let description_list = Doc.description_list
