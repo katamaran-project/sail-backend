@@ -63,10 +63,6 @@ let indent    = Doc.indent
 let is_empty  = Doc.is_empty
 
 
-
-
-
-
 let string_of_document    = Doc.to_string
 let html_of_document      = Doc.to_html
 
