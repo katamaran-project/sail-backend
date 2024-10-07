@@ -40,9 +40,9 @@ let squote     = string "'"
 let dquote     = string "\""
 
 let surround
-      ?(layout : document list -> document = horizontal)
-       ((left_delimiter, right_delimiter) : (document * document))
-       (document : document) : document
+      ?(layout                            : document list -> document = horizontal)
+       ((left_delimiter, right_delimiter) : (document * document)                 )
+       (document                          : document                              ) : document
   =
   layout [left_delimiter; document; right_delimiter]
 
