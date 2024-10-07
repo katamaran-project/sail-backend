@@ -448,7 +448,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_left  = pp_par_statement left
       and* pp_right = pp_par_statement right
       in
-      GC.return @@ Coq.pp_application
+      GC.return @@ Coq.pp_hanging_function_application
                      (PP.string "stm_seq")
                      [
                        pp_left;
