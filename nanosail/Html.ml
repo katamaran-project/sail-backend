@@ -6,6 +6,7 @@ let escape_char (char : char) : string =
   | '<' -> "&lt;"
   | '>' -> "&gt;"
   | '&' -> "&amp;"
+  | ' ' -> "&nbsp;"
   | _   -> String.make 1 char
 
 
