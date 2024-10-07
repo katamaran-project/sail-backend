@@ -157,7 +157,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
 
 let pp_obligation_tactic () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "Obligation Tactic") begin
-    PP.vertical_strings [
+    PP.vertical @@ List.map ~f:PP.string [
         "Local Obligation Tactic :=";
         "  finite_from_eqdec."
       ]
