@@ -40,7 +40,7 @@ let record_delimiters      = (record_left_delimiter, record_right_delimiter)
 
 let tuple_left_delimiter   = PP.lparen
 let tuple_right_delimiter  = PP.rparen
-
+let tuple_delimiters       = (tuple_left_delimiter, tuple_right_delimiter)
 
 
 let pp_sentence contents =
