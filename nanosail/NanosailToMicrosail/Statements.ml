@@ -431,7 +431,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           ]
         )
     else
-      GC.return @@ Coq.pp_application
+      GC.return @@ Coq.pp_hanging_function_application
                      (PP.string "stm_let")
                      [
                        PP.(surround dquotes) pp_variable_identifier;
