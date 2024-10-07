@@ -159,15 +159,15 @@ module Make(Annotation : ANNOTATION) = struct
     String.concat ~sep:"\n" html_lines
 
 
-  let empty = Empty
-
-
   let string s =
     if Int.equal 0 @@ String.length s
     then Empty
     else String s
 
+  let empty = Empty
+  let space = string " "
 
+  
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
       match d1, d2 with
@@ -283,4 +283,21 @@ module Make(Annotation : ANNOTATION) = struct
         (document : t          ) : t
     =
     layout @@ Auxlib.repeat n document
+
+
+  let pad_right
+        (target_width : int)
+        (document     : t  ) : t
+    =
+    let (width, _) = measure document
+    in
+    if
+      width < target_width
+    then
+      let padding =
+        repeat horizontal (target_width - width) space
+      in
+      horizontal [ document; padding ]
+    else
+      document
 end
