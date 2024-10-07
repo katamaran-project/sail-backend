@@ -291,7 +291,7 @@ let pp_integer i =
   let pp_i = PP.(string (Big_int.to_string i ^ "%Z"))
   in
   if Big_int.less i Z.zero
-  then PP.parens pp_i
+  then PP.(surround parens) pp_i
   else pp_i
 
 
