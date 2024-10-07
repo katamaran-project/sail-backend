@@ -171,14 +171,14 @@ let pp_definition
     let pp_implicit_parameters =
       let pp_implicit_parameter (var, typ) =
         match typ with
-        | Some typ -> braces @@ separate space [ var; colon; typ ]
-        | None     -> braces @@ var
+        | Some typ -> surround braces @@ separate_horizontally ~separator:space [ var; colon; typ ]
+        | None     -> surround braces @@ var
       in
       List.map ~f:pp_implicit_parameter implicit_parameters
     and pp_explicit_parameters =
       let pp_parameter (var, typ) =
         match typ with
-        | Some typ -> parens @@ var ^^ string " : " ^^ typ
+        | Some typ -> surround parens @@ horizontal [ var; string " : "; typ ]
         | None     -> var
       in
       List.map ~f:pp_parameter parameters
@@ -188,7 +188,7 @@ let pp_definition
     in
     if List.is_empty pp_explicit_and_implicit_parameters
     then None
-    else Some (PP.horizontal_or_vertical pp_explicit_and_implicit_parameters)
+    else Some (PP.vertical pp_explicit_and_implicit_parameters)
   in
   let pp_return_type =
     match result_type with
@@ -196,7 +196,7 @@ let pp_definition
     | Some rt -> Some (PP.(horizontal [ PP.colon; rt ]))
   in
   let definition_line =
-    PP.build_horizontal @@ fun { add; addopt; _ } -> begin
+    PP.horizontal @@ Auxlib.build_list begin fun { add; addopt; _ } ->
       add    @@ PP.string "Definition";
       add    @@ identifier;
       addopt @@ pp_parameters;
@@ -204,7 +204,7 @@ let pp_definition
       add    @@ string ":=";
     end
   in
-  pp_sentence @@ PP.horizontal_or_indent definition_line body
+  pp_sentence @@ PP.vertical [ definition_line; indent body ]
 
 
 let pp_match
