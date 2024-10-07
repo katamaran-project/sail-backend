@@ -543,4 +543,10 @@ let pp_notation notation expression =
 
 
 let pp_scope scope_name scoped_expression =
-  PP.(parens scoped_expression ^^ string "%" ^^ scope_name)
+  PP.(
+    horizontal [
+        surround parens scoped_expression;
+        string "%";
+        scope_name
+      ]
+  )
