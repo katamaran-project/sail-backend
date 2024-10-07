@@ -288,11 +288,11 @@ let pp_inductive_type
     let pp_parameters =
       List.map parameters ~f:(
           fun (identifier, typ) ->
-            PP.(parens @@ separate space [ identifier; colon; typ ])
+          PP.(surround parens @@ separate_horizontally ~separator:space [ identifier; colon; typ ])
         )
     in
     PP.(
-      separate space (
+      separate_horizontally ~separator:space (
         Auxlib.build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
@@ -312,7 +312,7 @@ let pp_inductive_type
     let pairs =
       List.map constructors ~f:(fun (id, params, typ) ->
           PP.(
-            separate space (
+            separate_horizontally ~separator:space (
               Auxlib.build_list (fun { add; _ } ->
                   add id;
                   if not @@ is_empty params
@@ -328,12 +328,12 @@ let pp_inductive_type
       then 0
       else
         Auxlib.maximum (
-            List.map ~f:(fun (left, _) -> PP.measure left) pairs
+            List.map ~f:(fun (left, _) -> PP.measure_width left) pairs
           )
     in
     let make_line (left, right) =
       PP.(
-        (twice space) ^^ separate space (
+        indent @@ separate_horizontally ~separator:space (
           Auxlib.build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ pad_right longest_left_part left;
@@ -354,7 +354,7 @@ let pp_inductive_type
         addall constructor_lines
       )
   in
-  return @@ Coq.pp_sentence @@ PP.(separate hardline result_lines ^^ hardline)
+  return @@ Coq.pp_sentence @@ PP.vertical result_lines
 
 
 (* todo move this to PPSail.ml *)
