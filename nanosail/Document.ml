@@ -1,3 +1,6 @@
+open Base
+
+
 let uncurry f (x, y) = f x y
 
 
@@ -11,7 +14,7 @@ let indent_strings (indentation : int) (strings : string list) : string list =
   let indent string =
     repeat_string " " indentation ^ string
   in
-  List.map indent strings
+  List.map ~f:indent strings
 
 
 module type ANNOTATION = sig
@@ -88,7 +91,7 @@ module Make(Annotation : ANNOTATION) = struct
                   List.concat [
                     upper_left';
                     [Concatenation (last_left', first_right')];
-                    List.map (fun s -> Concatenation (indentation, s)) bottom_right'
+                    List.map ~f:(fun s -> Concatenation (indentation, s)) bottom_right'
                   ]
                 end
             end
@@ -108,15 +111,15 @@ module Make(Annotation : ANNOTATION) = struct
   let rec strip_annotation (s : annotated_string) : string =
     match s with
     | AnnotatedString {string; _} -> string
-    | Concatenation (s1, s2)      -> String.concat "" [strip_annotation s1; strip_annotation s2]
+    | Concatenation (s1, s2)      -> String.concat ~sep:"" [strip_annotation s1; strip_annotation s2]
 
 
   let to_strings (document : t) : string list =
-    List.map strip_annotation @@ to_annotated_strings document
+    List.map ~f:strip_annotation @@ to_annotated_strings document
 
 
   let to_string (document : t) : string =
-    String.concat "\n" @@ to_strings document
+    String.concat ~sep:"\n" @@ to_strings document
 
 
   let to_html (document : t) : string =
@@ -129,7 +132,7 @@ module Make(Annotation : ANNOTATION) = struct
             (Annotation.to_html annotation)
         end
       | Concatenation (s1, s2) -> begin
-          String.concat "" [
+          String.concat ~sep:"" [
             html_of_annotated_string s1;
             html_of_annotated_string s2
           ]
@@ -139,9 +142,9 @@ module Make(Annotation : ANNOTATION) = struct
       to_annotated_strings document
     in
     let html_lines =
-      List.map html_of_annotated_string annotated_strings
+      List.map ~f:html_of_annotated_string annotated_strings
     in
-    String.concat "\n" html_lines
+    String.concat ~sep:"\n" html_lines
 
 
   let empty = Empty
