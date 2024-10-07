@@ -397,3 +397,10 @@ let application ~head ~delimiters ~arguments ~separator =
 
 let string_of_document (document : document) : string =
   Doc.to_string document
+
+
+let separate_horizontally
+      ~(separator : document     )
+       (items     : document list) : document
+  =
+  Doc.separate_horizontally ~separator items
