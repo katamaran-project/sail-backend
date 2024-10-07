@@ -22,48 +22,42 @@ let string     = Doc.string
 let horizontal = Doc.horizontal
 let vertical   = Doc.vertical
 
-let plus       = string "+"
-let star       = string "*"
-let minus      = string "-"
-let equals     = string "="
+let plus       = Doc.plus
+let star       = Doc.star
+let minus      = Doc.minus
+let equals     = Doc.equals
 
-let lparen     = string "("
-let rparen     = string ")"
-let langle     = string "<"
-let rangle     = string ">"
-let lbracket   = string "["
-let rbracket   = string "]"
-let lbrace     = string "{"
-let rbrace     = string "}"
+let lparen     = Doc.lparen
+let rparen     = Doc.rparen
+let langle     = Doc.langle
+let rangle     = Doc.rangle
+let lbracket   = Doc.lbracket
+let rbracket   = Doc.rbracket
+let lbrace     = Doc.lbrace
+let rbrace     = Doc.rbrace
 
-let squote     = string "'"
-let dquote     = string "\""
+let squote     = Doc.squote
+let dquote     = Doc.dquote
 
-let surround
-      ?(layout                            : document list -> document = horizontal)
-       ((left_delimiter, right_delimiter) : (document * document)                 )
-       (document                          : document                              ) : document
-  =
-  layout [left_delimiter; document; right_delimiter]
+let braces     = Doc.braces
+let parens     = Doc.parens
+let squotes    = Doc.squotes
+let dquotes    = Doc.dquotes
+let brackets   = Doc.brackets
 
-let braces     = (lbrace  , rbrace  )
-let parens     = (lparen  , rparen  )
-let squotes    = (squote  , squote  )                 
-let dquotes    = (dquote  , dquote  )
-let brackets   = (lbracket, rbracket)
+let dot        = Doc.dot
+let bang       = Doc.bang
+let semi       = Doc.semi
+let comma      = Doc.comma
+let colon      = Doc.colon
+let space      = Doc.space
 
-let dot        = string "."
-let bang       = string "!"
-let semi       = string ";"
-let comma      = string ","
-let colon      = string ":"
-let space      = string " "
+let ampersand  = Doc.ampersand
+let percent    = Doc.percent
+let bar        = Doc.bar
+let underscore = Doc.underscore
 
-let ampersand  = string "&"
-let percent    = string "%"
-let bar        = string "|"
-let underscore = string "_"
-
+let surround  = Doc.surround
 
 let is_empty (document : document) =
   Doc.is_empty document

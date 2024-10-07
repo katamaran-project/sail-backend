@@ -169,10 +169,44 @@ module Make(Annotation : ANNOTATION) = struct
   let string s =
     String s
 
-  let empty = Empty
-  let space = string " "
+  let empty      = Empty
 
-  
+  let plus       = string "+"
+  let star       = string "*"
+  let minus      = string "-"
+  let equals     = string "="
+
+  let lparen     = string "("
+  let rparen     = string ")"
+  let langle     = string "<"
+  let rangle     = string ">"
+  let lbracket   = string "["
+  let rbracket   = string "]"
+  let lbrace     = string "{"
+  let rbrace     = string "}"
+
+  let squote     = string "'"
+  let dquote     = string "\""
+
+  let braces     = (lbrace  , rbrace  )
+  let parens     = (lparen  , rparen  )
+  let squotes    = (squote  , squote  )                 
+  let dquotes    = (dquote  , dquote  )
+  let brackets   = (lbracket, rbracket)
+
+  let dot        = string "."
+  let bang       = string "!"
+  let semi       = string ";"
+  let comma      = string ","
+  let colon      = string ":"
+  let space      = string " "
+
+  let ampersand  = string "&"
+  let percent    = string "%"
+  let bar        = string "|"
+  let underscore = string "_"
+
+
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
       match d1, d2 with
@@ -282,6 +316,14 @@ module Make(Annotation : ANNOTATION) = struct
     vertical @@ build items
 
 
+  let surround
+      ?(layout                           : t list -> t = horizontal)
+      ((left_delimiter, right_delimiter) : (t * t)                 )
+      (document                          : t                       ) : t
+    =
+    layout [left_delimiter; document; right_delimiter]
+
+  
   let repeat
         (layout   : t list -> t)
         (n        : int        )
