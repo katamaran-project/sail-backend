@@ -314,15 +314,6 @@ let indent ?(level = 2) document =
 
 (* (\* *)
 
-(*   a + b + c + d *)
-
-(* *\) *)
-(* let pp_binary_operation (operator : document) (operands : document list) = *)
-(*   horizontal ~separator:(space ^^ operator ^^ space) operands *)
-
-
-(* (\* *)
-
 (*    [ enclosed ] *)
 
 (*    separator can be used to specify how to separate the delimiters from the enclosed document *)
@@ -414,3 +405,15 @@ let measure          = Doc.measure
 let measure_width    = Doc.measure_width
 let measure_height   = Doc.measure_height
 let pad_right        = Doc.pad_right
+
+
+(*
+
+  a + b + c + d
+
+*)
+let pp_binary_operation (operator : document) (operands : document list) =
+  let separator =
+    horizontal [space; operator; ]
+  in
+  separate_horizontally ~separator operands
