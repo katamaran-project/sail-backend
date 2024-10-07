@@ -165,8 +165,6 @@ let indent ?(level = 2) document =
 (*   Stdlib.Buffer.contents buffer *)
 
 
-(* let html_of_document document = *)
-(*   string_of_document document *)
 
 
 (* let separate_nonempty separator items = *)
@@ -388,6 +386,11 @@ let application ~head ~delimiters ~arguments ~separator =
 
 let string_of_document (document : document) : string =
   Doc.to_string document
+
+
+(* todo *)
+let html_of_document document =
+  string_of_document document
 
 
 let separate_horizontally
