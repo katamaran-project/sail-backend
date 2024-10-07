@@ -109,7 +109,7 @@ let pp_product
     (v1 : PP.document)
     (v2 : PP.document) : PP.document
   =
-  PP.(surround tupple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
+  PP.(surround tuple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
 
 
 let pp_section identifier contents =
