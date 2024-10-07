@@ -118,20 +118,20 @@ let convert_frame_to_document (frame : frame) =
   in
   let pp_annotations =
     let pp_annotation index (Annotation annotation) =
-      PP.(horizontal ~separator:(space ^^ colon ^^ space) [
-          brackets @@ string @@ Int.to_string index;
-          align annotation
+      PP.(separate_horizontally ~separator:(horizontal [ space; colon; space ]) [
+          PP.(surround brackets) @@ string @@ Int.to_string index;
+          annotation
         ])
     in
     List.mapi ~f:pp_annotation annotations
   and pp_comments =
     List.map ~f:(fun (Comment c) -> c) comments
   in
-  PP.build_vertical ~separator:(PP.twice PP.hardline) @@ fun { addall; _ } -> begin
-    addall pp_comments;
-    addall pp_annotations
-  end
-
+  let union =
+    List.concat [ pp_comments; pp_annotations ]
+  in
+  PP.vertical @@ List.intersperse ~sep:(PP.string "") union
+  
 
 (*
    Computes f and gathers all comments/annotations during its execution.
