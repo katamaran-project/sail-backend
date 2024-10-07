@@ -33,6 +33,15 @@ module Make(Annotation : ANNOTATION) = struct
     | Annotated  of t * Annotation.t
 
 
+  let rec is_empty (document : t) : bool =
+    match document with
+     | Empty              -> true
+     | String _           -> false
+     | Horizontal (_, _)  -> false
+     | Vertical (_, _)    -> false
+     | Annotated (doc, _) -> is_empty doc
+
+  
   type annotated_string =
     | AnnotatedString of { string : string; annotation : Annotation.t }
     | Concatenation of annotated_string * annotated_string
@@ -203,15 +212,6 @@ module Make(Annotation : ANNOTATION) = struct
     layout [ left_delimiter; enclosed; right_delimiter ]
 
   
-  let rec is_empty (document : t) : bool =
-    match document with
-     | Empty              -> true
-     | String _           -> false
-     | Horizontal (_, _)  -> false
-     | Vertical (_, _)    -> false
-     | Annotated (doc, _) -> is_empty doc
-
-
   (*
     Creates horizontal box in which the items are separated
     by the given separator
