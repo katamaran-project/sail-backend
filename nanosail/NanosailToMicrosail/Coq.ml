@@ -324,7 +324,7 @@ let pp_imports names =
 let pp_open_scopes scopes =
   let open_scope scope =
     PP.(
-      pp_sentence @@ horizontal [
+      pp_sentence @@ separate_horizontally ~separator:space [
         string "Local Open Scope";
         string scope;
       ]
