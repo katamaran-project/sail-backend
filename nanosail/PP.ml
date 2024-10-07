@@ -85,4 +85,9 @@ let annotate
     (ocaml_location : Lexing.position)
     (document       : document       ) : document
   =
-  Doc.annotate (StringOf.OCaml.position ocaml_location) document
+  let { pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position = ocaml_location
+  in
+  let annotation =
+    Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
+  in
+  Doc.annotate annotation document
