@@ -87,12 +87,12 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
   | Tuple ts     -> begin
       let* ts' = GC.map ~f:pp_extended_parameter_type ts (* todo add parentheses around each t of ts *)
       in
-      GC.return @@ PP.(separate (string " * ") ts')
+      GC.return @@ PP.(separate_horizontally ~separator:(string " * ") ts')
     end
   | Unknown ud   -> begin
       let* annotation_index =
         let annotation_document =
-          PP.lines [
+          PP.vertical @@ List.map ~f:PP.string [
               ud.annotation;
               Printf.sprintf "OCaml position: %s" @@ StringOf.OCaml.position ud.ocaml_location;
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location ud.sail_location;
