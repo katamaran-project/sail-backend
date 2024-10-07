@@ -75,8 +75,14 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
-  let type_name = Identifier.pp regname_inductive_type_identifier
-  and typ = PP.string "Set"
+  let type_name =
+    PP.annotate [%here] begin
+      Identifier.pp regname_inductive_type_identifier
+    end
+  and typ =
+    PP.annotate [%here] begin
+      PP.string "Set"
+    end
   in
   let* inductive_type =
     GC.block begin
@@ -85,7 +91,11 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
         )
     end
   in
-  GC.generation_block [%here] (PP.string "Regname Inductive Type") inductive_type
+  GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
+    PP.annotate [%here] begin
+      inductive_type
+    end
+  end
 
 
 let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
