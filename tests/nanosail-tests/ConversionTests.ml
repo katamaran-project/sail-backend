@@ -7,12 +7,6 @@ module TC = Nanosail.SailToNanosail.TranslationContext
 module GC = Nanosail.NanosailToMicrosail.GenerationContext
 
 
-let string_of_document ?(line_width = 10000) (document : PPrint.document) : string =
-  let buffer = Stdlib.Buffer.create 1000
-  in
-  PPrint.ToBuffer.pretty 1.0 line_width buffer document;
-  Stdlib.Buffer.contents buffer
-
 
 let addloc (numexp : S.Ast.nexp_aux) =
   S.Ast.Nexp_aux (numexp, Unknown)
@@ -23,7 +17,7 @@ let string_of_numeric_expression (nexp : S.Ast.nexp)  =
   | (TC.Success nano_nexp, _) -> begin
       let document = GC.generate (Nanosail.NanosailToMicrosail.Numeric.Expression.pp nano_nexp)
       in
-      string_of_document document
+      Nanosail.PP.string_of_document document
     end
   | _ -> assert_failure "translation failed"
 
