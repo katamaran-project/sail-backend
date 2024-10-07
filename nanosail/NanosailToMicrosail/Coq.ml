@@ -370,10 +370,10 @@ let pp_finite_instance
   let declaration =
   PP.(
     vertical [
-      separate space [
+      separate_horizontally ~separator:space [
         string "#[export,program]";
         string "Instance";
-        identifier ^^ string "_finite";
+        horizontal [identifier; string "_finite"];
         colon;
         string "Finite";
         type_name;
@@ -384,7 +384,7 @@ let pp_finite_instance
           string "{|";
           string "enum";
           string ":=";
-          align @@ enum_values;
+          enum_values;
           string "|}"
         ]
       end
