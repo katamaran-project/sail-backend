@@ -39,8 +39,8 @@ let rbrace     = string "}"
 let squote     = string "'"
 let dquote     = string "\""
 
-let surround (left_delimiter, right_delimiter) document =
-  horizontal [left_delimiter; document; right_delimiter]
+let surround ?(layout = horizontal) (left_delimiter, right_delimiter) document =
+  layout [left_delimiter; document; right_delimiter]
 
 let braces     = (lbrace  , rbrace  )
 let parens     = (lparen  , rparen  )
