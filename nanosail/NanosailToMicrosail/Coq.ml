@@ -68,6 +68,13 @@ let add_comments
   PP.vertical [ pp_comment comments; document ]
 
 
+let pp_hanging_function_application
+      (func      : PP.document     )
+      (arguments : PP.document list) : PP.document
+  =
+  PP.(hanging_list @@ horizontal [ func; space ] :: arguments)
+
+
 let pp_list_using_notation (items : PP.document list) : PP.document =
   if
     List.is_empty items
