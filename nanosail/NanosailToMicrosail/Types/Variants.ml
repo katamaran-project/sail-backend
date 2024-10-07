@@ -23,7 +23,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
       in
       let ts = ts @ [ identifier' ]
       in
-      GC.return @@ PP.separate (PP.string " -> ") ts
+      GC.return @@ PP.separate_horizontally ~separator:(PP.string " -> ") ts
     in
     let* type_quantifier' =
       GC.map type_quantifier ~f:(fun (id, kind) ->
