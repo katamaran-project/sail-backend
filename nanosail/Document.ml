@@ -170,19 +170,6 @@ module Make(Annotation : ANNOTATION) = struct
     Annotated (document, annotation)
   
 
-  let separate
-      (separator : t          )
-      (documents : t list     ) : t list
-    =
-    let rec separate documents =
-      match documents with
-      | [] -> []
-      | [d] -> [d]
-      | d::ds -> d :: separator :: separate ds
-    in
-    separate documents
-
-
   let hanging_list (documents : t list) : t =
     match documents with
     | []            -> empty
