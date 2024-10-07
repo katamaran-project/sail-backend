@@ -65,7 +65,7 @@ let add_comments
     ~(comments : PP.document)
     ~(document : PP.document) : PP.document
   =
-  PP.separate PP.hardline [ pp_comment comments; document ]
+  PP.vertical [ pp_comment comments; document ]
 
 
 let pp_list_using_notation (items : PP.document list) : PP.document =
