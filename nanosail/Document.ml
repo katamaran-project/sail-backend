@@ -167,9 +167,7 @@ module Make(Annotation : ANNOTATION) = struct
 
 
   let string s =
-    if Int.equal 0 @@ String.length s
-    then Empty
-    else String s
+    String s
 
   let empty = Empty
   let space = string " "
