@@ -130,21 +130,20 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
 let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   let enum_values =
     let enum_value_of_register_name register_name =
-      PP.(
-        separate space [
-          string "existT";
-          underscore;
+      Coq.pp_application
+        (PP.string "existT")
+        [
+          PP.underscore;
           register_name
-        ]
-      )
+        ]      
     in
     Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.generation_block [%here] (PP.string "REG_finite Instance") begin
     PP.(
-      Coq.pp_sentence @@ separate hardline (
+      Coq.pp_sentence @@ vertical (
         [
-          utf8string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
+          string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
           PP.indent begin
             Coq.pp_record_value [
               (string "enum", enum_values)
