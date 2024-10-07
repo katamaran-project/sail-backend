@@ -83,7 +83,7 @@ let pp_list_using_notation (items : PP.document list) : PP.document =
 let rec pp_list_using_cons (items : PP.document list) : PP.document =
   match items with
   | []         -> PP.string "nil"
-  | head::tail -> PP.(parens @@ simple_app [string "cons"; head; pp_list_using_cons tail])
+  | head::tail -> PP.(surround parens @@ separate_horizontally ~separator:space [string "cons"; head; pp_list_using_cons tail])
 
 
 let pp_list ?(use_notation = true) (items : PP.document list) : PP.document =
