@@ -354,20 +354,6 @@ let pp_inductive_type
   return @@ Coq.pp_sentence @@ PP.vertical result_lines
 
 
-(* todo move this to PPSail.ml *)
-let pp_sail_definition sail_definition =
-  let document =
-    Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
-  in
-  let str =
-    String.rstrip @@ PPSail.string_of_pprint_document document
-  in
-  let lines =
-    List.map ~f:String.rstrip @@ String.split_lines str
-  in
-  PP.vertical @@ List.map ~f:PP.string lines
-
-
 let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
   if
     Configuration.(get include_original_code)

@@ -67,3 +67,16 @@ let string_of_pprint_document (document : PPrint.document) =
   in
   PPrint.ToBuffer.pretty 1.0 text_width buffer document;
   Stdlib.Buffer.contents buffer
+
+
+let pp_sail_definition sail_definition =
+  let document =
+    Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  in
+  let str =
+    String.rstrip @@ PPSail.string_of_pprint_document document
+  in
+  let lines =
+    List.map ~f:String.rstrip @@ String.split_lines str
+  in
+  PP.vertical @@ List.map ~f:PP.string lines

@@ -54,7 +54,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       let* type_definitions' =
         GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
       in
-      GC.return @@ PP.vertical ~separator:PP.(twice hardline) type_definitions'
+      GC.return @@ PP.paragraphs type_definitions'
     end
 
   method pp_enum_tags : PP.document GC.t =
@@ -113,7 +113,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
     in
     genblock [%here] "Finite" begin
-      Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(separate (twice hardline) parts)
+      Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(paragraphs parts)
     end
 
   method pp_no_confusion : PP.document GC.t =
@@ -146,9 +146,9 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       let transparent_obligations =
         PP.string "Local Set Transparent Obligations."
       and no_confusion_lines =
-        PP.separate_map PP.hardline Coq.pp_derive_no_confusion_for no_confusion_identifiers
+        PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for no_confusion_identifiers
       in
-      PP.separate (PP.twice PP.hardline) [ transparent_obligations; no_confusion_lines ]
+      PP.paragraphs [ transparent_obligations; no_confusion_lines ]
     in
     genblock [%here] "No Confusion" begin
       Coq.pp_section section_identifier section_contents
@@ -182,7 +182,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     let coq_lines = List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
     in
     genblock [%here] "EqDec" begin
-      PP.separate PP.hardline coq_lines
+      PP.vertical coq_lines
     end
 
   method pp_value_definitions : PP.document GC.t =
@@ -203,7 +203,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       self#pp_value_definitions;
     ]
     in
-    GC.return @@ PP.(separate_nonempty (twice hardline) sections)
+    GC.return @@ PP.(paragraphs sections)
 
   method pp_program : PP.document GC.t =
     let* sections = GC.sequence [
@@ -211,7 +211,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         self#pp_program_module;
       ]
     in
-    GC.return @@ PP.(separate_nonempty (twice hardline) sections)
+    GC.return @@ PP.(paragraphs sections)
 end
 
 
@@ -223,7 +223,7 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
       katamaran#pp_program;
     ]
   in
-  GC.return @@ PP.(separate_nonempty (twice hardline) sections)
+  GC.return @@ PP.(paragraphs sections)
 
 
 let full_translation (ir : Ast.program) : PP.document =
