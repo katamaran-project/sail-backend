@@ -39,7 +39,11 @@ let rbrace     = string "}"
 let squote     = string "'"
 let dquote     = string "\""
 
-let surround ?(layout = horizontal) (left_delimiter, right_delimiter) document =
+let surround
+      ?(layout : document list -> document = horizontal)
+       ((left_delimiter, right_delimiter) : (document * document))
+       (document : document) : document
+  =
   layout [left_delimiter; document; right_delimiter]
 
 let braces     = (lbrace  , rbrace  )
