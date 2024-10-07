@@ -29,7 +29,7 @@ module Prec = struct
 
   let negation =
     let pp x =
-      PP.(string "-" ^^ x)
+      PP.(horizontal [string "-"; x])
     in
     define_unary_prefix_operator 50 pp
 
