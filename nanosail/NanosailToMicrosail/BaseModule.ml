@@ -38,7 +38,7 @@ let pp_imports () : PP.document GC.t =
 
  *)
 let pp_open_string_scope () : PP.document GC.t =
-  GC.return @@ PP.vertical_strings [
+  GC.return @@ PP.vertical @@ List.map ~f:PP.string [
     "Local Open Scope string_scope."
   ]
 
@@ -74,7 +74,7 @@ let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.t
  *)
 let pp_typedeclkit () : PP.document GC.t =
   genblock [%here] "typedeclkit" begin
-    GC.return @@ PP.vertical_strings [
+    GC.return @@ PP.vertical @@ List.map ~f:PP.string [
       "#[export] Instance typedeclkit : TypeDeclKit :=";
       "  {|";
       "     enumi   := Enums;";
@@ -231,7 +231,7 @@ let pp_typedenotekit () : PP.document GC.t =
       "  |}.";
     ]
     in
-    GC.return @@ PP.(separate_map hardline string coq_lines)
+    GC.return @@ PP.(vertical @@ List.map ~f:string coq_lines)
   end
 
 
@@ -341,7 +341,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
           in
           GC.return (
             Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
-            PP.(string "fun k => " ^^ align match_constructor_cases)
+            PP.(horizontal [ string "fun k => "; match_constructor_cases ])
           )
         in
         GC.map ~f:pp_variant_case variant_definitions
@@ -386,7 +386,7 @@ let pp_eqdec_and_finite_instances () : PP.document GC.t =
     ]
   in
   genblock [%here] "EqDec/Finite Instances" begin
-    GC.return @@ PP.(separate_map hardline string coq_lines)
+    GC.return @@ PP.(vertical @@ List.map ~f:PP.string coq_lines)
   end
 
 
@@ -483,8 +483,8 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
               match field_variables with
               | []     -> tt
               | [t]    -> t
-              | [_; _] -> PP.(parens @@ separate (comma ^^ space) field_variables)
-              | _      -> PP.(parens @@ separate (comma ^^ space) (tt :: field_variables))
+              | [_; _] -> PP.(surround parens @@ separate_horizontally ~separator:(horizontal [comma; space]) field_variables)
+              | _      -> PP.(surround parens @@ separate_horizontally ~separator:(horizontal [comma; space]) (tt :: field_variables))
             in
             let parts = [
               PP.string "existT";
@@ -492,9 +492,9 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
               fields
             ]
             in
-            PP.(separate space parts)
+            PP.(separate_horizontally ~separator:space parts)
           and expression =
-            PP.(separate space @@ Identifier.pp constructor_identifier :: field_variables)
+            PP.(separate_horizontally ~separator:space @@ Identifier.pp constructor_identifier :: field_variables)
           in
           GC.return (pattern, expression)
         in
@@ -564,7 +564,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
             in
             List.map ~f:generate_identifier indices
           in
-          let pattern = PP.separate PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+          let pattern = PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
               add    @@ Identifier.pp constructor_identifier;
               addall @@ field_names
             end
@@ -575,10 +575,10 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
               match field_names with
               | []     -> tt
               | [t]    -> t
-              | [_; _] -> PP.parens @@ PP.separate (PP.string ", ") field_names
-              | _      -> PP.parens @@ PP.separate (PP.string ", ") (tt :: field_names)
+              | [_; _] -> PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string ", ") field_names
+              | _      -> PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string ", ") (tt :: field_names)
             in
-            PP.(separate space [
+            PP.(separate_horizontally ~separator:space [
                 string "existT";
                 Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_identifier;
                 tuple
@@ -628,7 +628,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
               in
               let* t = Nanotype.pp_nanotype field_type
               in
-              GC.return PP.(separate space [ PP.dquotes id; string "::"; t ])
+              GC.return PP.(separate_horizontally ~separator:space [ surround dquotes id; string "::"; t ])
             in
             let* fields = GC.map ~f:pp_field record_definition.fields
             in
@@ -675,13 +675,12 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
         [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
       and result_type =
         let parameter_type =
-          PP.separate PP.space [
-            PP.string "NamedEnv";
-            PP.string "Val";
-            PP.parens (PP.separate PP.space [ PP.string "record_field_type"; Identifier.pp matched_identifier ])
-          ]
+          Coq.pp_application (PP.string "NamedEnv") [
+              PP.string "Val";
+              PP.(surround parens) @@ Coq.pp_application (PP.string "record_field_type") [ Identifier.pp matched_identifier ];
+            ]
         and result_type =
-          PP.separate PP.space [ PP.string "recordt"; Identifier.pp matched_identifier ]
+          Coq.pp_application (PP.string "recordt") [ Identifier.pp matched_identifier ]
         in
         Some (Coq.pp_function_type [ parameter_type ] result_type)
       in
@@ -743,13 +742,12 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       and parameters = [ (Identifier.pp matched_identifier, Some (PP.string "recordi")) ]
       and result_type =
         (* recordt R -> NamedEnv Val (record_field_type R) *)
-        let parameter_type = PP.simple_app [ PP.string "recordt"; Identifier.pp matched_identifier ]
+        let parameter_type = Coq.pp_application (PP.string "recordt") [ Identifier.pp matched_identifier ]
         and return_type =
-          PP.separate PP.space [
-            PP.string "NamedEnv";
-            PP.string "Val";
-            PP.parens @@ PP.separate PP.space [ PP.string "record_field_type"; Identifier.pp matched_identifier ]
-          ]
+          Coq.pp_application (PP.string "NamedEnv") [
+              PP.string "Val";
+              PP.(surround parens) @@ Coq.pp_application (PP.string "record_field_type") [ Identifier.pp matched_identifier ]
+            ]
         in
         Some (Coq.pp_function_type [ parameter_type ] return_type)
       in
@@ -766,13 +764,13 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
                 let make_binding (field_identifier, field_type) =
                   let* pp_field_type = Nanotype.pp_nanotype field_type
                   in
-                  GC.return @@ PP.separate PP.space [
-                    PP.utf8string "►";
-                    PP.parens @@ PP.separate PP.space [
-                      PP.dquotes @@ Identifier.pp field_identifier;
-                      PP.utf8string "∷";
+                  GC.return @@ PP.separate_horizontally ~separator:PP.space [
+                    PP.string "►";
+                    PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [
+                      PP.(surround dquotes) @@ Identifier.pp field_identifier;
+                      PP.string "∷";
                       pp_field_type;
-                      PP.utf8string "↦";
+                      PP.string "↦";
                       Identifier.pp field_identifier;
                       Identifier.pp lambda_parameter
                     ]
@@ -780,7 +778,9 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
                 in
                 GC.map ~f:make_binding record_definition.fields
               in
-              GC.return PP.(string "env.nil" ^^ hardline ^^ twice space ^^ align (separate hardline bindings))
+              GC.return PP.(vertical [
+                                string "env.nil";
+                                indent @@ vertical bindings ])
             in
             GC.return @@ Coq.pp_lambda (Identifier.pp lambda_parameter) lambda_body
           in
@@ -821,7 +821,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
  *)
 let pp_typedefkit_instance () : PP.document GC.t =
   genblock [%here] "Typedefkit" begin
-    GC.return @@ PP.vertical_strings [
+    GC.return @@ PP.vertical @@ List.map ~f:PP.string [
       "#[export,refine] Instance typedefkit : TypeDefKit typedenotekit :=";
       "  {| unionk           := union_constructor;";
       "     unionk_ty        := union_constructor_type;";
@@ -859,7 +859,7 @@ let pp_canonicals () : PP.document GC.t =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
   genblock [%here] "Canonicals" begin
-    GC.return @@ PP.separate_map PP.hardline Coq.pp_canonical identifiers
+    GC.return @@ PP.vertical @@ List.map ~f:Coq.pp_canonical identifiers
   end
 
 
@@ -981,7 +981,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_include_mixin ();
       ]
       in
-      GC.return @@ PP.vertical ~separator:PP.(twice hardline) sections
+      GC.return @@ PP.vertical @@ List.intersperse ~sep:PP.(string "") sections
     in
     GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
   end
