@@ -10,7 +10,7 @@ end
 module PPOutput = struct
   type t = PP.document
 
-  let parenthesize = PP.parens
+  let parenthesize = PP.(surround parens)
 end
 
 
