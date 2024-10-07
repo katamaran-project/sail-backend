@@ -354,4 +354,18 @@ module Make(Annotation : ANNOTATION) = struct
   *)
   let paragraphs (documents : t list) : t =
     vertical @@ List.intersperse ~sep:(string "") documents
+
+  (*
+
+    a + b + c + d
+ 
+  *)
+  let pp_binary_operation
+      (operator : t     )
+      (operands : t list) : t
+    =
+    let separator =
+      horizontal [space; operator; ]
+    in
+    separate_horizontally ~separator operands
 end

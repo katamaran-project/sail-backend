@@ -119,17 +119,5 @@ let measure_width         = Doc.measure_width
 let measure_height        = Doc.measure_height
 let pad_right             = Doc.pad_right
 let paragraphs            = Doc.paragraphs
-
-
-(*
-
-  a + b + c + d
-
-*)
-let pp_binary_operation (operator : document) (operands : document list) =
-  let separator =
-    horizontal [space; operator; ]
-  in
-  separate_horizontally ~separator operands
-
+let pp_binary_operation   = Doc.pp_binary_operation
 
