@@ -44,7 +44,7 @@ let tuple_right_delimiter  = PP.rparen
 
 
 let pp_sentence contents =
-  PP.(contents ^^ eol)
+  PP.(horizontal [contents; eol])
 
 
 let pp_inline_comment (comment : PP.document) : PP.document =
