@@ -516,7 +516,7 @@ let pp_function_type parameter_types result_type =
 
 
 let pp_canonical identifier =
-  pp_sentence @@ PP.simple_app [ PP.string "Canonical"; Identifier.pp identifier ]
+  pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; Identifier.pp identifier ])
 
 
 let pp_include_module (name : PP.document) =
