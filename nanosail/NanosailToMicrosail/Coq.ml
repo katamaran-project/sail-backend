@@ -330,7 +330,7 @@ let pp_open_scopes scopes =
       ]
     )
   in
-  PP.(separate hardline (List.map ~f:open_scope scopes))
+  PP.(vertical @@ List.map ~f:open_scope scopes)
 
 
 let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
