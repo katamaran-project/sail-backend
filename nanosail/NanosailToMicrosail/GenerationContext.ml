@@ -127,10 +127,7 @@ let convert_frame_to_document (frame : frame) =
   and pp_comments =
     List.map ~f:(fun (Comment c) -> c) comments
   in
-  let union =
-    List.concat [ pp_comments; pp_annotations ]
-  in
-  PP.vertical @@ List.intersperse ~sep:(PP.string "") union
+  PP.paragraphs @@ List.concat [ pp_comments; pp_annotations ]
   
 
 (*
