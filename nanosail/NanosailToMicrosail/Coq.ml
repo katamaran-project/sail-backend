@@ -68,6 +68,11 @@ let add_comments
   PP.vertical [ pp_comment comments; document ]
 
 
+let pp_application (values : PP.document list) : PP.document
+  =
+  PP.(separate_horizontally ~separator:space values)
+
+
 let pp_hanging_function_application
       (func      : PP.document     )
       (arguments : PP.document list) : PP.document
