@@ -981,7 +981,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
         pp_include_mixin ();
       ]
       in
-      GC.return @@ PP.vertical @@ List.intersperse ~sep:PP.(string "") sections
+      GC.return @@ PP.paragraphs sections
     in
     GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
   end
