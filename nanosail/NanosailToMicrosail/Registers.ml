@@ -43,7 +43,7 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
 let pp_no_confusion_for_reg () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "No Confusion for Reg") begin
     Coq.pp_section (Ast.Identifier.mk "TransparentObligations") (
-      PP.(separate hardline [
+      PP.(vertical [
           string "Local Set Transparent Obligations.";
           string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
         ])
@@ -52,7 +52,7 @@ let pp_no_confusion_for_reg () : PP.document GC.t =
 
 
 let pp_reg_definition () : PP.document GC.t =
-  GC.return @@ PP.utf8string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+  GC.return @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 
 let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
@@ -111,10 +111,16 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   in
   GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
     PP.(
-      separate hardline [
-        utf8string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-        string "  fun '(existT σ " ^^ pp_id1 ^^ string ") '(existT τ " ^^ pp_id2 ^^ string ") =>";
-        indent (Coq.pp_match_pair (pp_id1, pp_id2) cases) ^^ Coq.eol;
+      vertical [
+        string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
+        horizontal [
+            string "  fun '(existT σ ";
+            pp_id1;
+            string ") '(existT τ ";
+            pp_id2;
+            string ") =>";
+          ];
+        indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
         string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
       ]
     )
