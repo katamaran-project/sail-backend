@@ -363,12 +363,12 @@ let pp_sail_definition sail_definition =
     Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
   let str =
-    String.rstrip @@ PP.string_of_document document
+    String.rstrip @@ PPSail.string_of_pprint_document document
   in
   let lines =
     List.map ~f:String.rstrip @@ String.split_lines str
   in
-  PP.vertical_strings lines
+  PP.vertical @@ List.map ~f:PP.string lines
 
 
 let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
