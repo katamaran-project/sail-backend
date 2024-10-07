@@ -133,7 +133,7 @@ module Make(Annotation : ANNOTATION) = struct
 
   
   (* todo improve implementation *)
-  let rec measure (document : t) : int * int =
+  let measure (document : t) : int * int =
     (measure_width document, measure_height document)
     
 
