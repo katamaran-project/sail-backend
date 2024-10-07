@@ -17,7 +17,7 @@ let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
       (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t
   =
-  genblock [%here] PP.(string "Function Definition " ^^ Identifier.pp function_definition.function_name) begin
+  genblock [%here] PP.(horizontal [ string "Function Definition "; Identifier.pp function_definition.function_name ]) begin
     GC.block begin
       let* () = GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
       in
@@ -46,12 +46,12 @@ let pp_function_definition
           let* pp_result_type =
             Nanotype.pp_nanotype function_definition.function_type.return_type
           in
-          GC.return @@ Some (
-            PP.hanging_list (PP.string "Stm") [
-              bindings;
-              PP.parens pp_result_type
-            ]
-          )
+          GC.return @@ Some begin
+                           Coq.pp_hanging_function_application (PP.string "Stm") [
+                               bindings;
+                               PP.(surround parens) pp_result_type
+                             ]
+                         end
         in
         let* pp_body =
           Statements.pp_statement function_definition.function_body
@@ -126,16 +126,16 @@ let pp_function_definition_kit
     let fundef =
       let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
       and implicit_parameters = [
-        (PP.utf8string "Δ", None);
-        (PP.utf8string "τ", None);
+        (PP.string "Δ", None);
+        (PP.string "τ", None);
       ]
       and parameters = [
-        (PP.utf8string "f", Some (PP.utf8string "Fun Δ τ"))
+        (PP.string "f", Some (PP.string "Fun Δ τ"))
       ]
-      and result_type = Some (PP.utf8string "Stm Δ τ")
+      and result_type = Some (PP.string "Stm Δ τ")
       and body =
         let matched_expression =
-          PP.utf8string "f in Fun Δ τ return Stm Δ τ"
+          PP.string "f in Fun Δ τ return Stm Δ τ"
         and cases =
           let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
             (
@@ -153,7 +153,7 @@ let pp_function_definition_kit
       let* function_definitions =
         pp_function_definitions function_definitions top_level_type_constraint_definitions
       in
-      GC.return @@ PP.vertical ~separator:PP.(twice hardline) begin
+      GC.return @@ PP.vertical @@ List.intersperse ~sep:(PP.string "") begin
         Auxlib.build_list (fun { add; addall; _ } ->
             addall function_definitions;
             add    fundef
