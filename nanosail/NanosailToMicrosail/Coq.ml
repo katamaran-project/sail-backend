@@ -318,7 +318,7 @@ let pp_require
 
 
 let pp_imports names =
-  PP.(pp_sentence @@ hanging_list ~adaptive:false (string "Import") (List.map ~f:string names))
+  PP.(pp_sentence @@ hanging_list (string "Import" :: List.map ~f:string names))
 
 
 let pp_open_scopes scopes =
