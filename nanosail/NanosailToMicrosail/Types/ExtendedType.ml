@@ -18,7 +18,7 @@ module Prec = struct
   include PrecedenceFormatter.Make(PPOutput)
 
   let pp_binary operator x y =
-    PP.(separate space [ x; string operator; y ])
+    PP.(separate_horizontally ~separator:space [ x; string operator; y ])
 
 
   let variable id =
