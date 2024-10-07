@@ -211,19 +211,19 @@ let generation_block
       Printf.sprintf "%s:%d" filename line_number
     in
     let entry_block =
-      Coq.pp_inline_comment @@ PP.separate PP.space [
+      Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
         PP.string "<<<<<";
         PP.string position_string;
         label
       ]
     and exit_block =
-      Coq.pp_inline_comment @@ PP.separate PP.space [
+      Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
         PP.string ">>>>>";
         PP.string position_string;
         label
       ]
     in
-    return @@ PP.separate PP.hardline [
+    return @@ PP.vertical [
       entry_block;
       PP.indent contents;
       exit_block;
