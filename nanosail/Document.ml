@@ -223,5 +223,25 @@ module Make(Annotation : ANNOTATION) = struct
      | Horizontal (_, _)  -> false
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
-  
+
+  (*
+    Creates a vertical box in which the items are separated by
+    the given separator
+
+      hbox[item1 separator]
+      hbox[item2 separator]
+      ...
+      itemN
+  *)                                        
+  let separate_vertically
+        ~(separator : t     )
+         (items     : t list) : t
+    =
+    let rec build (items : t list) : t list =
+      match items with
+      | []    -> []
+      | [x]   -> [x]
+      | x::xs -> horizontal [ x; separator ] :: build xs
+    in
+    vertical @@ build items
 end
