@@ -224,6 +224,20 @@ module Make(Annotation : ANNOTATION) = struct
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
 
+  
+  let separate_horizontally
+        ~(separator : t     )
+         (items     : t list) : t
+    =
+    let rec separate documents =
+      match documents with
+      | []    -> []
+      | [x]   -> [x]
+      | x::xs -> x :: separator :: separate xs
+    in
+    horizontal @@ separate items
+    
+  
   (*
     Creates a vertical box in which the items are separated by
     the given separator
