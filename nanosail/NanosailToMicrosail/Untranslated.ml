@@ -47,10 +47,13 @@ let generate
     | None         -> Printf.sprintf "No message"
   in
   PP.(
-    enclose_vertically (PP.string "----", PP.string "----") @@ vertical [
-      indent @@ GC.pp_sail_definition sail_definition ^^ hardline;
-      string ocaml_location_string;
-      string sail_location_string;
-      string message_string
-    ]
+    surround
+      ~layout:vertical
+      (PP.string "----", PP.string "----")
+      (vertical [
+           indent @@ GC.pp_sail_definition sail_definition; (* todo check this; used to have ^^ hardline *)
+           string ocaml_location_string;
+           string sail_location_string;
+           string message_string
+         ])       
   )
