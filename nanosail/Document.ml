@@ -387,4 +387,22 @@ module Make(Annotation : ANNOTATION) = struct
       indent @@ separate_vertically ~separator items;    
       right_delimiter;
     ]
+
+  (*
+  
+     head[a,
+          b,
+          c,
+          ...]
+  
+  *)
+  let application ~head ~delimiters ~arguments ~separator =
+    let left_delimiter, right_delimiter = delimiters
+    in
+    horizontal [
+      head;
+      left_delimiter;
+      separate_vertically ~separator arguments;
+      right_delimiter
+    ]
 end

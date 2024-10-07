@@ -65,29 +65,13 @@ let is_empty  = Doc.is_empty
 
 
 
-(*
-
-   head[a,
-        b,
-        c,
-        ...]
-
-*)
-let application ~head ~delimiters ~arguments ~separator =
-  let left_delimiter, right_delimiter = delimiters
-  in
-  horizontal [
-    head;
-    left_delimiter;
-    Doc.separate_vertically ~separator arguments;
-    right_delimiter
-  ]
 
 
 let string_of_document    = Doc.to_string
 let html_of_document      = Doc.to_html
 
 let delimited_list        = Doc.delimited_list
+let application           = Doc.application
 let separate_horizontally = Doc.separate_horizontally
 let repeat                = Doc.repeat
 let description_list      = Doc.description_list
