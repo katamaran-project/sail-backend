@@ -336,7 +336,7 @@ let pp_open_scopes scopes =
 let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
   let items =
     let item_of_field (field_name, field_value) =
-      PP.separate PP.space [
+      PP.separate_horizontally ~separator:PP.space [
         field_name;
         PP.string ":=";
         field_value
@@ -344,7 +344,10 @@ let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
     in
     List.map ~f:item_of_field fields
   in
-  PP.(delimited_list ~delimiters:record_delimiters ~items:items ~separator:PP.(record_field_separator ^^ space))
+  let separator =
+    PP.(horizontal [ record_field_separator; space ])
+  in
+  PP.(delimited_list ~delimiters:record_delimiters ~items ~separator)
 
 
 (*
