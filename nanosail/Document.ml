@@ -146,7 +146,7 @@ module Make(Annotation : ANNOTATION) = struct
       match s with
       | AnnotatedString {string; annotation} -> begin
           Printf.sprintf
-            {|<div class="tooltipped">%s<div class="tooltip">%s</div></div>|}
+            {|<span class="tooltipped">%s<div class="tooltip">%s</div></div>|}
             (Html.escape_string string)
             (Html.escape_string @@ Annotation.to_html annotation)
         end
@@ -163,7 +163,7 @@ module Make(Annotation : ANNOTATION) = struct
     let html_lines =
       List.map ~f:html_of_annotated_string annotated_strings
     in
-    String.concat ~sep:"\n" html_lines
+    String.concat ~sep:"<br>\n" html_lines
 
 
   let string s =
