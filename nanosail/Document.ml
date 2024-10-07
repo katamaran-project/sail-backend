@@ -190,9 +190,9 @@ module Make(Annotation : ANNOTATION) = struct
     | first :: rest -> horizontal [first; vertical rest]
 
 
-  let indent ?(n = 2) (document : t) : t =
+  let indent ?(level = 2) (document : t) : t =
     horizontal [
-      string @@ repeat_string " " n;
+      string @@ repeat_string " " level;
       document
     ]
 
