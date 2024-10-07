@@ -174,11 +174,11 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.docume
       then ""
       else Printf.sprintf " (%s)" message
     in
-    PPrint.string @@ Printf.sprintf "Not yet implemented; see %s line %d%s" position.pos_fname position.pos_lnum message_suffix
+    PP.string @@ Printf.sprintf "Not yet implemented; see %s line %d%s" position.pos_fname position.pos_lnum message_suffix
   in
   let* id = add_annotation annotation_document
   in
-  let nyi = PPrint.string @@ Printf.sprintf "NYI[%d]" id
+  let nyi = PP.string @@ Printf.sprintf "NYI[%d]" id
   in
   return nyi
 
