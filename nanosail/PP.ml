@@ -371,7 +371,7 @@ let delimited_list ~delimiters ~items ~separator =
   in
   vertical [
     left_delimiter;
-    horizonta
+    indent @@ Doc.separate_vertically ~separator items;    
     right_delimiter;
   ]
 
@@ -394,3 +394,6 @@ let application ~head ~delimiters ~arguments ~separator =
     right_delimiter
   ]
 
+
+let string_of_document (document : document) : string =
+  Doc.to_string document
