@@ -86,7 +86,10 @@ let rec pp_list_using_cons (items : PP.document list) : PP.document =
   | head::tail -> PP.(surround parens @@ separate_horizontally ~separator:space [string "cons"; head; pp_list_using_cons tail])
 
 
-let pp_list ?(use_notation = true) (items : PP.document list) : PP.document =
+let pp_list
+      ?(use_notation : bool = true     )
+      (items         : PP.document list) : PP.document
+  =
   if use_notation
   then pp_list_using_notation items
   else pp_list_using_cons items
