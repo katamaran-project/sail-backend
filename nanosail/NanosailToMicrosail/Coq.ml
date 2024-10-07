@@ -403,7 +403,7 @@ let pp_record
   =
   let first_line =
     PP.(
-      separate space [
+      separate_horizontally ~separator:space [
         string "Record";
         identifier;
         colon;
@@ -414,22 +414,31 @@ let pp_record
   in
   let pp_fields =
     let longest_field_length =
-      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.measure fst) fields
+      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.measure_width fst) fields
     in
     List.map fields ~f:(
-      fun (id, t) ->
-        PP.(separate space [ PP.pad_right longest_field_length id; colon; t ] ^^ semi)
-    )
+        fun (id, t) -> begin
+            PP.(horizontal [
+                    separate_horizontally ~separator:space [ PP.pad_right longest_field_length id; colon; t ];
+                    semi
+            ])
+          end
+      )
   in
   let body =
-    PP.(separate hardline [
-            lbrace;
-            twice space ^^ align (separate hardline pp_fields);
-            rbrace
-          ]
-    )
+    PP.(surround ~layout:vertical braces (indent @@ vertical pp_fields))
   in
-  pp_sentence @@ PP.(first_line ^^ hardline ^^ indent (constructor ^^ hardline ^^ indent body))
+  pp_sentence begin
+      PP.vertical [
+          first_line;
+          PP.indent begin
+              PP.vertical [
+                  constructor;
+                  PP.indent body
+                ]
+            end
+        ]
+    end
 
 
 let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
