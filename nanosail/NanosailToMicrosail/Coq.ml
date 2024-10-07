@@ -528,16 +528,18 @@ let pp_tuple_type ts =
 
 
 let pp_notation notation expression =
-  pp_sentence @@ PP.(
-    separate_horizontally
-      ~separator:PP.space
-      [
-        string "Notation";
-        surround dquotes notation;
-        string ":=";
-        surround parens expression
-      ]
-    )
+  pp_sentence begin
+      PP.(
+      separate_horizontally
+        ~separator:PP.space
+        [
+          string "Notation";
+          surround dquotes notation;
+          string ":=";
+          surround parens expression
+        ]
+      )
+    end
 
 
 let pp_scope scope_name scoped_expression =
