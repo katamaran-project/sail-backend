@@ -224,7 +224,13 @@ module Make(Annotation : ANNOTATION) = struct
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
 
-  
+
+  (*
+    Creates horizontal box in which the items are separated
+    by the given separator
+
+      item1 separator item2 separator ... itemN
+  *)                                      
   let separate_horizontally
         ~(separator : t     )
          (items     : t list) : t
