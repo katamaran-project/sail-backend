@@ -193,10 +193,10 @@ let pp_definition
   let pp_return_type =
     match result_type with
     | None    -> None
-    | Some rt -> Some (PP.(horizontal [ PP.colon; rt ]))
+    | Some rt -> Some (PP.(separate_horizontally ~separator:PP.space [ PP.colon; rt ]))
   in
   let definition_line =
-    PP.horizontal @@ Auxlib.build_list begin fun { add; addopt; _ } ->
+    PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list begin fun { add; addopt; _ } ->
       add    @@ PP.string "Definition";
       add    @@ identifier;
       addopt @@ pp_parameters;
