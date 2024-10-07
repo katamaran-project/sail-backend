@@ -52,11 +52,7 @@ let pp_inline_comment (comment : PP.document) : PP.document =
 
 
 let pp_multiline_comment (comment : PP.document) : PP.document =
-  PP.separate PP.hardline [
-    comment_left_delimiter;
-    PP.indent comment;
-    comment_right_delimiter
-  ]
+  PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent comment
 
 
 let pp_comment (comment : PP.document) : PP.document =
