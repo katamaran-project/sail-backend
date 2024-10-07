@@ -74,7 +74,7 @@ let pp_sail_definition sail_definition =
     Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
   let str =
-    String.rstrip @@ PPSail.string_of_pprint_document document
+    String.rstrip @@ string_of_pprint_document document
   in
   let lines =
     List.map ~f:String.rstrip @@ String.split_lines str
