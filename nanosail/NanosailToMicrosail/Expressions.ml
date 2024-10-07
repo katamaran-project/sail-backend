@@ -56,7 +56,6 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     let pp id =
       GC.return @@ Coq.pp_application (PP.string "exp_binop") [
-                       PP.string "exp_binop";
                        PP.string id;
                        pp_left_operand;
                        pp_right_operand
