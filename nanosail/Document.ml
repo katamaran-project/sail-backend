@@ -118,6 +118,18 @@ module Make(Annotation : ANNOTATION) = struct
     List.map ~f:strip_annotation @@ to_annotated_strings document
 
 
+  (* todo improve implementation *)
+  let rec measure (document : t) : int * int =
+    let strings = to_strings document
+    in
+    let width =
+      List.fold_left ~f:Int.max ~init:0 @@ List.map ~f:String.length strings
+    and height =
+      List.length strings
+    in
+    (width, height)
+    
+
   let to_string (document : t) : string =
     String.concat ~sep:"\n" @@ to_strings document
 
