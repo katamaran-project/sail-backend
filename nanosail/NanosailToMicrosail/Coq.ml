@@ -261,12 +261,12 @@ let pp_match_pair matched_expressions cases =
   let left_patterns_max_width =
     if List.is_empty left_patterns
     then 0
-    else Auxlib.maximum (List.map ~f:PPrint.requirement left_patterns)
+    else Auxlib.maximum (List.map ~f:PP.measure_width left_patterns)
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
         PP.(
-          horizontal ~separator:(comma ^^ space) [
+          separate_horizontally ~separator:(horizontal [comma; space]) [
             pad_right left_patterns_max_width left;
             right
           ],
@@ -278,7 +278,7 @@ let pp_match_pair matched_expressions cases =
     let left, right = matched_expressions
     in
     PP.(
-      horizontal ~separator:(comma ^^ space) [
+      separate_horizontally ~separator:(horizontal [comma; space]) [
         left;
         right
       ]
