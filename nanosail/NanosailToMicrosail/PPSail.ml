@@ -44,15 +44,9 @@ let pp_call
     (function_identifier : Ast.Identifier.t)
     (arguments           : PP.document list) : PP.document
   =
-  let terms =
-    Auxlib.build_list @@ fun { add; addall; _ } -> begin
-      add @@ PP.string "call";
-      add @@ Identifier.pp function_identifier;
-      addall @@ arguments
+  Coq.pp_scope (PP.string "exp") begin
+      Coq.pp_application (PP.string "call") (Identifier.pp function_identifier :: arguments)
     end
-  in
-  Coq.pp_scope (PP.string "exp") (PP.simple_app terms)
-
 
 
 let pp_expression_value
@@ -72,4 +66,3 @@ let string_of_pprint_document (document : PPrint.document) =
   in
   PPrint.ToBuffer.pretty 1.0 text_width buffer document;
   Stdlib.Buffer.contents buffer
-
