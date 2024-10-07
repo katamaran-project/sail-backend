@@ -22,7 +22,12 @@ let pp_bind
    exp_var "<id>"
 *)
 let pp_expression_of_identifier (identifier : PP.document) : PP.document =
-  PP.simple_app [ PP.string "exp_var"; PP.dquotes @@ identifier ]
+  PP.separate_horizontally
+    ~separator:PP.space
+    [
+      PP.string "exp_var";
+      PP.surround PP.dquotes identifier
+    ]
 
 
 (*
