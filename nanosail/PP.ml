@@ -358,10 +358,6 @@ let indent ?(level = 2) document =
 
 (*
 
-   [ a; b; c; d ]
-
-   or
-
    [
      a;
      b;
