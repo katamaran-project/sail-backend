@@ -314,7 +314,7 @@ let pp_require
   let words     = List.concat [ from_words; require_words; import_words ]
   and libraries = List.map ~f:PP.string libraries
   in
-  pp_sentence @@ PP.hanging_list @@ (PP.separate_horizontally ~separator:PP.space words) :: libraries
+  pp_sentence @@ PP.hanging_list @@ (PP.horizontal [ PP.separate_horizontally ~separator:PP.space words; PP.space ]) :: libraries
 
 
 let pp_imports names =
