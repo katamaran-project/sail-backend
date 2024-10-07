@@ -63,24 +63,6 @@ let indent    = Doc.indent
 let is_empty  = Doc.is_empty
 
 
-(*
-
-   [
-     a;
-     b;
-     c;
-     d
-   ]
-
-*)
-let delimited_list ~delimiters ~items ~separator =
-  let left_delimiter, right_delimiter = delimiters
-  in
-  vertical [
-    left_delimiter;
-    indent @@ Doc.separate_vertically ~separator items;    
-    right_delimiter;
-  ]
 
 
 (*
@@ -105,6 +87,7 @@ let application ~head ~delimiters ~arguments ~separator =
 let string_of_document    = Doc.to_string
 let html_of_document      = Doc.to_html
 
+let delimited_list        = Doc.delimited_list
 let separate_horizontally = Doc.separate_horizontally
 let repeat                = Doc.repeat
 let description_list      = Doc.description_list

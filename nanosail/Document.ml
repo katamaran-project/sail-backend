@@ -368,4 +368,23 @@ module Make(Annotation : ANNOTATION) = struct
       horizontal [space; operator; ]
     in
     separate_horizontally ~separator operands
+
+  (*
+  
+     [
+       a;
+       b;
+       c;
+       d
+     ]
+  
+  *)
+  let delimited_list ~delimiters ~items ~separator =
+    let left_delimiter, right_delimiter = delimiters
+    in
+    vertical [
+      left_delimiter;
+      indent @@ separate_vertically ~separator items;    
+      right_delimiter;
+    ]
 end
