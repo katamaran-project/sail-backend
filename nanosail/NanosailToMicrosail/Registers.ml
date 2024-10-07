@@ -181,7 +181,7 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
       pp_reg_finite register_names
     ]
     in
-    GC.return @@ PP.vertical @@ List.intersperse ~sep:(PP.string "") items
+    GC.return @@ PP.paragraphs items
   in
   GC.return @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
 
