@@ -174,10 +174,11 @@ let rec pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnVa
     end
 
 and pp_tuple (extended_types : Ast.ExtendedType.ReturnValue.t list) : PP.document GC.t =
-  let* pp_extended_types = GC.map ~f:(fun x -> GC.lift ~f:PP.parens @@ pp_extended_return_value_type x) extended_types
+  let* pp_extended_types =
+    GC.map ~f:(fun x -> GC.lift ~f:PP.(surround parens) @@ pp_extended_return_value_type x) extended_types
   in
-  GC.return @@ PP.parens begin
-    PP.(separate (string " * ") pp_extended_types)
+  GC.return @@ PP.(surround parens) begin
+    PP.(separate_horizontally ~separator:(string " * ") pp_extended_types)
   end
 
 
