@@ -214,7 +214,7 @@ let pp_match
   =
   let match_line =
     PP.(
-      separate space [
+      separate_horizontally ~separator:space [
         string "match";
         expression;
         string "with"
@@ -223,13 +223,19 @@ let pp_match
   in
   let case_lines =
     let longest_pattern_width =
-      let widths = List.map ~f:(fun pattern -> PP.measure pattern) (List.map ~f:fst cases)
+      let widths =
+        let measure_width pattern =
+          let (width, _) = PP.measure pattern
+          in
+          width
+        in
+        List.map ~f:measure_width (List.map ~f:fst cases)
       in
       Auxlib.maximum (0 :: widths)
     in
     let generate_case (pattern, expression) =
       PP.(
-        separate space [
+        separate_horizontally ~separator:space [
           bar;
           pad_right longest_pattern_width pattern;
           string "=>";
@@ -241,7 +247,7 @@ let pp_match
   in
   let final_line =
     match scope with
-    | Some scope -> PP.(string "end" ^^ percent ^^ scope)
+    | Some scope -> PP.(horizontal [ string "end"; percent; scope ])
     | None       -> PP.string "end"
   in
   let result_lines =
@@ -251,7 +257,7 @@ let pp_match
         add    final_line
       )
   in
-  PP.(separate hardline result_lines)
+  PP.(vertical result_lines)
 
 
 let pp_match_pair matched_expressions cases =
