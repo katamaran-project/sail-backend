@@ -520,7 +520,7 @@ let pp_canonical identifier =
 
 
 let pp_include_module (name : PP.document) =
-  pp_sentence @@ PP.simple_app [ PP.string "Include"; name ]
+  pp_sentence @@ PP.(separate_horizontally ~separator:space [ string "Include"; name ])
 
 
 let pp_tuple_type ts =
