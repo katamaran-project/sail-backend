@@ -53,11 +53,12 @@ let pp_expression_value
     (typ   : PP.document)
     (value : PP.document) : PP.document
   =
-  PP.simple_app [
-    PP.string "exp_val";
-    PP.parens typ;
-    PP.parens value
-  ]
+  Coq.pp_application
+    (PP.string "exp_val")
+    [
+      PP.(surround parens) typ;
+      PP.(surround parens) value;
+    ]
 
 
 let string_of_pprint_document (document : PPrint.document) =
