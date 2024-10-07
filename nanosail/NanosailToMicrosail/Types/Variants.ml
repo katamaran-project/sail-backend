@@ -79,12 +79,7 @@ let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) :
     and* constructors_inductive_type =
       generate_constructors_inductive_type variant_definition
     in
-    GC.return begin
-      PP.vertical @@ List.intersperse ~sep:(PP.string "") [
-        inductive_type;
-        constructors_inductive_type
-      ]
-    end
+    GC.return @@ PP.paragraphs [ inductive_type; constructors_inductive_type ]
   end
 
 
