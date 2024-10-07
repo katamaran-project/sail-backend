@@ -444,10 +444,10 @@ let pp_record
 let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
   let lines_of_code = [
       PP.string "Local Obligation Tactic :=";
-      PP.(twice space ^^ Identifier.pp identifier)
+      PP.(horizontal [ space; space; Identifier.pp identifier ])
     ]
   in
-  pp_sentence PP.(separate hardline lines_of_code)
+  pp_sentence @@ PP.vertical lines_of_code
 
 
 let pp_derive
