@@ -114,21 +114,15 @@ let html_of_document document =
   Doc.to_html document
 
 
-let separate_horizontally
-      ~(separator : document     )
-       (items     : document list) : document
-  =
-  Doc.separate_horizontally ~separator items
-
-
-let repeat           = Doc.repeat
-let description_list = Doc.description_list
-let is_single_line   = Doc.is_single_line
-let hanging          = Doc.hanging
-let measure          = Doc.measure
-let measure_width    = Doc.measure_width
-let measure_height   = Doc.measure_height
-let pad_right        = Doc.pad_right
+let separate_horizontally = Doc.separate_horizontally
+let repeat                = Doc.repeat
+let description_list      = Doc.description_list
+let is_single_line        = Doc.is_single_line
+let hanging               = Doc.hanging
+let measure               = Doc.measure
+let measure_width         = Doc.measure_width
+let measure_height        = Doc.measure_height
+let pad_right             = Doc.pad_right
 
 
 (*
