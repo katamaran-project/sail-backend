@@ -9,7 +9,13 @@ let pp_bind
     (argument : PP.document)
     (typ      : PP.document) : PP.document
   =
-  PP.(separate space [dquotes argument; utf8string " ∷ "; typ ])
+  PP.separate_horizontally
+    ~separator:PP.space
+    [
+      PP.surround PP.dquotes argument;
+      PP.string " ∷ ";
+      typ
+    ]
 
 
 (*
