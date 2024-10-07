@@ -7,8 +7,7 @@ module Annotation = struct
   let empty = ""
 
   let combine _ s2 = s2
-
-  let to_html s = s
+  let to_html s    = s
 end
 
 
