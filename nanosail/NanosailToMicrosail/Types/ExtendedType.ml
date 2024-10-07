@@ -162,7 +162,7 @@ let rec pp_extended_return_value_type (extended_type : Ast.ExtendedType.ReturnVa
   | Unknown unknown_data -> begin
       let* annotation_index =
         let annotation_document =
-          PP.lines [
+          PP.vertical @@ List.map ~f:PP.string [
               unknown_data.annotation;
               Printf.sprintf "OCaml position: %s line %d" unknown_data.ocaml_location.pos_fname unknown_data.ocaml_location.pos_lnum;
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location unknown_data.sail_location;
