@@ -72,9 +72,12 @@ let pp_list_using_notation (items : PP.document list) : PP.document =
   if
     List.is_empty items
   then
-    PP.(lbracket ^^ rbracket)
+    PP.(horizontal [lbracket; rbracket])
   else
-    PP.(delimited_sequence (lbracket ^^ space) (space ^^ rbracket) semi items)
+    PP.(delimited_list
+          ~delimiters:brackets
+          ~items
+          ~separator:semi)
 
 
 let rec pp_list_using_cons (items : PP.document list) : PP.document =
