@@ -72,7 +72,7 @@ let pp_hanging_function_application
       (func      : PP.document     )
       (arguments : PP.document list) : PP.document
   =
-  PP.(hanging_list @@ horizontal [ func; space ] :: arguments)
+  PP.(hanging @@ horizontal [ func; space ] :: arguments)
 
 
 let pp_list_using_notation (items : PP.document list) : PP.document =
@@ -314,11 +314,11 @@ let pp_require
   let words     = List.concat [ from_words; require_words; import_words ]
   and libraries = List.map ~f:PP.string libraries
   in
-  pp_sentence @@ PP.hanging_list @@ (PP.horizontal [ PP.separate_horizontally ~separator:PP.space words; PP.space ]) :: libraries
+  pp_sentence @@ PP.hanging @@ (PP.horizontal [ PP.separate_horizontally ~separator:PP.space words; PP.space ]) :: libraries
 
 
 let pp_imports names =
-  PP.(pp_sentence @@ hanging_list (string "Import" :: List.map ~f:string names))
+  PP.(pp_sentence @@ hanging (string "Import" :: List.map ~f:string names))
 
 
 let pp_open_scopes scopes =

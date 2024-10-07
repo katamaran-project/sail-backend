@@ -208,7 +208,7 @@ module Make(Annotation : ANNOTATION) = struct
     Annotated (document, annotation)
   
 
-  let hanging_list (documents : t list) : t =
+  let hanging (documents : t list) : t =
     match documents with
     | []            -> empty
     | [d]           -> d
