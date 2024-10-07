@@ -106,13 +106,8 @@ let application ~head ~delimiters ~arguments ~separator =
   ]
 
 
-let string_of_document (document : document) : string =
-  Doc.to_string document
-
-
-let html_of_document document =
-  Doc.to_html document
-
+let string_of_document    = Doc.to_string
+let html_of_document      = Doc.to_html
 
 let separate_horizontally = Doc.separate_horizontally
 let repeat                = Doc.repeat
