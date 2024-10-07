@@ -119,15 +119,22 @@ module Make(Annotation : ANNOTATION) = struct
 
 
   (* todo improve implementation *)
-  let rec measure (document : t) : int * int =
+  let measure_width (document : t) : int =
     let strings = to_strings document
     in
-    let width =
-      List.fold_left ~f:Int.max ~init:0 @@ List.map ~f:String.length strings
-    and height =
-      List.length strings
+    List.fold_left ~f:Int.max ~init:0 @@ List.map ~f:String.length strings
+
+
+  (* todo improve implementation *)
+  let measure_height (document : t) : int =
+    let strings = to_strings document
     in
-    (width, height)
+    List.length strings
+
+  
+  (* todo improve implementation *)
+  let rec measure (document : t) : int * int =
+    (measure_width document, measure_height document)
     
 
   let to_string (document : t) : string =
