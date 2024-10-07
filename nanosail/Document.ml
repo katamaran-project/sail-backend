@@ -251,4 +251,12 @@ module Make(Annotation : ANNOTATION) = struct
       | x::xs -> horizontal [ x; separator ] :: build xs
     in
     vertical @@ build items
+
+
+  let repeat
+        (layout   : t list -> t)
+        (n        : int        )
+        (document : t          ) : t
+    =
+    layout @@ Auxlib.repeat n document
 end
