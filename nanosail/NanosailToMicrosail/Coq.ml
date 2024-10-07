@@ -224,12 +224,7 @@ let pp_match
   let case_lines =
     let longest_pattern_width =
       let widths =
-        let measure_width pattern =
-          let (width, _) = PP.measure pattern
-          in
-          width
-        in
-        List.map ~f:measure_width (List.map ~f:fst cases)
+        List.map ~f:PP.measure_width (List.map ~f:fst cases)
       in
       Auxlib.maximum (0 :: widths)
     in
