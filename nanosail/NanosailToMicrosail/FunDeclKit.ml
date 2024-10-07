@@ -40,7 +40,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         GC.return PP.(
             horizontal [
               string "Fun";
-              align @@ horizontal_or_vertical [ parameter_bindings; parens return_type ] (* todo check this *)
+              horizontal [ parameter_bindings; surround parens return_type ] (* todo check this *)
             ]
           )
       in
@@ -61,9 +61,9 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
       end
     in
     let contents =
-      PP.vertical ~separator:PP.hardline [
+      PP.vertical [
         inductive_type_declaration;
-        PP.vertical_strings [
+        PP.vertical @@ List.map ~f:PP.string [
           "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
           "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
           "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
