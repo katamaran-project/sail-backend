@@ -79,3 +79,10 @@ let measure_height        = Doc.measure_height
 let pad_right             = Doc.pad_right
 let paragraphs            = Doc.paragraphs
 let pp_binary_operation   = Doc.pp_binary_operation
+
+
+let annotate
+    (ocaml_location : Lexing.position)
+    (document       : document       ) : document
+  =
+  Doc.annotate (StringOf.OCaml.position ocaml_location) document
