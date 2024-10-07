@@ -28,7 +28,8 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
             in
             let* register_type = Nanotype.pp_nanotype register_definition.typ
             in
-            let typ = PP.(separate space [ string "Reg"; parens register_type  ])
+            let typ =
+              Coq.pp_application (PP.string "Reg") [ PP.(surround parens) register_type ]
             in
             add_constructor ~typ:typ identifier
           in
