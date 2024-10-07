@@ -15,7 +15,7 @@ module Operator = struct
   let less_than                 = PP.langle
   let greater_than              = PP.rangle
   let less_than_or_equal_to     = PP.(horizontal [langle; equals])
-  let greater_than_or_equals_to = PP.[horizontal [rangle; equals])
+  let greater_than_or_equals_to = PP.(horizontal [rangle; equals])
 end
 
 let arrow = PP.string "->"
