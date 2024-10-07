@@ -524,7 +524,7 @@ let pp_include_module (name : PP.document) =
 
 
 let pp_tuple_type ts =
-  PP.separate (PP.string " * ") ts
+  PP.separate_horizontally ~separator:(PP.string " * ") ts
 
 
 let pp_notation notation expression =
