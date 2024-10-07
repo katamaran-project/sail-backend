@@ -113,10 +113,16 @@ let pp_product
 
 
 let pp_section identifier contents =
-  let first_line = pp_sentence @@ PP.(string "Section" ^^ space ^^ Identifier.pp identifier)
-  and last_line  = pp_sentence @@ PP.(string "End" ^^ space ^^ Identifier.pp identifier)
+  let first_line = pp_sentence @@ PP.(horizontal [ string "Section"; space; Identifier.pp identifier ])
+  and last_line  = pp_sentence @@ PP.(horizontal [ string "End"; space; Identifier.pp identifier ])
   in
-  PP.indented_enclosed_lines first_line contents last_line
+  let delimiters = (first_line, last_line)
+  in
+  PP.(surround
+        ~layout:vertical
+        delimiters
+        (indent contents)
+  )
 
 
 type module_flag =
