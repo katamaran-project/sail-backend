@@ -147,8 +147,8 @@ module Make(Annotation : ANNOTATION) = struct
       | AnnotatedString {string; annotation} -> begin
           Printf.sprintf
             {|<div class="tooltipped">%s<div class="tooltip">%s</div></div>|}
-            string
-            (Annotation.to_html annotation)
+            (Html.escape_string string)
+            (Html.escape_string @@ Annotation.to_html annotation)
         end
       | Concatenation (s1, s2) -> begin
           String.concat ~sep:"" [
