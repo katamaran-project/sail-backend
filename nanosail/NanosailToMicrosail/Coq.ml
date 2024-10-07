@@ -470,26 +470,26 @@ let pp_derive_no_confusion_for (identifier : Ast.Identifier.t) =
   pp_derive (Ast.Identifier.mk "NoConfusion") identifier
 
 
-type build_lines_context =
-  {
-    line       : PP.document      -> unit;
-    lines      : PP.document list -> unit;
-    comment    : PP.document      -> unit;
-    empty_line : unit             -> unit;
-  }
+(* type build_lines_context = *)
+(*   { *)
+(*     line       : PP.document      -> unit; *)
+(*     lines      : PP.document list -> unit; *)
+(*     comment    : PP.document      -> unit; *)
+(*     empty_line : unit             -> unit; *)
+(*   } *)
 
 
-let build_lines (f : build_lines_context -> unit) : PP.document =
-  PP.build_lines begin fun { line; lines; empty_line } ->
-    let ctx = {
-      line;
-      lines;
-      empty_line;
-      comment = fun d -> line @@ pp_comment d;
-    }
-    in
-    f ctx
-  end
+(* let build_lines (f : build_lines_context -> unit) : PP.document = *)
+(*   PP.build_lines begin fun { line; lines; empty_line } -> *)
+(*     let ctx = { *)
+(*       line; *)
+(*       lines; *)
+(*       empty_line; *)
+(*       comment = fun d -> line @@ pp_comment d; *)
+(*     } *)
+(*     in *)
+(*     f ctx *)
+(*   end *)
 
 
 let pp_lambda parameter body =
