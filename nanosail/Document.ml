@@ -296,7 +296,7 @@ module Make(Annotation : ANNOTATION) = struct
         (target_width : int)
         (document     : t  ) : t
     =
-    let (width, _) = measure document
+    let width = measure_width document
     in
     if
       width < target_width
