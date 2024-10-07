@@ -65,7 +65,8 @@ let is_empty (document : document) =
   Doc.is_empty document
 
 
-let indent ?(level = 2) doc = PPrint.(blank level ^^ align doc)
+let indent ?(level = 2) document =
+  Doc.indent ~level document
 
 
 (* let delimited_sequence left_delimiter right_delimiter separator items = *)
