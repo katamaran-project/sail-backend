@@ -53,3 +53,12 @@ let pp_expression_value
     PP.parens typ;
     PP.parens value
   ]
+
+
+let string_of_pprint_document (document : PPrint.document) =
+  let text_width = Configuration.(get output_width)
+  and buffer     = Stdlib.Buffer.create 10000
+  in
+  PPrint.ToBuffer.pretty 1.0 text_width buffer document;
+  Stdlib.Buffer.contents buffer
+
