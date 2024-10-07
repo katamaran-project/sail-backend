@@ -41,6 +41,15 @@ module Make(Annotation : ANNOTATION) = struct
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
 
+
+  let rec is_single_line (document : t) : bool =
+    match document with
+    | Empty               -> true
+    | String _            -> true
+    | Horizontal (d1, d2) -> is_single_line d1 && is_single_line d2
+    | Vertical (_, _)     -> false
+    | Annotated (d, _)    -> is_single_line d
+  
   
   type annotated_string =
     | AnnotatedString of { string : string; annotation : Annotation.t }
