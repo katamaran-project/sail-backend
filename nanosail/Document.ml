@@ -20,9 +20,10 @@ let indent_strings (indentation : int) (strings : string list) : string list =
 module type ANNOTATION = sig
   type t
 
-  val empty   : t
-  val combine : t -> t -> t
-  val to_html : t -> string
+  val empty    : t
+  val is_empty : t -> bool
+  val combine  : t -> t -> t
+  val to_html  : t -> string
 end
 
 

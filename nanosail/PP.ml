@@ -4,8 +4,8 @@ open Base
 module Annotation = struct
   type t = string
 
-  let empty = ""
-
+  let empty        = ""
+  let is_empty     = String.is_empty 
   let combine _ s2 = s2
   let to_html s    = s
 end
