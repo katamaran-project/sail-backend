@@ -493,11 +493,18 @@ let pp_derive_no_confusion_for (identifier : Ast.Identifier.t) =
 
 
 let pp_lambda parameter body =
-  PP.(separate space [ string "fun"; parameter; string "=>"; align body ])
+  PP.(
+    separate_horizontally ~separator:space [
+        string "fun";
+        parameter;
+        string "=>";
+        body
+      ]
+  )
 
 
 let pp_application f args =
-  PP.(f ^^ space ^^ align (separate space args))
+  PP.(horizontal [ f; space; separate_horizontally ~separator:space args ])
 
 
 let pp_function_type parameter_types result_type =
