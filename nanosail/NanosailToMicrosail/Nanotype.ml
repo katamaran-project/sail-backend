@@ -91,18 +91,26 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   let coq_type_of_bitvector_type n =
     let* n' = Numeric.Expression.pp n
     in
-    GC.return @@ PP.(string "bvec" ^^ space ^^ n')
+    GC.return begin
+        Coq.pp_application
+          (PP.string "bvec")
+          [ n' ]
+      end
 
   and coq_type_of_list_type t =
     let* t' = coq_type_of_nanotype t
     in
-    GC.return @@ PP.(separate space [ string "list"; parens t' ])
+    GC.return begin
+        Coq.pp_application
+          (PP.string "list")
+          [ PP.(surround parens) t' ]
+      end
 
   and coq_type_of_application t ts =
     let* t   = coq_type_of_nanotype t
-    and* ts' = GC.map ~f:(Fn.compose (GC.lift ~f:PP.parens) pp_type_argument) ts
+    and* ts' = GC.map ~f:(Fn.compose (GC.lift ~f:PP.(surround parens)) pp_type_argument) ts
     in
-    GC.return @@ PP.separate PP.space (t :: ts')
+    GC.return @@ Coq.pp_application t ts'
 
   and coq_type_of_tuple ts =
     let* ts' = GC.map ~f:coq_type_of_nanotype ts
