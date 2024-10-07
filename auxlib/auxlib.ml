@@ -119,3 +119,10 @@ let second2 = snd
 let first3  (x, _, _) = x
 let second3 (_, x, _) = x
 let third3  (_, _, x) = x
+
+
+let rec repeat n x =
+  if n > 0
+  then x :: repeat (n-1) x
+  else []
+
