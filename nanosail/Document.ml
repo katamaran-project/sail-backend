@@ -224,7 +224,7 @@ module Make(Annotation : ANNOTATION) = struct
         indent description;
       ]
     in
-    vertical @@ List.map (uncurry render_item) items
+    vertical @@ List.map ~f:(uncurry render_item) items
 
 
   let enclose
