@@ -48,7 +48,7 @@ let pp_sentence contents =
 
 
 let pp_inline_comment (comment : PP.document) : PP.document =
-  PP.enclose comment_delimiters comment
+  PP.surround comment_delimiters comment
 
 
 let pp_multiline_comment (comment : PP.document) : PP.document =
