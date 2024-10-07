@@ -18,7 +18,7 @@ val pp_inductive_type :
   PP.document ->
   ?parameters : (PP.document * PP.document) list ->
   PP.document ->
-  ((?parameters:PPrint.document -> ?typ:PPrint.document -> PPrint.document -> unit t) -> 'a t) ->
+  ((?parameters:PP.document -> ?typ:PP.document -> PP.document -> unit t) -> 'a t) ->
   PP.document t
 
 val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit t
