@@ -10,7 +10,7 @@ let translate_as_binary_operator
     (operands               : PP.document list ) : PP.document GC.t
   =
   match operands with
-  | [x; y] -> GC.return @@ PPSail.pp_statement_of_expression @@ PP.(parens @@ separate space [x; string operator; y])
+  | [x; y] -> GC.return @@ PPSail.pp_statement_of_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
   | _      -> begin
       let message =
         PP.string @@ Printf.sprintf
@@ -22,7 +22,7 @@ let translate_as_binary_operator
       in
       let translation = PPSail.pp_call original_function_name operands
       in
-      GC.return @@ PP.(separate space [
+      GC.return @@ PP.(separate_horizontally ~separator:space [
           translation;
           Coq.pp_inline_comment (string @@ Int.to_string annotation_index)
         ])
