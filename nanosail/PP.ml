@@ -404,3 +404,6 @@ let separate_horizontally
        (items     : document list) : document
   =
   Doc.separate_horizontally ~separator items
+
+
+let repeat = Doc.repeat
