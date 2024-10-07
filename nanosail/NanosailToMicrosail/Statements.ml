@@ -35,14 +35,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       and* pp_when_nil  = pp_par_statement when_nil
       and* pp_when_cons = pp_par_statement when_cons_body
       in
-      GC.return @@ PP.(simple_app [
-          string "stm_match_list";
-          pp_matched;
-          pp_when_nil;
-          dquotes @@ Identifier.pp id_head;
-          dquotes @@ Identifier.pp id_tail;
-          pp_when_cons;
-        ])
+      GC.return @@ Coq.pp_hanging_function_application
+                     (PP.string "stm_match_list")
+                     [
+                       pp_matched;
+                       pp_when_nil;
+                       PP.(surround dquotes) @@ Identifier.pp id_head;
+                       PP.(surround dquotes) @@ Identifier.pp id_tail;
+                       pp_when_cons;
+                       ]
 
     and pp_match_product
         (matched : Ast.Statement.t )
@@ -53,13 +54,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_matched = pp_par_statement matched
       and* pp_body    = pp_par_statement body
       in
-      GC.return @@ PP.(simple_app [
-          string "stm_match_prod";
-          pp_matched;
-          dquotes (Identifier.pp id_fst);
-          dquotes (Identifier.pp id_snd);
-          pp_body;
-        ])
+      GC.return @@ Coq.pp_hanging_function_application
+                     (PP.string "stm_match_prod")
+                     [
+                       pp_matched;
+                       PP.(surround dquotes) (Identifier.pp id_fst);
+                       PP.(surround dquotes) (Identifier.pp id_snd);
+                       pp_body;
+                     ]
 
     and pp_match_bool
         (condition  : Ast.Statement.t)
@@ -70,12 +72,13 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       and* pp_when_true  = pp_par_statement when_true
       and* pp_when_false = pp_par_statement when_false
       in
-      GC.return @@ PP.(simple_app [
-          string "stm_if";
-          pp_condition;
-          pp_when_true;
-          pp_when_false
-        ])
+      GC.return @@ Coq.pp_hanging_function_application
+                     (PP.string "stm_if")
+                     [
+                       pp_condition;
+                       pp_when_true;
+                       pp_when_false
+                     ]
 
     (*
        Translates a match against enums.
@@ -157,7 +160,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               let* pp_clause =
                 pp_statement clause_statement
               in
-              GC.return @@ PP.(separate space [
+              GC.return @@ PP.(separate_horizontally ~separator:space [
                   string "|";
                   pp_pattern;
                   string " => ";
@@ -175,7 +178,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                end
           *)
           GC.return @@ PP.vertical @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
-            add @@ PP.(separate space [ string "match:"; parens pp_matched_statement; string "in"; pp_matched_type; string "with" ]);
+            add @@ PP.(separate_horizontally ~separator:space [ string "match:"; surround parens pp_matched_statement; string "in"; pp_matched_type; string "with" ]);
             addall pp_cases;
             add @@ PP.string "end"
           end
@@ -244,12 +247,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
 
                stm_match_enum <type> <matched> <lambda>
           *)
-          GC.return @@ PP.hanging_list
+          GC.return @@ Coq.pp_hanging_function_application
             (PP.string "stm_match_enum")
             [
               pp_matched_type;
-              PP.parens pp_matched_statement;
-              PP.parens pp_cases;
+              PP.(surround parens) pp_matched_statement;
+              PP.(surround parens) pp_cases;
             ]
         in
         (*
@@ -291,7 +294,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
          turn into a statement.
       *)
       and pp_matched_statement =
-        PP.parens @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
+        PP.(surround parens) @@ PPSail.pp_statement_of_expression @@ PPSail.pp_expression_of_identifier @@ Identifier.pp matched
 
       in
 
@@ -325,29 +328,25 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             match bindings with
             | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
             | [x] -> begin
-                PP.parens @@ PP.simple_app [
-                  PP.string "pat_var";
-                  PP.dquotes @@ Identifier.pp x
-                ]
+                PP.(surround parens) @@ Coq.pp_application (PP.string "pat_var") [ PP.(surround dquotes) @@ Identifier.pp x ]
               end
             | [x; y] -> begin
-                PP.parens @@ PP.simple_app [
-                  PP.string "pat_pair";
-                  PP.dquotes @@ Identifier.pp x;
-                  PP.dquotes @@ Identifier.pp y
-                ]
+                PP.(surround parens) @@ Coq.pp_application (PP.string "pat_pair") [
+                                            PP.(surround dquotes) @@ Identifier.pp x;
+                                            PP.(surround dquotes) @@ Identifier.pp y
+                                          ]
               end
             | ids -> begin
                 let pp_variable_tuple =
                   let pp_quoted_identifiers =
-                    List.map ~f:(Fn.compose PP.dquotes Identifier.pp) ids
+                    List.map ~f:(Fn.compose PP.(surround dquotes) Identifier.pp) ids
                   in
                   let pp_comma_separated_quoted_identifiers =
-                    PP.separate (PP.string ", ") pp_quoted_identifiers
+                    PP.separate_horizontally ~separator:(PP.string ", ") pp_quoted_identifiers
                   in
-                  PP.parens pp_comma_separated_quoted_identifiers
+                  PP.(surround parens) pp_comma_separated_quoted_identifiers
                 in
-                PP.parens @@ PP.simple_app @@ [ PP.string "pat_tuple"; pp_variable_tuple ]
+                PP.(surround parens) @@ Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
               end
           in
           let* pp_clause =
@@ -358,16 +357,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
 
                existT <constructor> (MkAlt <pattern> <clause>)
           *)
-          GC.return @@ PP.simple_app [
-            PP.string "existT";
-            pp_constructor;
-            PP.parens begin
-              PP.simple_app [
-                PP.string "MkAlt";
-                pp_pattern;
-                PP.parens pp_clause;
-              ]
-            end
+          GC.return @@ Coq.pp_application (PP.string "existT") [
+                           pp_constructor;
+                           PP.(surround parens) begin
+                               Coq.pp_application (PP.string "MkAlt") [
+                                   pp_pattern;
+                                   PP.(surround parens) pp_clause;
+                                 ]
+                             end
           ]
         in
         GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
@@ -381,7 +378,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                     Logic.I
       *)
       GC.return begin
-        PP.hanging_list
+        Coq.pp_hanging_function_application
           (PP.string "stm_match_union_alt_list")
           [
             pp_matched_type;
@@ -402,7 +399,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PP.document GC.t
     =
-    let* pretty_printed_arguments = GC.map ~f:(fun e -> GC.lift ~f:PP.parens @@ Expressions.pp_expression e) arguments
+    let* pretty_printed_arguments = GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
     in
     FunctionCalls.translate function_identifier pretty_printed_arguments
 
@@ -421,10 +418,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       Configuration.(get pretty_print_let)
     then
       GC.return @@ PP.(
-        simple_app [
-            separate space [
+        separate_horizontally ~separator:space [
+            separate_horizontally ~separator:space [
                 string "let:";
-                dquotes pp_variable_identifier;
+                surround dquotes pp_variable_identifier;
                 string "::";
                 pp_binding_statement_type;
                 string ":="];
@@ -434,15 +431,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           ]
         )
     else
-      GC.return @@ PP.(
-        simple_app [
-            string "stm_let";
-            dquotes pp_variable_identifier;
-            parens pp_binding_statement_type;
-            parens pp_binding_statement;
-            parens pp_body_statement;
-          ]
-        )
+      GC.return @@ Coq.pp_application
+                     (PP.string "stm_let")
+                     [
+                       PP.(surround dquotes) pp_variable_identifier;
+                       PP.(surround parens) pp_binding_statement_type;
+                       PP.(surround parens) pp_binding_statement;
+                       PP.(surround parens) pp_body_statement;
+                     ]
+
 
   and pp_sequence_statement
       (left  : Ast.Statement.t)
@@ -451,10 +448,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_left  = pp_par_statement left
       and* pp_right = pp_par_statement right
       in
-      GC.return @@ PP.(simple_app [ string "stm_seq"; pp_left; pp_right ])
+      GC.return @@ Coq.pp_application
+                     (PP.string "stm_seq")
+                     [
+                       pp_left;
+                       pp_right;
+                     ]
 
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
-    GC.return @@ PP.(simple_app [ string "stm_read_register"; Identifier.pp register_identifier ])
+    GC.return @@ Coq.pp_application (PP.string "stm_read_register") [ Identifier.pp register_identifier ]
 
   and pp_write_register_statement
         ~(register_identifier : Ast.Identifier.t)
@@ -464,11 +466,14 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     and pp_written_value = Identifier.pp written_value
     in
     GC.return begin
-      PP.simple_app [
-        Identifier.pp @@ Ast.Identifier.mk "stm_write_register";
-        pp_register_identifier;
-        PP.(parens @@ simple_app [string "exp_var"; dquotes pp_written_value]);
-      ]
+        Coq.pp_application
+          (PP.string "stm_write_register")
+          [
+            pp_register_identifier;
+            PP.(surround parens @@ Coq.pp_application
+                                     (string "exp_var")
+                                     [ surround dquotes pp_written_value ]);
+          ]
     end
 
   and pp_destructure_record_statement
@@ -482,25 +487,27 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let pairs = List.zip_exn field_identifiers variable_identifiers
       in
       let build acc (field_identifier, variable_identifier) =
-        PP.(parens (simple_app [
-            string "recordpat_snoc";
-            acc;
-            dquotes @@ Identifier.pp field_identifier;
-            dquotes @@ Identifier.pp variable_identifier
-          ]))
+        PP.(surround parens (Coq.pp_application
+                               (string "recordpat_snoc")
+                               [
+                                 acc;
+                                 surround dquotes @@ Identifier.pp field_identifier;
+                                 surround dquotes @@ Identifier.pp variable_identifier;
+                               ]))
       in
       List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
     in
     let* destructured_record' = pp_statement destructured_record
     and* body' = pp_statement body
     in
-    GC.return @@ PP.simple_app [
-      Identifier.pp @@ Ast.Identifier.mk "stm_match_record";
-      Identifier.pp @@ Configuration.reified_record_name record_type_identifier;
-      PP.parens destructured_record';
-      pattern;
-      PP.parens body'
-    ]
+    GC.return @@ Coq.pp_application
+                   (PP.string "stm_match_record")
+                   [
+                     Identifier.pp @@ Configuration.reified_record_name record_type_identifier;
+                     PP.(surround parens) destructured_record';
+                     pattern;
+                     PP.(surround parens) body'
+                   ]
 
   and pp_cast_statement
       (statement_to_be_cast : Ast.Statement.t)
@@ -510,7 +517,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PP.document GC.t =
-    GC.return @@ PP.simple_app [ Identifier.pp @@ Ast.Identifier.mk "fail"; PP.string message ]
+    GC.return @@ Coq.pp_application (PP.string "fail") [ PP.string message ]
 
   in
   match statement with
@@ -549,4 +556,4 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
 and pp_par_statement s =
   let* s' = pp_statement s
   in
-  GC.return @@ PP.parens s'
+  GC.return @@ PP.(surround parens) s'
