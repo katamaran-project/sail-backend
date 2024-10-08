@@ -87,3 +87,6 @@ let div
   in
   element "div" ~attributes child
 
+
+let concat (elements : t list) : t =
+  Html (String.concat @@ List.map ~f:to_string elements)
