@@ -1,8 +1,8 @@
 open Base
 
 
-let pp (identifier : Ast.Identifier.t) =
-  PP.string @@ Ast.Identifier.string_of identifier
+let pp (identifier : Ast.Identifier.t) : PP.document =
+  PP.annotate [%here] @@ PP.string @@ Ast.Identifier.string_of identifier
 
 
 let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
