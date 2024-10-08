@@ -198,6 +198,8 @@ let generation_block
     (label    : PP.document    )
     (contents : PP.document    ) : PP.document t
   =
+  let contents = PP.annotate position contents
+  in
   if
     Configuration.(get show_generation_blocks)
   then
