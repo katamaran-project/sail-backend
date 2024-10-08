@@ -79,7 +79,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   in
 
   let exported_base_html_translation =
-    let id = "base-translation-html"
+    let id = "base-html-translation"
     in
     let f () =
       EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#pp_base
@@ -96,6 +96,15 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     nullary_string_function id f
   in
 
+  let exported_program_html_translation =
+    let id = "program-html-translation"
+    in
+    let f () =
+      EC.return @@ string_of_document @@ GC.generate translation#pp_program
+    in
+    nullary_string_function id f
+  in
+  
   let exported_ignored_definitions =
     let id = "ignored-definitions"
     in
@@ -149,6 +158,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     exported_base_translation;
     exported_base_html_translation;
     exported_program_translation;
+    exported_program_html_translation;
     exported_ignored_definitions;
     exported_untranslated_definitions;
     exported_untranslated_definitions_predicate;
