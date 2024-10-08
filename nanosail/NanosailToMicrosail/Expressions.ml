@@ -188,21 +188,25 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           end
       end
 
+  and pp_enum
+        (type_identifier : Ast.Identifier.t)
+        (constructor_identifier : Ast.Identifier.t) : PP.document GC.t
+    =
+    let enum_type =
+      Coq.pp_application
+        (PP.string "ty.enum")
+        [ Identifier.pp @@ Configuration.reified_enum_name type_identifier ]
+    and enum_constructor =
+      Identifier.pp constructor_identifier
+    in
+    GC.return @@ PPSail.pp_expression_value enum_type enum_constructor
+    
   in
   match expression with
-  | Variable identifier                              -> GC.pp_annotate [%here] @@ pp_variable identifier
-  | Val value                                        -> GC.pp_annotate [%here] @@ pp_value value
-  | UnaryOperation (operator, operand)               -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
-  | BinaryOperation (op, e1, e2)                     -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2
-  | List elements                                    -> GC.pp_annotate [%here] @@ pp_list elements
-  | Record { type_identifier; variable_identifiers } -> GC.pp_annotate [%here] @@ pp_record type_identifier variable_identifiers
-  | Enum args -> begin
-      let enum_type =
-        Coq.pp_application
-          (PP.string "ty.enum")
-          [ Identifier.pp @@ Configuration.reified_enum_name args.type_identifier ]
-      and enum_constructor =
-        Identifier.pp args.constructor_identifier
-      in
-      GC.return @@ PPSail.pp_expression_value enum_type enum_constructor
-    end
+  | Variable identifier                               -> GC.pp_annotate [%here] @@ pp_variable identifier
+  | Val value                                         -> GC.pp_annotate [%here] @@ pp_value value
+  | UnaryOperation (operator, operand)                -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
+  | BinaryOperation (op, e1, e2)                      -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2
+  | List elements                                     -> GC.pp_annotate [%here] @@ pp_list elements
+  | Record { type_identifier; variable_identifiers }  -> GC.pp_annotate [%here] @@ pp_record type_identifier variable_identifiers
+  | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
