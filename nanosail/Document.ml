@@ -23,7 +23,7 @@ module type ANNOTATION = sig
   val empty    : t
   val is_empty : t -> bool
   val combine  : t -> t -> t
-  val to_html  : t -> string
+  val to_html  : t -> Html.t
 end
 
 
@@ -142,8 +142,8 @@ module Make(Annotation : ANNOTATION) = struct
     String.concat ~sep:"\n" @@ to_strings document
 
 
-  let to_html (document : t) : string =
-    let rec html_of_annotated_string (s : annotated_string) : string =
+  let to_html (document : t) : Html.t =
+    let rec html_of_annotated_string (s : annotated_string) : Html.t =
       match s with
       | AnnotatedString {string; annotation} -> begin
           if
@@ -151,13 +151,19 @@ module Make(Annotation : ANNOTATION) = struct
           then
             Html.escape_string string
           else
-            Printf.sprintf
-              {|<span class="tooltipped">%s<div class="tooltip">%s</div></span>|}
-              (Html.escape_string string)
-              (Annotation.to_html annotation)
+            Html.span
+              ~class_name:"tooltipped"
+              begin
+                Html.concat [
+                    Html.string string;
+                    Html.div ~class_name:"tooltip" begin
+                        Annotation.to_html annotation
+                      end
+                  ]
+              end
         end
       | Concatenation (s1, s2) -> begin
-          String.concat ~sep:"" [
+          Html.concat [
             html_of_annotated_string s1;
             html_of_annotated_string s2
           ]
@@ -167,9 +173,11 @@ module Make(Annotation : ANNOTATION) = struct
       to_annotated_strings document
     in
     let html_lines =
-      List.map ~f:html_of_annotated_string annotated_strings
+      List.map
+        ~f:(fun s -> Html.concat [ html_of_annotated_string s; Html.break ])
+        annotated_strings
     in
-    String.concat ~sep:"<br>\n" html_lines
+    Html.concat html_lines
 
 
   let string s =
