@@ -14,15 +14,15 @@ end = struct
         else PP.(surround parens) doc
       in
       match numexp with
-      | Constant z   -> PP.string (Z.to_string z)
-      | Add (x, y)   -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
-      | Minus (x, y) -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.subtraction    [pp 0 x; pp 0 y]
-      | Times (x, y) -> parens_if 1 @@ PP.pp_binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
-      | Neg x        -> parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
-      | Id id        -> Identifier.pp id
-      | Var id       -> Identifier.pp id
+      | Constant z   -> PP.annotate [%here] @@ PP.string (Z.to_string z)
+      | Add (x, y)   -> PP.annotate [%here] @@ parens_if 0 @@ PP.pp_binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
+      | Minus (x, y) -> PP.annotate [%here] @@ parens_if 0 @@ PP.pp_binary_operation Coq.Operator.subtraction    [pp 0 x; pp 0 y]
+      | Times (x, y) -> PP.annotate [%here] @@ parens_if 1 @@ PP.pp_binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
+      | Neg x        -> PP.annotate [%here] @@ parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
+      | Id id        -> PP.annotate [%here] @@ Identifier.pp id
+      | Var id       -> PP.annotate [%here] @@ Identifier.pp id
     in
-    GC.return @@ pp 0 numeric_expression
+    GC.return @@ PP.annotate [%here] @@ pp 0 numeric_expression
 end
 
 and Constraint : sig
@@ -30,8 +30,8 @@ and Constraint : sig
 end = struct
  let pp (numeric_constraint : Ast.Numeric.Constraint.t) =
    match numeric_constraint with
-   | True                -> GC.return @@ PP.string "true"
-   | False               -> GC.return @@ PP.string "false"
+   | True                -> GC.return @@ PP.annotate [%here] @@ PP.string "true"
+   | False               -> GC.return @@ PP.annotate [%here] @@ PP.string "false"
    | Equal (_x, _y)      -> GC.not_yet_implemented [%here]
    | BoundedGE (_x, _y)  -> GC.not_yet_implemented [%here]
    | BoundedGT (_x, _y)  -> GC.not_yet_implemented [%here]
