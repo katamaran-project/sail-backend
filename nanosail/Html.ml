@@ -90,3 +90,8 @@ let div
 
 let concat (elements : t list) : t =
   Html (String.concat @@ List.map ~f:to_string elements)
+
+
+let string (string : string) : t =
+  escape_string string
+
