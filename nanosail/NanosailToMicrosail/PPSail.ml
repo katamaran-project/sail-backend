@@ -8,32 +8,40 @@ let pp_bind
     (argument : PP.document)
     (typ      : PP.document) : PP.document
   =
-  PP.separate_horizontally
-    ~separator:PP.space
-    [
-      PP.surround PP.dquotes argument;
-      PP.string " ∷ ";
-      typ
-    ]
+  PP.annotate [%here] begin
+      PP.separate_horizontally
+        ~separator:PP.space
+        [
+          PP.surround PP.dquotes argument;
+          PP.string " ∷ ";
+          typ
+        ]
+    end
 
 
 (*
    exp_var "<id>"
 *)
 let pp_expression_of_identifier (identifier : PP.document) : PP.document =
-  PP.separate_horizontally
-    ~separator:PP.space
-    [
-      PP.string "exp_var";
-      PP.surround PP.dquotes identifier
-    ]
+  PP.annotate [%here] begin
+      PP.separate_horizontally
+        ~separator:PP.space
+        [
+          PP.string "exp_var";
+          PP.surround PP.dquotes identifier
+        ]
+    end
 
 
 (*
    stm_exp (<expression>)
 *)
 let pp_statement_of_expression (expression : PP.document) : PP.document =
-  Coq.pp_application (PP.string "stm_exp") [ PP.(surround parens) expression ]
+  PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "stm_exp")
+        [ PP.(surround parens) expression ]
+    end
 
 
 (*
@@ -43,8 +51,12 @@ let pp_call
     (function_identifier : Ast.Identifier.t)
     (arguments           : PP.document list) : PP.document
   =
-  Coq.pp_scope (PP.string "exp") begin
-      Coq.pp_application (PP.string "call") (Identifier.pp function_identifier :: arguments)
+  PP.annotate [%here] begin
+      Coq.pp_scope (PP.string "exp") begin
+          Coq.pp_application
+            (PP.string "call")
+            (Identifier.pp function_identifier :: arguments)
+        end
     end
 
 
@@ -52,12 +64,14 @@ let pp_expression_value
     (typ   : PP.document)
     (value : PP.document) : PP.document
   =
-  Coq.pp_application
-    (PP.string "exp_val")
-    [
-      PP.(surround parens) typ;
-      PP.(surround parens) value;
-    ]
+  PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "exp_val")
+        [
+          PP.(surround parens) typ;
+          PP.(surround parens) value;
+        ]
+    end
 
 
 let string_of_pprint_document (document : PPrint.document) =
@@ -78,4 +92,4 @@ let pp_sail_definition sail_definition =
   let lines =
     List.map ~f:String.rstrip @@ String.split_lines str
   in
-  PP.vertical @@ List.map ~f:PP.string lines
+  PP.annotate [%here] @@ PP.vertical @@ List.map ~f:PP.string lines
