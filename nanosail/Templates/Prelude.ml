@@ -82,7 +82,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     let id = "base-translation-html"
     in
     let f () =
-      EC.return @@ html_of_document @@ GC.generate translation#pp_base
+      EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#pp_base
     in
     nullary_string_function id f
   in
