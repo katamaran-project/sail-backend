@@ -6,12 +6,16 @@ module GC = struct
 end
 
 
-let pp_type_quantifier quantifier =
-  let pp_type_quantifier_item (identifier, kind) =
-    let identifier' = Identifier.pp identifier
+let pp_type_quantifier (quantifier : (Ast.Identifier.t * Ast.Kind.t) list) =
+  let pp_type_quantifier_item
+        (identifier : Ast.Identifier.t)
+        (kind       : Ast.Kind.t      ) =
+    let identifier' =
+      PP.annotate [%here] @@ Identifier.pp identifier
     in
-    let* kind' = Kind.pp_kind kind
+    let* kind' =
+      GC.pp_annotate [%here] @@ Kind.pp_kind kind
     in
     GC.return (identifier', Some kind')
   in
-  GC.map ~f:pp_type_quantifier_item quantifier
+  GC.map ~f:(Auxlib.uncurry pp_type_quantifier_item) quantifier
