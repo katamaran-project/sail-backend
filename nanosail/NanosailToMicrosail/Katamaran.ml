@@ -89,12 +89,12 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method pp_finite : PP.document GC.t =
     let* finite_definitions =
       let finite_enums =
-        Types.Enums.generate_finiteness enum_definitions
+        List.map ~f:(PP.annotate [%here]) @@ Types.Enums.generate_finiteness enum_definitions
       and finite_variants =
-        Types.Variants.generate_finiteness variant_definitions
+        List.map ~f:(PP.annotate [%here]) @@ Types.Variants.generate_finiteness variant_definitions
       in
       let* finite_registers =
-        Registers.pp_register_finiteness register_definitions
+        GC.pp_annotate [%here] @@ Registers.pp_register_finiteness register_definitions
       in
       GC.return begin
         Auxlib.build_list @@ fun { addall; add; _ } -> begin
@@ -107,8 +107,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     let parts =
       Auxlib.build_list @@
       fun { add; addall; _ } -> begin
-        add    @@ Coq.pp_imports [ "stdpp.finite" ];
-        add    @@ Coq.pp_local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
+        add    @@ PP.annotate [%here] @@ Coq.pp_imports [ "stdpp.finite" ];
+        add    @@ PP.annotate [%here] @@ Coq.pp_local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
         addall @@ finite_definitions;
       end
     in
@@ -117,7 +117,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_no_confusion : PP.document GC.t =
-    let section_identifier = Ast.Identifier.mk "TransparentObligations"
+    let section_identifier =
+      Ast.Identifier.mk "TransparentObligations"
     in
     let section_contents =
       (*
@@ -127,7 +128,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       let no_confusion_identifiers =
         let no_confusion_identifier_from_definition _sail_definition (type_definitions : Ast.Definition.Type.t) =
           match type_definitions with
-          | Abbreviation _                  -> [ ]
+          | Abbreviation _                  -> []
           | Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
           | Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
           | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
@@ -144,11 +145,11 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         ]
       in
       let transparent_obligations =
-        PP.string "Local Set Transparent Obligations."
+        PP.annotate [%here] @@ PP.string "Local Set Transparent Obligations."
       and no_confusion_lines =
-        PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for no_confusion_identifiers
+        PP.annotate [%here] @@ PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for no_confusion_identifiers
       in
-      PP.paragraphs [ transparent_obligations; no_confusion_lines ]
+      PP.annotate [%here] @@ PP.paragraphs [ transparent_obligations; no_confusion_lines ]
     in
     genblock [%here] "No Confusion" begin
       Coq.pp_section section_identifier section_contents
@@ -179,10 +180,11 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         Registers.extra_eqdec_identifiers ();
       ]
     in
-    let coq_lines = List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
+    let coq_lines =
+      List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
     in
     genblock [%here] "EqDec" begin
-      PP.vertical coq_lines
+      PP.annotate [%here] @@ PP.vertical coq_lines
     end
 
   method pp_value_definitions : PP.document GC.t =
@@ -211,7 +213,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         self#pp_program_module;
       ]
     in
-    GC.return @@ PP.(paragraphs sections)
+    GC.return @@ PP.annotate [%here] @@ PP.(paragraphs sections)
 end
 
 
@@ -227,4 +229,4 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
 
 
 let full_translation (ir : Ast.program) : PP.document =
-  GC.generate @@ pretty_print ir
+  PP.annotate [%here] @@ GC.generate @@ pretty_print ir
