@@ -9,7 +9,8 @@ end
 let pp_type_quantifier (quantifier : (Ast.Identifier.t * Ast.Kind.t) list) : (PP.document * PP.document option) list GC.t =
   let pp_type_quantifier_item
         (identifier : Ast.Identifier.t)
-        (kind       : Ast.Kind.t      ) =
+        (kind       : Ast.Kind.t      ) : (PP.document * PP.document option) GC.t
+    =
     let identifier' =
       PP.annotate [%here] @@ Identifier.pp identifier
     in
