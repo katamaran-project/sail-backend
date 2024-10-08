@@ -376,6 +376,9 @@ let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.de
   add_original_definitions [ original ]
 
 
+(*
+  Adds a PP-level annotation
+*)
 let pp_annotate
       (location  : Lexing.position)
       (annotated : PP.document t  ) : PP.document t
