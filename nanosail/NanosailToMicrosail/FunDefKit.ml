@@ -19,77 +19,78 @@ let pp_function_definition
   =
   genblock [%here] PP.(horizontal [ string "Function Definition "; Identifier.pp function_definition.function_name ]) begin
     GC.block begin
-      let* () = GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
-      in
-      let pp_identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
-      in
-      let* coq_definition =
-        let* pp_result_type =
-          let* bindings =
-            let* parameters : (PP.document * PP.document) list =
-              let pp
-                  (id  : Ast.Identifier.t)
-                  (typ : Ast.Type.t      ) : (PP.document * PP.document) GC.t
-                =
-                let pp_id = Identifier.pp id
-                in
-                let* pp_typ = Nanotype.pp_nanotype typ
-                in
-                GC.return (pp_id, pp_typ)
-              in
-              GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
-            in
-            let docs = List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
-            in
-            GC.return @@ Coq.pp_list docs
-          in
+        let* () =
+          GC.log Logging.debug @@ Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name)
+        in
+        let pp_identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+        in
+        let* coq_definition =
           let* pp_result_type =
-            Nanotype.pp_nanotype function_definition.function_type.return_type
+            let* bindings =
+              let* parameters : (PP.document * PP.document) list =
+                let pp
+                      (id  : Ast.Identifier.t)
+                      (typ : Ast.Type.t      ) : (PP.document * PP.document) GC.t
+                  =
+                  let pp_id = Identifier.pp id
+                  in
+                  let* pp_typ = Nanotype.pp_nanotype typ
+                  in
+                  GC.return (pp_id, pp_typ)
+                in
+                GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+              in
+              let docs = List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
+              in
+              GC.return @@ Coq.pp_list docs
+            in
+            let* pp_result_type =
+              Nanotype.pp_nanotype function_definition.function_type.return_type
+            in
+            GC.return @@ Some begin
+                             Coq.pp_hanging_application (PP.string "Stm") [
+                                 bindings;
+                                 PP.(surround parens) pp_result_type
+                               ]
+                           end
           in
-          GC.return @@ Some begin
-                           Coq.pp_hanging_application (PP.string "Stm") [
-                               bindings;
-                               PP.(surround parens) pp_result_type
-                             ]
-                         end
+          let* pp_body =
+            Statements.pp_statement function_definition.function_body
+          in
+          let* pp_extended_function_type =
+            Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+          in
+          let* () = GC.add_comment begin
+                        PP.vertical [
+                            PP.string "Extended type";
+                            PP.indent pp_extended_function_type
+                          ]
+                      end
+          in
+          let* () = GC.add_comment begin
+                        PP.vertical [
+                            PP.string "AST";
+                            PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
+                          ]
+                      end
+          in
+          GC.return @@ Coq.pp_definition ~identifier:pp_identifier ~result_type:pp_result_type pp_body
         in
-        let* pp_body =
-          Statements.pp_statement function_definition.function_body
+        let original_sail_code =
+          Auxlib.build_list (fun { add; _ } ->
+              (
+                match type_constraint with
+                | Some (sail_type_constraint, _) -> add sail_type_constraint
+                | None                           -> ()
+              );
+              add sail_function_definition;
+            )
         in
-        let* pp_extended_function_type =
-          Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+        let* () = GC.add_original_definitions original_sail_code
         in
-        let* () = GC.add_comment begin
-            PP.vertical [
-              PP.string "Extended type";
-              PP.indent pp_extended_function_type
-            ]
-          end
-        in
-        let* () = GC.add_comment begin
-            PP.vertical [
-              PP.string "AST";
-              PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
-            ]
-          end
-        in
-        GC.return @@ Coq.pp_definition ~identifier:pp_identifier ~result_type:pp_result_type pp_body
-      in
-      let original_sail_code =
-        Auxlib.build_list (fun { add; _ } ->
-            (
-              match type_constraint with
-              | Some (sail_type_constraint, _) -> add sail_type_constraint
-              | None                           -> ()
-            );
-            add sail_function_definition;
-          )
-      in
-      let* () = GC.add_original_definitions original_sail_code
-      in
-      GC.return @@ coq_definition
+        GC.return @@ coq_definition
+      end
     end
-  end
 
 
 let pp_function_definitions
