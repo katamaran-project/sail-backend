@@ -16,3 +16,13 @@ let escape_string (string : string) : string =
   let escaped = List.map ~f:escape_char chars
   in
   String.concat ~sep:"" escaped
+
+
+let unordered_list (items : string list) : string =
+  let html_items =
+    let html_item item =
+      Printf.sprintf "<li>%s</li>" item
+    in
+    String.concat ~sep:"" @@ List.map ~f:html_item items
+  in
+  Printf.sprintf "<ul>%s</ul>" html_items
