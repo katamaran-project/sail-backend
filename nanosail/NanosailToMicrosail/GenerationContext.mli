@@ -12,6 +12,7 @@ val add_comment         : PP.document -> unit t
 val not_yet_implemented : ?message : string -> Lexing.position -> PP.document t
 val generation_block    : Lexing.position -> PP.document -> PP.document   -> PP.document t
 val generation_block'   : Lexing.position -> PP.document -> PP.document t -> PP.document t
+val pp_annotate         : Lexing.position -> PP.document t -> PP.document t
 
 
 val pp_inductive_type :
@@ -25,3 +26,5 @@ val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit
 val add_original_definitions : Libsail.Type_check.tannot Libsail.Ast.def list -> unit t
 
 val log : (string -> unit) -> string -> unit t
+
+

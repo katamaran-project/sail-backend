@@ -374,3 +374,10 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
 
 let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t =
   add_original_definitions [ original ]
+
+
+let pp_annotate
+      (location  : Lexing.position)
+      (annotated : PP.document t  ) : PP.document t
+  =
+  lift ~f:(PP.annotate location) annotated
