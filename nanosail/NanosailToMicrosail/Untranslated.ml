@@ -39,8 +39,8 @@ let generate
     message
   } : Ast.Definition.Untranslated.t = untranslated_definition
   in
-  let ocaml_location_string         = Printf.sprintf "OCaml location: %s line %d" filename line_number
-  and sail_location_string          = Printf.sprintf "Sail location: %s" (pp_sail_location sail_location)
+  let ocaml_location_string = Printf.sprintf "OCaml location: %s line %d" filename line_number
+  and sail_location_string  = Printf.sprintf "Sail location: %s" (pp_sail_location sail_location)
   in
   let message_string =
     match message with
