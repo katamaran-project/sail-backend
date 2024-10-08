@@ -22,7 +22,8 @@ let pp_function_definition
         let* () =
           GC.log Logging.debug @@ lazy (Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name))
         in
-        let pp_identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+        let pp_identifier =
+          PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
         in
         let* coq_definition =
           let* pp_result_type =
@@ -32,33 +33,48 @@ let pp_function_definition
                       (id  : Ast.Identifier.t)
                       (typ : Ast.Type.t      ) : (PP.document * PP.document) GC.t
                   =
-                  let pp_id = Identifier.pp id
+                  let pp_id =
+                    PP.annotate [%here] @@ Identifier.pp id
                   in
-                  let* pp_typ = Nanotype.pp_nanotype typ
+                  let* pp_typ =
+                    GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
                   in
                   GC.return (pp_id, pp_typ)
                 in
                 GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
               in
-              let docs = List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
+              let docs =
+                List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
               in
-              GC.return @@ Coq.pp_list docs
+              GC.return @@ PP.annotate [%here] @@ Coq.pp_list docs
             in
             let* pp_result_type =
-              Nanotype.pp_nanotype function_definition.function_type.return_type
+              GC.pp_annotate [%here] begin
+                  Nanotype.pp_nanotype function_definition.function_type.return_type
+                end
             in
-            GC.return @@ Some begin
-                             Coq.pp_hanging_application (PP.string "Stm") [
-                                 bindings;
-                                 PP.(surround parens) pp_result_type
-                               ]
-                           end
+            GC.return begin
+                Some begin
+                    PP.annotate [%here] begin
+                        Coq.pp_hanging_application (PP.string "Stm") [
+                            bindings;
+                            PP.(surround parens) pp_result_type
+                          ]
+                      end
+                  end
+              end
           in
           let* pp_body =
-            Statements.pp_statement function_definition.function_body
+            GC.pp_annotate [%here] begin
+                Statements.pp_statement function_definition.function_body
+              end
           in
           let* pp_extended_function_type =
-            Types.ExtendedType.pp_extended_function_type function_definition.function_type function_definition.extended_function_type
+            GC.pp_annotate [%here] begin
+                Types.ExtendedType.pp_extended_function_type
+                  function_definition.function_type
+                  function_definition.extended_function_type
+              end
           in
           let* () = GC.add_comment begin
                         PP.vertical [
@@ -66,15 +82,21 @@ let pp_function_definition
                             PP.indent pp_extended_function_type
                           ]
                       end
-          in
-          let* () = GC.add_comment begin
+          and* () = GC.add_comment begin
                         PP.vertical [
                             PP.string "AST";
                             PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
                           ]
                       end
           in
-          GC.return @@ Coq.pp_definition ~identifier:pp_identifier ~result_type:pp_result_type pp_body
+          GC.return begin
+              PP.annotate [%here] begin
+                  Coq.pp_definition
+                    ~identifier:pp_identifier
+                    ~result_type:pp_result_type
+                    pp_body
+                end
+            end
         in
         let original_sail_code =
           Auxlib.build_list (fun { add; _ } ->
@@ -88,7 +110,7 @@ let pp_function_definition
         in
         let* () = GC.add_original_definitions original_sail_code
         in
-        GC.return @@ coq_definition
+        GC.return @@ PP.annotate [%here] @@ coq_definition
       end
     end
 
@@ -97,7 +119,8 @@ let pp_function_definitions
       (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list)
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document list GC.t
   =
-  let* () = GC.log Logging.debug @@ lazy "Generating translations for all functions"
+  let* () =
+    GC.log Logging.debug @@ lazy "Generating translations for all functions"
   in
   let type_and_function_pairs =
     let find_type_constraint function_name =
@@ -110,9 +133,10 @@ let pp_function_definitions
       | []  -> None
       | _   -> None
     in
-    List.map ~f:(fun ((_sail_definition, function_definition) as fdef) ->
-        (fdef, find_type_constraint function_definition.function_name))
+    List.map
       function_definitions
+      ~f:(fun ((_sail_definition, function_definition) as fdef) ->
+        (fdef, find_type_constraint function_definition.function_name))
   in
   GC.map ~f:(Auxlib.uncurry pp_function_definition) type_and_function_pairs
 
@@ -122,47 +146,62 @@ let pp_function_definition_kit
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
   genblock [%here] (PP.string "FunDefKit") begin
-    let* () = GC.log Logging.debug @@ lazy "Generation FunDefKit"
-    in
-    let fundef =
-      let identifier = Identifier.pp @@ Ast.Identifier.mk "FunDef"
-      and implicit_parameters = [
-        (PP.string "Δ", None);
-        (PP.string "τ", None);
-      ]
-      and parameters = [
-        (PP.string "f", Some (PP.string "Fun Δ τ"))
-      ]
-      and result_type = Some (PP.string "Stm Δ τ")
-      and body =
-        let matched_expression =
-          PP.string "f in Fun Δ τ return Stm Δ τ"
-        and cases =
-          let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+      let* () =
+        GC.log Logging.debug @@ lazy "Generation FunDefKit"
+      in
+      let fundef =
+        let identifier =
+          PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
+      
+        and implicit_parameters = [
+            (PP.annotate [%here] @@ PP.string "Δ", None);
+            (PP.annotate [%here] @@ PP.string "τ", None);
+          ]
+      
+        and parameters =
+          [
             (
-              Identifier.pp function_definition.function_name,
-              Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+              PP.annotate [%here] @@ PP.string "f",
+              Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
             )
+          ]
+      
+        and result_type =
+          Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
+      
+        and body =
+          let matched_expression =
+            PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
+          and cases =
+            let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+              (
+                PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
+                PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+              )
+            in
+            List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
           in
-          List.map ~f:case_of_function_definition (List.map ~f:snd function_definitions)
+          PP.annotate [%here] @@ Coq.pp_match matched_expression cases
         in
-        Coq.pp_match matched_expression cases
+        PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
       in
-      Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
-    in
-    let* contents =
-      let* function_definitions =
-        pp_function_definitions function_definitions top_level_type_constraint_definitions
+      let* contents =
+        let* function_definitions =
+          pp_function_definitions function_definitions top_level_type_constraint_definitions
+        in
+        GC.return begin
+            PP.annotate [%here] begin
+                PP.paragraphs begin
+                    Auxlib.build_list (fun { add; addall; _ } ->
+                        addall function_definitions;
+                        add    fundef
+                      )
+                  end
+              end
+          end
       in
-      GC.return @@ PP.paragraphs begin
-        Auxlib.build_list (fun { add; addall; _ } ->
-            addall function_definitions;
-            add    fundef
-          )
-      end
-    in
-    let section =
-      Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
-    in
-    GC.return section
-  end
+      let section =
+        PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
+      in
+      GC.return @@ PP.annotate [%here] @@ section
+    end
