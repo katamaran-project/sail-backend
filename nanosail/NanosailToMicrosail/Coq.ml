@@ -68,7 +68,7 @@ let add_comments
   PP.vertical [ pp_comment comments; document ]
 
 
-let pp_hanging_function_application
+let pp_hanging_application
       (func      : PP.document     )
       (arguments : PP.document list) : PP.document
   =
@@ -90,7 +90,7 @@ let pp_list_using_notation (items : PP.document list) : PP.document =
 let rec pp_list_using_cons (items : PP.document list) : PP.document =
   match items with
   | []         -> PP.string "nil"
-  | head::tail -> PP.(surround parens @@ pp_hanging_function_application (string "cons") [ head; pp_list_using_cons tail])
+  | head::tail -> PP.(surround parens @@ pp_hanging_application (string "cons") [ head; pp_list_using_cons tail])
 
 
 let pp_list

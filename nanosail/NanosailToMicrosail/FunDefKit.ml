@@ -47,7 +47,7 @@ let pp_function_definition
             Nanotype.pp_nanotype function_definition.function_type.return_type
           in
           GC.return @@ Some begin
-                           Coq.pp_hanging_function_application (PP.string "Stm") [
+                           Coq.pp_hanging_application (PP.string "Stm") [
                                bindings;
                                PP.(surround parens) pp_result_type
                              ]

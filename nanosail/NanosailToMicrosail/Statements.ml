@@ -35,7 +35,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       and* pp_when_nil  = pp_par_statement when_nil
       and* pp_when_cons = pp_par_statement when_cons_body
       in
-      GC.return @@ Coq.pp_hanging_function_application
+      GC.return @@ Coq.pp_hanging_application
                      (PP.string "stm_match_list")
                      [
                        pp_matched;
@@ -54,7 +54,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_matched = pp_par_statement matched
       and* pp_body    = pp_par_statement body
       in
-      GC.return @@ Coq.pp_hanging_function_application
+      GC.return @@ Coq.pp_hanging_application
                      (PP.string "stm_match_prod")
                      [
                        pp_matched;
@@ -72,7 +72,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       and* pp_when_true  = pp_par_statement when_true
       and* pp_when_false = pp_par_statement when_false
       in
-      GC.return @@ Coq.pp_hanging_function_application
+      GC.return @@ Coq.pp_hanging_application
                      (PP.string "stm_if")
                      [
                        pp_condition;
@@ -247,7 +247,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
 
                stm_match_enum <type> <matched> <lambda>
           *)
-          GC.return @@ Coq.pp_hanging_function_application
+          GC.return @@ Coq.pp_hanging_application
             (PP.string "stm_match_enum")
             [
               pp_matched_type;
@@ -378,7 +378,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                     Logic.I
       *)
       GC.return begin
-        Coq.pp_hanging_function_application
+        Coq.pp_hanging_application
           (PP.string "stm_match_union_alt_list")
           [
             pp_matched_type;
@@ -431,7 +431,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
           ]
         )
     else
-      GC.return @@ Coq.pp_hanging_function_application
+      GC.return @@ Coq.pp_hanging_application
                      (PP.string "stm_let")
                      [
                        PP.(surround dquotes) pp_variable_identifier;
@@ -448,7 +448,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_left  = pp_par_statement left
       and* pp_right = pp_par_statement right
       in
-      GC.return @@ Coq.pp_hanging_function_application
+      GC.return @@ Coq.pp_hanging_application
                      (PP.string "stm_seq")
                      [
                        pp_left;
