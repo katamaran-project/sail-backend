@@ -12,7 +12,7 @@ module Annotation = struct
     List.concat [s1; s2]
 
   let to_html strings =
-    Html.unordered_list @@ List.map ~f:Html.escape_string strings
+    Html.unordered_list @@ List.map ~f:Html.escape_string @@ List.rev strings
 end
 
 
