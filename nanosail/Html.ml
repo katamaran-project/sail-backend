@@ -36,3 +36,25 @@ let unordered_list (items : t list) : t =
   in
   Html (Printf.sprintf "<ul>%s</ul>" html_items)
 
+
+let element
+      (tag         : string                     )
+      ?(attributes : (string * string) list = [])
+      (child       : t                          ) : t
+  =
+  let attributes' =
+    let format_attribute name value =
+      Printf.sprintf {| %s="%s"|} name value
+    in
+    String.concat @@ List.map ~f:(Auxlib.uncurry format_attribute) attributes
+  in
+  Html (
+      Printf.sprintf
+        "<%s%s>%s</%s>"
+        tag
+        attributes'
+        (to_string child)
+        tag
+    )
+
+
