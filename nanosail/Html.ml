@@ -58,3 +58,16 @@ let element
     )
 
 
+let span
+      ?(class_name : string = "")
+      (child       : t          ) : t
+  =
+  let attributes =
+    if
+      String.is_empty class_name
+    then
+      []
+    else
+      [("class", class_name)]
+  in
+  element "span" ~attributes child
