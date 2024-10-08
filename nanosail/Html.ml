@@ -95,3 +95,6 @@ let concat (elements : t list) : t =
 let string (string : string) : t =
   escape_string string
 
+
+let break : t =
+  Html "<br>"
