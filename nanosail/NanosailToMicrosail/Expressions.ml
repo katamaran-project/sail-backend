@@ -193,13 +193,21 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         (constructor_identifier : Ast.Identifier.t) : PP.document GC.t
     =
     let enum_type =
-      Coq.pp_application
-        (PP.string "ty.enum")
-        [ Identifier.pp @@ Configuration.reified_enum_name type_identifier ]
+      PP.annotate [%here] begin
+          Coq.pp_application
+            (PP.string "ty.enum")
+            [ Identifier.pp @@ Configuration.reified_enum_name type_identifier ]
+        end
+
     and enum_constructor =
-      Identifier.pp constructor_identifier
+      PP.annotate [%here] @@ Identifier.pp constructor_identifier
+
     in
-    GC.return @@ PPSail.pp_expression_value enum_type enum_constructor
+    GC.return begin
+        PP.annotate [%here] begin
+            PPSail.pp_expression_value enum_type enum_constructor
+          end
+      end
     
   in
   match expression with
