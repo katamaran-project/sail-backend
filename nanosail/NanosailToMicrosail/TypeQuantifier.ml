@@ -6,7 +6,7 @@ module GC = struct
 end
 
 
-let pp_type_quantifier (quantifier : (Ast.Identifier.t * Ast.Kind.t) list) =
+let pp_type_quantifier (quantifier : (Ast.Identifier.t * Ast.Kind.t) list) : (PP.document * PP.document option) list GC.t =
   let pp_type_quantifier_item
         (identifier : Ast.Identifier.t)
         (kind       : Ast.Kind.t      ) =
