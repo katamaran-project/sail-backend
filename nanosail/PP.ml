@@ -2,12 +2,17 @@ open Base
 
 
 module Annotation = struct
-  type t = string
+  type t = string list
 
-  let empty        = ""
-  let is_empty     = String.is_empty 
-  let combine _ s2 = s2
-  let to_html s    = s
+  let empty = []
+  
+  let is_empty = List.is_empty
+  
+  let combine s1 s2 =
+    List.concat [s1; s2]
+
+  let to_html strings =
+    Html.unordered_list @@ List.map ~f:Html.escape_string strings
 end
 
 
@@ -90,4 +95,4 @@ let annotate
   let annotation =
     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
   in
-  Doc.annotate annotation document
+  Doc.annotate [annotation] document
