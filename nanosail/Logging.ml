@@ -2,7 +2,7 @@ open Base
 
 
 let log message =
-  ignore @@ Stdio.printf "%s\n" message
+  ignore @@ Stdio.printf "%s\n" @@ Lazy.force message
 
 
 let info message =
@@ -29,17 +29,17 @@ let debug message =
 
 
 let surround
-    (logger   : string -> unit )
-    (position : Lexing.position)
-    (caption  : string         )
-    (f        : unit -> 'a     ) : 'a
+    (logger   : string lazy_t -> unit )
+    (position : Lexing.position       )
+    (caption  : string                )
+    (f        : unit -> 'a            ) : 'a
   =
   let enter_block () =
-    logger @@ Printf.sprintf " IN %s (%s)" caption (StringOf.OCaml.position position);
+    logger @@ lazy (Printf.sprintf " IN %s (%s)" caption (StringOf.OCaml.position position))
   and exited_block_successfully () =
-    logger @@ Printf.sprintf "OUT %s" caption;
+    logger @@ lazy (Printf.sprintf "OUT %s" caption)
   and exited_block_with_exception () =
-    logger @@ Printf.sprintf "XXX %s" caption;
+    logger @@ lazy (Printf.sprintf "XXX %s" caption)
   in
   enter_block ();
   try

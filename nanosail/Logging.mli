@@ -1,3 +1,3 @@
-val info     : string -> unit
-val debug    : string -> unit
-val surround : (string -> unit) -> Lexing.position -> string -> (unit -> 'a) -> 'a
+val info     : string lazy_t -> unit
+val debug    : string lazy_t -> unit
+val surround : (string lazy_t -> unit) -> Lexing.position -> string -> (unit -> 'a) -> 'a

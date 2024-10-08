@@ -39,8 +39,8 @@ let initial_state = ([], 0)
 
 
 let log
-    (logger  : string -> unit)
-    (message : string        ) : unit t
+    (logger  : string lazy_t -> unit)
+    (message : string lazy_t        ) : unit t
   =
   act (fun () -> logger message)
 

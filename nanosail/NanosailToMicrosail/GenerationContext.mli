@@ -14,7 +14,6 @@ val generation_block    : Lexing.position -> PP.document -> PP.document   -> PP.
 val generation_block'   : Lexing.position -> PP.document -> PP.document t -> PP.document t
 val pp_annotate         : Lexing.position -> PP.document t -> PP.document t
 
-
 val pp_inductive_type :
   PP.document ->
   ?parameters : (PP.document * PP.document) list ->
@@ -25,6 +24,4 @@ val pp_inductive_type :
 val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit t
 val add_original_definitions : Libsail.Type_check.tannot Libsail.Ast.def list -> unit t
 
-val log : (string -> unit) -> string -> unit t
-
-
+val log : (string lazy_t -> unit) -> string lazy_t -> unit t
