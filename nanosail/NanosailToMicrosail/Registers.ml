@@ -17,24 +17,34 @@ let regname_tag =
 
 
 let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
-  let identifier = PP.string "Reg"
-  and typ = PP.string "Ty -> Set"
+  let identifier =
+    PP.annotate [%here] @@ PP.string "Reg"
+  and typ =
+    PP.annotate [%here] @@ PP.string "Ty -> Set"
   in
   let* inductive_type =
     GC.block begin
-      GC.pp_inductive_type identifier typ (fun add_constructor ->
-          let make_constructor (register_definition : Ast.Definition.Register.t) : unit GC.t =
-            let identifier = Identifier.pp register_definition.identifier
-            in
-            let* register_type = Nanotype.pp_nanotype register_definition.typ
-            in
-            let typ =
-              Coq.pp_application (PP.string "Reg") [ PP.(surround parens) register_type ]
-            in
-            add_constructor ~typ:typ identifier
-          in
-          GC.iter ~f:make_constructor register_definitions
-        )
+        GC.pp_annotate [%here] begin
+            GC.pp_inductive_type identifier typ (fun add_constructor ->
+                let make_constructor (register_definition : Ast.Definition.Register.t) : unit GC.t =
+                  let identifier =
+                    PP.annotate [%here] @@ Identifier.pp register_definition.identifier
+                  in
+                  let* register_type =
+                    GC.pp_annotate [%here] @@ Nanotype.pp_nanotype register_definition.typ
+                  in
+                  let typ =
+                    PP.annotate [%here] begin
+                        Coq.pp_application
+                          (PP.string "Reg")
+                          [ PP.(surround parens) register_type ]
+                      end
+                  in
+                  add_constructor ~typ:typ identifier
+                in
+                GC.iter ~f:make_constructor register_definitions
+              )
+          end
     end
   in
   GC.generation_block [%here] (PP.string "Reg Inductive Type") inductive_type
@@ -52,7 +62,7 @@ let pp_no_confusion_for_reg () : PP.document GC.t =
 
 
 let pp_reg_definition () : PP.document GC.t =
-  GC.return @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+  GC.return @@ PP.annotate [%here] @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
 
 
 let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
@@ -103,9 +113,23 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
     let cs =
       List.map ~f:(fun register_name ->
           let rn_str = register_name in
-          ((rn_str, rn_str), PP.string "left eq_refl"))
+          (
+            (
+              PP.annotate [%here] @@ rn_str,
+              PP.annotate [%here] @@ rn_str
+            ),
+            PP.annotate [%here] @@ PP.string "left eq_refl"
+          )
+        )
         register_names
-    and wildcard_case = PP.((string "_", string "_"), string "right _")
+    and wildcard_case =
+      PP.(
+        (
+          PP.annotate [%here] @@ string "_",
+          PP.annotate [%here] @@ string "_"
+        ),
+        PP.annotate [%here] @@ string "right _"
+      )
     in
     Auxlib.build_list (fun { add; addall; _ } ->
         addall cs;
@@ -116,8 +140,8 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   let id1 = Configuration.tag_as_generated @@ Ast.Identifier.mk "x"
   and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
   in
-  let pp_id1 = Identifier.pp id1
-  and pp_id2 = Identifier.pp id2
+  let pp_id1 = PP.annotate [%here] @@ Identifier.pp id1
+  and pp_id2 = PP.annotate [%here] @@ Identifier.pp id2
   in
   GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
     PP.(
@@ -140,14 +164,14 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
 let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   let enum_values =
     let enum_value_of_register_name register_name =
-      Coq.pp_application
+      PP.annotate [%here] @@ Coq.pp_application
         (PP.string "existT")
         [
           PP.underscore;
           register_name
         ]      
     in
-    Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
+    PP.annotate [%here] @@ Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.generation_block [%here] (PP.string "REG_finite Instance") begin
     PP.(
@@ -183,17 +207,17 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
   in
   let* section_contents =
     let* items = GC.sequence [
-      pp_reg_inductive_type @@ List.map ~f:snd register_definitions;
-      pp_no_confusion_for_reg ();
-      pp_reg_definition ();
-      pp_instance_reg_eq_dec register_names;
-      pp_obligation_tactic ();
-      pp_reg_finite register_names
+      GC.pp_annotate [%here] @@ pp_reg_inductive_type @@ List.map ~f:snd register_definitions;
+      GC.pp_annotate [%here] @@ pp_no_confusion_for_reg ();
+      GC.pp_annotate [%here] @@ pp_reg_definition ();
+      GC.pp_annotate [%here] @@ pp_instance_reg_eq_dec register_names;
+      GC.pp_annotate [%here] @@ pp_obligation_tactic ();
+      GC.pp_annotate [%here] @@ pp_reg_finite register_names
     ]
     in
-    GC.return @@ PP.paragraphs items
+    GC.return @@ PP.annotate [%here] @@ PP.paragraphs items
   in
-  GC.return @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
+  GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
 
 
 let extra_eqdec_identifiers () : Ast.Identifier.t list =
@@ -211,8 +235,8 @@ let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.D
   let translated_register_identifiers =
     List.map ~f:translate_regname register_identifiers
   in
-  let identifier = Identifier.pp @@ Ast.Identifier.mk "RegName"
-  and type_name  = Identifier.pp @@ Ast.Identifier.mk "RegName"
-  and values     = List.map ~f:Identifier.pp translated_register_identifiers
+  let identifier = PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and type_name  = PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "RegName"
+  and values     = List.map ~f:(fun id -> PP.annotate [%here] @@ Identifier.pp id) translated_register_identifiers
   in
-  GC.return @@ Coq.pp_finite_instance ~identifier ~type_name ~values
+  GC.return @@ PP.annotate [%here] @@ Coq.pp_finite_instance ~identifier ~type_name ~values
