@@ -222,12 +222,10 @@ let rec expression_of_aval
           | Ast.Type.Enum type_identifier -> TC.return type_identifier
           | _                             -> TC.fail [%here] "Expected enum type"
         in
-        let enum_args : Ast.Expression.enum_arguments = {
-          type_identifier = type_identifier;
-          constructor_identifier = id'
-        }
+        let enum_value =
+          Ast.Expression.Enum { type_identifier; constructor_identifier = id' }
         in
-        TC.return (Ast.Expression.Enum enum_args, typ', [])
+        TC.return (enum_value, typ', [])
       end
     | Unbound _    -> TC.not_yet_implemented [%here] location
 
