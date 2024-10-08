@@ -52,7 +52,8 @@ let generate
       ~layout:vertical
       (PP.string "----", PP.string "----")
       (vertical [
-           indent @@ PPSail.pp_sail_definition sail_definition; (* todo check this; used to have ^^ hardline *)
+           indent @@ PPSail.pp_sail_definition sail_definition;
+           string "";
            string ocaml_location_string;
            string sail_location_string;
            string message_string
