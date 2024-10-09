@@ -175,6 +175,20 @@ let lookup_definitions_of_kind (extractor : Ast.Definition.t -> 'a option) : 'a 
   in
   return @@ List.filter_map ~f:extractor definitions
 
+
+(*
+  Looks up a variant that has a given constructor.
+*)
+let lookup_variant_by_constructor (constructor_identifier : Ast.Identifier.t) : Ast.Definition.Type.Variant.t option t =
+  let has_constructor (variant_definition : Ast.Definition.Type.Variant.t) : bool =
+    List.exists variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
+  in
+  let* variant_definitions =
+    lookup_definitions_of_kind Ast.Definition.Select.(type_definition of_variant)
+  in
+  return @@ List.find variant_definitions ~f:has_constructor
+
+
 let generate_unique_int : int t =
   let* index = Monad.get Context.next_id_index
   in
