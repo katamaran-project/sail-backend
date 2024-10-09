@@ -105,8 +105,12 @@ let fail ocaml_position message =
   Monad.fail @@ AssertionFailure (ocaml_position, message)
 
 
+let definitions : Ast.Definition.t list t =
+  Monad.get Context.definitions
+
+
 let register (definition : Ast.Definition.t) =
-  let* old_definitions = Monad.get Context.definitions
+  let* old_definitions = definitions
   in
   let new_definitions = definition :: old_definitions
   in
