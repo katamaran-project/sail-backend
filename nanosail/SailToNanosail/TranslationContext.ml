@@ -170,6 +170,11 @@ let is_register (identifier : Ast.Identifier.t) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
 
 
+let lookup_definitions_of_kind (extractor : Ast.Definition.t -> 'a option) : 'a list t =
+  let* definitions
+  in
+  return @@ List.filter_map ~f:extractor definitions
+
 let generate_unique_int : int t =
   let* index = Monad.get Context.next_id_index
   in
