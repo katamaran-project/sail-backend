@@ -975,7 +975,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         The code below checks if a function call is actually a variant constructor,
         and translates it to a specialized expression.
       *)
-      let* variant_definition =        
+      let* variant_definition =
         TC.lookup_variant_by_constructor receiver_identifier'
       in
       match variant_definition with

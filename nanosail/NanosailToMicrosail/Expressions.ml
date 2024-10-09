@@ -212,7 +212,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variant 
         (_type_identifier        : Ast.Identifier.t     )
         (_constructor_identifier : Ast.Identifier.t     )
-        (_argument_identifiers   : Ast.Identifier.t list) : PP.document GC.t
+        (_arguments              : Ast.Expression.t list) : PP.document GC.t
     =
     GC.not_yet_implemented [%here]
 
@@ -227,4 +227,4 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
   | Variant { type_identifier;
               constructor_identifier;
-              argument_identifiers }                  -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier argument_identifiers
+              arguments }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier arguments
