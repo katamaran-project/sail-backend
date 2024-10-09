@@ -11,6 +11,9 @@ type t =
                          variable_identifiers : Identifier.t list }
   | Enum            of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t }
+  | Variant         of { type_identifier        : Identifier.t;
+                         constructor_identifier : Identifier.t;
+                         argument_identifiers   : Identifier.t list }
 
 
 let rec to_fexpr (expression : t) : FExpr.t =
@@ -54,6 +57,20 @@ let rec to_fexpr (expression : t) : FExpr.t =
     =
     FExpr.mk_application ~positional:[Identifier.to_fexpr type_identifier; Identifier.to_fexpr constructor_identifier] "Enum"
 
+  and variant_to_fexpr
+      (type_identifier        : Identifier.t     )
+      (constructor_identifier : Identifier.t     )
+      (argument_identifiers   : Identifier.t list) : FExpr.t
+    =
+    let keyword =
+      [
+        ("type"       , Identifier.to_fexpr type_identifier                                  );
+        ("constructor", Identifier.to_fexpr constructor_identifier                           );
+        ("arguments"  , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr argument_identifiers);
+      ]
+    in
+    FExpr.mk_application ~keyword "Union"
+
   in
   match expression with
    | Variable identifier                                     -> variable_to_fexpr identifier
@@ -63,3 +80,4 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | BinaryOperation (operator, left_operand, right_operand) -> binary_operation_to_fexpr operator left_operand right_operand
    | Record { type_identifier; variable_identifiers }        -> record_to_fexpr type_identifier variable_identifiers
    | Enum { type_identifier; constructor_identifier }        -> enum_to_fexpr type_identifier constructor_identifier
+   | Variant { type_identifier; constructor_identifier; argument_identifiers } -> variant_to_fexpr type_identifier constructor_identifier argument_identifiers
