@@ -959,7 +959,34 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
     let generic_function_call () =
-      TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
+      (*
+        Sail translates the construction of a variant type to a function call.
+
+          union Foo {
+            Bar : unit
+          }
+
+          let x = Bar ()
+
+        Here, Bar () is represented by a call to a function named Bar.
+
+        In muSail, the construction of a variant type is a special expression exp_union.
+
+        The code below checks if a function call is actually a variant constructor,
+        and translates it to a specialized expression.
+      *)
+      let* variant_definition =        
+        TC.lookup_variant_by_constructor receiver_identifier'
+      in
+      match variant_definition with
+      | Some _variant_definition -> begin
+          (* Function call needs to be translated to variant value construction *)
+          TC.not_yet_implemented [%here] location
+        end
+      | None -> begin
+          (* Function call does not refer to variant constructor *)
+          TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
+        end
     in
 
     match Ast.Identifier.string_of receiver_identifier' with
