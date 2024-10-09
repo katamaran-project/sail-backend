@@ -7,8 +7,8 @@ type t =
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
   | BinaryOperation of BinaryOperator.t * t * t
-  | Record          of { type_identifier      : Identifier.t;
-                         variable_identifiers : Identifier.t list }
+  | Record          of { type_identifier        : Identifier.t;
+                         variable_identifiers   : Identifier.t list }
   | Enum            of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t }
   | Variant         of { type_identifier        : Identifier.t;
