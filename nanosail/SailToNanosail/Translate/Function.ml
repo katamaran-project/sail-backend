@@ -979,9 +979,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         TC.lookup_variant_by_constructor receiver_identifier'
       in
       match variant_definition with
-      | Some _variant_definition -> begin
+      | Some variant_definition -> begin
           (* Function call needs to be translated to variant value construction *)
-          TC.not_yet_implemented [%here] location
+          let variant =
+            Ast.Expression.Variant {
+                type_identifier = variant_definition.identifier;
+                constructor_identifier = receiver_identifier';
+                arguments = argument_expressions;
+              }
+          in
+          TC.return @@ wrap @@ Ast.Statement.Expression variant
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
