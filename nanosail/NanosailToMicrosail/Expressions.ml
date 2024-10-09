@@ -210,9 +210,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       end
 
   and pp_variant 
-        (_type_identifier : Ast.Identifier.t)
-        (_constructor_identifier : Ast.Identifier.t)
-        (_argument_identifiers : Ast.Identifier.t list) : PP.document GC.t
+        (_type_identifier        : Ast.Identifier.t     )
+        (_constructor_identifier : Ast.Identifier.t     )
+        (_argument_identifiers   : Ast.Identifier.t list) : PP.document GC.t
     =
     GC.not_yet_implemented [%here]
 
