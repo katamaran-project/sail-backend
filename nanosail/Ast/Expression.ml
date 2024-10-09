@@ -54,10 +54,10 @@ let rec to_fexpr (expression : t) : FExpr.t =
 
   in
   match expression with
-   | Variable identifier -> variable_to_fexpr identifier
-   | Val value -> value_to_fexpr value
-   | List items -> list_to_fexpr items
-   | UnaryOperation (operator, operand) -> unary_operation_to_fexpr operator operand
+   | Variable identifier                                     -> variable_to_fexpr identifier
+   | Val value                                               -> value_to_fexpr value
+   | List items                                              -> list_to_fexpr items
+   | UnaryOperation (operator, operand)                      -> unary_operation_to_fexpr operator operand
    | BinaryOperation (operator, left_operand, right_operand) -> binary_operation_to_fexpr operator left_operand right_operand
-   | Record { type_identifier; variable_identifiers } -> record_to_fexpr type_identifier variable_identifiers
-   | Enum { type_identifier; constructor_identifier } -> enum_to_fexpr type_identifier constructor_identifier
+   | Record { type_identifier; variable_identifiers }        -> record_to_fexpr type_identifier variable_identifiers
+   | Enum { type_identifier; constructor_identifier }        -> enum_to_fexpr type_identifier constructor_identifier
