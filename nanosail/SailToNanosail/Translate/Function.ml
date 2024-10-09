@@ -958,6 +958,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
         | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
+    let generic_function_call () =
+      TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
+    in
 
     match Ast.Identifier.string_of receiver_identifier' with
     | "sail_cons" -> binary_operation Cons
@@ -970,7 +973,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | "gteq_int"  -> binary_operation GreaterThanOrEqualTo
     | "eq_int"    -> binary_operation EqualTo
     | "neq_int"   -> binary_operation NotEqualTo
-    | _           -> TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
+    | _           -> generic_function_call ()
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
