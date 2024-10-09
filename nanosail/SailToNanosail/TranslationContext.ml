@@ -46,7 +46,7 @@ open Monads.Notations.Star(Monad)
 
 
 type 'a t      = 'a Monad.t
-type 'a result = 'a Monad.result = Success of 'a     (* explicitly enumerating cases here prevents result from becoming abstract *)
+type 'a result = 'a Monad.result = Success of 'a      (* explicitly enumerating cases here prevents result from becoming abstract *)
                                  | Failure of Error.t
 
 let return     = Monad.return
