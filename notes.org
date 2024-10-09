@@ -69,7 +69,7 @@
 *** DONE Canonicals
 ** DONE Use monads in Base Module
 ** TODO Matching statements
-*** Investigate ~stm_match_union_alt~
+*** DONE Investigate ~stm_match_union_alt~
 
 #+begin_src sail
   union clause ast = JALR_CAP      : (dst, src)
@@ -182,7 +182,7 @@
            end).
 #+end_src
 
-** TODO match |> notation (enums, unions/variants)
+** DONE match |> notation (enums, unions/variants)
 
 For the pattern matching on unions I suggest using https://github.com/katamaran-project/katamaran/blob/6b50d42d5fa4027be887fbd39ccadd3acd57b688/theories/Syntax/Statements.v#L181-L188
 For a union type U and scrutinee s it takes a list of alternatives altsand a well-formedness (exhaustiveness) proof alts_wf.
@@ -243,6 +243,34 @@ For a union type U and scrutinee s it takes a list of alternatives altsand a wel
 
 
 ** TODO ~enum_denote~ should contain regname
+
+** Unions/Variants
+
+#+begin_src coq
+  Notation "'Read'" := (exp_union access_type KRead (exp_val ty.unit tt)) : exp_scope.
+  Notation "'Write'" := (exp_union access_type KWrite (exp_val ty.unit tt)) : exp_scope.
+  Notation "'ReadWrite'" := (exp_union access_type KReadWrite (exp_val ty.unit tt)) : exp_scope.
+  Notation "'Execute'" := (exp_union access_type KExecute (exp_val ty.unit tt)) : exp_scope.
+
+  Notation "'E_Fetch_Access_Fault'" := (exp_union exception_type KE_Fetch_Access_Fault (exp_val ty.unit tt)) : exp_scope.
+  Notation "'E_Load_Access_Fault'" := (exp_union exception_type KE_Load_Access_Fault (exp_val ty.unit tt)) : exp_scope.
+  Notation "'E_SAMO_Access_Fault'" := (exp_union exception_type KE_SAMO_Access_Fault (exp_val ty.unit tt)) : exp_scope.
+  Notation "'E_U_EnvCall'" := (exp_union exception_type KE_U_EnvCall (exp_val ty.unit tt)) : exp_scope.
+  Notation "'E_M_EnvCall'" := (exp_union exception_type KE_M_EnvCall (exp_val ty.unit tt)) : exp_scope.
+  Notation "'E_Illegal_Instr'" := (exp_union exception_type KE_Illegal_Instr (exp_val ty.unit tt)) : exp_scope.
+
+  Notation "'None'" := (exp_inr (exp_val ty.unit tt)) : exp_scope.
+  Notation "'Some' va" := (exp_inl va) (at level 10, va at next level) : exp_scope.
+
+  Notation "'MemValue' bs memv" := (exp_union (memory_op_result bs) KMemValue memv) (at level 10, memv at next level) : exp_scope.
+  Notation "'MemException' bs meme" := (exp_union (memory_op_result bs) KMemException meme) (at level 10, meme at next level) : exp_scope.
+
+  Notation "'F_Base' memv" := (exp_union fetch_result KF_Base memv) (at level 10, memv at next level) : exp_scope.
+  Notation "'F_Error' meme memv" := (exp_union fetch_result KF_Error (exp_binop bop.pair meme memv)) (at level 10, meme at next level, memv at next level) : exp_scope.
+
+  Notation "'CTL_TRAP' exc" := (exp_union ctl_result KCTL_TRAP exc) (at level 10, exc at next level) : exp_scope.
+  Notation "'CTL_MRET'" := (exp_union ctl_result KCTL_MRET (exp_val ty.unit tt)) : exp_scope.
+#+end_src
 
 * Notations
 
