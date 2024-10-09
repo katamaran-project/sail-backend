@@ -138,7 +138,7 @@ let lookup_type_definition_of_kind
       end
     | _ -> None
   in
-  let* definitions = Monad.get Context.definitions
+  let* definitions
   in
   let type_definition = List.find_map definitions ~f:predicate
   in
@@ -161,7 +161,7 @@ let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
        end
     | _ -> None
   in
-  let* definitions = Monad.get Context.definitions
+  let* definitions
   in
   return @@ Option.map (List.find_map definitions ~f:predicate) ~f:(fun r -> r.typ)
 
