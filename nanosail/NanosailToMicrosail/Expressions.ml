@@ -208,7 +208,14 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
             PPSail.pp_expression_value enum_type enum_constructor
           end
       end
-    
+
+  and pp_variant 
+        (_type_identifier : Ast.Identifier.t)
+        (_constructor_identifier : Ast.Identifier.t)
+        (_argument_identifiers : Ast.Identifier.t list) : PP.document GC.t
+    =
+    GC.not_yet_implemented [%here]
+
   in
   match expression with
   | Variable identifier                               -> GC.pp_annotate [%here] @@ pp_variable identifier
@@ -218,3 +225,6 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | List elements                                     -> GC.pp_annotate [%here] @@ pp_list elements
   | Record { type_identifier; variable_identifiers }  -> GC.pp_annotate [%here] @@ pp_record type_identifier variable_identifiers
   | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
+  | Variant { type_identifier;
+              constructor_identifier;
+              argument_identifiers }                  -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier argument_identifiers
