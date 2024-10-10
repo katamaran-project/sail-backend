@@ -982,11 +982,31 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           (* Function call needs to be translated to variant value construction *)
           match argument_expressions with
           | [argument] -> begin
+              (*
+                 A variant value can take 0+ fields. All these fields are packed into a single value, stored in <argument>.
+
+                   ()        : unit
+                   x         : x
+                   (x, y)    : Pair(x, y)
+                   (x, y, z) : Pair(Pair(x, y), z)
+
+                 flatten_fields extracts the different arguments from these potentially nested pairs.
+                 We probably do not deal correctly with the case that one of the fields is an actual pair.
+              *)
+              let rec flatten_fields (expression : Ast.Expression.t) =
+                match expression with
+                | Ast.Expression.Val Ast.Value.Unit                              -> []
+                | Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y) -> x :: flatten_fields y
+                | _                                                              -> [expression]
+              in
+              let fields =
+                flatten_fields argument
+              in
               let variant =
                 Ast.Expression.Variant {
                   type_identifier        = variant_definition.identifier;
                   constructor_identifier = receiver_identifier';
-                  arguments              = [argument];
+                  arguments              = fields;
                 }
               in
               TC.return @@ wrap @@ Ast.Statement.Expression variant
