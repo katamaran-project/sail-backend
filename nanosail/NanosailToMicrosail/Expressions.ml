@@ -210,11 +210,37 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       end
 
   and pp_variant 
-        (_type_identifier        : Ast.Identifier.t     )
-        (_constructor_identifier : Ast.Identifier.t     )
+        (type_identifier        : Ast.Identifier.t     )
+        (constructor_identifier : Ast.Identifier.t     )
         (_arguments              : Ast.Expression.t list) : PP.document GC.t
     =
-    GC.not_yet_implemented [%here]
+    let reified_variant_identifier =
+      Configuration.reified_variant_name type_identifier
+    and reified_constructor_identifier =
+      Configuration.reified_variant_constructor_name constructor_identifier
+    in
+    let pp_variant_identifier =
+      Identifier.pp reified_variant_identifier
+    and pp_constructor_identifier =
+      Identifier.pp reified_constructor_identifier
+    in
+    let pp_arguments =
+      PP.(surround parens) begin
+        Coq.pp_application
+          (PP.string "exp_val")
+          [
+            PP.string "ty.unit";
+            PP.string "tt";
+          ]
+      end
+    in
+    GC.return @@ Coq.pp_application
+      (PP.string "exp_union")
+      [
+        pp_variant_identifier;
+        pp_constructor_identifier;
+        pp_arguments
+      ]
 
   in
   match expression with
