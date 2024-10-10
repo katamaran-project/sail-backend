@@ -229,8 +229,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@  pp_expression @@ Ast.Expression.Val Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
-      | xs     -> GC.not_yet_implemented [%here]
-        (* GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs *)
+      | xs     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs
     in
     GC.return @@ Coq.pp_application
       (PP.string "exp_union")
@@ -240,8 +239,14 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         pp_arguments
       ]
 
-  and pp_tuple (_elements : Ast.Expression.t list) : PP.document GC.t =
-    GC.not_yet_implemented [%here]
+  and pp_tuple (elements : Ast.Expression.t list) : PP.document GC.t =
+    let* pp_elements =
+      GC.map ~f:pp_expression elements
+    in
+    GC.return @@ Coq.pp_application
+      (PP.string "exp_tuple")
+      [Coq.pp_list pp_elements]
+      
 
   in
   match expression with
