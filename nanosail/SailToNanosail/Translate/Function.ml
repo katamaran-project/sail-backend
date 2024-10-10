@@ -980,14 +980,18 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       match variant_definition with
       | Some variant_definition -> begin
           (* Function call needs to be translated to variant value construction *)
-          let variant =
-            Ast.Expression.Variant {
-                type_identifier = variant_definition.identifier;
-                constructor_identifier = receiver_identifier';
-                arguments = argument_expressions;
-              }
-          in
-          TC.return @@ wrap @@ Ast.Statement.Expression variant
+          match argument_expressions with
+          | [argument] -> begin
+              let variant =
+                Ast.Expression.Variant {
+                  type_identifier        = variant_definition.identifier;
+                  constructor_identifier = receiver_identifier';
+                  arguments              = [argument];
+                }
+              in
+              TC.return @@ wrap @@ Ast.Statement.Expression variant
+            end
+          | _ -> TC.fail [%here] "Should not happen: variant fields are packed into one value"
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
