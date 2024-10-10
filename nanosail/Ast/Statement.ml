@@ -73,7 +73,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("when_nil", when_nil');
           ]
         in
-        FExpr.mk_application ~keyword "MatchList"
+        FExpr.mk_application ~keyword "Stm:MatchList"
       end
 
     | MatchProduct { matched; id_fst; id_snd; body } -> begin
@@ -85,7 +85,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("body", to_fexpr body)
           ]
         in
-        FExpr.mk_application ~keyword "MatchProduct"
+        FExpr.mk_application ~keyword "Stm:MatchProduct"
       end
 
     | MatchBool { condition; when_true; when_false } -> begin
@@ -96,7 +96,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("when_false", to_fexpr when_false);
           ]
         in
-        FExpr.mk_application ~keyword "MatchBool"
+        FExpr.mk_application ~keyword "Stm:MatchBool"
       end
 
     | MatchEnum { matched; matched_type; cases } -> begin
@@ -116,7 +116,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("cases", cases')
           ]
         in
-        FExpr.mk_application ~keyword "MatchEnum"
+        FExpr.mk_application ~keyword "Stm:MatchEnum"
       end
 
     | MatchVariant { matched; matched_type; cases } -> begin
@@ -143,11 +143,11 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("cases", cases')
           ]
         in
-        FExpr.mk_application ~keyword "MatchVariant"
+        FExpr.mk_application ~keyword "Stm:MatchVariant"
       end
 
   and expression_to_fexpr (expression : Expression.t) : FExpr.t =
-    FExpr.mk_application ~positional:[Expression.to_fexpr expression] "Expression"
+    FExpr.mk_application ~positional:[Expression.to_fexpr expression] "Stm:Expression"
 
   and call_to_fexpr
       (identifier : Identifier.t)
@@ -159,7 +159,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         ("arguments", FExpr.mk_list @@ List.map ~f:Expression.to_fexpr arguments)
       ]
     in
-    FExpr.mk_application ~keyword "Call"
+    FExpr.mk_application ~keyword "Stm:Call"
 
   and let_to_fexpr
       (variable_identifier    : Identifier.t)
@@ -175,7 +175,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         ("body", to_fexpr body_statement);
       ]
     in
-    FExpr.mk_application ~keyword "Let"
+    FExpr.mk_application ~keyword "Stm:Let"
 
   and destructure_record_to_fexpr
       (record_type_identifier : Identifier.t     )
@@ -193,7 +193,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         ("body", to_fexpr body);
       ]
     in
-    FExpr.mk_application ~keyword "DestructureRecord"
+    FExpr.mk_application ~keyword "Stm:DestructureRecord"
 
   and seq_to_fexpr
       (e1 : t)
@@ -214,7 +214,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         ("value", Identifier.to_fexpr value)
       ]
     in
-    FExpr.mk_application ~keyword "WriteRegister"
+    FExpr.mk_application ~keyword "Stm:WriteRegister"
 
   and cast_to_fexpr
       (expression : t     )
@@ -226,10 +226,10 @@ let rec to_fexpr (statement : t) : FExpr.t =
         ("value", to_fexpr expression)
       ]
     in
-    FExpr.mk_application ~keyword "Cast"
+    FExpr.mk_application ~keyword "Stm:Cast"
 
   and fail_to_fexpr (message : string) : FExpr.t =
-    FExpr.mk_application ~positional:[FExpr.mk_string message] "Fail"
+    FExpr.mk_application ~positional:[FExpr.mk_string message] "Stm:Fail"
 
   in
   match statement with
