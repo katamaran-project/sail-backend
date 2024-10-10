@@ -226,6 +226,14 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     let* pp_arguments =
       match arguments with
+      (*
+         The number of fields determines how the union value should be represented.
+
+           ()          : tt
+           (x)         : x
+           (x, y)      : pair of x y
+           (x, y, ...) : tuple of x y ...
+      *)
       | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@  pp_expression @@ Ast.Expression.Val Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
