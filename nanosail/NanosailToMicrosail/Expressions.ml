@@ -234,7 +234,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
            (x, y, ...) : tuple of x y ...
       *)
       match fields with
-      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@  pp_expression @@ Ast.Expression.Val Ast.Value.Unit
+      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Val Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
       | xs     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs
