@@ -270,6 +270,9 @@ For a union type U and scrutinee s it takes a list of alternatives altsand a wel
 
   Notation "'CTL_TRAP' exc" := (exp_union ctl_result KCTL_TRAP exc) (at level 10, exc at next level) : exp_scope.
   Notation "'CTL_MRET'" := (exp_union ctl_result KCTL_MRET (exp_val ty.unit tt)) : exp_scope.
+
+  stm_exp (exp_union Uinstruction Kpop (exp_tuple [(exp_int 2%Z); (exp_int 4%Z); (exp_int 8%Z)])).
+
 #+end_src
 
 * Notations
