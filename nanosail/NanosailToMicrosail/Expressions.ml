@@ -212,7 +212,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variant 
         (type_identifier        : Ast.Identifier.t     )
         (constructor_identifier : Ast.Identifier.t     )
-        (_arguments              : Ast.Expression.t list) : PP.document GC.t
+        (arguments              : Ast.Expression.t list) : PP.document GC.t
     =
     let reified_variant_identifier =
       Configuration.reified_variant_name type_identifier
@@ -224,15 +224,11 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     and pp_constructor_identifier =
       Identifier.pp reified_constructor_identifier
     in
-    let pp_arguments =
-      PP.(surround parens) begin
-        Coq.pp_application
-          (PP.string "exp_val")
-          [
-            PP.string "ty.unit";
-            PP.string "tt";
-          ]
-      end
+    let* pp_arguments =
+      match arguments with
+      | [] -> GC.fail "Should not occur"
+      | [argument] -> GC.lift ~f:PP.(surround parens) @@ pp_expression argument
+      | _   -> GC.not_yet_implemented [%here]
     in
     GC.return @@ Coq.pp_application
       (PP.string "exp_union")
