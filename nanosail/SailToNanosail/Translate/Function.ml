@@ -996,7 +996,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
                 | Ast.Expression.Val Ast.Value.Unit                              -> []
-                | Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y) -> x :: flatten_fields y
+                | Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
                 | _                                                              -> [expression]
               in
               let fields =
