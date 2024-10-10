@@ -13,7 +13,7 @@ type t =
                          constructor_identifier : Identifier.t }
   | Variant         of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t;
-                         arguments              : t list }
+                         fields                 : t list }
   | Tuple           of t list
 
 
@@ -91,5 +91,5 @@ let rec to_fexpr (expression : t) : FExpr.t =
             constructor_identifier }                         -> enum_to_fexpr type_identifier constructor_identifier
    | Variant { type_identifier;
                constructor_identifier;
-               arguments }                                   -> variant_to_fexpr type_identifier constructor_identifier arguments
+               fields    }                                   -> variant_to_fexpr type_identifier constructor_identifier fields
    | Tuple elements                                          -> tuple_to_fexpr elements

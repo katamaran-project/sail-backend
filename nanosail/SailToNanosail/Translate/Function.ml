@@ -1006,7 +1006,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 Ast.Expression.Variant {
                   type_identifier        = variant_definition.identifier;
                   constructor_identifier = receiver_identifier';
-                  arguments              = fields;
+                  fields                 = fields;
                 }
               in
               TC.return @@ wrap @@ Ast.Statement.Expression variant

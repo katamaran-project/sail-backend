@@ -212,7 +212,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variant 
         (type_identifier        : Ast.Identifier.t     )
         (constructor_identifier : Ast.Identifier.t     )
-        (arguments              : Ast.Expression.t list) : PP.document GC.t
+        (fields                 : Ast.Expression.t list) : PP.document GC.t
     =
     let reified_variant_identifier =
       Configuration.reified_variant_name type_identifier
@@ -224,8 +224,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     and pp_constructor_identifier =
       Identifier.pp reified_constructor_identifier
     in
-    let* pp_arguments =
-      match arguments with
+    let* pp_fields =
       (*
          The number of fields determines how the union value should be represented.
 
@@ -234,6 +233,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
            (x, y)      : pair of x y
            (x, y, ...) : tuple of x y ...
       *)
+      match fields with
       | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@  pp_expression @@ Ast.Expression.Val Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
@@ -244,7 +244,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       [
         pp_variant_identifier;
         pp_constructor_identifier;
-        pp_arguments
+        pp_fields
       ]
 
   and pp_tuple (elements : Ast.Expression.t list) : PP.document GC.t =
@@ -267,5 +267,5 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
   | Variant { type_identifier;
               constructor_identifier;
-              arguments }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier arguments
+              fields    }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier fields
   | Tuple elements                                    -> GC.pp_annotate [%here] @@ pp_tuple elements
