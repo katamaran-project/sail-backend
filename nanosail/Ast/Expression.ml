@@ -14,6 +14,7 @@ type t =
   | Variant         of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t;
                          arguments              : t list }
+  | Tuple           of t list
 
 
 let rec to_fexpr (expression : t) : FExpr.t =
@@ -71,6 +72,12 @@ let rec to_fexpr (expression : t) : FExpr.t =
     in
     FExpr.mk_application ~keyword "Union"
 
+  and tuple_to_fexpr (elements : t list) : FExpr.t =
+    let positional =
+      List.map ~f:to_fexpr elements
+    in
+    FExpr.mk_application ~positional "Tuple"
+
   in
   match expression with
    | Variable identifier                                     -> variable_to_fexpr identifier
@@ -85,3 +92,4 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Variant { type_identifier;
                constructor_identifier;
                arguments }                                   -> variant_to_fexpr type_identifier constructor_identifier arguments
+   | Tuple elements                                          -> tuple_to_fexpr elements
