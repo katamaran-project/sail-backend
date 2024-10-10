@@ -226,11 +226,11 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     let* pp_arguments =
       match arguments with
-      | [] -> GC.fail "Should not occur"
-      | [argument] -> begin
-          GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression argument
-        end
-      | _   -> GC.fail "Should not occur; multiple arguments are prepacked and given as a single argument"
+      | []     -> GC.pp_annotate [%here] @@ pp_expression @@ Ast.Expression.Val Ast.Value.Unit
+      | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
+      | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
+      | xs     -> GC.not_yet_implemented [%here]
+        (* GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs *)
     in
     GC.return @@ Coq.pp_application
       (PP.string "exp_union")
