@@ -227,24 +227,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     let* pp_arguments =
       match arguments with
       | [] -> GC.fail "Should not occur"
-      | [argument] -> GC.lift ~f:PP.(surround parens) @@ pp_expression argument
-      | [argument1; argument2] -> begin
-          let* pp_argument1 =
-            pp_expression argument1
-          and* pp_argument2 =
-            pp_expression argument2
-          in
-          GC.return begin
-            Coq.pp_application
-              (PP.string "exp_binop")
-              [
-                PP.string "bop.pair";
-                PP.(surround parens) pp_argument1;
-                PP.(surround parens) pp_argument2;
-              ]
-          end
-        end
-      | _   -> GC.not_yet_implemented [%here]
+      | [argument] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression argument
+      | _   -> GC.fail "Should not occur; multiple arguments are prepacked and given as a single argument"
     in
     GC.return @@ Coq.pp_application
       (PP.string "exp_union")
