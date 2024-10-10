@@ -226,7 +226,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     let* pp_arguments =
       match arguments with
-      | []     -> GC.pp_annotate [%here] @@ pp_expression @@ Ast.Expression.Val Ast.Value.Unit
+      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@  pp_expression @@ Ast.Expression.Val Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
       | xs     -> GC.not_yet_implemented [%here]
@@ -240,6 +240,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         pp_arguments
       ]
 
+  and pp_tuple (_elements : Ast.Expression.t list) : PP.document GC.t =
+    GC.not_yet_implemented [%here]
+
   in
   match expression with
   | Variable identifier                               -> GC.pp_annotate [%here] @@ pp_variable identifier
@@ -252,3 +255,4 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | Variant { type_identifier;
               constructor_identifier;
               arguments }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier arguments
+  | Tuple elements                                    -> GC.pp_annotate [%here] @@ pp_tuple elements
