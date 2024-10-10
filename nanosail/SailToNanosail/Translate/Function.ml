@@ -929,8 +929,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Ast.Identifier.string_of record_type_identifier) (Ast.Identifier.string_of field_identifier)
       )
 
-  and statement_of_value
-        (value : S.typ S.aval) =
+  and statement_of_value (value : S.typ S.aval) : Ast.Statement.t TC.t =
     let* expression, _expression_type, named_statements = expression_of_aval location value
     in
     TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression
