@@ -227,7 +227,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     let* pp_arguments =
       match arguments with
       | [] -> GC.fail "Should not occur"
-      | [argument] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression argument
+      | [argument] -> begin
+          GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression argument
+        end
       | _   -> GC.fail "Should not occur; multiple arguments are prepacked and given as a single argument"
     in
     GC.return @@ Coq.pp_application
