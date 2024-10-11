@@ -41,10 +41,10 @@ STDERR
 """, file=log)
 
     if result == 0:
-        print(f"PASS {directory}")
+        print(f"PASS {directory}", flush=True)
         pass_count += 1
     else:
-        print(f"FAIL {directory}")
+        print(f"FAIL {directory}", flush=True)
         fail_count += 1
 
 
