@@ -219,7 +219,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
            let message =
              Printf.sprintf "Unknown type %s" string
            in
-           not_yet_implemented ~message [%here] identifier_location
+           Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+             ocaml_location = [%here];
+             sail_location = identifier_location;
+             annotation = message
+           }
          end
        | Operator _ -> not_yet_implemented [%here] identifier_location
      end
