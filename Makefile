@@ -24,7 +24,7 @@ coq-tests: build install
 
 tt: template-tests
 
-ct: coq-tests
+ct: coq-tests | tee test-results.txt
 
 example: build install
 	make -C working-example
