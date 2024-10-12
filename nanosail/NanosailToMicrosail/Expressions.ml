@@ -42,15 +42,10 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
               GC.pp_annotate [%here] @@ pp_value v
             in
             GC.return begin
-                PP.annotate [%here] begin
-                    Coq.pp_application
-                      (PP.string "exp_val")
-                      [
-                        pp_tuple_type;
-                        pp_value'
-                      ]
-                  end
+              PP.annotate [%here] begin
+                MuSail.Expression.pp_value ~typ:pp_tuple_type ~value:pp_value'
               end
+            end
           end
       end
 

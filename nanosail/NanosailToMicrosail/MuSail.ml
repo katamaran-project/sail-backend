@@ -45,4 +45,19 @@ module Expression = struct
     Coq.pp_application
       (PP.string "exp_val")
       [ PP.string "ty.unit"; PP.string "tt" ]
+
+
+  (*
+     exp_val <typ> <value>
+  *)
+  let pp_value
+      ~(typ   : PP.document)
+      ~(value : PP.document)
+    =
+    Coq.pp_application
+      (PP.string "exp_val")
+      [
+        typ;
+        value;
+      ]
 end
