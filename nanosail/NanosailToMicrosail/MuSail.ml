@@ -23,4 +23,13 @@ module Expression = struct
     Coq.pp_application
       (PP.string "exp_int")
       [ Coq.pp_integer value ]
+
+
+  (*
+     exp_string "<value>"
+  *)
+  let pp_string (str : string) =
+    Coq.pp_application
+      (PP.string "exp_string")
+      [ PP.(surround dquotes @@ string str) ]
 end
