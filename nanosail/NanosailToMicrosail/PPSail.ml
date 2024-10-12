@@ -22,20 +22,6 @@ let pp_bind
 
 
 (*
-   exp_var "<id>"
-*)
-let pp_expression_of_identifier (identifier : PP.document) : PP.document =
-  PP.annotate [%here] begin
-      PP.separate_horizontally
-        ~separator:PP.space
-        [
-          PP.string "exp_var";
-          PP.surround PP.dquotes identifier
-        ]
-    end
-
-
-(*
    stm_exp (<expression>)
 *)
 let pp_statement_of_expression (expression : PP.document) : PP.document =

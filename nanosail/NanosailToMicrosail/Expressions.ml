@@ -97,7 +97,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variable (identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return begin
         PP.annotate [%here] begin
-            PPSail.pp_expression_of_identifier @@ Identifier.pp identifier
+            MuSail.Expression.pp_variable @@ Identifier.pp identifier
           end
       end
 
