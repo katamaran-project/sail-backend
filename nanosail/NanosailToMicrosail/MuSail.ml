@@ -132,6 +132,16 @@ end
 
 module Pattern = struct
   (*
+     pat_var "<identifier>"
+  *)
+  let pp_variable (identifier : PP.document) : PP.document =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "pat_var")
+        [ PP.(surround dquotes) identifier ]
+    end
+  
+  (*
      pat_pair "<first>" "<second>"
   *)
   let pp_pair
