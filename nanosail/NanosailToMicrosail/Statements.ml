@@ -11,7 +11,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
     let* pp_expression = GC.pp_annotate [%here] @@ Expressions.pp_expression expression
     in
-    GC.return @@ PP.annotate [%here] @@ PPSail.pp_statement_of_expression pp_expression
+    GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
 
   and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
@@ -35,19 +35,19 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       and* pp_when_nil  = GC.pp_annotate [%here] @@ pp_par_statement when_nil
       and* pp_when_cons = GC.pp_annotate [%here] @@ pp_par_statement when_cons_body
       in
+      let pp_id_head = Identifier.pp id_head
+      and pp_id_tail = Identifier.pp id_tail
+      in
       GC.return begin
-          PP.annotate [%here] begin
-              Coq.pp_hanging_application
-                (PP.string "stm_match_list")
-                [
-                  pp_matched;
-                  pp_when_nil;
-                  PP.(surround dquotes) @@ Identifier.pp id_head;
-                  PP.(surround dquotes) @@ Identifier.pp id_tail;
-                  pp_when_cons;
-                ]
-            end
+        PP.annotate [%here] begin
+          MuSail.Statement.pp_match_list
+            ~matched_value:pp_matched
+            ~when_nil:pp_when_nil
+            ~head_identifier:pp_id_head
+            ~tail_identifier:pp_id_tail
+            ~when_cons:pp_when_cons
         end
+      end
 
     and pp_match_product
         (matched : Ast.Statement.t )
