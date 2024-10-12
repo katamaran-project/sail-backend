@@ -1,6 +1,10 @@
 open Base
 
 
+let pp_expression_true () =
+  PP.annotate [%here] @@ PP.string "exp_true"
+
+
 (*
    "<argument>" ∷ <typ>
 *)
