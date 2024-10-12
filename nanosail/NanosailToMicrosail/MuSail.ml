@@ -42,7 +42,7 @@ module Expression = struct
      exp_val ty.unit tt
   *)
   let pp_unit () =
-      Coq.pp_application
+    Coq.pp_application
       (PP.string "exp_val")
       [ PP.string "ty.unit"; PP.string "tt" ]
 end
