@@ -131,6 +131,9 @@ end
 
 
 module Pattern = struct
+  (*
+     pat_pair "<first>" "<second>"
+  *)
   let pp_pair
       (first_identifier  : PP.document)
       (second_identifier : PP.document) : PP.document
