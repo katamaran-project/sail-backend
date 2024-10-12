@@ -30,7 +30,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     GC.pp_annotate [%here] begin
         match value with
         | Bool true        -> GC.return @@ PPSail.pp_expression_true ()
-        | Bool false       -> GC.return @@ PP.string "exp_false"
+        | Bool false       -> GC.return @@ PPSail.pp_expression_false ()
         | Int n            -> GC.return @@ Coq.pp_application (PP.string "exp_int"   ) [ Coq.pp_integer n                    ]
         | String s         -> GC.return @@ Coq.pp_application (PP.string "exp_string") [ PP.(surround dquotes @@ string s)   ]
         | Unit             -> GC.return @@ Coq.pp_application (PP.string "exp_val"   ) [ PP.string "ty.unit"; PP.string "tt" ]
