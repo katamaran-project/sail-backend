@@ -365,7 +365,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
             match bindings with
             | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
             | [x] -> begin
-                PP.annotate [%here] @@ PP.(surround parens) @@ Coq.pp_application (PP.string "pat_var") [ PP.(surround dquotes) @@ Identifier.pp x ]
+                PP.annotate [%here] begin
+                  PP.(surround parens) begin
+                    MuSail.Pattern.pp_variable (Identifier.pp x)
+                  end
+                end
               end
             | [x; y] -> begin
                 PP.annotate [%here] begin
