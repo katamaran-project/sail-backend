@@ -71,4 +71,18 @@ module Expression = struct
     PP.annotate [%here] begin
       pp_value ~typ ~value
     end
+
+
+  (*
+     exp_var "<identifier>"
+  *)
+  let pp_variable (identifier : PP.document) =
+    PP.annotate [%here] begin
+      PP.separate_horizontally
+        ~separator:PP.space
+        [
+          PP.string "exp_var";
+          PP.surround PP.dquotes identifier
+        ]
+    end
 end
