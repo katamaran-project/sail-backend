@@ -6,5 +6,5 @@ $include <prelude.sail>
 struct MyStruct = {
   foo : int,
   bar : bool,
-  baz : (int, int)
+  baz : int
 }
