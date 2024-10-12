@@ -312,6 +312,15 @@ let pp_integer value =
     PP.annotate [%here] @@ pp_i
 
 
+(*
+   "<value>"
+*)
+let pp_string (value : string) =
+  PP.annotate [%here] begin
+    PP.(surround dquotes @@ string value)
+  end
+
+
 let pp_require
     ?(from     : string option = None )
     ?(import   : bool          = false)
