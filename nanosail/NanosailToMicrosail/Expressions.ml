@@ -37,8 +37,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         | Prod (_, _) as v -> begin
             let* pp_tuple_type =
               GC.pp_annotate [%here] @@ Nanotype.pp_nanotype (Ast.Value.type_of_value v)
-            in
-            let* pp_value' =
+            and* pp_value' =
               GC.pp_annotate [%here] @@ pp_value v
             in
             GC.return begin
