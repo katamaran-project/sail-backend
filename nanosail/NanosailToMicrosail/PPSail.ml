@@ -2,19 +2,6 @@ open Base
 
 
 
-(*
-   exp_true
-*)
-let pp_expression_true () =
-  PP.annotate [%here] @@ PP.string "exp_true"
-
-
-(*
-   exp_false
-*)
-let pp_expression_false () =
-  PP.annotate [%here] @@ PP.string "exp_false"
-
 
 (*
    "<argument>" ∷ <typ>
