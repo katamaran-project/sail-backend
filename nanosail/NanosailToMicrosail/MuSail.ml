@@ -26,7 +26,7 @@ module Expression = struct
 
 
   (*
-     exp_string "<value>"
+     exp_string "<str>"
   *)
   let pp_string (str : string) =
     Coq.pp_application
