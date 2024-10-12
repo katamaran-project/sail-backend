@@ -13,7 +13,7 @@ let translate_as_binary_operator
   | [x; y] -> begin
       GC.return begin
           PP.annotate [%here] @@ begin
-              PPSail.pp_statement_of_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
+              MuSail.Statement.pp_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
             end
         end
     end
