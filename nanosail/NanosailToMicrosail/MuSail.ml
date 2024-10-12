@@ -20,22 +20,26 @@ module Expression = struct
      exp_int <value>
   *)
   let pp_integer (value : PP.document) =
-    Coq.pp_application
-      (PP.string "exp_int")
-      [
-        value
-      ]
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "exp_int")
+        [
+          value
+        ]
+    end
 
 
   (*
      exp_string <str>
   *)
   let pp_string (str : PP.document) =
-    Coq.pp_application
-      (PP.string "exp_string")
-      [
-        str
-      ]
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "exp_string")
+        [
+          str
+        ]
+    end
 
 
   (*
@@ -45,12 +49,14 @@ module Expression = struct
       ~(typ   : PP.document)
       ~(value : PP.document)
     =
-    Coq.pp_application
-      (PP.string "exp_val")
-      [
-        typ;
-        value;
-      ]
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "exp_val")
+        [
+          typ;
+          value;
+        ]
+    end
 
   (*
      exp_val ty.unit tt
@@ -61,5 +67,7 @@ module Expression = struct
     and value =
       PP.string "tt"
     in
-    pp_value ~typ ~value
+    PP.annotate [%here] begin
+      pp_value ~typ ~value
+    end
 end
