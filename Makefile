@@ -19,12 +19,12 @@ template-tests: build install
 
 .PHONY: coq-tests ct
 coq-tests: build install
-	make -C tests/coq-tests
+	make -C tests/coq-tests | tee test-results.txt
 
 
 tt: template-tests
 
-ct: coq-tests | tee test-results.txt
+ct: coq-tests
 
 example: build install
 	make -C working-example
