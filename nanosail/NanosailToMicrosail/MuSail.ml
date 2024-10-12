@@ -128,3 +128,19 @@ module Statement = struct
         ]
     end    
 end
+
+
+module Pattern = struct
+  let pp_pair
+      (first_identifier  : PP.document)
+      (second_identifier : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "pat_pair")
+        [
+          PP.(surround dquotes) first_identifier;
+          PP.(surround dquotes) second_identifier
+        ]
+    end
+end
