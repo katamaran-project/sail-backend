@@ -33,7 +33,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         | Bool false       -> GC.return @@ MuSail.Expression.pp_false ()
         | Int n            -> GC.return @@ MuSail.Expression.pp_integer n
         | String s         -> GC.return @@ MuSail.Expression.pp_string s
-        | Unit             -> GC.return @@ Coq.pp_application (PP.string "exp_val"   ) [ PP.string "ty.unit"; PP.string "tt" ]
+        | Unit             -> GC.return @@ MuSail.Expression.pp_unit ()
         | Prod (_, _) as v -> begin
             let* pp_tuple_type =
               GC.pp_annotate [%here] @@ Nanotype.pp_nanotype (Ast.Value.type_of_value v)
