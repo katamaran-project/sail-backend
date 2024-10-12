@@ -22,17 +22,6 @@ let pp_bind
 
 
 (*
-   stm_exp (<expression>)
-*)
-let pp_statement_of_expression (expression : PP.document) : PP.document =
-  PP.annotate [%here] begin
-      Coq.pp_application
-        (PP.string "stm_exp")
-        [ PP.(surround parens) expression ]
-    end
-
-
-(*
    (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
 *)
 let pp_call
