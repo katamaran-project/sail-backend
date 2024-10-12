@@ -293,12 +293,23 @@ let pp_match_pair matched_expressions cases =
   PP.annotate [%here] @@ pp_match matched_expression aligned_cases
 
 
-let pp_integer i =
-  let pp_i = PP.annotate [%here] @@ PP.(string (Big_int.to_string i ^ "%Z"))
+(*
+   <value>%Z
+
+   Put inside parentheses if necessary (i.e., if <value> is negative)
+*)
+let pp_integer value =
+  let pp_i =
+    PP.annotate [%here] begin
+      PP.string @@ Big_int.to_string value ^ "%Z"
+    end
   in
-  if Big_int.less i Z.zero
-  then PP.annotate [%here] @@ PP.(surround parens) pp_i
-  else PP.annotate [%here] @@ pp_i
+  if
+    Big_int.less value Z.zero
+  then
+    PP.annotate [%here] @@ PP.(surround parens) pp_i
+  else
+    PP.annotate [%here] @@ pp_i
 
 
 let pp_require
