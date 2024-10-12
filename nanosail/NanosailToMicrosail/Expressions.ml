@@ -159,18 +159,16 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       
     and pp_record_fields =
       PP.annotate [%here] begin
-          Coq.pp_list_using_notation begin
-              List.map
-                variable_identifiers
-                ~f:(fun id -> begin
-                        PP.annotate [%here] begin
-                            Coq.pp_application
-                              (PP.string "exp_var")
-                              [ PP.(surround dquotes) @@ Identifier.pp id ]
-                          end
-                      end)
-            end
+        Coq.pp_list_using_notation begin
+          List.map
+            variable_identifiers
+            ~f:(fun id -> begin
+                  PP.annotate [%here] begin
+                    MuSail.Expression.pp_variable (Identifier.pp id)
+                  end
+                end)
         end
+      end
 
     in    
     GC.return begin
