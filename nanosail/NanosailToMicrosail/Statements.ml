@@ -330,8 +330,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
          turn into a statement.
       *)
       and pp_matched_statement =
-        PP.annotate [%here] @@ PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-
+        PP.annotate [%here] begin
+          PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+        end
       in
 
       (* List of match cases *)
