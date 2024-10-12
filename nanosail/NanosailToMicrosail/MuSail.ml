@@ -100,4 +100,31 @@ module Statement = struct
         (PP.string "stm_exp")
         [ PP.(surround parens) expression ]
     end
+
+
+  (*
+     stm_match_list <matched_value>
+                    <when_nil>
+                    "<head_identifier>"
+                    "<tail_identifier>"
+                    <when_cons>
+  *)
+  let pp_match_list
+      ~(matched_value   : PP.document)
+      ~(when_nil        : PP.document)
+      ~(head_identifier : PP.document)
+      ~(tail_identifier : PP.document)
+      ~(when_cons       : PP.document)
+    =
+    PP.annotate [%here] begin
+      Coq.pp_hanging_application
+        (PP.string "stm_match_list")
+        [
+          matched_value;
+          when_nil;
+          PP.(surround dquotes) head_identifier;
+          PP.(surround dquotes) tail_identifier;
+          when_cons;
+        ]
+    end    
 end
