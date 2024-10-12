@@ -369,15 +369,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
               end
             | [x; y] -> begin
                 PP.annotate [%here] begin
-                    PP.(surround parens) begin
-                        Coq.pp_application
-                          (PP.string "pat_pair")
-                          [
-                            PP.(surround dquotes) @@ Identifier.pp x;
-                            PP.(surround dquotes) @@ Identifier.pp y
-                          ]
-                      end
+                  PP.(surround parens) begin
+                    MuSail.Pattern.pp_pair (Identifier.pp x) (Identifier.pp y)
                   end
+                end
               end
             | ids -> begin
                 let pp_variable_tuple =
