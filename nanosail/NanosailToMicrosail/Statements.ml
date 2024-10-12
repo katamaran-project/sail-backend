@@ -129,7 +129,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
            turn into a statement.
         *)
         and pp_matched_statement : PP.document =
-          PP.annotate [%here] @@ PPSail.pp_statement_of_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+          PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
         in
         (*
            Translates match statement using muSail's special notation.
@@ -330,7 +330,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
          turn into a statement.
       *)
       and pp_matched_statement =
-        PP.annotate [%here] @@ PP.(surround parens) @@ PPSail.pp_statement_of_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+        PP.annotate [%here] @@ PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
 
       in
 
