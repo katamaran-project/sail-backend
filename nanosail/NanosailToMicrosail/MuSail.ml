@@ -86,3 +86,18 @@ module Expression = struct
         ]
     end
 end
+
+
+module Statement = struct
+  (*
+     "Upgrades" expression to statements
+     
+       stm_exp (<expression>)
+  *)
+  let pp_expression (expression : PP.document) : PP.document =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "stm_exp")
+        [ PP.(surround parens) expression ]
+    end
+end
