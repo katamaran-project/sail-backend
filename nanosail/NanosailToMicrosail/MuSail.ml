@@ -28,12 +28,14 @@ module Expression = struct
 
 
   (*
-     exp_string "<str>"
+     exp_string <str>
   *)
-  let pp_string (str : string) =
+  let pp_string (str : PP.document) =
     Coq.pp_application
       (PP.string "exp_string")
-      [ PP.(surround dquotes @@ string str) ]
+      [
+        str
+      ]
 
 
   (*
