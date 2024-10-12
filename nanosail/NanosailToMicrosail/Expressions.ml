@@ -31,7 +31,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         match value with
         | Bool true        -> GC.return @@ MuSail.Expression.pp_true ()
         | Bool false       -> GC.return @@ MuSail.Expression.pp_false ()
-        | Int n            -> GC.return @@ MuSail.Expression.pp_integer n
+        | Int n            -> GC.return @@ MuSail.Expression.pp_integer @@ Coq.pp_integer n
         | String s         -> GC.return @@ MuSail.Expression.pp_string s
         | Unit             -> GC.return @@ MuSail.Expression.pp_unit ()
         | Prod (_, _) as v -> begin

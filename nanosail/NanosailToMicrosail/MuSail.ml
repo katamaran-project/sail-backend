@@ -19,10 +19,12 @@ module Expression = struct
   (*
      exp_int <value>
   *)
-  let pp_integer (value : Z.t) =
+  let pp_integer (value : PP.document) =
     Coq.pp_application
       (PP.string "exp_int")
-      [ Coq.pp_integer value ]
+      [
+        value
+      ]
 
 
   (*
