@@ -1,6 +1,56 @@
 open Base
 
 
+module Pattern = struct
+  (*
+     pat_var "<identifier>"
+  *)
+  let pp_variable (identifier : PP.document) : PP.document =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "pat_var")
+        [ PP.(surround dquotes) identifier ]
+    end
+
+
+  (*
+     pat_pair "<first>" "<second>"
+  *)
+  let pp_pair
+      (first_identifier  : PP.document)
+      (second_identifier : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "pat_pair")
+        [
+          PP.(surround dquotes) first_identifier;
+          PP.(surround dquotes) second_identifier
+        ]
+    end
+
+
+  let pp_tuple (identifiers : PP.document list) : PP.document =
+    PP.annotate [%here] begin
+      let pp_variable_tuple =
+        let quoted_identifiers =
+          List.map ~f:PP.(surround dquotes) identifiers
+        in
+        let comma_separatoed =
+          PP.separate_horizontally ~separator:(PP.string ", ") quoted_identifiers
+        in
+        let parenthesized =
+          PP.(surround parens) comma_separatoed
+        in
+        PP.separate_horizontally
+          ~separator:(PP.string ", ")
+          [ parenthesized ]
+      in
+      Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
+    end
+end
+
+
 module Expression = struct
   (*
      exp_true
@@ -142,56 +192,6 @@ module Statement = struct
           (PP.string "call")
           (Identifier.pp function_identifier :: arguments)
       end
-    end
-end
-
-
-module Pattern = struct
-  (*
-     pat_var "<identifier>"
-  *)
-  let pp_variable (identifier : PP.document) : PP.document =
-    PP.annotate [%here] begin
-      Coq.pp_application
-        (PP.string "pat_var")
-        [ PP.(surround dquotes) identifier ]
-    end
-
-
-  (*
-     pat_pair "<first>" "<second>"
-  *)
-  let pp_pair
-      (first_identifier  : PP.document)
-      (second_identifier : PP.document) : PP.document
-    =
-    PP.annotate [%here] begin
-      Coq.pp_application
-        (PP.string "pat_pair")
-        [
-          PP.(surround dquotes) first_identifier;
-          PP.(surround dquotes) second_identifier
-        ]
-    end
-
-
-  let pp_tuple (identifiers : PP.document list) : PP.document =
-    PP.annotate [%here] begin
-      let pp_variable_tuple =
-        let quoted_identifiers =
-          List.map ~f:PP.(surround dquotes) identifiers
-        in
-        let comma_separatoed =
-          PP.separate_horizontally ~separator:(PP.string ", ") quoted_identifiers
-        in
-        let parenthesized =
-          PP.(surround parens) comma_separatoed
-        in
-        PP.separate_horizontally
-          ~separator:(PP.string ", ")
-          [ parenthesized ]
-      in
-      Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
     end
 end
 
