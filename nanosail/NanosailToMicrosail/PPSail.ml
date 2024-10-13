@@ -1,26 +1,6 @@
 open Base
 
 
-
-
-(*
-   "<argument>" ∷ <typ>
-*)
-let pp_bind
-    (argument : PP.document)
-    (typ      : PP.document) : PP.document
-  =
-  PP.annotate [%here] begin
-      PP.separate_horizontally
-        ~separator:PP.space
-        [
-          PP.surround PP.dquotes argument;
-          PP.string " ∷ ";
-          typ
-        ]
-    end
-
-
 let string_of_pprint_document (document : PPrint.document) =
   let text_width = Configuration.(get output_width)
   and buffer     = Stdlib.Buffer.create 10000

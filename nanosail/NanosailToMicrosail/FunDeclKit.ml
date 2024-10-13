@@ -35,7 +35,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
             GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
           in
           let ps =
-            List.map ~f:(Auxlib.uncurry PPSail.pp_bind) pp_parameter_bindings
+            List.map ~f:(Auxlib.uncurry MuSail.pp_bind) pp_parameter_bindings
           in
           GC.return @@ PP.annotate [%here] @@ Coq.pp_list ps
         in

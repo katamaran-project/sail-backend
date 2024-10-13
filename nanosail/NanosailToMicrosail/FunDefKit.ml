@@ -44,7 +44,7 @@ let pp_function_definition
                 GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
               in
               let docs =
-                List.map ~f:(Auxlib.uncurry PPSail.pp_bind) parameters
+                List.map ~f:(Auxlib.uncurry MuSail.pp_bind) parameters
               in
               GC.return @@ PP.annotate [%here] @@ Coq.pp_list docs
             in

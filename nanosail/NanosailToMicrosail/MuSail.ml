@@ -173,3 +173,21 @@ module Pattern = struct
         ]
     end
 end
+
+
+(*
+   "<argument>" ∷ <typ>
+*)
+let pp_bind
+    (argument : PP.document)
+    (typ      : PP.document) : PP.document
+  =
+  PP.annotate [%here] begin
+      PP.separate_horizontally
+        ~separator:PP.space
+        [
+          PP.surround PP.dquotes argument;
+          PP.string " ∷ ";
+          typ
+        ]
+    end
