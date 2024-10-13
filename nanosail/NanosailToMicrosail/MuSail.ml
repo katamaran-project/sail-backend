@@ -239,7 +239,6 @@ module Statement = struct
           PP.string "Logic.I"
         ]
     end
-      
 
   
   (*
