@@ -156,7 +156,8 @@ module Pattern = struct
         (PP.string "pat_var")
         [ PP.(surround dquotes) identifier ]
     end
-  
+
+
   (*
      pat_pair "<first>" "<second>"
   *)
