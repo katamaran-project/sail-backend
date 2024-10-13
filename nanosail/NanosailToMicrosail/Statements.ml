@@ -336,78 +336,28 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
 
       (* List of match cases *)
-      let* pp_cases =
+      let* pp_cases : (PP.document * PP.document list * PP.document) list =
         let pp_case
             (constructor_id : Ast.Identifier.t     )
             (bindings       : Ast.Identifier.t list)
-            (clause         : Ast.Statement.t      ) : PP.document GC.t
+            (body           : Ast.Statement.t      ) : (PP.document * PP.document list * PP.document) GC.t
           =
           let pp_constructor =
-            PP.annotate [%here] @@ Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
-          (*
-
-             The pattern's translation depends on how many fields the union cases carries with it.
-
-             Zero : never occurs.
-
-                        union Foo { Bar : unit }
-
-                    In this example, Bar has one field of type unit.
-
-             One : becomes pat_var "<id>"
-
-             Two : becomes pat_pair "<id1>" "<id2>"
-
-             Three or more : becomes pat_tuple ("<id1>", "<id2>", ...)
-
-          *)
-          and pp_pattern =
-            match bindings with
-            | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
-            | [x] -> begin
-                PP.annotate [%here] begin
-                  PP.(surround parens) begin
-                    MuSail.Pattern.pp_variable (Identifier.pp x)
-                  end
-                end
-              end
-            | [x; y] -> begin
-                PP.annotate [%here] begin
-                  PP.(surround parens) begin
-                    MuSail.Pattern.pp_pair (Identifier.pp x) (Identifier.pp y)
-                  end
-                end
-              end
-            | ids -> begin
-                let pp_identifiers =
-                  List.map ~f:Identifier.pp ids
-                in
-                PP.annotate [%here] @@ PP.(surround parens) @@ MuSail.Pattern.pp_tuple pp_identifiers
-              end
-          in
-          let* pp_clause =
-            GC.pp_annotate [%here] @@ pp_statement clause
-          in
-          (*
-             Construct output for single case
-
-               existT <constructor> (MkAlt <pattern> <clause>)
-          *)
-          GC.return begin
-              PP.annotate [%here] begin
-                  Coq.pp_application
-                    (PP.string "existT")
-                    [
-                      pp_constructor;
-                      PP.(surround parens) begin
-                          Coq.pp_application (PP.string "MkAlt") [
-                              pp_pattern;
-                              PP.(surround parens) pp_clause;
-                            ]
-                        end
-                    ]
-                end
+            PP.annotate [%here] begin
+              Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
             end
+
+          and pp_bindings =
+            List.map ~f:Identifier.pp bindings
+          in
+
+          let* pp_body =
+            GC.pp_annotate [%here] begin
+              pp_statement body
+            end
+          in
+
+          GC.return (pp_constructor, pp_bindings, pp_body)
         in
         GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
       in
@@ -420,16 +370,12 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                     Logic.I
       *)
       GC.return begin
-          PP.annotate [%here] begin
-              Coq.pp_hanging_application
-                (PP.string "stm_match_union_alt_list")
-                [
-                  pp_matched_type;
-                  pp_matched_statement;
-                  Coq.pp_list pp_cases;
-                  PP.string "Logic.I"
-                ]
-            end
+        PP.annotate [%here] begin
+          MuSail.Statement.pp_match_variant
+            ~matched_type:pp_matched_type
+            ~matched_value:pp_matched_statement
+            ~clauses:pp_cases
+        end
       end
     in
     match match_pattern with
