@@ -178,6 +178,69 @@ module Statement = struct
         ]
     end
 
+
+  let pp_match_union
+      ~(matched_type : PP.document)
+      ~(matched_value : PP.document)
+      ~(clauses : (PP.document * PP.document list * PP.document) list) : PP.document
+    =
+    let pp_cases =
+      let pp_case
+          (constructor : PP.document)
+          (bindings : PP.document list)
+          (body : PP.document) : PP.document
+        =
+        let pattern =
+          match bindings with
+          | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
+          | [x] -> begin
+              PP.annotate [%here] begin
+                PP.(surround parens) begin
+                  Pattern.pp_variable x
+                end
+              end
+            end
+          | [x; y] -> begin
+              PP.annotate [%here] begin
+                PP.(surround parens) begin
+                  Pattern.pp_pair x y
+                end
+              end
+            end
+          | ids -> begin
+              PP.annotate [%here] begin
+                PP.(surround parens) @@ Pattern.pp_tuple ids
+              end
+            end
+        in
+        PP.annotate [%here] begin
+          Coq.pp_application
+            (PP.string "existT")
+            [
+              constructor;
+              PP.(surround parens) begin
+                Coq.pp_application (PP.string "MkAlt") [
+                  pattern;
+                  PP.(surround parens) body;
+                ]
+              end
+            ]
+        end
+      in
+      Coq.pp_list @@ List.map ~f:(fun (constructor, pattern_ids, body) -> pp_case constructor pattern_ids body) clauses
+    in
+    PP.annotate [%here] begin
+      Coq.pp_hanging_application
+        (PP.string "stm_match_union_alt_list")
+        [
+          matched_type;
+          matched_value;
+          pp_cases;
+          PP.string "Logic.I"
+        ]
+    end
+      
+
   
   (*
      (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
