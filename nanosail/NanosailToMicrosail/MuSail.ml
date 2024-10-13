@@ -51,6 +51,18 @@ module Pattern = struct
       in
       Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
     end
+
+
+  (*
+     Depending on the number of identifiers,
+     picks the right way to represent the binding.
+  *)
+  let smart_pp (identifiers : PP.document list) : PP.document =
+    match identifiers with
+    | []     -> failwith "should not occur"
+    | [x]    -> pp_variable x
+    | [x; y] -> pp_pair x y
+    | _      -> pp_tuple identifiers
 end
 
 
@@ -194,27 +206,11 @@ module Statement = struct
           (body : PP.document) : PP.document
         =
         let pattern =
-          match bindings with
-          | [] -> failwith "Should not occur: zero parameters are actually represented using a single unit parameters"
-          | [x] -> begin
-              PP.annotate [%here] begin
-                PP.(surround parens) begin
-                  Pattern.pp_variable x
-                end
-              end
+          PP.annotate [%here] begin
+            PP.(surround parens) begin
+              Pattern.smart_pp bindings
             end
-          | [x; y] -> begin
-              PP.annotate [%here] begin
-                PP.(surround parens) begin
-                  Pattern.pp_pair x y
-                end
-              end
-            end
-          | ids -> begin
-              PP.annotate [%here] begin
-                PP.(surround parens) @@ Pattern.pp_tuple ids
-              end
-            end
+          end
         in
         PP.annotate [%here] begin
           Coq.pp_application
