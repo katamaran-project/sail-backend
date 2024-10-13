@@ -325,7 +325,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (*
          Statement whose value is being matched
 
-         Nanosail only supports matching against variables, and muSail expects a statement,
+         Nanosail only supports matching against variables (i.e., not arbitrary expressions), and muSail expects a statement,
          so we start with an identifier, which we turn into an expression, which we
          turn into a statement.
       *)
