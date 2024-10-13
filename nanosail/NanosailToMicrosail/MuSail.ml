@@ -53,8 +53,8 @@ module Expression = struct
       Coq.pp_application
         (PP.string "exp_val")
         [
-          typ;
-          value;
+          PP.(surround parens) typ;
+          PP.(surround parens) value;
         ]
     end
 
