@@ -173,6 +173,26 @@ module Pattern = struct
           PP.(surround dquotes) second_identifier
         ]
     end
+
+
+  let pp_tuple (identifiers : PP.document list) : PP.document =
+    PP.annotate [%here] begin
+      let pp_variable_tuple =
+        let quoted_identifiers =
+          List.map ~f:PP.(surround dquotes) identifiers
+        in
+        let comma_separatoed =
+          PP.separate_horizontally ~separator:(PP.string ", ") quoted_identifiers
+        in
+        let parenthesized =
+          PP.(surround parens) comma_separatoed
+        in
+        PP.separate_horizontally
+          ~separator:(PP.string ", ")
+          [ parenthesized ]
+      in
+      Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
+    end
 end
 
 

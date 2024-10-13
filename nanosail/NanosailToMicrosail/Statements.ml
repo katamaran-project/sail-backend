@@ -379,16 +379,10 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                 end
               end
             | ids -> begin
-                let pp_variable_tuple =
-                  let pp_quoted_identifiers =
-                    List.map ~f:(Fn.compose PP.(surround dquotes) Identifier.pp) ids
-                  in
-                  let pp_comma_separated_quoted_identifiers =
-                    PP.separate_horizontally ~separator:(PP.string ", ") pp_quoted_identifiers
-                  in
-                  PP.annotate [%here] @@ PP.(surround parens) pp_comma_separated_quoted_identifiers
+                let pp_identifiers =
+                  List.map ~f:Identifier.pp ids
                 in
-                PP.annotate [%here] @@ PP.(surround parens) @@ Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
+                PP.annotate [%here] @@ PP.(surround parens) @@ MuSail.Pattern.pp_tuple pp_identifiers
               end
           in
           let* pp_clause =
