@@ -197,7 +197,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     GC.return begin
         PP.annotate [%here] begin
-            PPSail.pp_expression_value enum_type enum_constructor
+          MuSail.Expression.pp_value
+            ~typ:enum_type
+            ~value:enum_constructor
           end
       end
 

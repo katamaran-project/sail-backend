@@ -37,20 +37,6 @@ let pp_call
     end
 
 
-let pp_expression_value
-    (typ   : PP.document)
-    (value : PP.document) : PP.document
-  =
-  PP.annotate [%here] begin
-      Coq.pp_application
-        (PP.string "exp_val")
-        [
-          PP.(surround parens) typ;
-          PP.(surround parens) value;
-        ]
-    end
-
-
 let string_of_pprint_document (document : PPrint.document) =
   let text_width = Configuration.(get output_width)
   and buffer     = Stdlib.Buffer.create 10000
