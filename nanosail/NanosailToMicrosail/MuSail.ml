@@ -195,15 +195,15 @@ module Statement = struct
 
 
   let pp_match_variant
-      ~(matched_type : PP.document)
-      ~(matched_value : PP.document)
-      ~(clauses : (PP.document * PP.document list * PP.document) list) : PP.document
+      ~(matched_type  : PP.document                                        )
+      ~(matched_value : PP.document                                        )
+      ~(clauses       : (PP.document * PP.document list * PP.document) list) : PP.document
     =
     let pp_cases =
       let pp_case
-          (constructor : PP.document)
-          (bindings : PP.document list)
-          (body : PP.document) : PP.document
+          (constructor : PP.document     )
+          (bindings    : PP.document list)
+          (body        : PP.document     ) : PP.document
         =
         let pattern =
           PP.annotate [%here] begin
