@@ -30,6 +30,9 @@ module Pattern = struct
     end
 
 
+  (*
+     pat_tuple [ "<id1>", "<id2>", ... ]
+  *)
   let pp_tuple (identifiers : PP.document list) : PP.document =
     PP.annotate [%here] begin
       let pp_variable_tuple =
