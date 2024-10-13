@@ -21,22 +21,6 @@ let pp_bind
     end
 
 
-(*
-   (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
-*)
-let pp_call
-    (function_identifier : Ast.Identifier.t)
-    (arguments           : PP.document list) : PP.document
-  =
-  PP.annotate [%here] begin
-      Coq.pp_scope (PP.string "exp") begin
-          Coq.pp_application
-            (PP.string "call")
-            (Identifier.pp function_identifier :: arguments)
-        end
-    end
-
-
 let string_of_pprint_document (document : PPrint.document) =
   let text_width = Configuration.(get output_width)
   and buffer     = Stdlib.Buffer.create 10000

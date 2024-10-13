@@ -126,7 +126,23 @@ module Statement = struct
           PP.(surround dquotes) tail_identifier;
           when_cons;
         ]
-    end    
+    end
+
+  
+  (*
+     (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
+  *)
+  let pp_call
+      (function_identifier : Ast.Identifier.t)
+      (arguments           : PP.document list) : PP.document
+    =
+    PP.annotate [%here] begin
+      Coq.pp_scope (PP.string "exp") begin
+        Coq.pp_application
+          (PP.string "call")
+          (Identifier.pp function_identifier :: arguments)
+      end
+    end
 end
 
 

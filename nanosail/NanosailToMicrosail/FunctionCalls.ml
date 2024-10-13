@@ -30,7 +30,7 @@ let translate_as_binary_operator
       in
       let translation =
         PP.annotate [%here] begin
-            PPSail.pp_call original_function_name operands
+            MuSail.Statement.pp_call original_function_name operands
           end
       in
       GC.return begin
@@ -54,4 +54,4 @@ let translate
       GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "+" arguments
     end
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" arguments
-  | _              -> GC.return @@ PPSail.pp_call function_identifier arguments
+  | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
