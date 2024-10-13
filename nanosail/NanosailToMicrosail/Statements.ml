@@ -361,14 +361,6 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         in
         GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
       in
-      (*
-         Constructor final output for match
-
-           stm_match_union_alt_list <type>
-                                    <matched>
-                                    [<case1>; <case2>; ...]
-                                    Logic.I
-      *)
       GC.return begin
         PP.annotate [%here] begin
           MuSail.Statement.pp_match_variant
