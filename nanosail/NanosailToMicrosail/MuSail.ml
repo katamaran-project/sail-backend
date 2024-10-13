@@ -179,7 +179,7 @@ module Statement = struct
     end
 
 
-  let pp_match_union
+  let pp_match_variant
       ~(matched_type : PP.document)
       ~(matched_value : PP.document)
       ~(clauses : (PP.document * PP.document list * PP.document) list) : PP.document
