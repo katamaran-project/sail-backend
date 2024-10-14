@@ -35,6 +35,18 @@
   Notation "e1 +ᵇ e2" := (exp_binop bop.bvadd e1 e2) : exp_scope.
   Notation "e1 -ᵇ e2" := (exp_binop bop.bvsub e1 e2) : exp_scope.
   Notation "e1 *ᵇ e2" := (exp_binop bop.bvmul e1 e2) : exp_scope.
+
+  Notation "[ 'bits' x ]" := (of_bitstring x%bits)
+      (format "[ 'bits'  x ]") : bv_scope.
+  Notation "[ 'bits' ]" := (@of_bitstring 0 bitstring.bN)
+      (format "[ 'bits' ]") : bv_scope.
+  Notation "[ 'bits' [ n ] x ]" := (@of_bitstring n x%bits)
+      (only parsing) : bv_scope.
+  Notation "[ 'bits' [ 0 ] ]" := (@of_bitstring 0 bitstring.bN)
+      (only parsing) : bv_scope.
+
+  Notation "[ 'bv' x ]" := (mk x%xN I) (format "[ 'bv'  x ]") : bv_scope.
+  Notation "[ 'bv' [ n ] x ]" := (@mk n x%xN I) (only parsing) : bv_scope.
 #+end_src
 
 ** Triples in records
