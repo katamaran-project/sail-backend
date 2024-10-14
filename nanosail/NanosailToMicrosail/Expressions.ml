@@ -265,3 +265,4 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
               constructor_identifier;
               fields    }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier fields
   | Tuple elements                                    -> GC.pp_annotate [%here] @@ pp_tuple elements
+  | Bitvector _                                       -> GC.not_yet_implemented [%here]

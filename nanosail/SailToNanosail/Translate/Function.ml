@@ -299,7 +299,7 @@ let rec expression_of_aval
 
   and expression_of_vector
       (values : S.typ S.aval list)
-      (_typ   : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+      (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
     let* _values', _value_types', _named_statements' =
       let* triples =
@@ -314,7 +314,11 @@ let rec expression_of_aval
       in
       TC.return (values', types', named_statements')
     in
-    Stdio.print_endline @@ String.concat ~sep:"\n" @@ List.map ~f:StringOf.Sail.aval values;
+    let* typ' =
+      Nanotype.nanotype_of_sail_type typ
+    in
+    (* TC.return (Ast.Expression.Val (Ast.Value.Bit *)
+    Stdio.print_endline @@ FExpr.to_string @@ Ast.Type.to_fexpr typ';
     TC.not_yet_implemented [%here] location
     
   in
