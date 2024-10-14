@@ -299,9 +299,9 @@ let rec expression_of_aval
 
   and expression_of_vector
       (values : S.typ S.aval list)
-      (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+      (_typ   : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
-    let* values', value_types', named_statements' =
+    let* _values', _value_types', _named_statements' =
       let* triples =
         TC.map ~f:(expression_of_aval location) values
       in
