@@ -340,11 +340,11 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
   let extended_return_type_of_atom (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
-        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        let A_aux (unwrapped_type_argument, location) = type_argument
         in
         match unwrapped_type_argument with
-        | A_typ _                   -> not_yet_implemented [%here] type_argument_location
-        | A_bool _                  -> not_yet_implemented [%here] type_argument_location
+        | A_typ _                   -> not_yet_implemented [%here] location
+        | A_bool _                  -> not_yet_implemented [%here] location
         | A_nexp numeric_expression -> begin
             let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
             in
