@@ -38,6 +38,7 @@ end = struct
       | "atom"      -> TC.fail [%here] "Type atom should be intercepted higher up"
       | "atom_bool" -> TC.fail [%here] "Type atom_bool should be intercepted higher up"
       | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
+      | "bitvector" -> TC.fail [%here] "Type bitvector should be intercepted higher up"
       | _           -> begin
           let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
           in
