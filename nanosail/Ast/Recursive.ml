@@ -144,22 +144,25 @@ end = struct
       end
 
   let rec to_fexpr (t : t) : FExpr.t =
+    let prefix s =
+      String.append "Type:" s
+    in
     match t with
-    | Int                -> FExpr.mk_symbol "Type:Int"
-    | Bool               -> FExpr.mk_symbol "Type:Bool"
-    | String             -> FExpr.mk_symbol "Type:String"
-    | Bit                -> FExpr.mk_symbol "Type:Bit"
-    | List t             -> FExpr.mk_application ~positional:[to_fexpr t] "Type:List"
-    | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Product"
-    | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Sum"
-    | Unit               -> FExpr.mk_symbol "Type:Unit"
-    | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Enum"
-    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] "Type:Bitvector"
-    | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Type:Tuple"
-    | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Variant"
-    | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] "Type:Record"
-    | Application (_, _) -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Type:Application"
-    | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] "Type:Alias"
+    | Int                -> FExpr.mk_symbol @@ prefix "Int"
+    | Bool               -> FExpr.mk_symbol @@ prefix "Bool"
+    | String             -> FExpr.mk_symbol @@ prefix "String"
+    | Bit                -> FExpr.mk_symbol @@ prefix "Bit"
+    | List t             -> FExpr.mk_application ~positional:[to_fexpr t] @@ prefix "List"
+    | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] @@ prefix "Product"
+    | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] @@ prefix "Sum"
+    | Unit               -> FExpr.mk_symbol @@ prefix "Unit"
+    | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] @@ prefix "Enum"
+    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
+    | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) @@ prefix "Tuple"
+    | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] @@ prefix "Variant"
+    | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id] @@ prefix "Record"
+    | Application (_, _) -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] @@ prefix "Application"
+    | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"] @@ prefix "Alias"
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
