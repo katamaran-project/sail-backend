@@ -301,6 +301,20 @@ let rec expression_of_aval
       (values : S.typ S.aval list)
       (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
+    let* values', value_types', named_statements' =
+      let* triples =
+        TC.map ~f:(expression_of_aval location) values
+      in
+      let values' =
+        List.map ~f:Auxlib.first3 triples
+      and types' =
+        List.map ~f:Auxlib.second3 triples
+      and named_statements' =
+        flatten_named_statements @@ List.map ~f:Auxlib.third3 triples
+      in
+      TC.return (values', types', named_statements')
+    in
+    Stdio.print_endline @@ String.concat ~sep:"\n" @@ List.map ~f:StringOf.Sail.aval values;
     TC.not_yet_implemented [%here] location
     
   in
