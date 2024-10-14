@@ -70,10 +70,10 @@ module NumericExpression = struct
   let rec to_fexpr (numeric_expression : t) : FExpr.t =
     match numeric_expression with
      | Constant n     -> FExpr.Integer (Z.to_int n)
-     | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "NumExpr:Add"
-     | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "NumExpr:Minus"
-     | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "NumExpr:Times"
-     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e] "NumExpr:Neg"
+     | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Add"
+     | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Minus"
+     | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Times"
+     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     "NumExpr:Neg"
      | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] "NumExpr:Id"
      | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] "NumExpr:Var"
 end
