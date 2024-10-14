@@ -1,19 +1,15 @@
 open Base
 
 
-type unknown_data = {
-    ocaml_location : Lexing.position;
-    sail_location  : Libsail.Ast.l;
-    annotation     : string;
-  }
-
 module Parameter = struct
   type t =
     | Tuple   of t list
     | Int     of int
     | Bool    of int
     | Other   of string
-    | Unknown of unknown_data
+    | Unknown of { ocaml_location : Lexing.position;
+                   sail_location : Libsail.Ast.l;
+                   annotation : string }
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
@@ -160,7 +156,9 @@ module ReturnValue = struct
     | Bool    of BoolExpression.t
     | Other   of string
     | Tuple   of t list
-    | Unknown of unknown_data
+    | Unknown of { ocaml_location : Lexing.position;
+                   sail_location : Libsail.Ast.l;
+                   annotation : string }
 
   let rec to_fexpr (return_type : t) : FExpr.t =
     match return_type with
