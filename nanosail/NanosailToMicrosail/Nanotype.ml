@@ -186,7 +186,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Bool                -> GC.return @@ PP.annotate [%here] @@ PP.string "Datatypes.bool"
   | Int                 -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"
   | String              -> GC.return @@ PP.annotate [%here] @@ PP.string "String.string"
-  | Bit                 -> GC.not_yet_implemented [%here]
   | Record id           -> GC.return @@ PP.annotate [%here] @@ Identifier.pp id
   | Enum id             -> GC.return @@ PP.annotate [%here] @@ Identifier.pp id
   | Variant id          -> GC.return @@ PP.annotate [%here] @@ Identifier.pp id
@@ -196,6 +195,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Application (t, ts) -> GC.pp_annotate [%here] @@ coq_type_of_application t ts
   | Tuple ts            -> GC.pp_annotate [%here] @@ coq_type_of_tuple ts
   | Product (t1, t2)    -> GC.pp_annotate [%here] @@ coq_type_of_product t1 t2
+  | Bit                 -> GC.not_yet_implemented [%here]
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
