@@ -35,6 +35,7 @@ end = struct
       | "int"       -> TC.return @@ Ast.Type.Int
       | "unit"      -> TC.return @@ Ast.Type.Unit
       | "string"    -> TC.return @@ Ast.Type.String
+      | "bit"       -> TC.return @@ Ast.Type.Bit
       | "atom"      -> TC.fail [%here] "Type atom should be intercepted higher up"
       | "atom_bool" -> TC.fail [%here] "Type atom_bool should be intercepted higher up"
       | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
