@@ -68,14 +68,17 @@ module NumericExpression = struct
    
 
   let rec to_fexpr (numeric_expression : t) : FExpr.t =
+    let prefix head =
+      String.append "NumExpr:" head
+    in
     match numeric_expression with
      | Constant n     -> FExpr.Integer (Z.to_int n)
-     | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Add"
-     | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Minus"
-     | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       "NumExpr:Times"
-     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     "NumExpr:Neg"
-     | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] "NumExpr:Id"
-     | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] "NumExpr:Var"
+     | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Add"
+     | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Minus"
+     | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Times"
+     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
+     | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Id"
+     | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Var"
 end
 
 
