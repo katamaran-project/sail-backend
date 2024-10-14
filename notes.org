@@ -47,6 +47,9 @@
 
   Notation "[ 'bv' x ]" := (mk x%xN I) (format "[ 'bv'  x ]") : bv_scope.
   Notation "[ 'bv' [ n ] x ]" := (@mk n x%xN I) (only parsing) : bv_scope.
+
+  (* works *)
+  stm_exp (exp_val (ty.bvec 8) ([bv 0]))
 #+end_src
 
 ** Triples in records
