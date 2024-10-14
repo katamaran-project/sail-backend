@@ -288,11 +288,8 @@ end = struct
     | App (_, _)          -> failwith "Not yet imnplemented"
 
   let rec to_fexpr (numeric_constraint : t) : FExpr.t =
-    let head_prefix =
-      "NumConstr"
-    in
     let add_head_prefix string =
-      String.append head_prefix string
+      String.append "NumConstr:" string
     in
     let binop head e1 e2 =
       let positional =
