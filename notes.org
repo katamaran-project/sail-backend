@@ -7,7 +7,6 @@
 *** TODO Bit type in MuSail?
 *** Coq
 
-
 #+begin_src coq
   (* Denotation of muSail types, TypeDecl.v *)
   Fixpoint Val (σ : Ty) : Set :=
@@ -30,6 +29,12 @@
   (* Bitvector value, BitvectorBase.v *)
   Record bv (n : nat) : Set :=
     mk { bin : N; _ : Is_true (is_wf n bin) }.
+
+
+  (* Bitvector operations *)
+  Notation "e1 +ᵇ e2" := (exp_binop bop.bvadd e1 e2) : exp_scope.
+  Notation "e1 -ᵇ e2" := (exp_binop bop.bvsub e1 e2) : exp_scope.
+  Notation "e1 *ᵇ e2" := (exp_binop bop.bvmul e1 e2) : exp_scope.
 #+end_src
 
 ** Triples in records
