@@ -288,7 +288,7 @@ end = struct
     | App (_, _)          -> failwith "Not yet imnplemented"
 
   let rec to_fexpr (numeric_constraint : t) : FExpr.t =
-    let add_head_prefix string =
+    let prefix string =
       String.append "NumConstr:" string
     in
     let binop head e1 e2 =
@@ -298,7 +298,7 @@ end = struct
           NumericExpression.to_fexpr e2;
         ]
       in
-      FExpr.mk_application ~positional @@ add_head_prefix head
+      FExpr.mk_application ~positional @@ prefix head
         
     and bincon head c1 c2 =
       let positional =
@@ -307,7 +307,7 @@ end = struct
           to_fexpr c2;
         ]
       in
-      FExpr.mk_application ~positional @@ add_head_prefix head
+      FExpr.mk_application ~positional @@ prefix head
     in
         
     match numeric_constraint with
@@ -335,7 +335,7 @@ end = struct
              FExpr.mk_list @@ List.map ~f:TypeArgument.to_fexpr type_arguments
            ]
          in
-         FExpr.mk_application ~positional @@ add_head_prefix "App"
+         FExpr.mk_application ~positional @@ prefix "App"
        end
      | Var identifier -> begin
          let positional =
@@ -343,13 +343,13 @@ end = struct
              Identifier.to_fexpr identifier
            ]
          in
-         FExpr.mk_application ~positional @@ add_head_prefix "Var"
+         FExpr.mk_application ~positional @@ prefix "Var"
        end
      | True -> begin
-         FExpr.mk_symbol @@ add_head_prefix "True"
+         FExpr.mk_symbol @@ prefix "True"
        end
      | False -> begin
-         FExpr.mk_symbol @@ add_head_prefix "False"
+         FExpr.mk_symbol @@ prefix "False"
        end
 
   let rec equal (t1 : t) (t2 : t) : bool =
