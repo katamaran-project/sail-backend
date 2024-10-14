@@ -439,7 +439,7 @@ let with_destructured_record
         type_from_lvar lvar location
       in
       match t with
-      | S.Typ_id record_type_identifier -> begin
+      | Typ_id record_type_identifier -> begin
           let* record_type_identifier =
             Identifier.translate_identifier [%here] record_type_identifier
           in
@@ -481,13 +481,13 @@ let with_destructured_record
               TC.not_yet_implemented ~message [%here] location
             end
         end
-      | S.Typ_internal_unknown -> TC.not_yet_implemented [%here] location
-      | S.Typ_var _            -> TC.not_yet_implemented [%here] location
-      | S.Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
-      | S.Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
-      | S.Typ_tuple _          -> TC.not_yet_implemented [%here] location
-      | S.Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
-      | S.Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
+      | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
+      | Typ_var _            -> TC.not_yet_implemented [%here] location
+      | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
+      | Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
+      | Typ_tuple _          -> TC.not_yet_implemented [%here] location
+      | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
+      | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
   | Libsail.Anf.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
   | Libsail.Anf.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
