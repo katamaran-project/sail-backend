@@ -153,15 +153,24 @@ module Expression = struct
 
 
   (*
-     [bv <value>]
+     exp_val (bvec <size>) [bv <value>]
   *)
-  let pp_bitvector (value : int) : PP.document =
-    PP.annotate [%here] begin
+  let pp_bitvector
+      ~(size  : int)
+      ~(value : int) : PP.document
+    =
+    let pp_type =
+      PP.separate_horizontally ~separator:PP.space [ PP.string "ty.bvec"; PP.string @@ Int.to_string size ]
+    in
+    let pp_literal =
       PP.(surround brackets) begin
         Coq.pp_application
           (PP.string "bv")
           [PP.string @@ Int.to_string value]
       end
+    in
+    PP.annotate [%here] begin
+      pp_value ~typ:pp_type ~value:pp_literal
     end
 end
 
