@@ -43,10 +43,10 @@ let statement_of_lvar
       (location   : S.l                     ) : Ast.Statement.t TC.t
   =
   match lvar with
-  | Libsail.Ast_util.Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
-  | Libsail.Ast_util.Local (_, _) -> TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable identifier)
-  | Libsail.Ast_util.Enum _       -> TC.not_yet_implemented [%here] location
-  | Libsail.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] location
+  | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
+  | Local (_, _) -> TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable identifier)
+  | Enum _       -> TC.not_yet_implemented [%here] location
+  | Unbound _    -> TC.not_yet_implemented [%here] location
 
 
 let translate_return_type (sail_type : Libsail.Ast.typ) : Ast.Type.t TC.t =
