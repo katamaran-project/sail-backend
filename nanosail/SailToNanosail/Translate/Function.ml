@@ -322,8 +322,12 @@ let rec expression_of_aval
         List.for_all ~f:is_bit value_types'
       then
         TC.return @@ Ast.Expression.Bitvector values'
-      else
-        TC.fail [%here] "Elements of bit vector should all be bits"
+      else begin
+        let element_types =
+          String.concat ~sep:", " @@ List.map ~f:(fun t -> FExpr.to_string @@ Ast.Type.to_fexpr t) value_types'
+        in
+        TC.fail [%here] @@ Printf.sprintf "Elements of bit vector should all be bits; they were %s" element_types
+      end
     in
     let* typ' =
       Nanotype.nanotype_of_sail_type typ
