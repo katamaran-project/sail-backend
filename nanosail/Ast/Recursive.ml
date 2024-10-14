@@ -250,7 +250,7 @@ end = struct
     | Var id              -> Identifier.string_of id
     | True                -> "NC_true"
     | False               -> "NC_false"
-    | Set (_, _)          -> failwith "Not yet imnplemented"
+    | Set (_, _)          -> failwith "Not yet implemented"
     | Or (c1, c2)         -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
     | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
