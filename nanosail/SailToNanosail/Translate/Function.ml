@@ -301,7 +301,7 @@ let rec expression_of_aval
       (values : S.typ S.aval list)
       (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
-    let* _values', _value_types', _named_statements' =
+    let* values', value_types', named_statements' =
       let* triples =
         TC.map ~f:(expression_of_aval location) values
       in
@@ -314,12 +314,21 @@ let rec expression_of_aval
       in
       TC.return (values', types', named_statements')
     in
+    let* expression' =
+      let is_bit (t : Ast.Type.t) : bool =
+        Ast.Type.equal t Ast.Type.Bit
+      in
+      if
+        List.for_all ~f:is_bit value_types'
+      then
+        TC.return @@ Ast.Expression.Bitvector values'
+      else
+        TC.fail [%here] "Elements of bit vector should all be bits"
+    in
     let* typ' =
       Nanotype.nanotype_of_sail_type typ
     in
-    (* TC.return (Ast.Expression.Val (Ast.Value.Bit *)
-    Stdio.print_endline @@ FExpr.to_string @@ Ast.Type.to_fexpr typ';
-    TC.not_yet_implemented [%here] location
+    TC.return @@ (expression', typ', named_statements')
     
   in
   match value with
