@@ -150,6 +150,19 @@ module Expression = struct
           PP.surround PP.dquotes identifier
         ]
     end
+
+
+  (*
+     [bv <value>]
+  *)
+  let pp_bitvector (value : int) : PP.document =
+    PP.annotate [%here] begin
+      PP.(surround brackets) begin
+        Coq.pp_application
+          (PP.string "bv")
+          [PP.string @@ Int.to_string value]
+      end
+    end
 end
 
 
