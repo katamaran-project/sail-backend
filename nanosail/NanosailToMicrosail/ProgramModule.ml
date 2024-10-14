@@ -33,6 +33,7 @@ let pp_imports () : PP.document =
         add "ctx.notations";
         add "ctx.resolution";
         add "env.notations";
+        add "bv.notations";
         if Configuration.(get use_list_notations) then add "ListNotations";
       )
   in
