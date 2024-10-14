@@ -297,6 +297,12 @@ let rec expression_of_aval
       end
     | _ -> TC.fail [%here] "Unexpected type"
 
+  and expression_of_vector
+      (values : S.typ S.aval list)
+      (typ    : S.typ            )
+    =
+    TC.not_yet_implemented [%here] location
+    
   in
   match value with
   | AV_tuple elements         -> expression_of_tuple elements
@@ -304,8 +310,8 @@ let rec expression_of_aval
   | AV_id (id, lvar)          -> expression_of_identifier id lvar
   | AV_list (list, typ)       -> expression_of_list list typ
   | AV_record (bindings, typ) -> expression_of_record bindings typ
+  | AV_vector (values, typ)   -> expression_of_vector values typ
   | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
-  | AV_vector (_, _)          -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
 
 
