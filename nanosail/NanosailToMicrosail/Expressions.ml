@@ -250,7 +250,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     GC.return @@ Coq.pp_application
       (PP.string "exp_tuple")
       [Coq.pp_list pp_elements]
-      
+
+  and pp_bitvector (elements : Ast.Expression.t list) : PP.document GC.t =
+    GC.not_yet_implemented [%here]
 
   in
   match expression with
@@ -265,4 +267,4 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
               constructor_identifier;
               fields    }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier fields
   | Tuple elements                                    -> GC.pp_annotate [%here] @@ pp_tuple elements
-  | Bitvector _                                       -> GC.not_yet_implemented [%here]
+  | Bitvector elements                                -> GC.pp_annotate [%here] @@ pp_bitvector elements
