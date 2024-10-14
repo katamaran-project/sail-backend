@@ -150,7 +150,7 @@ let block (f : PP.document t) : PP.document t =
 (* Adds annotation to the current frame *)
 let add_annotation (annotation : PP.document) : int t =
   let* () = assert_inside_frame
-  and* () = update annotations @@ fun xs -> (Annotation annotation) :: xs
+  and* () = update annotations @@ fun xs -> List.append xs [Annotation annotation]
   in
   fresh_index
 
