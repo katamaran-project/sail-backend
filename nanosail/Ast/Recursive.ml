@@ -161,7 +161,15 @@ end = struct
     | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)            @@ prefix "Tuple"
     | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Variant"
     | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Record"
-    | Application (_, _) -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"]             @@ prefix "Application"
+    | Application (t, args) -> begin
+        let positional =
+          [
+            to_fexpr t;
+            FExpr.mk_list @@ List.map ~f:TypeArgument.to_fexpr args
+          ]
+        in
+        FExpr.mk_application ~positional @@ prefix "Application"
+      end
     | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"]             @@ prefix "Alias"
 
   let rec equal (t1 : t) (t2 : t) : bool =
