@@ -83,25 +83,25 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
       in
       TC.return @@ List.concat pats'
     end
-  | S.P_wild -> begin
+  | P_wild -> begin
       let* typ = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       and* id  = TC.generate_unique_identifier ~underscore:true ()
       in
       TC.return [(id, typ)]
     end
-  | S.P_typ (_typ, pattern)       -> translate_parameter_bindings pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
-  | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] location
-  | S.P_not _                     -> TC.not_yet_implemented [%here] location
-  | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] location
-  | S.P_var (_, _)                -> TC.not_yet_implemented [%here] location
-  | S.P_app (_, _)                -> TC.not_yet_implemented [%here] location
-  | S.P_vector _                  -> TC.not_yet_implemented [%here] location
-  | S.P_vector_concat _           -> TC.not_yet_implemented [%here] location
-  | S.P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] location
-  | S.P_list _                    -> TC.not_yet_implemented [%here] location
-  | S.P_cons (_, _)               -> TC.not_yet_implemented [%here] location
-  | S.P_string_append _           -> TC.not_yet_implemented [%here] location
-  | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] location
+  | P_typ (_typ, pattern)       -> translate_parameter_bindings pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
+  | P_or (_, _)                 -> TC.not_yet_implemented [%here] location
+  | P_not _                     -> TC.not_yet_implemented [%here] location
+  | P_as (_, _)                 -> TC.not_yet_implemented [%here] location
+  | P_var (_, _)                -> TC.not_yet_implemented [%here] location
+  | P_app (_, _)                -> TC.not_yet_implemented [%here] location
+  | P_vector _                  -> TC.not_yet_implemented [%here] location
+  | P_vector_concat _           -> TC.not_yet_implemented [%here] location
+  | P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] location
+  | P_list _                    -> TC.not_yet_implemented [%here] location
+  | P_cons (_, _)               -> TC.not_yet_implemented [%here] location
+  | P_string_append _           -> TC.not_yet_implemented [%here] location
+  | P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
 let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
