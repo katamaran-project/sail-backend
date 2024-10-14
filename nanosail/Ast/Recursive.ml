@@ -181,6 +181,7 @@ and TypeArgument : sig
     | Bool              of NumericConstraint.t
 
   val to_string : t -> string
+  val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
 end = struct
   type t =
@@ -193,6 +194,29 @@ end = struct
     | Type t                   -> Type.to_string t
     | NumericExpression numexp -> NumericExpression.to_string numexp
     | Bool nc                  -> NumericConstraint.to_string nc
+
+  
+  let to_fexpr (type_argument : t) : FExpr.t =
+    match type_argument with
+    | Type typ -> begin
+        let positional =
+          [ Type.to_fexpr typ ]
+        in
+        FExpr.mk_application ~positional "TypeArg:Typ"
+      end
+    | NumericExpression expr -> begin
+        let positional =
+          [ NumericExpression.to_fexpr expr ]
+        in
+        FExpr.mk_application ~positional "TypeArg:NumericExpression"
+      end
+    | Bool b -> begin
+        let positional =
+          [ NumericConstraint.to_fexpr b ]
+        in
+        FExpr.mk_application ~positional "TypeArg:Bool"
+      end
+    
 
   let equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
@@ -219,6 +243,7 @@ and NumericConstraint : sig
     | False
 
   val to_string : t -> string
+  val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
 end = struct
   type t =
@@ -254,6 +279,74 @@ end = struct
     | Or (c1, c2)         -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
     | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
+
+  let rec to_fexpr (numeric_constraint : t) : FExpr.t =
+    let head_prefix =
+      "NumConstr"
+    in
+    let add_head_prefix string =
+      String.append head_prefix string
+    in
+    let binop head e1 e2 =
+      let positional =
+        [
+          NumericExpression.to_fexpr e1;
+          NumericExpression.to_fexpr e2;
+        ]
+      in
+      FExpr.mk_application ~positional @@ add_head_prefix head
+        
+    and bincon head c1 c2 =
+      let positional =
+        [
+          to_fexpr c1;
+          to_fexpr c2;
+        ]
+      in
+      FExpr.mk_application ~positional @@ add_head_prefix head
+    in
+        
+    match numeric_constraint with
+     | Equal (e1, e2) -> binop "Equal" e1 e2
+     | BoundedGE (e1, e2) -> binop "BoundedGE" e1 e2
+     | BoundedGT (e1, e2) -> binop "BoundedGT" e1 e2
+     | BoundedLE (e1, e2) -> binop "BoundedLE" e1 e2
+     | BoundedLT (e1, e2) -> binop "BoundedLT" e1 e2
+     | NotEqual (e1, e2) -> binop "NotEqual" e1 e2
+     | Set (identifier, numbers) -> begin
+         let positional =
+           [
+             Identifier.to_fexpr identifier;
+             FExpr.mk_list @@ List.map ~f:(fun z -> FExpr.mk_int @@ Z.to_int z) numbers
+           ]
+         in
+         FExpr.mk_application ~positional "Set"
+       end
+     | Or (c1, c2) -> bincon "Or" c1 c2
+     | And (c1, c2) -> bincon "And" c1 c2
+     | App (identifier, type_arguments) -> begin
+         let positional =
+           [
+             Identifier.to_fexpr identifier;
+             FExpr.mk_list @@ List.map ~f:TypeArgument.to_fexpr type_arguments
+           ]
+         in
+         FExpr.mk_application ~positional @@ add_head_prefix "App"
+       end
+     | Var identifier -> begin
+         let positional =
+           [
+             Identifier.to_fexpr identifier
+           ]
+         in
+         FExpr.mk_application ~positional @@ add_head_prefix "Var"
+       end
+     | True -> begin
+         FExpr.mk_symbol @@ add_head_prefix "True"
+       end
+     | False -> begin
+         FExpr.mk_symbol @@ add_head_prefix "False"
+       end
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
