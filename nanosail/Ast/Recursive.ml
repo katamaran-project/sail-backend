@@ -62,6 +62,7 @@ module rec Type : sig
     | Int
     | Bool
     | String
+    | Bit
     | List        of t
     | Product     of t * t
     | Sum         of t * t
@@ -102,6 +103,7 @@ end = struct
     | Int
     | Bool
     | String
+    | Bit
     | List        of t
     | Product     of t * t
     | Sum         of t * t
@@ -120,6 +122,7 @@ end = struct
     | Bool             -> "Type.Bool"
     | String           -> "Type.String"
     | List _           -> "Type.List"
+    | Bit              -> "Type.Bit"
     | Product (t1, t2) -> Printf.sprintf "(%s * %s)" (to_string t1) (to_string t2)
     | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
     | Unit             -> "Type.Unit"
@@ -145,6 +148,7 @@ end = struct
     | Int                -> FExpr.mk_symbol "Type:Int"
     | Bool               -> FExpr.mk_symbol "Type:Bool"
     | String             -> FExpr.mk_symbol "Type:String"
+    | Bit                -> FExpr.mk_symbol "Type:Bit"
     | List t             -> FExpr.mk_application ~positional:[to_fexpr t] "Type:List"
     | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Product"
     | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2] "Type:Sum"
