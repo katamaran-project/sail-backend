@@ -46,7 +46,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
               end
             end
           end
-        | Bit _ -> GC.not_yet_implemented [%here]
+        | Bit _       -> GC.not_yet_implemented [%here]
+        | Bitvector _ -> GC.not_yet_implemented [%here]
       end
 
   and pp_binary_operation
