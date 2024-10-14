@@ -147,6 +147,7 @@ end = struct
     | Application of t * TypeArgument.t list
     | Alias       of Identifier.t * t
 
+  
   let rec to_string (t : t) : string =
     match t with
     | Int              -> "Type.Int"
@@ -174,6 +175,7 @@ end = struct
         Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
       end
 
+  
   let rec to_fexpr (t : t) : FExpr.t =
     let prefix s =
       String.append "Type:" s
@@ -203,6 +205,7 @@ end = struct
       end
     | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"]             @@ prefix "Alias"
 
+  
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
     | Int                     , Int                      -> true
@@ -307,6 +310,7 @@ end = struct
     | True
     | False
 
+
   let rec to_string (numeric_constraint : t) =
     let binop e1 op e2 =
       Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)
@@ -326,6 +330,7 @@ end = struct
     | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
 
+  
   let rec to_fexpr (numeric_constraint : t) : FExpr.t =
     let prefix string =
       String.append "NumConstr:" string
@@ -391,6 +396,7 @@ end = struct
          FExpr.mk_symbol @@ prefix "False"
        end
 
+  
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1, t2 with
      | Equal (t1a, t1b)    , Equal (t2a, t2b)     -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
