@@ -272,7 +272,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         in
         GC.return begin
           MuSail.Expression.pp_bitvector
-            ~size:8 (* todo fix this *)
+            ~size:(List.length bits)
             ~value:bits_value
         end
       end
