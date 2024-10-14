@@ -113,8 +113,8 @@ let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
   | L_num n    -> TC.return @@ Ast.Value.Int n
   | L_unit     -> TC.return @@ Ast.Value.Unit
   | L_string s -> TC.return @@ Ast.Value.String s
-  | S.L_zero   -> TC.not_yet_implemented [%here] literal_location
-  | S.L_one    -> TC.not_yet_implemented [%here] literal_location
+  | S.L_zero   -> TC.return @@ Ast.Value.Bit false
+  | S.L_one    -> TC.return @@ Ast.Value.Bit true
   | S.L_hex _  -> TC.not_yet_implemented [%here] literal_location
   | S.L_bin _  -> TC.not_yet_implemented [%here] literal_location
   | S.L_undef  -> TC.not_yet_implemented [%here] literal_location
