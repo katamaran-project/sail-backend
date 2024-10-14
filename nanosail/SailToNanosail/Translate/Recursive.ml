@@ -61,10 +61,10 @@ end = struct
           | None             -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location
         end
 
-  (*
-    Sail represents types with parameters with Typ_app (id, type_args).
-    This function translates these to their corresponding nanotype.
-  *)
+    (*
+      Sail represents types with parameters with Typ_app (id, type_args).
+      This function translates these to their corresponding nanotype.
+    *)
     and nanotype_of_application
         (identifier     : S.id          )
         (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
@@ -77,6 +77,7 @@ end = struct
       | "atom"      -> nanotype_of_atom type_arguments'
       | "atom_bool" -> nanotype_of_atom_bool type_arguments'
       | "bits"      -> nanotype_of_bits type_arguments'
+      | "bitvector"  
       | _           -> begin
           let* constructor = nanotype_of_identifier identifier
           in
