@@ -207,20 +207,82 @@ end = struct
 
   
   let rec equal (t1 : t) (t2 : t) : bool =
-    match t1, t2 with
-    | Int                     , Int                      -> true
-    | Bool                    , Bool                     -> true
-    | String                  , String                   -> true
-    | List t1                 , List t2                  -> equal t1 t2
-    | Product (t1a, t1b)      , Product (t2a, t2b)       -> equal t1a t2a && equal t1b t2b
-    | Sum (t1a, t1b)          , Sum (t2a, t2b)           -> equal t1a t2a && equal t1b t2b
-    | Unit                    , Unit                     -> true
-    | Enum id1                , Enum id2                 -> Identifier.equal id1 id2
-    | Bitvector nexp1         , Bitvector nexp2          -> NumericExpression.equal nexp1 nexp2
-    | Tuple ts1               , Tuple ts2                -> Auxlib.equal_lists ~eq:equal ts1 ts2
-    | Record id1              , Record id2               -> Identifier.equal id1 id2
-    | Application (c1, targs1), Application (c2, targs2) -> equal c1 c2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
-    | _                       , _                        -> false
+    match t1 with
+    | Int -> begin
+        match t2 with
+        | Int -> true
+        | _   -> false
+      end
+    | Bool -> begin
+        match t2 with
+        | Bool -> true
+        | _    -> false
+      end
+    | String -> begin
+        match t2 with
+        | String -> true
+        | _      -> false
+      end
+    | Bit -> begin
+        match t2 with
+        | Bit -> true
+        | _   -> false
+      end
+    | List x -> begin
+        match t2 with
+        | List x' -> equal x x'
+        | _       -> false
+      end
+    | Product (x, y) -> begin
+        match t2 with
+        | Product (x', y') -> equal x x' && equal y y'
+        | _                -> false
+      end
+    | Sum (x, y) -> begin
+        match t2 with
+        | Sum (x', y') -> equal x x' && equal y y'
+        | _            -> false
+      end
+    | Unit -> begin
+        match t2 with
+        | Unit -> true
+        | _    -> false
+      end
+    | Enum x -> begin
+        match t2 with
+        | Enum x' -> Identifier.equal x x'
+        | _       -> false
+      end
+    | Bitvector x -> begin
+        match t2 with
+        | Bitvector x' -> NumericExpression.equal x x'
+        | _            -> false
+      end
+    | Tuple xs -> begin
+        match t2 with
+        | Tuple xs' -> List.equal equal xs xs'
+        | _         -> false
+      end
+    | Variant x -> begin
+        match t2 with
+        | Variant x' -> Identifier.equal x x'
+        | _          -> false
+      end
+    | Record x -> begin
+        match t2 with
+        | Record x' -> Identifier.equal x x'
+        | _         -> false
+      end
+    | Application (x, ys) -> begin
+        match t2 with
+        | Application (x', ys') -> equal x x' && List.equal TypeArgument.equal ys ys'
+        | _                     -> false
+      end
+    | Alias (x, y) -> begin
+        match t2 with
+        | Alias (x', y') -> Identifier.equal x x' && equal y y'
+        | _              -> false
+      end
 end
 
 and TypeArgument : sig
