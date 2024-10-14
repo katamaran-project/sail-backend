@@ -202,6 +202,17 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
           end
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+
+  and extended_parameter_type_of_bitvector (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ _ ] -> begin
+        Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+          ocaml_location = [%here];
+          sail_location = location;
+          annotation = "List not yet supported"
+        }
+      end
+    | _ -> fail [%here] "list should have only one type argument"
   in
 
   match unwrapped_sail_type with
@@ -213,22 +224,23 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
    | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
    | Typ_id id            -> Monad.return @@ Ast.ExtendedType.Parameter.Other (StringOf.Sail.id id)
    | Typ_app (identifier, type_arguments) -> begin
-       let Id_aux (unwrapped_identifier, identifier_location) = identifier
+       let Id_aux (unwrapped_identifier, location) = identifier
        in
        match unwrapped_identifier with
        | Id "atom"      -> extended_parameter_type_of_atom type_arguments
        | Id "atom_bool" -> extended_parameter_type_of_atom_bool type_arguments
+       | Id "bitvector" -> extended_parameter_type_of_bitvector location type_arguments
        | Id string      -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
            in
            Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
              ocaml_location = [%here];
-             sail_location = identifier_location;
+             sail_location = location;
              annotation = message
            }
          end
-       | Operator _ -> not_yet_implemented [%here] identifier_location
+       | Operator _ -> not_yet_implemented [%here] location
      end
 
 
