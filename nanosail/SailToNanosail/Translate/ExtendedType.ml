@@ -433,20 +433,20 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
          end
      end
    | Typ_app (identifier, type_arguments) -> begin
-       let Id_aux (unwrapped_identifier, identifier_location) = identifier
+       let Id_aux (unwrapped_identifier, location) = identifier
        in
        match unwrapped_identifier with
        | Id "atom"      -> extended_return_type_of_atom type_arguments
        | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
-       | Id "list"      -> extended_return_type_of_list identifier_location type_arguments
-       | Id "bitvector" -> extended_return_type_of_bitvector identifier_location type_arguments
+       | Id "list"      -> extended_return_type_of_list location type_arguments
+       | Id "bitvector" -> extended_return_type_of_bitvector location type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
            in
-           not_yet_implemented ~message [%here] identifier_location
+           not_yet_implemented ~message [%here] location
          end
-       | Operator _ -> not_yet_implemented [%here] identifier_location
+       | Operator _ -> not_yet_implemented [%here] location
      end
 
 
