@@ -368,6 +368,18 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
     | _ -> fail [%here] "list should have only one type argument"
   in
 
+  let extended_return_type_of_bitvector (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+    match type_arguments with
+    | [ _ ] -> begin
+        Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+          ocaml_location = [%here];
+          sail_location = location;
+          annotation = "Bitvectors not yet supported"
+        }
+      end
+    | _ -> fail [%here] "bitvectors expected to have only one type argument"
+  in
+
   match unwrapped_sail_type with
    | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
@@ -406,6 +418,7 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
        | Id "atom"      -> extended_return_type_of_atom type_arguments
        | Id "atom_bool" -> extended_return_type_of_atom_bool type_arguments
        | Id "list"      -> extended_return_type_of_list identifier_location type_arguments
+       | Id "bitvector" -> extended_return_type_of_bitvector identifier_location type_arguments
        | Id string -> begin
            let message =
              Printf.sprintf "Unknown type %s" string
