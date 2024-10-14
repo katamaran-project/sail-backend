@@ -77,7 +77,7 @@ end = struct
       | "atom"      -> nanotype_of_atom type_arguments'
       | "atom_bool" -> nanotype_of_atom_bool type_arguments'
       | "bits"      -> nanotype_of_bits type_arguments'
-      | "bitvector"  
+      | "bitvector" -> nanotype_of_bitvector type_arguments'
       | _           -> begin
           let* constructor = nanotype_of_identifier identifier
           in
@@ -105,6 +105,13 @@ end = struct
       | [ Ast.TypeArgument.NumericExpression numeric_expression ] -> TC.return @@ Ast.Type.Bitvector numeric_expression
       | [ _ ]                                                     -> TC.fail [%here] "bits argument expected to be numeric expression"
       | _                                                         -> TC.fail [%here] "bits should receive exactly one argument"
+
+      (*
+        The type "bitvector" looks a lot like "bits" and they might be the same, but we set up a separate function just in case.
+        The purpose of this function is therefore more a reminder that there are two different types for bitvectors.
+      *)
+    and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+      nanotype_of_bits args
 
     and nanotype_of_existential
         (ids         : Libsail.Ast.kinded_id list)
