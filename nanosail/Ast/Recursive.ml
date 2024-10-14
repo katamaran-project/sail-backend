@@ -29,15 +29,43 @@ module NumericExpression = struct
 
 
   let rec equal (t1 : t) (t2 : t) : bool =
-    match t1, t2 with
-    | Constant n1     , Constant n2      -> Z.equal n1 n2
-    | Add (t1a, t1b)  , Add (t2a, t2b)   -> equal t1a t2a && equal t1b t2b
-    | Minus (t1a, t1b), Minus (t2a, t2b) -> equal t1a t2a && equal t1b t2b
-    | Times (t1a, t1b), Times (t2a, t2b) -> equal t1a t2a && equal t1b t2b
-    | Neg t1          , Neg t2           -> equal t1 t2
-    | Id id1          , Id id2           -> Identifier.equal id1 id2
-    | Var id1         , Var id2          -> Identifier.equal id1 id2
-    | _               , _                -> false
+    match t1 with
+    | Constant n1 -> begin
+        match t2 with
+        | Constant n2 -> Z.equal n1 n2
+        | _           -> false
+      end
+    | Add (x, y) -> begin
+        match t2 with
+        | Add (x', y') -> equal x x' && equal y y'
+        | _            -> false
+      end
+    | Minus (x, y) -> begin
+        match t2 with
+        | Minus (x', y') -> equal x x' && equal y y'
+        | _              -> false
+      end
+    | Times (x, y) -> begin
+        match t2 with
+        | Times (x', y') -> equal x x' && equal y y'
+        | _              -> false
+      end
+    | Neg x -> begin
+        match t2 with
+        | Neg x' -> equal x x'
+        | _      -> false
+      end
+    | Id x -> begin
+        match t2 with
+        | Id x' -> Identifier.equal x x'
+        | _     -> false
+      end
+    | Var x -> begin
+        match t2 with
+        | Var x' -> Identifier.equal x x'
+        | _      -> false
+      end
+   
 
   let rec to_fexpr (numeric_expression : t) : FExpr.t =
     match numeric_expression with
