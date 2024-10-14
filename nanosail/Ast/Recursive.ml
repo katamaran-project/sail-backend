@@ -398,19 +398,70 @@ end = struct
 
   
   let rec equal (t1 : t) (t2 : t) : bool =
-    match t1, t2 with
-     | Equal (t1a, t1b)    , Equal (t2a, t2b)     -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | NotEqual (t1a, t1b) , NotEqual (t2a, t2b)  -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | BoundedGE (t1a, t1b), BoundedGE (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | BoundedGT (t1a, t1b), BoundedGT (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | BoundedLE (t1a, t1b), BoundedLE (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | BoundedLT (t1a, t1b), BoundedLT (t2a, t2b) -> NumericExpression.equal t1a t2a && NumericExpression.equal t1b t2b
-     | Set (id1, ns1)      , Set (id2, ns2)       -> Identifier.equal id1 id2 && Auxlib.equal_lists ~eq:Z.equal ns1 ns2
-     | Or (t1a, t1b)       , Or (t2a, t2b)        -> equal t1a t2a && equal t1b t2b
-     | And (t1a, t1b)      , And (t2a, t2b)       -> equal t1a t2a && equal t1b t2b
-     | App (id1, targs1)   , App (id2, targs2)    -> Identifier.equal id1 id2 && Auxlib.equal_lists ~eq:TypeArgument.equal targs1 targs2
-     | Var id1             , Var id2              -> Identifier.equal id1 id2
-     | True                , True                 -> true
-     | False               , False                -> true
-     | _                   , _                    -> false
+    match t1 with
+    | Equal (x, y) -> begin
+        match t2 with
+        | Equal (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _              -> false
+      end
+    | BoundedGE (x, y) -> begin
+        match t2 with
+        | BoundedGE (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                  -> false
+      end
+    | BoundedGT (x, y) -> begin
+        match t2 with
+        | BoundedGT (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                  -> false
+      end
+    | BoundedLE (x, y) -> begin
+        match t2 with
+        | BoundedLE (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                  -> false
+      end
+    | BoundedLT (x, y) -> begin
+        match t2 with
+        | BoundedLT (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                  -> false
+      end
+    | NotEqual (x, y) -> begin
+        match t2 with
+        | NotEqual (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                 -> false
+      end
+    | Set (x, y) -> begin
+        match t2 with
+        | Set (x', y') -> Identifier.equal x x' && List.equal Z.equal y y'
+        | _            -> false
+      end
+    | Or (x, y) -> begin
+        match t2 with
+        | Or (x', y') -> equal x x' && equal y y'
+        | _           -> false
+      end
+    | And (x, y) -> begin
+        match t2 with
+        | And (x', y') -> equal x x' && equal y y'
+        | _            -> false
+      end
+    | App (x, y) -> begin
+        match t2 with
+        | App (x', y') -> Identifier.equal x x' && List.equal TypeArgument.equal y y'
+        | _            -> false
+      end
+    | Var x -> begin
+        match t2 with
+        | Var x' -> Identifier.equal x x'
+        | _      -> false
+      end
+    | True -> begin
+        match t2 with
+        | True -> true
+        | _    -> false        
+      end
+    | False -> begin
+        match t2 with
+        | False -> true
+        | _     -> false
+      end
 end
