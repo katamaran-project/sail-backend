@@ -72,7 +72,7 @@ module NumericExpression = struct
       String.append "NumExpr:" head
     in
     match numeric_expression with
-     | Constant n     -> FExpr.Integer (Z.to_int n)
+     | Constant n     -> FExpr.mk_int @@ Z.to_int n
      | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Add"
      | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Minus"
      | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Times"
