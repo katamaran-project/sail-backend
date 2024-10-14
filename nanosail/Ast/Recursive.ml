@@ -330,11 +330,22 @@ end = struct
     
 
   let equal (t1 : t) (t2 : t) : bool =
-    match t1, t2 with
-    | Type t1                , Type t2                 -> Type.equal t1 t2
-    | NumericExpression nexp1, NumericExpression nexp2 -> NumericExpression.equal nexp1 nexp2
-    | Bool nconstr1          , Bool nconstr2           -> NumericConstraint.equal nconstr1 nconstr2
-    | _                      , _                       -> false
+    match t1 with
+    | Type x -> begin
+        match t2 with
+        | Type x' -> Type.equal x x'
+        | _       -> false
+      end
+    | NumericExpression x -> begin
+        match t2 with
+        | NumericExpression x' -> NumericExpression.equal x x'
+        | _                    -> false
+      end
+    | Bool x -> begin
+        match t2 with
+        | Bool x' -> NumericConstraint.equal x x'
+        | _       -> false
+      end
 end
 
 and NumericConstraint : sig
