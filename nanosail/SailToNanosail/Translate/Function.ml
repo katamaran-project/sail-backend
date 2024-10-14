@@ -299,7 +299,7 @@ let rec expression_of_aval
 
   and expression_of_vector
       (values : S.typ S.aval list)
-      (typ    : S.typ            )
+      (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
     TC.not_yet_implemented [%here] location
     
