@@ -252,7 +252,27 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       [Coq.pp_list pp_elements]
 
   and pp_bitvector (elements : Ast.Expression.t list) : PP.document GC.t =
-    GC.not_yet_implemented [%here]
+    (*
+       We currently one support bitvector expressions whose elements are all known at compile-time.
+    *)
+    let compile_time_digits : bool list option =
+      (* Returns the bit (as Some bit) if it's known at compile time, otherwise None *)
+      let get_compile_time_digit (expression : Ast.Expression.t) : bool option =
+        match expression with
+        | Ast.Expression.Val (Ast.Value.Bit bit) -> Some bit
+        | _ -> None
+      in
+      Option.all @@ List.map ~f:get_compile_time_digit elements
+    in
+    match compile_time_digits with
+    | Some bits -> begin
+        (* Compute the value represented by the bits *)
+        let bits_value =
+          List.fold bits ~init:0 ~f:(fun acc bit -> acc * 2 + (if bit then 1 else 0))
+        in
+        GC.return @@ MuSail.Expression.pp_bitvector bits_value
+      end
+    | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown digits not supported yet" [%here]
 
   in
   match expression with
