@@ -43,14 +43,17 @@ module State = struct
     (get, set)
 end
 
+
 module Error = struct
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
     | Failure of Lexing.position * string
 end
 
+
 module Monad = Monads.StateResult.Make(State)(Error)
 open Monads.Notations.Plus(Monad)
+
 
 module MonadUtil = Monads.Util.Make(Monad)
 include MonadUtil
@@ -444,4 +447,3 @@ let determine_extended_type
     end
   | Monad.Failure (Error.Failure (ocaml_location, message)) ->
       TC.fail ocaml_location message
-
