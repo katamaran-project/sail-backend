@@ -22,6 +22,7 @@ module Subst = struct
       | Bool                    -> Bool
       | Int                     -> Int
       | String                  -> String
+      | Bit                     -> Bit
       | List x                  -> List (aux x)
       | Bitvector nexpr         -> Bitvector (numeric_expression subst nexpr)
       | Tuple ts                -> Tuple (List.map ~f:aux ts)
