@@ -180,7 +180,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
             let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
             in
             match unwrapped_numeric_constraint with
-            | S.NC_equal (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_equal (_, _)      -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
@@ -280,8 +280,8 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
 and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constraint) : Ast.ExtendedType.BoolExpression.t Monad.t =
   let bool_expression_of_binary_operation
         (factory : Ast.ExtendedType.BoolExpression.t -> Ast.ExtendedType.BoolExpression.t -> Ast.ExtendedType.BoolExpression.t)
-        (left    : S.n_constraint                                                                                       )
-        (right   : S.n_constraint                                                                                       ) : Ast.ExtendedType.BoolExpression.t Monad.t
+        (left    : S.n_constraint                                                                                             )
+        (right   : S.n_constraint                                                                                             ) : Ast.ExtendedType.BoolExpression.t Monad.t
     =
     let+ left'  = bool_expression_of_sail_numeric_constraint left
     and+ right' = bool_expression_of_sail_numeric_constraint right
@@ -290,8 +290,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
 
   and bool_expression_of_comparison
         (factory : Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.IntExpression.t -> Ast.ExtendedType.BoolExpression.t)
-        (left    : S.nexp                                                                                             )
-        (right   : S.nexp                                                                                             ) : Ast.ExtendedType.BoolExpression.t Monad.t
+        (left    : S.nexp                                                                                                   )
+        (right   : S.nexp                                                                                                   ) : Ast.ExtendedType.BoolExpression.t Monad.t
     =
       let+ left'  = int_expression_of_sail_numeric_expression left
       and+ right' = int_expression_of_sail_numeric_expression right
@@ -337,7 +337,7 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
   let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
   in
 
-  let extended_return_type_of_atom (type_arguments : S.typ_arg list) =
+  let extended_return_type_of_atom (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
         let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
@@ -354,7 +354,7 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
   in
 
-  let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) =
+  let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
         let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
@@ -371,7 +371,10 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
     | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
   in
 
-  let extended_return_type_of_list (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+  let extended_return_type_of_list
+      (location       : Libsail.Ast.l )
+      (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t
+    =
     match type_arguments with
     | [ _ ] -> begin
         Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
@@ -383,7 +386,10 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
     | _ -> fail [%here] "list should have only one type argument"
   in
 
-  let extended_return_type_of_bitvector (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+  let extended_return_type_of_bitvector
+      (location       : Libsail.Ast.l)
+      (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t
+    =
     match type_arguments with
     | [ _ ] -> begin
         Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
