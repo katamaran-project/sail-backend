@@ -15,6 +15,7 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
   | Bool b      -> GC.return @@ PP.annotate [%here] @@ PP.string @@ if b then "true" else "false"
   | String _    -> GC.not_yet_implemented [%here]
   | Prod (_, _) -> GC.not_yet_implemented [%here]
+  | Bit _       -> GC.not_yet_implemented [%here]
 
 
 let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document GC.t =
