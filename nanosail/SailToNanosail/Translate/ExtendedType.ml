@@ -203,7 +203,10 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
       end
     | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
 
-  and extended_parameter_type_of_bitvector (location : Libsail.Ast.l) (type_arguments : S.typ_arg list) =
+  and extended_parameter_type_of_bitvector
+      (location       : Libsail.Ast.l )
+      (type_arguments : S.typ_arg list) :  Ast.ExtendedType.Parameter.t Monad.t
+    =
     match type_arguments with
     | [ _ ] -> begin
         Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
