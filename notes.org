@@ -4,7 +4,34 @@
 
 ** TODO Variant with unit field type should have 0 fields
 ** TODO Bitvectors
-*** TODO Bit type in MuSail
+*** TODO Bit type in MuSail?
+*** Coq
+
+
+#+begin_src coq
+  (* Denotation of muSail types, TypeDecl.v *)
+  Fixpoint Val (σ : Ty) : Set :=
+    match σ with
+    | int => Z
+    | bool => Datatypes.bool
+    | string => String.string
+    | list σ' => Datatypes.list (Val σ')
+    | prod σ1 σ2 => Val σ1 * Val σ2
+    | sum σ1 σ2 => Val σ1 + Val σ2
+    | unit => Datatypes.unit
+    | enum E => enumt E
+    | bvec n => bv n
+    | tuple σs => EnvRec Val σs
+    | union U => uniont U
+    | record R => recordt R
+    end%type.
+
+
+  (* Bitvector value, BitvectorBase.v *)
+  Record bv (n : nat) : Set :=
+    mk { bin : N; _ : Is_true (is_wf n bin) }.
+#+end_src
+
 ** Triples in records
 ** DONE Base Module
 *** DONE Eqdec
