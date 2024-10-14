@@ -103,16 +103,6 @@ let rec equal_lists ~(eq : 'a -> 'a -> bool) (xs : 'a list) (ys : 'a list) : boo
   | _, _         -> false
 
 
-let map_except_last ~(f : 'a -> 'b) ~(f_last : 'a -> 'b) (xs : 'a list) : 'b list =
-  let rec map xs =
-    match xs with
-    | [] -> []
-    | [x] -> [f_last x]
-    | x::xs -> f x :: map xs
-  in
-  map xs
-
-
 let first2  = fst
 let second2 = snd
 
