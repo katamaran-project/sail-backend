@@ -4,6 +4,8 @@
 
 ** TODO Variant with unit field type should have 0 fields
 ** TODO Bitvectors
+*** TODO Bit type in MuSail
+** Triples in records
 ** DONE Base Module
 *** DONE Eqdec
 *** DONE Folds
