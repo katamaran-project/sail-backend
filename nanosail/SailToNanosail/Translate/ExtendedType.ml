@@ -223,8 +223,14 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
    | Typ_var _            -> not_yet_implemented [%here] sail_type_location
    | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
    | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
-   | Typ_tuple _          -> not_yet_implemented [%here] sail_type_location
    | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
+   | Typ_tuple _          -> begin
+       Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                           ocaml_location = [%here];
+                           sail_location = sail_type_location;
+                           annotation = "tuple (not yet supported)"
+                         }
+     end
    | Typ_id id            -> Monad.return @@ Ast.ExtendedType.Parameter.Other (StringOf.Sail.id id)
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, location) = identifier
