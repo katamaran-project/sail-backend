@@ -563,6 +563,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast_statement statement_to_be_cast target_type
   | Fail message                              -> GC.pp_annotate [%here] @@ pp_fail_statement message
 
+(* todo remove this *)
 and pp_par_statement s =
   let* s' = pp_statement s
   in
