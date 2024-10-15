@@ -158,7 +158,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       PP.annotate [%here] begin
           Identifier.pp @@ Configuration.reified_record_name type_identifier;
         end
-      
+
     and pp_record_fields =
       PP.annotate [%here] begin
         Coq.pp_list_using_notation begin
@@ -172,7 +172,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         end
       end
 
-    in    
+    in
     GC.return begin
         PP.annotate [%here] begin
             Coq.pp_application (PP.string "exp_record") [
@@ -205,7 +205,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           end
       end
 
-  and pp_variant 
+  and pp_variant
         (type_identifier        : Ast.Identifier.t     )
         (constructor_identifier : Ast.Identifier.t     )
         (fields                 : Ast.Expression.t list) : PP.document GC.t

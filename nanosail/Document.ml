@@ -53,8 +53,8 @@ module Make(Annotation : ANNOTATION) = struct
     | Horizontal (d1, d2) -> is_single_line d1 && is_single_line d2
     | Vertical (_, _)     -> false
     | Annotated (d, _)    -> is_single_line d
-  
-  
+
+
   type annotated_string =
     | AnnotatedString of { string : string; annotation : Annotation.t }
     | Concatenation of annotated_string * annotated_string
@@ -108,7 +108,7 @@ module Make(Annotation : ANNOTATION) = struct
     in
     to_annotated_strings Annotation.empty document
 
-  
+
   let rec strip_annotation (s : annotated_string) : string =
     match s with
     | AnnotatedString {string; _} -> string
@@ -132,11 +132,11 @@ module Make(Annotation : ANNOTATION) = struct
     in
     List.length strings
 
-  
+
   (* todo improve implementation *)
   let measure (document : t) : int * int =
     (measure_width document, measure_height document)
-    
+
 
   let to_string (document : t) : string =
     String.concat ~sep:"\n" @@ to_strings document
@@ -204,7 +204,7 @@ module Make(Annotation : ANNOTATION) = struct
 
   let braces     = (lbrace  , rbrace  )
   let parens     = (lparen  , rparen  )
-  let squotes    = (squote  , squote  )                 
+  let squotes    = (squote  , squote  )
   let dquotes    = (dquote  , dquote  )
   let brackets   = (lbracket, rbracket)
 
@@ -254,7 +254,7 @@ module Make(Annotation : ANNOTATION) = struct
       (document   : t           ) : t
     =
     Annotated (document, annotation)
-  
+
 
   let hanging (documents : t list) : t =
     match documents with
@@ -288,13 +288,13 @@ module Make(Annotation : ANNOTATION) = struct
     in
     layout [ left_delimiter; enclosed; right_delimiter ]
 
-  
+
   (*
     Creates horizontal box in which the items are separated
     by the given separator
 
       item1 separator item2 separator ... itemN
-  *)                                      
+  *)
   let separate_horizontally
         ~(separator : t     )
          (items     : t list) : t
@@ -306,8 +306,8 @@ module Make(Annotation : ANNOTATION) = struct
       | x::xs -> x :: separator :: separate xs
     in
     horizontal @@ separate items
-    
-  
+
+
   (*
     Creates a vertical box in which the items are separated by
     the given separator
@@ -316,7 +316,7 @@ module Make(Annotation : ANNOTATION) = struct
       hbox[item2 separator]
       ...
       itemN
-  *)                                        
+  *)
   let separate_vertically
         ~(separator : t     )
          (items     : t list) : t
@@ -337,7 +337,7 @@ module Make(Annotation : ANNOTATION) = struct
     =
     layout [left_delimiter; document; right_delimiter]
 
-  
+
   let repeat
         (layout   : t list -> t)
         (n        : int        )
@@ -372,7 +372,7 @@ module Make(Annotation : ANNOTATION) = struct
   (*
 
     a + b + c + d
- 
+
   *)
   let pp_binary_operation
       (operator : t     )
@@ -384,31 +384,31 @@ module Make(Annotation : ANNOTATION) = struct
     separate_horizontally ~separator operands
 
   (*
-  
+
      [
        a;
        b;
        c;
        d
      ]
-  
+
   *)
   let delimited_list ~delimiters ~items ~separator =
     let left_delimiter, right_delimiter = delimiters
     in
     vertical [
       left_delimiter;
-      indent @@ separate_vertically ~separator items;    
+      indent @@ separate_vertically ~separator items;
       right_delimiter;
     ]
 
   (*
-  
+
      head[a,
           b,
           c,
           ...]
-  
+
   *)
   let application ~head ~delimiters ~arguments ~separator =
     let left_delimiter, right_delimiter = delimiters

@@ -333,7 +333,7 @@ let rec expression_of_aval
       Nanotype.nanotype_of_sail_type typ
     in
     TC.return @@ (expression', typ', named_statements')
-    
+
   in
   match value with
   | AV_tuple elements         -> expression_of_tuple elements

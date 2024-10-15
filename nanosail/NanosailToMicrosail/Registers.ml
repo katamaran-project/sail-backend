@@ -169,7 +169,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
         [
           PP.underscore;
           register_name
-        ]      
+        ]
     in
     PP.annotate [%here] @@ Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in

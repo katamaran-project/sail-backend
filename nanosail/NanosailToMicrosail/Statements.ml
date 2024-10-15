@@ -40,7 +40,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
       GC.return begin
         PP.annotate [%here] begin
-          MuSail.Statement.pp_match_list
+          MuSail.Statement.Match.pp_list
             ~matched_value:pp_matched
             ~when_nil:pp_when_nil
             ~head_identifier:pp_id_head
@@ -63,7 +63,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
       GC.return begin
           PP.annotate [%here] begin
-              MuSail.Statement.pp_match_product
+              MuSail.Statement.Match.pp_product
                 ~matched_value:pp_matched
                 ~fst_identifier:pp_id_fst
                 ~snd_identifier:pp_id_snd
@@ -360,7 +360,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
       GC.return begin
         PP.annotate [%here] begin
-          MuSail.Statement.pp_match_variant
+          MuSail.Statement.Match.pp_variant
             ~matched_type:pp_matched_type
             ~matched_value:pp_matched_statement
             ~clauses:pp_cases

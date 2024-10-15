@@ -57,5 +57,5 @@ let generate
            string ocaml_location_string;
            string sail_location_string;
            string message_string
-         ])       
+         ])
   )

@@ -107,7 +107,7 @@ let pp_list
 
 (*
   (v1, v2)
-*)                            
+*)
 let pp_product
     (v1 : PP.document)
     (v2 : PP.document) : PP.document

@@ -5,9 +5,9 @@ module Annotation = struct
   type t = string list
 
   let empty = []
-  
+
   let is_empty = List.is_empty
-  
+
   let combine s1 s2 =
     List.concat [s1; s2]
 
@@ -64,7 +64,7 @@ let underscore = Doc.underscore
 
 let surround  = Doc.surround
 let indent    = Doc.indent
-                  
+
 let is_empty  = Doc.is_empty
 
 

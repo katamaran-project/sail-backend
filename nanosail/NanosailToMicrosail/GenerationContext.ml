@@ -128,7 +128,7 @@ let convert_frame_to_document (frame : frame) =
     List.map ~f:(fun (Comment c) -> c) comments
   in
   PP.paragraphs @@ List.concat [ pp_comments; pp_annotations ]
-  
+
 
 (*
    Computes f and gathers all comments/annotations during its execution.

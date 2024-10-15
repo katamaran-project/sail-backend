@@ -86,7 +86,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     in
     nullary_string_function id f
   in
-  
+
   let exported_program_translation =
     let id = "program-translation"
     in
@@ -104,7 +104,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     in
     nullary_string_function id f
   in
-  
+
   let exported_ignored_definitions =
     let id = "ignored-definitions"
     in

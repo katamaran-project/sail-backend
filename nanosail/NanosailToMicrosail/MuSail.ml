@@ -129,7 +129,7 @@ module Expression = struct
         ]
     end
 
-  
+
   (*
      exp_val ty.unit tt
   *)
@@ -184,7 +184,7 @@ end
 module Statement = struct
   (*
      "Upgrades" expression to statements
-     
+
        stm_exp (<expression>)
   *)
   let pp_expression (expression : PP.document) : PP.document =
@@ -221,8 +221,8 @@ module Statement = struct
             when_cons;
           ]
       end
-  
-  
+
+
     (*
       stm_match_union_alt_list <matched_type>
                                <matched_value>
@@ -275,14 +275,14 @@ module Statement = struct
             PP.string "Logic.I"
           ]
       end
-  
-  
+
+
     (*
       stm_match_prod <matched_value>
                      <fst_identifier>
                      <snd_identifier>
                      <body>
-    *)                
+    *)
     let pp_product
           ~(matched_value  : PP.document)
           ~(fst_identifier : PP.document)
@@ -299,8 +299,8 @@ module Statement = struct
             body
           ]
       end
-  end  
-    
+  end
+
   (*
      (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
   *)

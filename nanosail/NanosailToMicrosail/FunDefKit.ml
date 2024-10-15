@@ -152,12 +152,12 @@ let pp_function_definition_kit
       let fundef =
         let identifier =
           PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
-      
+
         and implicit_parameters = [
             (PP.annotate [%here] @@ PP.string "Δ", None);
             (PP.annotate [%here] @@ PP.string "τ", None);
           ]
-      
+
         and parameters =
           [
             (
@@ -165,10 +165,10 @@ let pp_function_definition_kit
               Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
             )
           ]
-      
+
         and result_type =
           Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
-      
+
         and body =
           let matched_expression =
             PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"

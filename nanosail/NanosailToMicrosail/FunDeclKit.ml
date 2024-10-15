@@ -19,7 +19,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
     let pp_function_declaration (function_definition : Ast.Definition.Function.t) =
       let name =
         PP.annotate [%here] @@ Identifier.pp function_definition.function_name
-      in      
+      in
       let* function_type =
         let* parameter_bindings =
           let* pp_parameter_bindings =

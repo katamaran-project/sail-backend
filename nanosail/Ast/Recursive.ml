@@ -65,7 +65,7 @@ module NumericExpression = struct
         | Var x' -> Identifier.equal x x'
         | _      -> false
       end
-   
+
 
   let rec to_fexpr (numeric_expression : t) : FExpr.t =
     let prefix head =
@@ -147,7 +147,7 @@ end = struct
     | Application of t * TypeArgument.t list
     | Alias       of Identifier.t * t
 
-  
+
   let rec to_string (t : t) : string =
     match t with
     | Int              -> "Type.Int"
@@ -175,7 +175,7 @@ end = struct
         Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
       end
 
-  
+
   let rec to_fexpr (t : t) : FExpr.t =
     let prefix s =
       String.append "Type:" s
@@ -205,7 +205,7 @@ end = struct
       end
     | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"]             @@ prefix "Alias"
 
-  
+
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1 with
     | Int -> begin
@@ -306,7 +306,7 @@ end = struct
     | NumericExpression numexp -> NumericExpression.to_string numexp
     | Bool nc                  -> NumericConstraint.to_string nc
 
-  
+
   let to_fexpr (type_argument : t) : FExpr.t =
     match type_argument with
     | Type typ -> begin
@@ -327,7 +327,7 @@ end = struct
         in
         FExpr.mk_application ~positional "TypeArg:Bool"
       end
-    
+
 
   let equal (t1 : t) (t2 : t) : bool =
     match t1 with
@@ -403,7 +403,7 @@ end = struct
     | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
     | App (_, _)          -> failwith "Not yet imnplemented"
 
-  
+
   let rec to_fexpr (numeric_constraint : t) : FExpr.t =
     let prefix string =
       String.append "NumConstr:" string
@@ -416,7 +416,7 @@ end = struct
         ]
       in
       FExpr.mk_application ~positional @@ prefix head
-        
+
     and bincon head c1 c2 =
       let positional =
         [
@@ -426,7 +426,7 @@ end = struct
       in
       FExpr.mk_application ~positional @@ prefix head
     in
-        
+
     match numeric_constraint with
      | Equal (e1, e2) -> binop "Equal" e1 e2
      | BoundedGE (e1, e2) -> binop "BoundedGE" e1 e2
@@ -469,7 +469,7 @@ end = struct
          FExpr.mk_symbol @@ prefix "False"
        end
 
-  
+
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1 with
     | Equal (x, y) -> begin
@@ -530,7 +530,7 @@ end = struct
     | True -> begin
         match t2 with
         | True -> true
-        | _    -> false        
+        | _    -> false
       end
     | False -> begin
         match t2 with

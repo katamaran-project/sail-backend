@@ -92,18 +92,18 @@ let pp_program_module
         GC.pp_annotate [%here] begin
             FunDeclKit.generate @@ List.map ~f:snd function_definitions;
           end
-    
+
       and* function_definition_kit =
         GC.pp_annotate [%here] begin
             FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
           end
-    
+
       and* foreign_kit =
         GC.pp_annotate [%here] begin
             ForeignKit.pp_foreign_kit ()
           end
-    
-      in      
+
+      in
       GC.return @@ PP.paragraphs [
         PP.annotate [%here] @@ function_declaration_kit;
         PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;

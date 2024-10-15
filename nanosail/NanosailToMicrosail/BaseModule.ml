@@ -179,7 +179,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
         )
       in
       List.map ~f:denotation_pair_for variant_identifiers
-    
+
     and parameter_identifier = PP.annotate [%here] @@ PP.string "u"
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
     and function_identifier  = PP.annotate [%here] @@ PP.string "union_denote"
@@ -211,7 +211,7 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
         )
       in
       List.map ~f:denotation_pair_for record_identifiers
-    
+
     and parameter_identifier = PP.annotate [%here] @@ PP.string "r"
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Records"
     and function_identifier  = PP.annotate [%here] @@ PP.string "record_denote"
@@ -269,7 +269,7 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
         )
       in
       List.map ~f:denotation_pair_for variant_identifiers
-    
+
     and parameter_identifier = PP.annotate [%here] @@ PP.string "u"
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
     and function_identifier  = PP.annotate [%here] @@ PP.string "union_constructor"
