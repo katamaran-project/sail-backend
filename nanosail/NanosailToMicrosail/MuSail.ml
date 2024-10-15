@@ -421,6 +421,30 @@ module Statement = struct
                                      [ surround dquotes value_identifier ]);
           ]
       end
+
+
+  (*
+    stm_let "<bound_identifier>"
+            (<bound_value_type>)
+            (<bound_value>)
+            (<body>)
+  *)
+  let pp_let
+        ~(bound_identifier : PP.document)
+        ~(bound_value_type : PP.document)
+        ~(bound_value      : PP.document)
+        ~(body             : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_let")
+          [
+            PP.(surround dquotes) bound_identifier;
+            PP.(surround parens) bound_value_type;
+            PP.(surround parens) bound_value;
+            PP.(surround parens) body;
+          ]
+      end
 end
 
 
