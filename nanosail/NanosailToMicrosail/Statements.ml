@@ -441,12 +441,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       in
       GC.return begin
           PP.annotate [%here] begin
-              Coq.pp_hanging_application
-                (PP.string "stm_seq")
-                [
-                  pp_left;
-                  pp_right;
-                ]
+              MuSail.Statement.pp_sequence pp_left pp_right
             end
         end
 
