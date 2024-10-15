@@ -445,6 +445,31 @@ module Statement = struct
             PP.(surround parens) body;
           ]
       end
+
+
+  
+  let pp_let_use_notation
+        ~(bound_identifier : PP.document)
+        ~(bound_value_type : PP.document)
+        ~(bound_value      : PP.document)
+        ~(body             : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+        PP.(
+        separate_horizontally ~separator:space [
+            separate_horizontally ~separator:space [
+                string "let:";
+                surround dquotes bound_identifier;
+                string "::";
+                bound_value_type;
+                string ":="];
+            bound_value;
+            string "in";
+            body
+          ]
+        )
+      end
+    
 end
 
 
