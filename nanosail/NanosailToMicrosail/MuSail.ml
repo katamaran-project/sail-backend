@@ -276,6 +276,27 @@ module Statement = struct
           (Identifier.pp function_identifier :: arguments)
       end
     end
+
+
+  (*
+    stm_if (<condition>)
+           (<when_true>)
+           (<when_false>)
+  *)
+  let pp_conditional
+        ~(condition  : PP.document)
+        ~(when_true  : PP.document)
+        ~(when_false : PP.document) : PP.document
+    =
+    PP.annotate [%here] @@ begin
+        Coq.pp_hanging_application
+          (PP.string "stm_if")
+          [
+            PP.(surround parens) condition;
+            PP.(surround parens) when_true;
+            PP.(surround parens) when_false
+          ]
+      end
 end
 
 
