@@ -474,38 +474,34 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         ~(destructured_record    : Ast.Statement.t      )
         ~(body                   : Ast.Statement.t      ) : PP.document GC.t
     =
-    let pattern =
+    let pp_matched_type =
+      Identifier.pp @@ Configuration.reified_record_name record_type_identifier
+    in
+
+    let* pp_matched_value =
+      pp_statement destructured_record
+    in
+
+    let pp_bindings =
       let pairs =
         List.zip_exn field_identifiers variable_identifiers
       in
-      let build acc (field_identifier, variable_identifier) =
-        PP.(surround parens) begin
-            Coq.pp_application
-              (PP.annotate [%here] @@ PP.string "recordpat_snoc")
-              [
-                PP.annotate [%here] @@ acc;
-                PP.annotate [%here] @@ PP.(surround dquotes) @@ Identifier.pp field_identifier;
-                PP.annotate [%here] @@ PP.(surround dquotes) @@ Identifier.pp variable_identifier;
-              ]
-          end
-      in
-      List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
+      List.map
+        ~f:(fun (field, var) -> (Identifier.pp field, Identifier.pp var))
+        pairs
     in
-    let* destructured_record' =
-      GC.pp_annotate [%here] @@ pp_statement destructured_record
-    and* body' =
-      GC.pp_annotate [%here] @@ pp_statement body
+      
+    let* pp_body =
+      pp_statement body
     in
+
     GC.return begin
         PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "stm_match_record")
-              [
-                Identifier.pp @@ Configuration.reified_record_name record_type_identifier;
-                PP.(surround parens) destructured_record';
-                pattern;
-                PP.(surround parens) body'
-              ]
+            MuSail.Statement.Match.pp_record
+              ~matched_type:pp_matched_type
+              ~matched_value:pp_matched_value
+              ~bindings:pp_bindings
+              ~body:pp_body
           end
       end
 
