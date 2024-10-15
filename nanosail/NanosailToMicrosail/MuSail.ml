@@ -353,6 +353,18 @@ module Statement = struct
             right;
           ]
       end
+
+
+  (*
+    stm_read_register <register_identifier>
+  *)
+  let pp_read_register (register_identifier : PP.document) : PP.document =
+    PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "stm_read_register")
+          [ register_identifier ]
+      end
+
 end
 
 
