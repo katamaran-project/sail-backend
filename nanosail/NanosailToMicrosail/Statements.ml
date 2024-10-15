@@ -402,19 +402,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     then
       GC.return begin
           PP.annotate [%here] begin
-              PP.(
-              separate_horizontally ~separator:space [
-                  separate_horizontally ~separator:space [
-                      string "let:";
-                      surround dquotes pp_variable_identifier;
-                      string "::";
-                      pp_binding_statement_type;
-                      string ":="];
-                  pp_binding_statement;
-                  string "in";
-                  pp_body_statement
-                ]
-              )
+              MuSail.Statement.pp_let_use_notation
+                ~bound_identifier:pp_variable_identifier
+                ~bound_value_type:pp_binding_statement_type
+                ~bound_value:pp_binding_statement
+                ~body:pp_body_statement
             end
         end
     else

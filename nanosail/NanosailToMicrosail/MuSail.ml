@@ -447,7 +447,11 @@ module Statement = struct
       end
 
 
-  
+  (*
+    let: "<bound_identifier>" :: <bound_value_type> := bound_value
+    in
+      <body>
+  *)
   let pp_let_use_notation
         ~(bound_identifier : PP.document)
         ~(bound_value_type : PP.document)
