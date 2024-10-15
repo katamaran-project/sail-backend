@@ -195,111 +195,112 @@ module Statement = struct
     end
 
 
-  (*
-     stm_match_list <matched_value>
-                    <when_nil>
-                    "<head_identifier>"
-                    "<tail_identifier>"
-                    <when_cons>
-  *)
-  let pp_match_list
-      ~(matched_value   : PP.document)
-      ~(when_nil        : PP.document)
-      ~(head_identifier : PP.document)
-      ~(tail_identifier : PP.document)
-      ~(when_cons       : PP.document)
-    =
-    PP.annotate [%here] begin
-      Coq.pp_hanging_application
-        (PP.string "stm_match_list")
-        [
-          matched_value;
-          when_nil;
-          PP.(surround dquotes) head_identifier;
-          PP.(surround dquotes) tail_identifier;
-          when_cons;
-        ]
-    end
-
-
-  (*
-    stm_match_union_alt_list <matched_type>
-                             <matched_value>
-                             [
-                               existT <clauses[i][0]> (MkAlt (<pattern for clauses[i][1]>) (<clauses[i][2]>);
-                               ...
-                             ]
-  *)
-  let pp_match_variant
-      ~(matched_type  : PP.document                                        )
-      ~(matched_value : PP.document                                        )
-      ~(clauses       : (PP.document * PP.document list * PP.document) list) : PP.document
-    =
-    let pp_cases =
-      let pp_case
-          (constructor : PP.document     )
-          (bindings    : PP.document list)
-          (body        : PP.document     ) : PP.document
-        =
-        let pattern =
-          PP.annotate [%here] begin
-            PP.(surround parens) begin
-              Pattern.smart_pp bindings
+  module Match = struct
+    (*
+       stm_match_list <matched_value>
+                      <when_nil>
+                      "<head_identifier>"
+                      "<tail_identifier>"
+                      <when_cons>
+    *)
+    let pp_list
+        ~(matched_value   : PP.document)
+        ~(when_nil        : PP.document)
+        ~(head_identifier : PP.document)
+        ~(tail_identifier : PP.document)
+        ~(when_cons       : PP.document)
+      =
+      PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_match_list")
+          [
+            matched_value;
+            when_nil;
+            PP.(surround dquotes) head_identifier;
+            PP.(surround dquotes) tail_identifier;
+            when_cons;
+          ]
+      end
+  
+  
+    (*
+      stm_match_union_alt_list <matched_type>
+                               <matched_value>
+                               [
+                                 existT <clauses[i][0]> (MkAlt (<pattern for clauses[i][1]>) (<clauses[i][2]>);
+                                 ...
+                               ]
+    *)
+    let pp_variant
+        ~(matched_type  : PP.document                                        )
+        ~(matched_value : PP.document                                        )
+        ~(clauses       : (PP.document * PP.document list * PP.document) list) : PP.document
+      =
+      let pp_cases =
+        let pp_case
+            (constructor : PP.document     )
+            (bindings    : PP.document list)
+            (body        : PP.document     ) : PP.document
+          =
+          let pattern =
+            PP.annotate [%here] begin
+              PP.(surround parens) begin
+                Pattern.smart_pp bindings
+              end
             end
+          in
+          PP.annotate [%here] begin
+            Coq.pp_application
+              (PP.string "existT")
+              [
+                constructor;
+                PP.(surround parens) begin
+                  Coq.pp_application (PP.string "MkAlt") [
+                    pattern;
+                    PP.(surround parens) body;
+                  ]
+                end
+              ]
           end
         in
-        PP.annotate [%here] begin
-          Coq.pp_application
-            (PP.string "existT")
-            [
-              constructor;
-              PP.(surround parens) begin
-                Coq.pp_application (PP.string "MkAlt") [
-                  pattern;
-                  PP.(surround parens) body;
-                ]
-              end
-            ]
-        end
+        Coq.pp_list @@ List.map ~f:(fun (constructor, pattern_ids, body) -> pp_case constructor pattern_ids body) clauses
       in
-      Coq.pp_list @@ List.map ~f:(fun (constructor, pattern_ids, body) -> pp_case constructor pattern_ids body) clauses
-    in
-    PP.annotate [%here] begin
-      Coq.pp_hanging_application
-        (PP.string "stm_match_union_alt_list")
-        [
-          matched_type;
-          matched_value;
-          pp_cases;
-          PP.string "Logic.I"
-        ]
-    end
-
-
-  (*
-    stm_match_prod <matched_value>
-                   <fst_identifier>
-                   <snd_identifier>
-                   <body>
-  *)                
-  let pp_match_product
-        ~(matched_value  : PP.document)
-        ~(fst_identifier : PP.document)
-        ~(snd_identifier : PP.document)
-        ~(body           : PP.document) : PP.document
-    =
-    PP.annotate [%here] begin
-      Coq.pp_hanging_application
-        (PP.string "stm_match_prod")
-        [
-          matched_value;
-          fst_identifier;
-          snd_identifier;
-          body
-        ]
-    end
-
+      PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_match_union_alt_list")
+          [
+            matched_type;
+            matched_value;
+            pp_cases;
+            PP.string "Logic.I"
+          ]
+      end
   
+  
+    (*
+      stm_match_prod <matched_value>
+                     <fst_identifier>
+                     <snd_identifier>
+                     <body>
+    *)                
+    let pp_product
+          ~(matched_value  : PP.document)
+          ~(fst_identifier : PP.document)
+          ~(snd_identifier : PP.document)
+          ~(body           : PP.document) : PP.document
+      =
+      PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_match_prod")
+          [
+            matched_value;
+            fst_identifier;
+            snd_identifier;
+            body
+          ]
+      end
+  end  
+    
   (*
      (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
   *)
