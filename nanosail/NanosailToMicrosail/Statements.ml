@@ -448,9 +448,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return begin
         PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "stm_read_register")
-              [ Identifier.pp register_identifier ]
+            MuSail.Statement.pp_read_register @@ Identifier.pp register_identifier
           end
       end
 
