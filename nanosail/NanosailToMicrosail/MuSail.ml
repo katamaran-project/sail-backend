@@ -365,6 +365,30 @@ module Statement = struct
           [ register_identifier ]
       end
 
+
+  (*
+    Note: our AST currently restricts the source
+    of the value to be written: it has to be stored
+    in a variable, i.e., arbitrary expressions
+    are not supported.
+    
+    stm_write_register <register_identifier>
+                       (exp_var "<value_identifier>")
+  *)
+  let pp_write_register
+        ~(register_identifier : PP.document)
+        ~(value_identifier    : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "stm_write_register")
+          [
+            register_identifier;
+            PP.(surround parens @@ Coq.pp_application
+                                     (string "exp_var")
+                                     [ surround dquotes value_identifier ]);
+          ]
+      end
 end
 
 
