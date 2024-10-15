@@ -336,6 +336,23 @@ module Statement = struct
             PP.(surround parens) when_false
           ]
       end
+
+  (*
+    stm_seq <left>
+            <right>
+  *)
+  let pp_sequence
+        (left  : PP.document)
+        (right : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_seq")
+          [
+            left;
+            right;
+          ]
+      end
 end
 
 
