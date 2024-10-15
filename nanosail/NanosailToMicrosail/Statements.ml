@@ -461,14 +461,9 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     in
     GC.return begin
         PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "stm_write_register")
-              [
-                pp_register_identifier;
-                PP.(surround parens @@ Coq.pp_application
-                                         (string "exp_var")
-                                         [ surround dquotes pp_written_value ]);
-              ]
+            MuSail.Statement.pp_write_register
+              ~register_identifier:pp_register_identifier
+              ~value_identifier:pp_written_value
           end
     end
 
