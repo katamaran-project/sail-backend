@@ -479,13 +479,15 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         List.zip_exn field_identifiers variable_identifiers
       in
       let build acc (field_identifier, variable_identifier) =
-        PP.(surround parens (Coq.pp_application
-                               (PP.annotate [%here] @@ string "recordpat_snoc")
-                               [
-                                 PP.annotate [%here] @@ acc;
-                                 PP.annotate [%here] @@ surround dquotes @@ Identifier.pp field_identifier;
-                                 PP.annotate [%here] @@ surround dquotes @@ Identifier.pp variable_identifier;
-                               ]))
+        PP.(surround parens) begin
+            Coq.pp_application
+              (PP.annotate [%here] @@ PP.string "recordpat_snoc")
+              [
+                PP.annotate [%here] @@ acc;
+                PP.annotate [%here] @@ PP.(surround dquotes) @@ Identifier.pp field_identifier;
+                PP.annotate [%here] @@ PP.(surround dquotes) @@ Identifier.pp variable_identifier;
+              ]
+          end
       in
       List.fold_left pairs ~init:(PP.string "recordpat_nil") ~f:build
     in
