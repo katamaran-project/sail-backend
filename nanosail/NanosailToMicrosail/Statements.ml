@@ -58,16 +58,16 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       let* pp_matched = GC.pp_annotate [%here] @@ pp_par_statement matched
       and* pp_body    = GC.pp_annotate [%here] @@ pp_par_statement body
       in
+      let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
+      and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
+      in
       GC.return begin
           PP.annotate [%here] begin
-              Coq.pp_hanging_application
-                (PP.string "stm_match_prod")
-                [
-                  pp_matched;
-                  PP.(surround dquotes) (Identifier.pp id_fst);
-                  PP.(surround dquotes) (Identifier.pp id_snd);
-                  pp_body;
-                ]
+              MuSail.Statement.pp_match_product
+                ~matched_value:pp_matched
+                ~fst_identifier:pp_id_fst
+                ~snd_identifier:pp_id_snd
+                ~body:pp_body
             end
         end
 
