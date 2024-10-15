@@ -76,20 +76,17 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         (when_true  : Ast.Statement.t)
         (when_false : Ast.Statement.t) : PP.document GC.t
       =
-      let* pp_condition  = GC.pp_annotate [%here] @@ pp_par_statement condition
-      and* pp_when_true  = GC.pp_annotate [%here] @@ pp_par_statement when_true
-      and* pp_when_false = GC.pp_annotate [%here] @@ pp_par_statement when_false
+      let* pp_condition  = GC.pp_annotate [%here] @@ pp_statement condition
+      and* pp_when_true  = GC.pp_annotate [%here] @@ pp_statement when_true
+      and* pp_when_false = GC.pp_annotate [%here] @@ pp_statement when_false
       in
       GC.return begin
           PP.annotate [%here] @@ begin
-              Coq.pp_hanging_application
-                (PP.string "stm_if")
-                [
-                  pp_condition;
-                  pp_when_true;
-                  pp_when_false
-                ]
-            end
+            MuSail.Statement.pp_conditional
+              ~condition:pp_condition
+              ~when_true:pp_when_true
+              ~when_false:pp_when_false
+          end
         end
 
 
