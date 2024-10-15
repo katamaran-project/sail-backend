@@ -3,7 +3,9 @@ open Base
 
 module Pattern = struct
   (*
-     pat_var "<identifier>"
+    pat_var "<identifier>"
+
+    Consider using smart_pp instead
   *)
   let pp_variable (identifier : PP.document) : PP.document =
     PP.annotate [%here] begin
@@ -14,7 +16,9 @@ module Pattern = struct
 
 
   (*
-     pat_pair "<first>" "<second>"
+    pat_pair "<first>" "<second>"
+
+    Consider using smart_pp instead
   *)
   let pp_pair
       (first_identifier  : PP.document)
@@ -31,7 +35,9 @@ module Pattern = struct
 
 
   (*
-     pat_tuple [ "<id1>", "<id2>", ... ]
+    pat_tuple [ "<id1>", "<id2>", ... ]
+
+    Consider using smart_pp instead
   *)
   let pp_tuple (identifiers : PP.document list) : PP.document =
     PP.annotate [%here] begin
