@@ -420,14 +420,11 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     else
       GC.return begin
           PP.annotate [%here] begin
-              Coq.pp_hanging_application
-                (PP.string "stm_let")
-                [
-                  PP.(surround dquotes) pp_variable_identifier;
-                  PP.(surround parens) pp_binding_statement_type;
-                  PP.(surround parens) pp_binding_statement;
-                  PP.(surround parens) pp_body_statement;
-                ]
+              MuSail.Statement.pp_let
+                ~bound_identifier:pp_variable_identifier
+                ~bound_value_type:pp_binding_statement_type
+                ~bound_value:pp_binding_statement
+                ~body:pp_body_statement
             end
         end
 
