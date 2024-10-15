@@ -269,6 +269,30 @@ module Statement = struct
         ]
     end
 
+
+  (*
+    stm_match_prod <matched_value>
+                   <fst_identifier>
+                   <snd_identifier>
+                   <body>
+  *)                
+  let pp_match_product
+        ~(matched_value  : PP.document)
+        ~(fst_identifier : PP.document)
+        ~(snd_identifier : PP.document)
+        ~(body           : PP.document) : PP.document
+    =
+    PP.annotate [%here] begin
+      Coq.pp_hanging_application
+        (PP.string "stm_match_prod")
+        [
+          matched_value;
+          fst_identifier;
+          snd_identifier;
+          body
+        ]
+    end
+
   
   (*
      (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
