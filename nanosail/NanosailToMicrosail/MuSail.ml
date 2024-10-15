@@ -299,6 +299,38 @@ module Statement = struct
               body
             ]
         end
+
+
+    let pp_record
+          ~(matched_type  : PP.document                     )
+          ~(matched_value : PP.document                     )
+          ~(bindings      : (PP.document * PP.document) list)
+          ~(body          : PP.document                     ) : PP.document
+      =
+      let record_pattern =
+        let build acc (field_identifier, variable_identifier) =
+          PP.(surround parens) begin
+              Coq.pp_application
+                (PP.annotate [%here] @@ PP.string "recordpat_snoc")
+                [
+                  PP.annotate [%here] @@ acc;
+                  PP.annotate [%here] @@ PP.(surround dquotes) field_identifier;
+                  PP.annotate [%here] @@ PP.(surround dquotes) variable_identifier;
+                ]
+            end
+        in
+        List.fold_left bindings ~init:(PP.string "recordpat_nil") ~f:build
+      in
+      PP.annotate [%here] begin
+          Coq.pp_hanging_application
+            (PP.string "stm_match_record")
+            [
+              matched_type;
+              PP.(surround parens) matched_value;
+              record_pattern;
+              PP.(surround parens) body
+            ]
+        end
   end
 
   (*
