@@ -460,16 +460,16 @@ module Statement = struct
     =
     PP.annotate [%here] begin
         PP.(
-        separate_horizontally ~separator:space [
+        vertical [
             separate_horizontally ~separator:space [
                 string "let:";
                 surround dquotes bound_identifier;
                 string "::";
                 bound_value_type;
-                string ":="];
-            bound_value;
+                string ":=";
+                bound_value];
             string "in";
-            body
+            indent body
           ]
         )
       end
