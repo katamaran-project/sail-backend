@@ -216,6 +216,14 @@ module Statement = struct
     end
 
 
+  (*
+    stm_match_union_alt_list <matched_type>
+                             <matched_value>
+                             [
+                               existT <clauses[i][0]> (MkAlt (<pattern for clauses[i][1]>) (<clauses[i][2]>);
+                               ...
+                             ]
+  *)
   let pp_match_variant
       ~(matched_type  : PP.document                                        )
       ~(matched_value : PP.document                                        )
