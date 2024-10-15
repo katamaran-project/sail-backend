@@ -222,7 +222,7 @@ module Statement = struct
           ]
       end
 
-
+    
     (*
       stm_match_union_alt_list <matched_type>
                                <matched_value>
@@ -290,15 +290,15 @@ module Statement = struct
           ~(body           : PP.document) : PP.document
       =
       PP.annotate [%here] begin
-        Coq.pp_hanging_application
-          (PP.string "stm_match_prod")
-          [
-            matched_value;
-            fst_identifier;
-            snd_identifier;
-            body
-          ]
-      end
+          Coq.pp_hanging_application
+            (PP.string "stm_match_prod")
+            [
+              matched_value;
+              fst_identifier;
+              snd_identifier;
+              body
+            ]
+        end
   end
 
   (*
