@@ -85,7 +85,7 @@ Test Full Backend
 An example with list functions:
 
 ```sh
-cd test/full_backend/examples/lists/
+cd tests/full-backend/examples/lists/
 make katamaran # or katamaran-list to enable list notations
 ```
 *lists.v* will be generated from *lists.sail*. It can be compared manually
@@ -111,11 +111,11 @@ List of some of the `make` targets:
 + *clean* : Cleans the directory of any generated file.
 
 ### Feature tests
-`test/fullbackend/feature_tests/supported.txt` contains a brief description of
+`tests/full-backend/feature_tests/supported.txt` contains a brief description of
 the current supported featured of Sail.
 
 ```sh
-cd test/full_backend/feature_tests
+cd tests/full-backend/feature_tests
 make test
 ```
 `.v` files will be generated from the `.sail` files and then compared to the
