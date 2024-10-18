@@ -12,6 +12,7 @@ depends: [
   "base"
   "stdio"
   "auxlib"
+  "ounit2"
   "monads"
   "odoc" {with-doc}
 ]

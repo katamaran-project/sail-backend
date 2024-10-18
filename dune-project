@@ -23,6 +23,7 @@
                  base
                  stdio
                  auxlib
+                 ounit2
                  monads)
 	(allow_empty))
 
