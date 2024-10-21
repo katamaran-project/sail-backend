@@ -28,6 +28,7 @@
                   "concat_str_dec"
                   "regval_of_bit"
                   "MyEnum_of_num"
+                  "undefined_MyEnum"
                   "num_of_MyEnum")
 
 (ignore-definition-predicate (lambda (identifier)
