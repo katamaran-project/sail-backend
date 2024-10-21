@@ -960,7 +960,7 @@ let pp_regdeclkit register_definitions : PP.document GC.t =
 (*
 
   Section MemoryModel.
-   (* TODO *)
+   Definition Memory := Z -> Z. (* TODO *)
   End MemoryModel.
 
 
@@ -969,11 +969,22 @@ let pp_memory_model () : PP.document GC.t =
   genblock [%here] "Memory Model" begin
     let identifier =
       Ast.Identifier.mk "MemoryModel"
-    and content =
-      PP.annotate [%here] @@ Coq.pp_comment @@ PP.string "TODO"
+    in
+    let* content =
+      GC.block begin
+          let* () = GC.add_comment @@ PP.string "TODO"
+          in
+          GC.return begin
+              PP.annotate [%here] begin
+                  Coq.pp_definition
+                    ~identifier:(PP.string "Memory")
+                    (PP.string "Z -> Z")
+                end
+            end
+        end
     in
     GC.return @@ Coq.pp_section identifier content
-  end
+    end
 
 
 (*
