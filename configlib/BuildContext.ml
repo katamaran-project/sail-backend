@@ -220,8 +220,8 @@ module M (_ : sig end) = struct
 
 
   let constant_function
-        (arity        : int          )
-        (return_value : Slang.Value.t) : Slang.Value.callable
+        ~(arity        : int          )
+        ~(return_value : Slang.Value.t) : Slang.Value.callable
     =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
