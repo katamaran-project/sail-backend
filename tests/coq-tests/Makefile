@@ -1,3 +1,3 @@
 all:
-	./run-tests.py | tee overview.txt
+	./run-tests.py | tee tests-overview.txt
 

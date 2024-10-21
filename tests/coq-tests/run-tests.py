@@ -14,7 +14,7 @@ pass_count = 0
 fail_count = 0
 
 
-log = open('log.txt', 'w')
+log = open('tests-output.txt', 'w')
 
 
 def run_test(directory_name, path):
@@ -66,7 +66,7 @@ for directory_name in directory_names:
 for directory, path, process in queue:
     wait_for_test(directory, path, process)
 
-with open('results.txt', 'a') as file:
+with open('tests-history.txt', 'a') as file:
     today = date.today()
     formatted_today = today.strftime('%Y-%m-%d')
     print(f"{formatted_today} PASS:{pass_count} FAIL:{fail_count}", file=file)

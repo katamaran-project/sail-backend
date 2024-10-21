@@ -2,7 +2,6 @@ microsail.v
 machine.v
 base.v
 intermediate_rewrite_*
-log.txt
 *.glob
 *.vo
 *.vok
@@ -10,4 +9,4 @@ log.txt
 *.aux
 base.html
 machine.html
-overview.txt
+tests-*.txt
