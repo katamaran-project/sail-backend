@@ -1,7 +1,6 @@
 open Base
 
 
-(** Width of the output (default is 100) *)
 let print_check_message () =
   Stdio.print_endline("Katamaran plugin is functioning correctly")
 
