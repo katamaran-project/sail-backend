@@ -196,4 +196,25 @@ module M (_ : sig end) = struct
     in
     export_callable export_as script_function;
     setting
+
+
+  let callable'
+        (export_as : string              )
+        (default   : Slang.Value.callable)
+    =
+    let setting = Setting.mk default
+    in
+    let script_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
+      in
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      in
+      let=! callable = Converters.(map1 callable) evaluated_arguments
+      in
+      Setting.set setting callable;
+      EC.return @@ Value.Nil
+    in
+    export_callable export_as script_function;
+    setting
 end
