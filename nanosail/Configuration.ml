@@ -182,7 +182,15 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     member ignored_pragmas identifier
 
   and should_ignore_function_definition function_definition =
-    member ignored_functions @@ Identifier.of_function_definition function_definition
+    let identifier = Identifier.of_function_definition function_definition
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
+    in
+    match result with
+    | C.EC.Success result -> Slang.Value.truthy result
+    | C.EC.Failure _      -> failwith "Error while reading configuration"
 
   and should_ignore_type_definition type_definition =
     let identifier = Identifier.of_type_definition type_definition
