@@ -30,7 +30,7 @@
                   "MyEnum_of_num"
                   "num_of_MyEnum")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"

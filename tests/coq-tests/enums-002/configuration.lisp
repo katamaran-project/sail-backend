@@ -34,7 +34,7 @@
                   "undefined_MyOtherEnum"
                   "num_of_MyOtherEnum")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"

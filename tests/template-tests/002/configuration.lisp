@@ -23,7 +23,7 @@
                   "__id"
                   "Capability_of_regval")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value")

@@ -34,7 +34,7 @@
                   "my_bit_of_num"
                   "num_of_my_bit")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"

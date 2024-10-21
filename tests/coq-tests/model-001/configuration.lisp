@@ -37,7 +37,7 @@
                   "initialize_registers"
                   "Instruction_of_num")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"

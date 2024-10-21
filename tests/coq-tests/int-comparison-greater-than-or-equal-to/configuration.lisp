@@ -28,7 +28,7 @@
                   "concat_str_dec"
                   "regval_of_bit")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"

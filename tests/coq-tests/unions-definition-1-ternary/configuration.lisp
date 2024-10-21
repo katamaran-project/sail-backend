@@ -34,7 +34,7 @@
                   "Comparison_of_regval"
                   "regval_of_Comparison")
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
                                             "register_value"
