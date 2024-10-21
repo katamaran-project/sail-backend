@@ -55,16 +55,6 @@ let katamaran_options = [
 ]
 
 
-(* let with_open_file filename func = *)
-(*   Auxlib.using *)
-(*     ~resource:(Stdio.Out_channel.create filename) *)
-(*     ~close:Stdio.Out_channel.close *)
-(*     ~body:func *)
-
-
-(* let with_stdout func = *)
-(*   func Stdio.stdout *)
-
 let print_rewrites () =
   List.iteri ~f:(fun index (rewrite_name, _) ->
       Stdio.printf "[%02d] %s\n" (index + 1) rewrite_name
