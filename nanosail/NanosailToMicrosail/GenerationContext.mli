@@ -21,7 +21,7 @@ val pp_inductive_type :
   ((?parameters:PP.document -> ?typ:PP.document -> PP.document -> unit t) -> 'a t) ->
   PP.document t
 
-val add_original_definition  : Libsail.Type_check.tannot Libsail.Ast.def -> unit t
-val add_original_definitions : Libsail.Type_check.tannot Libsail.Ast.def list -> unit t
+val add_original_definition  : Sail.sail_definition -> unit t
+val add_original_definitions : Sail.sail_definition list -> unit t
 
 val log : (string lazy_t -> unit) -> string lazy_t -> unit t

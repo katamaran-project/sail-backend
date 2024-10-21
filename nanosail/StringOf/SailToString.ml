@@ -25,14 +25,15 @@ let index_range  = Libsail.Ast_util.string_of_index_range
 
 let aval (aval : 'a Libsail.Anf.aval) =
   match aval with
-  | Libsail.Anf.AV_lit (x, _)    -> Printf.sprintf "AV_lit(%s)" (lit x)
-  | Libsail.Anf.AV_id (x, _)     -> Printf.sprintf "AV_id(%s,_)" (id x)
-  | Libsail.Anf.AV_ref (_, _)    -> Printf.sprintf "AV_ref(_,_)"
-  | Libsail.Anf.AV_tuple _       -> Printf.sprintf "AV_tuple(_)"
-  | Libsail.Anf.AV_list (_, _)   -> Printf.sprintf "AV_list(_, _)"
-  | Libsail.Anf.AV_vector (_, _) -> Printf.sprintf "AV_vector(_, _)"
-  | Libsail.Anf.AV_record (_, _) -> Printf.sprintf "AV_record(_, _)"
-  | Libsail.Anf.AV_cval (_, _)   -> Printf.sprintf "AV_cval(_, _)"
+  | Libsail.Anf.AV_lit (x, _)      -> Printf.sprintf "AV_lit(%s)" (lit x)
+  | Libsail.Anf.AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (id x)
+  | Libsail.Anf.AV_ref (_, _)      -> Printf.sprintf "AV_ref(_,_)"
+  | Libsail.Anf.AV_tuple _         -> Printf.sprintf "AV_tuple(_)"
+  | Libsail.Anf.AV_list (_, _)     -> Printf.sprintf "AV_list(_, _)"
+  | Libsail.Anf.AV_vector (_, _)   -> Printf.sprintf "AV_vector(_, _)"
+  | Libsail.Anf.AV_record (_, _)   -> Printf.sprintf "AV_record(_, _)"
+  | Libsail.Anf.AV_cval (_, _)     -> Printf.sprintf "AV_cval(_, _)"
+  | Libsail.Anf.AV_abstract (_, _) -> Printf.sprintf "AV_abstract(_, _)"
 
 
 let list ~(f:'a -> string) (xs : 'a list) =
@@ -64,7 +65,7 @@ let rec apat (pattern : 'a Libsail.Anf.apat) =
 
 
 let rec aexp (expression : 'a Libsail.Anf.aexp) =
-  let AE_aux (expression, _env, _location) = expression
+  let AE_aux (expression, _annotation) = expression
   in
   match expression with
   | Libsail.Anf.AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)

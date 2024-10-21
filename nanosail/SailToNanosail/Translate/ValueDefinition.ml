@@ -72,7 +72,7 @@ let translate_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t
 
 
 let translate_value_definition
-      (_definition_annotation : S.def_annot                   )
+      (_definition_annotation : Sail.definition_annotation    )
       (let_definition         : Sail.type_annotation S.letbind)
   =
   let S.LB_aux (S.LB_val (S.P_aux (pattern, (pattern_location, _)), expression), (_location, _type_annotation)) = let_definition

@@ -19,10 +19,12 @@ open Record
 
 
 let translate_type_definition
-      (definition_annotation     : S.def_annot                    )
+      (definition_annotation     : Sail.definition_annotation     )
       (annotated_type_definition : Sail.type_annotation S.type_def) : Ast.Definition.t TC.t
   =
   let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
+  in
+  let location = definition_annotation.loc
   in
   let register translation =
     let* result = translation
@@ -34,4 +36,5 @@ let translate_type_definition
   | TD_variant (identifier, type_quantifier, constructors, flag) -> register @@ translate_variant definition_annotation type_annotation identifier type_quantifier constructors flag
   | TD_enum (identifier, cases, _)                               -> register @@ translate_enum definition_annotation type_annotation identifier cases
   | TD_record (identifier, quantifier, fields, _)                -> register @@ translate_record definition_annotation type_annotation identifier quantifier fields
-  | TD_bitfield (_, _, _)                                        -> TC.not_yet_implemented [%here] definition_annotation.loc
+  | TD_bitfield (_, _, _)                                        -> TC.not_yet_implemented [%here] location
+  | TD_abstract (_, _)                                           -> TC.not_yet_implemented [%here] location

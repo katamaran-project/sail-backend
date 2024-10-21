@@ -137,6 +137,7 @@ module Identifier = struct (* move somewhere else *)
     | TD_variant (id, _, _, _) -> string_of_id id
     | TD_enum (id, _, _)       -> string_of_id id
     | TD_bitfield (id, _, _)   -> string_of_id id
+    | TD_abstract (id, _)      -> string_of_id id
 
   let rec of_pattern (pattern : 'a pat) : string =
     let P_aux (pattern, _) = pattern
@@ -167,7 +168,7 @@ module Identifier = struct (* move somewhere else *)
 end
 
 
-let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast.def) : bool =
+let should_ignore_definition (definition : Sail.sail_definition) : bool =
   let open Libsail.Ast
   in
   let Libsail.Ast.DEF_aux (definition, _annotation) = definition
@@ -206,7 +207,6 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
     | C.EC.Success result -> Slang.Value.truthy result
     | C.EC.Failure _      -> failwith "Error while reading configuration"
 
-
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
     get ignore_default_order
 
@@ -228,6 +228,7 @@ let should_ignore_definition (definition : Libsail.Type_check.tannot Libsail.Ast
   | DEF_loop_measures (_, _)       -> false
   | DEF_register _                 -> false
   | DEF_internal_mutrec _          -> false
+  | DEF_constraint _               -> false
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
 
 

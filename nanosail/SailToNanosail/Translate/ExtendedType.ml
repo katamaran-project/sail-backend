@@ -157,6 +157,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
             | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
             | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
             | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_if (_, _, _) -> not_yet_implemented [%here] numerical_expression_location
             | Nexp_var kid      -> begin
                 let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                 in
@@ -181,10 +182,10 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
             in
             match unwrapped_numeric_constraint with
             | S.NC_equal (_, _)      -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_bounded_ge (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_bounded_gt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_bounded_le (_, _) -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_bounded_lt (_, _) -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_ge (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_gt (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_le (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_lt (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
@@ -192,6 +193,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
             | S.NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_true              -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_false             -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_id _              -> not_yet_implemented [%here] numeric_constraint_location
             | S.NC_var kid           -> begin
                 let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                 in
@@ -271,6 +273,7 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
    | Nexp_app (_, _)          -> not_yet_implemented [%here] numeric_expression_location
    | Nexp_exp _               -> not_yet_implemented [%here] numeric_expression_location
    | Nexp_neg _               -> not_yet_implemented [%here] numeric_expression_location
+   | Nexp_if (_, _, _)        -> not_yet_implemented [%here] numeric_expression_location
    | Nexp_constant n          -> Monad.return @@ Ast.ExtendedType.IntExpression.Constant n
    | Nexp_sum (left, right)   -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Add (a, b)) left right
    | Nexp_minus (left, right) -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Sub (a, b)) left right
@@ -305,27 +308,28 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
       Monad.return @@ factory left' right'
   in
 
-  let bool_expression_of_and        = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.And (a, b)
-  and bool_expression_of_or         = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.Or (a, b)
-  and bool_expression_of_equal      = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.Equal (a, b)
-  and bool_expression_of_not_equal  = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.NotEqual (a, b)
-  and bool_expression_of_bounded_lt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThan (a, b)
-  and bool_expression_of_bounded_le = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
-  and bool_expression_of_bounded_gt = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
-  and bool_expression_of_bounded_ge = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
+  let NC_aux (unwrapped_numeric_constraint, location) = numeric_constraint
   in
-
-  let NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+  let bool_expression_of_and           = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.And (a, b)
+  and bool_expression_of_or            = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.Or (a, b)
+  and bool_expression_of_lt            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThan (a, b)
+  and bool_expression_of_le            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
+  and bool_expression_of_gt            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
+  and bool_expression_of_ge            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
+  and bool_expression_of_equal _ _     = not_yet_implemented [%here] location
+  and bool_expression_of_not_equal _ _ = not_yet_implemented [%here] location
   in
+  
   match unwrapped_numeric_constraint with
-  | NC_bounded_lt (left, right) -> bool_expression_of_bounded_lt left right
-  | NC_bounded_le (left, right) -> bool_expression_of_bounded_le left right
-  | NC_bounded_gt (left, right) -> bool_expression_of_bounded_gt left right
-  | NC_bounded_ge (left, right) -> bool_expression_of_bounded_ge left right
-  | NC_set (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_app (_, _)               -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_true                     -> not_yet_implemented [%here] numeric_constraint_location
-  | NC_false                    -> not_yet_implemented [%here] numeric_constraint_location
+  | NC_lt (left, right)         -> bool_expression_of_lt left right
+  | NC_le (left, right)         -> bool_expression_of_le left right
+  | NC_gt (left, right)         -> bool_expression_of_gt left right
+  | NC_ge (left, right)         -> bool_expression_of_ge left right
+  | NC_set (_, _)               -> not_yet_implemented [%here] location
+  | NC_app (_, _)               -> not_yet_implemented [%here] location
+  | NC_true                     -> not_yet_implemented [%here] location
+  | NC_false                    -> not_yet_implemented [%here] location
+  | NC_id _                     -> not_yet_implemented [%here] location
   | NC_and (left, right)        -> bool_expression_of_and left right
   | NC_or  (left, right)        -> bool_expression_of_or left right
   | NC_equal (left, right)      -> bool_expression_of_equal left right

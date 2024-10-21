@@ -17,7 +17,7 @@ open TopLevelTypeConstraint
 
 
 let translate_register
-      (_definition_annotation        : S.def_annot                    )
+      (_definition_annotation        : Sail.definition_annotation     )
       (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.Definition.t TC.t
   =
   let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition

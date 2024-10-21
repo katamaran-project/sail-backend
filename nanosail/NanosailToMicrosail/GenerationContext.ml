@@ -356,7 +356,7 @@ let pp_inductive_type
   return @@ Coq.pp_sentence @@ PP.vertical result_lines
 
 
-let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.def list) : unit t =
+let add_original_definitions (originals : Sail.sail_definition list) : unit t =
   if
     Configuration.(get include_original_code)
   then
@@ -372,7 +372,7 @@ let add_original_definitions (originals : Libsail.Type_check.tannot Libsail.Ast.
     return ()
 
 
-let add_original_definition (original : Libsail.Type_check.tannot Libsail.Ast.def) : unit t =
+let add_original_definition (original : Sail.sail_definition) : unit t =
   add_original_definitions [ original ]
 
 

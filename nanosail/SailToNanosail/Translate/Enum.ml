@@ -14,10 +14,10 @@ open Monads.Notations.Star(TC)
 
 
 let translate_enum
-      (_definition_annotation : S.def_annot)
-      (_type_annotation       : 'a S.annot )
-      (identifier             : S.id       )
-      (cases                  : S.id list  ) : Ast.Definition.Type.t TC.t
+      (_definition_annotation : Sail.definition_annotation)
+      (_annotation            : 'a S.annot                )
+      (identifier             : S.id                      )
+      (cases                  : S.id list                 ) : Ast.Definition.Type.t TC.t
   =
   let* identifier' = Identifier.translate_identifier [%here] identifier
   and* cases'      = TC.map ~f:(Identifier.translate_identifier [%here]) cases

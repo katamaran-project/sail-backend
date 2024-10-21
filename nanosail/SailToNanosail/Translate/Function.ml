@@ -344,6 +344,7 @@ let rec expression_of_aval
   | AV_vector (values, typ)   -> expression_of_vector values typ
   | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
+  | AV_abstract (_, _)        -> TC.not_yet_implemented [%here] location
 
 
 and translate_bindings
@@ -506,17 +507,20 @@ let with_destructured_record
       | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
       | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
-  | Libsail.Anf.AV_lit (_, _)    -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_tuple _       -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_ref (_, _)      -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_tuple _         -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_list (_, _)     -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_record (_, _)   -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
+  | Libsail.Anf.AV_abstract (_, _) -> TC.not_yet_implemented [%here] location
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
-  let S.AE_aux (unwrapped_expression, _environment, location) = expression
+  let S.AE_aux (unwrapped_expression, annotation) = expression
+  in
+  let location = annotation.loc
   in
 
   (*
@@ -684,7 +688,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
+        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
             match pattern with
             | S.AP_id (S.Id_aux (id, location), _typ) -> begin
                 match id with
@@ -779,7 +783,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _, _) -> begin
+        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
             let AP_aux (pattern, _environment, _pattern_location) = pattern
             in
             match pattern with
@@ -939,12 +943,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
       end
     | S.AV_lit (literal, literal_type) -> match_literal literal literal_type
-    | S.AV_ref (_, _)    -> TC.not_yet_implemented [%here] location
-    | S.AV_tuple _       -> TC.not_yet_implemented [%here] location
-    | S.AV_list (_, _)   -> TC.not_yet_implemented [%here] location
-    | S.AV_vector (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AV_record (_, _) -> TC.not_yet_implemented [%here] location
-    | S.AV_cval (_, _)   -> TC.not_yet_implemented [%here] location
+    | S.AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
+    | S.AV_tuple _                     -> TC.not_yet_implemented [%here] location
+    | S.AV_list (_, _)                 -> TC.not_yet_implemented [%here] location
+    | S.AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
+    | S.AV_record (_, _)               -> TC.not_yet_implemented [%here] location
+    | S.AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+    | S.AV_abstract (_, _)             -> TC.not_yet_implemented [%here] location
 
   and statement_of_field_access
         (location         : S.l         )
@@ -1347,7 +1352,7 @@ let translate_body = statement_of_aexp
 
 
 let translate_function_definition
-      (definition_annotation : S.def_annot                  )
+      (definition_annotation : Sail.definition_annotation   )
       (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
   let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition

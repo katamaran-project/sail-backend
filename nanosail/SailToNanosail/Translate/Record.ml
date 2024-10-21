@@ -14,7 +14,7 @@ open Monads.Notations.Star(TC)
 
 
 let translate_record
-      (_definition_annotation : S.def_annot                 )
+      (_definition_annotation : Sail.definition_annotation  )
       (_type_annotation       : Sail.type_annotation S.annot)
       (identifier             : S.id                        )
       (type_quantifier        : S.typquant                  )

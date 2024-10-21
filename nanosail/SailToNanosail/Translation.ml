@@ -12,7 +12,7 @@ open Monads.Notations.Star(TC)
 open Base
 
 
-let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def) : (Sail.sail_definition * Ast.Definition.t) TC.t =
+let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
   in
   if
@@ -33,30 +33,20 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
            Translate.Register.translate_register annotation specification
         | DEF_fundef function_definition ->
            Translate.Function.translate_function_definition annotation function_definition
-        | DEF_outcome (_, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_impl _ ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_mapdef _ ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_instantiation (_, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_fixity (_, _, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_overload (_, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_default _ ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_scattered _ ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_measure (_, _, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_loop_measures (_, _) ->
-           TC.not_yet_implemented [%here] annotation.loc
-        | DEF_internal_mutrec _ ->
-           TC.not_yet_implemented [%here] annotation.loc
         | DEF_pragma (pragma, _argument, location) ->
            TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
+        | DEF_outcome (_, _)       -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_impl _               -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_mapdef _             -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_instantiation (_, _) -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_fixity (_, _, _)     -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_overload (_, _)      -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_default _            -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_scattered _          -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_measure (_, _, _)    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_loop_measures (_, _) -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_internal_mutrec _    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_constraint _         -> TC.not_yet_implemented [%here] annotation.loc
       in
       let* () = TC.register result
       in
@@ -85,7 +75,7 @@ let translate_definition (sail_definition : Sail.type_annotation Libsail.Ast.def
     end
   end
 
-let translate (ast : Libsail.Type_check.tannot Libsail.Ast_defs.ast) : Ast.program =
+let translate (ast : Sail.ast) : Ast.program =
   let translate =
     let* () = Prelude.register_types ()
     in

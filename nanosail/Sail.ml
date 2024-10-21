@@ -1,6 +1,11 @@
 type type_annotation = Libsail.Type_check.tannot
 
-type sail_definition = type_annotation Libsail.Ast.def
+type definition_annotation = Libsail.Type_check.env Libsail.Ast.def_annot
+
+type sail_definition = (type_annotation, Libsail.Type_check.env) Libsail.Ast.def
+
+type ast = (Libsail.Type_check.tannot, Libsail.Type_check.env) Libsail.Ast_defs.ast
+
 
 let rec string_of_location (location : Libsail.Parse_ast.l) =
   let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =

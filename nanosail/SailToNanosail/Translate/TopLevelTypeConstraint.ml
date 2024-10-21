@@ -16,8 +16,9 @@ open TypeDefinition
 
 
 let translate_top_level_type_constraint
-      (_definition_annotation : S.def_annot)
-      (S.VS_aux (value_specification, _vspec_annotation)) : Ast.Definition.t TC.t =
+      (_definition_annotation : Sail.definition_annotation)
+      (S.VS_aux (value_specification, _vspec_annotation)) : Ast.Definition.t TC.t
+  =
   let VS_val_spec (
           TypSchm_aux (
               TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
