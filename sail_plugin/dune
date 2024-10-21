@@ -6,8 +6,9 @@
   (name sail_plugin_katamaran)
   (modes
     (native plugin))
-  (libraries libsail nanosail)
+  (libraries libsail base stdio nanosail)
   (embed_in_plugin_libraries            ; IMPORTANT: the order in which these libraries are mentioned matters
+        ocaml_intrinsics_kernel
         sexplib0
         base.base_internalhash_types
         base.shadow_stdlib
