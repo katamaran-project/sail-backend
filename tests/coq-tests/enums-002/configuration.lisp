@@ -30,6 +30,8 @@
                   "MyEnum_of_num"
                   "num_of_MyEnum"
                   "MyOtherEnum_of_num"
+                  "undefined_MyEnum"
+                  "undefined_MyOtherEnum"
                   "num_of_MyOtherEnum")
 
 (ignore-definition-predicate (lambda (identifier)
