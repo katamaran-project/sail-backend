@@ -33,6 +33,8 @@
                   "regval_of_bit"
                   "MyEnum_of_num"
                   "num_of_MyEnum"
+                  "undefined_Instruction"
+                  "initialize_registers"
                   "Instruction_of_num")
 
 (ignore-definition-predicate (lambda (identifier)
