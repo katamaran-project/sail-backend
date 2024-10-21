@@ -28,6 +28,7 @@ module C = struct
     let program_name                      = string   "program-name"                     "ModelProgram"
     let ignore_type_definition_predicate  = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
     let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
+    let ignore_function_definition_predicate = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
     (* template block delimiters *)
     let template_block_left_delimiter     = string "template-block-left-delimiter"  "(*<"
