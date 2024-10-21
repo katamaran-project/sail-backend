@@ -217,4 +217,21 @@ module M (_ : sig end) = struct
     in
     export_callable export_as script_function;
     setting
+
+
+  let constant_function
+        (arity        : int          )
+        (return_value : Slang.Value.t) : Slang.Value.callable
+    =
+    let script_function arguments =
+      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      in
+      if
+        not @@ Int.equal (List.length evaluated_arguments) arity
+      then
+        failwith "Invalid arity" (* todo better error reporting *)
+      else
+        EC.return return_value
+    in
+    script_function
 end
