@@ -26,7 +26,7 @@ module C = struct
     let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let base_name                         = string   "base-name"                        "UntitledBase"
     let program_name                      = string   "program-name"                     "ModelProgram"
-    let ignore_definition_predicate       = callable ~error_message:"missing ignore-definition-predicate"       "ignore-definition-predicate"
+    let ignore_type_definition_predicate  = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
     let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
 
     (* template block delimiters *)
@@ -188,7 +188,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     in
     let arguments = [ Slang.Value.String identifier ]
     in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_definition_predicate arguments
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
     in
     match result with
     | C.EC.Success result -> Slang.Value.truthy result
