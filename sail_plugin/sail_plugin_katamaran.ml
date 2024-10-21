@@ -75,13 +75,11 @@ let print_rewrites () =
 
 (* Entry point for Katamaran target *)
 let katamaran_target
-      (_                : Yojson.Basic.t option                         )
-      (_                : string                                        )
-      (_output_filename : string option                                 )
-      (ast              : Libsail.Type_check.tannot Libsail.Ast_defs.ast)
-      (_                : Libsail.Effects.side_effect_info              )
-      (_                : Libsail.Type_check.env                        )
+      (_     : string option                   )
+      (state : Libsail.Interactive.State.istate)
   =
+  let ast = state.ast
+  in
   if !Options.print_rewrites then print_rewrites ();
   let translation = Nanosail.SailToNanosail.translate ast
   in
