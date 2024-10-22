@@ -13,21 +13,21 @@ module C = struct
   open Slang.Prelude.Shared
 
   module S = struct
-    let output_width                      = integer  "output-width"                     200
-    let use_list_notations                = bool     "use-list-notations"               false (* Use list notations                                                          *)
-    let include_original_code             = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
-    let ignore_overloads                  = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
-    let ignore_default_order              = bool     "ignore-default-order"             true
-    let print_warnings                    = bool     "print-warnings"                   false
-    let pretty_print_let                  = bool     "pretty-print-let"                 false
-    let pretty_print_match_enum           = bool     "pretty-print-match-enum"          false
-    let show_generation_blocks            = bool     "show-generation-blocks"           false
-    let ignored_pragmas                   = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
-    let ignored_functions                 = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
-    let base_name                         = string   "base-name"                        "UntitledBase"
-    let program_name                      = string   "program-name"                     "ModelProgram"
-    let ignore_type_definition_predicate  = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
-    let ignore_value_definition_predicate = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
+    let output_width                         = integer  "output-width"                     200
+    let use_list_notations                   = bool     "use-list-notations"               false (* Use list notations                                                          *)
+    let include_original_code                = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
+    let ignore_overloads                     = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
+    let ignore_default_order                 = bool     "ignore-default-order"             true
+    let print_warnings                       = bool     "print-warnings"                   false
+    let pretty_print_let                     = bool     "pretty-print-let"                 false
+    let pretty_print_match_enum              = bool     "pretty-print-match-enum"          false
+    let show_generation_blocks               = bool     "show-generation-blocks"           false
+    let ignored_pragmas                      = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
+    let ignored_functions                    = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
+    let base_name                            = string   "base-name"                        "UntitledBase"
+    let program_name                         = string   "program-name"                     "ModelProgram"
+    let ignore_type_definition_predicate     = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
+    let ignore_value_definition_predicate    = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
     let ignore_function_definition_predicate = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
     (* template block delimiters *)
