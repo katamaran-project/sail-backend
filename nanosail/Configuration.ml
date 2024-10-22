@@ -186,7 +186,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     in
     let arguments = [ Slang.Value.String identifier ]
     in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_function_definition_predicate arguments
     in
     match result with
     | C.EC.Success result -> Slang.Value.truthy result
