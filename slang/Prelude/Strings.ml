@@ -13,16 +13,30 @@ let join =
     let=? separator, strings = C.(map2 string (list string)) args
     in
     let result =
-      String.concat ~sep:separator strings
+      Value.String (String.concat ~sep:separator strings)
     in
-    EC.return @@ Option.some @@ Value.String result
+    EC.return @@ Some result
+  in
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
+
+
+let starts_with =
+  let id = "string-starts-with?"
+  and impl args =
+    let=? prefix, string = C.(map2 string string) args
+    in
+    let result =
+      Value.Bool (String.is_prefix ~prefix string)
+    in
+    EC.return @@ Some result
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
 let initialize =
   let definitions = [
-    join;
+      join;
+      starts_with;
   ]
   in
   EC.ignore @@ EC.sequence definitions
