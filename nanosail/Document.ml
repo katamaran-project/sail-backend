@@ -379,7 +379,7 @@ module Make(Annotation : ANNOTATION) = struct
       (operands : t list) : t
     =
     let separator =
-      horizontal [space; operator; ]
+      horizontal [space; operator; space]
     in
     separate_horizontally ~separator operands
 
