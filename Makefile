@@ -1,6 +1,6 @@
 .PHONY: all build install test example clean ws ms minimal-caps
 
-all: build install coq-tests
+all: build install test coq-tests
 
 full: clean all
 
