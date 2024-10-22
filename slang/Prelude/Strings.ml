@@ -7,7 +7,6 @@ module C = Converters
 open Shared
 
 
-(* (cons x y) creates a pair with values x and y *)
 let join =
   let id = "join"
   and impl args =
