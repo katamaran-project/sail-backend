@@ -11,31 +11,33 @@
                 "file_end"
                 "sail_internal")
 
-(ignore-functions "eq_unit"
-                  "neq_int"
-                  "neq_bool"
-                  "neq_bits"
-                  "slice_mask"
-                  "_shl_int_general"
-                  "_shr_int_general"
-                  "fdiv_int"
-                  "fmod_int"
-                  "is_none"
-                  "is_some"
-                  "bit_of_regval"
-                  "num_of_foo"
-                  "__id"
-                  "Capability_of_regval"
-                  "sail_mask"
-                  "sail_ones"
-                  "concat_str_bits"
-                  "concat_str_dec"
-                  "regval_of_bit"
-                  "MyEnum_of_num"
-                  "num_of_MyEnum"
-                  "undefined_Instruction"
-                  "initialize_registers"
-                  "Instruction_of_num")
+(ignore-function-definition-predicate (lambda (identifier)
+                                        (or
+                                         (string-ends-with? "_of_num" identifier)
+                                         (string-starts-with? "num_of_" identifier)
+                                         (string-starts-with? "undefined_" identifier)
+                                         (contains? '(
+                                                      "eq_unit"
+                                                      "neq_int"
+                                                      "neq_bool"
+                                                      "neq_bits"
+                                                      "slice_mask"
+                                                      "_shl_int_general"
+                                                      "_shr_int_general"
+                                                      "fdiv_int"
+                                                      "fmod_int"
+                                                      "is_none"
+                                                      "is_some"
+                                                      "bit_of_regval"
+                                                      "__id"
+                                                      "Capability_of_regval"
+                                                      "sail_mask"
+                                                      "sail_ones"
+                                                      "concat_str_bits"
+                                                      "concat_str_dec"
+                                                      "regval_of_bit")
+                                                    identifier))))
+
 
 (ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
