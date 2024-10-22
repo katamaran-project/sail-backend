@@ -33,10 +33,24 @@ let starts_with =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
+let ends_with =
+  let id = "string-ends-with?"
+  and impl args =
+    let=? suffix, string = C.(map2 string string) args
+    in
+    let result =
+      Value.Bool (String.is_suffix ~suffix string)
+    in
+    EC.return @@ Some result
+  in
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
+
+
 let initialize =
   let definitions = [
       join;
       starts_with;
+      ends_with
   ]
   in
   EC.ignore @@ EC.sequence definitions
