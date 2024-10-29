@@ -33,7 +33,6 @@ let aval (aval : 'a Libsail.Anf.aval) =
   | Libsail.Anf.AV_vector (_, _)   -> Printf.sprintf "AV_vector(_, _)"
   | Libsail.Anf.AV_record (_, _)   -> Printf.sprintf "AV_record(_, _)"
   | Libsail.Anf.AV_cval (_, _)     -> Printf.sprintf "AV_cval(_, _)"
-  | Libsail.Anf.AV_abstract (_, _) -> Printf.sprintf "AV_abstract(_, _)"
 
 
 let list ~(f:'a -> string) (xs : 'a list) =

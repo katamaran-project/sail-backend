@@ -344,7 +344,6 @@ let rec expression_of_aval
   | AV_vector (values, typ)   -> expression_of_vector values typ
   | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
-  | AV_abstract (_, _)        -> TC.not_yet_implemented [%here] location
 
 
 and translate_bindings
@@ -514,7 +513,6 @@ let with_destructured_record
   | Libsail.Anf.AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
   | Libsail.Anf.AV_record (_, _)   -> TC.not_yet_implemented [%here] location
   | Libsail.Anf.AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_abstract (_, _) -> TC.not_yet_implemented [%here] location
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
@@ -949,7 +947,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | S.AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
     | S.AV_record (_, _)               -> TC.not_yet_implemented [%here] location
     | S.AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
-    | S.AV_abstract (_, _)             -> TC.not_yet_implemented [%here] location
 
   and statement_of_field_access
         (location         : S.l         )
