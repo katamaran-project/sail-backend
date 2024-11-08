@@ -5,6 +5,7 @@ module Make (M : Sig.Monad) = struct
     else
       M.bind f (fun r -> M.bind (repeat (n-1) ~f) (fun rs -> M.return @@ r::rs))
 
+  
   let map ~f xs =
     let rec aux xs acc =
       match xs with
@@ -13,6 +14,7 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
+  
   let flatmap ~(f : 'a -> 'b list M.t) (xs : 'a list) : 'b list M.t =
     let rec aux xs acc =
       match xs with
@@ -21,6 +23,7 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
+  
   let filter_map ~(f : 'a -> 'b option M.t) (xs : 'a list) : 'b list M.t =
     let rec aux xs acc =
       match xs with
@@ -29,18 +32,22 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
+
   let rec iter ~f xs =
     match xs with
     | []    -> M.return ()
     | x::xs -> M.bind (f x) (fun _ -> iter ~f xs)
 
+
   let lift ~f x =
     M.bind x (fun x -> M.return @@ f x)
+
 
   let rec fold_left ~f:f ~init:acc xs =
     match xs with
     | []    -> M.return acc
     | x::xs -> M.bind (f acc x) (fun acc' -> fold_left ~f ~init:acc' xs)
+
 
   let rec exists ~f xs =
     match xs with
@@ -54,6 +61,7 @@ module Make (M : Sig.Monad) = struct
       end
     | [] -> M.return false
 
+
   let rec forall ~f xs =
     match xs with
     | x::xs -> begin
@@ -66,6 +74,7 @@ module Make (M : Sig.Monad) = struct
       end
     | [] -> M.return true
 
+
   let sequence xs =
     let rec aux acc xs =
       match xs with
@@ -74,8 +83,10 @@ module Make (M : Sig.Monad) = struct
     in
     aux [] xs
 
+
   let compose (g : 'b -> 'c M.t) (f : 'a -> 'b M.t) (x : 'a) =
     M.bind (f x) g
+
 
   let ignore f =
     M.bind f @@ fun _ -> M.return ()
