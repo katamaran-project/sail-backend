@@ -350,8 +350,8 @@ end
 
 and NumericConstraint : sig
   type t =
-    | Equal                of NumericExpression.t * NumericExpression.t
-    | NotEqual             of NumericExpression.t * NumericExpression.t
+    | Equal                of TypeArgument.t      * TypeArgument.t
+    | NotEqual             of TypeArgument.t      * TypeArgument.t
     | GreaterThanOrEqualTo of NumericExpression.t * NumericExpression.t
     | GreaterThan          of NumericExpression.t * NumericExpression.t
     | LessThanOrEqualTo    of NumericExpression.t * NumericExpression.t
@@ -369,8 +369,8 @@ and NumericConstraint : sig
   val equal     : t -> t -> bool
 end = struct
   type t =
-    | Equal                of NumericExpression.t * NumericExpression.t
-    | NotEqual             of NumericExpression.t * NumericExpression.t
+    | Equal                of TypeArgument.t      * TypeArgument.t
+    | NotEqual             of TypeArgument.t      * TypeArgument.t
     | GreaterThanOrEqualTo of NumericExpression.t * NumericExpression.t
     | GreaterThan          of NumericExpression.t * NumericExpression.t
     | LessThanOrEqualTo    of NumericExpression.t * NumericExpression.t
@@ -388,13 +388,16 @@ end = struct
     let binop e1 op e2 =
       Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)
     in
+    let eq e1 op e2 =
+      Printf.sprintf "(%s %s %s)" (TypeArgument.to_string e1) op (TypeArgument.to_string e2)
+    in
     match numeric_constraint with
-    | Equal     (e1, e2)            -> binop e1 "==" e2
+    | Equal     (e1, e2)            -> eq e1 "==" e2
+    | NotEqual  (e1, e2)            -> eq e1 "!=" e2
     | GreaterThanOrEqualTo (e1, e2) -> binop e1 ">=" e2
     | GreaterThan (e1, e2)          -> binop e1 ">"  e2
     | LessThanOrEqualTo (e1, e2)    -> binop e1 "<=" e2
     | LessThan (e1, e2)             -> binop e1 "<"  e2
-    | NotEqual  (e1, e2)            -> binop e1 "!=" e2
     | Var id                        -> Identifier.string_of id
     | True                          -> "NC_true"
     | False                         -> "NC_false"
@@ -425,15 +428,24 @@ end = struct
         ]
       in
       FExpr.mk_application ~positional @@ prefix head
-    in
 
+    and eq head e1 e2 =
+      let positional =
+        [
+          TypeArgument.to_fexpr e1;
+          TypeArgument.to_fexpr e2;
+        ]
+      in
+      FExpr.mk_application ~positional @@ prefix head
+  
+    in
     match numeric_constraint with
-     | Equal (e1, e2)                -> binop "Equal" e1 e2
+     | Equal (e1, e2)                -> eq "Equal" e1 e2
+     | NotEqual (e1, e2)             -> eq "NotEqual" e1 e2
      | GreaterThanOrEqualTo (e1, e2) -> binop "GreaterThanOrEqualTo" e1 e2
      | GreaterThan (e1, e2)          -> binop "GreaterThan" e1 e2
      | LessThanOrEqualTo (e1, e2)    -> binop "LessThanOrEqualTo" e1 e2
      | LessThan (e1, e2)             -> binop "LessThan" e1 e2
-     | NotEqual (e1, e2)             -> binop "NotEqual" e1 e2
      | Or (c1, c2)                   -> bincon "Or" c1 c2
      | And (c1, c2)                  -> bincon "And" c1 c2
      | Set (identifier, numbers)     -> begin
@@ -474,8 +486,13 @@ end = struct
     match t1 with
     | Equal (x, y) -> begin
         match t2 with
-        | Equal (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | Equal (x', y') -> TypeArgument.equal x x' && TypeArgument.equal y y'
         | _              -> false
+      end
+    | NotEqual (x, y) -> begin
+        match t2 with
+        | NotEqual (x', y') -> TypeArgument.equal x x' && TypeArgument.equal y y'
+        | _                 -> false
       end
     | GreaterThanOrEqualTo (x, y) -> begin
         match t2 with
@@ -495,11 +512,6 @@ end = struct
     | LessThan (x, y) -> begin
         match t2 with
         | LessThan (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
-        | _                 -> false
-      end
-    | NotEqual (x, y) -> begin
-        match t2 with
-        | NotEqual (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
         | _                 -> false
       end
     | Set (x, y) -> begin

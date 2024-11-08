@@ -263,6 +263,9 @@ end = struct
     let translate_equal (x : S.typ_arg) (y : S.typ_arg) =
       let message = Printf.sprintf "%s == %s" (StringOf.Sail.typ_arg x) (StringOf.Sail.typ_arg y)
       in
+      let S.A_aux (unwrapped_x, _location_x) = x
+      and S.A_aux (unwrapped_y, _location_y) = y
+      in
       TC.not_yet_implemented ~message [%here] location
         
     and translate_not_equal (x : S.typ_arg) (y : S.typ_arg) =
