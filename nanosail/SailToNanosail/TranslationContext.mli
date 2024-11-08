@@ -41,3 +41,4 @@ val map                            : f:('a -> 'b t) -> 'a list -> 'b list t
 val fold_left                      : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
 val iter                           : f:('a -> unit t) -> 'a list -> unit t
 val lift                           : f:('a -> 'b) -> 'a t -> 'b t
+val lift_option                    : 'a t option -> 'a option t
