@@ -9,8 +9,8 @@ union Instruction = {
     JumpIfZero : int
 }
 
-register eax : int
-register eip : int
+register eax : int = 0
+register eip : int = 0
 
 
 val execute : Instruction -> unit
