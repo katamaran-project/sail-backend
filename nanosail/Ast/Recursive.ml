@@ -350,17 +350,17 @@ end
 
 and NumericConstraint : sig
   type t =
-    | Equal      of NumericExpression.t * NumericExpression.t
-    | BoundedGE  of NumericExpression.t * NumericExpression.t
-    | BoundedGT  of NumericExpression.t * NumericExpression.t
-    | BoundedLE  of NumericExpression.t * NumericExpression.t
-    | BoundedLT  of NumericExpression.t * NumericExpression.t
-    | NotEqual   of NumericExpression.t * NumericExpression.t
-    | Set        of Identifier.t        * Z.t list
-    | Or         of t                   * t
-    | And        of t                   * t
-    | App        of Identifier.t        * TypeArgument.t list
-    | Var        of Identifier.t
+    | Equal                of NumericExpression.t * NumericExpression.t
+    | NotEqual             of NumericExpression.t * NumericExpression.t
+    | GreaterThanOrEqualTo of NumericExpression.t * NumericExpression.t
+    | GreaterThan          of NumericExpression.t * NumericExpression.t
+    | LessThanOrEqualTo    of NumericExpression.t * NumericExpression.t
+    | LessThan             of NumericExpression.t * NumericExpression.t
+    | Set                  of Identifier.t        * Z.t list
+    | Or                   of t                   * t
+    | And                  of t                   * t
+    | App                  of Identifier.t        * TypeArgument.t list
+    | Var                  of Identifier.t
     | True
     | False
 
@@ -369,17 +369,17 @@ and NumericConstraint : sig
   val equal     : t -> t -> bool
 end = struct
   type t =
-    | Equal      of NumericExpression.t * NumericExpression.t
-    | BoundedGE  of NumericExpression.t * NumericExpression.t
-    | BoundedGT  of NumericExpression.t * NumericExpression.t
-    | BoundedLE  of NumericExpression.t * NumericExpression.t
-    | BoundedLT  of NumericExpression.t * NumericExpression.t
-    | NotEqual   of NumericExpression.t * NumericExpression.t
-    | Set        of Identifier.t        * Z.t list
-    | Or         of NumericConstraint.t * NumericConstraint.t
-    | And        of NumericConstraint.t * NumericConstraint.t
-    | App        of Identifier.t        * TypeArgument.t list
-    | Var        of Identifier.t
+    | Equal                of NumericExpression.t * NumericExpression.t
+    | NotEqual             of NumericExpression.t * NumericExpression.t
+    | GreaterThanOrEqualTo of NumericExpression.t * NumericExpression.t
+    | GreaterThan          of NumericExpression.t * NumericExpression.t
+    | LessThanOrEqualTo    of NumericExpression.t * NumericExpression.t
+    | LessThan             of NumericExpression.t * NumericExpression.t
+    | Set                  of Identifier.t        * Z.t list
+    | Or                   of NumericConstraint.t * NumericConstraint.t
+    | And                  of NumericConstraint.t * NumericConstraint.t
+    | App                  of Identifier.t        * TypeArgument.t list
+    | Var                  of Identifier.t
     | True
     | False
 
@@ -389,19 +389,19 @@ end = struct
       Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)
     in
     match numeric_constraint with
-    | Equal     (e1, e2)  -> binop e1 "==" e2
-    | BoundedGE (e1, e2)  -> binop e1 ">=" e2
-    | BoundedGT (e1, e2)  -> binop e1 ">"  e2
-    | BoundedLE (e1, e2)  -> binop e1 "<=" e2
-    | BoundedLT (e1, e2)  -> binop e1 "<"  e2
-    | NotEqual  (e1, e2)  -> binop e1 "!=" e2
-    | Var id              -> Identifier.string_of id
-    | True                -> "NC_true"
-    | False               -> "NC_false"
-    | Set (_, _)          -> failwith "Not yet implemented"
-    | Or (c1, c2)         -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
-    | And (c1, c2)        -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
-    | App (_, _)          -> failwith "Not yet imnplemented"
+    | Equal     (e1, e2)            -> binop e1 "==" e2
+    | GreaterThanOrEqualTo (e1, e2) -> binop e1 ">=" e2
+    | GreaterThan (e1, e2)          -> binop e1 ">"  e2
+    | LessThanOrEqualTo (e1, e2)    -> binop e1 "<=" e2
+    | LessThan (e1, e2)             -> binop e1 "<"  e2
+    | NotEqual  (e1, e2)            -> binop e1 "!=" e2
+    | Var id                        -> Identifier.string_of id
+    | True                          -> "NC_true"
+    | False                         -> "NC_false"
+    | Set (_, _)                    -> failwith "Not yet implemented"
+    | Or (c1, c2)                   -> Printf.sprintf "(%s || %s)" (to_string c1) (to_string c2)
+    | And (c1, c2)                  -> Printf.sprintf "(%s && %s)" (to_string c1) (to_string c2)
+    | App (_, _)                    -> failwith "Not yet imnplemented"
 
 
   let rec to_fexpr (numeric_constraint : t) : FExpr.t =
@@ -428,13 +428,15 @@ end = struct
     in
 
     match numeric_constraint with
-     | Equal (e1, e2) -> binop "Equal" e1 e2
-     | BoundedGE (e1, e2) -> binop "BoundedGE" e1 e2
-     | BoundedGT (e1, e2) -> binop "BoundedGT" e1 e2
-     | BoundedLE (e1, e2) -> binop "BoundedLE" e1 e2
-     | BoundedLT (e1, e2) -> binop "BoundedLT" e1 e2
-     | NotEqual (e1, e2) -> binop "NotEqual" e1 e2
-     | Set (identifier, numbers) -> begin
+     | Equal (e1, e2)                -> binop "Equal" e1 e2
+     | GreaterThanOrEqualTo (e1, e2) -> binop "GreaterThanOrEqualTo" e1 e2
+     | GreaterThan (e1, e2)          -> binop "GreaterThan" e1 e2
+     | LessThanOrEqualTo (e1, e2)    -> binop "LessThanOrEqualTo" e1 e2
+     | LessThan (e1, e2)             -> binop "LessThan" e1 e2
+     | NotEqual (e1, e2)             -> binop "NotEqual" e1 e2
+     | Or (c1, c2)                   -> bincon "Or" c1 c2
+     | And (c1, c2)                  -> bincon "And" c1 c2
+     | Set (identifier, numbers)     -> begin
          let positional =
            [
              Identifier.to_fexpr identifier;
@@ -443,8 +445,6 @@ end = struct
          in
          FExpr.mk_application ~positional "Set"
        end
-     | Or (c1, c2) -> bincon "Or" c1 c2
-     | And (c1, c2) -> bincon "And" c1 c2
      | App (identifier, type_arguments) -> begin
          let positional =
            [
@@ -477,25 +477,25 @@ end = struct
         | Equal (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
         | _              -> false
       end
-    | BoundedGE (x, y) -> begin
+    | GreaterThanOrEqualTo (x, y) -> begin
         match t2 with
-        | BoundedGE (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
-        | _                  -> false
+        | GreaterThanOrEqualTo (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                             -> false
       end
-    | BoundedGT (x, y) -> begin
+    | GreaterThan (x, y) -> begin
         match t2 with
-        | BoundedGT (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
-        | _                  -> false
+        | GreaterThan (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                    -> false
       end
-    | BoundedLE (x, y) -> begin
+    | LessThanOrEqualTo (x, y) -> begin
         match t2 with
-        | BoundedLE (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
-        | _                  -> false
+        | LessThanOrEqualTo (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                          -> false
       end
-    | BoundedLT (x, y) -> begin
+    | LessThan (x, y) -> begin
         match t2 with
-        | BoundedLT (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
-        | _                  -> false
+        | LessThan (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
+        | _                 -> false
       end
     | NotEqual (x, y) -> begin
         match t2 with

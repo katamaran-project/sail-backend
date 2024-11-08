@@ -262,12 +262,12 @@ end = struct
     in
     let translate_equal _ _     = TC.not_yet_implemented [%here] location
     and translate_not_equal _ _ = TC.not_yet_implemented [%here] location
-    and translate_ge            = translate_comparison       @@ fun l r -> BoundedGE  (l, r)
-    and translate_gt            = translate_comparison       @@ fun l r -> BoundedGT  (l, r)
-    and translate_le            = translate_comparison       @@ fun l r -> BoundedLE  (l, r)
-    and translate_lt            = translate_comparison       @@ fun l r -> BoundedLT  (l, r)
-    and translate_or            = translate_binary_operation @@ fun l r -> Or         (l, r)
-    and translate_and           = translate_binary_operation @@ fun l r -> And        (l, r)
+    and translate_ge            = translate_comparison       @@ fun l r -> GreaterThanOrEqualTo (l, r)
+    and translate_gt            = translate_comparison       @@ fun l r -> GreaterThan          (l, r)
+    and translate_le            = translate_comparison       @@ fun l r -> LessThanOrEqualTo    (l, r)
+    and translate_lt            = translate_comparison       @@ fun l r -> LessThan             (l, r)
+    and translate_or            = translate_binary_operation @@ fun l r -> Or                   (l, r)
+    and translate_and           = translate_binary_operation @@ fun l r -> And                  (l, r)
     in
     match unwrapped_numeric_constraint with
     | S.NC_equal (x, y)                          -> translate_equal      x y

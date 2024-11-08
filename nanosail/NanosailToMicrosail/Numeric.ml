@@ -30,17 +30,17 @@ and Constraint : sig
 end = struct
  let pp (numeric_constraint : Ast.Numeric.Constraint.t) =
    match numeric_constraint with
-   | True                -> GC.return @@ PP.annotate [%here] @@ PP.string "true"
-   | False               -> GC.return @@ PP.annotate [%here] @@ PP.string "false"
-   | Equal (_x, _y)      -> GC.not_yet_implemented [%here]
-   | BoundedGE (_x, _y)  -> GC.not_yet_implemented [%here]
-   | BoundedGT (_x, _y)  -> GC.not_yet_implemented [%here]
-   | BoundedLE (_x, _y)  -> GC.not_yet_implemented [%here]
-   | BoundedLT (_x, _y)  -> GC.not_yet_implemented [%here]
-   | NotEqual  (_x, _y)  -> GC.not_yet_implemented [%here]
-   | Set (_x, _y)        -> GC.not_yet_implemented [%here]
-   | Or (_x, _y)         -> GC.not_yet_implemented [%here]
-   | And (_x, _y)        -> GC.not_yet_implemented [%here]
-   | App (_x, _y)        -> GC.not_yet_implemented [%here]
-   | Var _               -> GC.not_yet_implemented [%here]
+   | True                          -> GC.return @@ PP.annotate [%here] @@ PP.string "true"
+   | False                         -> GC.return @@ PP.annotate [%here] @@ PP.string "false"
+   | Equal (_x, _y)                -> GC.not_yet_implemented [%here]
+   | NotEqual  (_x, _y)            -> GC.not_yet_implemented [%here]
+   | GreaterThanOrEqualTo (_x, _y) -> GC.not_yet_implemented [%here]
+   | GreaterThan (_x, _y)          -> GC.not_yet_implemented [%here]
+   | LessThanOrEqualTo (_x, _y)    -> GC.not_yet_implemented [%here]
+   | LessThan (_x, _y)             -> GC.not_yet_implemented [%here]
+   | Set (_x, _y)                  -> GC.not_yet_implemented [%here]
+   | Or (_x, _y)                   -> GC.not_yet_implemented [%here]
+   | And (_x, _y)                  -> GC.not_yet_implemented [%here]
+   | App (_x, _y)                  -> GC.not_yet_implemented [%here]
+   | Var _                         -> GC.not_yet_implemented [%here]
 end
