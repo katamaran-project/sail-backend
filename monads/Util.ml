@@ -79,4 +79,10 @@ module Make (M : Sig.Monad) = struct
 
   let ignore f =
     M.bind f @@ fun _ -> M.return ()
+
+
+  let lift_option (x : 'a M.t option) : 'a option M.t =
+    match x with
+    | None   -> M.return None
+    | Some f -> M.bind f (fun x -> M.return @@ Some x)
 end
