@@ -261,10 +261,14 @@ end = struct
     let S.NC_aux (unwrapped_numeric_constraint, location) = numeric_constraint
     in
     let translate_equal (x : S.typ_arg) (y : S.typ_arg) =
-      TC.not_yet_implemented [%here] location
+      let message = Printf.sprintf "%s == %s" (StringOf.Sail.typ_arg x) (StringOf.Sail.typ_arg y)
+      in
+      TC.not_yet_implemented ~message [%here] location
         
     and translate_not_equal (x : S.typ_arg) (y : S.typ_arg) =
-      TC.not_yet_implemented [%here] location
+      let message = Printf.sprintf "%s != %s" (StringOf.Sail.typ_arg x) (StringOf.Sail.typ_arg y)
+      in
+      TC.not_yet_implemented ~message [%here] location
         
     and translate_ge            = translate_comparison       @@ fun l r -> GreaterThanOrEqualTo (l, r)
     and translate_gt            = translate_comparison       @@ fun l r -> GreaterThan          (l, r)
