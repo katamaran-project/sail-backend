@@ -3,7 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 
-register r1 : int
+register r1 : int = 0
 
 
 val foo : int -> unit
