@@ -8,6 +8,7 @@ homepage: "https://github.com/katamaran-project/sail-backend"
 bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
 depends: [
   "ocaml"
+  "ocaml_intrinsics_kernel"
   "dune" {>= "3.8"}
   "sail"
   "base"
