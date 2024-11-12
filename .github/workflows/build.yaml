@@ -37,7 +37,7 @@ jobs:
         run: |
           eval $(opam env)
           opam update
-          opam install . --deps-only
+          opam install . --deps-only -y
 
       - name: Update opam cache
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
