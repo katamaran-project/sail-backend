@@ -16,7 +16,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libgmp-dev z3 cvc4 opam pkg-config zlib1g-dev python3 python3-pip python3.11-venv
+          sudo apt-get install -y build-essential libgmp-dev z3 cvc4 opam pkg-config zlib1g-dev
 
       - name: Restore opam cache
         id: cache-opam-restore
@@ -36,6 +36,7 @@ jobs:
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
         run: |
           eval $(opam env)
+          opam update
           opam install . --deps-only
 
       - name: Update opam cache
