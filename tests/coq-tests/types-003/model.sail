@@ -8,4 +8,3 @@ type dst     = regname
 type src     = regname
 type imm     = bits(12)
 type imm_ext = bits(20)
-
