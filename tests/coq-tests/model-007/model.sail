@@ -78,8 +78,8 @@ function my_read_register(r) = {
 }
 
 
-val write_register : (regid, RegisterContents) -> unit
-function write_register(r, w) = {
+val my_write_register : (regid, RegisterContents) -> unit
+function my_write_register(r, w) = {
   match r {
     regid1 => r1 = w,
     regid2 => r2 = w,
@@ -104,7 +104,7 @@ function clause execute(Read(r_address, r_target)) = {
     CapVal(capability) => {
       if is_in_range(capability) & capability.read_access then {
         let value = read_memory(capability.pointer);
-        write_register(r_target, SimpleVal(value));
+        my_write_register(r_target, SimpleVal(value));
         next_instruction ();
         Running
       }
@@ -141,7 +141,7 @@ function clause execute(Addition(source1, source2, target)) = {
         CapVal(_) => Halted,
         SimpleVal(v2) => {
           let sum = v1 + v2;
-          write_register(target, SimpleVal(sum));
+          my_write_register(target, SimpleVal(sum));
           next_instruction ();
           Running
         }
