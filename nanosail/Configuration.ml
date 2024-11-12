@@ -1,7 +1,5 @@
 open Base
 
-tralala
-
 type sail_definition = Sail.sail_definition
 
 
