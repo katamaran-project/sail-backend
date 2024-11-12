@@ -18,6 +18,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libgmp-dev z3 cvc4 opam pkg-config zlib1g-dev python3 python3-pip python3.11-venv
 
+      - name: Setup opam
+        if: steps.cache-opam-restore.outputs.cache-hit != 'true'
+        run: |
+          opam init --yes --no-setup --shell=sh --compiler=5.1.0
+        
       - name: Install dependencies
         run: opam install . --deps-only -y
 
