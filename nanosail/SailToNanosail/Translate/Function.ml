@@ -1221,7 +1221,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           end
         end
         else begin
-          TC.not_yet_implemented ~message:"assignment to local variable" [%here] location
+            let message =
+              Printf.sprintf "assignment to local variable (nonregister) %s" (Ast.Identifier.string_of id_in_lhs)
+            in
+            TC.not_yet_implemented ~message [%here] location
         end
       end
     | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
