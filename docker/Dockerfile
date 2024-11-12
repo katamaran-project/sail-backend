@@ -4,6 +4,7 @@ RUN sudo apt-get update && \
     sudo apt install -y build-essential libgmp-dev z3 pkg-config zlib1g-dev python3 python3-pip python3.11-venv
 RUN opam update && opam install sail.0.18 ounit2
 RUN opam repo add coq-released https://coq.inria.fr/opam/released
+RUN opam pin add sail 0.18
 RUN opam pin add coq 8.18.0
 RUN opam pin add coq-iris 4.1.0
 RUN opam install coq-equations
