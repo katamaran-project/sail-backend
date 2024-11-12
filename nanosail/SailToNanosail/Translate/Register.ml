@@ -24,7 +24,15 @@ let translate_register
   in
   let* identifier'    = translate_identifier [%here] identifier
   and* nanotype       = nanotype_of_sail_type sail_type
-  and* initial_value' = TC.lift_option @@ Option.map initial_value ~f:ValueDefinition.translate_expression
+  in
+  let* initial_value' =
+    let on_failed_translation _error =
+      Logging.info @@ lazy (Printf.sprintf "Failed to translate initial value for register %s; pretending there is none" (Ast.Identifier.string_of identifier'));
+      TC.return None
+    in
+    TC.recover
+      (TC.lift_option @@ Option.map initial_value ~f:ValueDefinition.translate_expression)
+      on_failed_translation
   in
   TC.return @@ Ast.Definition.RegisterDefinition {
     identifier    = identifier'   ;
