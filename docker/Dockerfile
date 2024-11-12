@@ -14,7 +14,7 @@ RUN cd sail-backend && \
     python3 -m venv .venv && \
     ./.venv/bin/pip install psutil
 RUN cd sail-backend && \
-    opam install . --deps-only -y
+    opam install . --deps-only
 RUN source .profile && \
     cd sail-backend && \
     source ./.venv/bin/activate && make build
