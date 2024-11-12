@@ -16,8 +16,8 @@ union Instruction = {
     Halt       : unit
 }
 
-register eax : word
-register eip : address
+register eax : word    = 0
+register eip : address = 0
 
 
 

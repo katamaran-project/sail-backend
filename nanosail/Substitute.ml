@@ -48,21 +48,21 @@ module Subst = struct
   and numeric_constraint (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nconstr : Ast.Numeric.Constraint.t) : Ast.Numeric.Constraint.t =
       match nconstr with
-      | Equal     (left, right)  -> Equal     (numeric_expression subst left, numeric_expression subst right)
-      | BoundedGE (left, right)  -> BoundedGE (numeric_expression subst left, numeric_expression subst right)
-      | BoundedGT (left, right)  -> BoundedGT (numeric_expression subst left, numeric_expression subst right)
-      | BoundedLE (left, right)  -> BoundedLE (numeric_expression subst left, numeric_expression subst right)
-      | BoundedLT (left, right)  -> BoundedLT (numeric_expression subst left, numeric_expression subst right)
-      | NotEqual  (left, right)  -> NotEqual  (numeric_expression subst left, numeric_expression subst right)
-      | Set (identifier, ns)     -> Set (subst identifier, ns)
-      | Or (left, right)         -> Or (aux left, aux right)
-      | And (left, right)        -> And (aux left, aux right)
-      | App (identifier, targs)  -> App (identifier, List.map ~f:(type_argument subst) targs)
-      | Var identifier           -> Var (subst identifier)
-      | True                     -> True
-      | False                    -> False
-    in
+      | Equal     (left, right)            -> Equal (type_argument subst left, type_argument subst right)
+      | NotEqual  (left, right)            -> NotEqual (type_argument subst left, type_argument subst right)
+      | GreaterThanOrEqualTo (left, right) -> GreaterThanOrEqualTo (numeric_expression subst left, numeric_expression subst right)
+      | GreaterThan (left, right)          -> GreaterThan (numeric_expression subst left, numeric_expression subst right)
+      | LessThanOrEqualTo (left, right)    -> LessThanOrEqualTo (numeric_expression subst left, numeric_expression subst right)
+      | LessThan (left, right)             -> LessThan (numeric_expression subst left, numeric_expression subst right)
+      | Set (identifier, ns)               -> Set (subst identifier, ns)
+      | Or (left, right)                   -> Or (aux left, aux right)
+      | And (left, right)                  -> And (aux left, aux right)
+      | App (identifier, targs)            -> App (identifier, List.map ~f:(type_argument subst) targs)
+      | Var identifier                     -> Var (subst identifier)
+      | True                               -> True
+      | False                              -> False
 
+    in
     aux
 end
 

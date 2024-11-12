@@ -104,8 +104,9 @@ end
 module Register = struct
   type t =
     {
-      identifier : Identifier.t;
-      typ        : Type.t      ;
+      identifier    : Identifier.t  ;
+      typ           : Type.t        ;
+      initial_value : Value.t option;
     }
 
   let to_fexpr (register_definition : t) : FExpr.t =

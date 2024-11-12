@@ -79,6 +79,7 @@
 	(name sail_katamaran_backend)
 	(synopsis "Sail to µSail translation")
 	(depends ocaml
+                 ocaml_intrinsics_kernel
                  dune
                  sail
                  base

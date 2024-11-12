@@ -10,13 +10,13 @@ enum regid      = { regid1, regid2, regid3, regid4 }
 enum Mode       = { Running, Halted }
 enum Comparison = { Less, Equal, Greater }
 
-register r1 : word
-register r2 : word
-register r3 : word
-register r4 : word
+register r1 : word = 0
+register r2 : word = 0
+register r3 : word = 0
+register r4 : word = 0
 
-register pc : address
-register cmp : Comparison
+register pc  : address    = 0
+register cmp : Comparison = Equal
 
 
 union Instruction = {

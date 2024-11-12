@@ -20,16 +20,14 @@ let translate_register
       (_definition_annotation        : Sail.definition_annotation     )
       (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.Definition.t TC.t
   =
-  let (S.DEC_aux (DEC_reg (sail_type, identifier, expression), (_spec_location, _spec_annotation))) = annotated_register_definition
+  let (S.DEC_aux (DEC_reg (sail_type, identifier, initial_value), (_spec_location, _spec_annotation))) = annotated_register_definition
   in
-  match expression with
-  | None -> begin
-      let* identifier' = translate_identifier [%here] identifier
-      and* nanotype    = nanotype_of_sail_type sail_type
-      in
-      TC.return @@ Ast.Definition.RegisterDefinition {
-          identifier = identifier';
-          typ        = nanotype   ;
-        }
-    end
-  | Some (E_aux (_expr, (location, _annotation))) -> TC.not_yet_implemented [%here] location
+  let* identifier'    = translate_identifier [%here] identifier
+  and* nanotype       = nanotype_of_sail_type sail_type
+  and* initial_value' = TC.lift_option @@ Option.map initial_value ~f:ValueDefinition.translate_expression
+  in
+  TC.return @@ Ast.Definition.RegisterDefinition {
+    identifier    = identifier'   ;
+    typ           = nanotype      ;
+    initial_value = initial_value';
+  }
