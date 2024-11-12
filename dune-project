@@ -45,7 +45,7 @@
 		"Intermediate representation language for the Sail to µSail translation")
 	(depends ocaml
                  dune
-                 sail.0.18
+                 sail
                  ppx_here
                  pprint
                  base
@@ -81,7 +81,7 @@
 	(depends ocaml
                  ocaml_intrinsics_kernel
                  dune
-                 sail.0.18
+                 sail
                  base
                  stdio
                  pprint
