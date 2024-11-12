@@ -11,9 +11,7 @@ RUN opam install coq-equations
 RUN opam repo add katamaran https://github.com/katamaran-project/opam-repository.git
 RUN opam install coq-katamaran
 RUN git clone https://github.com/katamaran-project/sail-backend.git
-RUN cd sail-backend && \
-    python3 -m venv .venv && \
-    ./.venv/bin/pip install psutil
+RUN cd sail-backend && python3 -m venv .venv && ./.venv/bin/pip install psutil
 RUN cd sail-backend && \
     opam install . --deps-only
 RUN source .profile && \
