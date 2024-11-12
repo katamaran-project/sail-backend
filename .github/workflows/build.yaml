@@ -36,7 +36,7 @@ jobs:
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
         run: |
           eval $(opam env)
-          opam install . --locked
+          opam install . --deps-only -y
 
       - name: Update opam cache
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
