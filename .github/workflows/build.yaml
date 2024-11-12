@@ -24,7 +24,11 @@ jobs:
           opam init --yes --no-setup --shell=sh --compiler=5.1.0
         
       - name: Install dependencies
-        run: opam install . --deps-only -y
+        run: |
+          eval $(opam env)
+          opam install . --deps-only -y
 
       - name: Build project
-        run: opam exec -- dune build
+        run: |
+          eval $(opam env)
+          opam exec -- dune build
