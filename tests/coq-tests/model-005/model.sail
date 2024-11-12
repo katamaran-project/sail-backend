@@ -65,32 +65,44 @@ function my_write_register(r, w) = {
 }
 
 
+val compare : (word, word) -> Comparison
+function compare (x, y) = {
+  if x < y then Less
+  else if x > y then Greater
+  else Equal
+}
+
+
 val execute : Instruction -> Mode
 scattered function execute
 
 
 function clause execute(Read(r_address, r_target)) = {
-  let address = my_read_register(r_address);
-  let word = read_memory(address);
-  my_write_register(r_target, word);
-  next_instruction();
-  Running
+  let address = my_read_register(r_address) in
+  let word = read_memory(address) in {
+    my_write_register(r_target, word);
+    next_instruction();
+    Running
+  }
 }
 
 function clause execute(Write(r_address, r_word)) = {
-  let address = my_read_register(r_address);
-  let word = my_read_register(r_word);
-  write_memory(address, word);
-  next_instruction();
-  Running
+  let address = my_read_register(r_address) in
+  let word = my_read_register(r_word) in {
+    write_memory(address, word);
+    next_instruction();
+    Running
+  }
 }
 
-function clause execute(Compare(x, y)) = {
-  let v1 = my_read_register(x);
-  let v2 = my_read_register(y);
-  if v1 < v2 then cmp = Less
-  else if v1 > v2 then cmp = Greater
-  else cmp = Equal;
-  next_instruction();
-  Running
+function clause execute(Compare(x,y)) = {
+  let v1 = my_read_register(x)
+  in
+  let v2 = my_read_register(y)
+  in
+  {
+    cmp = compare(v1, v2);
+    next_instruction();
+    Running
+  }
 }
