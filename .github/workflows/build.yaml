@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-${{ hashFiles('**/*.opam.locked', 'opam') }}
+          key: ${{ runner.os }}-opam-${{ hashFiles('**/dune-project') }}
           restore-keys: |
             ${{ runner.os }}-opam-
               
@@ -36,14 +36,14 @@ jobs:
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
         run: |
           eval $(opam env)
-          opam install . --deps-only -y
+          opam install . --deps-only
 
       - name: Update opam cache
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-${{ hashFiles('**/*.opam.locked', 'opam') }}
+          key: ${{ runner.os }}-opam-${{ hashFiles('**/dune-project') }}
           
       - name: Build project
         run: |
