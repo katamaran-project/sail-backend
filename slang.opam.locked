@@ -1,0 +1,68 @@
+opam-version: "2.0"
+name: "slang"
+version: "0.1"
+synopsis: "S-Expression Language"
+maintainer: "Frederic Vogels"
+authors: ["Marius Goyet" "Frederic Vogels"]
+homepage: "https://github.com/katamaran-project/sail-backend"
+bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
+depends: [
+  "astring" {= "0.8.5" & with-doc}
+  "auxlib" {= "0.1"}
+  "base" {= "v0.17.1"}
+  "base-bigarray" {= "base"}
+  "base-domains" {= "base"}
+  "base-nnp" {= "base"}
+  "base-threads" {= "base"}
+  "base-unix" {= "base"}
+  "camlp-streams" {= "5.0.1" & with-doc}
+  "cmdliner" {= "1.3.0" & with-doc}
+  "cppo" {= "1.7.0" & with-doc}
+  "crunch" {= "3.3.1" & with-doc}
+  "csexp" {= "1.5.2"}
+  "dune" {= "3.16.0"}
+  "dune-configurator" {= "3.16.0"}
+  "fmt" {= "0.9.0" & with-doc}
+  "fpath" {= "0.7.3" & with-doc}
+  "host-arch-x86_64" {= "1"}
+  "host-system-other" {= "1"}
+  "monads" {= "0.1"}
+  "ocaml" {= "5.1.0"}
+  "ocaml-base-compiler" {= "5.1.0"}
+  "ocaml-config" {= "3"}
+  "ocaml-options-vanilla" {= "1"}
+  "ocaml_intrinsics_kernel" {= "v0.17.1"}
+  "ocamlbuild" {= "0.15.0" & with-doc}
+  "ocamlfind" {= "1.9.6" & with-doc}
+  "odoc" {= "2.4.3" & with-doc}
+  "odoc-parser" {= "2.4.3" & with-doc}
+  "ounit2" {= "2.2.7"}
+  "pprint" {= "20230830"}
+  "ptime" {= "1.2.0" & with-doc}
+  "re" {= "1.12.0" & with-doc}
+  "result" {= "1.5" & with-doc}
+  "seq" {= "base"}
+  "sexplib0" {= "v0.17.0"}
+  "stdio" {= "v0.17.0"}
+  "stdlib-shims" {= "0.3.0"}
+  "topkg" {= "1.0.7" & with-doc}
+  "tyxml" {= "4.6.0" & with-doc}
+  "uutf" {= "1.0.3" & with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "--promote-install-files=false"
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+  ["dune" "install" "-p" name "--create-install-files" name]
+]
+dev-repo: "git+https://github.com/katamaran-project/sail-backend.git"
