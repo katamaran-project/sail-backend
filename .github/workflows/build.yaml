@@ -36,7 +36,8 @@ jobs:
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
         run: |
           eval $(opam env)
-          opam update
+          opam update -y
+          opam pin add sail 0.18
           opam install . --deps-only -y
 
       - name: Update opam cache
