@@ -1,38 +1,19 @@
-Sail Katamaran Backend
-================================================================================
+# Sail Katamaran Backend
 
-
-This project use the opam package manager.
-
-Opam
---------------------------------------------------------------------------------
-First, your current [opam](https://opam.ocaml.org/doc/Install.html) switch must
-use the **ocaml.5.1.0** compiler. To create a new switch you can run the
-following commands (replace `sail-katamaran` with whatever name you
-want for your switch):
+## Installation
 
 ```sh
-opam switch create sail-katamaran ocaml.5.1.0
-```
+# Create new switch (optional)
+$ opam switch create sail-katamaran ocaml.5.1.0
 
-Later if you want to return to your default switch, run:
+# Install dependencies
+$ opam install . --deps-only
 
-```sh
-opam switch set default
-```
-Change `default` with any other switch name to use it.
+# Build
+$ dune build
 
-
-Installation
---------------------------------------------------------------------------------
-This project uses the [dune](https://opam.ocaml.org/packages/dune/),
-[sail](https://opam.ocaml.org/packages/sail/) and
-[pprint](https://opam.ocaml.org/packages/pprint/) packages. To install the
-project with its dependencies, run:
-```sh
-opam install . --deps-only
-dune build
-dune install
+# Install plugin
+$ dune install
 ```
 
 You can also avoid installing the plugin after building the project, and load
@@ -43,86 +24,24 @@ with the `-plugin` option of sail:
 sail -plugin _build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmxs ...
 ```
 
-Either way, the `-katamaran-check` option of `sail` should print "Katamaran plugin is functioning correctly" if the backend is installed/the plugin loaded.
+## Checking Installation
 
+The plugin is installed correctly if the following
+command produces the output shown.
 
-Katamaran
---------------------------------------------------------------------------------
-In order to test the generated files,
-[Katamaran](https://github.com/katamaran-project/katamaran/) (with its
-dependencies) is required.
-
-
-Usage
---------------------------------------------------------------------------------
-+ `-katamaran` is the sail option to activate the Katamaran target.
-+ `-katamaran_list_notations` allows the µSail generated file to use some more readable
-  list notations defined by Katamaran.
-+ `-katamaran_check` prints "Katamaran plugin is functioning correctly".
-+ `-katamaran_width` defines the page width for the µSail generated code. Must be followed by an integer.
-
-
-Test Nanosail
---------------------------------------------------------------------------------
-### Automatic tests
 ```sh
-dune test
+$ sail --katamaran-check
+The Katamaran plugin is functioning correctly
 ```
 
-### Manual tests
+## Running Tests
+
 ```sh
-dune exec -- test/nanosail_to_microsail/main.exe <option> <input>
+$ dune test
 ```
-*\<input>* can be any example name (*lists*, *long*, *prod* or *expr* for the
-moment). Without *\<input>*, every example is loaded.  
-Use `-help` to see the list of options, `-inputs` to see the list of
-available tests.
 
-
-Test Full Backend
---------------------------------------------------------------------------------
-### Examples
-An example with list functions:
+## Uninstallation
 
 ```sh
-cd tests/full-backend/examples/lists/
-make katamaran # or katamaran-list to enable list notations
-```
-*lists.v* will be generated from *lists.sail*. It can be compared manually
-with the expected results in `expected/` using `make compare`.
-
-
-List of some of the `make` targets:
-+ *check* : Sail type checking.
-+ *ast* : Prints the sail AST after getting rid of syntactic sugar.
-+ *interpreter* : Loads the sail file in the sail interpreter.
-+ *katamaran*, *katamaran-rewrites*, *katamaran-rewrites-clean* : Respectively
-  calls the sail coq target, same as *katamaran* prints each rewrite step AST in
-  a new directory, same as *katamaran-rewrites* but deletes rewrite step ASTs
-  when nothing has been changed.
-+ *katamaran-list* : Identical to *katamaran* but uses the better list notations
-  for µSail.
-+ *compare*, *compare-list* : Compares the output files of respectively
-  *katamaran* and *katamaran-list* with the expected µSail files.
-+ *coq*, *coq-rewrites*, *coq-rewrites-clean* : Respectively calls the sail coq
-  target, same as *coq* but prints each rewrite step AST in a new directory,
-  same as *coq-rewrites but deletes rewrite step ASTs when nothing has been
-  changed.
-+ *clean* : Cleans the directory of any generated file.
-
-### Feature tests
-`tests/full-backend/feature_tests/supported.txt` contains a brief description of
-the current supported featured of Sail.
-
-```sh
-cd tests/full-backend/feature_tests
-make test
-```
-`.v` files will be generated from the `.sail` files and then compared to the
-`expected/` files.
-
-Uninstallation
----------------
-```sh
-dune uninstall
+$ dune uninstall
 ```
