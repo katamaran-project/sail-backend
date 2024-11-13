@@ -1,12 +1,13 @@
 open Base
 open Sequence.Generator
+open Location
 
 module T = Token
 
 let is_newline = Char.equal '\n'
 
 
-let rec read_next_token (seq : (char * 'loc) Sequence.t) : (unit, 'loc * 'loc * Token.t) t =
+let rec read_next_token (seq : (char * location) Sequence.t) : (unit, location * location * Token.t) t =
   match Sequence.next seq with
   | None              -> return ()
   | Some (pair, tail) -> begin
@@ -26,7 +27,7 @@ let rec read_next_token (seq : (char * 'loc) Sequence.t) : (unit, 'loc * 'loc * 
         end
     end
 
-and read_boolean (seq : (char * 'loc) Sequence.t) : (unit, 'loc * 'loc * T.t) t =
+and read_boolean (seq : (char * location) Sequence.t) : (unit, location * location * T.t) t =
   match Sequence.next seq with
   | None -> failwith "no more input"
   | Some (pair, tail) -> begin
@@ -47,11 +48,11 @@ and read_boolean (seq : (char * 'loc) Sequence.t) : (unit, 'loc * 'loc * T.t) t 
       | _ -> failwith "expected to find a boolean token"
     end
 
-and read_string (seq : (char * 'loc) Sequence.t) =
+and read_string (seq : (char * location) Sequence.t) =
   let rec collect_string_chars
-            (start_loc : 'loc                    )
+            (start_loc : location                    )
             (acc       : char list               )
-            (seq       : (char * 'loc) Sequence.t)
+            (seq       : (char * location) Sequence.t)
     =
     match Sequence.next seq with
     | None -> failwith "unfinished string"
@@ -80,10 +81,10 @@ and read_string (seq : (char * 'loc) Sequence.t) =
       | _                -> failwith "expected to find a string token"
     end
 
-and read_symbol_or_integer (seq : (char * 'loc) Sequence.t) =
+and read_symbol_or_integer (seq : (char * location) Sequence.t) =
   let rec collect_chars
-            (acc : (char * 'loc) list)
-            (seq : (char * 'loc) Sequence.t) : (char * 'loc) list * (char * 'loc) Sequence.t
+            (acc : (char * location) list)
+            (seq : (char * location) Sequence.t) : (char * location) list * (char * location) Sequence.t
     =
     match Sequence.next seq with
     | None              -> (List.rev acc, seq)
@@ -102,11 +103,11 @@ and read_symbol_or_integer (seq : (char * 'loc) Sequence.t) =
   in
   let chars : string =
     String.of_char_list @@ List.map ~f:fst pairs
-  and start_loc : 'loc =
+  and start_loc : location =
     match pairs with
     | (_, loc) :: _ -> loc
     | []            -> failwith "zero-length symbol/integer"
-  and end_loc : 'loc =
+  and end_loc : location =
     snd @@ List.last_exn pairs
   in
   let continue () =
@@ -116,18 +117,18 @@ and read_symbol_or_integer (seq : (char * 'loc) Sequence.t) =
   | Some n -> yield (start_loc, end_loc, T.Integer n) >>= continue
   | None   -> yield (start_loc, end_loc, T.Symbol chars) >>= continue
 
-and read_comment (seq : (char * 'loc) Sequence.t) =
+and read_comment (seq : (char * location) Sequence.t) =
   match Sequence.next seq with
   | Some ((';', _loc), tail) -> read_next_token @@ Sequence.drop_while ~f:(fun (c, _) -> not @@ is_newline c) tail
   | _                        -> failwith "expected to find comment"
 
 
-let tokenize (seq : (char * 'loc) Sequence.t) : ('loc * 'loc * Token.t) Sequence.t =
+let tokenize (seq : (char * location) Sequence.t) : (location * location * Token.t) Sequence.t =
   run @@ read_next_token seq
 
 
-let sequence_of_string (string : string) : (char * int) Sequence.t =
-  Sequence.of_list @@ List.map ~f:(fun (x, y) -> (y, x)) @@ Auxlib.zip_indices @@ String.to_list string
+let sequence_of_string (string : string) : (char * string_location) Sequence.t =
+  Sequence.of_list @@ List.map ~f:(fun (index, char) -> (char, new string_location index)) @@ Auxlib.zip_indices @@ String.to_list string
 
 
 let tokenize_string (string : string) =
