@@ -42,7 +42,7 @@ and read_boolean (seq : (char * location) Sequence.t) : (unit, location * locati
               match pair with
               | ('t', end_loc)  -> yield (start_loc, end_loc, T.True) >>= continue
               | ('f', end_loc)  -> yield (start_loc, end_loc, T.False) >>= continue
-              | _               -> failwith "unrecognized boolean"
+              | (_  , end_loc)  -> failwith @@ Printf.sprintf "unrecognized boolean at %s" end_loc#to_string
             end
         end
       | _ -> failwith "expected to find a boolean token"
@@ -78,7 +78,7 @@ and read_string (seq : (char * location) Sequence.t) =
   | Some (char, tail) -> begin
       match char with
       | ('"', start_loc) -> collect_string_chars start_loc [] @@ tail
-      | _                -> failwith "expected to find a string token"
+      | _                -> failwith "internal error: expected to find a string token"
     end
 
 and read_symbol_or_integer (seq : (char * location) Sequence.t) =
@@ -120,7 +120,7 @@ and read_symbol_or_integer (seq : (char * location) Sequence.t) =
 and read_comment (seq : (char * location) Sequence.t) =
   match Sequence.next seq with
   | Some ((';', _loc), tail) -> read_next_token @@ Sequence.drop_while ~f:(fun (c, _) -> not @@ is_newline c) tail
-  | _                        -> failwith "expected to find comment"
+  | _                        -> failwith "internal error: expected to find comment"
 
 
 let tokenize (seq : (char * location) Sequence.t) : (location * location * Token.t) Sequence.t =
