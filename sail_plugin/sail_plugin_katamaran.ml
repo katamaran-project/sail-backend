@@ -2,7 +2,7 @@ open Base
 
 
 let print_check_message () =
-  Stdio.print_endline("Katamaran plugin is functioning correctly")
+  Stdio.print_endline("The Katamaran plugin is functioning correctly")
 
 
 let rewrite_count () =
