@@ -23,8 +23,6 @@ module CLI = struct
       String.concat ~sep:"_" ("-katamaran" :: words)
 
     let check                = mk_option "check"
-    let list_notations       = mk_option "list notations"
-    let include_original     = mk_option "add original"
     let config_file          = mk_option "config"
   end
 end
@@ -35,12 +33,6 @@ let katamaran_options = [
   (CLI.Arg.check,
     Stdlib.Arg.Unit print_check_message,
     "(debug) check if Katamaran plugin is correctly installed");
-  (CLI.Arg.list_notations,
-   Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set use_list_notations true)),
-    "use list notations");
-  (CLI.Arg.include_original,
-   Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
-   "show original Sail code in output");
   (CLI.Arg.config_file,
    Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
