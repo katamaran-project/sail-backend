@@ -7,12 +7,12 @@ This project use the opam package manager.
 Opam
 --------------------------------------------------------------------------------
 First, your current [opam](https://opam.ocaml.org/doc/Install.html) switch must
-use the **ocaml.5.0.0** compiler. To create a new switch you can run the
+use the **ocaml.5.1.0** compiler. To create a new switch you can run the
 following commands (replace `sail-katamaran` with whatever name you
 want for your switch):
 
 ```sh
-opam switch create sail-katamaran ocaml.5.0.0
+opam switch create sail-katamaran ocaml.5.1.0
 ```
 
 Later if you want to return to your default switch, run:
