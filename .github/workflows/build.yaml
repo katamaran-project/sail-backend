@@ -37,7 +37,7 @@ jobs:
         run: |
           eval $(opam env)
           opam update -y
-          opam pin add sail 0.18
+          opam pin -y add sail 0.18
           opam install . --deps-only -y
 
       - name: Update opam cache
