@@ -25,7 +25,6 @@ module CLI = struct
     let check                = mk_option "check"
     let list_notations       = mk_option "list notations"
     let include_original     = mk_option "add original"
-    let print_rewrites       = mk_option "print rewrites"
     let config_file          = mk_option "config"
   end
 end
