@@ -71,6 +71,10 @@ let parse_tokens tokens =
 
 
 let parse_string string =
-  let tokens = Tokenizing.tokenize_string string
+  let triples =
+    Tokenizing.tokenize_string string
+  in
+  let tokens =
+    Sequence.map ~f:Auxlib.third3 triples
   in
   parse_tokens tokens
