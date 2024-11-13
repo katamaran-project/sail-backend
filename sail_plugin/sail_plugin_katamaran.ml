@@ -46,20 +46,10 @@ let katamaran_options = [
   (CLI.Arg.include_original,
    Stdlib.Arg.Unit (fun () -> Nanosail.Configuration.(set include_original_code true)),
    "show original Sail code in output");
-  (CLI.Arg.print_rewrites,
-   Stdlib.Arg.Set Options.print_rewrites,
-   "Prints the list of rewrites");
   (CLI.Arg.config_file,
    Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
 ]
-
-
-let print_rewrites () =
-  List.iteri ~f:(fun index (rewrite_name, _) ->
-      Stdio.printf "[%02d] %s\n" (index + 1) rewrite_name
-    )
-    (rewrites ())
 
 
 (* Entry point for Katamaran target *)
@@ -69,7 +59,6 @@ let katamaran_target
   =
   let ast = state.ast
   in
-  if !Options.print_rewrites then print_rewrites ();
   let translation = Nanosail.SailToNanosail.translate ast
   in
   Nanosail.Templates.process translation
