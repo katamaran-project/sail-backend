@@ -103,14 +103,6 @@ let rec equal_lists ~(eq : 'a -> 'a -> bool) (xs : 'a list) (ys : 'a list) : boo
   | _, _         -> false
 
 
-let first2  = fst
-let second2 = snd
-
-let first3  (x, _, _) = x
-let second3 (_, x, _) = x
-let third3  (_, _, x) = x
-
-
 let rec repeat n x =
   if n > 0
   then x :: repeat (n-1) x
@@ -124,3 +116,15 @@ let zip_indices (xs : 'a list) : (int * 'a) list =
     | x::xs -> aux ((index, x) :: acc) xs (index + 1)
   in
   aux [] xs 0
+
+
+module Pair = struct
+  let first = fst
+  let second = snd
+end
+
+module Triple = struct
+  let first  (x, _, _) = x
+  let second (_, x, _) = x
+  let third  (_, _, x) = x
+end

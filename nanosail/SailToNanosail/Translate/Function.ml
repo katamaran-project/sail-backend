@@ -306,11 +306,11 @@ let rec expression_of_aval
         TC.map ~f:(expression_of_aval location) values
       in
       let values' =
-        List.map ~f:Auxlib.first3 triples
+        List.map ~f:Auxlib.Triple.first triples
       and types' =
-        List.map ~f:Auxlib.second3 triples
+        List.map ~f:Auxlib.Triple.second triples
       and named_statements' =
-        flatten_named_statements @@ List.map ~f:Auxlib.third3 triples
+        flatten_named_statements @@ List.map ~f:Auxlib.Triple.third triples
       in
       TC.return (values', types', named_statements')
     in
