@@ -30,7 +30,7 @@
                                                       "sail_mask"
                                                       "sail_ones"
                                                       "concat_str_bits"
-                                                      "concat_str_dec"
+                                                      "concat_str_dec")
                                                       "regval_of_bit"
                                                       "Comparison_of_regval"
                                                       "regval_of_Comparison")

@@ -25,7 +25,7 @@
                   "sail_mask"
                   "sail_ones"
                   "concat_str_bits"
-                  "concat_str_dec"
+                  "concat_str_dec")
                   "regval_of_bit"
                   "MyEnum_of_num"
                   "num_of_MyEnum"

@@ -30,7 +30,7 @@
                                                       "sail_mask"
                                                       "sail_ones"
                                                       "concat_str_bits"
-                                                      "concat_str_dec")
+                                                      "concat_str_dec"))
                                                     identifier))))
 
 

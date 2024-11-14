@@ -30,11 +30,10 @@
                                                       "sail_mask"
                                                       "sail_ones"
                                                       "concat_str_bits"
-                                                      "concat_str_dec"
+                                                      "concat_str_dec")
                                                       "Comparison_of_regval"
                                                       "regval_of_Comparison"
-                                                      "regval_of_bit")
-                                                    identifier))))
+                                                      identifier))))
 
 
 (ignore-type-definition-predicate (lambda (identifier)
