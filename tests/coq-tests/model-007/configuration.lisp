@@ -31,11 +31,6 @@
                                                       "sail_ones"
                                                       "concat_str_bits"
                                                       "concat_str_dec")
-                                                      "regval_of_Capability"
-                                                      "Comparison_of_regval"
-                                                      "regval_of_Comparison"
-                                                      "RegisterContents_of_regval"
-                                                      "regval_of_RegisterContents"
                                                       identifier))))
 
 
