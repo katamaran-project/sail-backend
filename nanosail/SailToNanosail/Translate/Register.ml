@@ -33,7 +33,7 @@ let translate_register
           TC.return @@ Ast.Definition.Register.RawSpecified (StringOf.Sail.exp unwrapped_initial_value)
         in
         TC.recover
-          (let* v = ValueDefinition.translate_expression unwrapped_initial_value in TC.return @@ Ast.Definition.Register.Specified v)
+          (let* v = ValueDefinition.value_of_expression unwrapped_initial_value in TC.return @@ Ast.Definition.Register.Specified v)
           on_failed_translation
       end
     | None -> TC.return Ast.Definition.Register.NoneSpecified

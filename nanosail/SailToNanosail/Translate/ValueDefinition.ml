@@ -13,7 +13,7 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let translate_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t TC.t =
+let value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t TC.t =
   let S.E_aux (unwrapped_expression, (location, _type_annotation)) = expression
   in
   match unwrapped_expression with
@@ -68,7 +68,7 @@ let translate_value_definition
       | S.Id_aux (S.Id identifier, _identifier_location) -> begin
           let identifier = Ast.Identifier.mk identifier
           in
-          let* value = translate_expression expression
+          let* value = value_of_expression expression
           in
           TC.return @@ Ast.Definition.ValueDefinition { identifier; value }
         end
