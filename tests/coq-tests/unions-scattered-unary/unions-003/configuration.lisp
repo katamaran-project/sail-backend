@@ -18,7 +18,6 @@
                   "fmod_int"
                   "is_none"
                   "is_some"
-                  "bit_of_regval"
                   "num_of_foo"
                   "__id"
                   "Capability_of_regval"

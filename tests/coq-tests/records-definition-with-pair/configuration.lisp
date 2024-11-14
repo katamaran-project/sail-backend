@@ -24,7 +24,6 @@
                                                       "fmod_int"
                                                       "is_none"
                                                       "is_some"
-                                                      "bit_of_regval"
                                                       "__id"
                                                       "sail_mask"
                                                       "sail_ones"
