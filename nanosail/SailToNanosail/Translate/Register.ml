@@ -28,11 +28,16 @@ let translate_register
   let* initial_value' =
     let on_failed_translation _error =
       Logging.info @@ lazy (Printf.sprintf "Failed to translate initial value for register %s; pretending there is none" (Ast.Identifier.string_of identifier'));
-      TC.return None
+      TC.return @@ Ast.Definition.Register.RawSpecified "TODO"
     in
-    TC.recover
-      (TC.lift_option @@ Option.map initial_value ~f:ValueDefinition.translate_expression)
-      on_failed_translation
+    match initial_value with
+    | Some unwrapped_initial_value -> begin
+        TC.recover
+          (let* v = ValueDefinition.translate_expression unwrapped_initial_value in TC.return @@ Ast.Definition.Register.Specified v)
+          on_failed_translation
+      end
+    | None -> TC.return Ast.Definition.Register.NoneSpecified
+    
   in
   TC.return @@ Ast.Definition.RegisterDefinition {
     identifier    = identifier'   ;

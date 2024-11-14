@@ -102,11 +102,16 @@ end
 
 
 module Register = struct
+  type initial_value =
+    | NoneSpecified
+    | Specified     of Value.t
+    | RawSpecified  of string        (* used in case we were not able to translate the value; contains a string representation of the Libsail value *)
+  
   type t =
     {
-      identifier    : Identifier.t  ;
-      typ           : Type.t        ;
-      initial_value : Value.t option;
+      identifier    : Identifier.t ;
+      typ           : Type.t       ;
+      initial_value : initial_value;
     }
 
   let to_fexpr (register_definition : t) : FExpr.t =
@@ -114,6 +119,7 @@ module Register = struct
       [
         ("identifier", Identifier.to_fexpr register_definition.identifier);
         ("type", Type.to_fexpr register_definition.typ);
+        (* todo : add initial value *)
       ]
     in
     FExpr.mk_application ~keyword "Def:Register"
