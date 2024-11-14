@@ -20,7 +20,6 @@
                   "is_some"
                   "num_of_foo"
                   "__id"
-                  "Capability_of_regval"
                   "sail_mask"
                   "sail_ones"
                   "concat_str_bits"
