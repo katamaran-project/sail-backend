@@ -113,12 +113,12 @@ let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
   | L_num n    -> TC.return @@ Ast.Value.Int n
   | L_unit     -> TC.return @@ Ast.Value.Unit
   | L_string s -> TC.return @@ Ast.Value.String s
-  | L_zero   -> TC.return @@ Ast.Value.Bit false
-  | L_one    -> TC.return @@ Ast.Value.Bit true
-  | L_hex _  -> TC.not_yet_implemented [%here] literal_location
-  | L_bin _  -> TC.not_yet_implemented [%here] literal_location
-  | L_undef  -> TC.not_yet_implemented [%here] literal_location
-  | L_real _ -> TC.not_yet_implemented [%here] literal_location
+  | L_zero     -> TC.return @@ Ast.Value.Bit false
+  | L_one      -> TC.return @@ Ast.Value.Bit true
+  | L_hex _    -> TC.not_yet_implemented [%here] literal_location
+  | L_bin _    -> TC.not_yet_implemented [%here] literal_location
+  | L_undef    -> TC.not_yet_implemented [%here] literal_location
+  | L_real _   -> TC.not_yet_implemented [%here] literal_location
 
 
 let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list list) : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list =
