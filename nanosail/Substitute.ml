@@ -132,11 +132,11 @@ let create_substitution_from_map map =
 
 let process_type_quantifier
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option)
-    (type_quantifier : Ast.Definition.type_quantifier             ) =
+    (type_quantifier : Ast.Definition.TypeQuantifier.t            ) =
   let open SubstitutionMonad in
   let open Monads.Notations.Star(SubstitutionMonad)
   in
-  let rec aux (items : Ast.Definition.type_quantifier_item list) =
+  let rec aux (items : (Ast.Identifier.t * Ast.Kind.t) list) =
     match items with
     | []                 -> return []
     | (id, kind) :: rest ->
@@ -148,14 +148,16 @@ let process_type_quantifier
         | None     -> return @@ (id, kind) :: rest'
       end
   in
-  let (type_quantifier', map) = run (aux type_quantifier) SubstitutionMap.empty
+  let Ast.Definition.TypeQuantifier.TypeQuantifier items = type_quantifier
+  in
+  let (type_quantifier', map) = run (aux items) SubstitutionMap.empty
   in
   (type_quantifier', create_substitution_from_map map)
 
 let generic_sanitize
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option       )
     (substituter     : (Ast.Identifier.t -> Ast.Identifier.t) -> 'a -> 'a)
-    (type_quantifier : Ast.Definition.type_quantifier                    )
+    (type_quantifier : Ast.Definition.TypeQuantifier.t                   )
     (x               : 'a                                                ) =
   let type_quantifier', subst = process_type_quantifier sanitize type_quantifier
   in
@@ -166,8 +168,9 @@ let generic_sanitize
 
 module Sanitize = struct
   let numeric_expression
-      (type_quantifier    : Ast.Definition.type_quantifier)
-      (numeric_expression : Ast.Numeric.Expression.t      ) =
+      (type_quantifier    : Ast.Definition.TypeQuantifier.t)
+      (numeric_expression : Ast.Numeric.Expression.t       )
+    =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_expression
@@ -175,8 +178,9 @@ module Sanitize = struct
       numeric_expression
 
   let numeric_constraint
-      (type_quantifier    : Ast.Definition.type_quantifier)
-      (numeric_constraint : Ast.Numeric.Constraint.t      ) =
+      (type_quantifier    : Ast.Definition.TypeQuantifier.t)
+      (numeric_constraint : Ast.Numeric.Constraint.t       )
+    =
     generic_sanitize
       sanitize_identifier
       Subst.numeric_constraint
@@ -184,8 +188,9 @@ module Sanitize = struct
       numeric_constraint
 
   let nanotype
-      (type_quantifier    : Ast.Definition.type_quantifier)
-      (nanotype           : Ast.Type.t                    ) =
+      (type_quantifier    : Ast.Definition.TypeQuantifier.t)
+      (nanotype           : Ast.Type.t                     )
+    =
     generic_sanitize
       sanitize_identifier
       Subst.nanotype
