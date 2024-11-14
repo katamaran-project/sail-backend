@@ -85,27 +85,52 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
-  let type_name =
-    PP.annotate [%here] begin
-      Identifier.pp regname_inductive_type_identifier
-    end
-  and typ =
-    PP.annotate [%here] begin
-      PP.string "Set"
-    end
-  in
   let* inductive_type =
+    let type_name =
+      PP.annotate [%here] begin
+          Identifier.pp regname_inductive_type_identifier
+        end
+    and typ =
+      PP.annotate [%here] begin
+          PP.string "Set"
+        end
+    in
     GC.block begin
       GC.pp_inductive_type type_name typ (fun add_constructor ->
           GC.iter register_names ~f:(fun name -> add_constructor @@ Identifier.pp @@ translate_regname name)
         )
-    end
+      end
+
+  and* initial_values =
+    let format_initial_value (initial_value : Ast.Definition.Register.initial_value) : PP.document GC.t =
+      match initial_value with
+      | NoneSpecified -> GC.return @@ PP.string "<no initial value specified>"
+      | Specified value -> ValueDefinitions.pp_value value
+      | RawSpecified raw_string -> GC.return @@ PP.horizontal [ PP.string "<raw> "; PP.string raw_string ]
+    in
+    let format_register_definition (register_definition : Ast.Definition.Register.t) : (PP.document * PP.document) GC.t =
+      let register_id =
+        Identifier.pp register_definition.identifier
+      in
+      let* initial_value =
+        format_initial_value register_definition.initial_value
+      in
+      GC.return @@ (register_id, initial_value)
+    in
+    let* description_pairs =
+      GC.map ~f:(Fn.compose format_register_definition snd) register_definitions
+    in
+    GC.return @@ PP.description_list description_pairs
+
   in
   GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
-    PP.annotate [%here] begin
-      inductive_type
+      PP.annotate [%here] begin
+          PP.vertical [
+              Coq.pp_multiline_comment initial_values;
+              inductive_type
+            ]
+        end
     end
-  end
 
 
 let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
