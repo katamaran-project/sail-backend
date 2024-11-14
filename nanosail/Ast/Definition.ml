@@ -2,10 +2,9 @@ open Base
 include Recursive
 
 
-type type_quantifier_item = Identifier.t * Kind.t
-
-
-type type_quantifier = type_quantifier_item list
+module TypeQuantifier = struct
+  type t = TypeQuantifier of (Identifier.t * Kind.t) list
+end
 
 
 module FunctionType = struct
@@ -131,7 +130,7 @@ module Type = struct
     type t =
       {
         identifier      : Identifier.t    ;
-        type_quantifier : type_quantifier ;
+        type_quantifier : TypeQuantifier.t;
         constructors    : constructor list;
       }
 
@@ -150,16 +149,16 @@ module Type = struct
     type t =
       {
         identifier      : Identifier.t                ;
-        type_quantifier : type_quantifier             ;
+        type_quantifier : TypeQuantifier.t            ;
         fields          : (Identifier.t * Type.t) list;
       }
   end
 
   module Abbreviation = struct
     type type_abbreviation = (* todo find better name *)
-      | NumericExpression of type_quantifier * NumericExpression.t
-      | NumericConstraint of type_quantifier * NumericConstraint.t
-      | Alias             of type_quantifier * Type.t
+      | NumericExpression of TypeQuantifier.t * NumericExpression.t
+      | NumericConstraint of TypeQuantifier.t * NumericConstraint.t
+      | Alias             of TypeQuantifier.t * Type.t
 
     type t =
       {

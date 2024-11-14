@@ -51,7 +51,9 @@ end = struct
               | NumericExpression (_, _)     -> TC.not_yet_implemented [%here] location
               | NumericConstraint (_, _)     -> TC.not_yet_implemented [%here] location
               | Alias (type_quantifier, typ) -> begin
-                  match type_quantifier with
+                  let Ast.Definition.TypeQuantifier.TypeQuantifier items = type_quantifier
+                  in
+                  match items with
                   | []   -> TC.return @@ Ast.Type.Alias (identifier', typ)
                   | _::_ -> TC.not_yet_implemented [%here] location
                 end

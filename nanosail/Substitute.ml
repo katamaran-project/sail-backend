@@ -133,7 +133,8 @@ let create_substitution_from_map map =
 
 let process_type_quantifier
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option)
-    (type_quantifier : Ast.Definition.TypeQuantifier.t            ) =
+    (type_quantifier : Ast.Definition.TypeQuantifier.t            ) : Ast.Definition.TypeQuantifier.t * (Ast.Identifier.t -> Ast.Identifier.t)
+  =
   let open SubstitutionMonad in
   let open Monads.Notations.Star(SubstitutionMonad)
   in
@@ -153,7 +154,10 @@ let process_type_quantifier
   in
   let (type_quantifier', map) = run (aux items) SubstitutionMap.empty
   in
-  (type_quantifier', create_substitution_from_map map)
+  (
+    Ast.Definition.TypeQuantifier.TypeQuantifier type_quantifier',
+    create_substitution_from_map map
+  )
 
 
 let generic_sanitize
@@ -172,7 +176,7 @@ let generic_sanitize
 module Sanitize = struct
   let numeric_expression
       (type_quantifier    : Ast.Definition.TypeQuantifier.t)
-      (numeric_expression : Ast.Numeric.Expression.t       )
+      (numeric_expression : Ast.Numeric.Expression.t       ) : Ast.Definition.TypeQuantifier.t * Ast.Numeric.Expression.t
     =
     generic_sanitize
       sanitize_identifier
@@ -182,7 +186,7 @@ module Sanitize = struct
 
   let numeric_constraint
       (type_quantifier    : Ast.Definition.TypeQuantifier.t)
-      (numeric_constraint : Ast.Numeric.Constraint.t       )
+      (numeric_constraint : Ast.Numeric.Constraint.t       ) : Ast.Definition.TypeQuantifier.t * Ast.Numeric.Constraint.t
     =
     generic_sanitize
       sanitize_identifier
@@ -192,7 +196,7 @@ module Sanitize = struct
 
   let nanotype
       (type_quantifier    : Ast.Definition.TypeQuantifier.t)
-      (nanotype           : Ast.Type.t                     )
+      (nanotype           : Ast.Type.t                     ) : Ast.Definition.TypeQuantifier.t * Ast.Type.t
     =
     generic_sanitize
       sanitize_identifier
