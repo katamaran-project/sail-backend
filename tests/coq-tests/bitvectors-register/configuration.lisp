@@ -31,7 +31,9 @@
                                                       "sail_ones"
                                                       "concat_str_bits"
                                                       "concat_str_dec"
-                                                      "regval_of_bit")
+                                                      "regval_of_bit"
+                                                      "bitvector_3_of_regval"
+                                                      "regval_of_bitvector_3")
                                                     identifier))))
 
 (ignore-type-definition-predicate (lambda (identifier)
