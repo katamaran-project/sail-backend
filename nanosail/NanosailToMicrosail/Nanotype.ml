@@ -142,7 +142,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
     GC.return begin
         PP.annotate [%here] begin
             Coq.pp_application
-              (PP.string "bvec")
+              (PP.string "bv")
               [ n' ]
           end
       end
