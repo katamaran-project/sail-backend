@@ -31,9 +31,7 @@
                                                       "sail_ones"
                                                       "concat_str_bits"
                                                       "concat_str_dec")
-                                                      "Comparison_of_regval"
-                                                      "regval_of_Comparison"
-                                                      identifier))))
+                                                    identifier))))
 
 
 (ignore-type-definition-predicate (lambda (identifier)
