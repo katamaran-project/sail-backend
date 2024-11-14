@@ -13,3 +13,4 @@ module ValueDefinition        = ValueDefinition
 module Variant                = Variant
 module ExtendedType           = ExtendedType
 module Recursive              = Recursive
+module Literal                = Literal
