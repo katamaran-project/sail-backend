@@ -14,8 +14,8 @@
                                          (string-starts-with? "undefined_" identifier)
                                          (string-starts-with? "regval_of_" identifier)
                                          (string-ends-with? "_of_regval" identifier)
-                                         (string-starts-with? "regval_of_" identifier identifier)
-                                         (string-ends-with? "_of_regval" identifier identifier)
+                                         (string-starts-with? "regval_of_" identifier)
+                                         (string-ends-with? "_of_regval" identifier)
                                          (contains? '(
                                                       "eq_unit"
                                                       "neq_int"
@@ -32,7 +32,7 @@
                                                       "sail_mask"
                                                       "sail_ones"
                                                       "concat_str_bits"
-                                                      "concat_str_dec"))
+                                                      "concat_str_dec")
                                                     identifier))))
 
 
