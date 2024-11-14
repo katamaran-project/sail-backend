@@ -13,7 +13,6 @@ let genblock loc label doc =
   GC.generation_block loc (PP.string label) doc
 
 
-
 (*
 
     From Coq Require Import Classes.EquivDec
