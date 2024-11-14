@@ -65,19 +65,23 @@ let pp_open_string_scope () : PP.document GC.t =
   ]
 
 
-let pp_alias_notations (alias_definitions : (Ast.Identifier.t * Ast.Definition.type_quantifier * Ast.Type.t) list) : PP.document GC.t =
+let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.Definition.type_quantifier * Ast.Type.t)) list) : PP.document GC.t =
   genblock [%here] "Notations for Aliases" begin
-    let pp_alias_notation (id, _type_quantifier, typ) =
+    let pp_alias_notation sail_definition (id, _type_quantifier, typ) =
       let notation =
         PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
       in
       let* expression =
         GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
       in
-      GC.return @@ PP.annotate [%here] @@ Coq.pp_notation notation expression
+      GC.block begin
+          let* () = GC.add_original_definition sail_definition
+          in
+          GC.return @@ PP.annotate [%here] @@ Coq.pp_notation notation expression
+        end
     in
     GC.block begin
-      let* notations = GC.map ~f:pp_alias_notation alias_definitions
+      let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
       in
       GC.return @@ PP.annotate [%here] @@ PP.vertical notations
     end
@@ -1028,7 +1032,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   and record_definitions =
     List.map ~f:snd Ast.Definition.Select.(select (type_definition of_record) definitions)
   and alias_definitions =
-    List.map ~f:snd Ast.Definition.Select.(select (type_definition of_alias) definitions)
+    Ast.Definition.Select.(select (type_definition of_alias) definitions)
   and register_definitions =
     Ast.Definition.Select.(select register_definition definitions)
   in
