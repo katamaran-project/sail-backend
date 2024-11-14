@@ -35,6 +35,17 @@ module Error = struct
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
     | AssertionFailure  of Lexing.position * string
+
+  let to_string (error : t) =
+    match error with
+    | NotYetImplemented (ocaml_location, _sail_location, message) -> begin
+        match message with
+        | None     -> Printf.sprintf "not yet implemented (%s)" (StringOf.OCaml.position ocaml_location)
+        | Some msg -> Printf.sprintf "not yet implemented (%s): %s" (StringOf.OCaml.position ocaml_location) msg
+      end
+    | AssertionFailure (ocaml_location, message) -> begin
+        Printf.sprintf "assertion failure (%s): %s" (StringOf.OCaml.position ocaml_location) message
+      end
 end
 
 
