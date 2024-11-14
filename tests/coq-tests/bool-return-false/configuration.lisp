@@ -26,7 +26,6 @@
                                                       "is_some"
                                                       "bit_of_regval"
                                                       "__id"
-                                                      "Capability_of_regval"
                                                       "sail_mask"
                                                       "sail_ones"
                                                       "concat_str_bits"
