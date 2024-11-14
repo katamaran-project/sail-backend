@@ -67,15 +67,6 @@ let generate_program_prelude () : PP.document GC.t =
     end
 
 
-let generate_base_prelude () : PP.document GC.t =
-  GC.return @@ PP.paragraphs [
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
-    PP.annotate [%here] @@ Coq.pp_require                          ~import:true  [ "Katamaran.Base" ];
-  ]
-
-
 let pp_program_module
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t

@@ -13,6 +13,16 @@ let genblock loc label doc =
   GC.generation_block loc (PP.string label) doc
 
 
+
+let generate_base_prelude () : PP.document GC.t =
+  GC.return @@ PP.paragraphs [
+    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
+    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
+    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
+    PP.annotate [%here] @@ Coq.pp_require                          ~import:true  [ "Katamaran.Base" ];
+  ]
+
+
 (*
 
   Import ctx.notations.
