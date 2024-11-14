@@ -6,7 +6,7 @@ module GC = struct
 end
 
 
-let pp_type_quantifier (quantifier : Ast.Definition.TypeQuantifier.t) : (PP.document * PP.document option) list GC.t =
+let pp_type_quantifier (quantifier : Ast.TypeQuantifier.t) : (PP.document * PP.document option) list GC.t =
   let pp_type_quantifier_item
         (identifier : Ast.Identifier.t)
         (kind       : Ast.Kind.t      ) : (PP.document * PP.document option) GC.t
@@ -19,6 +19,6 @@ let pp_type_quantifier (quantifier : Ast.Definition.TypeQuantifier.t) : (PP.docu
     in
     GC.return (identifier', Some kind')
   in
-  let Ast.Definition.TypeQuantifier.TypeQuantifier items =  quantifier
+  let Ast.TypeQuantifier.TypeQuantifier items =  quantifier
   in
   GC.map ~f:(Auxlib.uncurry pp_type_quantifier_item) items

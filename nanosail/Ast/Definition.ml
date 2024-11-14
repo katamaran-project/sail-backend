@@ -2,11 +2,6 @@ open Base
 include Recursive
 
 
-module TypeQuantifier = struct
-  type t = TypeQuantifier of (Identifier.t * Kind.t) list
-end
-
-
 module FunctionType = struct
   type t =
     {

@@ -65,7 +65,7 @@ let pp_open_string_scope () : PP.document GC.t =
   ]
 
 
-let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.Definition.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
+let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
   genblock [%here] "Notations for Aliases" begin
     let pp_alias_notation sail_definition (id, _type_quantifier, typ) =
       let notation =
