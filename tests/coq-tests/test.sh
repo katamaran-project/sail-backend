@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 pass_count=0
 fail_count=0
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -e
+
 SAIL=sail
 COQ=coqc
 

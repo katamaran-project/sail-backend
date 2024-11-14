@@ -14,6 +14,8 @@
                                          (string-starts-with? "undefined_" identifier)
                                          (string-starts-with? "regval_of_" identifier)
                                          (string-ends-with? "_of_regval" identifier)
+                                         (string-starts-with? "regval_of_" identifier identifier)
+                                         (string-ends-with? "_of_regval" identifier identifier)
                                          (contains? '(
                                                       "eq_unit"
                                                       "neq_int"
