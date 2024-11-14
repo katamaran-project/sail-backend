@@ -28,8 +28,8 @@ let translate_register
   let* initial_value' =
     match initial_value with
     | Some unwrapped_initial_value -> begin
-        let on_failed_translation _error =
-          Logging.info @@ lazy (Printf.sprintf "Failed to translate initial value for register %s; pretending there is none" (Ast.Identifier.string_of identifier'));
+        let on_failed_translation (error : TC.Error.t) =
+          Logging.info @@ lazy (Printf.sprintf "Failed to translate initial value for register %s:\n  %s" (Ast.Identifier.string_of identifier') (TC.Error.to_string error));
           TC.return @@ Ast.Definition.Register.RawSpecified (StringOf.Sail.exp unwrapped_initial_value)
         in
         TC.recover
