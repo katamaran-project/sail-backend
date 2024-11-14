@@ -17,22 +17,7 @@ let translate_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t
   let S.E_aux (unwrapped_expression, (location, _type_annotation)) = expression
   in
   match unwrapped_expression with
-  | S.E_lit literal -> begin
-     let S.L_aux (literal, _literal_location) = literal
-     in
-     match literal with
-      | S.L_num n    -> TC.return @@ Ast.Value.Int n
-      | S.L_unit     -> TC.not_yet_implemented [%here] location
-      | S.L_zero     -> TC.not_yet_implemented [%here] location
-      | S.L_one      -> TC.not_yet_implemented [%here] location
-      | S.L_true     -> TC.return @@ Ast.Value.Bool true
-      | S.L_false    -> TC.return @@ Ast.Value.Bool false
-      | S.L_hex _    -> TC.not_yet_implemented [%here] location
-      | S.L_bin _    -> TC.not_yet_implemented [%here] location
-      | S.L_string _ -> TC.not_yet_implemented [%here] location
-      | S.L_undef    -> TC.not_yet_implemented [%here] location
-      | S.L_real _   -> TC.not_yet_implemented [%here] location
-    end
+  | S.E_lit literal                            -> Literal.value_of_literal literal
   | S.E_block _                                -> TC.not_yet_implemented [%here] location
   | S.E_id _                                   -> TC.not_yet_implemented [%here] location
   | S.E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
