@@ -19,7 +19,7 @@ let generate_base_prelude () : PP.document GC.t =
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
-    PP.annotate [%here] @@ Coq.pp_require                          ~import:true  [ "Katamaran.Base" ];
+    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~import:true  [ "Base"; "Bitvector" ];
   ]
 
 
