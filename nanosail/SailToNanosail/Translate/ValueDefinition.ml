@@ -25,8 +25,8 @@ let translate_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t
       | S.L_unit     -> TC.not_yet_implemented [%here] location
       | S.L_zero     -> TC.not_yet_implemented [%here] location
       | S.L_one      -> TC.not_yet_implemented [%here] location
-      | S.L_true     -> TC.not_yet_implemented [%here] location
-      | S.L_false    -> TC.not_yet_implemented [%here] location
+      | S.L_true     -> TC.return @@ Ast.Value.Bool true
+      | S.L_false    -> TC.return @@ Ast.Value.Bool false
       | S.L_hex _    -> TC.not_yet_implemented [%here] location
       | S.L_bin _    -> TC.not_yet_implemented [%here] location
       | S.L_string _ -> TC.not_yet_implemented [%here] location
