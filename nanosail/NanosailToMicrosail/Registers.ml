@@ -73,6 +73,18 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
 (*
   Defines RegName inductive type enumerating all registers
 
+  (*
+    Registers' initial values
+
+    R1
+      <initial value R1>
+    R2
+      <initial value R2>
+    R3
+      <initial value R3>
+    R4
+      <initial value R4>
+ *)
   Inductive RegName : Set :=
   | translate_regname(R1)
   | translate_regname(R2)
@@ -126,7 +138,11 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
       PP.annotate [%here] begin
           PP.vertical [
-              Coq.pp_multiline_comment initial_values;
+              Coq.pp_multiline_comment @@ PP.vertical [
+                                              PP.string "Registers' initial values";
+                                              PP.string "";
+                                              initial_values;
+                                            ];
               inductive_type
             ]
         end
