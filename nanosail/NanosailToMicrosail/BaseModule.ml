@@ -14,6 +14,19 @@ let genblock loc label doc =
 
 
 
+(*
+
+    From Coq Require Import Classes.EquivDec
+                            Strings.String.
+    
+    From stdpp Require finite.
+    
+    From Equations Require Import Equations.
+    
+    From Katamaran Require Import Base
+                                  Bitvector.
+  
+*)
 let generate_base_prelude () : PP.document GC.t =
   GC.return @@ PP.paragraphs [
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
