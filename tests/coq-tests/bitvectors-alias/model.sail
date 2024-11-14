@@ -3,4 +3,4 @@ default Order dec
 $include <prelude.sail>
 
 
-type regname = bits(2)
+type regbits = bits(2)
