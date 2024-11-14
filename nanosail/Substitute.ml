@@ -130,6 +130,7 @@ let create_substitution_from_map map =
   | Some id' -> id'
   | None     -> if contains_value id then failwith "Clash!" else id
 
+
 let process_type_quantifier
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option)
     (type_quantifier : Ast.Definition.TypeQuantifier.t            ) =
@@ -154,11 +155,13 @@ let process_type_quantifier
   in
   (type_quantifier', create_substitution_from_map map)
 
+
 let generic_sanitize
     (sanitize        : Ast.Identifier.t -> Ast.Identifier.t option       )
     (substituter     : (Ast.Identifier.t -> Ast.Identifier.t) -> 'a -> 'a)
     (type_quantifier : Ast.Definition.TypeQuantifier.t                   )
-    (x               : 'a                                                ) =
+    (x               : 'a                                                )
+  =
   let type_quantifier', subst = process_type_quantifier sanitize type_quantifier
   in
   let x' = substituter subst x
