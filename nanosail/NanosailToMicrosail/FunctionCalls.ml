@@ -60,8 +60,8 @@ let translate
       | [arg1; arg2] -> begin
           GC.pp_annotate [%here] begin
             GC.return begin
-              MuSail.Statement.pp_call
-                (Ast.Identifier.mk "exp_binop")
+              Coq.pp_application
+                (PP.string "exp_binop")
                 [PP.string "bop.bvadd"; arg1; arg2]
             end
           end
