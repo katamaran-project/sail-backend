@@ -51,7 +51,22 @@ let translate
   match Ast.Identifier.string_of function_identifier with
   | "add_bits_int" -> begin
       (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
-      GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "+" arguments
+      GC.pp_annotate [%here] begin
+        translate_as_binary_operator function_identifier "+" arguments
+      end
+    end
+  | "add_bits" -> begin
+      match arguments with
+      | [arg1; arg2] -> begin
+          GC.pp_annotate [%here] begin
+            GC.return begin
+              Coq.pp_application
+                (PP.string "exp_binop")
+                [PP.string "bop.bvadd"; arg1; arg2]
+            end
+          end
+        end
+      | _ -> GC.fail "expected add_bits to receive two arguments"
     end
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
