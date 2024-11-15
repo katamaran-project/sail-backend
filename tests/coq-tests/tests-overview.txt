@@ -64,13 +64,18 @@ PASS int-comparison-less-than
 PASS int-comparison-less-than-or-equal-to
 PASS int-multiplication
 PASS int-subtraction
+PASS let-bool
 PASS let-fancy-notation
+PASS let-int
 PASS let-raw-notation
+PASS let-two-bools
+PASS let-two-ints
 PASS list-return-empty-bool-list
 PASS list-return-empty-int-list
 FAIL list-return-list-multiple-items
 PASS list-return-singleton-bool-list
 PASS list-return-singleton-int-list
+PASS lists-cons-literal
 PASS lists-match
 PASS lists-match-directly
 PASS model-001
@@ -139,4 +144,4 @@ PASS unions-with-union-field
 PASS unit
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:130 FAIL:11
+PASS:135 FAIL:11
