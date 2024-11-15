@@ -48,6 +48,18 @@
   Notation "[ 'bv' x ]" := (mk x%xN I) (format "[ 'bv'  x ]") : bv_scope.
   Notation "[ 'bv' [ n ] x ]" := (@mk n x%xN I) (only parsing) : bv_scope.
 
+
+    | shiftr {m n}      : BinOp (bvec m) (bvec n) (bvec m)
+    | shiftl {m n}      : BinOp (bvec m) (bvec n) (bvec m)
+    | bvadd {n}         : BinOp (bvec n) (bvec n) (bvec n)
+    | bvsub {n}         : BinOp (bvec n) (bvec n) (bvec n)
+    | bvmul {n}         : BinOp (bvec n) (bvec n) (bvec n)
+    | bvand {n}         : BinOp (bvec n) (bvec n) (bvec n)
+    | bvor {n}          : BinOp (bvec n) (bvec n) (bvec n)
+    | bvxor {n}         : BinOp (bvec n) (bvec n) (bvec n)
+    | bvapp {m n}       : BinOp (bvec m) (bvec n) (bvec (m + n))
+  
+
   (* works *)
   stm_exp (exp_val (ty.bvec 8) ([bv 0]))
 #+end_src
