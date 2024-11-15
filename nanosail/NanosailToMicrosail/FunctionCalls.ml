@@ -48,7 +48,7 @@ let translate_as_unary_operator
 
 (* factor out common code *)
 
-let translate_as_binary_operator
+let translate_as_binary_operator_using_infix_notation
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
     (operands               : PP.document list ) : PP.document GC.t
@@ -96,7 +96,7 @@ let translate
   | "add_bits_int" -> begin
       (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
       GC.pp_annotate [%here] begin
-        translate_as_binary_operator function_identifier "+" arguments
+        translate_as_binary_operator_using_infix_notation function_identifier "+" arguments
       end
     end
   | "add_bits" -> begin
@@ -115,6 +115,6 @@ let translate
       | _ -> GC.fail "expected add_bits to receive two arguments"
     end
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator_using_infix_notation function_identifier "=" arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator_using_infix_notation function_identifier "!=" arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
