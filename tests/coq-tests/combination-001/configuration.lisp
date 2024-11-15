@@ -35,6 +35,7 @@
 
 (ignore-type-definition-predicate (lambda (identifier)
                                     (contains? '(
+                                                 "bits"
                                                  "option"
                                                  "register_value"
                                                  "regstate")

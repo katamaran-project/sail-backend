@@ -35,7 +35,7 @@ union word = {
   Num : integer
 }
 
-register instr_count : int
+register instr_count : int = 0
 
 
 scattered union ast
