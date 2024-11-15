@@ -4,10 +4,13 @@ PASS atoms-identity-function-int
 PASS atoms-linear
 PASS atoms-linear2
 FAIL bit-equality
+FAIL bit-returning-one
+FAIL bit-returning-zero
 FAIL bitvectors-addition
 PASS bitvectors-alias
 PASS bitvectors-binary-literal
 PASS bitvectors-hexadecimal-literal
+FAIL bitvectors-indexing
 FAIL bitvectors-matching
 PASS bitvectors-parameter
 PASS bitvectors-register
@@ -68,6 +71,7 @@ PASS int-comparison-inequality
 PASS int-comparison-less-than
 PASS int-comparison-less-than-or-equal-to
 PASS int-multiplication
+PASS int-returning
 PASS int-subtraction
 PASS let-bool
 PASS let-fancy-notation
@@ -150,4 +154,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:141 FAIL:11
+PASS:142 FAIL:14
