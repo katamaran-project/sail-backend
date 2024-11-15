@@ -3,6 +3,7 @@ PASS atoms-bool-negation
 PASS atoms-identity-function-int
 PASS atoms-linear
 PASS atoms-linear2
+FAIL bit-equality
 FAIL bitvectors-addition
 PASS bitvectors-alias
 PASS bitvectors-binary-literal
@@ -11,9 +12,12 @@ FAIL bitvectors-matching
 PASS bitvectors-parameter
 PASS bitvectors-register
 PASS bitvectors-returning
-PASS bool-comparison-equality
 PASS bool-conjunction
 PASS bool-disjunction
+FAIL bool-equality
+PASS bool-inequality
+PASS bool-manual-equality
+FAIL bool-negation
 PASS bool-return-false
 PASS bool-return-true
 PASS combination-001
@@ -142,7 +146,8 @@ PASS unions-scattered-unary
 PASS unions-scattered-with-alias
 PASS unions-with-record-field
 PASS unions-with-union-field
-PASS unit
+FAIL unit-equality
+PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:140 FAIL:7
+PASS:141 FAIL:11
