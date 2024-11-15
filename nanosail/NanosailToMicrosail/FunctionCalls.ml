@@ -48,9 +48,6 @@ let translate_as_unary_operator
 
 (* factor out common code *)
 
-
-   (* stm_exp (exp_unop uop.not (exp_var "x")))%exp *)
-
 let translate_as_binary_operator
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
