@@ -70,5 +70,6 @@ let translate
         end
       | _ -> GC.fail "expected add_bits to receive two arguments"
     end
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
