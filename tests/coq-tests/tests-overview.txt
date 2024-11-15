@@ -71,14 +71,14 @@ PASS let-int
 PASS let-raw-notation
 PASS let-two-bools
 PASS let-two-ints
-PASS list-return-empty-bool-list
-PASS list-return-empty-int-list
-FAIL list-return-list-multiple-items
-PASS list-return-singleton-bool-list
-PASS list-return-singleton-int-list
 PASS lists-cons-literal
 PASS lists-match
 PASS lists-match-directly
+PASS lists-return-empty-bool-list
+PASS lists-return-empty-int-list
+PASS lists-return-multiple-items
+PASS lists-return-singleton-bool-list
+PASS lists-return-singleton-int-list
 PASS model-001
 PASS model-002
 PASS model-003
@@ -145,4 +145,4 @@ PASS unions-with-union-field
 PASS unit
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:137 FAIL:10
+PASS:138 FAIL:9
