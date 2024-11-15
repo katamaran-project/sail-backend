@@ -16,7 +16,7 @@ PASS bool-conjunction
 PASS bool-disjunction
 PASS bool-return-false
 PASS bool-return-true
-FAIL combination-001
+PASS combination-001
 PASS enums-001
 PASS enums-002
 PASS enums-003
@@ -30,6 +30,7 @@ PASS enums-match-pair
 PASS enums-match-pair-directly
 PASS enums-returning
 PASS enums-variants-records
+PASS eq-unit
 PASS expressions-as-parameter
 PASS expressions-value-int
 PASS expressions-value-nested-products
@@ -144,4 +145,4 @@ PASS unions-with-union-field
 PASS unit
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:135 FAIL:11
+PASS:137 FAIL:10
