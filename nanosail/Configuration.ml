@@ -20,6 +20,7 @@ module C = struct
     let print_warnings                       = bool     "print-warnings"                   false
     let pretty_print_let                     = bool     "pretty-print-let"                 false
     let pretty_print_match_enum              = bool     "pretty-print-match-enum"          false
+    let pretty_print_binary_operators        = bool     "pretty-print-binary-operators"    false
     let show_generation_blocks               = bool     "show-generation-blocks"           false
     let ignored_pragmas                      = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
     let ignored_functions                    = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)

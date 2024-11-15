@@ -46,7 +46,6 @@ let translate_as_unary_operator
         end
     end
 
-(* factor out common code *)
 
 let translate_as_binary_operator_using_infix_notation
     (original_function_name : Ast.Identifier.t )
@@ -131,6 +130,17 @@ let translate_as_binary_operator_using_function_notation
     end
 
 
+let translate_as_binary_operator 
+    (original_function_name : Ast.Identifier.t )
+    (infix_operator         : string           )
+    (function_operator      : string           )
+    (operands               : PP.document list ) : PP.document GC.t
+  =
+  if Configuration.(get pretty_print_binary_operators)
+  then translate_as_binary_operator_using_infix_notation original_function_name infix_operator operands
+  else translate_as_binary_operator_using_function_notation original_function_name function_operator operands
+
+
 let translate
     (function_identifier : Ast.Identifier.t )
     (arguments           : PP.document list ) : PP.document GC.t
@@ -158,6 +168,6 @@ let translate
       | _ -> GC.fail "expected add_bits to receive two arguments"
     end
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator_using_infix_notation function_identifier "=" arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator_using_infix_notation function_identifier "!=" arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
