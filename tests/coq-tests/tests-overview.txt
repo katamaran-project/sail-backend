@@ -17,8 +17,10 @@ PASS bitvectors-register
 PASS bitvectors-returning
 PASS bool-conjunction
 PASS bool-disjunction
-PASS bool-equality
-PASS bool-inequality
+PASS bool-equality-function-notation
+PASS bool-equality-infix-notation
+PASS bool-inequality-function-notation
+PASS bool-inequality-infix-notation
 PASS bool-manual-equality
 PASS bool-negation
 PASS bool-return-false
@@ -154,4 +156,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:145 FAIL:11
+PASS:147 FAIL:11
