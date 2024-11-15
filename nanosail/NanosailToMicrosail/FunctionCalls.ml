@@ -4,6 +4,53 @@ open Monads.Notations.Star(GenerationContext)
 module GC = GenerationContext
 
 
+let translate_as_unary_operator
+    (original_function_name : Ast.Identifier.t )
+    (operator               : string           )
+    (operands               : PP.document list ) : PP.document GC.t
+  =
+  match operands with
+  | [x] -> begin
+      GC.pp_annotate [%here] begin
+        GC.return begin
+          MuSail.Statement.pp_expression begin
+            Coq.pp_application
+              (PP.string "exp_unop")
+              [PP.string operator; x]
+          end
+        end
+      end
+    end
+  | _ -> begin
+      let message =
+        PP.annotate [%here] @@ PP.string @@ Printf.sprintf
+          "%s should receive 1 argument but instead received %d; falling back on default translation for function calls"
+          (Ast.Identifier.string_of original_function_name)
+          (List.length operands)
+      in
+      let* annotation_index =
+        GC.add_annotation message
+      in
+      let translation =
+        PP.annotate [%here] begin
+            MuSail.Statement.pp_call original_function_name operands
+          end
+      in
+      GC.return begin
+          PP.annotate [%here] begin
+              PP.(separate_horizontally ~separator:space [
+                      translation;
+                      Coq.pp_inline_comment (string @@ Int.to_string annotation_index)
+              ])
+            end
+        end
+    end
+
+(* factor out common code *)
+
+
+   (* stm_exp (exp_unop uop.not (exp_var "x")))%exp *)
+
 let translate_as_binary_operator
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
@@ -70,6 +117,7 @@ let translate
         end
       | _ -> GC.fail "expected add_bits to receive two arguments"
     end
+  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
