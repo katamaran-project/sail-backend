@@ -20,7 +20,7 @@ PASS bool-disjunction
 PASS bool-equality
 PASS bool-inequality
 PASS bool-manual-equality
-FAIL bool-negation
+PASS bool-negation
 PASS bool-return-false
 PASS bool-return-true
 PASS combination-001
@@ -154,4 +154,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:144 FAIL:12
+PASS:145 FAIL:11
