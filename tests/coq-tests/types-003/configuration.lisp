@@ -38,7 +38,8 @@
                                (contains? '(
                                             "option"
                                             "register_value"
-                                            "regstate")
+                                            "regstate"
+                                            "bits")
                                           identifier)))
 
 (ignore-value-definition-predicate
