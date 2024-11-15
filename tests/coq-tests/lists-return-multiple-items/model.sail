@@ -4,21 +4,21 @@ $include <prelude.sail>
 
 
 val foo2 : unit -> list(int)
-function foo() = {
+function foo2() = {
   [| 1, 2 |]
 }
 
 val foo3 : unit -> list(int)
-function foo() = {
+function foo3() = {
   [| 1, 2, 3 |]
 }
 
 val foo4 : unit -> list(int)
-function foo() = {
+function foo4() = {
   [| 1, 2, 3, 4 |]
 }
 
 val foo10 : unit -> list(int)
-function foo() = {
+function foo10() = {
   [| 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 |]
 }
