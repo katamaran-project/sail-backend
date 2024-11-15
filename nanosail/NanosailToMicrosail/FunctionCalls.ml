@@ -88,6 +88,49 @@ let translate_as_binary_operator_using_infix_notation
     end
 
 
+let translate_as_binary_operator_using_function_notation
+    (original_function_name : Ast.Identifier.t )
+    (operator               : string           )
+    (operands               : PP.document list ) : PP.document GC.t
+  =
+  match operands with
+  | [x; y] -> begin
+      GC.pp_annotate [%here] begin
+        GC.return begin
+          MuSail.Statement.pp_expression begin
+            Coq.pp_application
+              (PP.string "exp_binop")
+              [PP.string operator; x; y]
+          end
+        end
+      end
+    end
+  | _ -> begin
+      let message =
+        PP.annotate [%here] @@ PP.string @@ Printf.sprintf
+          "%s should receive 2 arguments but instead received %d; falling back on default translation for function calls"
+          (Ast.Identifier.string_of original_function_name)
+          (List.length operands)
+      in
+      let* annotation_index =
+        GC.add_annotation message
+      in
+      let translation =
+        PP.annotate [%here] begin
+            MuSail.Statement.pp_call original_function_name operands
+          end
+      in
+      GC.return begin
+          PP.annotate [%here] begin
+              PP.(separate_horizontally ~separator:space [
+                      translation;
+                      Coq.pp_inline_comment (string @@ Int.to_string annotation_index)
+              ])
+            end
+        end
+    end
+
+
 let translate
     (function_identifier : Ast.Identifier.t )
     (arguments           : PP.document list ) : PP.document GC.t
