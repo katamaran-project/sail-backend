@@ -118,10 +118,10 @@ PASS type-alias-of-int
 PASS type-alias-of-record
 PASS type-alias-of-union
 PASS types-001
-FAIL types-003
+PASS types-003
 PASS unions-005
 PASS unions-as-parameter
-FAIL unions-bitvector
+PASS unions-bitvector
 PASS unions-construction-binary
 PASS unions-construction-nullary
 PASS unions-construction-ternary
@@ -145,4 +145,4 @@ PASS unions-with-union-field
 PASS unit
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:138 FAIL:9
+PASS:140 FAIL:7
