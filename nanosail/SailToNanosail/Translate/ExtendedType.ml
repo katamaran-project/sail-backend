@@ -327,8 +327,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   | NC_ge (left, right)         -> bool_expression_of_ge left right
   | NC_set (_, _)               -> not_yet_implemented [%here] location
   | NC_app (_, _)               -> not_yet_implemented [%here] location
-  | NC_true                     -> not_yet_implemented [%here] location
-  | NC_false                    -> not_yet_implemented [%here] location
+  | NC_true                     -> Monad.return @@ Ast.ExtendedType.BoolExpression.Bool true
+  | NC_false                    -> Monad.return @@ Ast.ExtendedType.BoolExpression.Bool false
   | NC_id _                     -> not_yet_implemented [%here] location
   | NC_and (left, right)        -> bool_expression_of_and left right
   | NC_or  (left, right)        -> bool_expression_of_or left right

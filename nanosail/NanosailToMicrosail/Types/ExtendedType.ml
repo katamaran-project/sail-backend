@@ -25,8 +25,11 @@ module Prec = struct
   let variable id =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
 
-  let constant k =
+  let integer k =
     define_atom @@ PP.string @@ Z.to_string k
+
+  let boolean b =
+    define_atom @@ PP.string @@ Bool.to_string b
 
   let negation =
     let pp x =
@@ -54,7 +57,7 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
   let rec ast_of_int_expression integer_expression =
     match integer_expression with
     | Ast.ExtendedType.IntExpression.Var identifier    -> GC.return @@ Prec.variable identifier
-    | Ast.ExtendedType.IntExpression.Constant k        -> GC.return @@ Prec.constant k
+    | Ast.ExtendedType.IntExpression.Constant k        -> GC.return @@ Prec.integer k
     | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
     | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
     | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
@@ -135,6 +138,7 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
 
   and ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t) =
     match bool_expression with
+    | Bool b                             -> GC.return @@ Prec.boolean b
     | Var identifier                     -> GC.return @@ Prec.variable identifier
     | And (left, right)                  -> conjunction              left right
     | Or  (left, right)                  -> disjunction              left right
