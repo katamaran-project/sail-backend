@@ -152,21 +152,7 @@ let translate
         translate_as_binary_operator_using_infix_notation function_identifier "+" arguments
       end
     end
-  | "add_bits" -> begin
-      match arguments with
-      | [arg1; arg2] -> begin
-          GC.pp_annotate [%here] begin
-            GC.return begin
-              MuSail.Statement.pp_expression begin
-                Coq.pp_application
-                  (PP.string "exp_binop")
-                  [PP.string "bop.bvadd"; arg1; arg2]
-              end
-            end
-          end
-        end
-      | _ -> GC.fail "expected add_bits to receive two arguments"
-    end
+  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.bvadd)" arguments
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" arguments
