@@ -9,6 +9,7 @@ FAIL bit-returning-zero
 PASS bitvectors-128-bit-binary-literal
 PASS bitvectors-128-ones
 PASS bitvectors-addition
+PASS bitvectors-addition-infix
 PASS bitvectors-alias
 PASS bitvectors-binary-literal
 PASS bitvectors-conjunction
@@ -21,6 +22,7 @@ PASS bitvectors-parameter
 PASS bitvectors-register
 PASS bitvectors-returning
 FAIL bitvectors-subtraction
+FAIL bitvectors-subtraction-infix
 FAIL bitvectors-xor
 PASS bitvectors-zeros
 PASS bool-conjunction
@@ -164,4 +166,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:152 FAIL:14
+PASS:153 FAIL:15
