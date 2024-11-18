@@ -81,6 +81,7 @@ end = struct
       | "atom_bool" -> nanotype_of_atom_bool type_arguments'
       | "bits"      -> nanotype_of_bits type_arguments'
       | "bitvector" -> nanotype_of_bitvector type_arguments'
+      | "range"     -> nanotype_of_range type_arguments'
       | _           -> begin
           let* constructor = nanotype_of_identifier identifier
           in
@@ -96,6 +97,11 @@ end = struct
       match args with
       | [ _ ] -> TC.return Ast.Type.Bool
       | _     -> TC.fail [%here] "atom_bool expected to have exactly one argument"
+
+    and nanotype_of_range (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+      match args with
+      | [ lower_bound; upper_bound ] -> TC.not_yet_implemented [%here] location
+      | _                            -> TC.fail [%here] "range should have exactly two arguments"
 
     and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
