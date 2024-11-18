@@ -961,6 +961,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           (arguments           : S.typ S.aval list)
           (_typ                : S.typ            )
     =
+    Stdio.printf "Receiver: %s\n" (StringOf.Sail.id receiver_identifier);
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
@@ -973,11 +974,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let wrap =
       wrap_in_named_statements_context named_statements
     in
-    let binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t
-      =
-        match argument_expressions with
-        | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
-        | _      -> TC.fail [%here] "binary operation should have 2 arguments"
+    let binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t =
+      match argument_expressions with
+      | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
+      | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
     let generic_function_call () =
       (*
