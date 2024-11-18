@@ -221,9 +221,9 @@ end = struct
     | Nexp_times (x, y)           -> translate_times x y
     | Nexp_sum (x, y)             -> translate_sum x y
     | Nexp_minus (x, y)           -> translate_minus x y
-    | Nexp_neg numeric_expression -> translate_negation numeric_expression
+    | Nexp_neg negated            -> translate_negation negated
     | Nexp_id identifier          -> translate_identifier identifier
-    | Nexp_exp _                  -> TC.not_yet_implemented [%here] numexp_location
+    | Nexp_exp exponent           -> TC.not_yet_implemented ~message:(StringOf.Sail.nexp numeric_expression) [%here] numexp_location
     | Nexp_app (_, _)             -> TC.not_yet_implemented [%here] numexp_location
     | Nexp_if (_, _, _)           -> TC.not_yet_implemented [%here] numexp_location
 
