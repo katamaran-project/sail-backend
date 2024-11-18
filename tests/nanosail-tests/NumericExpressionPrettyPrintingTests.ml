@@ -44,7 +44,30 @@ let test_formatting =
       (Add (Add (c 1, c 2), Add (c 3, c 4)), "1 + 2 + 3 + 4");
       (Minus (c 1, Minus (c 2, c 3)), "1 - (2 - 3)");
       (Minus (Minus (c 1, c 2), c 3), "1 - 2 - 3");
-]
+      (Times (Times (c 1, c 2), Times (c 3, c 4)), "1 * 2 * 3 * 4");
+      (Times (Add (c 1, c 2), Add (c 3, c 4)), "(1 + 2) * (3 + 4)");
+      (Times (Minus (c 1, c 2), Minus (c 3, c 4)), "(1 - 2) * (3 - 4)");
+      (Times
+         (
+           Add
+             (
+               Times
+                 (
+                   Add (c 1, c 2),
+                   Add (c 3, c 4)
+                 ),
+               Times
+                 (c 5, c 6)
+             ),
+           Add (c 7, c 8)
+         ),
+       "((1 + 2) * (3 + 4) + 5 * 6) * (7 + 8)"
+      );
+      (Neg (Add (c 1, c 2)), "-(1 + 2)");
+      (PowerOf2 (Add (c 1, c 2)), "2^(1 + 2)");
+      (PowerOf2 (Times (c 1, c 2)), "2^(1 * 2)");
+      (PowerOf2 (PowerOf2 (c 10)), "2^(2^10)");
+    ]
   in
   "formatting" >::: List.map ~f:(Auxlib.uncurry test) test_cases
 
