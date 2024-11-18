@@ -30,7 +30,6 @@ let convert_comparison_operator
     (right_signedness : signedness          )
     (binary_operator  : Ast.BinaryOperator.t) : Ast.BinaryOperator.t option
   =
-  Stdio.printf "%s %s %s\n" (string_of_signedness left_signedness) (string_of_signedness right_signedness) (FExpr.to_string @@ Ast.BinaryOperator.to_fexpr binary_operator);
   match left_signedness, right_signedness, binary_operator with
   | Signed, Signed, Ast.BinaryOperator.LessThan -> Some Ast.BinaryOperator.BitvectorSignedLessThan
   | _ -> None
