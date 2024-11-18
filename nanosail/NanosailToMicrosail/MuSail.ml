@@ -2,8 +2,14 @@ open Base
 
 
 module Operator = struct
-  let bitvector_signed_less_than             = PP.string "<ˢ"
-  let bitvector_signed_less_than_or_equal_to = PP.string "<=ˢ"
+  let bitvector_signed_less_than                  = PP.string "<ˢ"
+  let bitvector_signed_less_than_or_equal_to      = PP.string "<=ˢ"
+  let bitvector_signed_greater_than               = PP.string ">ˢ"      
+  let bitvector_signed_greater_than_or_equal_to   = PP.string ">=ˢ"
+  let bitvector_unsigned_less_than                = PP.string "<ᵘ"
+  let bitvector_unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
+  let bitvector_unsigned_greater_than             = PP.string ">ᵘ"      
+  let bitvector_unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
 end
 
 
