@@ -171,8 +171,8 @@ PASS unions-scattered-unary
 PASS unions-scattered-with-alias
 PASS unions-with-record-field
 PASS unions-with-union-field
-FAIL unit-equality
+PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:166 FAIL:11
+PASS:167 FAIL:10
