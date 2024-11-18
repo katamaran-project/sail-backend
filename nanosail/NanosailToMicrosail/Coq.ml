@@ -5,17 +5,18 @@ module Big_int = Nat_big_num
 
 (* Operators *)
 module Operator = struct
-  let addition                  = PP.plus
-  let multiplication            = PP.star
-  let subtraction               = PP.minus
-  let conjunction               = PP.(repeat horizontal 2 ampersand)
-  let disjunction               = PP.(repeat horizontal 2 bar)
-  let equality                  = PP.equals
-  let inequality                = PP.(horizontal [bang; equals])
-  let less_than                 = PP.langle
-  let greater_than              = PP.rangle
-  let less_than_or_equal_to     = PP.(horizontal [langle; equals])
-  let greater_than_or_equals_to = PP.(horizontal [rangle; equals])
+  let addition                               = PP.plus
+  let multiplication                         = PP.star
+  let subtraction                            = PP.minus
+  let conjunction                            = PP.(repeat horizontal 2 ampersand)
+  let disjunction                            = PP.(repeat horizontal 2 bar)
+  let equality                               = PP.equals
+  let inequality                             = PP.(horizontal [bang; equals])
+  let less_than                              = PP.langle
+  let greater_than                           = PP.rangle
+  let less_than_or_equal_to                  = PP.(horizontal [langle; equals])
+  let greater_than_or_equals_to              = PP.(horizontal [rangle; equals])
+  let bitvector_signed_less_than_or_equal_to = PP.string "<ˢ"
 end
 
 let arrow = PP.string "->"

@@ -17,20 +17,21 @@ let convert_bits_to_z (bits : bool list) : Z.t =
 
 let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.document GC.t =
   match binary_operator with
-  | Plus                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.addition
-  | Minus                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.subtraction
-  | Times                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.multiplication
-  | And                  -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.conjunction
-  | Or                   -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.disjunction
-  | EqualTo              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.equality
-  | NotEqualTo           -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.inequality
-  | LessThan             -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than
-  | GreaterThan          -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
-  | LessThanOrEqualTo    -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
-  | GreaterThanOrEqualTo -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
-  | Pair                 -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
-  | Cons                 -> GC.not_yet_implemented [%here] (* Should not occur *)
-  | Append               -> GC.not_yet_implemented [%here] (* Should not occur *)
+  | Plus                    -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.addition (* todo move Coq.Operator to MuSail.Operator *)
+  | Minus                   -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.subtraction
+  | Times                   -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.multiplication
+  | And                     -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.conjunction
+  | Or                      -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.disjunction
+  | EqualTo                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.equality
+  | NotEqualTo              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.inequality
+  | LessThan                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than
+  | GreaterThan             -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
+  | LessThanOrEqualTo       -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
+  | GreaterThanOrEqualTo    -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
+  | BitvectorSignedLessThan -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.bitvector_signed_less_than_or_equal_to
+  | Pair                    -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
+  | Cons                    -> GC.not_yet_implemented [%here] (* Should not occur *)
+  | Append                  -> GC.not_yet_implemented [%here] (* Should not occur *)
 
 
 let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =

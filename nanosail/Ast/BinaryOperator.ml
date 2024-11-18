@@ -13,6 +13,7 @@ type t =
   | LessThan
   | GreaterThanOrEqualTo
   | GreaterThan
+  | BitvectorSignedLessThan
 
 
 let to_fexpr (operator : t) : FExpr.t =
@@ -31,3 +32,4 @@ let to_fexpr (operator : t) : FExpr.t =
    | LessThan             -> FExpr.mk_symbol "LessThan"
    | GreaterThanOrEqualTo -> FExpr.mk_symbol "GreaterThanOrEqualTo"
    | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
+   | BitvectorSignedLessThan -> FExpr.mk_symbol "BVSignedLessThan"

@@ -1330,7 +1330,14 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
-let translate_body = statement_of_aexp
+let simplify_body (body : Ast.Statement.t) : Ast.Statement.t =
+  List.fold_left Rewrites.statement_rewrites ~init:body ~f:(fun body rewrite -> rewrite body)
+
+
+let translate_body body =
+  let* body' = statement_of_aexp body
+  in
+  TC.return @@ simplify_body body'
 
 
 let translate_function_definition
