@@ -961,7 +961,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           (arguments           : S.typ S.aval list)
           (_typ                : S.typ            )
     =
-    Stdio.printf "Receiver: %s\n" (StringOf.Sail.id receiver_identifier);
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
@@ -974,12 +973,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let wrap =
       wrap_in_named_statements_context named_statements
     in
-    let binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t =
+    let statement_of_binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t =
       match argument_expressions with
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
       | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
-    let generic_function_call () =
+    let statement_of_generic_function_call () =
       (*
         Sail translates the construction of a variant type to a function call.
 
@@ -1042,17 +1041,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
 
     match Ast.Identifier.string_of receiver_identifier' with
-    | "sail_cons" -> binary_operation Cons
-    | "add_atom"  -> binary_operation Plus
-    | "sub_atom"  -> binary_operation Minus
-    | "mult_atom" -> binary_operation Times
-    | "lt_int"    -> binary_operation LessThan
-    | "lteq_int"  -> binary_operation LessThanOrEqualTo
-    | "gt_int"    -> binary_operation GreaterThan
-    | "gteq_int"  -> binary_operation GreaterThanOrEqualTo
-    | "eq_int"    -> binary_operation EqualTo
-    | "neq_int"   -> binary_operation NotEqualTo
-    | _           -> generic_function_call ()
+    | "sail_cons" -> statement_of_binary_operation Cons
+    | "add_atom"  -> statement_of_binary_operation Plus
+    | "sub_atom"  -> statement_of_binary_operation Minus
+    | "mult_atom" -> statement_of_binary_operation Times
+    | "lt_int"    -> statement_of_binary_operation LessThan
+    | "lteq_int"  -> statement_of_binary_operation LessThanOrEqualTo
+    | "gt_int"    -> statement_of_binary_operation GreaterThan
+    | "gteq_int"  -> statement_of_binary_operation GreaterThanOrEqualTo
+    | "eq_int"    -> statement_of_binary_operation EqualTo
+    | "neq_int"   -> statement_of_binary_operation NotEqualTo
+    | _           -> statement_of_generic_function_call ()
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
