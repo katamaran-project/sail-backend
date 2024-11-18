@@ -207,9 +207,14 @@ end = struct
       TC.return @@ Ast.Numeric.Expression.Neg numeric_expression'
 
     and translate_identifier (identifier : S.id) =
-        let* identifier' = Identifier.translate_identifier [%here] identifier
-        in
-        TC.return @@ Ast.Numeric.Expression.Id identifier'
+      let* identifier' = Identifier.translate_identifier [%here] identifier
+      in
+      TC.return @@ Ast.Numeric.Expression.Id identifier'
+
+    and translate_exponentiation (exponent : S.nexp) : Ast.Numeric.Expression.t TC.t =
+      let* exponent' = translate_numeric_expression exponent
+      in
+      TC.return @@ Ast.Numeric.Expression.PowerOf2 exponent'
 
     in
     let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) =
@@ -223,7 +228,7 @@ end = struct
     | Nexp_minus (x, y)           -> translate_minus x y
     | Nexp_neg negated            -> translate_negation negated
     | Nexp_id identifier          -> translate_identifier identifier
-    | Nexp_exp exponent           -> TC.not_yet_implemented ~message:(StringOf.Sail.nexp numeric_expression) [%here] numexp_location
+    | Nexp_exp exponent           -> translate_exponentiation exponent
     | Nexp_app (_, _)             -> TC.not_yet_implemented [%here] numexp_location
     | Nexp_if (_, _, _)           -> TC.not_yet_implemented [%here] numexp_location
 
