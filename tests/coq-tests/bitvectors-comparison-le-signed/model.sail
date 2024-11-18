@@ -8,5 +8,5 @@ type word = bits(32)
 
 val foo : (word, word) -> bool
 function foo(x, y) = {
-  signed(x) < signed(y)
+  signed(x) <= signed(y)
 }
