@@ -57,7 +57,7 @@ let translate_as_unary_operator
   | _ -> report_incorrect_argument_count original_function_name 1 operands
 
 
-let translate_as_binary_operator_using_infix_notation
+let translate_binary_operator_using_infix_notation
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
     (operands               : PP.document list ) : PP.document GC.t
@@ -73,7 +73,7 @@ let translate_as_binary_operator_using_infix_notation
   | _ -> report_incorrect_argument_count original_function_name 2 operands
 
 
-let translate_as_binary_operator_using_function_notation
+let translate_binary_operator_using_function_notation
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
     (operands               : PP.document list ) : PP.document GC.t
@@ -93,15 +93,15 @@ let translate_as_binary_operator_using_function_notation
   | _ -> report_incorrect_argument_count original_function_name 2 operands    
 
 
-let translate_as_binary_operator 
+let translate_binary_operator 
     (original_function_name : Ast.Identifier.t)
     (infix_operator         : string          )
     (function_operator      : string          )
     (operands               : PP.document list) : PP.document GC.t
   =
   if Configuration.(get pretty_print_binary_operators)
-  then translate_as_binary_operator_using_infix_notation original_function_name infix_operator operands
-  else translate_as_binary_operator_using_function_notation original_function_name function_operator operands
+  then translate_binary_operator_using_infix_notation original_function_name infix_operator operands
+  else translate_binary_operator_using_function_notation original_function_name function_operator operands
 
 
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -162,14 +162,14 @@ let translate
   | "add_bits_int" -> begin
       (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
       GC.pp_annotate [%here] begin
-        translate_as_binary_operator_using_infix_notation function_identifier "+" pp_arguments
+        translate_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
-  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "+ᵇ" "(bop.bvadd)" pp_arguments
-  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "&" "(bop.bvand)" pp_arguments
+  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "+ᵇ" "(bop.bvadd)" pp_arguments
+  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "&" "(bop.bvand)" pp_arguments
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" pp_arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
