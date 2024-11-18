@@ -31,13 +31,13 @@ let convert_comparison_operator
     (binary_operator  : Ast.BinaryOperator.t) : Ast.BinaryOperator.t option
   =
   match left_signedness, right_signedness, binary_operator with
-  | Signed, Signed, Ast.BinaryOperator.LessThan          -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.LessThan))
-  | Signed, Signed, Ast.BinaryOperator.LessThanOrEqualTo -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.LessThanOrEqualTo))
-  | Signed, Signed, Ast.BinaryOperator.GreaterThan -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.GreaterThan))
-  | Signed, Signed, Ast.BinaryOperator.GreaterThanOrEqualTo -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.GreaterThanOrEqualTo))
-  | Unsigned, Unsigned, Ast.BinaryOperator.LessThan          -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.LessThan))
-  | Unsigned, Unsigned, Ast.BinaryOperator.LessThanOrEqualTo -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.LessThanOrEqualTo))
-  | Unsigned, Unsigned, Ast.BinaryOperator.GreaterThan -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.GreaterThan))
+  | Signed, Signed, Ast.BinaryOperator.LessThan                 -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.LessThan))
+  | Signed, Signed, Ast.BinaryOperator.LessThanOrEqualTo        -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.LessThanOrEqualTo))
+  | Signed, Signed, Ast.BinaryOperator.GreaterThan              -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.GreaterThan))
+  | Signed, Signed, Ast.BinaryOperator.GreaterThanOrEqualTo     -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signed, Ast.BinaryOperator.Comparison.GreaterThanOrEqualTo))
+  | Unsigned, Unsigned, Ast.BinaryOperator.LessThan             -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.LessThan))
+  | Unsigned, Unsigned, Ast.BinaryOperator.LessThanOrEqualTo    -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.LessThanOrEqualTo))
+  | Unsigned, Unsigned, Ast.BinaryOperator.GreaterThan          -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.GreaterThan))
   | Unsigned, Unsigned, Ast.BinaryOperator.GreaterThanOrEqualTo -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Unsigned, Ast.BinaryOperator.Comparison.GreaterThanOrEqualTo))
   | _ -> begin
       Logging.warning @@ lazy "encountered mixed signed/unsigned comparison; ignoring it";
