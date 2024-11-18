@@ -126,6 +126,31 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
     end
 
 
+let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
+  match arguments with
+  | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
+      let size = Z.to_int n
+      and value = Int.shift_left 1 (Z.to_int n) - 1
+      in
+      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+    end
+  | [ argument ] -> begin
+      let message =
+        let formatted_argument =
+          FExpr.to_string @@ Ast.Expression.to_fexpr argument
+        in
+        Printf.sprintf "expected sail_zeros to receive an integer argument; instead got %s" formatted_argument
+      in
+      GC.fail message
+    end
+  | _ -> begin
+      let message =
+        Printf.sprintf "expected sail_zeros to receive exactly one argument; instead for %d" (List.length arguments)
+      in
+      GC.fail message
+    end
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -145,4 +170,5 @@ let translate
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
+  | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
