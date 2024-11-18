@@ -25,7 +25,7 @@ PASS bitvectors-disjunction
 PASS bitvectors-hexadecimal-literal
 FAIL bitvectors-indexing
 FAIL bitvectors-matching
-FAIL bitvectors-nested-comparison
+PASS bitvectors-nested-comparison
 PASS bitvectors-ones
 PASS bitvectors-parameter
 PASS bitvectors-register
@@ -175,4 +175,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:165 FAIL:12
+PASS:166 FAIL:11
