@@ -151,6 +151,10 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
     end
 
 
+let translate_unit_equality () : PP.document GC.t =
+  GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_true ()
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -173,6 +177,7 @@ let translate
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") "(bop.relop bop.eq)" pp_arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") "(bop.relop bop.neq)" pp_arguments
+  | "eq_unit"      -> GC.pp_annotate [%here] @@ translate_unit_equality ()
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
