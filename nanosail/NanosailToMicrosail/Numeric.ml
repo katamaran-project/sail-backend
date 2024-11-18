@@ -34,7 +34,7 @@ end = struct
    | True                          -> GC.return @@ PP.annotate [%here] @@ PP.string "true"
    | False                         -> GC.return @@ PP.annotate [%here] @@ PP.string "false"
    | Equal (_x, _y)                -> GC.not_yet_implemented [%here]
-   | NotEqual  (_x, _y)            -> GC.not_yet_implemented [%here]
+   | NotEqual (_x, _y)             -> GC.not_yet_implemented [%here]
    | GreaterThanOrEqualTo (_x, _y) -> GC.not_yet_implemented [%here]
    | GreaterThan (_x, _y)          -> GC.not_yet_implemented [%here]
    | LessThanOrEqualTo (_x, _y)    -> GC.not_yet_implemented [%here]
