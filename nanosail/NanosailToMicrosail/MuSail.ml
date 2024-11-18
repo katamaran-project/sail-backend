@@ -1,6 +1,12 @@
 open Base
 
 
+module Operator = struct
+  let bitvector_signed_less_than             = PP.string "<ˢ"
+  let bitvector_signed_less_than_or_equal_to = PP.string "<=ˢ"
+end
+
+
 module Pattern = struct
   (*
     pat_var "<identifier>"
