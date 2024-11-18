@@ -1,8 +1,10 @@
 open Base
 open Monads.Notations.Star(GenerationContext)
 
-module GC = GenerationContext
-
+module GC = struct
+  include GenerationContext
+  include Monads.Util.Make(GenerationContext)
+end
 
 
 let report_incorrect_argument_count
@@ -103,18 +105,21 @@ let translate_as_binary_operator
 
 
 let translate
-    (function_identifier : Ast.Identifier.t )
-    (arguments           : PP.document list ) : PP.document GC.t
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
+  let* pp_arguments =
+    GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+  in
   match Ast.Identifier.string_of function_identifier with
   | "add_bits_int" -> begin
       (* todo check this; could need to be bitvector addition, which does not use + (see Expressions.v in Katamaran codebase) *)
       GC.pp_annotate [%here] begin
-        translate_as_binary_operator_using_infix_notation function_identifier "+" arguments
+        translate_as_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
-  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.bvadd)" arguments
-  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" arguments
-  | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier arguments
+  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.bvadd)" pp_arguments
+  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" pp_arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_as_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
+  | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments

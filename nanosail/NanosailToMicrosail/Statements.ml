@@ -378,11 +378,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PP.document GC.t
     =
-    let* pretty_printed_arguments =
-      GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
-    in
     GC.pp_annotate [%here] begin
-        FunctionCalls.translate function_identifier pretty_printed_arguments
+        FunctionCalls.translate function_identifier arguments
       end
 
   and pp_let_statement
