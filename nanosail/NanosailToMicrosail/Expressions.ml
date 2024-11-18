@@ -24,10 +24,10 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | Or                                                   -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.disjunction
   | EqualTo                                              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.equality
   | NotEqualTo                                           -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.inequality
-  | LessThan                                             -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than
-  | GreaterThan                                          -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
-  | LessThanOrEqualTo                                    -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
-  | GreaterThanOrEqualTo                                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
+  | StandardComparison LessThan                          -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than
+  | StandardComparison GreaterThan                       -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
+  | StandardComparison LessThanOrEqualTo                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
+  | StandardComparison GreaterThanOrEqualTo              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
   | BitvectorComparison (Signed, LessThan)               -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than
   | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than_or_equal_to
   | BitvectorComparison (Signed, GreaterThan)            -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_greater_than

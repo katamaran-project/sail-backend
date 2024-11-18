@@ -34,10 +34,7 @@ type t =
   | Append
   | EqualTo
   | NotEqualTo
-  | LessThanOrEqualTo
-  | LessThan
-  | GreaterThanOrEqualTo
-  | GreaterThan
+  | StandardComparison of Comparison.t
   | BitvectorComparison of Signedness.t * Comparison.t
 
 
@@ -53,10 +50,13 @@ let to_fexpr (operator : t) : FExpr.t =
    | Append               -> FExpr.mk_symbol "Append"
    | EqualTo              -> FExpr.mk_symbol "EqualTo"
    | NotEqualTo           -> FExpr.mk_symbol "NotEqualTo"
-   | LessThanOrEqualTo    -> FExpr.mk_symbol "LessThanOrEqualTo"
-   | LessThan             -> FExpr.mk_symbol "LessThan"
-   | GreaterThanOrEqualTo -> FExpr.mk_symbol "GreaterThanOrEqualTo"
-   | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
+   | StandardComparison c -> begin
+       let positional = [
+         Comparison.to_fexpr c
+       ]
+       in
+       FExpr.mk_application ~positional "StandardComparison"
+     end
    | BitvectorComparison (signedness, comparison) -> begin
        let positional = [
          Signedness.to_fexpr signedness;

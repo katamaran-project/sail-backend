@@ -1045,10 +1045,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | "add_atom"  -> statement_of_binary_operation Plus
     | "sub_atom"  -> statement_of_binary_operation Minus
     | "mult_atom" -> statement_of_binary_operation Times
-    | "lt_int"    -> statement_of_binary_operation LessThan
-    | "lteq_int"  -> statement_of_binary_operation LessThanOrEqualTo
-    | "gt_int"    -> statement_of_binary_operation GreaterThan
-    | "gteq_int"  -> statement_of_binary_operation GreaterThanOrEqualTo
+    | "lt_int"    -> statement_of_binary_operation @@ StandardComparison LessThan
+    | "lteq_int"  -> statement_of_binary_operation @@ StandardComparison LessThanOrEqualTo
+    | "gt_int"    -> statement_of_binary_operation @@ StandardComparison GreaterThan
+    | "gteq_int"  -> statement_of_binary_operation @@ StandardComparison GreaterThanOrEqualTo
     | "eq_int"    -> statement_of_binary_operation EqualTo
     | "neq_int"   -> statement_of_binary_operation NotEqualTo
     | _           -> statement_of_generic_function_call ()
