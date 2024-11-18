@@ -267,6 +267,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     match compile_time_digits with
     | Some bits -> begin
         (* Compute the value represented by the bits *)
+        let size =
+          List.length bits
+        in
         let value =
           let two   = Z.of_int 2
           and ( + ) = Z.add
@@ -276,7 +279,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         in
         GC.return begin
           MuSail.Expression.pp_bitvector
-            ~size:(List.length bits)
+            ~size
             ~value
         end
       end
