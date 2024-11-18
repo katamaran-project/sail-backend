@@ -16,7 +16,8 @@ module Operator = struct
   let greater_than                           = PP.rangle
   let less_than_or_equal_to                  = PP.(horizontal [langle; equals])
   let greater_than_or_equals_to              = PP.(horizontal [rangle; equals])
-  let bitvector_signed_less_than_or_equal_to = PP.string "<ˢ"
+  let bitvector_signed_less_than             = PP.string "<ˢ"
+  let bitvector_signed_less_than_or_equal_to = PP.string "<=ˢ"
 end
 
 let arrow = PP.string "->"

@@ -32,6 +32,7 @@ let convert_comparison_operator
   =
   match left_signedness, right_signedness, binary_operator with
   | Signed, Signed, Ast.BinaryOperator.LessThan -> Some Ast.BinaryOperator.BitvectorSignedLessThan
+  | Signed, Signed, Ast.BinaryOperator.LessThanOrEqualTo -> Some Ast.BinaryOperator.BitvectorSignedLessThanOrEqualTo
   | _ -> None
 
 

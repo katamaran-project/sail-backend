@@ -28,7 +28,8 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | GreaterThan             -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
   | LessThanOrEqualTo       -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
   | GreaterThanOrEqualTo    -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
-  | BitvectorSignedLessThan -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.bitvector_signed_less_than_or_equal_to
+  | BitvectorSignedLessThan -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.bitvector_signed_less_than
+  | BitvectorSignedLessThanOrEqualTo -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.bitvector_signed_less_than_or_equal_to
   | Pair                    -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
   | Cons                    -> GC.not_yet_implemented [%here] (* Should not occur *)
   | Append                  -> GC.not_yet_implemented [%here] (* Should not occur *)
