@@ -95,13 +95,13 @@ let translate_binary_operator_using_function_notation
 
 let translate_binary_operator 
     (original_function_name : Ast.Identifier.t)
-    (infix_operator         : string          )
+    (infix_operator         : string option   )
     (function_operator      : string          )
     (operands               : PP.document list) : PP.document GC.t
   =
-  if Configuration.(get pretty_print_binary_operators)
-  then translate_binary_operator_using_infix_notation original_function_name infix_operator operands
-  else translate_binary_operator_using_function_notation original_function_name function_operator operands
+  match Configuration.(get pretty_print_binary_operators), infix_operator with
+  | true, Some infix_operator -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
+  | _                         -> translate_binary_operator_using_function_notation original_function_name function_operator operands
 
 
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -165,11 +165,11 @@ let translate
         translate_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
-  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "+ᵇ" "(bop.bvadd)" pp_arguments
-  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "&" "(bop.bvand)" pp_arguments
+  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") "(bop.bvadd)" pp_arguments
+  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvand)" pp_arguments
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") "(bop.relop bop.eq)" pp_arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") "(bop.relop bop.neq)" pp_arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
   | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
