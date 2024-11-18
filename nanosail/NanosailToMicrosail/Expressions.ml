@@ -267,13 +267,17 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     match compile_time_digits with
     | Some bits -> begin
         (* Compute the value represented by the bits *)
-        let bits_value =
-          List.fold bits ~init:0 ~f:(fun acc bit -> acc * 2 + (if bit then 1 else 0))
+        let value =
+          let two   = Z.of_int 2
+          and ( + ) = Z.add
+          and ( * ) = Z.mul
+          in
+          List.fold bits ~init:Z.zero ~f:(fun acc bit -> acc * two + (if bit then Z.one else Z.zero))
         in
         GC.return begin
           MuSail.Expression.pp_bitvector
             ~size:(List.length bits)
-            ~value:bits_value
+            ~value
         end
       end
     | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown digits not supported yet" [%here]

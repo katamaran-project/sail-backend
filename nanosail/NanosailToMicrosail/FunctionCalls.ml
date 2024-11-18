@@ -107,7 +107,7 @@ let translate_as_binary_operator
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:0
+      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
     end
   | [ argument ] -> begin
       let message =
@@ -130,7 +130,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
       let size = Z.to_int n
-      and value = Int.shift_left 1 (Z.to_int n) - 1
+      and value = Z.sub (Z.shift_left Z.one (Z.to_int n)) Z.one
       in
       GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
     end

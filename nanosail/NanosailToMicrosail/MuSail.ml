@@ -163,7 +163,7 @@ module Expression = struct
   *)
   let pp_bitvector
       ~(size  : int)
-      ~(value : int) : PP.document
+      ~(value : Z.t) : PP.document
     =
     let pp_type =
       PP.separate_horizontally ~separator:PP.space [ PP.string "ty.bvec"; PP.string @@ Int.to_string size ]
@@ -172,7 +172,7 @@ module Expression = struct
       PP.(surround brackets) begin
         Coq.pp_application
           (PP.string "bv")
-          [PP.string @@ Int.to_string value]
+          [PP.string @@ Z.to_string value]
       end
     in
     PP.annotate [%here] begin
