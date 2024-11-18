@@ -8,6 +8,7 @@ let tests =
     PrecedenceFormatterTests.test_suite;
     ExtendedIntegerTests.test_suite;
     ConvertBitsToZTests.test_suite;
+    NumericExpressionPrettyPrintingTests.test_suite;
   ]
 
 
