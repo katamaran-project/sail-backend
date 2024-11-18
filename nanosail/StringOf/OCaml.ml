@@ -7,7 +7,7 @@ let position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
 
 let list
     (string_of_element : 'a -> string)
-    (elements          : string list ) : string
+    (elements          : 'a list     ) : string
   =
   let elements' =
     List.map ~f:string_of_element elements
