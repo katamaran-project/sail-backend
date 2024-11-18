@@ -92,10 +92,10 @@ let translate_as_binary_operator_using_function_notation
 
 
 let translate_as_binary_operator 
-    (original_function_name : Ast.Identifier.t )
-    (infix_operator         : string           )
-    (function_operator      : string           )
-    (operands               : PP.document list ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t)
+    (infix_operator         : string          )
+    (function_operator      : string          )
+    (operands               : PP.document list) : PP.document GC.t
   =
   if Configuration.(get pretty_print_binary_operators)
   then translate_as_binary_operator_using_infix_notation original_function_name infix_operator operands
