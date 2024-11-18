@@ -13,3 +13,4 @@ module PrecedenceFormatter = PrecedenceFormatter
 module FExpr               = FExpr
 module Document            = Document
 module Html                = Html
+module StringOf            = StringOf
