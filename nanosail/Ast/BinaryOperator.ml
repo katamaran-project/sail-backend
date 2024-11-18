@@ -1,11 +1,11 @@
-type signedness = Signed | Unsigned
+module Signedness = struct
+  type t = Signed | Unsigned
 
-
-let signedness_to_fexpr (signedness : signedness) : FExpr.t =
-  match signedness with
-  | Signed   -> FExpr.mk_symbol "Signed"
-  | Unsigned -> FExpr.mk_symbol "Unsigned"
-
+  let to_fexpr (signedness : t) : FExpr.t =
+    match signedness with
+    | Signed   -> FExpr.mk_symbol "Signed"
+    | Unsigned -> FExpr.mk_symbol "Unsigned"
+end
 
 module Comparison = struct
   type t =
@@ -38,7 +38,7 @@ type t =
   | LessThan
   | GreaterThanOrEqualTo
   | GreaterThan
-  | BitvectorComparison of signedness * Comparison.t
+  | BitvectorComparison of Signedness.t * Comparison.t
 
 
 let to_fexpr (operator : t) : FExpr.t =
@@ -59,7 +59,7 @@ let to_fexpr (operator : t) : FExpr.t =
    | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
    | BitvectorComparison (signedness, comparison) -> begin
        let positional = [
-         signedness_to_fexpr signedness;
+         Signedness.to_fexpr signedness;
          Comparison.to_fexpr comparison
        ]
        in
