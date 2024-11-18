@@ -47,6 +47,13 @@ module Map = struct
 
   let overwrite map ~key ~data =
     Base.Map.update map key ~f:(fun _ -> data)
+
+  let map_values ~f map =
+    let pairs = to_alist map
+    in
+    let updated_pairs = List.map ~f:(fun (k, v) -> (k, f v)) pairs
+    in
+    of_alist_exn updated_pairs
 end
 
 include Impl
