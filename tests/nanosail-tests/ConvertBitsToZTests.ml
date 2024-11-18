@@ -33,6 +33,7 @@ let test_convert_bits_to_z =
     ([1; 0; 1], Z.of_int 5);
     ([1; 1; 0], Z.of_int 6);
     ([1; 1; 1], Z.of_int 7);
+    ([1;1;1;0;0;0;0;1;0;1;1;0;1;0;0;0;0;0;1;0;0], Z.of_int 1846532);
   ]
   in
   "convert bits to z tests" >::: List.map ~f:(Auxlib.uncurry check) test_cases
@@ -40,5 +41,5 @@ let test_convert_bits_to_z =
 
 let test_suite =
   "substitution test suite" >::: [
-    test_convert_bits_to_z
+    test_convert_bits_to_z;
   ]
