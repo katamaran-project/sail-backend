@@ -7,6 +7,7 @@ let tests =
     SubstitutionTests.test_suite;
     PrecedenceFormatterTests.test_suite;
     ExtendedIntegerTests.test_suite;
+    ConvertBitsToZTests.test_suite;
   ]
 
 
