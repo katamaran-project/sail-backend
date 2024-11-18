@@ -1,3 +1,22 @@
+type signedness = Signed | Unsigned
+
+
+module Comparison = struct
+  type t =
+    | LessThanOrEqualTo
+    | LessThan
+    | GreaterThanOrEqualTo
+    | GreaterThan
+
+  let to_fexpr (comparison : t) : FExpr.t =
+    match comparison with
+    | LessThanOrEqualTo    -> FExpr.mk_symbol "LessThanOrEqualTo"
+    | LessThan             -> FExpr.mk_symbol "LessThan"
+    | GreaterThanOrEqualTo -> FExpr.mk_symbol "GreaterThanOrEqualTo"
+    | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
+end
+  
+
 type t =
   | Plus
   | Times
