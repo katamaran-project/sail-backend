@@ -37,7 +37,7 @@ let report_incorrect_argument_count
   end
 
 
-let translate_as_unary_operator
+let translate_unary_operator
     (original_function_name : Ast.Identifier.t )
     (operator               : string           )
     (operands               : PP.document list ) : PP.document GC.t
@@ -167,7 +167,7 @@ let translate
     end
   | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "+ᵇ" "(bop.bvadd)" pp_arguments
   | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "&" "(bop.bvand)" pp_arguments
-  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_as_unary_operator function_identifier "uop.not" pp_arguments
+  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.not" pp_arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "=" "(bop.relop bop.eq)" pp_arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier "!=" "(bop.relop bop.neq)" pp_arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
