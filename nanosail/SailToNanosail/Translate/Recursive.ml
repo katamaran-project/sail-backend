@@ -106,8 +106,8 @@ end = struct
     and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
       | [ Ast.TypeArgument.Type t ] -> TC.return @@ Ast.Type.List t
-      | [ _ ]                       -> TC.fail [%here] "List argument expected to be type"
-      | _                           -> TC.fail [%here] "List should receive exactly one argument"
+      | [ _ ]                       -> TC.fail [%here] "list argument expected to be type"
+      | _                           -> TC.fail [%here] "list should receive exactly one argument"
 
     and nanotype_of_bits (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
