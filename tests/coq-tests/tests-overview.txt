@@ -13,9 +13,13 @@ PASS bitvectors-addition-infix
 PASS bitvectors-alias
 PASS bitvectors-binary-literal
 FAIL bitvectors-comparison-ge-signed
+FAIL bitvectors-comparison-ge-unsigned
 FAIL bitvectors-comparison-gt-signed
+FAIL bitvectors-comparison-gt-unsigned
 FAIL bitvectors-comparison-le-signed
+FAIL bitvectors-comparison-le-unsigned
 PASS bitvectors-comparison-lt-signed
+FAIL bitvectors-comparison-lt-unsigned
 PASS bitvectors-conjunction
 PASS bitvectors-disjunction
 PASS bitvectors-hexadecimal-literal
@@ -170,4 +174,4 @@ FAIL unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:158 FAIL:14
+PASS:158 FAIL:18
