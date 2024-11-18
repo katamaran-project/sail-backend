@@ -12,7 +12,7 @@ module Subst = struct
       | Neg operand          -> Neg (aux operand)
       | Id identifier        -> Id (subst identifier)
       | Var identifier       -> Var (subst identifier)
-      | PowerOf2 x           -> PowerOf2 (numeric_expression x)
+      | PowerOf2 x           -> PowerOf2 (aux x)
     in
     aux
 
