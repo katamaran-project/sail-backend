@@ -67,6 +67,15 @@ let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
                       end
                     | None -> pass_through ()
                   end
+                  else if
+                    Ast.Identifier.equal var1 v2 && Ast.Identifier.equal var2 v1
+                  then
+                    (* todo check this case; may be difficult to write a test for though *)
+                    match convert_comparison_operator left_signedness right_signedness binary_operator with
+                    | Some operator -> begin
+                        Ast.Statement.Expression (Ast.Expression.BinaryOperation (operator, expr2, expr1))
+                      end
+                    | None -> pass_through ()
                   else
                     pass_through ()
                 end
