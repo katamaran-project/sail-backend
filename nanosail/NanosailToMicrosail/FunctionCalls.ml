@@ -168,6 +168,7 @@ let translate
   | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") "(bop.bvadd)" pp_arguments
   | "sub_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") "(bop.bvsub)" pp_arguments
   | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvand)" pp_arguments
+  | "or_vec"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvor)" pp_arguments
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") "(bop.relop bop.eq)" pp_arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") "(bop.relop bop.neq)" pp_arguments
