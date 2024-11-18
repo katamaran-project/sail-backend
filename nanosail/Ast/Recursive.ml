@@ -13,6 +13,7 @@ module NumericExpression = struct
     | Minus    of t * t
     | Times    of t * t
     | Neg      of t
+    | PowerOf2 of t
     | Id       of Identifier.t
     | Var      of Identifier.t
 
@@ -24,6 +25,7 @@ module NumericExpression = struct
     | Minus (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
     | Times (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
     | Neg e          -> Printf.sprintf "-%s" (to_string e)
+    | PowerOf2 e     -> Printf.sprintf "2^(%s)" (to_string e)
     | Id id          -> Identifier.string_of id
     | Var id         -> Identifier.string_of id
 
@@ -55,6 +57,11 @@ module NumericExpression = struct
         | Neg x' -> equal x x'
         | _      -> false
       end
+    | PowerOf2 x -> begin
+        match t2 with
+        | PowerOf2 x' -> equal x x'
+        | _           -> false
+      end
     | Id x -> begin
         match t2 with
         | Id x' -> Identifier.equal x x'
@@ -77,6 +84,7 @@ module NumericExpression = struct
      | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Minus"
      | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Times"
      | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
+     | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"
      | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Id"
      | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Var"
 end
