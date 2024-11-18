@@ -132,6 +132,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
    | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
    | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
    | Sum (_, _)                       -> GC.not_yet_implemented [%here]
+   | Range (_, _)                     -> GC.not_yet_implemented [%here]
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
@@ -197,6 +198,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does wh
   | Product (t1, t2)    -> GC.pp_annotate [%here] @@ coq_type_of_product t1 t2
   | Bit                 -> GC.not_yet_implemented [%here]
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
+  | Range (_, _)        -> GC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
   match type_argument with

@@ -100,8 +100,18 @@ end = struct
 
     and nanotype_of_range (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with
-      | [ lower_bound; upper_bound ] -> TC.not_yet_implemented [%here] location
-      | _                            -> TC.fail [%here] "range should have exactly two arguments"
+      | [ Ast.TypeArgument.NumericExpression lower_bound; Ast.TypeArgument.NumericExpression upper_bound ] -> begin
+          TC.return @@ Ast.Type.Range (lower_bound, upper_bound)
+        end
+      | _                            -> begin
+          let message =
+            let args' =
+              String.concat ~sep:", " @@ List.map ~f:(fun arg -> FExpr.to_string @@ Ast.TypeArgument.to_fexpr arg) args
+            in
+            Printf.sprintf "range should have exactly two arguments of type numeric_expression; instead got %s" args'
+          in
+          TC.fail [%here] message
+        end
 
     and nanotype_of_list (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
       match args with

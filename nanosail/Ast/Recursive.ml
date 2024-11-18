@@ -113,6 +113,7 @@ module rec Type : sig
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
     | Alias       of Identifier.t * t
+    | Range       of NumericExpression.t * NumericExpression.t
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
@@ -154,7 +155,7 @@ end = struct
     | Record      of Identifier.t
     | Application of t * TypeArgument.t list
     | Alias       of Identifier.t * t
-
+    | Range       of NumericExpression.t * NumericExpression.t
 
   let rec to_string (t : t) : string =
     match t with
@@ -182,6 +183,7 @@ end = struct
         in
         Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
       end
+    | Range (lower, upper) -> Printf.sprintf "Type.Range(%s, %s)" (NumericExpression.to_string lower) (NumericExpression.to_string upper)
 
 
   let rec to_fexpr (t : t) : FExpr.t =
@@ -212,7 +214,16 @@ end = struct
         FExpr.mk_application ~positional @@ prefix "Application"
       end
     | Alias (_, _)       -> FExpr.mk_application ~positional:[FExpr.mk_string "TODO"]             @@ prefix "Alias"
-
+    | Range (a, b)       -> begin
+        let positional =
+          [
+            NumericExpression.to_fexpr a;
+            NumericExpression.to_fexpr b;
+          ]
+        in
+        FExpr.mk_application ~positional @@ prefix "Range"
+      end
+  
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1 with
@@ -289,6 +300,11 @@ end = struct
     | Alias (x, y) -> begin
         match t2 with
         | Alias (x', y') -> Identifier.equal x x' && equal y y'
+        | _              -> false
+      end
+    | Range (x, y) -> begin
+        match t2 with
+        | Range (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'
         | _              -> false
       end
 end
