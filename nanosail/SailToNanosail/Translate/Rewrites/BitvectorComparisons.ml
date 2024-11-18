@@ -1,14 +1,12 @@
-type signedness =
-  | Signed
-  | Unsigned
+module Signedness = Ast.BinaryOperator.Signedness
 
 
 type bitvector_conversion =
-  | Conversion of signedness * Ast.Expression.t
+  | Conversion of Signedness.t * Ast.Expression.t
   | SomethingElse
 
 
-let string_of_signedness (signedness : signedness) =
+let string_of_signedness (signedness : Signedness.t) =
   match signedness with
   | Signed   -> "signed"
   | Unsigned -> "unsigned"
@@ -26,8 +24,8 @@ let identify_bitvector_conversion (statement : Ast.Statement.t) : bitvector_conv
 
 
 let convert_comparison_operator
-    (left_signedness  : signedness          )
-    (right_signedness : signedness          )
+    (left_signedness  : Signedness.t        )
+    (right_signedness : Signedness .t       )
     (binary_operator  : Ast.BinaryOperator.t) : Ast.BinaryOperator.t option
   =
   match left_signedness, right_signedness, binary_operator with
