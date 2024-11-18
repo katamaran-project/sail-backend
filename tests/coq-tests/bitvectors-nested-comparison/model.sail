@@ -7,8 +7,8 @@ type word = bits(32)
 
 
 val bar : bool -> bool
-function bar(x, y) = {
-  x & y
+function bar(x) = {
+  x
 }
 
 
