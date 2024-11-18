@@ -47,7 +47,7 @@ let convert_comparison_operator
 
 let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
   match statement with
-  | Ast.Statement.Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
+  | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
       let pass_through () =
         Ast.Statement.Let {
           variable_identifier;
@@ -95,12 +95,72 @@ let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
         end
       | _ -> pass_through ()
     end
-  | Ast.Statement.Match _ -> statement
-  | Ast.Statement.Expression _ -> statement
-  | Ast.Statement.Call (_, _) -> statement
-  | Ast.Statement.DestructureRecord _ -> statement
-  | Ast.Statement.Seq (_, _) -> statement
-  | Ast.Statement.ReadRegister _ -> statement
-  | Ast.Statement.WriteRegister _ -> statement
-  | Ast.Statement.Cast (_, _) -> statement
-  | Ast.Statement.Fail _ -> statement
+  | Match pattern -> begin
+      match pattern with
+      | MatchList { matched; when_cons; when_nil } -> begin
+          let id1, id2, when_cons_body = when_cons
+          in
+          Match begin
+            MatchList {
+              matched = rewrite matched;
+              when_cons = (id1, id2, rewrite when_cons_body);
+              when_nil = rewrite when_nil;
+            }
+          end
+        end
+      | MatchProduct { matched; id_fst; id_snd; body } -> begin
+          Match begin
+            MatchProduct {
+              matched = rewrite matched;
+              id_fst;
+              id_snd;
+              body = rewrite body
+            }
+          end
+        end
+      | MatchBool { condition; when_true; when_false } -> begin
+          Match begin
+            MatchBool {
+              condition = rewrite condition;
+              when_true = rewrite when_true;
+              when_false = rewrite when_false;
+            }
+          end
+        end
+      | MatchEnum { matched; matched_type; cases } -> begin
+          Match begin
+            MatchEnum {
+              matched = matched;
+              matched_type;
+              cases = Ast.Identifier.Map.map_values ~f:rewrite cases
+            }
+          end
+        end
+      | MatchVariant { matched; matched_type; cases } -> begin
+          Match begin
+            MatchVariant {
+              matched;
+              matched_type;
+              cases = Ast.Identifier.Map.map_values ~f:(fun (ks, stm) -> (ks, rewrite stm)) cases
+            }
+          end
+        end
+    end
+  | Expression _ -> statement
+  | Call (_, _) -> statement
+  | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
+      DestructureRecord {
+        record_type_identifier;
+        field_identifiers;
+        variable_identifiers;
+        destructured_record = rewrite destructured_record;
+        body = rewrite body;
+      }
+    end    
+  | Seq (stm1, stm2) -> begin
+      Seq (rewrite stm1, rewrite stm2)
+    end
+  | ReadRegister _ -> statement
+  | WriteRegister _ -> statement
+  | Cast (stm, typ) -> Cast (rewrite stm, typ)
+  | Fail _ -> statement
