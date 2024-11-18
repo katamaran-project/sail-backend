@@ -17,21 +17,6 @@ let warning message =
   log message
 
 
-(* todo move to better place *)
-(* let try_finally *)
-(*     (f       : unit -> 'a  ) *)
-(*     (finally : unit -> unit) : 'a = *)
-(*   try *)
-(*     let result = f () *)
-(*     in *)
-(*     finally (); *)
-(*     result *)
-(*   with e -> begin *)
-(*       finally (); *)
-(*       raise e *)
-(*     end *)
-
-
 let surround
     (logger   : string lazy_t -> unit )
     (position : Lexing.position       )
