@@ -318,8 +318,8 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_ge            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
   and bool_expression_of_equal _ _     = not_yet_implemented [%here] location
   and bool_expression_of_not_equal _ _ = not_yet_implemented [%here] location
-  in
-  
+
+  in  
   match unwrapped_numeric_constraint with
   | NC_lt (left, right)         -> bool_expression_of_lt left right
   | NC_le (left, right)         -> bool_expression_of_le left right
@@ -487,7 +487,7 @@ let determine_extended_type
   let (result, _final_state) = Monad.run monad State.initial
   in
   match result with
-  | Monad.Success t                                                                    -> TC.return t
+  | Monad.Success t -> TC.return t
   | Monad.Failure (Error.NotYetImplemented (ocaml_location, source_location, message)) -> begin
       match message with
       | Some message -> TC.not_yet_implemented ~message:message ocaml_location source_location
