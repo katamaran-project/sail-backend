@@ -30,11 +30,11 @@ register r3 : RegisterContents = SimpleVal(0)
 register r4 : RegisterContents = SimpleVal(0)
 
 register pc  : Capability = struct {
-                              range_start = 0,
-                              range_end = 0,
-                              pointer = 0,
-                              read_access = false,
-                              write_access = false,
+                              range_start    = 0,
+                              range_end      = 0,
+                              pointer        = 0,
+                              read_access    = false,
+                              write_access   = false,
                               execute_access = false
                             }
 register cmp : Comparison = Equal
