@@ -109,6 +109,18 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
       GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
     end
+  | [ Ast.Expression.Variable id ] -> begin
+      let* program = GC.get_program
+      in
+      match Ast.Definition.Select.(select (value_definition ~identifier:id) program.definitions) with
+      | [ (_, value_definition) ] -> begin
+          match value_definition.value with
+          | Int n -> GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
+          | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.string_of id)
+        end
+      | []        -> GC.fail @@ Printf.sprintf "unknown identifier %s" (Ast.Identifier.string_of id)
+      | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of id)
+    end
   | [ argument ] -> begin
       let message =
         let formatted_argument =
@@ -134,6 +146,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
       in
       GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
     end
+  (* todo allow variable lookup; write tests *)
   | [ argument ] -> begin
       let message =
         let formatted_argument =
