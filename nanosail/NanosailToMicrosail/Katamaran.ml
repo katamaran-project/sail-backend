@@ -23,6 +23,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   val function_definitions                     = Ast.Definition.Select.(select function_definition                  intermediate_representation.definitions)
   val top_level_type_constraint_definitions    = Ast.Definition.Select.(select top_level_type_constraint_definition intermediate_representation.definitions)
 
+  method program                               = intermediate_representation
   method all_definitions                       = all_definitions
   method type_definitions                      = type_definitions
   method enum_definitions                      = enum_definitions
@@ -228,5 +229,5 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
   GC.return @@ PP.(paragraphs sections)
 
 
-let full_translation (ir : Ast.program) : PP.document =
-  PP.annotate [%here] @@ GC.generate @@ pretty_print ir
+let full_translation (program : Ast.program) : PP.document =
+  PP.annotate [%here] @@ GC.generate program @@ pretty_print program

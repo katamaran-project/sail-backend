@@ -30,3 +30,6 @@ let tuple_to_list (t : Type.t) : Type.t list =
 type program = {
     definitions  : (Sail.sail_definition * Definition.t) list   (* All translated definitions; original order preserved *)
   }
+
+
+let empty_program = { definitions = [] }

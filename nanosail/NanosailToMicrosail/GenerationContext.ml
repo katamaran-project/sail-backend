@@ -9,7 +9,7 @@ end
 type annotation     = Annotation of PP.document
 type comment        = Comment of PP.document
 type frame          = annotation list * comment list
-type state          = frame list * int
+type state          = frame list * int * Ast.program
 
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
 type   'a t         = 'a Monad.t
@@ -24,18 +24,18 @@ let act             = Monad.act
 let update          = Monad.update
 
 
-let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Pair.first id             )
-let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Pair.first id)
-let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame     )
-let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame     )
-let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Pair.second id            )
+let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Triple.first id             )
+let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Triple.first id)
+let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame       )
+let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame       )
+let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Triple.second id            )
 
 exception FrameException of string
 
 open Monads.Notations.Star(Monad)
 
 
-let initial_state : state = ([], 0)
+let mk_initial_state (program : Ast.program) : state = ([], 0, program)
 
 
 let log
@@ -245,7 +245,10 @@ let generation_block'
 
 
 (* Computes the document described by f *)
-let generate (f : PP.document t) : PP.document =
+let generate
+      (program : Ast.program  )
+      (f       : PP.document t) : PP.document
+  =
   let result, _ =
     (* Add an extra check to f to ensure there are no open frames left *)
     let wrapped_f =
@@ -254,7 +257,7 @@ let generate (f : PP.document t) : PP.document =
       in
       return result
     in
-    Monad.run wrapped_f initial_state
+    Monad.run wrapped_f @@ mk_initial_state program
   in
   match result with
   | Monad.Success result -> result

@@ -76,7 +76,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     let id = "base-translation"
     in
     let f () =
-      EC.return @@ string_of_document @@ GC.generate translation#pp_base
+      EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_base
     in
     nullary_string_function id f
   in
@@ -85,7 +85,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     let id = "base-html-translation"
     in
     let f () =
-      EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#pp_base
+      EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_base
     in
     nullary_string_function id f
   in
@@ -94,7 +94,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     let id = "program-translation"
     in
     let f () =
-      EC.return @@ string_of_document @@ GC.generate translation#pp_program
+      EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_program
     in
     nullary_string_function id f
   in
@@ -103,7 +103,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     let id = "program-html-translation"
     in
     let f () =
-      EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#pp_program
+      EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_program
     in
     nullary_string_function id f
   in
@@ -125,7 +125,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
           in
           GC.return @@ PP.paragraphs ignored_definitions'
         in
-        GC.generate result
+        GC.generate translation#program result
       in
       EC.return @@ string_of_document formatted_ignored_definitions
     in
