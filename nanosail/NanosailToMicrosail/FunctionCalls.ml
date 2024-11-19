@@ -139,13 +139,13 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
         let formatted_argument =
           FExpr.to_string @@ Ast.Expression.to_fexpr argument
         in
-        Printf.sprintf "expected sail_zeros to receive an integer argument; instead got %s" formatted_argument
+        Printf.sprintf "expected sail_ones to receive an integer argument; instead got %s" formatted_argument
       in
       GC.fail message
     end
   | _ -> begin
       let message =
-        Printf.sprintf "expected sail_zeros to receive exactly one argument; instead for %d" (List.length arguments)
+        Printf.sprintf "expected sail_ones to receive exactly one argument; instead for %d" (List.length arguments)
       in
       GC.fail message
     end
