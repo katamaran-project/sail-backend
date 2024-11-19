@@ -39,4 +39,4 @@ register PC : Capability = struct {
                              cap_cursor     = sail_zeros(64)
                            }
 
-function regname(i) : int -> string = concat_str_dec("R", i)
+// function regname(i) : int -> string = concat_str_dec("R", i)
