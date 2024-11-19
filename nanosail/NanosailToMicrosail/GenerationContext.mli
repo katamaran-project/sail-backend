@@ -25,3 +25,5 @@ val add_original_definition  : Sail.sail_definition -> unit t
 val add_original_definitions : Sail.sail_definition list -> unit t
 
 val log : (string lazy_t -> unit) -> string lazy_t -> unit t
+
+val get_program : Ast.program t

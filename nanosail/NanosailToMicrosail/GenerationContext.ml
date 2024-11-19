@@ -29,6 +29,7 @@ let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Ac
 let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame       )
 let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame       )
 let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Triple.second id            )
+let program     : (state, Ast.program    ) Monads.Accessors.accessor = Monads.Accessors.(Triple.third id             )
 
 exception FrameException of string
 
@@ -387,3 +388,7 @@ let pp_annotate
       (annotated : PP.document t  ) : PP.document t
   =
   lift ~f:(PP.annotate location) annotated
+
+
+let get_program : Ast.program t =
+  get program
