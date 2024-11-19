@@ -35,7 +35,7 @@ exception FrameException of string
 open Monads.Notations.Star(Monad)
 
 
-let initial_state = ([], 0)
+let initial_state : state = ([], 0)
 
 
 let log
