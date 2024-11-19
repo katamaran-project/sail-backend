@@ -80,8 +80,8 @@ union clause exception = CINCOFFSETOnEnterCapability : unit
 union clause exception = CSETBOUNDSOnEnterCapability : unit
 union clause exception = XFail : unit
 
-/*
-val writeReg : (regname, word) -> unit
+
+val writeReg : (regid, word) -> unit
 function writeReg(rs, w) = {
   match rs {
     0b00 => R0 = w,
@@ -90,4 +90,3 @@ function writeReg(rs, w) = {
     0b11 => R3 = w
   }
 }
-*/
