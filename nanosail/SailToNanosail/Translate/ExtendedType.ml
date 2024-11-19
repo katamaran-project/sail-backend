@@ -334,12 +334,12 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   | NC_or  (left, right)        -> bool_expression_of_or left right
   | NC_equal (left, right)      -> bool_expression_of_equal left right
   | NC_not_equal (left, right)  -> bool_expression_of_not_equal left right
-  | NC_var kid           -> begin
-       let Kid_aux (Var unwrapped_id, _id_location) = kid
-       in
-       let+ translated_id = binding unwrapped_id
-       in
-       Monad.return @@ Ast.ExtendedType.BoolExpression.Var translated_id
+  | NC_var kid -> begin
+      let Kid_aux (Var unwrapped_id, _id_location) = kid
+      in
+      let+ translated_id = binding unwrapped_id
+      in
+      Monad.return @@ Ast.ExtendedType.BoolExpression.Var translated_id
     end
 
 
