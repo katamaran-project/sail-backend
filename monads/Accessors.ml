@@ -44,6 +44,51 @@ module Pair = struct
 end
 
 
+module Triple = struct
+  let first (subaccessor : ('a, 'b * 'c * 'd) accessor) =
+    let (get', set') = subaccessor
+    in
+    let get value =
+      let (x, _, _) = get' value
+      in
+      x
+    and set value x =
+      let (_, y, z) = get' value
+      in
+      set' value (x, y, z)
+    in
+    (get, set)
+
+  let second (subaccessor : ('a, 'b * 'c * 'd) accessor) =
+    let (get', set') = subaccessor
+    in
+    let get value =
+      let (_, y, _) = get' value
+      in
+      y
+    and set value y =
+      let (x, _, z) = get' value
+      in
+      set' value (x, y, z)
+    in
+    (get, set)
+
+  let third (subaccessor : ('a, 'b * 'c * 'd) accessor) =
+    let (get', set') = subaccessor
+    in
+    let get value =
+      let (_, _, z) = get' value
+      in
+      z
+    and set value z =
+      let (x, y, _) = get' value
+      in
+      set' value (x, y, z)
+    in
+    (get, set)
+end
+
+
 module List = struct
   let head (subaccessor : ('a, 'b list) accessor) =
     let (get', set') = subaccessor
