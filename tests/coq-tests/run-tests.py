@@ -27,7 +27,8 @@ def wait_for_test(directory_name, path, process):
     
     stdout, stderr = process.communicate()
     result = process.returncode
-    print(f"""Test {directory_name}
+
+    log_message = f"""Test {directory_name}
 Exit code={result}
 Path={path}
     
@@ -38,13 +39,14 @@ STDERR
 #{stderr}
 
 --------------------------------------------------
-""", file=log)
+"""
 
     if result == 0:
         print(f"PASS {directory}", flush=True)
         pass_count += 1
     else:
         print(f"FAIL {directory}", flush=True)
+        print(log_message, file=log)
         fail_count += 1
 
 
