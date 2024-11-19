@@ -76,6 +76,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
   end
 
 let translate (ast : Sail.ast) : Ast.program =
+  Logging.debug @@ lazy "Translating Sail to Nanosail";
   let translate =
     let* () = Prelude.register_types ()
     in
