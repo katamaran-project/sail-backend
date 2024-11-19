@@ -66,6 +66,15 @@ PASS expressions-value-product
 PASS expressions-value-string
 PASS expressions-value-unit
 PASS expressions-variable
+PASS feature-anf
+PASS feature-arguments
+PASS feature-ifte
+FAIL feature-ifte2
+PASS feature-let
+PASS feature-pattern
+PASS feature-pattern2
+FAIL feature-pattern3
+PASS feature-pattern4
 PASS functions-binary
 PASS functions-bool-to-bit
 PASS functions-call
@@ -175,4 +184,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:167 FAIL:10
+PASS:174 FAIL:12
