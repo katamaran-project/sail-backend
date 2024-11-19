@@ -104,22 +104,32 @@ let translate_binary_operator
   | _                         -> translate_binary_operator_using_function_notation original_function_name function_operator operands
 
 
+(*
+  Looks for a value definition for <identifier>.
+  This function expects the value to be an integer; if not, it causes failure.
+*)                                                                                     
+let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
+  let* program = GC.get_program
+  in
+  match Ast.Definition.Select.(select (value_definition ~identifier:identifier) program.definitions) with
+  | [ (_, value_definition) ] -> begin
+      match value_definition.value with
+      | Int n -> GC.return @@ n
+      | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.string_of identifier)
+    end
+  | []        -> GC.fail @@ Printf.sprintf "unknown identifier %s" (Ast.Identifier.string_of identifier)
+  | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of identifier)
+
+
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
       GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
     end
-  | [ Ast.Expression.Variable id ] -> begin
-      let* program = GC.get_program
+  | [ Ast.Expression.Variable identifier ] -> begin
+      let* number_of_bits = lookup_integer_value_bound_to identifier
       in
-      match Ast.Definition.Select.(select (value_definition ~identifier:id) program.definitions) with
-      | [ (_, value_definition) ] -> begin
-          match value_definition.value with
-          | Int n -> GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
-          | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.string_of id)
-        end
-      | []        -> GC.fail @@ Printf.sprintf "unknown identifier %s" (Ast.Identifier.string_of id)
-      | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of id)
+      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int number_of_bits) ~value:Z.zero
     end
   | [ argument ] -> begin
       let message =
@@ -146,7 +156,14 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
       in
       GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
     end
-  (* todo allow variable lookup; write tests *)
+  | [ Ast.Expression.Variable identifier ] -> begin
+      let* number_of_bits = lookup_integer_value_bound_to identifier
+      in
+      let size = Z.to_int number_of_bits
+      and value = Z.sub (Z.shift_left Z.one (Z.to_int number_of_bits)) Z.one
+      in
+      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+    end
   | [ argument ] -> begin
       let message =
         let formatted_argument =
