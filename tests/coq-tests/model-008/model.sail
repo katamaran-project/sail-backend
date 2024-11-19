@@ -24,13 +24,20 @@ union RegisterContents = {
   SimpleVal : word
 }
 
-register r1 : RegisterContents
-register r2 : RegisterContents
-register r3 : RegisterContents
-register r4 : RegisterContents
+register r1 : RegisterContents = SimpleVal(0)
+register r2 : RegisterContents = SimpleVal(0)
+register r3 : RegisterContents = SimpleVal(0)
+register r4 : RegisterContents = SimpleVal(0)
 
-register pc  : Capability
-register cmp : Comparison
+register pc  : Capability = struct {
+                              range_start = 0,
+                              range_end = 0,
+                              pointer = 0,
+                              read_access = false,
+                              write_access = false,
+                              execute_access = false
+                            }
+register cmp : Comparison = Equal
 
 
 union Instruction = {
