@@ -454,7 +454,11 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
            let message =
              Printf.sprintf "Unknown type %s" string
            in
-           not_yet_implemented ~message [%here] location
+           Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+                               ocaml_location = [%here];
+                               sail_location  = location;
+                               annotation     = message
+                             }
          end
        | Operator _ -> not_yet_implemented [%here] location
      end
