@@ -132,7 +132,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
     end
   | _ -> begin
       let message =
-        Printf.sprintf "expected sail_zeros to receive exactly one argument; instead for %d" (List.length arguments)
+        Printf.sprintf "expected sail_zeros to receive exactly one argument; instead got %d" (List.length arguments)
       in
       GC.fail message
     end
@@ -158,7 +158,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
     end
   | _ -> begin
       let message =
-        Printf.sprintf "expected sail_ones to receive exactly one argument; instead for %d" (List.length arguments)
+        Printf.sprintf "expected sail_ones to receive exactly one argument; instead got %d" (List.length arguments)
       in
       GC.fail message
     end
