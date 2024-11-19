@@ -29,7 +29,10 @@ let nullary_boolean_function id func =
 
 
 let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
-  (* Allocate a refcell that holds a list of generated strings (in reverse order, for efficiency purposes) *)
+  (*
+    Allocate a refcell that holds a list of generated strings
+    (in reverse order, for efficiency reasons)
+  *)
   let* generated_output_reference =
     EC.heap_allocate Slang.Value.Nil
   in
