@@ -10,7 +10,9 @@ let info message =
 
 
 let debug message =
-  log message
+  if Configuration.(get verbose)
+  then log message
+  else ()
 
 
 let warning message =

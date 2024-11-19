@@ -1,6 +1,9 @@
 open Base
 
 
+let verbose = ref false
+
+
 let print_check_message () =
   Stdio.print_endline("The Katamaran plugin is functioning correctly")
 
@@ -22,8 +25,9 @@ module CLI = struct
       in
       String.concat ~sep:"_" ("-katamaran" :: words)
 
-    let check                = mk_option "check"
-    let config_file          = mk_option "config"
+    let check       = mk_option "check"
+    let config_file = mk_option "config"
+    let verbose     = mk_option "verbose"
   end
 end
 
@@ -36,14 +40,31 @@ let katamaran_options = [
   (CLI.Arg.config_file,
    Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
+  (CLI.Arg.verbose,
+   Stdlib.Arg.Set verbose,
+   "Verbose");
 ]
 
+
+let configure_verbosity () =
+  let verbosity_from_environment_variable () =
+    match Sys.getenv "KATAMARAN_VERBOSE" with
+    | Some _ -> Nanosail.Configuration.(set verbose true)
+    | None   -> ()
+  in
+  let verbosity_from_command_line () =
+    if !verbose then Nanosail.Configuration.(set verbose true)
+  in
+  verbosity_from_environment_variable ();
+  verbosity_from_command_line ()
+  
 
 (* Entry point for Katamaran target *)
 let katamaran_target
       (_     : string option                   )
       (state : Libsail.Interactive.State.istate)
   =
+  configure_verbosity ();
   let ast = state.ast
   in
   let translation = Nanosail.SailToNanosail.translate ast

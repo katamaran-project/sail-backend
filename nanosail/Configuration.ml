@@ -108,6 +108,8 @@ end
 
 include C.S
 
+let verbose = ConfigLib.Setting.mk false
+
 let load_configuration = C.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
