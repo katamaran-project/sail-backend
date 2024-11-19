@@ -96,12 +96,14 @@ let translate_binary_operator_using_function_notation
 let translate_binary_operator 
     (original_function_name : Ast.Identifier.t)
     (infix_operator         : string option   )
-    (function_operator      : string          )
+    (function_operator      : string option   )
     (operands               : PP.document list) : PP.document GC.t
   =
-  match Configuration.(get pretty_print_binary_operators), infix_operator with
-  | true, Some infix_operator -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
-  | _                         -> translate_binary_operator_using_function_notation original_function_name function_operator operands
+  match Configuration.(get pretty_print_binary_operators), infix_operator, function_operator with
+  | true , Some infix_operator, _                      -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
+  | false, Some infix_operator, None                   -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
+  | _    , _                  , Some function_operator -> translate_binary_operator_using_function_notation original_function_name function_operator operands
+  | _                                                  -> failwith "bug! this really shouldn't happen"
 
 
 (*
@@ -199,14 +201,15 @@ let translate
         translate_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
-  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") "(bop.bvadd)" pp_arguments
-  | "sub_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") "(bop.bvsub)" pp_arguments
-  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvand)" pp_arguments
-  | "or_vec"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvor)" pp_arguments
-  | "xor_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None "(bop.bvxor)" pp_arguments
+  | "eq_bits"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") None pp_arguments
+  | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") (Some "(bop.bvadd)") pp_arguments
+  | "sub_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") (Some "(bop.bvsub)") pp_arguments
+  | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvand)") pp_arguments
+  | "or_vec"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvor)") pp_arguments
+  | "xor_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvxor)") pp_arguments
   | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
-  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") "(bop.relop bop.eq)" pp_arguments
-  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") "(bop.relop bop.neq)" pp_arguments
+  | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") (Some "(bop.relop bop.eq)") pp_arguments
+  | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") (Some "(bop.relop bop.neq)") pp_arguments
   | "eq_unit"      -> GC.pp_annotate [%here] @@ translate_unit_equality ()
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
