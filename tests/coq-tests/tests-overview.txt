@@ -75,6 +75,13 @@ PASS feature-pattern
 PASS feature-pattern2
 FAIL feature-pattern3
 PASS feature-pattern4
+FAIL feature-pattern5
+PASS feature-rec
+PASS feature-types-and-literals
+PASS feature-types-and-literals-2
+FAIL feature-types-and-literals-3
+PASS feature-types-and-literals-4
+FAIL feature-types-and-literals-5
 PASS functions-binary
 PASS functions-bool-to-bit
 PASS functions-call
@@ -184,4 +191,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:174 FAIL:12
+PASS:178 FAIL:15
