@@ -3,9 +3,9 @@ default Order dec
 $include <prelude.sail>
 
 
-type regname = bits(2)
-type dst     = regname
-type src     = regname
+type regid   = bits(2)
+type dst     = regid
+type src     = regid
 type imm     = bits(12)
 type imm_ext = bits(20)
 type address = bits(64)
@@ -35,12 +35,12 @@ union word = {
   Num : integer
 }
 
-register instr_count : int
-register PC          : Capability
-register R0          : word
-register R1          : word
-register R2          : word
-register R3          : word
+register instr_count : int = 0
+register PC          : Capability = struct { cap_permission = O, cap_begin = sail_zeros(64), cap_end = sail_zeros(64), cap_cursor = sail_zeros(64) }
+register R0          : word = Num(sail_zeros(64))
+register R1          : word = Num(sail_zeros(64))
+register R2          : word = Num(sail_zeros(64))
+register R3          : word = Num(sail_zeros(64))
 
 
 scattered union ast
@@ -78,7 +78,7 @@ union clause exception = CapabilityDoesNotHaveWritePermission : unit
 union clause exception = CapabilityCursorCannotBeModified : unit
 union clause exception = CINCOFFSETOnEnterCapability : unit
 union clause exception = CSETBOUNDSOnEnterCapability : unit
-union clause exception = Fail : unit
+union clause exception = XFail : unit
 
 /*
 val writeReg : (regname, word) -> unit
