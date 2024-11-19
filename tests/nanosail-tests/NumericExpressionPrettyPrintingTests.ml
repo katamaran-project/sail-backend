@@ -75,4 +75,3 @@ let test_suite =
   "numeric expression pretty printing tests" >::: [
       test_formatting
     ]
-
