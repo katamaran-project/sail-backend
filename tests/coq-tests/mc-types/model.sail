@@ -32,6 +32,11 @@ register R0 : word = Num(sail_zeros(64))
 register R1 : word = Num(sail_zeros(64))
 register R2 : word = Num(sail_zeros(64))
 register R3 : word = Num(sail_zeros(64))
-register PC : Capability
+register PC : Capability = struct {
+                             cap_permission = O,
+                             cap_begin      = sail_zeros(64),
+                             cap_end        = sail_zeros(64),
+                             cap_cursor     = sail_zeros(64)
+                           }
 
 function regname(i) : int -> string = concat_str_dec("R", i)
