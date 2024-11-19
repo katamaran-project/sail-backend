@@ -33,8 +33,6 @@
                                                       "concat_str_dec")
                                                       identifier))))
 
-
-
 (ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
@@ -56,4 +54,3 @@
 (template "machine.template.v")
 (template "base.template.html")
 (template "machine.template.html")
-
