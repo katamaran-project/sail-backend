@@ -9,7 +9,7 @@ module Parameter = struct
     | Identifier of string
     | Unknown    of { ocaml_location : Lexing.position;
                       sail_location  : Libsail.Ast.l  ;
-                      annotation     : string         }
+                      sail_type      : string         }
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
@@ -41,7 +41,7 @@ module Parameter = struct
     and unknown_to_fexpr
           (ocaml_location : Lexing.position    )
           (sail_location  : Libsail.Parse_ast.l)
-          (annotation     : string             ) : FExpr.t
+          (sail_type      : string             ) : FExpr.t
       =
       let ocaml_location' =
         match ocaml_location with
@@ -51,26 +51,26 @@ module Parameter = struct
       and sail_location' =
         FExpr.mk_string @@ Sail.string_of_location sail_location
 
-      and annotation' =
-        FExpr.mk_string annotation
+      and sail_type' =
+        FExpr.mk_string sail_type
 
       in
       let keyword =
         [
           ("ocaml_location", ocaml_location');
           ("sail_location", sail_location');
-          ("annotation", annotation');
+          ("sail_type", sail_type');
         ]
       in
       FExpr.mk_application ~keyword "ExtType:Param:Unknown"
 
     in
     match extended_parameter_type with
-     | Tuple ts                                              -> tuple_to_fexpr ts
-     | Int n                                                 -> int_to_fexpr n
-     | Bool n                                                -> bool_to_fexpr n
-     | Identifier s                                          -> FExpr.mk_application ~positional:[FExpr.String s] "ExtType:Param:Id"
-     | Unknown { ocaml_location; sail_location; annotation } -> unknown_to_fexpr ocaml_location sail_location annotation
+     | Tuple ts                                             -> tuple_to_fexpr ts
+     | Int n                                                -> int_to_fexpr n
+     | Bool n                                               -> bool_to_fexpr n
+     | Identifier s                                         -> FExpr.mk_application ~positional:[FExpr.String s] "ExtType:Param:Id"
+     | Unknown { ocaml_location; sail_location; sail_type } -> unknown_to_fexpr ocaml_location sail_location sail_type
 end
 
 (* OCaml requires this duplication for recursive modules *)

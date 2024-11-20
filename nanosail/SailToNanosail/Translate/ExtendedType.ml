@@ -210,11 +210,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
       (type_arguments : S.typ_arg list) :  Ast.ExtendedType.Parameter.t Monad.t
     =
     match type_arguments with
-    | [ _ ] -> begin
+    | [ type_argument ] -> begin
         Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
           ocaml_location = [%here];
           sail_location = location;
-          annotation = "List not yet supported"
+          sail_type = StringOf.Sail.typ_arg type_argument
         }
       end
     | _ -> fail [%here] "list should have only one type argument"
@@ -230,15 +230,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
        Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
                            ocaml_location = [%here];
                            sail_location = sail_type_location;
-                           annotation = "tuple (not yet supported)"
+                           sail_type = StringOf.Sail.typ sail_type
                          }
      end
    | Typ_id id            -> begin
-       Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
-                           ocaml_location = [%here];
-                           sail_location = sail_type_location;
-                           annotation = StringOf.Sail.id id;
-                         }
+       Monad.return @@ Ast.ExtendedType.Parameter.Identifier (StringOf.Sail.id id)
      end
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, location) = identifier
@@ -247,14 +243,11 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
        | Id "atom"      -> extended_parameter_type_of_atom type_arguments
        | Id "atom_bool" -> extended_parameter_type_of_atom_bool type_arguments
        | Id "bitvector" -> extended_parameter_type_of_bitvector location type_arguments
-       | Id string      -> begin
-           let message =
-             Printf.sprintf "Unknown type %s" string
-           in
+       | Id _           -> begin
            Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
              ocaml_location = [%here];
-             sail_location = location;
-             annotation = message
+             sail_location  = location;
+             sail_type      = StringOf.Sail.typ sail_type
            }
          end
        | Operator _ -> not_yet_implemented [%here] location

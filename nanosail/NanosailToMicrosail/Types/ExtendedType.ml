@@ -97,7 +97,7 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
       let* annotation_index =
         let annotation_document =
           PP.vertical @@ List.map ~f:PP.string [
-              ud.annotation;
+              ud.sail_type;
               Printf.sprintf "OCaml position: %s" @@ StringOf.OCaml.position ud.ocaml_location;
               Printf.sprintf "Sail position: %s" @@ StringOf.Sail.location ud.sail_location;
             ]
