@@ -83,6 +83,9 @@ module rec IntExpression : sig
     | Sub      of t * t
     | Mul      of t * t
     | Neg      of t
+    | Unknown  of { ocaml_location : Lexing.position;
+                    sail_location  : Libsail.Ast.l  ;
+                    sail_type      : string         }
 
   val to_fexpr : t -> FExpr.t
 
@@ -95,15 +98,28 @@ end = struct
     | Sub      of t * t
     | Mul      of t * t
     | Neg      of t
+    | Unknown  of { ocaml_location : Lexing.position;
+                    sail_location  : Libsail.Ast.l  ;
+                    sail_type      : string         }
 
   let rec to_fexpr (int_expression : t) : FExpr.t =
     match int_expression with
-     | Var n        -> FExpr.mk_application ~positional:[FExpr.mk_int n] "IntExpr:Var"
-     | Constant n   -> FExpr.mk_application ~positional:[FExpr.mk_int @@ Z.to_int n] "IntExpr:Constant"
-     | Add (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Add"
-     | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Sub"
-     | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Mul"
-     | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
+    | Var n        -> FExpr.mk_application ~positional:[FExpr.mk_int n] "IntExpr:Var"
+    | Constant n   -> FExpr.mk_application ~positional:[FExpr.mk_int @@ Z.to_int n] "IntExpr:Constant"
+    | Add (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Add"
+    | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Sub"
+    | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Mul"
+    | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
+    | Unknown { ocaml_location; sail_location; sail_type } -> begin
+        let keyword = [
+            ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
+            ("SailLocation", FExpr.mk_sail_location sail_location);
+            ("SailType", FExpr.String sail_type);
+          ]
+        in
+        FExpr.mk_application ~keyword "BoolExpr:Unknown"
+      end
+
 
 end and BoolExpression : sig
 
@@ -162,7 +178,6 @@ end = struct
         in
         FExpr.mk_application ~keyword "BoolExpr:Unknown"
       end
-  
 end
 
 module ReturnValue = struct

@@ -73,6 +73,7 @@ let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t
     | Sub (left, right) -> subtraction left right
     | Mul (left, right) -> multiplication left right
     | Neg operand       -> negation operand
+    | Unknown { ocaml_location; sail_location; sail_type } -> GC.return @@ Prec.unknown ocaml_location sail_location sail_type
 
   and unary_operation f operand =
     let* operand' = ast_of_int_expression operand
