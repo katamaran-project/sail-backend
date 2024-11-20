@@ -91,3 +91,15 @@ let mk_list (items : t list) =
 
 let mk_nil =
   Nil
+
+
+let mk_ocaml_location (location : Lexing.position) =
+  let keyword = [
+      ("pos_fname", mk_string location.pos_fname);
+      ("pos_lnum", mk_int location.pos_lnum);
+      ("pos_bol", mk_int location.pos_bol);
+      ("pos_cnum", mk_int location.pos_cnum)
+    ]
+  in
+  mk_application ~keyword "OCamlLocation"
+
