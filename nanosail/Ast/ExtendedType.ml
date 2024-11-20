@@ -118,6 +118,9 @@ end and BoolExpression : sig
     | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
     | GreaterThan          of IntExpression.t * IntExpression.t
     | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
+    | Unknown              of { ocaml_location : Lexing.position;
+                                sail_location  : Libsail.Ast.l  ;
+                                sail_type      : string         }
 
   val to_fexpr : t -> FExpr.t
 
@@ -134,6 +137,9 @@ end = struct
     | LessThanOrEqualTo    of IntExpression.t * IntExpression.t
     | GreaterThan          of IntExpression.t * IntExpression.t
     | GreaterThanOrEqualTo of IntExpression.t * IntExpression.t
+    | Unknown              of { ocaml_location : Lexing.position;
+                                sail_location  : Libsail.Ast.l  ;
+                                sail_type      : string         }
 
   let rec to_fexpr (bool_expression : t) : FExpr.t =
     match bool_expression with
@@ -147,7 +153,16 @@ end = struct
     | LessThanOrEqualTo (e1, e2)    -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:LessThanOrEqualTo"
     | GreaterThan (e1, e2)          -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThan"
     | GreaterThanOrEqualTo (e1, e2) -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThanOrEqualTo"
-
+    | Unknown { ocaml_location; sail_location; sail_type } -> begin
+        let keyword = [
+            ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
+            ("SailLocation", FExpr.mk_sail_location sail_location);
+            ("SailType", FExpr.String sail_type);
+          ]
+        in
+        FExpr.mk_application ~keyword "BoolExpr:Unknown"
+      end
+  
 end
 
 module ReturnValue = struct

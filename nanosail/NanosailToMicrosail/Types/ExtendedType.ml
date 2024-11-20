@@ -37,6 +37,17 @@ module Prec = struct
     in
     define_unary_prefix_operator 50 pp
 
+  and unknown
+        (_ocaml_location : Lexing.position)
+        (_sail_location  : Libsail.Ast.l  )
+        (sail_type       : string         )
+    =
+    let document =
+      PP.(surround dquotes @@ PP.string sail_type)
+    in
+    define_atom document
+
+
   let addition                 = define_left_associative_binary_operator 10 @@ pp_binary "+"
   let subtraction              = define_left_associative_binary_operator 10 @@ pp_binary "-"
   let multiplication           = define_left_associative_binary_operator 20 @@ pp_binary "*"
@@ -148,6 +159,9 @@ let ast_of_bool_expression (bool_expression : Ast.ExtendedType.BoolExpression.t)
     | GreaterThan (left, right)          -> greater_than             left right
     | LessThanOrEqualTo (left, right)    -> less_than_or_equal_to    left right
     | GreaterThanOrEqualTo (left, right) -> greater_than_or_equal_to left right
+    | Unknown { ocaml_location;
+                sail_location ;
+                sail_type     }          -> GC.return @@ Prec.unknown ocaml_location sail_location sail_type
   in
   ast_of_bool_expression bool_expression
 
