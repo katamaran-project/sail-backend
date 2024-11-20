@@ -87,7 +87,6 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
   match extended_type with
   | Int k        -> GC.return @@ PP.string @@ Printf.sprintf "int($%d)" k
   | Bool k       -> GC.return @@ PP.string @@ Printf.sprintf "bool($%d)" k
-  | Other s      -> GC.return @@ PP.string s
   | Tuple ts     -> begin
       let* ts' = GC.map ~f:pp_extended_parameter_type ts (* todo add parentheses around each t of ts *)
       in

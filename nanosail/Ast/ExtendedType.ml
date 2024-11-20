@@ -6,7 +6,6 @@ module Parameter = struct
     | Tuple   of t list
     | Int     of int
     | Bool    of int
-    | Other   of string
     | Unknown of { ocaml_location : Lexing.position;
                    sail_location  : Libsail.Ast.l  ;
                    annotation     : string         }
@@ -16,7 +15,6 @@ module Parameter = struct
     | Tuple ts   -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
     | Int k      -> Printf.sprintf "int(#%d)" k
     | Bool k     -> Printf.sprintf "bool(#%d)" k
-    | Other s    -> s
     | Unknown _  -> Printf.sprintf "unknown"
 
   let rec to_fexpr (extended_parameter_type : t) : FExpr.t =
@@ -37,9 +35,6 @@ module Parameter = struct
         FExpr.mk_int n
       in
       FExpr.mk_application ~positional:[b'] "ExtType:Param:Bool"
-
-    and other_to_fexpr (x : string) : FExpr.t =
-      FExpr.mk_application ~positional:[FExpr.mk_string x] "ExtType:Param:Other"
 
     and unknown_to_fexpr
           (ocaml_location : Lexing.position    )
@@ -72,7 +67,6 @@ module Parameter = struct
      | Tuple ts                                              -> tuple_to_fexpr ts
      | Int n                                                 -> int_to_fexpr n
      | Bool n                                                -> bool_to_fexpr n
-     | Other x                                               -> other_to_fexpr x
      | Unknown { ocaml_location; sail_location; annotation } -> unknown_to_fexpr ocaml_location sail_location annotation
 end
 
