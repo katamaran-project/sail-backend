@@ -47,7 +47,7 @@ end
 module Error = struct
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
-    | Failure of Lexing.position * string
+    | Failure           of Lexing.position * string
 end
 
 
