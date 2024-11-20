@@ -103,3 +103,14 @@ let mk_ocaml_location (location : Lexing.position) =
   in
   mk_application ~keyword "OCamlLocation"
 
+
+let rec mk_sail_location (location : Libsail.Parse_ast.l) =
+  let prefix str =
+    "SailLoc:" ^ str
+  in
+  match location with
+  | Unknown                -> mk_symbol @@ prefix "Unknown"
+  | Unique (n, loc)        -> mk_application ~positional:[mk_int n; mk_sail_location loc]                              @@ prefix "Unique"
+  | Generated loc          -> mk_application ~positional:[mk_sail_location loc]                                        @@ prefix "Generated"
+  | Hint (str, loc1, loc2) -> mk_application ~positional:[mk_string str; mk_sail_location loc1; mk_sail_location loc2] @@ prefix "Hint"
+  | Range (loc1, loc2)     -> mk_application ~positional:[mk_ocaml_location loc1; mk_ocaml_location loc2]              @@ prefix "Range"
