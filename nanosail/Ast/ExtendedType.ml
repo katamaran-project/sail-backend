@@ -188,7 +188,7 @@ module ReturnValue = struct
     | Tuple   of t list
     | Unknown of { ocaml_location : Lexing.position;
                    sail_location  : Libsail.Ast.l  ;
-                   annotation     : string         }
+                   sail_type      : string         }
 
   let rec to_fexpr (return_type : t) : FExpr.t =
     match return_type with
@@ -196,7 +196,7 @@ module ReturnValue = struct
     | Bool e       -> FExpr.mk_application ~positional:[BoolExpression.to_fexpr e] "Return:Bool"
     | Other s      -> FExpr.mk_application ~positional:[FExpr.mk_string s] "Return:Other"
     | Tuple ts     -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Return:Tuple"
-    | Unknown { ocaml_location; sail_location; annotation } -> begin
+    | Unknown { ocaml_location; sail_location; sail_type } -> begin
         let ocaml_location' =
           match ocaml_location with
           | { pos_fname; pos_lnum; pos_bol; pos_cnum } ->
@@ -205,15 +205,15 @@ module ReturnValue = struct
         and sail_location' =
           FExpr.mk_string @@ Sail.string_of_location sail_location
 
-        and annotation' =
-          FExpr.mk_string annotation
+        and sail_type' =
+          FExpr.mk_string sail_type
 
         in
         let keyword =
           [
             ("ocaml_location", ocaml_location');
             ("sail_location", sail_location');
-            ("annotation", annotation');
+            ("sail_type", sail_type');
           ]
         in
         FExpr.mk_application ~keyword "Return:Unknown"
