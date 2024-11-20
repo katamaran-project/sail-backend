@@ -8,8 +8,8 @@ module Parameter = struct
     | Bool    of int
     | Other   of string
     | Unknown of { ocaml_location : Lexing.position;
-                   sail_location : Libsail.Ast.l;
-                   annotation : string }
+                   sail_location  : Libsail.Ast.l  ;
+                   annotation     : string         }
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
@@ -160,8 +160,8 @@ module ReturnValue = struct
     | Other   of string
     | Tuple   of t list
     | Unknown of { ocaml_location : Lexing.position;
-                   sail_location : Libsail.Ast.l;
-                   annotation : string }
+                   sail_location  : Libsail.Ast.l  ;
+                   annotation     : string         }
 
   let rec to_fexpr (return_type : t) : FExpr.t =
     match return_type with
