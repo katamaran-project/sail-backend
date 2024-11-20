@@ -67,12 +67,12 @@ end
 let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : Prec.ast GC.t =
   let rec ast_of_int_expression integer_expression =
     match integer_expression with
-    | Ast.ExtendedType.IntExpression.Var identifier    -> GC.return @@ Prec.variable identifier
-    | Ast.ExtendedType.IntExpression.Constant k        -> GC.return @@ Prec.integer k
-    | Ast.ExtendedType.IntExpression.Add (left, right) -> addition left right
-    | Ast.ExtendedType.IntExpression.Sub (left, right) -> subtraction left right
-    | Ast.ExtendedType.IntExpression.Mul (left, right) -> multiplication left right
-    | Ast.ExtendedType.IntExpression.Neg operand       -> negation operand
+    | Var identifier    -> GC.return @@ Prec.variable identifier
+    | Constant k        -> GC.return @@ Prec.integer k
+    | Add (left, right) -> addition left right
+    | Sub (left, right) -> subtraction left right
+    | Mul (left, right) -> multiplication left right
+    | Neg operand       -> negation operand
 
   and unary_operation f operand =
     let* operand' = ast_of_int_expression operand
