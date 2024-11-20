@@ -65,7 +65,7 @@ end
 
 
 let ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) : Prec.ast GC.t =
-  let rec ast_of_int_expression integer_expression =
+  let rec ast_of_int_expression (integer_expression : Ast.ExtendedType.IntExpression.t) =
     match integer_expression with
     | Var identifier    -> GC.return @@ Prec.variable identifier
     | Constant k        -> GC.return @@ Prec.integer k
