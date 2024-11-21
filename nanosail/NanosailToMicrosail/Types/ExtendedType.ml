@@ -8,7 +8,8 @@ module GC = struct
 end
 
 
-module PPOutput = struct
+(* Used as parameter for PrecedenceFormatter *)
+module DocumentOutput : (PrecedenceFormatter.Output with type t = PP.document) = struct
   type t = PP.document
 
   let parenthesize = PP.(surround parens)
@@ -16,7 +17,7 @@ end
 
 
 module Prec = struct
-  include PrecedenceFormatter.Make(PPOutput)
+  include PrecedenceFormatter.Make(DocumentOutput)
 
   let pp_binary operator x y =
     PP.(separate_horizontally ~separator:space [ x; string operator; y ])
