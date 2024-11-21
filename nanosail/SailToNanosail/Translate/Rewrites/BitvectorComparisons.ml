@@ -1,3 +1,5 @@
+(* Should not be useful anymore *)
+
 module Signedness = Ast.BinaryOperator.Signedness
 
 
