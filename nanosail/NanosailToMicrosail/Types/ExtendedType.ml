@@ -21,7 +21,6 @@ module Prec = struct
   let pp_binary operator x y =
     PP.(separate_horizontally ~separator:space [ x; string operator; y ])
 
-
   let variable id =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
 
