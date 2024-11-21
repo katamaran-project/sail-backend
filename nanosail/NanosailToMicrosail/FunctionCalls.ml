@@ -201,6 +201,7 @@ let translate
         translate_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
+  | "signed"       -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
   | "eq_bits"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") None pp_arguments
   | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") (Some "(bop.bvadd)") pp_arguments
   | "sub_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") (Some "(bop.bvsub)") pp_arguments
