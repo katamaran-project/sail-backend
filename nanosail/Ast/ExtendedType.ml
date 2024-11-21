@@ -200,11 +200,14 @@ module ReturnValue = struct
                    sail_type      : string         }
 
   let rec to_fexpr (return_type : t) : FExpr.t =
+    let prefix str =
+      "Return:" ^ str
+    in
     match return_type with
-    | Int e        -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e] "Return:Int"
-    | Bool e       -> FExpr.mk_application ~positional:[BoolExpression.to_fexpr e] "Return:Bool"
-    | Other s      -> FExpr.mk_application ~positional:[FExpr.mk_string s] "Return:Other"
-    | Tuple ts     -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts) "Return:Tuple"
+    | Int e        -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e]  @@ prefix "Int"
+    | Bool e       -> FExpr.mk_application ~positional:[BoolExpression.to_fexpr e] @@ prefix "Bool"
+    | Other s      -> FExpr.mk_application ~positional:[FExpr.mk_string s]         @@ prefix "Other"
+    | Tuple ts     -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)   @@ prefix "Tuple"
     | Unknown { ocaml_location; sail_location; sail_type } -> begin
         let ocaml_location' =
           match ocaml_location with
@@ -225,6 +228,6 @@ module ReturnValue = struct
             ("sail_type", sail_type');
           ]
         in
-        FExpr.mk_application ~keyword "Return:Unknown"
+        FExpr.mk_application ~keyword @@ prefix "Unknown"
       end
 end
