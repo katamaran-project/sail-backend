@@ -46,7 +46,6 @@ end
 
 module Error = struct
   type t =
-    | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
     | Failure           of Lexing.position * string
 end
 
@@ -513,11 +512,5 @@ let determine_extended_type
   let (result, _final_state) = Monad.run monad State.initial
   in
   match result with
-  | Monad.Success t -> TC.return t
-  | Monad.Failure (Error.NotYetImplemented (ocaml_location, source_location, message)) -> begin
-      match message with
-      | Some message -> TC.not_yet_implemented ~message:message ocaml_location source_location
-      | None         -> TC.not_yet_implemented ocaml_location source_location
-    end
-  | Monad.Failure (Error.Failure (ocaml_location, message)) ->
-      TC.fail ocaml_location message
+  | Monad.Success t                                         -> TC.return t
+  | Monad.Failure (Error.Failure (ocaml_location, message)) -> TC.fail ocaml_location message
