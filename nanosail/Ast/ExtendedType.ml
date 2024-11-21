@@ -20,23 +20,26 @@ module Parameter = struct
     | Unknown _    -> Printf.sprintf "unknown"
 
   let rec to_fexpr (extended_parameter_type : t) : FExpr.t =
+    let prefix str =
+      "ExtType:Param:" ^ str
+    in
     let tuple_to_fexpr (ts : t list) : FExpr.t =
       let ts' =
         List.map ~f:to_fexpr ts
       in
-      FExpr.mk_application ~positional:ts' "ExtType:Param:Tuple"
+      FExpr.mk_application ~positional:ts' @@ prefix "Tuple"
 
     and int_to_fexpr (n : int) : FExpr.t =
       let n' =
         FExpr.mk_int n
       in
-      FExpr.mk_application ~positional:[n'] "ExtType:Param:Int"
+      FExpr.mk_application ~positional:[n'] @@ prefix "Int"
 
     and bool_to_fexpr (n : int) : FExpr.t =
       let b' =
         FExpr.mk_int n
       in
-      FExpr.mk_application ~positional:[b'] "ExtType:Param:Bool"
+      FExpr.mk_application ~positional:[b'] @@ prefix "Bool"
 
     and unknown_to_fexpr
           (ocaml_location : Lexing.position    )
@@ -62,7 +65,7 @@ module Parameter = struct
           ("sail_type", sail_type');
         ]
       in
-      FExpr.mk_application ~keyword "ExtType:Param:Unknown"
+      FExpr.mk_application ~keyword @@ prefix "Unknown"
 
     in
     match extended_parameter_type with
