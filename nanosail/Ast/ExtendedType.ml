@@ -106,13 +106,16 @@ end = struct
                     sail_type      : string         }
 
   let rec to_fexpr (int_expression : t) : FExpr.t =
+    let prefix str =
+      "IntExpr:" ^ str
+    in
     match int_expression with
-    | Var n        -> FExpr.mk_application ~positional:[FExpr.mk_int n] "IntExpr:Var"
-    | Constant n   -> FExpr.mk_application ~positional:[FExpr.mk_int @@ Z.to_int n] "IntExpr:Constant"
-    | Add (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Add"
-    | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Sub"
-    | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "IntExpr:Mul"
-    | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e] "IntExpr:Neg"
+    | Var n        -> FExpr.mk_application ~positional:[FExpr.mk_int n]             @@ prefix "Var"
+    | Constant n   -> FExpr.mk_application ~positional:[FExpr.mk_int @@ Z.to_int n] @@ prefix "Constant"
+    | Add (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]   @@ prefix "Add"
+    | Sub (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]   @@ prefix "Sub"
+    | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]   @@ prefix "Mul"
+    | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e]                 @@ prefix "Neg"
     | Unknown { ocaml_location; sail_location; sail_type } -> begin
         let keyword = [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
@@ -120,7 +123,7 @@ end = struct
             ("SailType", FExpr.String sail_type);
           ]
         in
-        FExpr.mk_application ~keyword "BoolExpr:Unknown"
+        FExpr.mk_application ~keyword @@ prefix "Unknown"
       end
 
 
