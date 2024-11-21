@@ -201,14 +201,15 @@ let translate
         translate_binary_operator_using_infix_notation function_identifier "+" pp_arguments
       end
     end
+  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "signed"       -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
+  | "unsigned"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.unsigned" pp_arguments
   | "eq_bits"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") None pp_arguments
   | "add_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") (Some "(bop.bvadd)") pp_arguments
   | "sub_bits"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") (Some "(bop.bvsub)") pp_arguments
   | "and_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvand)") pp_arguments
   | "or_vec"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvor)") pp_arguments
   | "xor_vec"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "(bop.bvxor)") pp_arguments
-  | "not_bool"     -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "eq_bool"      -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") (Some "(bop.relop bop.eq)") pp_arguments
   | "neq_bool"     -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") (Some "(bop.relop bop.neq)") pp_arguments
   | "eq_unit"      -> GC.pp_annotate [%here] @@ translate_unit_equality ()
