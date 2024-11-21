@@ -99,15 +99,6 @@ let binding (s : string) : int Monad.t =
   | Some id -> Monad.return id
 
 
-(* let not_yet_implemented ?(message = "") ocaml_position sail_position = *)
-(*   let message = *)
-(*     if String.is_empty message *)
-(*     then None *)
-(*     else Some message *)
-(*   in *)
-(*   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message) *)
-
-
 let fail ocaml_position message =
   Monad.fail @@ Failure (ocaml_position, message)
 
