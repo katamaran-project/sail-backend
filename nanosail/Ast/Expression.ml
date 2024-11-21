@@ -92,6 +92,8 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | List items                                              -> list_to_fexpr items
    | UnaryOperation (operator, operand)                      -> unary_operation_to_fexpr operator operand
    | BinaryOperation (operator, left_operand, right_operand) -> binary_operation_to_fexpr operator left_operand right_operand
+   | Tuple elements                                          -> tuple_to_fexpr elements
+   | Bitvector elements                                      -> bitvector_to_fexpr elements
    | Record { type_identifier;
               variable_identifiers }                         -> record_to_fexpr type_identifier variable_identifiers
    | Enum { type_identifier;
@@ -99,5 +101,3 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Variant { type_identifier;
                constructor_identifier;
                fields    }                                   -> variant_to_fexpr type_identifier constructor_identifier fields
-   | Tuple elements                                          -> tuple_to_fexpr elements
-   | Bitvector elements                                      -> bitvector_to_fexpr elements
