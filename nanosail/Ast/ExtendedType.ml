@@ -164,17 +164,20 @@ end = struct
                                 sail_type      : string         }
 
   let rec to_fexpr (bool_expression : t) : FExpr.t =
+    let prefix str =
+      "BoolExpr:" ^ str
+    in
     match bool_expression with
     | Bool b                        -> FExpr.mk_bool b
-    | Var n                         -> FExpr.mk_application ~positional:[FExpr.mk_int n] "BoolExpr:Var"
-    | And (e1, e2)                  -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "BoolExpr:And"
-    | Or (e1, e2)                   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] "BoolExpr:Or"
-    | Equal (e1, e2)                -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:Equal"
-    | NotEqual (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:NotEqual"
-    | LessThan (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:LessThan"
-    | LessThanOrEqualTo (e1, e2)    -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:LessThanOrEqualTo"
-    | GreaterThan (e1, e2)          -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThan"
-    | GreaterThanOrEqualTo (e1, e2) -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] "BoolExpr:GreaterThanOrEqualTo"
+    | Var n                         -> FExpr.mk_application ~positional:[FExpr.mk_int n] @@ prefix "Var"
+    | And (e1, e2)                  -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] @@ prefix "And"
+    | Or (e1, e2)                   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2] @@ prefix "Or"
+    | Equal (e1, e2)                -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "Equal"
+    | NotEqual (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "NotEqual"
+    | LessThan (e1, e2)             -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "LessThan"
+    | LessThanOrEqualTo (e1, e2)    -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "LessThanOrEqualTo"
+    | GreaterThan (e1, e2)          -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "GreaterThan"
+    | GreaterThanOrEqualTo (e1, e2) -> FExpr.mk_application ~positional:[IntExpression.to_fexpr e1; IntExpression.to_fexpr e2] @@ prefix "GreaterThanOrEqualTo"
     | Unknown { ocaml_location; sail_location; sail_type } -> begin
         let keyword = [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
@@ -182,7 +185,7 @@ end = struct
             ("SailType", FExpr.String sail_type);
           ]
         in
-        FExpr.mk_application ~keyword "BoolExpr:Unknown"
+        FExpr.mk_application ~keyword @@ prefix "Unknown"
       end
 end
 
