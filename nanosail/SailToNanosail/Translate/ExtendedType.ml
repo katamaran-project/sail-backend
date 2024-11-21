@@ -99,13 +99,13 @@ let binding (s : string) : int Monad.t =
   | Some id -> Monad.return id
 
 
-let not_yet_implemented ?(message = "") ocaml_position sail_position =
-  let message =
-    if String.is_empty message
-    then None
-    else Some message
-  in
-  Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
+(* let not_yet_implemented ?(message = "") ocaml_position sail_position = *)
+(*   let message = *)
+(*     if String.is_empty message *)
+(*     then None *)
+(*     else Some message *)
+(*   in *)
+(*   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message) *)
 
 
 let fail ocaml_position message =
@@ -132,32 +132,43 @@ let unpack_parameter_types (parameter_bindings : Sail.type_annotation Libsail.As
   Atoms must only contain a single identifier as their type argument.
 *)
 let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.Parameter.t Monad.t =
-  let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
+  let Typ_aux (unwrapped_sail_type, sail_location) = sail_type
   in
-  let extended_parameter_type_of_atom (type_arguments : S.typ_arg list) =
+  let extended_parameter_type_of_atom (type_arguments : S.typ_arg list) : Ast.ExtendedType.Parameter.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
-        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        let A_aux (unwrapped_type_argument, location) = type_argument
+        in
+        let unknown ocaml_location =
+          Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                                ocaml_location = ocaml_location;
+                                sail_location  = location;
+                                sail_type      = StringOf.Sail.typ_arg type_argument
+                            }
         in
         match unwrapped_type_argument with
-        | A_typ typ                   -> begin
-            Stdio.printf "%s\n" (StringOf.Sail.typ typ);
-            not_yet_implemented [%here] type_argument_location
-          end
-        | A_bool _                    -> not_yet_implemented [%here] type_argument_location
+        | A_typ _                     -> unknown [%here]
+        | A_bool _                    -> unknown [%here]
         | A_nexp numerical_expression -> begin
-            let Nexp_aux (unwrapped_numerical_expression, numerical_expression_location) = numerical_expression
+            let Nexp_aux (unwrapped_numerical_expression, location) = numerical_expression
+            in
+            let unknown ocaml_location =
+              Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                                  ocaml_location = ocaml_location;
+                                  sail_location  = location;
+                                  sail_type      = StringOf.Sail.nexp numerical_expression
+                                }
             in
             match unwrapped_numerical_expression with
-            | Nexp_id _         -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_constant _   -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_app (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_times (_, _) -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_sum (_, _)   -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_minus (_, _) -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_exp _        -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_neg _        -> not_yet_implemented [%here] numerical_expression_location
-            | Nexp_if (_, _, _) -> not_yet_implemented [%here] numerical_expression_location
+            | Nexp_id _ -> unknown [%here]
+            | Nexp_constant _   -> unknown [%here]
+            | Nexp_app (_, _)   -> unknown [%here]
+            | Nexp_times (_, _) -> unknown [%here]
+            | Nexp_sum (_, _)   -> unknown [%here]
+            | Nexp_minus (_, _) -> unknown [%here]
+            | Nexp_exp _        -> unknown [%here]
+            | Nexp_neg _        -> unknown [%here]
+            | Nexp_if (_, _, _) -> unknown [%here]
             | Nexp_var kid      -> begin
                 let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                 in
@@ -167,33 +178,47 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
               end
           end
       end
-    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
 
   and extended_parameter_type_of_atom_bool (type_arguments : S.typ_arg list) =
     match type_arguments with
     | [ type_argument ] -> begin
-        let A_aux (unwrapped_type_argument, type_argument_location) = type_argument
+        let A_aux (unwrapped_type_argument, sail_location) = type_argument
+        in
+        let unknown ocaml_location =
+          Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                                ocaml_location = ocaml_location;
+                                sail_location  = sail_location;
+                                sail_type      = StringOf.Sail.typ_arg type_argument
+                            }
         in
         match unwrapped_type_argument with
-        | A_typ _                     -> not_yet_implemented [%here] type_argument_location
-        | A_nexp _                    -> not_yet_implemented [%here] type_argument_location
-        | A_bool numeric_constraint   -> begin
-            let S.NC_aux (unwrapped_numeric_constraint, numeric_constraint_location) = numeric_constraint
+        | A_typ _ -> unknown [%here]
+        | A_nexp _ -> unknown [%here]
+        | A_bool numerical_constraint -> begin
+            let S.NC_aux (unwrapped_numeric_constraint, location) = numerical_constraint
+            in
+            let unknown ocaml_location =
+              Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                                  ocaml_location = ocaml_location;
+                                  sail_location  = location;
+                                  sail_type      = StringOf.Sail.n_constraint numerical_constraint
+                                }
             in
             match unwrapped_numeric_constraint with
-            | S.NC_equal (_, _)      -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_ge (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_gt (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_le (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_lt (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_not_equal (_, _)  -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_set (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_or (_, _)         -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_and (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_app (_, _)        -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_true              -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_false             -> not_yet_implemented [%here] numeric_constraint_location
-            | S.NC_id _              -> not_yet_implemented [%here] numeric_constraint_location
+            | S.NC_equal (_, _)      -> unknown [%here]
+            | S.NC_ge (_, _)         -> unknown [%here]
+            | S.NC_gt (_, _)         -> unknown [%here]
+            | S.NC_le (_, _)         -> unknown [%here]
+            | S.NC_lt (_, _)         -> unknown [%here]
+            | S.NC_not_equal (_, _)  -> unknown [%here]
+            | S.NC_set (_, _)        -> unknown [%here]
+            | S.NC_or (_, _)         -> unknown [%here]
+            | S.NC_and (_, _)        -> unknown [%here]
+            | S.NC_app (_, _)        -> unknown [%here]
+            | S.NC_true              -> unknown [%here]
+            | S.NC_false             -> unknown [%here]
+            | S.NC_id _              -> unknown [%here]
             | S.NC_var kid           -> begin
                 let Kid_aux (Var unwrapped_kid, _kid_location) = kid
                 in
@@ -203,7 +228,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
               end
           end
       end
-    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
 
   and extended_parameter_type_of_bitvector
       (location       : Libsail.Ast.l )
@@ -220,24 +245,33 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
     | _ -> fail [%here] "list should have only one type argument"
   in
 
+  let unknown ocaml_location =
+    Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                        ocaml_location = ocaml_location;
+                        sail_location  = sail_location;
+                        sail_type      = StringOf.Sail.typ sail_type;
+                      }
+
+  in
   match unwrapped_sail_type with
-   | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
-   | Typ_var _            -> not_yet_implemented [%here] sail_type_location
-   | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
-   | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
-   | Typ_exist (_, _, _)  -> not_yet_implemented [%here] sail_type_location
-   | Typ_tuple _          -> begin
-       Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
-                           ocaml_location = [%here];
-                           sail_location = sail_type_location;
-                           sail_type = StringOf.Sail.typ sail_type
-                         }
-     end
+  | Typ_internal_unknown -> unknown [%here]
+  | Typ_var _            -> unknown [%here]
+  | Typ_fn (_, _)        -> unknown [%here]
+  | Typ_bidir (_, _)     -> unknown [%here]
+  | Typ_exist (_, _, _)  -> unknown [%here]
+  | Typ_tuple _          -> unknown [%here]
    | Typ_id id            -> begin
        Monad.return @@ Ast.ExtendedType.Parameter.Identifier (StringOf.Sail.id id)
      end
    | Typ_app (identifier, type_arguments) -> begin
        let Id_aux (unwrapped_identifier, location) = identifier
+       in
+       let unknown ocaml_location =
+         Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+                             ocaml_location = ocaml_location;
+                             sail_location  = sail_location;
+                             sail_type      = StringOf.Sail.typ sail_type;
+                           }
        in
        match unwrapped_identifier with
        | Id "atom"      -> extended_parameter_type_of_atom type_arguments
@@ -250,7 +284,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
              sail_type      = StringOf.Sail.typ sail_type
            }
          end
-       | Operator _ -> not_yet_implemented [%here] location
+       | Operator _ -> unknown [%here]
      end
 
 
@@ -265,14 +299,21 @@ let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) 
     in
     Monad.return @@ factory left' right'
   in
-  let Nexp_aux (unwrapped_numeric_expression, numeric_expression_location) = numeric_expression
+  let Nexp_aux (unwrapped_numeric_expression, location) = numeric_expression
+  in
+  let unknown ocaml_location =
+    Monad.return @@ Ast.ExtendedType.IntExpression.Unknown {
+                        ocaml_location = ocaml_location;
+                        sail_location  = location;
+                        sail_type      = StringOf.Sail.nexp numeric_expression
+                      }
   in
   match unwrapped_numeric_expression with
-   | Nexp_id _                -> not_yet_implemented [%here] numeric_expression_location
-   | Nexp_app (_, _)          -> not_yet_implemented [%here] numeric_expression_location
-   | Nexp_exp _               -> not_yet_implemented [%here] numeric_expression_location
-   | Nexp_neg _               -> not_yet_implemented [%here] numeric_expression_location
-   | Nexp_if (_, _, _)        -> not_yet_implemented [%here] numeric_expression_location
+   | Nexp_id _                -> unknown [%here]
+   | Nexp_app (_, _)          -> unknown [%here]
+   | Nexp_exp _               -> unknown [%here]
+   | Nexp_neg _               -> unknown [%here]
+   | Nexp_if (_, _, _)        -> unknown [%here]
    | Nexp_constant n          -> Monad.return @@ Ast.ExtendedType.IntExpression.Constant n
    | Nexp_sum (left, right)   -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Add (a, b)) left right
    | Nexp_minus (left, right) -> binary_operation (fun a b -> Ast.ExtendedType.IntExpression.Sub (a, b)) left right
@@ -309,14 +350,21 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
 
   let NC_aux (unwrapped_numeric_constraint, location) = numeric_constraint
   in
+  let unknown ocaml_location =
+    Monad.return @@ Ast.ExtendedType.BoolExpression.Unknown {
+                        ocaml_location = ocaml_location;
+                        sail_location  = location;
+                        sail_type      = StringOf.Sail.n_constraint numeric_constraint
+                      }
+  in
   let bool_expression_of_and           = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.And (a, b)
   and bool_expression_of_or            = bool_expression_of_binary_operation @@ fun a b -> Ast.ExtendedType.BoolExpression.Or (a, b)
   and bool_expression_of_lt            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThan (a, b)
   and bool_expression_of_le            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.LessThanOrEqualTo (a, b)
   and bool_expression_of_gt            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThan (a, b)
   and bool_expression_of_ge            = bool_expression_of_comparison       @@ fun a b -> Ast.ExtendedType.BoolExpression.GreaterThanOrEqualTo (a, b)
-  and bool_expression_of_equal _ _     = not_yet_implemented [%here] location
-  and bool_expression_of_not_equal _ _ = not_yet_implemented [%here] location
+  and bool_expression_of_equal _ _     = unknown [%here]
+  and bool_expression_of_not_equal _ _ = unknown [%here]
 
   in  
   match unwrapped_numeric_constraint with
@@ -324,11 +372,11 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   | NC_le (left, right)         -> bool_expression_of_le left right
   | NC_gt (left, right)         -> bool_expression_of_gt left right
   | NC_ge (left, right)         -> bool_expression_of_ge left right
-  | NC_set (_, _)               -> not_yet_implemented [%here] location
-  | NC_app (_, _)               -> not_yet_implemented [%here] location
+  | NC_set (_, _)               -> unknown [%here]
+  | NC_app (_, _)               -> unknown [%here]
   | NC_true                     -> Monad.return @@ Ast.ExtendedType.BoolExpression.Bool true
   | NC_false                    -> Monad.return @@ Ast.ExtendedType.BoolExpression.Bool false
-  | NC_id _                     -> not_yet_implemented [%here] location
+  | NC_id _                     -> unknown [%here]
   | NC_and (left, right)        -> bool_expression_of_and left right
   | NC_or  (left, right)        -> bool_expression_of_or left right
   | NC_equal (left, right)      -> bool_expression_of_equal left right
@@ -343,34 +391,48 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
 
 
 let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.ReturnValue.t Monad.t =
-  let Typ_aux (unwrapped_sail_type, sail_type_location) = sail_type
+  let Typ_aux (unwrapped_sail_type, sail_location) = sail_type
   in
 
   let extended_return_type_of_atom (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
-        let A_aux (unwrapped_type_argument, location) = type_argument
+        let A_aux (unwrapped_type_argument, sail_location) = type_argument
+        in
+        let unknown ocaml_location =
+          Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+                              ocaml_location = ocaml_location;
+                              sail_location  = sail_location;
+                              sail_type      = StringOf.Sail.typ_arg type_argument
+                            }
         in
         match unwrapped_type_argument with
-        | A_typ _                   -> not_yet_implemented [%here] location
-        | A_bool _                  -> not_yet_implemented [%here] location
+        | A_typ _                   -> unknown [%here]
+        | A_bool _                  -> unknown [%here]
         | A_nexp numeric_expression -> begin
             let+ int_expression = int_expression_of_sail_numeric_expression numeric_expression
             in
             Monad.return @@ Ast.ExtendedType.ReturnValue.Int int_expression
           end
       end
-    | _ -> not_yet_implemented ~message:"Unexpected number of type arguments (should be exactly one)" [%here] sail_type_location
+    | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
   in
 
   let extended_return_type_of_atom_bool (type_arguments : S.typ_arg list) : Ast.ExtendedType.ReturnValue.t Monad.t =
     match type_arguments with
     | [ type_argument ] -> begin
-        let A_aux (unwrapped_type_argument, location) = type_argument
+        let A_aux (unwrapped_type_argument, sail_location) = type_argument
+        in
+        let unknown ocaml_location =
+          Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+                              ocaml_location = ocaml_location;
+                              sail_location  = sail_location;
+                              sail_type      = StringOf.Sail.typ_arg type_argument
+                            }
         in
         match unwrapped_type_argument with
-        | A_typ _                   -> not_yet_implemented [%here] location
-        | A_nexp _                  -> not_yet_implemented [%here] location
+        | A_typ _                   -> unknown [%here]
+        | A_nexp _                  -> unknown [%here]
         | A_bool numeric_constraint -> begin
             let+ bool_expression = bool_expression_of_sail_numeric_constraint numeric_constraint
             in
@@ -379,12 +441,18 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
       end
     | _ -> fail [%here] "Unexpected number of type arguments (should be exactly one)"
   in
-
+  let unknown ocaml_location =
+    Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
+                        ocaml_location = ocaml_location;
+                        sail_location  = sail_location;
+                        sail_type      = StringOf.Sail.typ sail_type
+                      }
+  in
   match unwrapped_sail_type with
-   | Typ_internal_unknown -> not_yet_implemented [%here] sail_type_location
-   | Typ_var _            -> not_yet_implemented [%here] sail_type_location
-   | Typ_fn (_, _)        -> not_yet_implemented [%here] sail_type_location
-   | Typ_bidir (_, _)     -> not_yet_implemented [%here] sail_type_location
+   | Typ_internal_unknown -> unknown [%here]
+   | Typ_var _            -> unknown [%here]
+   | Typ_fn (_, _)        -> unknown [%here]
+   | Typ_bidir (_, _)     -> unknown [%here]
    | Typ_tuple ts         -> begin
        let+ ts' = map ~f:extended_return_type_of_sail_type ts
        in
@@ -395,15 +463,15 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
    | Typ_exist (_, _, _)  -> begin
        Monad.return @@ Ast.ExtendedType.ReturnValue.Unknown {
          ocaml_location = [%here];
-         sail_location  = sail_type_location;
+         sail_location  = sail_location;
          sail_type      = StringOf.Sail.typ sail_type
        }
      end
    | Typ_id id -> begin
-       let Id_aux (unwrapped_id, id_location) = id
+       let Id_aux (unwrapped_id, _id_location) = id
        in
        match unwrapped_id with
-       | S.Operator _ -> not_yet_implemented [%here] id_location
+       | S.Operator _ -> unknown [%here]
        | S.Id name    -> begin
            match name with
            | "int"  -> let+ k = next_id in Monad.return @@ Ast.ExtendedType.ReturnValue.Int (Ast.ExtendedType.IntExpression.Var k)
@@ -427,7 +495,7 @@ let rec extended_return_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType
                                sail_type      = sail_type;
                              }
          end
-       | Operator _ -> not_yet_implemented [%here] location
+       | Operator _ -> unknown [%here]
      end
 
 
