@@ -16,6 +16,9 @@ module DocumentOutput : (PrecedenceFormatter.Output with type t = PP.document) =
 end
 
 
+(*
+  Module defining components for building expressions
+*)                                                                                     
 module Prec = struct
   include PrecedenceFormatter.Make(DocumentOutput)
 
