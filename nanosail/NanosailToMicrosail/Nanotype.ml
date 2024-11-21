@@ -135,7 +135,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
    | Range (_, _)                     -> GC.not_yet_implemented [%here]
 
 
-and coq_type_of_nanotype (nanotype : Ast.Type.t) = (* todo check if this does what it's supposed to... also look for where it's being used *)
+and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
     let* n' =
       GC.pp_annotate [%here] @@ Numeric.Expression.pp n
