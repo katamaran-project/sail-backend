@@ -25,25 +25,25 @@ module Prec = struct
   let pp_binary operator x y =
     PP.(separate_horizontally ~separator:space [ x; string operator; y ])
 
-  let variable id =
+  let variable (id : int) : ast =
     define_atom @@ PP.string @@ Printf.sprintf "$%d" id
 
-  let integer k =
+  let integer (k : Z.t) : ast =
     define_atom @@ PP.string @@ Z.to_string k
 
-  let boolean b =
+  let boolean (b : bool) : ast =
     define_atom @@ PP.string @@ Bool.to_string b
 
-  let negation =
+  let negation (ast : ast) : ast =
     let pp x =
       PP.(horizontal [string "-"; x])
     in
-    define_unary_prefix_operator 50 pp
+    define_unary_prefix_operator 50 pp ast
 
   and unknown
         (_ocaml_location : Lexing.position)
         (_sail_location  : Libsail.Ast.l  )
-        (sail_type       : string         )
+        (sail_type       : string         ) : ast
     =
     let document =
       PP.(surround dquotes @@ PP.string sail_type)
