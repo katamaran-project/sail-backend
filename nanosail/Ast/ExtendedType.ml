@@ -224,8 +224,8 @@ module ReturnValue = struct
         let keyword =
           [
             ("ocaml_location", ocaml_location');
-            ("sail_location", sail_location');
-            ("sail_type", sail_type');
+            ("sail_location" , sail_location' );
+            ("sail_type"     , sail_type'     );
           ]
         in
         FExpr.mk_application ~keyword @@ prefix "Unknown"
