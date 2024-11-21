@@ -132,7 +132,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
    | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
    | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
    | Sum (_, _)                       -> GC.not_yet_implemented [%here]
-   | Range (_, _)                     -> GC.not_yet_implemented [%here]
+   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
