@@ -18,6 +18,23 @@ type t =
   | Bitvector       of t list
 
 
+exception MissingTypeInference
+
+
+let infer_type (expression : t) : Nanotype.t =
+  match expression with
+   | Variable (_, typ)         -> typ
+   | Val _                     -> raise MissingTypeInference
+   | List _                    -> raise MissingTypeInference
+   | UnaryOperation (_, _)     -> raise MissingTypeInference
+   | BinaryOperation (_, _, _) -> raise MissingTypeInference
+   | Record _                  -> raise MissingTypeInference
+   | Enum _                    -> raise MissingTypeInference
+   | Variant _                 -> raise MissingTypeInference
+   | Tuple _                   -> raise MissingTypeInference
+   | Bitvector bits            -> Ast.Type.Bitvector (Ast.Numeric.Expression.Constant (Z.of_int @@ List.length bits))
+     
+
 let rec to_fexpr (expression : t) : FExpr.t =
   let variable_to_fexpr
       (identifier : Identifier.t)
