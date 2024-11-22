@@ -195,26 +195,16 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
       end
   in
   match arguments with
-  | [ Ast.Expression.Val (Ast.Value.Int number_of_bits) ] -> begin
-      GC.pp_annotate [%here] begin
-        pp_ones @@ Z.to_int number_of_bits
-      end
-    end
-  | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
-      GC.pp_annotate [%here] begin
-        let* number_of_bits = lookup_integer_value_bound_to identifier
-        in
-        pp_ones @@ Z.to_int number_of_bits
-      end
-    end
   | [ argument ] -> begin
-      let message =
-        let formatted_argument =
-          FExpr.to_string @@ Ast.Expression.to_fexpr argument
-        in
-        Printf.sprintf "expected sail_ones to receive an integer argument; instead got %s" formatted_argument
+      let* argument_value = extract_compile_time_integer argument
       in
-      GC.fail message
+      match argument_value with
+      | Some number_of_bits -> begin
+          GC.pp_annotate [%here] begin
+            pp_ones (Z.to_int number_of_bits)
+          end
+        end
+      | None -> GC.fail "sail_ones expects compile time known integer argument"
     end
   | _ -> begin
       let message =
