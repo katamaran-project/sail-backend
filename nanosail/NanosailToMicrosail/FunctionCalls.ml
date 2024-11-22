@@ -119,7 +119,7 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
       | Int n -> GC.return @@ n
       | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.string_of identifier)
     end
-  | []        -> GC.fail @@ Printf.sprintf "unknown identifier %s" (Ast.Identifier.string_of identifier)
+  | []        -> GC.fail @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.string_of identifier)
   | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of identifier)
 
 
@@ -197,14 +197,44 @@ let translate_unit_equality () : PP.document GC.t =
   end
 
 
-(* todo implement this *)
 let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.t =
-  GC.pp_annotate [%here] begin
-    let* pp_arguments =
-      GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+  let sail_name = "add_bits_int"
+  in
+  let pp_addition
+      (bitvector_argument : Ast.Expression.t)
+      (integer_argument   : Z.t             ) : PP.document GC.t
+    =
+    let* pp_bitvector_argument =
+      let* doc = Expressions.pp_expression bitvector_argument
+      in
+      GC.return @@ PP.(surround parens) doc
     in
-    GC.return @@ MuSail.Statement.pp_call (Ast.Identifier.mk "add_bits_int") pp_arguments
-  end
+    let pp_integer_argument =
+      PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size:32 ~value:integer_argument (* todo fix size *)
+    in
+    GC.pp_annotate [%here] begin
+      translate_binary_operator_using_function_notation (* todo support infix notation *)
+        (Ast.Identifier.mk sail_name)
+        "bop.bvadd"
+        [ pp_bitvector_argument; pp_integer_argument ]
+    end
+  in
+  match arguments with
+  | [ bitvector_argument; shift_argument ] -> begin
+      match shift_argument with
+      | Variable identifier -> begin
+          let* integer_value = lookup_integer_value_bound_to identifier
+          in
+          pp_addition bitvector_argument integer_value
+        end
+      | Val value -> begin
+          match value with
+          | Int integer_value -> pp_addition bitvector_argument integer_value
+          | _ -> GC.fail "should never happen: the second argument has the wrong type"
+        end
+      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+    end
+  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 (*
