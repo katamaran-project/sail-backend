@@ -35,11 +35,11 @@ PASS bitvectors-returning
 PASS bitvectors-shift-left-with-literal-0
 PASS bitvectors-shift-left-with-literal-1
 PASS bitvectors-shift-left-with-literal-5
-FAIL bitvectors-shift-left-with-variable
+PASS bitvectors-shift-left-with-variable
 PASS bitvectors-shift-right-with-literal-0
 PASS bitvectors-shift-right-with-literal-1
 PASS bitvectors-shift-right-with-literal-5
-FAIL bitvectors-shift-right-with-variable
+PASS bitvectors-shift-right-with-variable
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
 PASS bitvectors-xor
@@ -207,4 +207,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:192 FAIL:17
+PASS:194 FAIL:15
