@@ -29,9 +29,10 @@ PASS bitvectors-hexadecimal-literal
 FAIL bitvectors-indexing
 PASS bitvectors-matching
 PASS bitvectors-nested-comparison
-PASS bitvectors-ones-with-literal
-PASS bitvectors-ones-with-sizeof
-PASS bitvectors-ones-with-variable
+PASS bitvectors-ones-with-literal-formatting
+PASS bitvectors-ones-with-literal-size
+PASS bitvectors-ones-with-sizeof-size
+PASS bitvectors-ones-with-variable-size
 PASS bitvectors-parameter
 PASS bitvectors-register
 PASS bitvectors-returning
@@ -211,4 +212,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:199 FAIL:14
+PASS:200 FAIL:14
