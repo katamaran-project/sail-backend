@@ -61,6 +61,7 @@ let ampersand  = Doc.ampersand
 let percent    = Doc.percent
 let bar        = Doc.bar
 let underscore = Doc.underscore
+let at         = Doc.at
 
 let surround  = Doc.surround
 let indent    = Doc.indent
