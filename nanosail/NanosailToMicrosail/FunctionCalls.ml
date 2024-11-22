@@ -160,13 +160,17 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
 
 
 let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let pp_ones (size : int) =
+    let value = Z.sub (Z.shift_left Z.one size) Z.one
+    in
+    GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+  in
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
       GC.pp_annotate [%here] begin
         let size = Z.to_int n
-        and value = Z.sub (Z.shift_left Z.one (Z.to_int n)) Z.one
         in
-        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+        pp_ones size
       end
     end
   | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
@@ -174,9 +178,8 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
         let* number_of_bits = lookup_integer_value_bound_to identifier
         in
         let size = Z.to_int number_of_bits
-        and value = Z.sub (Z.shift_left Z.one (Z.to_int number_of_bits)) Z.one
         in
-        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+        pp_ones size
       end
     end
   | [ argument ] -> begin
