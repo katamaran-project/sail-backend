@@ -253,9 +253,10 @@ let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t 
               end
             | _ -> GC.fail "should never happen: the second argument has the wrong type"
           end
-        | _ -> GC.fail "only calls to sail_shift_left supported where second argument's value is known at compile time"
+        | _ -> GC.fail "only calls to sail_shiftleft supported where second argument's value is known at compile time"
       end
-    | _ -> GC.fail "wrong number of parameters for sail_shift_left; should never occur"
+    | _ -> GC.fail "wrong number of parameters for sail_shiftleft; should never occur"
+  end
   end
 
 
