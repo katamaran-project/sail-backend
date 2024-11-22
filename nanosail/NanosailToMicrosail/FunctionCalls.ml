@@ -197,6 +197,19 @@ let translate_unit_equality () : PP.document GC.t =
   end
 
 
+(*
+   Sail allows to add bitvectors and integers.
+   MuSail does not appear to support this.
+
+   We translate bv + n as bv + bv where bv should represent the same value as n.
+   How to do this conversion in MuSail is at the moment of this writing unknown.
+   Instead, we chose to only support cases where the integer n is known at compile time.
+   which makes it possible for this code to generate a bv with the same value.
+
+   MuSail expects both operands in a bv+bv operation to have the same length.
+   In order to determine the size of the second bv, we take a look at the type of the first operand,
+   which we know it a bitvector.
+*)
 let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "add_bits_int"
   in
@@ -204,20 +217,28 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
       (bitvector_argument : Ast.Expression.t)
       (integer_argument   : Z.t             ) : PP.document GC.t
     =
-    let* pp_bitvector_argument =
-      let* doc = Expressions.pp_expression bitvector_argument
-      in
-      GC.return @@ PP.(surround parens) doc
-    in
-    let pp_integer_argument =
-      PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size:32 ~value:integer_argument (* todo fix size *)
-    in
-    GC.pp_annotate [%here] begin
-      translate_binary_operator_using_function_notation (* todo support infix notation *)
-        (Ast.Identifier.mk sail_name)
-        "bop.bvadd"
-        [ pp_bitvector_argument; pp_integer_argument ]
-    end
+    (* Start by inferring type of left operand. We know this to be a bitvector, but we need to know its size *)
+    match Ast.Expression.infer_type bitvector_argument with
+    | Ast.Type.Bitvector (Ast.Definition.NumericExpression.Constant bitvector_size) -> begin
+        (* Pretty print left operand *)
+        let* pp_bitvector_argument =
+          let* doc = Expressions.pp_expression bitvector_argument
+          in
+          GC.return @@ PP.(surround parens) doc
+        in
+        (* Pretty print right operand *)
+        let pp_integer_argument =
+          PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int bitvector_size) ~value:integer_argument (* todo fix size *)
+        in
+        (* Wrap it all up in a nice bvadd operation *)
+        GC.pp_annotate [%here] begin
+          translate_binary_operator_using_function_notation (* todo support infix notation *)
+            (Ast.Identifier.mk sail_name)
+            "bop.bvadd"
+            [ pp_bitvector_argument; pp_integer_argument ]
+        end
+      end
+    | _ -> GC.fail "failed to determine bitvector size"
   in
   match arguments with
   | [ bitvector_argument; shift_argument ] -> begin
