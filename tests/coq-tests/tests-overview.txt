@@ -32,6 +32,8 @@ PASS bitvectors-ones-with-variable
 PASS bitvectors-parameter
 PASS bitvectors-register
 PASS bitvectors-returning
+FAIL bitvectors-shift-left
+FAIL bitvectors-shift-right
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
 PASS bitvectors-xor
@@ -199,4 +201,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:186 FAIL:15
+PASS:186 FAIL:17
