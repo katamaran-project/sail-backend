@@ -193,7 +193,7 @@ module Expression = struct
 
   
   (*
-    stm_exp (exp_val (ty.bvec 32) (@Bitvector.bv.zero 32))
+    exp_val (ty.bvec 32) (@Bitvector.bv.zero 32)
   *)
   let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
