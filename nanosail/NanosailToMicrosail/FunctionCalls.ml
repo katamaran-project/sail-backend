@@ -127,7 +127,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
   let pp_zeros (number_of_bits : int) : PP.document GC.t =
     GC.pp_annotate [%here] begin
       GC.return begin
-        MuSail.Statement.pp_zero_bitvector number_of_bits
+        MuSail.Statement.pp_zero_bitvector_using_function number_of_bits
       end
       (* GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero *)
     end

@@ -487,7 +487,7 @@ module Statement = struct
       end
 
 
-  let pp_zero_bitvector (number_of_bits : int) : PP.document =
+  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
       let typ =
         PP.(surround parens) @@ Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
