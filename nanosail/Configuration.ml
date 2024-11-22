@@ -22,6 +22,7 @@ module C = struct
     let pretty_print_match_enum              = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators        = bool     "pretty-print-binary-operators"    false
     let show_generation_blocks               = bool     "show-generation-blocks"           false
+    let bitvectors_zeros_ones_as_literal     = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones)                       *)
     let ignored_pragmas                      = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
     let ignored_functions                    = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let base_name                            = string   "base-name"                        "UntitledBase"
@@ -30,6 +31,7 @@ module C = struct
     let ignore_value_definition_predicate    = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
     let ignore_function_definition_predicate = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
+    
     (* template block delimiters *)
     let template_block_left_delimiter     = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter    = string "template-block-right-delimiter" ">*)"
