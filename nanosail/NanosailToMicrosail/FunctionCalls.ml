@@ -197,6 +197,7 @@ let translate_unit_equality () : PP.document GC.t =
   end
 
 
+(* todo implement this *)
 let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.t =
   GC.pp_annotate [%here] begin
     let* pp_arguments =
@@ -206,6 +207,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
   end
 
 
+(* todo implement this *)
 let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
   GC.pp_annotate [%here] begin
     let* pp_arguments =
