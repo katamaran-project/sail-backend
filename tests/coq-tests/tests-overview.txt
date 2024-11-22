@@ -2,7 +2,7 @@ PASS atoms-bool-negation
 PASS atoms-identity-function-int
 PASS atoms-linear
 PASS atoms-linear2
-FAIL bit-equality
+PASS bit-equality
 FAIL bit-returning-one
 FAIL bit-returning-zero
 PASS bitvectors-128-bit-binary-literal
@@ -44,9 +44,11 @@ PASS bitvectors-shift-right-with-literal-0
 PASS bitvectors-shift-right-with-literal-1
 PASS bitvectors-shift-right-with-literal-5
 PASS bitvectors-shift-right-with-variable
+PASS bitvectors-sign-extend
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
 PASS bitvectors-xor
+PASS bitvectors-zero-extend
 PASS bitvectors-zeros-with-literal-formatting
 PASS bitvectors-zeros-with-literal-size
 PASS bitvectors-zeros-with-sizeof-size
@@ -212,4 +214,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:200 FAIL:14
+PASS:203 FAIL:13
