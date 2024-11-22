@@ -64,11 +64,11 @@ let translate_binary_operator_using_infix_notation
   =
   match operands with
   | [x; y] -> begin
-      GC.return begin
-          PP.annotate [%here] @@ begin
-              MuSail.Statement.pp_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
-            end
+      GC.pp_annotate [%here] begin
+        GC.return begin
+          MuSail.Statement.pp_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
         end
+      end
     end
   | _ -> report_incorrect_argument_count original_function_name 2 operands
 
@@ -126,12 +126,16 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
+      GC.pp_annotate [%here] begin
+        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
+      end
     end
   | [ Ast.Expression.Variable identifier ] -> begin
-      let* number_of_bits = lookup_integer_value_bound_to identifier
-      in
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int number_of_bits) ~value:Z.zero
+      GC.pp_annotate [%here] begin
+        let* number_of_bits = lookup_integer_value_bound_to identifier
+        in
+        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int number_of_bits) ~value:Z.zero
+      end
     end
   | [ argument ] -> begin
       let message =
@@ -153,18 +157,22 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
 let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
   match arguments with
   | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
-      let size = Z.to_int n
-      and value = Z.sub (Z.shift_left Z.one (Z.to_int n)) Z.one
-      in
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+      GC.pp_annotate [%here] begin
+        let size = Z.to_int n
+        and value = Z.sub (Z.shift_left Z.one (Z.to_int n)) Z.one
+        in
+        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+      end
     end
   | [ Ast.Expression.Variable identifier ] -> begin
-      let* number_of_bits = lookup_integer_value_bound_to identifier
-      in
-      let size = Z.to_int number_of_bits
-      and value = Z.sub (Z.shift_left Z.one (Z.to_int number_of_bits)) Z.one
-      in
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+      GC.pp_annotate [%here] begin
+        let* number_of_bits = lookup_integer_value_bound_to identifier
+        in
+        let size = Z.to_int number_of_bits
+        and value = Z.sub (Z.shift_left Z.one (Z.to_int number_of_bits)) Z.one
+        in
+        GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+      end
     end
   | [ argument ] -> begin
       let message =
@@ -184,14 +192,18 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
 
 
 let translate_unit_equality () : PP.document GC.t =
-  GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_true ()
+  GC.pp_annotate [%here] begin
+    GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_true ()
+  end
 
 
 let translate_add_bits_int  (arguments : Ast.Expression.t list) : PP.document GC.t =
-  let* pp_arguments =
-    GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
-  in
-  GC.return @@ MuSail.Statement.pp_call (Ast.Identifier.mk "add_bits_int") pp_arguments
+  GC.pp_annotate [%here] begin
+    let* pp_arguments =
+      GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+    in
+    GC.return @@ MuSail.Statement.pp_call (Ast.Identifier.mk "add_bits_int") pp_arguments
+  end
 
 
 let translate
@@ -217,4 +229,4 @@ let translate
   | "add_bits_int" -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
-  | _              -> GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
+  | _              -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
