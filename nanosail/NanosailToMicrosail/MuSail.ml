@@ -213,6 +213,20 @@ module Expression = struct
     PP.annotate [%here] begin
       pp_bitvector ~size:number_of_bits ~value:Z.zero 
     end
+
+  
+  (*
+    exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
+  *)
+  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      let typ =
+        Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
+      and value =
+        Coq.pp_explicit_application (PP.string "Bitvector.bv.one") [ PP.integer number_of_bits ]
+      in
+      pp_value ~typ ~value
+    end
 end
 
 
