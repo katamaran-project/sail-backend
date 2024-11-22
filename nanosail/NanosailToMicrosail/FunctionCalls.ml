@@ -227,40 +227,48 @@ let translate_shift
     ~(musail_name : string)
     ~(arguments : Ast.Expression.t list) : PP.document GC.t
   =
-  GC.pp_annotate [%here] begin
-    match arguments with
-    | [ bitvector_argument; shift_argument ] -> begin
-        match shift_argument with
-        | Variable _ -> GC.not_yet_implemented [%here]
-        | Val value -> begin
-            match value with
-            | Int integer_value -> begin
-                let* pp_bitvector_argument =
-                  let* doc = Expressions.pp_expression bitvector_argument
-                  in
-                  GC.return @@ PP.(surround parens) doc
-                in
-                let pp_shift_argument =
-                  let size =
-                    (*
-                      pick the smallest bitvector size that can hold integer_value
-                      it should also be at least 1
-                    *)
-                    Z.log2up (Z.max (Z.of_int 2) integer_value)
-                  in
-                  PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size ~value:integer_value
-                in
-                translate_binary_operator_using_function_notation
-                  (Ast.Identifier.mk sail_name)
-                  musail_name
-                  [ pp_bitvector_argument; pp_shift_argument ]
-              end
-            | _ -> GC.fail "should never happen: the second argument has the wrong type"
-          end
-        | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
-      end
-    | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
-  end
+  let pp_shift
+      (bitvector_argument : Ast.Expression.t)
+      (shift_argument     : Z.t             ) : PP.document GC.t
+    =
+    let* pp_bitvector_argument =
+      let* doc = Expressions.pp_expression bitvector_argument
+      in
+      GC.return @@ PP.(surround parens) doc
+    in
+    let pp_shift_argument =
+      let size =
+        (*
+           pick the smallest bitvector size that can hold integer_value
+           it should also be at least 1
+        *)
+        Z.log2up (Z.max (Z.of_int 2) shift_argument)
+      in
+      PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size ~value:shift_argument
+    in
+    GC.pp_annotate [%here] begin
+      translate_binary_operator_using_function_notation
+        (Ast.Identifier.mk sail_name)
+        musail_name
+        [ pp_bitvector_argument; pp_shift_argument ]
+    end
+  in
+  match arguments with
+  | [ bitvector_argument; shift_argument ] -> begin
+      match shift_argument with
+      | Variable identifier -> begin
+          let* integer_value = lookup_integer_value_bound_to identifier
+          in
+          pp_shift bitvector_argument integer_value
+        end
+      | Val value -> begin
+          match value with
+          | Int integer_value -> pp_shift bitvector_argument integer_value
+          | _ -> GC.fail "should never happen: the second argument has the wrong type"
+        end
+      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+    end
+  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
