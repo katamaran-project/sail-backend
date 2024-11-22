@@ -10,7 +10,7 @@ module NumericExpression = struct
   type t =
     | Constant of Z.t
     | Add      of t * t
-    | Minus    of t * t
+    | Sub      of t * t
     | Times    of t * t
     | Neg      of t
     | PowerOf2 of t
@@ -22,7 +22,7 @@ module NumericExpression = struct
     match numeric_expression with
     | Constant n     -> Z.to_string n
     | Add   (e1, e2) -> Printf.sprintf "(%s + %s)" (to_string e1) (to_string e2)
-    | Minus (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
+    | Sub   (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
     | Times (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
     | Neg e          -> Printf.sprintf "-%s" (to_string e)
     | PowerOf2 e     -> Printf.sprintf "2^(%s)" (to_string e)
@@ -42,9 +42,9 @@ module NumericExpression = struct
         | Add (x', y') -> equal x x' && equal y y'
         | _            -> false
       end
-    | Minus (x, y) -> begin
+    | Sub (x, y) -> begin
         match t2 with
-        | Minus (x', y') -> equal x x' && equal y y'
+        | Sub (x', y') -> equal x x' && equal y y'
         | _              -> false
       end
     | Times (x, y) -> begin
@@ -81,7 +81,7 @@ module NumericExpression = struct
     match numeric_expression with
      | Constant n     -> FExpr.mk_int @@ Z.to_int n
      | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Add"
-     | Minus (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Minus"
+     | Sub (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Sub"
      | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Times"
      | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
      | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"

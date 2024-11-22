@@ -7,7 +7,7 @@ module Subst = struct
       match nexp with
       | Constant _           -> nexp
       | Add (left, right)    -> Add (aux left, aux right)
-      | Minus (left, right)  -> Minus (aux left, aux right)
+      | Sub (left, right)    -> Sub (aux left, aux right)
       | Times (left, right)  -> Times (aux left, aux right)
       | Neg operand          -> Neg (aux operand)
       | Id identifier        -> Id (subst identifier)

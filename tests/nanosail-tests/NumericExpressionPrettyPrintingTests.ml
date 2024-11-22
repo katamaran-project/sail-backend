@@ -34,19 +34,19 @@ let test_formatting =
       (Constant (z 12345), "12345");
       (Add (c 1, c 2), "1 + 2");
       (Add (c 12, c 23), "12 + 23");
-      (Minus (c 1, c 2), "1 - 2");
-      (Minus (c 13, c 10), "13 - 10");
+      (Sub (c 1, c 2), "1 - 2");
+      (Sub (c 13, c 10), "13 - 10");
       (Times (c 2, c 9), "2 * 9");
       (Neg (c 10), "-10");
       (id "x", "x");
       (var "yx", "yx");
       (PowerOf2 (id "x"), "2^x");
       (Add (Add (c 1, c 2), Add (c 3, c 4)), "1 + 2 + 3 + 4");
-      (Minus (c 1, Minus (c 2, c 3)), "1 - (2 - 3)");
-      (Minus (Minus (c 1, c 2), c 3), "1 - 2 - 3");
+      (Sub (c 1, Sub (c 2, c 3)), "1 - (2 - 3)");
+      (Sub (Sub (c 1, c 2), c 3), "1 - 2 - 3");
       (Times (Times (c 1, c 2), Times (c 3, c 4)), "1 * 2 * 3 * 4");
       (Times (Add (c 1, c 2), Add (c 3, c 4)), "(1 + 2) * (3 + 4)");
-      (Times (Minus (c 1, c 2), Minus (c 3, c 4)), "(1 - 2) * (3 - 4)");
+      (Times (Sub (c 1, c 2), Sub (c 3, c 4)), "(1 - 2) * (3 - 4)");
       (Times
          (
            Add
