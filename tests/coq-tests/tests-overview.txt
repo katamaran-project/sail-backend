@@ -7,7 +7,9 @@ FAIL bit-returning-one
 FAIL bit-returning-zero
 PASS bitvectors-128-bit-binary-literal
 PASS bitvectors-128-ones
-FAIL bitvectors-add-to-int
+PASS bitvectors-add-to-int-infix
+PASS bitvectors-add-to-literal-int
+PASS bitvectors-add-to-variable-int
 PASS bitvectors-addition
 PASS bitvectors-addition-infix
 PASS bitvectors-alias
@@ -137,7 +139,7 @@ PASS lists-return-multiple-items
 PASS lists-return-singleton-bool-list
 PASS lists-return-singleton-int-list
 PASS mc-001-types
-FAIL mc-002-prelude
+PASS mc-002-prelude
 PASS model-001
 PASS model-002
 PASS model-003
@@ -207,4 +209,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:194 FAIL:15
+PASS:198 FAIL:13
