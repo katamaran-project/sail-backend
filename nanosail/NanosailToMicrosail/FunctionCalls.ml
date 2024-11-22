@@ -197,7 +197,7 @@ let translate_unit_equality () : PP.document GC.t =
   end
 
 
-let translate_add_bits_int  (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.t =
   GC.pp_annotate [%here] begin
     let* pp_arguments =
       GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
