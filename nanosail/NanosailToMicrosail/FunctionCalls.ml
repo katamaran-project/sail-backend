@@ -323,18 +323,11 @@ let translate_shift
   in
   match arguments with
   | [ bitvector_argument; shift_argument ] -> begin
-      match shift_argument with
-      | Variable (identifier, _typ) -> begin
-          let* integer_value = lookup_integer_value_bound_to identifier
-          in
-          pp_shift bitvector_argument integer_value
-        end
-      | Val value -> begin
-          match value with
-          | Int integer_value -> pp_shift bitvector_argument integer_value
-          | _ -> GC.fail "should never happen: the second argument has the wrong type"
-        end
-      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      let* shift_argument_value = extract_compile_time_integer shift_argument
+      in
+      match shift_argument_value with
+      | Some bit_count -> pp_shift bitvector_argument bit_count
+      | None           -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
   | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
