@@ -123,6 +123,33 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
   | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of identifier)
 
 
+(*
+  Looks for a value definition for <identifier>.
+  This function expects the value to be an integer; if not, it returns none.
+*)                                                                                     
+let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t option GC.t =
+  let* program = GC.get_program
+  in
+  match Ast.Definition.Select.(select (value_definition ~identifier:identifier) program.definitions) with
+  | [ (_, value_definition) ] -> begin
+      match value_definition.value with
+      | Int n -> GC.return @@ Some n
+      | _     -> GC.return None
+    end
+  | _ -> GC.return None
+
+
+(*
+   Checks if the expression represents a compile time known integer.
+   This can take the form of either a literal or a constant variable.
+*)
+let extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC.t =
+  match expression with
+  | Ast.Expression.Val (Ast.Value.Int value)   -> GC.return @@ Some value
+  | Ast.Expression.Variable (identifier, _typ) -> try_lookup_integer_value_bound_to identifier
+  | _                                          -> GC.return None
+
+
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   let pp_zeros (number_of_bits : int) : PP.document GC.t =
     GC.pp_annotate [%here] begin
@@ -137,26 +164,16 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
     end
   in  
   match arguments with
-  | [ Ast.Expression.Val (Ast.Value.Int number_of_bits) ] -> begin
-      GC.pp_annotate [%here] begin
-        pp_zeros (Z.to_int number_of_bits)
-      end
-    end
-  | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
-      GC.pp_annotate [%here] begin
-        let* number_of_bits = lookup_integer_value_bound_to identifier
-        in
-        pp_zeros (Z.to_int number_of_bits)
-      end
-    end
   | [ argument ] -> begin
-      let message =
-        let formatted_argument =
-          FExpr.to_string @@ Ast.Expression.to_fexpr argument
-        in
-        Printf.sprintf "expected sail_zeros to receive an integer argument; instead got %s" formatted_argument
+      let* argument_value = extract_compile_time_integer argument
       in
-      GC.fail message
+      match argument_value with
+      | Some number_of_bits -> begin
+          GC.pp_annotate [%here] begin
+            pp_zeros (Z.to_int number_of_bits)
+          end
+        end
+      | None -> GC.fail "sail_zeros expects compile time known integer argument"
     end
   | _ -> begin
       let message =
@@ -347,9 +364,11 @@ let translate_shift_right (arguments : Ast.Expression.t list) : PP.document GC.t
   GC.pp_annotate [%here] @@ translate_shift ~sail_name:"sail_shiftright" ~musail_name:"bop.shiftr" ~arguments
 
 
-let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
-  let sail_name = "sail_zero_extend"
-  in
+let translate_extend
+    ~(sail_name   : string               )
+    ~(musail_name : string               )
+    ~(arguments   : Ast.Expression.t list) : PP.document GC.t
+  =
   let pp_zero_extend
       (bitvector    : Ast.Expression.t)
       (new_bit_size : int             ) : PP.document GC.t
@@ -366,7 +385,7 @@ let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t
           Coq.pp_application
             (PP.string "exp_unop")
             [
-              PP.string @@ Printf.sprintf "(uop.zext (n := %d))" new_bit_size;
+              PP.string @@ Printf.sprintf "(uop.%s (n := %d))" musail_name new_bit_size;
               pp_bitvector
             ]
         end
@@ -389,50 +408,21 @@ let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t
       | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
   | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+  
+
+
+let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "sail_zero_extend"
+  and musail_name = "zext"
+  in
+  translate_extend ~sail_name ~musail_name ~arguments
 
 
 let translate_sign_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "sail_sign_extend"
+  and musail_name = "sext"
   in
-  let pp_zero_extend
-      (bitvector    : Ast.Expression.t)
-      (new_bit_size : int             ) : PP.document GC.t
-    =
-    let* pp_bitvector =
-      let* doc =
-        Expressions.pp_expression bitvector
-      in
-      GC.return @@ PP.(surround parens) doc
-    in
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        MuSail.Statement.pp_expression begin
-          Coq.pp_application
-            (PP.string "exp_unop")
-            [
-              PP.string @@ Printf.sprintf "(uop.sext (n := %d))" new_bit_size;
-              pp_bitvector
-            ]
-        end
-      end
-    end
-  in
-  match arguments with
-  | [ bitvector_argument; bit_size_argument ] -> begin
-      match bit_size_argument with
-      | Variable (identifier, _typ) -> begin
-          let* new_bit_size = lookup_integer_value_bound_to identifier
-          in
-          pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-        end
-      | Val value -> begin
-          match value with
-          | Int new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-          | _ -> GC.fail "should never happen: the second argument has the wrong type"
-        end
-      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
-    end
-  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+  translate_extend ~sail_name ~musail_name ~arguments
 
 
 let translate
