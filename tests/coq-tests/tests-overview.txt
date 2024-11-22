@@ -22,6 +22,7 @@ PASS bitvectors-comparison-le-signed
 PASS bitvectors-comparison-le-unsigned
 PASS bitvectors-comparison-lt-signed
 PASS bitvectors-comparison-lt-unsigned
+FAIL bitvectors-concatenation
 PASS bitvectors-conjunction
 PASS bitvectors-disjunction
 PASS bitvectors-hexadecimal-literal
@@ -209,4 +210,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:198 FAIL:13
+PASS:198 FAIL:14
