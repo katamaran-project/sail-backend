@@ -65,6 +65,8 @@ let underscore = Doc.underscore
 let surround  = Doc.surround
 let indent    = Doc.indent
 
+let integer   = Doc.integer
+
 let is_empty  = Doc.is_empty
 
 
