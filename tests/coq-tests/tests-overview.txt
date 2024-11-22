@@ -46,9 +46,10 @@ PASS bitvectors-shift-right-with-variable
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
 PASS bitvectors-xor
-PASS bitvectors-zeros-with-literal
-PASS bitvectors-zeros-with-sizeof
-PASS bitvectors-zeros-with-variable
+PASS bitvectors-zeros-with-literal-formatting
+PASS bitvectors-zeros-with-literal-size
+PASS bitvectors-zeros-with-sizeof-size
+PASS bitvectors-zeros-with-variable-size
 PASS bool-conjunction
 PASS bool-disjunction
 PASS bool-equality-function-notation
@@ -210,4 +211,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:198 FAIL:14
+PASS:199 FAIL:14
