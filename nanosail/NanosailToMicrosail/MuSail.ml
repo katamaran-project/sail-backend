@@ -218,7 +218,7 @@ module Expression = struct
   (*
     exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
   *)
-  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
+  let pp_ones_bitvector_using_function (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
       let typ =
         Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
