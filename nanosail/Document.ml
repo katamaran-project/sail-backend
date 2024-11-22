@@ -374,7 +374,7 @@ module Make(Annotation : ANNOTATION) = struct
     a + b + c + d
 
   *)
-  let pp_binary_operation
+  let pp_binary_operation (* todo rename to binary_operation *)
       (operator : t     )
       (operands : t list) : t
     =
