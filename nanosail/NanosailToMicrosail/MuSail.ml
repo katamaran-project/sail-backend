@@ -496,6 +496,12 @@ module Statement = struct
       in
       pp_expression @@ Expression.pp_value ~typ ~value
     end
+
+  
+  let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      pp_expression @@ Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero 
+    end
 end
 
 
