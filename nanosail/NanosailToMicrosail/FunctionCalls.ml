@@ -124,9 +124,9 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
 
 
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
-  let pp_zeros (size : int) : PP.document GC.t =
+  let pp_zeros (number_of_bits : int) : PP.document GC.t =
     GC.pp_annotate [%here] begin
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:size ~value:Z.zero
+      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero
     end
   in  
   match arguments with
@@ -160,26 +160,22 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
 
 
 let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
-  let pp_ones (size : int) =
-    let value = Z.sub (Z.shift_left Z.one size) Z.one
+  let pp_ones (number_of_bits : int) =
+    let value = Z.sub (Z.shift_left Z.one number_of_bits) Z.one
     in
-    GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
+    GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:number_of_bits ~value
   in
   match arguments with
-  | [ Ast.Expression.Val (Ast.Value.Int n) ] -> begin
+  | [ Ast.Expression.Val (Ast.Value.Int number_of_bits) ] -> begin
       GC.pp_annotate [%here] begin
-        let size = Z.to_int n
-        in
-        pp_ones size
+        pp_ones @@ Z.to_int number_of_bits
       end
     end
   | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
       GC.pp_annotate [%here] begin
         let* number_of_bits = lookup_integer_value_bound_to identifier
         in
-        let size = Z.to_int number_of_bits
-        in
-        pp_ones size
+        pp_ones @@ Z.to_int number_of_bits
       end
     end
   | [ argument ] -> begin
