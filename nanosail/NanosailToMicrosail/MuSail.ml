@@ -190,6 +190,26 @@ module Expression = struct
     PP.annotate [%here] begin
       pp_value ~typ:pp_type ~value:pp_literal
     end
+
+  
+  (*
+    stm_exp (exp_val (ty.bvec 32) (@Bitvector.bv.zero 32))
+  *)
+  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      let typ =
+        Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
+      and value =
+        Coq.pp_explicit_application (PP.string "Bitvector.bv.zero") [ PP.integer number_of_bits ]
+      in
+      pp_value ~typ ~value
+    end
+
+  
+  let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      pp_bitvector ~size:number_of_bits ~value:Z.zero 
+    end
 end
 
 
@@ -485,23 +505,6 @@ module Statement = struct
           ]
         )
       end
-
-
-  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
-    PP.annotate [%here] begin
-      let typ =
-        PP.(surround parens) @@ Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
-      and value =
-        PP.(surround parens) @@ Coq.pp_explicit_application (PP.string "Bitvector.bv.zero") [ PP.integer number_of_bits ]
-      in
-      pp_expression @@ Expression.pp_value ~typ ~value
-    end
-
-  
-  let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
-    PP.annotate [%here] begin
-      pp_expression @@ Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero 
-    end
 end
 
 

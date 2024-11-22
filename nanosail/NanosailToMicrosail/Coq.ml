@@ -530,7 +530,7 @@ let pp_application f args =
 
 
 let pp_explicit_application f args =
-  PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space @@ PP.at :: f :: args)
+  PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space @@ horizontal [ PP.at; f ] :: args)
 
 
 let pp_function_type parameter_types result_type =
