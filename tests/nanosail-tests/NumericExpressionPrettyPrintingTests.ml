@@ -36,7 +36,7 @@ let test_formatting =
       (Add (c 12, c 23), "12 + 23");
       (Sub (c 1, c 2), "1 - 2");
       (Sub (c 13, c 10), "13 - 10");
-      (Times (c 2, c 9), "2 * 9");
+      (Mul (c 2, c 9), "2 * 9");
       (Neg (c 10), "-10");
       (id "x", "x");
       (var "yx", "yx");
@@ -44,19 +44,19 @@ let test_formatting =
       (Add (Add (c 1, c 2), Add (c 3, c 4)), "1 + 2 + 3 + 4");
       (Sub (c 1, Sub (c 2, c 3)), "1 - (2 - 3)");
       (Sub (Sub (c 1, c 2), c 3), "1 - 2 - 3");
-      (Times (Times (c 1, c 2), Times (c 3, c 4)), "1 * 2 * 3 * 4");
-      (Times (Add (c 1, c 2), Add (c 3, c 4)), "(1 + 2) * (3 + 4)");
-      (Times (Sub (c 1, c 2), Sub (c 3, c 4)), "(1 - 2) * (3 - 4)");
-      (Times
+      (Mul (Mul (c 1, c 2), Mul (c 3, c 4)), "1 * 2 * 3 * 4");
+      (Mul (Add (c 1, c 2), Add (c 3, c 4)), "(1 + 2) * (3 + 4)");
+      (Mul (Sub (c 1, c 2), Sub (c 3, c 4)), "(1 - 2) * (3 - 4)");
+      (Mul
          (
            Add
              (
-               Times
+               Mul
                  (
                    Add (c 1, c 2),
                    Add (c 3, c 4)
                  ),
-               Times
+               Mul
                  (c 5, c 6)
              ),
            Add (c 7, c 8)
@@ -65,7 +65,7 @@ let test_formatting =
       );
       (Neg (Add (c 1, c 2)), "-(1 + 2)");
       (PowerOf2 (Add (c 1, c 2)), "2^(1 + 2)");
-      (PowerOf2 (Times (c 1, c 2)), "2^(1 * 2)");
+      (PowerOf2 (Mul (c 1, c 2)), "2^(1 * 2)");
       (PowerOf2 (PowerOf2 (c 10)), "2^(2^10)");
     ]
   in

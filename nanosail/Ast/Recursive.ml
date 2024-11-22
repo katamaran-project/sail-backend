@@ -11,7 +11,7 @@ module NumericExpression = struct
     | Constant of Z.t
     | Add      of t * t
     | Sub      of t * t
-    | Times    of t * t
+    | Mul      of t * t
     | Neg      of t
     | PowerOf2 of t
     | Id       of Identifier.t
@@ -20,14 +20,14 @@ module NumericExpression = struct
 
   let rec to_string (numeric_expression : t) =
     match numeric_expression with
-    | Constant n     -> Z.to_string n
-    | Add   (e1, e2) -> Printf.sprintf "(%s + %s)" (to_string e1) (to_string e2)
-    | Sub   (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
-    | Times (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
-    | Neg e          -> Printf.sprintf "-%s" (to_string e)
-    | PowerOf2 e     -> Printf.sprintf "2^(%s)" (to_string e)
-    | Id id          -> Identifier.string_of id
-    | Var id         -> Identifier.string_of id
+    | Constant n   -> Z.to_string n
+    | Add (e1, e2) -> Printf.sprintf "(%s + %s)" (to_string e1) (to_string e2)
+    | Sub (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
+    | Mul (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
+    | Neg e        -> Printf.sprintf "-%s" (to_string e)
+    | PowerOf2 e   -> Printf.sprintf "2^(%s)" (to_string e)
+    | Id id        -> Identifier.string_of id
+    | Var id       -> Identifier.string_of id
 
 
   let rec equal (t1 : t) (t2 : t) : bool =
@@ -47,9 +47,9 @@ module NumericExpression = struct
         | Sub (x', y') -> equal x x' && equal y y'
         | _              -> false
       end
-    | Times (x, y) -> begin
+    | Mul (x, y) -> begin
         match t2 with
-        | Times (x', y') -> equal x x' && equal y y'
+        | Mul (x', y') -> equal x x' && equal y y'
         | _              -> false
       end
     | Neg x -> begin
@@ -82,7 +82,7 @@ module NumericExpression = struct
      | Constant n     -> FExpr.mk_int @@ Z.to_int n
      | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Add"
      | Sub (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Sub"
-     | Times (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Times"
+     | Mul (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Mul"
      | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
      | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"
      | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Id"
