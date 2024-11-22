@@ -205,7 +205,10 @@ module Expression = struct
       pp_value ~typ ~value
     end
 
-  
+
+  (*
+     exp_val (ty.bvec 32) ([bv 0])
+  *)
   let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
       pp_bitvector ~size:number_of_bits ~value:Z.zero 
