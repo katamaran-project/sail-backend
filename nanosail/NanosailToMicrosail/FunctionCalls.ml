@@ -130,7 +130,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
         GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int n) ~value:Z.zero
       end
     end
-  | [ Ast.Expression.Variable identifier ] -> begin
+  | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
       GC.pp_annotate [%here] begin
         let* number_of_bits = lookup_integer_value_bound_to identifier
         in
@@ -164,7 +164,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
         GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size ~value
       end
     end
-  | [ Ast.Expression.Variable identifier ] -> begin
+  | [ Ast.Expression.Variable (identifier, _typ) ] -> begin
       GC.pp_annotate [%here] begin
         let* number_of_bits = lookup_integer_value_bound_to identifier
         in
@@ -222,7 +222,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
   match arguments with
   | [ bitvector_argument; shift_argument ] -> begin
       match shift_argument with
-      | Variable identifier -> begin
+      | Variable (identifier, _typ) -> begin
           let* integer_value = lookup_integer_value_bound_to identifier
           in
           pp_addition bitvector_argument integer_value
@@ -286,7 +286,7 @@ let translate_shift
   match arguments with
   | [ bitvector_argument; shift_argument ] -> begin
       match shift_argument with
-      | Variable identifier -> begin
+      | Variable (identifier, _typ) -> begin
           let* integer_value = lookup_integer_value_bound_to identifier
           in
           pp_shift bitvector_argument integer_value

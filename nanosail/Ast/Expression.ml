@@ -2,7 +2,7 @@ open Base
 
 
 type t =
-  | Variable        of Identifier.t
+  | Variable        of Identifier.t * Nanotype.t
   | Val             of Value.t
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
@@ -19,8 +19,11 @@ type t =
 
 
 let rec to_fexpr (expression : t) : FExpr.t =
-  let variable_to_fexpr (identifier : Identifier.t) : FExpr.t =
-    FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] "Var"
+  let variable_to_fexpr
+      (identifier : Identifier.t)
+      (typ        : Nanotype.t  ) : FExpr.t
+    =
+    FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Nanotype.to_fexpr typ] "Var"
 
   and value_to_fexpr (value : Value.t) : FExpr.t =
     FExpr.mk_application ~positional:[Value.to_fexpr value] "Val"
@@ -87,7 +90,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
 
   in
   match expression with
-   | Variable identifier                                     -> variable_to_fexpr identifier
+   | Variable (identifier, typ)                              -> variable_to_fexpr identifier typ
    | Val value                                               -> value_to_fexpr value
    | List items                                              -> list_to_fexpr items
    | UnaryOperation (operator, operand)                      -> unary_operation_to_fexpr operator operand
