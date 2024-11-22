@@ -347,10 +347,56 @@ let translate_shift_right (arguments : Ast.Expression.t list) : PP.document GC.t
   GC.pp_annotate [%here] @@ translate_shift ~sail_name:"sail_shiftright" ~musail_name:"bop.shiftr" ~arguments
 
 
+let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "sail_zero_extend"
+  in
+  let pp_zero_extend
+      (bitvector    : Ast.Expression.t)
+      (new_bit_size : int             ) : PP.document GC.t
+    =
+    let* pp_bitvector =
+      let* doc =
+        Expressions.pp_expression bitvector
+      in
+      GC.return @@ PP.(surround parens) doc
+    in
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        MuSail.Statement.pp_expression begin
+          Coq.pp_application
+            (PP.string "exp_unop")
+            [
+              PP.string @@ Printf.sprintf "(uop.zext (n := %d))" new_bit_size;
+              pp_bitvector
+            ]
+        end
+      end
+    end
+  in
+  match arguments with
+  | [ bitvector_argument; bit_size_argument ] -> begin
+      match bit_size_argument with
+      | Variable (identifier, _typ) -> begin
+          let* new_bit_size = lookup_integer_value_bound_to identifier
+          in
+          pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
+        end
+      | Val value -> begin
+          match value with
+          | Int new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
+          | _ -> GC.fail "should never happen: the second argument has the wrong type"
+        end
+      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+    end
+  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
+  let* () = GC.log Logging.debug @@ lazy (Printf.sprintf "Translating function %s" (Ast.Identifier.string_of function_identifier))
+  in
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
@@ -374,4 +420,5 @@ let translate
   | "sail_ones"        -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
   | "sail_shiftleft"   -> GC.pp_annotate [%here] @@ translate_shift_left arguments
   | "sail_shiftright"  -> GC.pp_annotate [%here] @@ translate_shift_right arguments
+  | "sail_zero_extend" -> GC.pp_annotate [%here] @@ translate_zero_extend arguments
   | _                  -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
