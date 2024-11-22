@@ -228,7 +228,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
         in
         (* Pretty print right operand *)
         let pp_integer_argument =
-          PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int bitvector_size) ~value:integer_argument (* todo fix size *)
+          PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size:(Z.to_int bitvector_size) ~value:integer_argument
         in
         (* Wrap it all up in a nice bvadd operation *)
         GC.pp_annotate [%here] begin
