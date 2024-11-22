@@ -94,12 +94,12 @@ let translate_binary_operator_using_function_notation
 
 
 let translate_binary_operator 
-    (original_function_name : Ast.Identifier.t)
-    (infix_operator         : string option   )
-    (function_operator      : string option   )
-    (operands               : PP.document list) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t      )
+    ?(infix                 : string option   = None)
+    ?(name                  : string option   = None)
+    (operands               : PP.document list      ) : PP.document GC.t
   =
-  match Configuration.(get pretty_print_binary_operators), infix_operator, function_operator with
+  match Configuration.(get pretty_print_binary_operators), infix, name with
   | true , Some infix_operator, _                      -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
   | false, Some infix_operator, None                   -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
   | _    , _                  , Some function_operator -> translate_binary_operator_using_function_notation original_function_name function_operator operands
@@ -228,14 +228,14 @@ let translate
   | "not_bool"       -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "signed"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
   | "unsigned"       -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.unsigned" pp_arguments
-  | "eq_bits"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") None pp_arguments
-  | "add_bits"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "+ᵇ") (Some "bop.bvadd") pp_arguments
-  | "sub_bits"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "-ᵇ") (Some "bop.bvsub") pp_arguments
-  | "and_vec"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "bop.bvand") pp_arguments
-  | "or_vec"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "bop.bvor") pp_arguments
-  | "xor_vec"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier None (Some "bop.bvxor") pp_arguments
-  | "eq_bool"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "=") (Some "(bop.relop bop.eq)") pp_arguments
-  | "neq_bool"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier (Some "!=") (Some "(bop.relop bop.neq)") pp_arguments
+  | "eq_bits"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=") pp_arguments
+  | "add_bits"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "+ᵇ") ~name:(Some "bop.bvadd") pp_arguments
+  | "sub_bits"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "-ᵇ") ~name:(Some "bop.bvsub") pp_arguments
+  | "and_vec"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~name:(Some "bop.bvand") pp_arguments
+  | "or_vec"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~name:(Some "bop.bvor") pp_arguments
+  | "xor_vec"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~name:(Some "bop.bvxor") pp_arguments
+  | "eq_bool"        -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=") ~name:(Some "(bop.relop bop.eq)") pp_arguments
+  | "neq_bool"       -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "!=") ~name:(Some "(bop.relop bop.neq)") pp_arguments
   | "eq_unit"        -> GC.pp_annotate [%here] @@ translate_unit_equality ()
   | "add_bits_int"   -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
   | "sail_zeros"     -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
