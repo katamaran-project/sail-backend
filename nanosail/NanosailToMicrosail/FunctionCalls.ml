@@ -370,21 +370,13 @@ let translate_extend
   in
   match arguments with
   | [ bitvector_argument; bit_size_argument ] -> begin
-      match bit_size_argument with
-      | Variable (identifier, _typ) -> begin
-          let* new_bit_size = lookup_integer_value_bound_to identifier
-          in
-          pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-        end
-      | Val value -> begin
-          match value with
-          | Int new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-          | _ -> GC.fail "should never happen: the second argument has the wrong type"
-        end
-      | _ -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      let* bit_size_value = extract_compile_time_integer bit_size_argument
+      in
+      match bit_size_value with
+      | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
+      | None              -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
   | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
-  
 
 
 let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
