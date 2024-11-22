@@ -419,4 +419,8 @@ module Make(Annotation : ANNOTATION) = struct
       separate_vertically ~separator arguments;
       right_delimiter
     ]
+
+
+  let integer (n : int) =
+    string @@ Int.to_string n
 end
