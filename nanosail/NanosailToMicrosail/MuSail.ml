@@ -490,9 +490,9 @@ module Statement = struct
   let pp_zero_bitvector (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
       let typ =
-        PP.string @@ Printf.sprintf "(ty.bvec %d)" number_of_bits
+        PP.(surround parens) @@ Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
       and value =
-        PP.string @@ Printf.sprintf "(@Bitvector.bv.zero %d)" number_of_bits
+        PP.(surround parens) @@ Coq.pp_explicit_application (PP.string "Bitvector.bv.zero") [ PP.integer number_of_bits ]
       in
       pp_expression @@ Expression.pp_value ~typ ~value
     end
