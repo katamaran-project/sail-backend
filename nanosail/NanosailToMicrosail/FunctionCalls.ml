@@ -232,9 +232,10 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
         in
         (* Wrap it all up in a nice bvadd operation *)
         GC.pp_annotate [%here] begin
-          translate_binary_operator_using_function_notation (* todo support infix notation *)
+          translate_binary_operator (* todo support infix notation *)
             (Ast.Identifier.mk sail_name)
-            "bop.bvadd"
+            ~infix:(Some "+ᵇ")
+            ~name:(Some "bop.bvadd")
             [ pp_bitvector_argument; pp_integer_argument ]
         end
       end
