@@ -126,7 +126,10 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   let pp_zeros (number_of_bits : int) : PP.document GC.t =
     GC.pp_annotate [%here] begin
-      GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero
+      GC.return begin
+        MuSail.Statement.pp_zero_bitvector number_of_bits
+      end
+      (* GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_bitvector ~size:number_of_bits ~value:Z.zero *)
     end
   in  
   match arguments with

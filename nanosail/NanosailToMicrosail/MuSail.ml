@@ -485,6 +485,17 @@ module Statement = struct
           ]
         )
       end
+
+
+  let pp_zero_bitvector (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      let typ =
+        PP.string @@ Printf.sprintf "(ty.bvec %d)" number_of_bits
+      and value =
+        PP.string @@ Printf.sprintf "(@Bitvector.bv.zero %d)" number_of_bits
+      in
+      pp_expression @@ Expression.pp_value ~typ ~value
+    end
 end
 
 
