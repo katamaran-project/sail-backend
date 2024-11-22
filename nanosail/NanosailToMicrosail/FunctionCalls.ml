@@ -206,6 +206,15 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
   end
 
 
+let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
+  GC.pp_annotate [%here] begin
+    let* pp_arguments =
+      GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+    in
+    GC.return @@ MuSail.Statement.pp_call (Ast.Identifier.mk "sail_shift_left") pp_arguments
+  end
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -229,4 +238,5 @@ let translate
   | "add_bits_int" -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
   | "sail_zeros"   -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
   | "sail_ones"    -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
+  | "sail_shiftleft" -> GC.pp_annotate [%here] @@ translate_shift_left arguments
   | _              -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
