@@ -3,10 +3,12 @@ default Order dec
 $include <prelude.sail>
 
 
-type word = bits(32)
-
-
-val foo : (word) -> word
+val foo : bits(32) -> bits(32)
 function foo(x) = {
   x + 1
+}
+
+val bar : bits(16) -> bits(16)
+function bar(x) = {
+  x + 2
 }
