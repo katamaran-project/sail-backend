@@ -220,6 +220,8 @@ module Make(Annotation : ANNOTATION) = struct
   let bar        = string "|"
   let underscore = string "_"
 
+  let at         = string "@"
+
 
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
