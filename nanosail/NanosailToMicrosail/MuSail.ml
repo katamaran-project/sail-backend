@@ -227,6 +227,14 @@ module Expression = struct
       in
       pp_value ~typ ~value
     end
+
+
+  let pp_ones_bitvector_using_literal (number_of_bits : int) : PP.document =
+    PP.annotate [%here] begin
+      let value = Z.sub (Z.shift_left Z.one number_of_bits) Z.one
+      in
+      pp_bitvector ~size:number_of_bits ~value
+    end
 end
 
 
