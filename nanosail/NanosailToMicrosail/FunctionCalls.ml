@@ -207,13 +207,55 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
   end
 
 
-(* todo implement this *)
+(*
+   Sail definition:
+
+      val sail_shiftleft = pure "shiftl" : forall 'n ('ord : Order).
+        (bitvector('n, 'ord), int) -> bitvector('n, 'ord)
+
+
+   MuSail definition:
+
+       shiftl {m n} : BinOp (bvec m) (bvec n) (bvec m)
+
+
+   In other words, the parameter types differ.
+   We currently support only cases where the second parameter is a integer literal in the Sail code.
+*)
 let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
   GC.pp_annotate [%here] begin
-    let* pp_arguments =
-      GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
-    in
-    GC.return @@ MuSail.Statement.pp_call (Ast.Identifier.mk "sail_shift_left") pp_arguments
+    match arguments with
+    | [ bitvector_argument; shift_argument ] -> begin
+        match shift_argument with
+        | Variable _ -> GC.not_yet_implemented [%here]
+        | Val value -> begin
+            match value with
+            | Int integer_value -> begin
+                let* pp_bitvector_argument =
+                  let* doc = Expressions.pp_expression bitvector_argument
+                  in
+                  GC.return @@ PP.(surround parens) doc
+                in
+                let pp_shift_argument =
+                  let size =
+                    (*
+                      pick the smallest bitvector size that can hold integer_value
+                      it should also be at least 1
+                    *)
+                   Z.log2up (Z.max (Z.of_int 2) integer_value)
+                  in
+                  PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size ~value:integer_value
+                in
+                translate_binary_operator_using_function_notation
+                  (Ast.Identifier.mk "sail_shiftleft")
+                  "bop.shiftl"
+                  [ pp_bitvector_argument; pp_shift_argument ]
+              end
+            | _ -> GC.fail "should never happen: the second argument has the wrong type"
+          end
+        | _ -> GC.fail "only calls to sail_shift_left supported where second argument's value is known at compile time"
+      end
+    | _ -> GC.fail "wrong number of parameters for sail_shift_left; should never occur"
   end
 
 
