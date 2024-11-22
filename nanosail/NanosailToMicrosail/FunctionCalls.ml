@@ -358,6 +358,7 @@ let translate
   | "not_bool"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "signed"           -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
   | "unsigned"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.unsigned" pp_arguments
+  | "eq_bit"           -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")                                     pp_arguments
   | "eq_bits"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")                                     pp_arguments
   | "add_bits"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "+ᵇ") ~name:(Some "bop.bvadd")           pp_arguments
   | "sub_bits"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "-ᵇ") ~name:(Some "bop.bvsub")           pp_arguments
