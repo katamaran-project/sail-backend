@@ -140,6 +140,22 @@ let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t opti
 
 
 (*
+  Looks for a value definition for <identifier>.
+  This function expects the value to be a string; if not, it returns none.
+*)                                                                                     
+let try_lookup_string_value_bound_to (identifier : Ast.Identifier.t) : string option GC.t =
+  let* program = GC.get_program
+  in
+  match Ast.Definition.Select.(select (value_definition ~identifier:identifier) program.definitions) with
+  | [ (_, value_definition) ] -> begin
+      match value_definition.value with
+      | String s -> GC.return @@ Some s
+      | _        -> GC.return None
+    end
+  | _ -> GC.return None
+
+
+(*
    Checks if the expression represents a compile time known integer.
    This can take the form of either a literal or a constant variable.
 *)
