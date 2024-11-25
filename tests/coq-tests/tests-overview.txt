@@ -143,6 +143,7 @@ PASS lists-return-empty-int-list
 PASS lists-return-multiple-items
 PASS lists-return-singleton-bool-list
 PASS lists-return-singleton-int-list
+FAIL mapping
 PASS mc-001-types
 PASS mc-002-prelude
 PASS model-001
@@ -214,4 +215,4 @@ PASS unit-equality
 PASS unit-return
 PASS value-definitions-001
 PASS value-definitions-002
-PASS:203 FAIL:13
+PASS:203 FAIL:14
