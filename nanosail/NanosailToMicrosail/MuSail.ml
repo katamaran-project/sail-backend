@@ -250,6 +250,11 @@ module Statement = struct
           (PP.string "stm_exp")
           [ PP.(surround parens) expression ]
       end
+
+
+  let pp_fail (message : string) : PP.document =
+    Coq.pp_application (PP.string "fail") [ PP.string message ]
+  
   
   module Match = struct
     (*
