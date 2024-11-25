@@ -1348,7 +1348,7 @@ let apply_rewrites (body : Ast.Statement.t) : Ast.Statement.t =
 
 let simplify_body (body : Ast.Statement.t) : Ast.Statement.t =
   body (* todo used to call apply rewrites, but not necessary anymore; maybe remove rewrite stuff *)
-  
+
 
 let translate_body body =
   let* body' = statement_of_aexp body

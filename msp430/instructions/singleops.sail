@@ -1,11 +1,11 @@
 //TODO :RRA RRC SWPB SXT can not have immidiate mode in the destination field -> unpredictable program operation
-//manual pg 61 
+//manual pg 61
 
 val rrc_inst : (BW, AM, Register) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=110
 function clause rrc_inst(WORD_INSTRUCTION, adressingMode, reg) = {
   let Word(value) : WordByte =  X(WORD_INSTRUCTION, reg, adressingMode) in
-  let shift : bits(15) = value[15 .. 1] in 
+  let shift : bits(15) = value[15 .. 1] in
   let carry :bits(1) = getCarryBit() in {
     setCarrybit(value[0 .. 0]);
     let res : WordByte = Word(carry @ shift) in {
@@ -18,7 +18,7 @@ function clause rrc_inst(WORD_INSTRUCTION, adressingMode, reg) = {
 
 function clause rrc_inst(BYTE_INSTRUCTION, adressingMode, reg) = {
   let Word(value) : WordByte =  X(BYTE_INSTRUCTION, reg, adressingMode) in
-  let shift : bits(7) = value[7 .. 1] in 
+  let shift : bits(7) = value[7 .. 1] in
   let carry :bits(1) = getCarryBit() in {
     setCarrybit(value[0 .. 0]);
     let res : WordByte = Byte(carry @ shift) in {
@@ -77,7 +77,7 @@ val call_inst : (BW, AM, Register) -> unit
 function clause call_inst(WORD_INSTRUCTION, adressingMode, reg) = {
   let dst : WordByte =  X(WORD_INSTRUCTION, reg, adressingMode) in {
     SP_reg = SP_reg + sign_extend(neg(0x2));
-    let PCValue = X(WORD_INSTRUCTION, PC, REGISTER_MODE) in 
+    let PCValue = X(WORD_INSTRUCTION, PC, REGISTER_MODE) in
       writeMemInstruction(WORD_INSTRUCTION,SP_reg,PCValue);
     X(WORD_INSTRUCTION, reg, REGISTER_MODE) = dst;
   }

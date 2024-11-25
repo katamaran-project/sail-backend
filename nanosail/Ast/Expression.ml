@@ -33,7 +33,7 @@ let infer_type (expression : t) : Nanotype.t =
    | Variant _                 -> raise MissingTypeInference
    | Tuple _                   -> raise MissingTypeInference
    | Bitvector bits            -> Nanotype.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bits))
-     
+
 
 let rec to_fexpr (expression : t) : FExpr.t =
   let variable_to_fexpr

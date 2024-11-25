@@ -12,7 +12,7 @@ function zero_extend(v) = sail_zero_extend(v, 32)
 
 val neg_vec: bits(32) -> bits(32)
 function clause neg_vec(a) = {
-  let r = 0b0 in 
+  let r = 0b0 in
   sub_bits(zero_extend(r), a)
 }
 

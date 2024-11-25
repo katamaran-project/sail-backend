@@ -21,7 +21,7 @@ let test_convert_bits_to_z =
         let message = Printf.sprintf "Expected %s, actual %s" (Z.to_string expected) (Z.to_string actual)
         in
         assert_equal ~msg:message expected actual
-          
+
       end
   in
   let test_cases = [

@@ -57,7 +57,7 @@ let configure_verbosity () =
   in
   verbosity_from_environment_variable ();
   verbosity_from_command_line ()
-  
+
 
 (* Entry point for Katamaran target *)
 let katamaran_target

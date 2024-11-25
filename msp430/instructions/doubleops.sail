@@ -24,12 +24,12 @@ function clause move_inst(BYTE_INSTRUCTION, sourceRegister, adressingModeSource,
 }
 
 //these are split up to make implmenting addc like instrctions simpler
-val hasCarry : (WordByte,WordByte,WordByte) -> bool 
+val hasCarry : (WordByte,WordByte,WordByte) -> bool
 function hasCarry(w1,w2,res) = {
   unsignedWb(res) < unsignedWb(w1) + unsignedWb(w2)
 }
 
-val hasOverflowAddition : (WordByte,WordByte,WordByte) -> bool 
+val hasOverflowAddition : (WordByte,WordByte,WordByte) -> bool
 function hasOverflowAddition(w1,w2,res) = {
   (signedWb(w1) < 0 & signedWb(w2) < 0 & signedWb(res) > 0) |
   (signedWb(w1) > 0 & signedWb(w2) > 0 & signedWb(res) < 0)
@@ -90,7 +90,7 @@ function sub_inst(bw, sourceRegister, adressingModeSource, destinationRegister, 
 val subc_inst : (BW, Register, AM, Register, AM) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=116
 function subc_inst(bw, sourceRegister, adressingModeSource, destinationRegister, adressingModeDestination) = {
-  
+
   let sourceValue : WordByte = ~(X(bw, sourceRegister , adressingModeSource)) in
   let destValue : WordByte   = X(bw, destinationRegister , adressingModeDestination) in
   let carry : WordByte = BW_zero_extend(getCarryBit()) in {
@@ -110,7 +110,7 @@ function cmp_inst(bw, sourceRegister, adressingModeSource, destinationRegister, 
   clearStatusRegisters();
   let sourceValue : WordByte = ~(X(bw, sourceRegister , adressingModeSource)) in
   let destValue : WordByte   = X(bw, destinationRegister , adressingModeDestination) in
-  let result : WordByte   = addWithStatusRegister(addWithStatusRegister(sourceValue,destValue), BW_zero_extend(0x1)) in 
+  let result : WordByte   = addWithStatusRegister(addWithStatusRegister(sourceValue,destValue), BW_zero_extend(0x1)) in
     setResultStatusRegisters(result);
 }
 
@@ -190,7 +190,7 @@ function bit_inst(bw, sourceRegister, adressingModeSource, destinationRegister, 
 }
 
 
-val asDecimal : (WordByte) -> int 
+val asDecimal : (WordByte) -> int
 function clause asDecimal(Word(a:bits(4) @ b:bits(4) @ c:bits(4) @ d:bits(4))) = {
   unsigned(a) * 1000 + unsigned(b) * 100 + unsigned(c) * 10 + unsigned(d)
 }

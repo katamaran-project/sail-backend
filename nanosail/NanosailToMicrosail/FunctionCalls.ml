@@ -90,10 +90,10 @@ let translate_binary_operator_using_function_notation
         end
       end
     end
-  | _ -> report_incorrect_argument_count original_function_name 2 operands    
+  | _ -> report_incorrect_argument_count original_function_name 2 operands
 
 
-let translate_binary_operator 
+let translate_binary_operator
     (original_function_name : Ast.Identifier.t      )
     ?(infix                 : string option   = None)
     ?(name                  : string option   = None)
@@ -127,7 +127,7 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
 (*
   Looks for a value definition for <identifier>.
   This function expects the value to be an integer; if not, it returns none.
-*)                                                                                     
+*)
 let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t option GC.t =
   let* program = GC.get_program
   in
@@ -143,7 +143,7 @@ let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t opti
 (*
   Looks for a value definition for <identifier>.
   This function expects the value to be a string; if not, it returns none.
-*)                                                                                     
+*)
 let try_lookup_string_value_bound_to (identifier : Ast.Identifier.t) : string option GC.t =
   let* program = GC.get_program
   in
@@ -190,7 +190,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
           MuSail.Statement.pp_expression @@ MuSail.Expression.pp_zero_bitvector_using_function number_of_bits
       end
     end
-  in  
+  in
   match arguments with
   | [ argument ] -> begin
       let* argument_value = extract_compile_time_integer argument

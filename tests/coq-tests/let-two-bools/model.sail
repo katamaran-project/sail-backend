@@ -8,6 +8,6 @@ function foo() = {
   let x = true
   in
   let y = false
-  in  
+  in
   x | y
 }

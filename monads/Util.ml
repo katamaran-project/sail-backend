@@ -5,7 +5,7 @@ module Make (M : Sig.Monad) = struct
     else
       M.bind f (fun r -> M.bind (repeat (n-1) ~f) (fun rs -> M.return @@ r::rs))
 
-  
+
   let map ~f xs =
     let rec aux xs acc =
       match xs with
@@ -14,7 +14,7 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
-  
+
   let flatmap ~(f : 'a -> 'b list M.t) (xs : 'a list) : 'b list M.t =
     let rec aux xs acc =
       match xs with
@@ -23,7 +23,7 @@ module Make (M : Sig.Monad) = struct
     in
     aux xs []
 
-  
+
   let filter_map ~(f : 'a -> 'b option M.t) (xs : 'a list) : 'b list M.t =
     let rec aux xs acc =
       match xs with

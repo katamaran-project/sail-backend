@@ -21,7 +21,7 @@ module Comparison = struct
     | GreaterThanOrEqualTo -> FExpr.mk_symbol "GreaterThanOrEqualTo"
     | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
 end
-  
+
 
 type t =
   | Plus

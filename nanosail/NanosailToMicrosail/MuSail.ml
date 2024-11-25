@@ -4,11 +4,11 @@ open Base
 module Operator = struct
   let bitvector_signed_less_than                  = PP.string "<ˢ"
   let bitvector_signed_less_than_or_equal_to      = PP.string "<=ˢ"
-  let bitvector_signed_greater_than               = PP.string ">ˢ"      
+  let bitvector_signed_greater_than               = PP.string ">ˢ"
   let bitvector_signed_greater_than_or_equal_to   = PP.string ">=ˢ"
   let bitvector_unsigned_less_than                = PP.string "<ᵘ"
   let bitvector_unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
-  let bitvector_unsigned_greater_than             = PP.string ">ᵘ"      
+  let bitvector_unsigned_greater_than             = PP.string ">ᵘ"
   let bitvector_unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
 end
 
@@ -191,7 +191,7 @@ module Expression = struct
       pp_value ~typ:pp_type ~value:pp_literal
     end
 
-  
+
   (*
     exp_val (ty.bvec 32) (@Bitvector.bv.zero 32)
   *)
@@ -211,10 +211,10 @@ module Expression = struct
   *)
   let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
     PP.annotate [%here] begin
-      pp_bitvector ~size:number_of_bits ~value:Z.zero 
+      pp_bitvector ~size:number_of_bits ~value:Z.zero
     end
 
-  
+
   (*
     exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
   *)
@@ -268,8 +268,8 @@ module Statement = struct
   (* No-op *)
   let pp_nop =
     pp_expression @@ Expression.pp_unit ()
-    
-  
+
+
   module Match = struct
     (*
        stm_match_list <matched_value>
@@ -297,7 +297,7 @@ module Statement = struct
           ]
       end
 
-    
+
     (*
       stm_match_union_alt_list <matched_type>
                                <matched_value>
@@ -478,7 +478,7 @@ module Statement = struct
     of the value to be written: it has to be stored
     in a variable, i.e., arbitrary expressions
     are not supported.
-    
+
     stm_write_register <register_identifier>
                        (exp_var "<value_identifier>")
   *)

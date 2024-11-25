@@ -6,11 +6,11 @@ register old_PC_reg  : wordBits /* program counter    */
 val regName: (Register) -> string
 function regName(reg) = {
     match reg {
-        PC    =>    "PC_reg", 
-        SP    =>    "SP_reg", 
-        SRCG1 => "SRCG1_reg", 
-        CG2   =>   "CG2_reg", 
-        R4    =>    "R4_reg", 
+        PC    =>    "PC_reg",
+        SP    =>    "SP_reg",
+        SRCG1 => "SRCG1_reg",
+        CG2   =>   "CG2_reg",
+        R4    =>    "R4_reg",
         R5    =>    "R5_reg",
         R6    =>    "R6_reg",
         R7    =>    "R7_reg",

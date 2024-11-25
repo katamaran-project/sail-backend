@@ -21,7 +21,7 @@ let identify_bitvector_conversion (statement : Ast.Statement.t) : bitvector_conv
       | Ast.Identifier.Id "signed"   -> Conversion (Signed, argument)
       | Ast.Identifier.Id "unsigned" -> Conversion (Unsigned, argument)
       | _                            -> SomethingElse
-    end    
+    end
   | _                                -> SomethingElse
 
 
@@ -156,7 +156,7 @@ let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
         destructured_record = rewrite destructured_record;
         body = rewrite body;
       }
-    end    
+    end
   | Seq (stm1, stm2) -> begin
       Seq (rewrite stm1, rewrite stm2)
     end

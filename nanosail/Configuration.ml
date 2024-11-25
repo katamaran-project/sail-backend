@@ -31,7 +31,7 @@ module C = struct
     let ignore_value_definition_predicate    = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
     let ignore_function_definition_predicate = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
-    
+
     (* template block delimiters *)
     let template_block_left_delimiter     = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter    = string "template-block-right-delimiter" ">*)"

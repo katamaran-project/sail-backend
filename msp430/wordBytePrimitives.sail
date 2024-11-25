@@ -131,12 +131,12 @@ function xor_bool(b1,b2) = {
   or_bool(and_bool(~(b1), b2), and_bool(b1, ~(b2)))
 }
 
-val isNegative : (WordByte) -> bool 
+val isNegative : (WordByte) -> bool
 function isNegative(w) = {
   signedWb(w) < 0
 }
 
-val isZero : (WordByte) -> bool 
+val isZero : (WordByte) -> bool
 function isZero(w) = {
   signedWb(w) == 0
 }

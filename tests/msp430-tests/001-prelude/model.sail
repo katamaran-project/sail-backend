@@ -20,7 +20,7 @@ overload operator % = {emod_int}
 
 val neg_vec: forall 'n, 0 < 'n.  (bits('n)) -> bits('n)
 function clause neg_vec(a) = {
-  let r = 0b0 in 
+  let r = 0b0 in
   sub_bits(zero_extend(r), a)
 }
 

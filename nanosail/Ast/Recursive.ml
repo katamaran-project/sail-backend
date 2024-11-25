@@ -223,7 +223,7 @@ end = struct
         in
         FExpr.mk_application ~positional @@ prefix "Range"
       end
-  
+
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1 with
@@ -461,7 +461,7 @@ end = struct
         ]
       in
       FExpr.mk_application ~positional @@ prefix head
-  
+
     in
     match numeric_constraint with
      | Equal (e1, e2)                -> eq "Equal" e1 e2

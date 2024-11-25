@@ -12,5 +12,5 @@ class string_location (index : int) =
     inherit location
 
     method to_string =
-      Int.to_string index    
+      Int.to_string index
   end

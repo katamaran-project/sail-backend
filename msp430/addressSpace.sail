@@ -15,7 +15,7 @@ function clause readMem(WORD_INSTRUCTION, address) = {
   Word(value)
 }
 function clause readMem(BYTE_INSTRUCTION, address) = {
-  let Word(value) : WordByte = readMem(WORD_INSTRUCTION, address) in 
+  let Word(value) : WordByte = readMem(WORD_INSTRUCTION, address) in
   Byte(value[7 .. 0])
 }
 
@@ -28,7 +28,7 @@ function clause writeMem(WORD_INSTRUCTION, address, Word(wb)) = {
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=48
 //3.2.5 General-Purpose Registers R4 to R15
 function clause writeMem(BYTE_INSTRUCTION, address, Word(wbTolong)) = {
-  let wb:bits(8) = wbTolong[7..0] in 
+  let wb:bits(8) = wbTolong[7..0] in
   write_ram(sizeof(address_size),1,sizeof(address_size)^0x0,address,wb)
 }
 
@@ -51,7 +51,7 @@ function clause readMemInstruction(bw, address) = {
 val writeMemInstruction: (BW, Address, WordByte) -> unit
 function clause writeMemInstruction(bw, address, value) = {
   logWithVerbosity(4,"memory:" + bits_str(old_PC_reg) + "   -PUT: [" + bits_str(address) + "]" + BWSizeString(bw) + "<-" + WordByteString(value));
-  Xmem(bw,address) = value 
+  Xmem(bw,address) = value
 }
 
 
@@ -71,7 +71,7 @@ function fetch() = {
   //3.2.1 Program Counter (PC)
 
   //TODO maybe du this check at eatch FDE step so we can also do this for the stack pointer
-  
+
 
   assert(unsigned(PC_reg)%2 == 0,"PC is not correctly aligned");
   let data = Xmem(WORD_INSTRUCTION, PC_reg);
@@ -79,7 +79,7 @@ function fetch() = {
   data
 }
 
-// readPC can be given an offset 
+// readPC can be given an offset
 // such that we can read the value for the prevous fetch for example
 val readPCWithOffset: wordBits -> WordByte
 function readPCWithOffset(offset) = {

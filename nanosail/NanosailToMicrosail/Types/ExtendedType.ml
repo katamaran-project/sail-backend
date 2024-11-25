@@ -18,7 +18,7 @@ end
 
 (*
   Module defining components for building expressions
-*)                                                                                     
+*)
 module Prec = struct
   include PrecedenceFormatter.Make(DocumentOutput)
 

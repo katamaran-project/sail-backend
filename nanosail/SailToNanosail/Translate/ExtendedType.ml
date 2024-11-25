@@ -356,7 +356,7 @@ and bool_expression_of_sail_numeric_constraint (numeric_constraint : S.n_constra
   and bool_expression_of_equal _ _     = unknown [%here]
   and bool_expression_of_not_equal _ _ = unknown [%here]
 
-  in  
+  in
   match unwrapped_numeric_constraint with
   | NC_lt (left, right)         -> bool_expression_of_lt left right
   | NC_le (left, right)         -> bool_expression_of_le left right

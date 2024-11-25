@@ -288,13 +288,13 @@ end = struct
       and* y' = Nanotype.translate_type_argument y
       in
       TC.return @@ Ast.Numeric.Constraint.Equal (x', y')
-        
+
     and translate_not_equal (x : S.typ_arg) (y : S.typ_arg) =
       let* x' = Nanotype.translate_type_argument x
       and* y' = Nanotype.translate_type_argument y
       in
       TC.return @@ Ast.Numeric.Constraint.NotEqual (x', y')
-        
+
     and translate_ge            = translate_comparison       @@ fun l r -> GreaterThanOrEqualTo (l, r)
     and translate_gt            = translate_comparison       @@ fun l r -> GreaterThan          (l, r)
     and translate_le            = translate_comparison       @@ fun l r -> LessThanOrEqualTo    (l, r)

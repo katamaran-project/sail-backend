@@ -100,7 +100,7 @@ module Register = struct
     | NoneSpecified
     | Specified     of Value.t
     | RawSpecified  of string        (* used in case we were not able to translate the value; contains a string representation of the Libsail value *)
-  
+
   type t =
     {
       identifier    : Identifier.t ;

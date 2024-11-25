@@ -19,11 +19,11 @@ register    LastInstructionFetch  : WordByte /* program counter    */
 val readReg: (BW, Register) -> WordByte
 function clause readReg(WORD_INSTRUCTION, reg) = {
   let value: wordBits = match reg {
-    PC    =>    PC_reg, 
-    SP    =>    SP_reg, 
-    SRCG1 => SRCG1_reg, 
-    CG2   =>   CG2_reg, 
-    R4    =>    R4_reg, 
+    PC    =>    PC_reg,
+    SP    =>    SP_reg,
+    SRCG1 => SRCG1_reg,
+    CG2   =>   CG2_reg,
+    R4    =>    R4_reg,
     R5    =>    R5_reg,
     R6    =>    R6_reg,
     R7    =>    R7_reg,
@@ -40,18 +40,18 @@ function clause readReg(WORD_INSTRUCTION, reg) = {
 }
 
 function clause readReg(BYTE_INSTRUCTION, reg) = {
-  let Word(value) : WordByte = readReg(WORD_INSTRUCTION, reg) in 
+  let Word(value) : WordByte = readReg(WORD_INSTRUCTION, reg) in
   Byte(value[7 .. 0])
 }
 
 val writeReg : (BW, Register, WordByte) -> unit
 function clause writeReg(WORD_INSTRUCTION, reg, Word(wb)) = {
   match reg {
-    PC    =>    PC_reg = wb, 
-    SP    =>    SP_reg = wb, 
-    SRCG1 => SRCG1_reg = wb, 
-    CG2   =>   CG2_reg = wb, 
-    R4    =>    R4_reg = wb, 
+    PC    =>    PC_reg = wb,
+    SP    =>    SP_reg = wb,
+    SRCG1 => SRCG1_reg = wb,
+    CG2   =>   CG2_reg = wb,
+    R4    =>    R4_reg = wb,
     R5    =>    R5_reg = wb,
     R6    =>    R6_reg = wb,
     R7    =>    R7_reg = wb,
@@ -71,11 +71,11 @@ function clause writeReg(BYTE_INSTRUCTION, reg, Word(wbTolong)) = {
   //writing in all modes will override the high byte
   let wb:bits(16) = zero_extend(wbTolong[7..0]);
   match reg {
-    PC    =>    PC_reg = wb, 
-    SP    =>    SP_reg = wb, 
-    SRCG1 => SRCG1_reg = wb, 
-    CG2   =>   CG2_reg = wb, 
-    R4    =>    R4_reg = wb, 
+    PC    =>    PC_reg = wb,
+    SP    =>    SP_reg = wb,
+    SRCG1 => SRCG1_reg = wb,
+    CG2   =>   CG2_reg = wb,
+    R4    =>    R4_reg = wb,
     R5    =>    R5_reg = wb,
     R6    =>    R6_reg = wb,
     R7    =>    R7_reg = wb,

@@ -1,7 +1,7 @@
 // Simple top level fetch and execute loop.
 val fetch_and_execute : unit -> unit
 
-function fetch_and_execute () = 
+function fetch_and_execute () =
   while true do {
     try {
       logWithVerbosity(3,"pc: " + bits_str(PC_reg));
