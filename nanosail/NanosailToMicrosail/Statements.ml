@@ -13,51 +13,55 @@ let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
 
 
-let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+let parenthesize =
+  GC.lift ~f:(PP.(surround parens))
+
+
+(*
+
+   Converts the following Sail code
+
+     match <matched> {
+       [||]               => when_nil,
+       id_head :: id_tail => when_cons_body
+     }
+
+*)
+let rec pp_match_list
+    (matched   : Ast.Statement.t                                      )
+    (when_nil  : Ast.Statement.t                                      )
+    (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
+  =
+  let id_head, id_tail, when_cons_body = when_cons
+  in
+  let* pp_matched   = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
+  and* pp_when_nil  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_nil
+  and* pp_when_cons = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_cons_body
+  in
+  let pp_id_head = Identifier.pp id_head
+  and pp_id_tail = Identifier.pp id_tail
+  in
+  GC.return begin
+    PP.annotate [%here] begin
+      MuSail.Statement.Match.pp_list
+        ~matched_value:pp_matched
+        ~when_nil:pp_when_nil
+        ~head_identifier:pp_id_head
+        ~tail_identifier:pp_id_tail
+        ~when_cons:pp_when_cons
+    end
+  end
+
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
-    (*
-
-       Converts the following Sail code
-
-         match <matched> {
-           [||]               => when_nil,
-           id_head :: id_tail => when_cons_body
-         }
-
-    *)
-    let pp_match_list
-        (matched   : Ast.Statement.t                                      )
-        (when_nil  : Ast.Statement.t                                      )
-        (when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
-      =
-      let id_head, id_tail, when_cons_body = when_cons
-      in
-      let* pp_matched   = GC.pp_annotate [%here] @@ pp_par_statement matched
-      and* pp_when_nil  = GC.pp_annotate [%here] @@ pp_par_statement when_nil
-      and* pp_when_cons = GC.pp_annotate [%here] @@ pp_par_statement when_cons_body
-      in
-      let pp_id_head = Identifier.pp id_head
-      and pp_id_tail = Identifier.pp id_tail
-      in
-      GC.return begin
-        PP.annotate [%here] begin
-          MuSail.Statement.Match.pp_list
-            ~matched_value:pp_matched
-            ~when_nil:pp_when_nil
-            ~head_identifier:pp_id_head
-            ~tail_identifier:pp_id_tail
-            ~when_cons:pp_when_cons
-        end
-      end
-
-    and pp_match_product
+    let pp_match_product
         (matched : Ast.Statement.t )
         (id_fst  : Ast.Identifier.t)
         (id_snd  : Ast.Identifier.t)
         (body    : Ast.Statement.t ) : PP.document GC.t
       =
-      let* pp_matched = GC.pp_annotate [%here] @@ pp_par_statement matched
-      and* pp_body    = GC.pp_annotate [%here] @@ pp_par_statement body
+      let* pp_matched = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
+      and* pp_body    = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
       in
       let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
       and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
@@ -423,8 +427,8 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PP.document GC.t
     =
-      let* pp_left  = GC.pp_annotate [%here] @@ pp_par_statement left
-      and* pp_right = GC.pp_annotate [%here] @@ pp_par_statement right
+      let* pp_left  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement left
+      and* pp_right = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement right
       in
       GC.return begin
           PP.annotate [%here] begin
@@ -536,9 +540,3 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                                                              ~body
   | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast_statement statement_to_be_cast target_type
   | Fail message                              -> GC.pp_annotate [%here] @@ pp_fail_statement message
-
-(* todo remove this *)
-and pp_par_statement s =
-  let* s' = pp_statement s
-  in
-  GC.return @@ PP.(surround parens) s'
