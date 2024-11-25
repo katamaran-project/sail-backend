@@ -300,77 +300,74 @@ and pp_match_enum
   end
 
 
+(*
+   Pretty prints a match where the matched value has a union/variant type.
+
+   stm_match_union_alt_list <reified union type>
+                            <statement evaluating to matched value>
+                            [ existT <reified union constructor1> (MkAlt <identifiers1> <clause1 statement>);
+                              existT <reified union constructor2> (MkAlt <identifiers2> <clause2 statement>);
+                              ... ]
+                            Logic.I
+*)
+and pp_match_variant
+    (matched      : Ast.Identifier.t                                              )
+    (matched_type : Ast.Identifier.t                                              )
+    (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
+  =
+  (*
+     Reified union type
+  *)
+  let pp_matched_type =
+    PP.annotate [%here] @@ Identifier.pp @@ Configuration.reified_variant_name matched_type
+   (*
+     Statement whose value is being matched
+
+     Nanosail only supports matching against variables (i.e., not arbitrary expressions), and muSail expects a statement,
+     so we start with an identifier, which we turn into an expression, which we
+     turn into a statement.
+  *)
+  and pp_matched_statement =
+    PP.annotate [%here] begin
+      PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+    end
+  in
+
+  (* List of match cases *)
+  let* pp_cases : (PP.document * PP.document list * PP.document) list =
+    let pp_case
+        (constructor_id : Ast.Identifier.t     )
+        (bindings       : Ast.Identifier.t list)
+        (body           : Ast.Statement.t      ) : (PP.document * PP.document list * PP.document) GC.t
+      =
+      let pp_constructor =
+        PP.annotate [%here] begin
+          Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
+        end
+      and pp_bindings =
+        List.map ~f:Identifier.pp bindings
+      in
+      let* pp_body =
+        GC.pp_annotate [%here] begin
+          pp_statement body
+        end
+      in
+      GC.return (pp_constructor, pp_bindings, pp_body)
+    in
+    GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
+  in
+  GC.return begin
+    PP.annotate [%here] begin
+      MuSail.Statement.Match.pp_variant
+        ~matched_type:pp_matched_type
+        ~matched_value:pp_matched_statement
+        ~clauses:pp_cases
+    end
+  end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
-    (*
-       Pretty prints a match where the matched value has a union/variant type.
-
-       stm_match_union_alt_list <reified union type>
-                                <statement evaluating to matched value>
-                                [ existT <reified union constructor1> (MkAlt <identifiers1> <clause1 statement>);
-                                  existT <reified union constructor2> (MkAlt <identifiers2> <clause2 statement>);
-                                  ... ]
-                                Logic.I
-    *)
-    let pp_match_variant
-        (matched      : Ast.Identifier.t                                              )
-        (matched_type : Ast.Identifier.t                                              )
-        (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
-      =
-      (*
-         Reified union type
-      *)
-      let pp_matched_type =
-        PP.annotate [%here] @@ Identifier.pp @@ Configuration.reified_variant_name matched_type
-
-      (*
-         Statement whose value is being matched
-
-         Nanosail only supports matching against variables (i.e., not arbitrary expressions), and muSail expects a statement,
-         so we start with an identifier, which we turn into an expression, which we
-         turn into a statement.
-      *)
-      and pp_matched_statement =
-        PP.annotate [%here] begin
-          PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-        end
-      in
-
-      (* List of match cases *)
-      let* pp_cases : (PP.document * PP.document list * PP.document) list =
-        let pp_case
-            (constructor_id : Ast.Identifier.t     )
-            (bindings       : Ast.Identifier.t list)
-            (body           : Ast.Statement.t      ) : (PP.document * PP.document list * PP.document) GC.t
-          =
-          let pp_constructor =
-            PP.annotate [%here] begin
-              Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
-            end
-
-          and pp_bindings =
-            List.map ~f:Identifier.pp bindings
-          in
-
-          let* pp_body =
-            GC.pp_annotate [%here] begin
-              pp_statement body
-            end
-          in
-
-          GC.return (pp_constructor, pp_bindings, pp_body)
-        in
-        GC.map ~f:(fun (constructor, (pattern_ids, clause_statement)) -> pp_case constructor pattern_ids clause_statement) @@ Ast.Identifier.Map.to_alist cases
-      in
-      GC.return begin
-        PP.annotate [%here] begin
-          MuSail.Statement.Match.pp_variant
-            ~matched_type:pp_matched_type
-            ~matched_value:pp_matched_statement
-            ~clauses:pp_cases
-        end
-      end
-    in
     match match_pattern with
     | MatchList { matched; when_nil; when_cons }     -> GC.pp_annotate [%here] @@ pp_match_list matched when_nil when_cons
     | MatchProduct { matched; id_fst; id_snd; body } -> GC.pp_annotate [%here] @@ pp_match_product matched id_fst id_snd body
