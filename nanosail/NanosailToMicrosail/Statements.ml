@@ -384,7 +384,7 @@ and pp_call
     end
 
 
-and pp_let_statement
+and pp_let
       ~(variable_identifier    : Ast.Identifier.t)
       ~(binding_statement_type : Ast.Type.t      )
       ~(binding_statement      : Ast.Statement.t )
@@ -515,7 +515,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
       { variable_identifier;
         binding_statement_type;
         binding_statement;
-        body_statement }                      -> GC.pp_annotate [%here] @@ pp_let_statement
+        body_statement }                      -> GC.pp_annotate [%here] @@ pp_let
                                                                              ~variable_identifier
                                                                              ~binding_statement_type
                                                                              ~binding_statement
