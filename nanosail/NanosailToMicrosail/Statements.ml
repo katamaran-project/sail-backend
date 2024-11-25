@@ -384,44 +384,44 @@ and pp_call_statement
     end
 
 
+and pp_let_statement
+      ~(variable_identifier    : Ast.Identifier.t)
+      ~(binding_statement_type : Ast.Type.t      )
+      ~(binding_statement      : Ast.Statement.t )
+      ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
+  =
+  let  pp_variable_identifier    = PP.annotate [%here] @@ Identifier.pp variable_identifier
+  in
+  let* pp_binding_statement      = GC.pp_annotate [%here] @@ pp_statement binding_statement
+  and* pp_binding_statement_type = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype binding_statement_type
+  and* pp_body_statement         = GC.pp_annotate [%here] @@ pp_statement body_statement
+  in
+  if
+    Configuration.(get pretty_print_let)
+  then
+    GC.return begin
+        PP.annotate [%here] begin
+            MuSail.Statement.pp_let_use_notation
+              ~bound_identifier:pp_variable_identifier
+              ~bound_value_type:pp_binding_statement_type
+              ~bound_value:pp_binding_statement
+              ~body:pp_body_statement
+          end
+      end
+  else
+    GC.return begin
+        PP.annotate [%here] begin
+            MuSail.Statement.pp_let
+              ~bound_identifier:pp_variable_identifier
+              ~bound_value_type:pp_binding_statement_type
+              ~bound_value:pp_binding_statement
+              ~body:pp_body_statement
+          end
+      end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_let_statement
-        ~(variable_identifier    : Ast.Identifier.t)
-        ~(binding_statement_type : Ast.Type.t      )
-        ~(binding_statement      : Ast.Statement.t )
-        ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
-    =
-    let  pp_variable_identifier    = PP.annotate [%here] @@ Identifier.pp variable_identifier
-    in
-    let* pp_binding_statement      = GC.pp_annotate [%here] @@ pp_statement binding_statement
-    and* pp_binding_statement_type = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype binding_statement_type
-    and* pp_body_statement         = GC.pp_annotate [%here] @@ pp_statement body_statement
-    in
-    if
-      Configuration.(get pretty_print_let)
-    then
-      GC.return begin
-          PP.annotate [%here] begin
-              MuSail.Statement.pp_let_use_notation
-                ~bound_identifier:pp_variable_identifier
-                ~bound_value_type:pp_binding_statement_type
-                ~bound_value:pp_binding_statement
-                ~body:pp_body_statement
-            end
-        end
-    else
-      GC.return begin
-          PP.annotate [%here] begin
-              MuSail.Statement.pp_let
-                ~bound_identifier:pp_variable_identifier
-                ~bound_value_type:pp_binding_statement_type
-                ~bound_value:pp_binding_statement
-                ~body:pp_body_statement
-            end
-        end
-
-
-  and pp_sequence_statement
+  let pp_sequence_statement
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PP.document GC.t
     =
