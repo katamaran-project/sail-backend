@@ -500,7 +500,7 @@ let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
     GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 
   and pp_fail_statement (message : string) : PP.document GC.t =
-    GC.return @@ PP.annotate [%here] @@ MuSail.pp_fail message
+    GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail message
 
   in
   match statement with
