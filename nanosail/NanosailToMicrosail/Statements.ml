@@ -458,7 +458,7 @@ and pp_write_register_statement
   end
 
 
-and pp_destructure_record_statement
+and pp_destructure_record
       ~(record_type_identifier : Ast.Identifier.t     )
       ~(field_identifiers      : Ast.Identifier.t list)
       ~(variable_identifiers   : Ast.Identifier.t list)
@@ -530,7 +530,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
         field_identifiers;
         variable_identifiers;
         destructured_record;
-        body }                                -> GC.pp_annotate [%here] @@ pp_destructure_record_statement
+        body }                                -> GC.pp_annotate [%here] @@ pp_destructure_record
                                                                              ~record_type_identifier
                                                                              ~field_identifiers
                                                                              ~variable_identifiers
