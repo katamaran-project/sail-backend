@@ -246,12 +246,11 @@ module Statement = struct
   *)
   let pp_expression (expression : PP.document) : PP.document =
     PP.annotate [%here] begin
-      Coq.pp_application
-        (PP.string "stm_exp")
-        [ PP.(surround parens) expression ]
-    end
-
-
+        Coq.pp_application
+          (PP.string "stm_exp")
+          [ PP.(surround parens) expression ]
+      end
+  
   module Match = struct
     (*
        stm_match_list <matched_value>
