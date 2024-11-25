@@ -2,7 +2,6 @@ default Order dec
 $include <prelude.sail>
 $include <string.sail>
 $include <smt.sail>
-$include <elf.sail>
 
 
 val zero_extend_12_28 : bits(12) -> bits(28)
