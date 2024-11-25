@@ -5,7 +5,7 @@ set -e
 SAIL=sail
 COQ=coqc
 
-SAIL_SOURCES="model.sail definitions.sail"
+SAIL_SOURCES=model.sail
 
 echo $SAIL_SOURCES
 
