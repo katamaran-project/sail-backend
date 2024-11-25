@@ -7,7 +7,7 @@ module GC = struct
 end
 
 
-let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
+let pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   let* pp_expression = GC.pp_annotate [%here] @@ Expressions.pp_expression expression
   in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
@@ -508,7 +508,7 @@ and pp_fail (message : string) : PP.document GC.t =
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   match statement with
-  | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression_statement expression
+  | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression expression
   | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match_statement match_pattern
   | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call_statement function_identifier arguments
   | Let
