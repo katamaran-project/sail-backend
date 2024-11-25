@@ -262,7 +262,7 @@ module Statement = struct
     =
     Coq.pp_application
       (PP.string "stm_assert")
-      [ condition; message ]
+      [ PP.(surround parens) condition; PP.(surround parens) message ]
 
 
   (* No-op *)
