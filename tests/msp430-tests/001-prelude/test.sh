@@ -5,8 +5,9 @@ set -e
 SAIL=sail
 COQ=coqc
 
-SAIL_SOURCES=model.sail
-TESTED_FILE=microsail.v
+SAIL_SOURCES="model.sail definitions.sail"
+
+echo $SAIL_SOURCES
 
 if [ -n "$1" ]
 then
@@ -14,6 +15,8 @@ then
 else
     OPT=
 fi
+
+ruby generate.rb > generated.sail
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 $COQ base.v
