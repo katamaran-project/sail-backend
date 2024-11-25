@@ -102,9 +102,9 @@ and pp_match_bool
    - ugly printed using the raw pp_match_enum
 *)
 and pp_match_enum
-    (matched      : Ast.Identifier.t                    )
-    (matched_type : Ast.Identifier.t                    )
-    (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
+    ~(matched      : Ast.Identifier.t                    )
+    ~(matched_type : Ast.Identifier.t                    )
+    ~(cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
   =
   if
     Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
@@ -371,7 +371,7 @@ and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   | MatchList { matched; when_nil; when_cons }     -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
   | MatchProduct { matched; id_fst; id_snd; body } -> GC.pp_annotate [%here] @@ pp_match_product ~matched ~id_fst ~id_snd ~body
   | MatchBool { condition; when_true; when_false } -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
-  | MatchEnum { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_enum matched matched_type cases
+  | MatchEnum { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
   | MatchVariant { matched; matched_type; cases }  -> GC.pp_annotate [%here] @@ pp_match_variant matched matched_type cases
 
 
