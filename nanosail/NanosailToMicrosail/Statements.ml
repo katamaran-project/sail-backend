@@ -74,26 +74,28 @@ and pp_match_product
         end
     end
 
+
+and pp_match_bool
+    (condition  : Ast.Statement.t)
+    (when_true  : Ast.Statement.t)
+    (when_false : Ast.Statement.t) : PP.document GC.t
+  =
+  let* pp_condition  = GC.pp_annotate [%here] @@ pp_statement condition
+  and* pp_when_true  = GC.pp_annotate [%here] @@ pp_statement when_true
+  and* pp_when_false = GC.pp_annotate [%here] @@ pp_statement when_false
+  in
+  GC.return begin
+      PP.annotate [%here] @@ begin
+        MuSail.Statement.pp_conditional
+          ~condition:pp_condition
+          ~when_true:pp_when_true
+          ~when_false:pp_when_false
+      end
+    end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
-    let pp_match_bool
-        (condition  : Ast.Statement.t)
-        (when_true  : Ast.Statement.t)
-        (when_false : Ast.Statement.t) : PP.document GC.t
-      =
-      let* pp_condition  = GC.pp_annotate [%here] @@ pp_statement condition
-      and* pp_when_true  = GC.pp_annotate [%here] @@ pp_statement when_true
-      and* pp_when_false = GC.pp_annotate [%here] @@ pp_statement when_false
-      in
-      GC.return begin
-          PP.annotate [%here] @@ begin
-            MuSail.Statement.pp_conditional
-              ~condition:pp_condition
-              ~when_true:pp_when_true
-              ~when_false:pp_when_false
-          end
-        end
-
 
     (*
        Translates a match against enums.
@@ -102,7 +104,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
        - pretty printed using the special match notation (see pp_using_match_notation)
        - ugly printed using the raw pp_match_enum
     *)
-    and pp_match_enum
+    let pp_match_enum
         (matched      : Ast.Identifier.t                    )
         (matched_type : Ast.Identifier.t                    )
         (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
