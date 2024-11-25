@@ -502,11 +502,11 @@ and pp_cast
   GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_fail_statement (message : string) : PP.document GC.t =
-    GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail message
+and pp_fail_statement (message : string) : PP.document GC.t =
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail message
 
-  in
+
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   match statement with
   | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression_statement expression
   | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match_statement match_pattern
