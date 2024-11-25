@@ -106,10 +106,11 @@ let translate_binary_operator
   | _                                                  -> failwith "bug! this really shouldn't happen"
 
 
+(* todo check if this function is used anywhere *)
 (*
   Looks for a value definition for <identifier>.
   This function expects the value to be an integer; if not, it causes failure.
-*)                                                                                     
+*)
 let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
   let* program = GC.get_program
   in
