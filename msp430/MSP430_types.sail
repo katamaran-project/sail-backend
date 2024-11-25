@@ -16,18 +16,18 @@ scattered union WordByte
 union clause WordByte = Byte : byteBits
 union clause WordByte = Word : wordBits
 
-type registerAdressLen:  Int  = 4
-type registerAdressBits       = bits(registerAdressLen)
+type registerAddressLen:  Int  = 4
+type registerAddressBits       = bits(registerAddressLen)
 
 type address_size : Int = 16 //CHECK IF FAIL: note in example says this can not be 16 but it seems to work
 type Address = bits(address_size)
 
 
-type adressingModeSourceLen : Int = 2
-type adressingModeSourceBits = bits(adressingModeSourceLen)
+type AddressingModeSourceLen : Int = 2
+type AddressingModeSourceBits = bits(AddressingModeSourceLen)
 
-type adressingModeDestinationLen : Int = 1
-type adressingModeDestinationBits = bits(adressingModeDestinationLen)
+type AddressingModeDestinationLen : Int = 1
+type AddressingModeDestinationBits = bits(AddressingModeDestinationLen)
 
 enum Register = {
   PC,

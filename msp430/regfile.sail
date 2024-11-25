@@ -18,7 +18,7 @@ register   R13_reg  : wordBits /* general purpose    */
 register   R14_reg  : wordBits /* general purpose    */
 register   R15_reg  : wordBits /* general purpose    */
 
-mapping RegisterMapping: Register <-> registerAdressBits  = {
+mapping RegisterMapping: Register <-> registerAddressBits  = {
         PC    <-> 0b0000,
         SP    <-> 0b0001,
         SRCG1 <-> 0b0010,
@@ -39,7 +39,7 @@ mapping RegisterMapping: Register <-> registerAdressBits  = {
 
 val init_base_regs: unit -> unit
 function init_base_regs() = {
-    PC_reg     = undefined; /* needs to be the adress located at 0FFFEh */
+    PC_reg     = undefined; /* needs to be the Address located at 0FFFEh */
     SP_reg     = undefined; /* needs to be initialized by the user */
     SRCG1_reg  = undefined;
     CG2_reg    = undefined;
