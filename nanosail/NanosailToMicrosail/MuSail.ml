@@ -254,7 +254,12 @@ module Statement = struct
 
   let pp_fail (message : string) : PP.document =
     Coq.pp_application (PP.string "fail") [ PP.string message ]
-  
+
+
+  (* No-op *)
+  let pp_nop =
+    pp_expression @@ Expression.pp_unit ()
+    
   
   module Match = struct
     (*
