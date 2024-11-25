@@ -256,6 +256,15 @@ module Statement = struct
     Coq.pp_application (PP.string "fail") [ message ]
 
 
+  let pp_assert
+        ~(condition : PP.document)
+        ~(message   : PP.document) : PP.document
+    =
+    Coq.pp_application
+      (PP.string "stm_assert")
+      [ condition; message ]
+
+
   (* No-op *)
   let pp_nop =
     pp_expression @@ Expression.pp_unit ()
