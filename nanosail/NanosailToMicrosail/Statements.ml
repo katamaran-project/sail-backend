@@ -366,7 +366,7 @@ and pp_match_variant
   end
 
 
-and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
+and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   match match_pattern with
   | MatchList { matched; when_nil; when_cons }     -> GC.pp_annotate [%here] @@ pp_match_list matched when_nil when_cons
   | MatchProduct { matched; id_fst; id_snd; body } -> GC.pp_annotate [%here] @@ pp_match_product matched id_fst id_snd body
@@ -509,7 +509,7 @@ and pp_fail (message : string) : PP.document GC.t =
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   match statement with
   | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression expression
-  | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match_statement match_pattern
+  | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match match_pattern
   | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call_statement function_identifier arguments
   | Let
       { variable_identifier;
