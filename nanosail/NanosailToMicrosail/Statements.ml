@@ -442,21 +442,23 @@ and pp_read_register (register_identifier : Ast.Identifier.t) : PP.document GC.t
     end
 
 
+let pp_write_register_statement
+      ~(register_identifier : Ast.Identifier.t)
+      ~(written_value       : Ast.Identifier.t) : PP.document GC.t
+  =
+  let pp_register_identifier = Identifier.pp register_identifier
+  and pp_written_value = Identifier.pp written_value
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.pp_write_register
+            ~register_identifier:pp_register_identifier
+            ~value_identifier:pp_written_value
+        end
+  end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_write_register_statement
-        ~(register_identifier : Ast.Identifier.t)
-        ~(written_value       : Ast.Identifier.t) : PP.document GC.t
-    =
-    let pp_register_identifier = Identifier.pp register_identifier
-    and pp_written_value = Identifier.pp written_value
-    in
-    GC.return begin
-        PP.annotate [%here] begin
-            MuSail.Statement.pp_write_register
-              ~register_identifier:pp_register_identifier
-              ~value_identifier:pp_written_value
-          end
-    end
 
   and pp_destructure_record_statement
         ~(record_type_identifier : Ast.Identifier.t     )
