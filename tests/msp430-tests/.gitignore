@@ -10,3 +10,4 @@ intermediate_rewrite_*
 base.html
 machine.html
 tests-*.txt
+generated.sail
