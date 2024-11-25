@@ -150,6 +150,17 @@ let extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC
   | _                                          -> GC.return None
 
 
+(*
+   Checks if the expression represents a compile time known string.
+   This can take the form of either a literal or a constant variable.
+*)
+let extract_compile_time_integer (expression : Ast.Expression.t) : string option GC.t =
+  match expression with
+  | Ast.Expression.Val (Ast.Value.String value) -> GC.return @@ Some value
+  | Ast.Expression.Variable (identifier, _typ)  -> try_lookup_string_value_bound_to identifier
+  | _                                           -> GC.return None
+
+
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
   let pp_zeros (number_of_bits : int) : PP.document GC.t =
     GC.pp_annotate [%here] begin
