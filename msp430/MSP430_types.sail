@@ -67,7 +67,7 @@ enum doubleop = {
   BIC,
   BIS,
   XOR,
-  AND}    /* Double-opperand Instructions: Format I */
+  AND}    /* Double-operand Instructions: Format I */
 
 enum singleop = {
   RRC,
@@ -76,7 +76,7 @@ enum singleop = {
   SWPB,
   CALL,
   RETI,
-  SXT}    /* Single-opperand Instructions: Format II */
+  SXT}    /* Single-operand Instructions: Format II */
 
 enum jump = {
   JEQ,
@@ -86,4 +86,4 @@ enum jump = {
   JN ,
   JGE,
   JL ,
-  JMP}    /* Jump-opperand Instructions: Format III */
+  JMP}    /* Jump-operand Instructions: Format III */
