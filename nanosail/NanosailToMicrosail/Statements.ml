@@ -433,16 +433,17 @@ and pp_sequence
         end
     end
 
+
+and pp_read_register (register_identifier : Ast.Identifier.t) : PP.document GC.t =
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.pp_read_register @@ Identifier.pp register_identifier
+        end
+    end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-
-  let pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
-    GC.return begin
-        PP.annotate [%here] begin
-            MuSail.Statement.pp_read_register @@ Identifier.pp register_identifier
-          end
-      end
-
-  and pp_write_register_statement
+  let pp_write_register_statement
         ~(register_identifier : Ast.Identifier.t)
         ~(written_value       : Ast.Identifier.t) : PP.document GC.t
     =
@@ -521,7 +522,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                                                              ~binding_statement
                                                                              ~body_statement
   | Seq (s1, s2)                              -> GC.pp_annotate [%here] @@ pp_sequence s1 s2
-  | ReadRegister register_identifier          -> GC.pp_annotate [%here] @@ pp_read_register_statement register_identifier
+  | ReadRegister register_identifier          -> GC.pp_annotate [%here] @@ pp_read_register register_identifier
   | WriteRegister { register_identifier;
                     written_value }           -> GC.pp_annotate [%here] @@ pp_write_register_statement
                                                                              ~register_identifier
