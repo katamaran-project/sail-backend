@@ -375,7 +375,7 @@ and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   | MatchVariant { matched; matched_type; cases }  -> GC.pp_annotate [%here] @@ pp_match_variant matched matched_type cases
 
 
-and pp_call_statement
+and pp_call
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
@@ -510,7 +510,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   match statement with
   | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression expression
   | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match match_pattern
-  | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call_statement function_identifier arguments
+  | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call function_identifier arguments
   | Let
       { variable_identifier;
         binding_statement_type;
