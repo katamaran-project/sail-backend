@@ -459,8 +459,7 @@ and pp_write_register_statement
 
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-
-  and pp_destructure_record_statement
+  let pp_destructure_record_statement
         ~(record_type_identifier : Ast.Identifier.t     )
         ~(field_identifiers      : Ast.Identifier.t list)
         ~(variable_identifiers   : Ast.Identifier.t list)
