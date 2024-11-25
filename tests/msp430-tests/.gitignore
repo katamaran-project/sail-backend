@@ -1,0 +1,12 @@
+microsail.v
+machine.v
+base.v
+intermediate_rewrite_*
+*.glob
+*.vo
+*.vok
+*.vos
+*.aux
+base.html
+machine.html
+tests-*.txt

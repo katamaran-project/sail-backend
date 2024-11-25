@@ -22,9 +22,16 @@ coq-tests: build install
 	make -C tests/coq-tests | tee test-results.txt
 
 
+.PHONY: msp430-tests msp
+msp430-tests: build install
+	make -C tests/msp430-tests | tee test-results.txt
+
+
 tt: template-tests
 
 ct: coq-tests
+
+msp: msp430-tests
 
 example: build install
 	make -C working-example
