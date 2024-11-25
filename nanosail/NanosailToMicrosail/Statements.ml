@@ -442,7 +442,7 @@ and pp_read_register (register_identifier : Ast.Identifier.t) : PP.document GC.t
     end
 
 
-let pp_write_register_statement
+and pp_write_register_statement
       ~(register_identifier : Ast.Identifier.t)
       ~(written_value       : Ast.Identifier.t) : PP.document GC.t
   =
