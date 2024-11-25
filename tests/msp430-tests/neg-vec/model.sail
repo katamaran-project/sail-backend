@@ -17,4 +17,3 @@ function clause neg_vec(a) = {
 }
 
 overload neg = {neg_vec}
-
