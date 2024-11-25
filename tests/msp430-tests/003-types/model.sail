@@ -5,7 +5,7 @@ $include <smt.sail>
 $include "generated.sail"
 
 scattered union exception
-union clause exception = notImplmented : string
+union clause exception = notImplemented : string
 union clause exception = notAllowed : string
 union clause exception = undefindedBehavior : string
 union clause exception = undefindedInstruction : bits(16)
@@ -28,8 +28,8 @@ scattered union WordByte
 union clause WordByte = Byte : byteBits
 union clause WordByte = Word : wordBits
 
-type registerAdressLen:  Int  = 4
-type registerAdressBits       = bits(registerAdressLen)
+type registerAddressLen:  Int  = 4
+type registerAddressBits       = bits(registerAddressLen)
 
 type address_size : Int = 16 //CHECK IF FAIL: note in example says this can not be 16 but it seems to work
 type Address = bits(address_size)
