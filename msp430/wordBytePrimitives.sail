@@ -86,7 +86,7 @@ function clause and_wordByte(Byte(b1),Byte(b2)) = {
 }
 
 function clause and_wordByte(_,_) = {
-  throw(notImplmented("not implemented"))
+  throw(notImplemented("not implemented"))
 }
 
 val or_wordByte: (WordByte,WordByte) -> WordByte
@@ -98,7 +98,7 @@ function clause or_wordByte(Byte(b1),Byte(b2)) = {
 }
 
 function clause or_wordByte(_,_) = {
-  throw(notImplmented("not implemented"))
+  throw(notImplemented("not implemented"))
 }
 
 val xor_wordByte: (WordByte,WordByte) -> WordByte
@@ -111,7 +111,7 @@ function clause xor_wordByte(Byte(b1),Byte(b2)) = {
 }
 
 function clause xor_wordByte(_,_) = {
-  throw(notImplmented("not implemented"))
+  throw(notImplemented("not implemented"))
 }
 
 val eq_wordByte: (WordByte,WordByte) -> bool
