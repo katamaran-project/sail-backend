@@ -94,217 +94,214 @@ and pp_match_bool
     end
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
+(*
+   Translates a match against enums.
+
+   Two translations are supported:
+   - pretty printed using the special match notation (see pp_using_match_notation)
+   - ugly printed using the raw pp_match_enum
+*)
+and pp_match_enum
+    (matched      : Ast.Identifier.t                    )
+    (matched_type : Ast.Identifier.t                    )
+    (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
+  =
+  if
+    Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
+  then
+    (* deal with a match against unit separately *)
+    match Ast.Identifier.Map.data cases with
+    | [ clause ] -> begin
+        GC.pp_annotate [%here] @@ pp_statement clause
+      end
+    | _ -> GC.fail "expected exactly one case for unit-typed matches"
+  else begin
+    (*
+       Reified enum type
+    *)
+    let pp_matched_type : PP.document =
+      PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_enum_name matched_type
 
     (*
-       Translates a match against enums.
-
-       Two translations are supported:
-       - pretty printed using the special match notation (see pp_using_match_notation)
-       - ugly printed using the raw pp_match_enum
+       Statement whose value is being matched
+        Nanosail only supports matching against variables, and muSail expects a statement,
+       so we start with an identifier, which we turn into an expression, which we
+       turn into a statement.
     *)
-    let pp_match_enum
-        (matched      : Ast.Identifier.t                    )
-        (matched_type : Ast.Identifier.t                    )
-        (cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
-      =
-      if
-        Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
-      then
-        (* deal with a match against unit separately *)
-        match Ast.Identifier.Map.data cases with
-        | [ clause ] -> begin
-            GC.pp_annotate [%here] @@ pp_statement clause
-          end
-        | _ -> GC.fail "expected exactly one case for unit-typed matches"
-      else begin
+    and pp_matched_statement : PP.document =
+      PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+    in
+    (*
+       Translates match statement using muSail's special notation.
+        For example,
+          enum MyEnum = { x, y }
+
+         val foo : MyEnum -> int
+         function foo(e) = match e {
+           x => 1,
+           y => 2
+         }
+
+       has its match expression converted to
+
+         match: (stm_exp (exp_var "жmatched0")) in Emyenum with
+         | x  =>  stm_exp (exp_int 1%Z)
+         | y  =>  stm_exp (exp_int 2%Z)
+         end
+
+    *)
+    let pp_using_match_notation () =
+      let* pp_cases : PP.document list =
         (*
-           Reified enum type
+           Converts a match case
+
+             Foo => statement
+
+           to
+
+             | Foo => statement
         *)
-        let pp_matched_type : PP.document =
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_enum_name matched_type
-
-        (*
-           Statement whose value is being matched
-
-           Nanosail only supports matching against variables, and muSail expects a statement,
-           so we start with an identifier, which we turn into an expression, which we
-           turn into a statement.
-        *)
-        and pp_matched_statement : PP.document =
-          PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-        in
-        (*
-           Translates match statement using muSail's special notation.
-
-           For example,
-
-             enum MyEnum = { x, y }
-
-             val foo : MyEnum -> int
-             function foo(e) = match e {
-               x => 1,
-               y => 2
-             }
-
-           has its match expression converted to
-
-             match: (stm_exp (exp_var "жmatched0")) in Emyenum with
-             | x  =>  stm_exp (exp_int 1%Z)
-             | y  =>  stm_exp (exp_int 2%Z)
-             end
-
-        *)
-        let pp_using_match_notation () =
-          let* pp_cases : PP.document list =
-            (*
-               Converts a match case
-
-                 Foo => statement
-
-               to
-
-                 | Foo => statement
-            *)
-            let pp_case
-                (constructor_identifier : Ast.Identifier.t)
-                (clause_statement       : Ast.Statement.t ) : PP.document GC.t
-              =
-              let pp_pattern =
-                PP.annotate [%here] @@ Identifier.pp constructor_identifier
-              in
-              let* pp_clause =
-                GC.pp_annotate [%here] @@ pp_statement clause_statement
-              in
-              GC.return begin
-                  PP.annotate [%here] begin
-                      PP.(separate_horizontally ~separator:space [
-                              string "|";
-                              pp_pattern;
-                              string " => ";
-                              pp_clause
-                      ])
-                    end
-                end
-            in
-            GC.map ~f:(Auxlib.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
+        let pp_case
+            (constructor_identifier : Ast.Identifier.t)
+            (clause_statement       : Ast.Statement.t ) : PP.document GC.t
+          =
+          let pp_pattern =
+            PP.annotate [%here] @@ Identifier.pp constructor_identifier
           in
-          (*
-             Generates final translation of match
-
-               match: <matched> in <type> with
-               | c1 -> stm
-               | c2 -> stm
-               end
-          *)
+          let* pp_clause =
+            GC.pp_annotate [%here] @@ pp_statement clause_statement
+          in
           GC.return begin
               PP.annotate [%here] begin
-                  PP.vertical begin
-                      Auxlib.build_list begin fun { add; addall; _ } -> begin
-                            add @@ PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space
-                                         [
-                                           string "match:";
-                                           surround parens pp_matched_statement;
-                                           string "in";
-                                           pp_matched_type;
-                                           string "with"
-                                         ]
-                                   );
-                            addall pp_cases;
-                            add @@ PP.annotate [%here] @@ PP.string "end"
-                          end
-                        end
-                    end
-                end
-            end
-
-        (*
-           Alternative match translation function.
-           Uses stm_match_enum.
-
-           For example,
-
-             enum MyEnum = { x, y }
-
-             val foo : MyEnum -> int
-             function foo(e) = match e {
-               x => 1,
-               y => 2
-             }
-
-           has its match expression converted to
-
-             stm_match_enum Emyenum
-                            (stm_exp (exp_var "жmatched0"))
-                            (fun K => match K with
-                                      | x => stm_exp (exp_int 1%Z)
-                                      | y => stm_exp (exp_int 2%Z)
-                                      end)
-        *)
-        and pp_using_stm_match_enum () =
-          (*
-             todo: should perhaps be a generated unique id
-          *)
-          let pp_lambda_parameter : PP.document =
-            PP.annotate [%here] @@ PP.string "K"
-          in
-          let* pp_cases : PP.document =
-            (*
-               Translates a match into a pair of PP.documents
-            *)
-            let pp_case
-                (constructor_identifier : Ast.Identifier.t)
-                (clause_statement       : Ast.Statement.t ) : (PP.document * PP.document) GC.t
-              =
-              let pp_constructor =
-                PP.annotate [%here] @@ Identifier.pp constructor_identifier
-              in
-              let* pp_clause =
-                GC.pp_annotate [%here] @@ pp_statement clause_statement
-              in
-              GC.return (pp_constructor, pp_clause)
-            in
-            (*
-               Generates the body of the lambda
-            *)
-            let* pp_lambda_body =
-              let* pp_match_cases =
-                GC.map ~f:(Auxlib.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
-              in
-              (* Generate Coq match expression *)
-              GC.return @@ PP.annotate [%here] @@ Coq.pp_match pp_lambda_parameter pp_match_cases
-            in
-            (* Wrap everything in a lambda *)
-            GC.return @@ PP.annotate [%here] @@ Coq.pp_lambda pp_lambda_parameter pp_lambda_body
-          in
-          (*
-             Puts everything together
-
-               stm_match_enum <type> <matched> <lambda>
-          *)
-          GC.return begin
-              PP.annotate [%here] begin
-                  Coq.pp_hanging_application
-                    (PP.string "stm_match_enum")
-                    [
-                      pp_matched_type;
-                      PP.(surround parens) pp_matched_statement;
-                      PP.(surround parens) pp_cases;
-                    ]
+                  PP.(separate_horizontally ~separator:space [
+                          string "|";
+                          pp_pattern;
+                          string " => ";
+                          pp_clause
+                  ])
                 end
             end
         in
-        (*
-           Pick between pretty and ugly printing
-           Note that pretty printing is only available for up to 14 cases
-           (notations are hardcoded in Katamaran codebase up to 14 cases)
-        *)
-        if Configuration.(get pretty_print_match_enum) && Ast.Identifier.Map.length cases <= 14
-        then GC.pp_annotate [%here] @@ pp_using_match_notation ()
-        else GC.pp_annotate [%here] @@ pp_using_stm_match_enum ()
-      end
+        GC.map ~f:(Auxlib.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
+      in
+      (*
+         Generates final translation of match
 
+           match: <matched> in <type> with
+           | c1 -> stm
+           | c2 -> stm
+           end
+      *)
+      GC.return begin
+          PP.annotate [%here] begin
+              PP.vertical begin
+                  Auxlib.build_list begin fun { add; addall; _ } -> begin
+                        add @@ PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space
+                                     [
+                                       string "match:";
+                                       surround parens pp_matched_statement;
+                                       string "in";
+                                       pp_matched_type;
+                                       string "with"
+                                     ]
+                               );
+                        addall pp_cases;
+                        add @@ PP.annotate [%here] @@ PP.string "end"
+                      end
+                    end
+                end
+            end
+        end
+
+    (*
+       Alternative match translation function.
+       Uses stm_match_enum.
+
+       For example,
+
+         enum MyEnum = { x, y }
+
+         val foo : MyEnum -> int
+         function foo(e) = match e {
+           x => 1,
+           y => 2
+         }
+
+       has its match expression converted to
+
+         stm_match_enum Emyenum
+                        (stm_exp (exp_var "жmatched0"))
+                        (fun K => match K with
+                                  | x => stm_exp (exp_int 1%Z)
+                                  | y => stm_exp (exp_int 2%Z)
+                                  end)
+    *)
+    and pp_using_stm_match_enum () =
+      (*
+         todo: should perhaps be a generated unique id
+      *)
+      let pp_lambda_parameter : PP.document =
+        PP.annotate [%here] @@ PP.string "K"
+      in
+      let* pp_cases : PP.document =
+        (*
+           Translates a match into a pair of PP.documents
+        *)
+        let pp_case
+            (constructor_identifier : Ast.Identifier.t)
+            (clause_statement       : Ast.Statement.t ) : (PP.document * PP.document) GC.t
+          =
+          let pp_constructor =
+            PP.annotate [%here] @@ Identifier.pp constructor_identifier
+          in
+          let* pp_clause =
+            GC.pp_annotate [%here] @@ pp_statement clause_statement
+          in
+          GC.return (pp_constructor, pp_clause)
+        in
+        (*
+           Generates the body of the lambda
+        *)
+        let* pp_lambda_body =
+          let* pp_match_cases =
+            GC.map ~f:(Auxlib.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
+          in
+          (* Generate Coq match expression *)
+          GC.return @@ PP.annotate [%here] @@ Coq.pp_match pp_lambda_parameter pp_match_cases
+        in
+        (* Wrap everything in a lambda *)
+        GC.return @@ PP.annotate [%here] @@ Coq.pp_lambda pp_lambda_parameter pp_lambda_body
+      in
+      (*
+         Puts everything together
+
+           stm_match_enum <type> <matched> <lambda>
+      *)
+      GC.return begin
+          PP.annotate [%here] begin
+              Coq.pp_hanging_application
+                (PP.string "stm_match_enum")
+                [
+                  pp_matched_type;
+                  PP.(surround parens) pp_matched_statement;
+                  PP.(surround parens) pp_cases;
+                ]
+            end
+        end
+    in
+    (*
+       Pick between pretty and ugly printing
+       Note that pretty printing is only available for up to 14 cases
+       (notations are hardcoded in Katamaran codebase up to 14 cases)
+    *)
+    if Configuration.(get pretty_print_match_enum) && Ast.Identifier.Map.length cases <= 14
+    then GC.pp_annotate [%here] @@ pp_using_match_notation ()
+    else GC.pp_annotate [%here] @@ pp_using_stm_match_enum ()
+  end
+
+
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+  let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
        Pretty prints a match where the matched value has a union/variant type.
 
@@ -315,7 +312,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                   ... ]
                                 Logic.I
     *)
-    and pp_match_variant
+    let pp_match_variant
         (matched      : Ast.Identifier.t                                              )
         (matched_type : Ast.Identifier.t                                              )
         (cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
