@@ -6,7 +6,6 @@ SAIL=sail
 COQ=coqc
 
 SAIL_SOURCES=model.sail
-TESTED_FILE=microsail.v
 
 if [ -n "$1" ]
 then
