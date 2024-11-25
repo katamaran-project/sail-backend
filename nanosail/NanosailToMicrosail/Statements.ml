@@ -493,16 +493,17 @@ and pp_destructure_record
     end
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_cast_statement
-      (statement_to_be_cast : Ast.Statement.t)
-      (_target_type         : Ast.Type.t     ) : PP.document GC.t
-    =
-    let* () = GC.log Logging.info @@ lazy "Warning: ignored cast"
-    in
-    GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
+and pp_cast_statement
+    (statement_to_be_cast : Ast.Statement.t)
+    (_target_type         : Ast.Type.t     ) : PP.document GC.t
+  =
+  let* () = GC.log Logging.info @@ lazy "Warning: ignored cast"
+  in
+  GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 
-  and pp_fail_statement (message : string) : PP.document GC.t =
+
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+  let pp_fail_statement (message : string) : PP.document GC.t =
     GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail message
 
   in
