@@ -121,7 +121,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
    | Bool                             -> GC.pp_annotate [%here] @@ ty "bool"
    | Int                              -> GC.pp_annotate [%here] @@ ty "int"
    | String                           -> GC.pp_annotate [%here] @@ ty "string"
-   | Bit                              -> GC.not_yet_implemented [%here]
+   | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
    | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
    | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
    | Product (t1, t2)                 -> GC.pp_annotate [%here] @@ pp_product t1 t2

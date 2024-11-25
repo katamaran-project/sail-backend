@@ -65,7 +65,7 @@ let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
           and val2 = binding_statement
           in
           match body_statement with
-          | Ast.Statement.Expression (Ast.Expression.BinaryOperation (binary_operator, Variable v1, Variable v2)) -> begin
+          | Ast.Statement.Expression (Ast.Expression.BinaryOperation (binary_operator, Variable (v1, _), Variable (v2, _))) -> begin
               match identify_bitvector_conversion val1, identify_bitvector_conversion val2 with
               | Conversion (left_signedness, expr1), Conversion (right_signedness, expr2) -> begin
                   if

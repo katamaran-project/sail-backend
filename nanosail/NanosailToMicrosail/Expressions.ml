@@ -299,7 +299,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   in
   match expression with
-  | Variable identifier                               -> GC.pp_annotate [%here] @@ pp_variable identifier
+  | Variable (identifier, _typ)                       -> GC.pp_annotate [%here] @@ pp_variable identifier
   | Val value                                         -> GC.pp_annotate [%here] @@ pp_value value
   | UnaryOperation (operator, operand)                -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
   | BinaryOperation (op, e1, e2)                      -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2

@@ -205,9 +205,9 @@ end = struct
       TC.return @@ factory left' right'
     in
 
-    let translate_sum   = translate_binary_operation @@ fun l r -> Add   (l, r)
-    and translate_minus = translate_binary_operation @@ fun l r -> Minus (l, r)
-    and translate_times = translate_binary_operation @@ fun l r -> Times (l, r)
+    let translate_sum   = translate_binary_operation @@ fun l r -> Add (l, r)
+    and translate_minus = translate_binary_operation @@ fun l r -> Sub (l, r)
+    and translate_times = translate_binary_operation @@ fun l r -> Mul (l, r)
 
     and translate_constant (constant : Z.t) : Ast.Numeric.Expression.t TC.t =
       TC.return @@ Ast.Numeric.Expression.Constant constant

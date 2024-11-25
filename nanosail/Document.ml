@@ -220,6 +220,8 @@ module Make(Annotation : ANNOTATION) = struct
   let bar        = string "|"
   let underscore = string "_"
 
+  let at         = string "@"
+
 
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
@@ -374,7 +376,7 @@ module Make(Annotation : ANNOTATION) = struct
     a + b + c + d
 
   *)
-  let pp_binary_operation
+  let pp_binary_operation (* todo rename to binary_operation *)
       (operator : t     )
       (operands : t list) : t
     =
@@ -419,4 +421,8 @@ module Make(Annotation : ANNOTATION) = struct
       separate_vertically ~separator arguments;
       right_delimiter
     ]
+
+
+  let integer (n : int) =
+    string @@ Int.to_string n
 end

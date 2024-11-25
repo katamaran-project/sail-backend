@@ -38,13 +38,17 @@ let create_if_statement
 
 
 let statement_of_lvar
-      (identifier : Ast.Identifier.t        )
-      (lvar       : S.typ S.Ast_util.lvar   )
-      (location   : S.l                     ) : Ast.Statement.t TC.t
+    (identifier : Ast.Identifier.t     )
+    (lvar       : S.typ S.Ast_util.lvar)
+    (location   : S.l                  ) : Ast.Statement.t TC.t
   =
   match lvar with
-  | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
-  | Local (_, _) -> TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable identifier)
+  | Register _     -> TC.return @@ Ast.Statement.ReadRegister identifier
+  | Local (_, typ) -> begin
+      let* typ' = Nanotype.nanotype_of_sail_type typ
+      in
+      TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable (identifier, typ'))
+    end
   | Enum _       -> TC.not_yet_implemented [%here] location
   | Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -182,7 +186,7 @@ let rec expression_of_aval
         let* typ' =
           Nanotype.nanotype_of_sail_type typ
         in
-        TC.return (Ast.Expression.Variable id', typ', [])
+        TC.return (Ast.Expression.Variable (id', typ'), typ', [])
       end
     | Register typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
@@ -195,7 +199,7 @@ let rec expression_of_aval
         let named_statements =
           [(unique_id, typ', Ast.Statement.ReadRegister id')]
         in
-        TC.return (Ast.Expression.Variable unique_id, typ', named_statements)
+        TC.return (Ast.Expression.Variable (unique_id, typ'), typ', named_statements)
       end
     | Enum typ -> begin
         let* typ' = Nanotype.nanotype_of_sail_type typ
@@ -422,7 +426,7 @@ let rec wrap_in_named_statements_context
 type with_destructured_record_data = {
     record_identifier      : Ast.Identifier.t;
     record_type_identifier : Ast.Identifier.t;
-    field_identifiers      : Ast.Identifier.t list;
+    fields                 : (Ast.Identifier.t * Ast.Type.t) list;
     variable_identifiers   : Ast.Identifier.t list;
   }
 
@@ -448,8 +452,11 @@ let with_destructured_record
           in
           match lookup_result with
           | Some record_type_definition -> begin
+              let fields =
+                record_type_definition.fields
+              in
               let field_identifiers =
-                List.map ~f:fst record_type_definition.fields
+                List.map ~f:fst fields
               in
               let* variable_identifiers =
                 TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.string_of x) ()) field_identifiers
@@ -458,7 +465,7 @@ let with_destructured_record
                 body_generator {
                   record_identifier;
                   record_type_identifier;
-                  field_identifiers;
+                  fields;
                   variable_identifiers
                 }
               in
@@ -940,11 +947,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> (
-        match Auxlib.find_index_of ~f:(Ast.Identifier.equal field_identifier) field_identifiers with
+      fun { record_type_identifier; fields; variable_identifiers; _ } -> (
+        match Auxlib.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
-              Ast.Expression.Variable (List.nth_exn variable_identifiers selected_field_index)
+              let variable_identifier = List.nth_exn variable_identifiers selected_field_index
+              and variable_type       = snd @@ List.nth_exn fields selected_field_index
+              in
+              Ast.Expression.Variable (variable_identifier, variable_type)
             in
             TC.return @@ Ast.Statement.Expression expression
           end
@@ -1135,7 +1145,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return @@ (field_map', named_statements')
     in
-    with_destructured_record location aval @@ fun { record_type_identifier; field_identifiers; variable_identifiers; _ } -> begin
+    with_destructured_record location aval @@ fun { record_type_identifier; fields; variable_identifiers; _ } -> begin
+      let field_identifiers = List.map ~f:fst fields
+      in
       let* field_map, named_statements =
         let initial_field_map : Ast.Identifier.t Ast.Identifier.Map.t =
           Ast.Identifier.Map.of_alist_exn @@ List.zip_exn field_identifiers variable_identifiers
