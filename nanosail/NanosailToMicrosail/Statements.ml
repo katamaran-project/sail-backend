@@ -7,13 +7,14 @@ module GC = struct
 end
 
 
-let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
-    let* pp_expression = GC.pp_annotate [%here] @@ Expressions.pp_expression expression
-    in
-    GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
+let pp_expression_statement (expression : Ast.Expression.t) : PP.document GC.t =
+  let* pp_expression = GC.pp_annotate [%here] @@ Expressions.pp_expression expression
+  in
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
 
-  and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
+
+let rec pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+  let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
     (*
 
        Converts the following Sail code
