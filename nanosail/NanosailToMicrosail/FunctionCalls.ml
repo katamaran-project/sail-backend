@@ -433,7 +433,7 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
           let* pp_condition = Expressions.pp_expression condition
           in
           let pp_error_message =
-            PP.(surround dquotes) @@ PP.string error_message
+            MuSail.Expression.pp_string @@ PP.(surround dquotes) @@ PP.string error_message
           in
           GC.return @@ MuSail.Statement.pp_assert ~condition:pp_condition ~message:pp_error_message
         end
