@@ -52,31 +52,31 @@ let rec pp_match_list
     end
   end
 
+and pp_match_product
+    (matched : Ast.Statement.t )
+    (id_fst  : Ast.Identifier.t)
+    (id_snd  : Ast.Identifier.t)
+    (body    : Ast.Statement.t ) : PP.document GC.t
+  =
+  let* pp_matched = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
+  and* pp_body    = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
+  in
+  let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
+  and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.Match.pp_product
+            ~matched_value:pp_matched
+            ~fst_identifier:pp_id_fst
+            ~snd_identifier:pp_id_snd
+            ~body:pp_body
+        end
+    end
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   let pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
-    let pp_match_product
-        (matched : Ast.Statement.t )
-        (id_fst  : Ast.Identifier.t)
-        (id_snd  : Ast.Identifier.t)
-        (body    : Ast.Statement.t ) : PP.document GC.t
-      =
-      let* pp_matched = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
-      and* pp_body    = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
-      in
-      let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
-      and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
-      in
-      GC.return begin
-          PP.annotate [%here] begin
-              MuSail.Statement.Match.pp_product
-                ~matched_value:pp_matched
-                ~fst_identifier:pp_id_fst
-                ~snd_identifier:pp_id_snd
-                ~body:pp_body
-            end
-        end
-
-    and pp_match_bool
+    let pp_match_bool
         (condition  : Ast.Statement.t)
         (when_true  : Ast.Statement.t)
         (when_false : Ast.Statement.t) : PP.document GC.t
