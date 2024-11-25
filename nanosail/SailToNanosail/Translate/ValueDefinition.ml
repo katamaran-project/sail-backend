@@ -79,7 +79,38 @@ let translate_value_definition
   | S.P_or (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
   | S.P_not _                      -> TC.not_yet_implemented [%here] pattern_location
   | S.P_as (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
-  | S.P_typ (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_typ (_typ, pattern)         -> begin
+      let S.P_aux (unwrapped_pattern, _) = pattern
+      in
+      match unwrapped_pattern with
+       | S.P_id identifier -> begin
+           match identifier with
+           | S.Id_aux (S.Id identifier, _identifier_location) -> begin
+               let identifier = Ast.Identifier.mk identifier
+               in
+               let* value = value_of_expression expression
+               in
+               TC.return @@ Ast.Definition.ValueDefinition { identifier; value }
+             end
+           | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
+         end
+       | S.P_lit _                     -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_wild                      -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_or (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_not _                     -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_as (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_typ (_, _)                -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_var (_, _)                -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_app (_, _)                -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_vector _                  -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_vector_concat _           -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_tuple _                   -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_list _                    -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_cons (_, _)               -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_string_append _           -> TC.not_yet_implemented [%here] pattern_location
+       | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] pattern_location
+    end
   | S.P_var (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
   | S.P_app (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
   | S.P_vector _                   -> TC.not_yet_implemented [%here] pattern_location
