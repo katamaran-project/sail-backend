@@ -503,7 +503,7 @@ and pp_cast
 
 
 and pp_fail (message : string) : PP.document GC.t =
-  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail message
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail @@ PP.string message
 
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =

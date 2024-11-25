@@ -252,8 +252,8 @@ module Statement = struct
       end
 
 
-  let pp_fail (message : string) : PP.document =
-    Coq.pp_application (PP.string "fail") [ PP.string message ]
+  let pp_fail (message : PP.document) : PP.document =
+    Coq.pp_application (PP.string "fail") [ message ]
 
 
   (* No-op *)
