@@ -375,16 +375,17 @@ and pp_match_statement (match_pattern : Ast.Statement.match_pattern) : PP.docume
   | MatchVariant { matched; matched_type; cases }  -> GC.pp_annotate [%here] @@ pp_match_variant matched matched_type cases
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_call_statement
+and pp_call_statement
       (function_identifier : Ast.Identifier.t     )
       (arguments           : Ast.Expression.t list) : PP.document GC.t
-    =
-    GC.pp_annotate [%here] begin
-        FunctionCalls.translate function_identifier arguments
-      end
+  =
+  GC.pp_annotate [%here] begin
+      FunctionCalls.translate function_identifier arguments
+    end
 
-  and pp_let_statement
+
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+  let pp_let_statement
         ~(variable_identifier    : Ast.Identifier.t)
         ~(binding_statement_type : Ast.Type.t      )
         ~(binding_statement      : Ast.Statement.t )
