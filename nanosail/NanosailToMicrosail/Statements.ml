@@ -420,21 +420,22 @@ and pp_let_statement
       end
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_sequence_statement
+and pp_sequence_statement
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PP.document GC.t
-    =
-      let* pp_left  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement left
-      and* pp_right = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement right
-      in
-      GC.return begin
-          PP.annotate [%here] begin
-              MuSail.Statement.pp_sequence pp_left pp_right
-            end
+  =
+  let* pp_left  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement left
+  and* pp_right = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement right
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.pp_sequence pp_left pp_right
         end
+    end
 
-  and pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
+and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+
+  let pp_read_register_statement (register_identifier : Ast.Identifier.t) : PP.document GC.t =
     GC.return begin
         PP.annotate [%here] begin
             MuSail.Statement.pp_read_register @@ Identifier.pp register_identifier
