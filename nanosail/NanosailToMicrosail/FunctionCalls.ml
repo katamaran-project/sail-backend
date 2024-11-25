@@ -430,14 +430,12 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
       in
       match result with
       | Some error_message -> begin
-          let* condition = Expressions.pp_expression condition
+          let* pp_condition = Expressions.pp_expression condition
           in
-          let when_true =
-            MuSail.Statement.pp_fail @@ PP.(surround dquotes) @@ PP.string error_message
-          and when_false =
-            MuSail.Statement.pp_nop
+          let pp_error_message =
+            PP.(surround dquotes) @@ PP.string error_message
           in
-          GC.return @@ MuSail.Statement.pp_conditional ~condition ~when_true ~when_false
+          GC.return @@ MuSail.Statement.pp_assert ~condition:pp_condition ~message:pp_error_message
         end
       | None -> GC.fail @@ Printf.sprintf "%s should have its second argument known at compile time" sail_name
     end
