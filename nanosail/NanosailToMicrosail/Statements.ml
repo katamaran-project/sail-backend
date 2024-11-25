@@ -493,7 +493,7 @@ and pp_destructure_record
     end
 
 
-and pp_cast_statement
+and pp_cast
     (statement_to_be_cast : Ast.Statement.t)
     (_target_type         : Ast.Type.t     ) : PP.document GC.t
   =
@@ -537,5 +537,5 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                                                              ~variable_identifiers
                                                                              ~destructured_record
                                                                              ~body
-  | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast_statement statement_to_be_cast target_type
+  | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast statement_to_be_cast target_type
   | Fail message                              -> GC.pp_annotate [%here] @@ pp_fail_statement message
