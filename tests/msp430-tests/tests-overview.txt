@@ -1,0 +1,8 @@
+PASS 001-prelude
+PASS 002-exceptions
+PASS 003-types
+PASS imports
+PASS neg-vec
+PASS sign-extend
+PASS zero-extend
+PASS:7 FAIL:0
