@@ -458,46 +458,43 @@ and pp_write_register_statement
   end
 
 
+and pp_destructure_record_statement
+      ~(record_type_identifier : Ast.Identifier.t     )
+      ~(field_identifiers      : Ast.Identifier.t list)
+      ~(variable_identifiers   : Ast.Identifier.t list)
+      ~(destructured_record    : Ast.Statement.t      )
+      ~(body                   : Ast.Statement.t      ) : PP.document GC.t
+  =
+  let pp_matched_type =
+    Identifier.pp @@ Configuration.reified_record_name record_type_identifier
+  in
+  let* pp_matched_value =
+    pp_statement destructured_record
+  in
+  let pp_bindings =
+    let pairs =
+      List.zip_exn field_identifiers variable_identifiers
+    in
+    List.map
+      ~f:(fun (field, var) -> (Identifier.pp field, Identifier.pp var))
+      pairs
+  in
+  let* pp_body =
+    pp_statement body
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.Match.pp_record
+            ~matched_type:pp_matched_type
+            ~matched_value:pp_matched_value
+            ~bindings:pp_bindings
+            ~body:pp_body
+        end
+    end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  let pp_destructure_record_statement
-        ~(record_type_identifier : Ast.Identifier.t     )
-        ~(field_identifiers      : Ast.Identifier.t list)
-        ~(variable_identifiers   : Ast.Identifier.t list)
-        ~(destructured_record    : Ast.Statement.t      )
-        ~(body                   : Ast.Statement.t      ) : PP.document GC.t
-    =
-    let pp_matched_type =
-      Identifier.pp @@ Configuration.reified_record_name record_type_identifier
-    in
-
-    let* pp_matched_value =
-      pp_statement destructured_record
-    in
-
-    let pp_bindings =
-      let pairs =
-        List.zip_exn field_identifiers variable_identifiers
-      in
-      List.map
-        ~f:(fun (field, var) -> (Identifier.pp field, Identifier.pp var))
-        pairs
-    in
-      
-    let* pp_body =
-      pp_statement body
-    in
-
-    GC.return begin
-        PP.annotate [%here] begin
-            MuSail.Statement.Match.pp_record
-              ~matched_type:pp_matched_type
-              ~matched_value:pp_matched_value
-              ~bindings:pp_bindings
-              ~body:pp_body
-          end
-      end
-
-  and pp_cast_statement
+  let pp_cast_statement
       (statement_to_be_cast : Ast.Statement.t)
       (_target_type         : Ast.Type.t     ) : PP.document GC.t
     =
