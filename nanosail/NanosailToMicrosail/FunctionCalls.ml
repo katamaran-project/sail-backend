@@ -421,6 +421,22 @@ let translate_sign_extend (arguments : Ast.Expression.t list) : PP.document GC.t
   translate_extend ~sail_name ~musail_name ~arguments
 
 
+let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "sail_assert"
+  in
+  match arguments with
+  | [ condition_expression; error_message_expression ] -> begin
+      let* result = extract_compile_time_string error_message_expression
+      in
+      match result with
+      | Some error_message -> begin
+          GC.not_yet_implemented [%here] (* todo *)
+        end
+      | None -> GC.fail @@ Printf.sprintf "%s should have its second argument known at compile time" sail_name
+    end
+  | _ -> GC.fail @@ Printf.sprintf "expected %s to receive two arguments" sail_name
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -452,4 +468,5 @@ let translate
   | "sail_shiftright"  -> GC.pp_annotate [%here] @@ translate_shift_right arguments
   | "sail_zero_extend" -> GC.pp_annotate [%here] @@ translate_zero_extend arguments
   | "sail_sign_extend" -> GC.pp_annotate [%here] @@ translate_sign_extend arguments
+  | "sail_assert"      -> GC.pp_annotate [%here] @@ translate_assertion arguments
   | _                  -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
