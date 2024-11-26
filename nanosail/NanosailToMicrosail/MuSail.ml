@@ -1,6 +1,12 @@
 open Base
 
 
+module Value = struct
+  let pp_bit (value : bool) : PP.document =
+    Coq.pp_bool value
+end
+
+
 module Operator = struct
   let bitvector_signed_less_than                  = PP.string "<ˢ"
   let bitvector_signed_less_than_or_equal_to      = PP.string "<=ˢ"
