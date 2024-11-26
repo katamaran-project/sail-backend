@@ -489,9 +489,18 @@ let translate
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
   match Ast.Identifier.string_of function_identifier with
-  | "not_bool"         -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.not" pp_arguments
-  | "signed"           -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.signed" pp_arguments
-  | "unsigned"         -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.unsigned" pp_arguments
+  | "not_bool" ->
+     GC.pp_annotate [%here] begin
+         translate_unary_operator function_identifier "uop.not" pp_arguments
+       end
+  | "signed" ->
+     GC.pp_annotate [%here] begin
+         translate_unary_operator function_identifier "uop.signed" pp_arguments
+       end
+  | "unsigned" ->
+     GC.pp_annotate [%here] begin
+         translate_unary_operator function_identifier "uop.unsigned" pp_arguments
+       end
   | "eq_bit"           ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
@@ -559,14 +568,47 @@ let translate
            ~name:(Some MuSail.Operator.Name.bool_inequality)
            pp_arguments
        end
-  | "eq_unit"          -> GC.pp_annotate [%here] @@ translate_unit_equality ()
-  | "add_bits_int"     -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
-  | "sail_zeros"       -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
-  | "sail_ones"        -> GC.pp_annotate [%here] @@ translate_sail_ones arguments
-  | "sail_shiftleft"   -> GC.pp_annotate [%here] @@ translate_shift_left arguments
-  | "sail_shiftright"  -> GC.pp_annotate [%here] @@ translate_shift_right arguments
-  | "sail_zero_extend" -> GC.pp_annotate [%here] @@ translate_zero_extend arguments
-  | "sail_sign_extend" -> GC.pp_annotate [%here] @@ translate_sign_extend arguments
-  | "sail_assert"      -> GC.pp_annotate [%here] @@ translate_assertion arguments
-  | "bitvector_concat" -> GC.pp_annotate [%here] @@ translate_bitvector_concatenation arguments
-  | _                  -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
+  | "eq_unit"          ->
+     GC.pp_annotate [%here] begin
+         translate_unit_equality ()
+       end
+  | "add_bits_int"     ->
+     GC.pp_annotate [%here] begin
+         translate_add_bits_int arguments
+       end
+  | "sail_zeros"       ->
+     GC.pp_annotate [%here] begin
+         translate_sail_zeros arguments
+       end
+  | "sail_ones"        ->
+     GC.pp_annotate [%here] begin
+         translate_sail_ones arguments
+       end
+  | "sail_shiftleft"   ->
+     GC.pp_annotate [%here] begin
+         translate_shift_left arguments
+       end
+  | "sail_shiftright"  ->
+     GC.pp_annotate [%here] begin
+         translate_shift_right arguments
+       end
+  | "sail_zero_extend" ->
+     GC.pp_annotate [%here] begin
+         translate_zero_extend arguments
+       end
+  | "sail_sign_extend" ->
+     GC.pp_annotate [%here] begin
+         translate_sign_extend arguments
+       end
+  | "sail_assert"      ->
+     GC.pp_annotate [%here] begin
+         translate_assertion arguments
+       end
+  | "bitvector_concat" ->
+     GC.pp_annotate [%here] begin
+         translate_bitvector_concatenation arguments
+       end
+  | _                  ->
+     GC.pp_annotate [%here] begin
+         GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
+       end
