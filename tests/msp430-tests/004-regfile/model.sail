@@ -102,22 +102,22 @@ enum jump = {
 
 let zero_reg : wordBits = 0b0000000000000000
 
-register    PC_reg  : wordBits /* program counter    */
-register    SP_reg  : wordBits /* stack pointer      */
-register SRCG1_reg  : wordBits /* status             */
-register   CG2_reg  : wordBits /* constant generator */
-register    R4_reg  : wordBits /* general purpose    */
-register    R5_reg  : wordBits /* general purpose    */
-register    R6_reg  : wordBits /* general purpose    */
-register    R7_reg  : wordBits /* general purpose    */
-register    R8_reg  : wordBits /* general purpose    */
-register    R9_reg  : wordBits /* general purpose    */
-register   R10_reg  : wordBits /* general purpose    */
-register   R11_reg  : wordBits /* general purpose    */
-register   R12_reg  : wordBits /* general purpose    */
-register   R13_reg  : wordBits /* general purpose    */
-register   R14_reg  : wordBits /* general purpose    */
-register   R15_reg  : wordBits /* general purpose    */
+register    PC_reg  : wordBits = zero_reg
+register    SP_reg  : wordBits = zero_reg
+register SRCG1_reg  : wordBits = zero_reg
+register   CG2_reg  : wordBits = zero_reg
+register    R4_reg  : wordBits = zero_reg
+register    R5_reg  : wordBits = zero_reg
+register    R6_reg  : wordBits = zero_reg
+register    R7_reg  : wordBits = zero_reg
+register    R8_reg  : wordBits = zero_reg
+register    R9_reg  : wordBits = zero_reg
+register   R10_reg  : wordBits = zero_reg
+register   R11_reg  : wordBits = zero_reg
+register   R12_reg  : wordBits = zero_reg
+register   R13_reg  : wordBits = zero_reg
+register   R14_reg  : wordBits = zero_reg
+register   R15_reg  : wordBits = zero_reg
 
 mapping RegisterMapping: Register <-> registerAddressBits  = {
         PC    <-> 0b0000,
