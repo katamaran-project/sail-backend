@@ -34,7 +34,7 @@ PASS bitvectors-ones-with-literal-size
 PASS bitvectors-ones-with-sizeof-size
 PASS bitvectors-ones-with-variable-size
 PASS bitvectors-parameter
-FAIL bitvectors-register
+PASS bitvectors-register
 PASS bitvectors-returning
 PASS bitvectors-shift-left-with-literal-0
 PASS bitvectors-shift-left-with-literal-1
@@ -215,8 +215,9 @@ PASS unions-with-record-field
 PASS unions-with-union-field
 PASS unit-equality
 PASS unit-return
+FAIL value-definition-bitvector
 PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:208 FAIL:13
+PASS:209 FAIL:13
