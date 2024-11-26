@@ -28,7 +28,7 @@ let genblock loc label doc =
 *)
 let generate_base_prelude () : PP.document GC.t =
   GC.return @@ PP.paragraphs [
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String" ];
+    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
     PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~import:true  [ "Base"; "Bitvector" ];
