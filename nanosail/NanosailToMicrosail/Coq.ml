@@ -580,3 +580,9 @@ let pp_scope scope_name scoped_expression =
         ]
       )
     end
+
+
+let pp_bool (value : bool) : PP.document =
+  if value
+  then PP.string "true"
+  else PP.string "false"
