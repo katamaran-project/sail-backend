@@ -39,7 +39,7 @@ let test_suite_numeric_expression =
   and add x y = addloc (S.Ast.Nexp_sum (x, y))
   and sub x y = addloc (S.Ast.Nexp_minus (x, y))
   and mul x y = addloc (S.Ast.Nexp_times (x, y))
-  and neg x = addloc (S.Ast.Nexp_neg x)
+  and neg x   = addloc (S.Ast.Nexp_neg x)
   in
   let inputs = [
     (const 5, "5");
