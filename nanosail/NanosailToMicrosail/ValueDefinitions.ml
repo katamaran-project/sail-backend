@@ -13,7 +13,7 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
   | Unit        -> GC.return @@ PP.annotate [%here] @@ PP.(string "tt")
   | Int n       -> GC.return @@ PP.annotate [%here] @@ PP.(string @@ Z.to_string n)
   | Bool b      -> GC.return @@ PP.annotate [%here] @@ PP.string @@ if b then "true" else "false"
-  | String _    -> GC.not_yet_implemented [%here]
+  | String s    -> GC.return @@ PP.annotate [%here] @@ Coq.pp_string s
   | Prod (_, _) -> GC.not_yet_implemented [%here]
   | Bit _       -> GC.not_yet_implemented [%here]
   | Bitvector _ -> GC.not_yet_implemented [%here]
