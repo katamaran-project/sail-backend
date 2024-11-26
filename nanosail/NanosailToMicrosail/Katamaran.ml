@@ -36,21 +36,29 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method top_level_type_constraint_definitions = top_level_type_constraint_definitions
 
   method pp_base_prelude : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_base_prelude"
+    in
     genblock [%here] "Prelude" @@* begin
       BaseModule.generate_base_prelude ()
     end
 
   method pp_program_prelude : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_program_prelude"
+    in
     genblock [%here] "Prelude" @@* begin
       ProgramModule.generate_program_prelude ()
     end
 
   method pp_register_definitions : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_register_definitions"
+    in
     genblock [%here] "Register Definitions" @@* begin
       Registers.pp_regname_inductive_type register_definitions
     end
 
   method pp_translated_type_definitions : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_translated_type_definitions"
+    in
     genblock [%here] "Translated Type Definitions" @@* begin
       let* type_definitions' =
         GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
@@ -59,27 +67,37 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_enum_tags : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_enum_tags"
+    in
     genblock [%here] "Enum Tags" @@* begin
       Types.Enums.generate_tags enum_definitions
     end
 
   method pp_record_tags : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_record_tags"
+    in
     genblock [%here] "Record Tags" @@* begin
       Types.Records.generate_tags record_definitions
     end
 
   method pp_variant_tags : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_variant_tags"
+    in
     genblock [%here] "Variant Tags" @@* begin
       Types.Variants.generate_tags variant_definitions;
     end
 
-  method pp_base_module : PP.document GC.t =
+  method pp_base_module : PP.document GC.t =    
+    let* () = GC.log Logging.debug @@ lazy "pp_base_module"
+    in
     let* base_module =
       BaseModule.pp_base_module all_definitions
     in
     GC.generation_block [%here] (PP.string "Base Module") base_module
 
   method pp_program_module : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_program_module"
+    in
     let* program_module =
       ProgramModule.pp_program_module
         function_definitions
@@ -88,6 +106,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ program_module
 
   method pp_finite : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_finite"
+    in
     let* finite_definitions =
       let finite_enums =
         List.map ~f:(PP.annotate [%here]) @@ Types.Enums.generate_finiteness enum_definitions
@@ -118,6 +138,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_no_confusion : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_no_confusion"
+    in
     let section_identifier =
       Ast.Identifier.mk "TransparentObligations"
     in
@@ -157,6 +179,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_eqdecs : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_eqdecs"
+    in
     (*
       Collect identifiers for which to declare EqDec
       Note: order is important
@@ -189,9 +213,13 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_value_definitions : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_value_definitions"
+    in
     ValueDefinitions.generate all_definitions
 
-  method pp_base : PP.document GC.t =
+  method pp_base : PP.document GC.t =    
+    let* () = GC.log Logging.debug @@ lazy "pp_base"
+    in
     let* sections = GC.sequence [
       self#pp_base_prelude;
       self#pp_register_definitions;
@@ -209,6 +237,8 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ PP.(paragraphs sections)
 
   method pp_program : PP.document GC.t =
+    let* () = GC.log Logging.debug @@ lazy "pp_program"
+    in
     let* sections = GC.sequence [
         self#pp_program_prelude;
         self#pp_program_module;
@@ -219,6 +249,8 @@ end
 
 
 let pretty_print (ir : Ast.program) : PP.document GC.t =
+  let* () = GC.log Logging.debug @@ lazy "Generating muSail code"
+  in
   let katamaran = new katamaran ir
   in
   let* sections = GC.sequence
