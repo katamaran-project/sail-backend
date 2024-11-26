@@ -13,11 +13,12 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-let value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t TC.t =
-  let S.E_aux (unwrapped_expression, (location, _type_annotation)) = expression
+let rec value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t TC.t =
+  let S.E_aux (unwrapped_expression, (location, type_annotation)) = expression
   in
   match unwrapped_expression with
   | S.E_lit literal                            -> Literal.value_of_literal literal
+  | S.E_vector bitvector_elements              -> value_of_bitvector_expression ~location ~type_annotation ~bitvector_elements
   | S.E_block _                                -> TC.not_yet_implemented [%here] location
   | S.E_id _                                   -> TC.not_yet_implemented [%here] location
   | S.E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
@@ -27,7 +28,6 @@ let value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t 
   | S.E_if (_, _, _)                           -> TC.not_yet_implemented [%here] location
   | S.E_loop (_, _, _, _)                      -> TC.not_yet_implemented [%here] location
   | S.E_for (_, _, _, _, _, _)                 -> TC.not_yet_implemented [%here] location
-  | S.E_vector _                               -> TC.not_yet_implemented [%here] location
   | S.E_vector_access (_, _)                   -> TC.not_yet_implemented [%here] location
   | S.E_vector_subrange (_, _, _)              -> TC.not_yet_implemented [%here] location
   | S.E_vector_update (_, _, _)                -> TC.not_yet_implemented [%here] location
@@ -54,6 +54,31 @@ let value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Value.t 
   | S.E_internal_value _                       -> TC.not_yet_implemented [%here] location
   | S.E_internal_assume (_, _)                 -> TC.not_yet_implemented [%here] location
   | S.E_constraint _                           -> TC.not_yet_implemented [%here] location
+
+and value_of_bitvector_expression
+      ~(location : S.l)
+      ~(type_annotation : 'a)
+      ~(bitvector_elements : Sail.type_annotation S.exp list) : Ast.Value.t TC.t
+  =
+  let _ = type_annotation in
+  (*
+    We expect the elements of the vector to be bools (bits).
+  *)
+  let convert_value_to_bool (value : Ast.Value.t) : bool TC.t =
+    match value with
+     | Ast.Value.Bit b       -> TC.return b
+     | Ast.Value.Unit        -> TC.not_yet_implemented [%here] location
+     | Ast.Value.Bool _      -> TC.not_yet_implemented [%here] location
+     | Ast.Value.Int _       -> TC.not_yet_implemented [%here] location
+     | Ast.Value.String _    -> TC.not_yet_implemented [%here] location
+     | Ast.Value.Prod (_, _) -> TC.not_yet_implemented [%here] location
+     | Ast.Value.Bitvector _ -> TC.not_yet_implemented [%here] location
+  in
+  let* bitvector_values = TC.map ~f:value_of_expression bitvector_elements
+  in
+  let* bitvector_bits = TC.map ~f:convert_value_to_bool bitvector_values
+  in
+  TC.return @@ Ast.Value.Bitvector bitvector_bits
 
 
 let translate_value_definition
