@@ -2,7 +2,7 @@
   (generate (base-translation))
 >*)
 
-Theorem imm_size_correct : imm_size = 12.
+Theorem imm_size_correct : imm_size = 12%Z.
 Proof. trivial. Qed.
 
 (*<
