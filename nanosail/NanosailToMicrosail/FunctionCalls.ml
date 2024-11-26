@@ -319,9 +319,9 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
    We currently support only cases where the second parameter is a integer literal in the Sail code.
 *)
 let translate_shift
-    ~(sail_name : string)
-    ~(musail_name : string)
-    ~(arguments : Ast.Expression.t list) : PP.document GC.t
+    ~(sail_name   : string               )
+    ~(musail_name : string               )
+    ~(arguments   : Ast.Expression.t list) : PP.document GC.t
   =
   let pp_shift
       (bitvector_argument : Ast.Expression.t)
