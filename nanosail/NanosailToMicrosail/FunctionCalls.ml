@@ -496,67 +496,67 @@ let translate
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bit_equality)
+           ~infix:(Some MuSail.Operator.Infix.bit_equality)
            pp_arguments
        end
   | "eq_bits" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bitvector_equality)
+           ~infix:(Some MuSail.Operator.Infix.bitvector_equality)
            pp_arguments
        end
   | "add_bits" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bitvector_addition)
-           ~name:(Some MuSail.BinaryOperators.bitvector_addition)
+           ~infix:(Some MuSail.Operator.Infix.bitvector_addition)
+           ~name:(Some MuSail.Operator.Name.bitvector_addition)
            pp_arguments
        end
   | "sub_bits" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bitvector_subtraction)
-           ~name:(Some MuSail.BinaryOperators.bitvector_subtraction)
+           ~infix:(Some MuSail.Operator.Infix.bitvector_subtraction)
+           ~name:(Some MuSail.Operator.Name.bitvector_subtraction)
            pp_arguments
        end
   | "and_vec" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~name:(Some MuSail.BinaryOperators.bitvector_conjunction)
+           ~name:(Some MuSail.Operator.Name.bitvector_conjunction)
            pp_arguments
        end
   | "or_vec" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~name:(Some MuSail.BinaryOperators.bitvector_disjunction)
+           ~name:(Some MuSail.Operator.Name.bitvector_disjunction)
            pp_arguments
        end
   | "xor_vec" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~name:(Some MuSail.BinaryOperators.bitvector_xor)
+           ~name:(Some MuSail.Operator.Name.bitvector_xor)
            pp_arguments
        end
   | "eq_bool" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bool_equality)
-           ~name:(Some MuSail.BinaryOperators.bool_equality)
+           ~infix:(Some MuSail.Operator.Infix.bool_equality)
+           ~name:(Some MuSail.Operator.Name.bool_equality)
            pp_arguments
        end
   | "neq_bool" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.bool_equality)
-           ~name:(Some MuSail.BinaryOperators.bool_inequality)
+           ~infix:(Some MuSail.Operator.Infix.bool_equality)
+           ~name:(Some MuSail.Operator.Name.bool_inequality)
            pp_arguments
        end
   | "eq_unit"          -> GC.pp_annotate [%here] @@ translate_unit_equality ()
