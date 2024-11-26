@@ -489,9 +489,9 @@ let translate
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
   match Ast.Identifier.string_of function_identifier with
-  | "not_bool"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
-  | "signed"           -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
-  | "unsigned"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.unsigned" pp_arguments
+  | "not_bool"         -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.not" pp_arguments
+  | "signed"           -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.signed" pp_arguments
+  | "unsigned"         -> GC.pp_annotate [%here] @@ translate_unary_operator function_identifier "uop.unsigned" pp_arguments
   | "eq_bit"           ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
