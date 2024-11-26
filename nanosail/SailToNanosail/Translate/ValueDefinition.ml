@@ -74,11 +74,6 @@ let translate_value_definition
         end
       | S.Id_aux (S.Operator _, _) -> TC.not_yet_implemented [%here] pattern_location
     end
-  | S.P_lit _                      -> TC.not_yet_implemented [%here] pattern_location
-  | S.P_wild                       -> TC.not_yet_implemented [%here] pattern_location
-  | S.P_or (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
-  | S.P_not _                      -> TC.not_yet_implemented [%here] pattern_location
-  | S.P_as (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
   | S.P_typ (_typ, pattern)         -> begin
       let S.P_aux (unwrapped_pattern, _) = pattern
       in
@@ -111,6 +106,11 @@ let translate_value_definition
        | S.P_string_append _           -> TC.not_yet_implemented [%here] pattern_location
        | S.P_struct (_, _)             -> TC.not_yet_implemented [%here] pattern_location
     end
+  | S.P_lit _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_wild                       -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_or (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_not _                      -> TC.not_yet_implemented [%here] pattern_location
+  | S.P_as (_, _)                  -> TC.not_yet_implemented [%here] pattern_location
   | S.P_var (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
   | S.P_app (_, _)                 -> TC.not_yet_implemented [%here] pattern_location
   | S.P_vector _                   -> TC.not_yet_implemented [%here] pattern_location
