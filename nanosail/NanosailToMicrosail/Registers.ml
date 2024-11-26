@@ -62,7 +62,9 @@ let pp_no_confusion_for_reg () : PP.document GC.t =
 
 
 let pp_reg_definition () : PP.document GC.t =
-  GC.return @@ PP.annotate [%here] @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+  GC.block begin
+      GC.return @@ PP.annotate [%here] @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
+    end
 
 
 let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
@@ -135,17 +137,19 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
     GC.return @@ PP.description_list description_pairs
 
   in
-  GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
-      PP.annotate [%here] begin
-          PP.vertical [
-              Coq.pp_multiline_comment @@ PP.vertical [
-                                              PP.string "Registers' initial values";
-                                              PP.string "";
-                                              initial_values;
-                                            ];
-              inductive_type
-            ]
-        end
+  GC.block begin
+    GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
+        PP.annotate [%here] begin
+            PP.vertical [
+                Coq.pp_multiline_comment @@ PP.vertical [
+                                                PP.string "Registers' initial values";
+                                                PP.string "";
+                                                initial_values;
+                                              ];
+                inductive_type
+              ]
+          end
+      end
     end
 
 
@@ -184,23 +188,24 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   let pp_id1 = PP.annotate [%here] @@ Identifier.pp id1
   and pp_id2 = PP.annotate [%here] @@ Identifier.pp id2
   in
-  GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
-    PP.(
-      vertical [
-        string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-        horizontal [
-            string "  fun '(existT σ ";
-            pp_id1;
-            string ") '(existT τ ";
-            pp_id2;
-            string ") =>";
-          ];
-        indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
-        string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
-      ]
-    )
-  end
-
+  GC.block begin
+    GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
+      PP.(
+        vertical [
+          string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
+          horizontal [
+              string "  fun '(existT σ ";
+              pp_id1;
+              string ") '(existT τ ";
+              pp_id2;
+              string ") =>";
+            ];
+          indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
+          string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
+        ]
+      )
+    end
+    end
 
 let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   let enum_values =
@@ -214,20 +219,22 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
     in
     PP.annotate [%here] @@ Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
-  GC.generation_block [%here] (PP.string "REG_finite Instance") begin
-    PP.(
-      Coq.pp_sentence @@ vertical (
-        [
-          string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-          PP.indent begin
-            Coq.pp_record_value [
-              (string "enum", enum_values)
-            ]
-          end
-        ]
-      )
-    )
-  end
+  GC.block begin
+      GC.generation_block [%here] (PP.string "REG_finite Instance") begin
+          PP.(
+          Coq.pp_sentence @@ vertical (
+                                 [
+                                   string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
+                                   PP.indent begin
+                                       Coq.pp_record_value [
+                                           (string "enum", enum_values)
+                                         ]
+                                     end
+                                 ]
+                               )
+          )
+        end
+    end
 
 
 let pp_obligation_tactic () : PP.document GC.t =
@@ -258,7 +265,9 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
     in
     GC.return @@ PP.annotate [%here] @@ PP.paragraphs items
   in
-  GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
+  GC.block begin
+      GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
+    end
 
 
 let extra_eqdec_identifiers () : Ast.Identifier.t list =
@@ -280,4 +289,6 @@ let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.D
   and type_name  = PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "RegName"
   and values     = List.map ~f:(fun id -> PP.annotate [%here] @@ Identifier.pp id) translated_register_identifiers
   in
-  GC.return @@ PP.annotate [%here] @@ Coq.pp_finite_instance ~identifier ~type_name ~values
+  GC.block begin
+      GC.return @@ PP.annotate [%here] @@ Coq.pp_finite_instance ~identifier ~type_name ~values
+    end
