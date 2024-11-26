@@ -448,7 +448,6 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
   | _ -> GC.fail @@ Printf.sprintf "expected %s to receive two arguments" sail_name
 
 
-(* should return stm_exp (exp_binop (@bop.bvapp _ 32 32) (exp_var "x") (exp_var "y")) *)
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "bitvector_concat"
   in
