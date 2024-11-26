@@ -503,14 +503,14 @@ let translate
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.Infix.bitvector_equality)
+           ~infix:(Some MuSail.Operator.Infix.Bitvector.equality)
            pp_arguments
        end
   | "add_bits" ->
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.Infix.bitvector_addition)
+           ~infix:(Some MuSail.Operator.Infix.Bitvector.addition)
            ~name:(Some MuSail.Operator.Name.bitvector_addition)
            pp_arguments
        end
@@ -518,7 +518,7 @@ let translate
      GC.pp_annotate [%here] begin
          translate_binary_operator
            function_identifier
-           ~infix:(Some MuSail.Operator.Infix.bitvector_subtraction)
+           ~infix:(Some MuSail.Operator.Infix.Bitvector.subtraction)
            ~name:(Some MuSail.Operator.Name.bitvector_subtraction)
            pp_arguments
        end

@@ -19,20 +19,22 @@ end
 
 module Operator = struct
   module Infix = struct
-    let bitvector_signed_less_than                  = PP.string "<ˢ"
-    let bitvector_signed_less_than_or_equal_to      = PP.string "<=ˢ"
-    let bitvector_signed_greater_than               = PP.string ">ˢ"
-    let bitvector_signed_greater_than_or_equal_to   = PP.string ">=ˢ"
-    let bitvector_unsigned_less_than                = PP.string "<ᵘ"
-    let bitvector_unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
-    let bitvector_unsigned_greater_than             = PP.string ">ᵘ"
-    let bitvector_unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
-    
-    let bitvector_addition = PP.string "+ᵇ"
-    let bitvector_subtraction = PP.string "-ᵇ"
-    let bitvector_equality = PP.string "="
-    let bitvector_inequality = PP.string "!="
-    
+    module Bitvector = struct
+      let signed_less_than                  = PP.string "<ˢ"
+      let signed_less_than_or_equal_to      = PP.string "<=ˢ"
+      let signed_greater_than               = PP.string ">ˢ"
+      let signed_greater_than_or_equal_to   = PP.string ">=ˢ"
+      let unsigned_less_than                = PP.string "<ᵘ"
+      let unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
+      let unsigned_greater_than             = PP.string ">ᵘ"
+      let unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
+      
+      let addition = PP.string "+ᵇ"
+      let subtraction = PP.string "-ᵇ"
+      let equality = PP.string "="
+      let inequality = PP.string "!="
+    end
+      
     let bit_equality = PP.string "="
     
     let bool_equality = PP.string "="
