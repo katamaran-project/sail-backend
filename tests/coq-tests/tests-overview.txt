@@ -22,7 +22,7 @@ PASS bitvectors-comparison-le-signed
 PASS bitvectors-comparison-le-unsigned
 PASS bitvectors-comparison-lt-signed
 PASS bitvectors-comparison-lt-unsigned
-FAIL bitvectors-concatenation
+PASS bitvectors-concatenation
 PASS bitvectors-conjunction
 PASS bitvectors-disjunction
 PASS bitvectors-hexadecimal-literal
@@ -220,4 +220,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:210 FAIL:12
+PASS:211 FAIL:11
