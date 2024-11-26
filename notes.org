@@ -2,6 +2,9 @@
 
 * TODO
 
+** Have Sail inline functions
+** Check monomorphization abilities
+
 ** TODO Variant with unit field type should have 0 fields
 ** TODO Bitvectors
 *** TODO Bit type in MuSail?
