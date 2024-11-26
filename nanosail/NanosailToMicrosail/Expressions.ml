@@ -20,14 +20,14 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | StandardComparison GreaterThan                       -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
   | StandardComparison LessThanOrEqualTo                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
   | StandardComparison GreaterThanOrEqualTo              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
-  | BitvectorComparison (Signed, LessThan)               -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than
-  | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than_or_equal_to
-  | BitvectorComparison (Signed, GreaterThan)            -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_greater_than
-  | BitvectorComparison (Signed, GreaterThanOrEqualTo)   -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_greater_than_or_equal_to
-  | BitvectorComparison (Unsigned, LessThan)             -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than
-  | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_less_than_or_equal_to
-  | BitvectorComparison (Unsigned, GreaterThan)          -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_greater_than
-  | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.bitvector_signed_greater_than_or_equal_to
+  | BitvectorComparison (Signed, LessThan)               -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_less_than
+  | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_less_than_or_equal_to
+  | BitvectorComparison (Signed, GreaterThan)            -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_greater_than
+  | BitvectorComparison (Signed, GreaterThanOrEqualTo)   -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_greater_than_or_equal_to
+  | BitvectorComparison (Unsigned, LessThan)             -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_less_than
+  | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_less_than_or_equal_to
+  | BitvectorComparison (Unsigned, GreaterThan)          -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_greater_than
+  | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.bitvector_signed_greater_than_or_equal_to
   | Pair                                                 -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
   | Cons                                                 -> GC.not_yet_implemented [%here] (* Should not occur *)
   | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
