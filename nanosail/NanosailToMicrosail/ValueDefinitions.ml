@@ -16,7 +16,7 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
   | String s     -> GC.return @@ PP.annotate [%here] @@ Coq.pp_string s
   | Prod (_, _)  -> GC.not_yet_implemented [%here]
   | Bit b        -> GC.return @@ PP.annotate [%here] @@ MuSail.Value.pp_bit b
-  | Bitvector bv -> GC.return @@ PP.annotate [%here] @@ MuSail.Value.pp_bitvector @@ Util.convert_bits_to_z bv
+  | Bitvector bv -> GC.return @@ PP.annotate [%here] @@ MuSail.Value.pp_bitvector (List.length bv) (Util.convert_bits_to_z bv)
 
 
 let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document GC.t =
