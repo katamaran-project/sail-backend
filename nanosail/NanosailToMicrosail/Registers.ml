@@ -17,6 +17,8 @@ let regname_tag =
 
 
 let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
+  let* () = GC.log Logging.debug @@ lazy "pp_reg_inductive_type"
+  in   
   let identifier =
     PP.annotate [%here] @@ PP.string "Reg"
   and typ =
