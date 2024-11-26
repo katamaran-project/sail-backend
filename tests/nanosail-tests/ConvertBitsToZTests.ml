@@ -2,7 +2,7 @@ open Base
 open OUnit2
 
 
-let converts_bits_to_z = Nanosail.NanosailToMicrosail.Expressions.convert_bits_to_z
+let converts_bits_to_z = Nanosail.Util.convert_bits_to_z
 
 
 let test_convert_bits_to_z =

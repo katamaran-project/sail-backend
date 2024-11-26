@@ -7,14 +7,6 @@ module GC = struct
 end
 
 
-let convert_bits_to_z (bits : bool list) : Z.t =
-  let two   = Z.of_int 2
-  and ( + ) = Z.add
-  and ( * ) = Z.mul
-  in
-  List.fold bits ~init:Z.zero ~f:(fun acc bit -> acc * two + (if bit then Z.one else Z.zero))
-
-
 let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.document GC.t =
   match binary_operator with
   | Plus                                                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.addition
@@ -287,7 +279,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           List.length bits
         in
         let value =
-          convert_bits_to_z bits
+          Util.convert_bits_to_z bits
         in
         GC.return begin
           MuSail.Expression.pp_bitvector

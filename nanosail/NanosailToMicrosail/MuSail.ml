@@ -4,6 +4,12 @@ open Base
 module Value = struct
   let pp_bit (value : bool) : PP.document =
     Coq.pp_bool value
+
+  
+  let pp_bitvector (value : Z.t) : PP.document =
+        Coq.pp_application
+          (PP.string "bv")
+          [PP.string @@ Z.to_string value]
 end
 
 
@@ -188,9 +194,7 @@ module Expression = struct
     in
     let pp_literal =
       PP.(surround brackets) begin
-        Coq.pp_application
-          (PP.string "bv")
-          [PP.string @@ Z.to_string value]
+          Value.pp_bitvector value
       end
     in
     PP.annotate [%here] begin
