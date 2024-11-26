@@ -26,6 +26,28 @@ module Operator = struct
   let bitvector_unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
   let bitvector_unsigned_greater_than             = PP.string ">ᵘ"
   let bitvector_unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
+
+  let bitvector_addition = PP.string "+ᵇ"
+  let bitvector_subtraction = PP.string "-ᵇ"
+  let bitvector_equality = PP.string "="
+  let bitvector_inequality = PP.string "!="
+
+  let bit_equality = PP.string "="
+
+  let bool_equality = PP.string "="
+  let bool_inequality = PP.string "!="  
+end
+
+
+module BinaryOperators = struct
+  let bitvector_addition = PP.string "bop.bvadd"
+  let bitvector_subtraction = PP.string "bop.bvsub"
+  let bitvector_conjunction = PP.string "bop.bvand"
+  let bitvector_disjunction = PP.string "bop.bvor"
+  let bitvector_xor = PP.string "bop.bvxor"
+
+  let bool_equality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
+  let bool_inequality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
 end
 
 

@@ -59,14 +59,14 @@ let translate_unary_operator
 
 let translate_binary_operator_using_infix_notation
     (original_function_name : Ast.Identifier.t )
-    (operator               : string           )
+    (operator               : PP.document      )
     (operands               : PP.document list ) : PP.document GC.t
   =
   match operands with
   | [x; y] -> begin
       GC.pp_annotate [%here] begin
         GC.return begin
-          MuSail.Statement.pp_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; string operator; y])
+          MuSail.Statement.pp_expression @@ PP.(surround parens @@ separate_horizontally ~separator:space [x; operator; y])
         end
       end
     end
@@ -75,7 +75,7 @@ let translate_binary_operator_using_infix_notation
 
 let translate_binary_operator_using_function_notation
     (original_function_name : Ast.Identifier.t )
-    (operator               : string           )
+    (operator               : PP.document      )
     (operands               : PP.document list ) : PP.document GC.t
   =
   match operands with
@@ -85,7 +85,7 @@ let translate_binary_operator_using_function_notation
           MuSail.Statement.pp_expression begin
             Coq.pp_application
               (PP.string "exp_binop")
-              [PP.string operator; x; y]
+              [operator; x; y]
           end
         end
       end
@@ -94,10 +94,10 @@ let translate_binary_operator_using_function_notation
 
 
 let translate_binary_operator
-    (original_function_name : Ast.Identifier.t      )
-    ?(infix                 : string option   = None)
-    ?(name                  : string option   = None)
-    (operands               : PP.document list      ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t         )
+    ?(infix                 : PP.document option = None)
+    ?(name                  : PP.document option = None)
+    (operands               : PP.document list         ) : PP.document GC.t
   =
   match Configuration.(get pretty_print_binary_operators), infix, name with
   | true , Some infix_operator, _                      -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
@@ -285,8 +285,8 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
         GC.pp_annotate [%here] begin
           translate_binary_operator (* todo support infix notation *)
             (Ast.Identifier.mk sail_name)
-            ~infix:(Some "+ᵇ")
-            ~name:(Some "bop.bvadd")
+            ~infix:(Some (PP.string "+ᵇ"))
+            ~name:(Some (PP.string "bop.bvadd"))
             [ pp_bitvector_argument; pp_integer_argument ]
         end
       end
@@ -320,7 +320,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
 *)
 let translate_shift
     ~(sail_name   : string               )
-    ~(musail_name : string               )
+    ~(musail_name : PP.document          )
     ~(arguments   : Ast.Expression.t list) : PP.document GC.t
   =
   let pp_shift
@@ -361,11 +361,17 @@ let translate_shift
 
 
 let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
-  GC.pp_annotate [%here] @@ translate_shift ~sail_name:"sail_shiftleft" ~musail_name:"bop.shiftl" ~arguments
+  let sail_name   = "sail_shiftleft"
+  and musail_name = PP.string "bop.shiftl"
+  in
+  GC.pp_annotate [%here] @@ translate_shift ~sail_name ~musail_name ~arguments
 
 
 let translate_shift_right (arguments : Ast.Expression.t list) : PP.document GC.t =
-  GC.pp_annotate [%here] @@ translate_shift ~sail_name:"sail_shiftright" ~musail_name:"bop.shiftr" ~arguments
+  let sail_name   = "sail_shiftright"
+  and musail_name = PP.string "bop.shiftr"
+  in
+  GC.pp_annotate [%here] @@ translate_shift ~sail_name ~musail_name ~arguments
 
 
 let translate_extend
@@ -458,7 +464,16 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
       and* bv1_length = derive_vector_length bv1
       and* bv2_length = derive_vector_length bv2
       in
-      let binop_name = Printf.sprintf "(@bop.bvapp _ %s %s)" (Z.to_string bv1_length) (Z.to_string bv2_length)
+      let binop_name =
+        PP.(surround parens) begin
+            Coq.pp_explicit_application
+              (PP.string "bop.bvapp")
+              [
+                PP.string "_";
+                PP.string @@ Z.to_string bv1_length;
+                PP.string @@ Z.to_string bv2_length;
+              ]
+          end
       in
       translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some binop_name) [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
     end
@@ -478,15 +493,55 @@ let translate
   | "not_bool"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.not" pp_arguments
   | "signed"           -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.signed" pp_arguments
   | "unsigned"         -> GC.pp_annotate [%here] @@ translate_unary_operator  function_identifier "uop.unsigned" pp_arguments
-  | "eq_bit"           -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")                                     pp_arguments
-  | "eq_bits"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")                                     pp_arguments
-  | "add_bits"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "+ᵇ") ~name:(Some "bop.bvadd")           pp_arguments
-  | "sub_bits"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "-ᵇ") ~name:(Some "bop.bvsub")           pp_arguments
-  | "and_vec"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier                    ~name:(Some "bop.bvand")           pp_arguments
-  | "or_vec"           -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier                    ~name:(Some "bop.bvor")            pp_arguments
-  | "xor_vec"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier                    ~name:(Some "bop.bvxor")           pp_arguments
-  | "eq_bool"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")  ~name:(Some "(bop.relop bop.eq)")  pp_arguments
-  | "neq_bool"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "!=") ~name:(Some "(bop.relop bop.neq)") pp_arguments
+  | "eq_bit"           -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some MuSail.Operator.bit_equality)                         pp_arguments
+  | "eq_bits"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some MuSail.Operator.bitvector_equality)                                     pp_arguments
+  | "add_bits"         -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~infix:(Some MuSail.Operator.bitvector_addition)
+                                ~name:(Some MuSail.BinaryOperators.bitvector_addition)
+                                pp_arguments
+                            end
+  | "sub_bits"         -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~infix:(Some MuSail.Operator.bitvector_subtraction)
+                                ~name:(Some MuSail.BinaryOperators.bitvector_subtraction)
+                                pp_arguments
+                            end
+  | "and_vec"          -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~name:(Some MuSail.BinaryOperators.bitvector_conjunction)
+                                pp_arguments
+                            end
+  | "or_vec"           -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~name:(Some MuSail.BinaryOperators.bitvector_disjunction)
+                                pp_arguments
+                            end
+  | "xor_vec"          -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~name:(Some MuSail.BinaryOperators.bitvector_xor)
+                                pp_arguments
+                            end
+  | "eq_bool"          -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~infix:(Some MuSail.Operator.bool_equality)
+                                ~name:(Some MuSail.BinaryOperators.bool_equality)
+                                pp_arguments
+                            end
+  | "neq_bool"         -> GC.pp_annotate [%here] begin
+                              translate_binary_operator
+                                function_identifier
+                                ~infix:(Some MuSail.Operator.bool_equality)
+                                ~name:(Some MuSail.BinaryOperators.bool_inequality)
+                                pp_arguments
+                            end
+                            
   | "eq_unit"          -> GC.pp_annotate [%here] @@ translate_unit_equality ()
   | "add_bits_int"     -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
   | "sail_zeros"       -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
