@@ -446,15 +446,23 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "bitvector_concat"
   in
+  let derive_vector_length (expression : Ast.Expression.t) : Z.t GC.t =
+    match Ast.Expression.infer_type expression with
+    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return n
+    | _                                                      -> GC.fail "Failed to determine bitvector size"
+  in
   match arguments with
   | [ bv1; bv2 ] -> begin
-      let* bv1' = Expressions.pp_expression bv1
-      and* bv2' = Expressions.pp_expression bv2
+      let* bv1'       = Expressions.pp_expression bv1
+      and* bv2'       = Expressions.pp_expression bv2
+      and* bv1_length = derive_vector_length bv1
+      and* bv2_length = derive_vector_length bv2
       in
-      translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some "bop.bvapp") [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
+      let binop_name = Printf.sprintf "(@bop.bvapp _ %s %s)" (Z.to_string bv1_length) (Z.to_string bv2_length)
+      in
+      translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some binop_name) [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
     end
   | _ -> GC.fail @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
-
 
 
 let translate
