@@ -20,18 +20,19 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
 
 
 let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document GC.t =
-  let { identifier; value } : Ast.Definition.value_definition = value_definition
-  in
-  let definition =
-    let identifier  = PP.annotate [%here] @@ Identifier.pp identifier
-    and result_type = None
-    in
-    let* body = pp_value value
-    in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~result_type body
-  in
-  definition
-
+  GC.block begin
+      let { identifier; value } : Ast.Definition.value_definition = value_definition
+      in
+      let definition =
+        let identifier  = PP.annotate [%here] @@ Identifier.pp identifier
+        and result_type = None
+        in
+        let* body = pp_value value
+        in
+        GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~result_type body
+      in
+      definition
+    end
 
 let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
   let* coq_lines =
