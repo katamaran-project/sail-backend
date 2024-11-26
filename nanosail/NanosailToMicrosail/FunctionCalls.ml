@@ -442,6 +442,21 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
   | _ -> GC.fail @@ Printf.sprintf "expected %s to receive two arguments" sail_name
 
 
+(* should return stm_exp (exp_binop (@bop.bvapp _ 32 32) (exp_var "x") (exp_var "y")) *)
+let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "bitvector_concat"
+  in
+  match arguments with
+  | [ bv1; bv2 ] -> begin
+      let* bv1' = Expressions.pp_expression bv1
+      and* bv2' = Expressions.pp_expression bv2
+      in
+      translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some "bop.bvapp") [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
+    end
+  | _ -> GC.fail @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
+
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -464,7 +479,6 @@ let translate
   | "xor_vec"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier                    ~name:(Some "bop.bvxor")           pp_arguments
   | "eq_bool"          -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "=")  ~name:(Some "(bop.relop bop.eq)")  pp_arguments
   | "neq_bool"         -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier ~infix:(Some "!=") ~name:(Some "(bop.relop bop.neq)") pp_arguments
-  | "bitvector_concat" -> GC.pp_annotate [%here] @@ translate_binary_operator function_identifier                    ~name:(Some "bop.bvapp")           pp_arguments
   | "eq_unit"          -> GC.pp_annotate [%here] @@ translate_unit_equality ()
   | "add_bits_int"     -> GC.pp_annotate [%here] @@ translate_add_bits_int arguments
   | "sail_zeros"       -> GC.pp_annotate [%here] @@ translate_sail_zeros arguments
@@ -474,4 +488,5 @@ let translate
   | "sail_zero_extend" -> GC.pp_annotate [%here] @@ translate_zero_extend arguments
   | "sail_sign_extend" -> GC.pp_annotate [%here] @@ translate_sign_extend arguments
   | "sail_assert"      -> GC.pp_annotate [%here] @@ translate_assertion arguments
+  | "bitvector_concat" -> GC.pp_annotate [%here] @@ translate_bitvector_concatenation arguments
   | _                  -> GC.pp_annotate [%here] @@ GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
