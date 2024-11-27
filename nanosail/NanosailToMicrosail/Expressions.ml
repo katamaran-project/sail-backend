@@ -54,7 +54,13 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
               end
             end
           end
-        | Bit _       -> GC.not_yet_implemented [%here]
+        | Bit b -> begin
+            GC.return begin
+                if b
+                then MuSail.Expression.pp_true ()
+                else MuSail.Expression.pp_false ()
+              end
+          end
         | Bitvector _ -> GC.not_yet_implemented [%here]
       end
 
