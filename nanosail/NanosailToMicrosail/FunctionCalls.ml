@@ -479,6 +479,40 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
   | _ -> GC.fail @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
 
 
+let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "subrange_bits"
+  in
+  match arguments with
+  | [bitvector; first_index; second_index] -> begin
+      (*
+        How indices need to be interpreted depends on the order
+        Here we assume that "backward slices" are not possible, i.e.,
+        that the range goes from the lowest index to the highest index.
+      *)
+      let* pp_bitvector = Expressions.pp_expression bitvector
+      and* first_index  = extract_compile_time_integer first_index
+      and* second_index = extract_compile_time_integer second_index
+      in
+      match first_index, second_index with
+      | Some first_index, Some second_index -> begin
+          let first_index   = Z.to_int first_index
+          and second_index  = Z.to_int second_index
+          in
+          let low_index     = Int.min first_index second_index
+          and high_index    = Int.max first_index second_index
+          in
+          let length        = high_index - low_index + 1
+          in
+          translate_unary_operator
+            (Ast.Identifier.mk sail_name)
+            (Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
+            [ PP.(surround parens) pp_bitvector ]
+        end
+      | _ -> GC.fail @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+    end
+  | _ -> GC.fail @@ Printf.sprintf "%s should receive three arguments" sail_name
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -607,6 +641,10 @@ let translate
   | "bitvector_concat" ->
      GC.pp_annotate [%here] begin
          translate_bitvector_concatenation arguments
+       end
+  | "subrange_bits" ->
+     GC.pp_annotate [%here] begin
+         translate_bitvector_slicing arguments
        end
   | _                  ->
      GC.pp_annotate [%here] begin
