@@ -3,8 +3,8 @@ PASS atoms-identity-function-int
 PASS atoms-linear
 PASS atoms-linear2
 PASS bit-equality
-FAIL bit-returning-one
-FAIL bit-returning-zero
+PASS bit-returning-one
+PASS bit-returning-zero
 PASS bitvectors-128-bit-binary-literal
 PASS bitvectors-128-ones
 PASS bitvectors-add-to-int-infix
@@ -22,12 +22,15 @@ PASS bitvectors-comparison-le-signed
 PASS bitvectors-comparison-le-unsigned
 PASS bitvectors-comparison-lt-signed
 PASS bitvectors-comparison-lt-unsigned
-PASS bitvectors-concatenation
+PASS bitvectors-concatenation-of-return-values
+PASS bitvectors-concatenation-of-var-and-lit
+PASS bitvectors-concatenation-of-variables
 PASS bitvectors-conjunction
 PASS bitvectors-disjunction
 PASS bitvectors-hexadecimal-literal
 FAIL bitvectors-indexing
 PASS bitvectors-matching
+FAIL bitvectors-monomorphization
 PASS bitvectors-nested-comparison
 PASS bitvectors-ones-with-literal-formatting
 PASS bitvectors-ones-with-literal-size
@@ -220,4 +223,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:211 FAIL:11
+PASS:215 FAIL:10
