@@ -14,7 +14,7 @@ else
     OPT=
 fi
 
-$SAIL $OPT --auto-mono --mono-rewrites -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+$SAIL $OPT --mono-rewrites -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 
 if [[ ! -v NO_COQ ]]
 then
