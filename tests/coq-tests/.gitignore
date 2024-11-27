@@ -10,3 +10,6 @@ intermediate_rewrite_*
 base.html
 machine.html
 tests-*.txt
+*.lem
+*.thy
+temp/
