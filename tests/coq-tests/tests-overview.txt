@@ -48,6 +48,7 @@ PASS bitvectors-shift-right-with-literal-1
 PASS bitvectors-shift-right-with-literal-5
 PASS bitvectors-shift-right-with-variable
 PASS bitvectors-sign-extend
+PASS bitvectors-slicing
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
 PASS bitvectors-xor
@@ -223,4 +224,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:215 FAIL:10
+PASS:216 FAIL:10
