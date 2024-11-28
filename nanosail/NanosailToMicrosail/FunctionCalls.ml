@@ -517,7 +517,7 @@ let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
-  let* () = GC.log Logging.debug @@ lazy (Printf.sprintf "Translating function %s" (Ast.Identifier.string_of function_identifier))
+  let* () = GC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Translating function %s" (Ast.Identifier.string_of function_identifier))
   in
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments

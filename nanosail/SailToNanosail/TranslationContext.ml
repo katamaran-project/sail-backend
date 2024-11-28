@@ -216,3 +216,11 @@ let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Ide
   if underscore
   then return @@ Ast.Identifier.add_prefix "_" result
   else return result
+
+
+let log
+    (ocaml_position : Lexing.position                         )
+    (logger         : Lexing.position -> string lazy_t -> unit)
+    (message        : string lazy_t                           ) : unit t
+  =
+  act (fun () -> logger ocaml_position message)

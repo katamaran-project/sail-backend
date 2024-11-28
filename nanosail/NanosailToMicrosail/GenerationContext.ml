@@ -40,10 +40,11 @@ let mk_initial_state (program : Ast.program) : state = ([], 0, program)
 
 
 let log
-    (logger  : string lazy_t -> unit)
-    (message : string lazy_t        ) : unit t
+    (ocaml_position : Lexing.position                         )
+    (logger         : Lexing.position -> string lazy_t -> unit)
+    (message        : string lazy_t                           ) : unit t
   =
-  act (fun () -> logger message)
+  act (fun () -> logger ocaml_position message)
 
 
 (* Creates a fresh frame and pushes it onto the frame stack *)

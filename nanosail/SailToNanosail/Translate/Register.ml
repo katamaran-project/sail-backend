@@ -29,7 +29,17 @@ let translate_register
     match initial_value with
     | Some unwrapped_initial_value -> begin
         let on_failed_translation (error : TC.Error.t) =
-          Logging.warning @@ lazy (Printf.sprintf "Failed to translate initial value for register %s:\n  %s" (Ast.Identifier.string_of identifier') (TC.Error.to_string error));
+          let* () =
+            let warning_message =
+              lazy begin
+                Printf.sprintf
+                  "Failed to translate initial value for register %s:\n  %s"
+                  (Ast.Identifier.string_of identifier')
+                  (TC.Error.to_string error)
+              end
+            in
+            TC.log [%here] Logging.warning warning_message
+          in
           TC.return @@ Ast.Definition.Register.RawSpecified (StringOf.Sail.exp unwrapped_initial_value)
         in
         TC.recover

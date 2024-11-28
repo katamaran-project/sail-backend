@@ -9,15 +9,16 @@ end
 
 (* Name for the inductive type listing all registers *)
 let regname_inductive_type_identifier =
-  Ast.Identifier.mk "RegName"
+  Ast.Identifier.mk "RegName" (* todo make configurable *)
 
 
 let regname_tag =
-  Ast.Identifier.mk "regname"
+  Ast.Identifier.mk "regname" (* todo make configurable *)
 
 
+(* todo improve name *)
 let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
-  let* () = GC.log Logging.debug @@ lazy "pp_reg_inductive_type"
+  let* () = GC.log [%here] Logging.debug @@ lazy "pp_reg_inductive_type"
   in   
   let identifier =
     PP.annotate [%here] @@ PP.string "Reg"

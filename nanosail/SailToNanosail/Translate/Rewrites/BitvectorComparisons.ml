@@ -40,7 +40,7 @@ let convert_comparison_operator
   | Unsigned, Unsigned, StandardComparison GreaterThan          -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signedness.Unsigned, Ast.BinaryOperator.Comparison.GreaterThan))
   | Unsigned, Unsigned, StandardComparison GreaterThanOrEqualTo -> Some (Ast.BinaryOperator.BitvectorComparison (Ast.BinaryOperator.Signedness.Unsigned, Ast.BinaryOperator.Comparison.GreaterThanOrEqualTo))
   | _ -> begin
-      Logging.warning @@ lazy "encountered mixed signed/unsigned comparison; ignoring it";
+      Logging.warning [%here] @@ lazy "encountered mixed signed/unsigned comparison; ignoring it";
       None
     end
 

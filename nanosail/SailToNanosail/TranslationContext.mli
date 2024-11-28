@@ -44,3 +44,5 @@ val fold_left                      : f:('a -> 'b -> 'a t) -> init:'a -> 'b list 
 val iter                           : f:('a -> unit t) -> 'a list -> unit t
 val lift                           : f:('a -> 'b) -> 'a t -> 'b t
 val lift_option                    : 'a t option -> 'a option t
+
+val log                            : Lexing.position -> (Lexing.position -> string lazy_t -> unit) -> string lazy_t -> unit t

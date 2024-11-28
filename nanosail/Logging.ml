@@ -1,22 +1,28 @@
 open Base
 
 
-let log message =
-  ignore @@ Stdio.printf "%s\n" @@ Lazy.force message
+let log
+    (level          : string         )
+    (ocaml_position : Lexing.position)
+    (message        : string lazy_t  ) : unit
+  =
+  let filename    = ocaml_position.pos_fname
+  and line_number = ocaml_position.pos_lnum
+  in
+  ignore @@ Stdio.printf "[%s @ %s:%d] %s\n" level filename line_number (Lazy.force message)
 
 
-let info message =
-  log message
+let info    = log "INFO"
+let warning = log "WARN"
 
 
-let debug message =
+let debug
+    (ocaml_position : Lexing.position)
+    (message        : string lazy_t  ) : unit
+  =
   if Configuration.(get verbose)
-  then log message
+  then log "DEBUG" ocaml_position message
   else ()
-
-
-let warning message =
-  log message
 
 
 let surround

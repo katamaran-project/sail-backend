@@ -497,7 +497,7 @@ and pp_cast
     (statement_to_be_cast : Ast.Statement.t)
     (_target_type         : Ast.Type.t     ) : PP.document GC.t
   =
-  let* () = GC.log Logging.info @@ lazy "Warning: ignored cast"
+  let* () = GC.log [%here] Logging.info @@ lazy "Warning: ignored cast"
   in
   GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 

@@ -36,21 +36,21 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method top_level_type_constraint_definitions = top_level_type_constraint_definitions
 
   method pp_base_prelude : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_base_prelude"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_base_prelude"
     in
     genblock [%here] "Prelude" @@* begin
       BaseModule.generate_base_prelude ()
     end
 
   method pp_program_prelude : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_program_prelude"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_program_prelude"
     in
     genblock [%here] "Prelude" @@* begin
       ProgramModule.generate_program_prelude ()
     end
 
   method pp_register_definitions : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_register_definitions"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_register_definitions"
     in
     GC.block begin
         genblock [%here] "Register Definitions" @@* begin
@@ -59,7 +59,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_translated_type_definitions : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_translated_type_definitions"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_translated_type_definitions"
     in
     GC.block begin
         genblock [%here] "Translated Type Definitions" @@* begin
@@ -71,14 +71,14 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_enum_tags : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_enum_tags"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_enum_tags"
     in
     genblock [%here] "Enum Tags" @@* begin
       Types.Enums.generate_tags enum_definitions
     end
 
   method pp_record_tags : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_record_tags"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_record_tags"
     in
     GC.block begin
         genblock [%here] "Record Tags" @@* begin
@@ -87,14 +87,14 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_variant_tags : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_variant_tags"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_variant_tags"
     in
     genblock [%here] "Variant Tags" @@* begin
       Types.Variants.generate_tags variant_definitions;
     end
 
   method pp_base_module : PP.document GC.t =    
-    let* () = GC.log Logging.debug @@ lazy "pp_base_module"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_base_module"
     in
     let* base_module =
       BaseModule.pp_base_module all_definitions
@@ -104,7 +104,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_program_module : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_program_module"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_program_module"
     in
     let* program_module =
       ProgramModule.pp_program_module
@@ -114,7 +114,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ program_module
 
   method pp_finite : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_finite"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_finite"
     in
     let* finite_definitions =
       let finite_enums =
@@ -148,7 +148,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_no_confusion : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_no_confusion"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_no_confusion"
     in
     let section_identifier =
       Ast.Identifier.mk "TransparentObligations"
@@ -191,7 +191,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_eqdecs : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_eqdecs"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_eqdecs"
     in
     (*
       Collect identifiers for which to declare EqDec
@@ -227,12 +227,12 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_value_definitions : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_value_definitions"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_value_definitions"
     in
     ValueDefinitions.generate all_definitions
 
   method pp_base : PP.document GC.t =    
-    let* () = GC.log Logging.debug @@ lazy "pp_base"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_base"
     in
     let* sections = GC.sequence [
       self#pp_base_prelude;
@@ -251,7 +251,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ PP.(paragraphs sections)
 
   method pp_program : PP.document GC.t =
-    let* () = GC.log Logging.debug @@ lazy "pp_program"
+    let* () = GC.log [%here] Logging.debug @@ lazy "pp_program"
     in
     let* sections = GC.sequence [
         self#pp_program_prelude;
@@ -263,7 +263,7 @@ end
 
 
 let pretty_print (ir : Ast.program) : PP.document GC.t =
-  let* () = GC.log Logging.debug @@ lazy "Generating muSail code"
+  let* () = GC.log [%here] Logging.debug @@ lazy "Generating muSail code"
   in
   let katamaran = new katamaran ir
   in

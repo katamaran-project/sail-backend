@@ -20,7 +20,7 @@ let pp_function_definition
   genblock [%here] PP.(horizontal [ string "Function Definition "; Identifier.pp function_definition.function_name ]) begin
     GC.block begin
         let* () =
-          GC.log Logging.debug @@ lazy (Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name))
+          GC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name))
         in
         let pp_identifier =
           PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
@@ -120,7 +120,7 @@ let pp_function_definitions
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document list GC.t
   =
   let* () =
-    GC.log Logging.debug @@ lazy "Generating translations for all functions"
+    GC.log [%here] Logging.debug @@ lazy "Generating translations for all functions"
   in
   let type_and_function_pairs =
     let find_type_constraint function_name =
@@ -147,7 +147,7 @@ let pp_function_definition_kit
   =
   genblock [%here] (PP.string "FunDefKit") begin
       let* () =
-        GC.log Logging.debug @@ lazy "Generation FunDefKit"
+        GC.log [%here] Logging.debug @@ lazy "Generation FunDefKit"
       in
       let fundef =
         let identifier =
