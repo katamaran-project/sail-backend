@@ -39,7 +39,6 @@ let katamaran_rewrites =
     ("minimise_recursive_functions", []);                              (* From Coq backend *)
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("move_termination_measures", []);                                 (* From Coq backend *)
-    ("top_sort_defs", []);                                             (* From Coq backend *)
     ("const_prop_mutrec", [R.String_arg "coq"]);                       (* From Coq backend *)
     ("exp_lift_assign", []);                                           (* From Coq backend *)
     (* ("early_return", []);                                              (\* From Coq backend *\) *)
