@@ -16,6 +16,13 @@ fi
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 
+
+if [[ -v DUMP_REWRITE ]]
+then
+    ../process-rewrites.rb
+fi
+
+
 if [[ ! -v NO_COQ ]]
 then
     $COQ base.v
