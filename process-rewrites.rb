@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 $files = []
 
 Dir['*.sail'].each do |filename|
