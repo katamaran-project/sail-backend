@@ -5,7 +5,9 @@ from pathlib import Path
 import subprocess
 import psutil
 import time
+import sys
 from datetime import date
+
 
 MAXIMUM_QUEUE_SIZE = 20
 
@@ -13,12 +15,16 @@ MAXIMUM_QUEUE_SIZE = 20
 pass_count = 0
 fail_count = 0
 
+script_path = Path('./test.sh').absolute()
+
+if not script_path.is_file():
+    print("Did not find test.sh")
+    sys.exit(-1)
 
 log = open('tests-output.txt', 'w')
 
 
 def run_test(directory_name, path):
-    script_path = path / 'test.sh'
     return subprocess.Popen(script_path, cwd=str(path), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
@@ -55,7 +61,6 @@ directory_names = sorted([entry for entry in os.listdir() if os.path.isdir(entry
 queue = []
 
 for directory_name in directory_names:
-    
     if len(queue) >= MAXIMUM_QUEUE_SIZE:
         directory, path, process = queue.pop(0)
         wait_for_test(directory, path, process)
