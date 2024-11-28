@@ -2,6 +2,7 @@ microsail.v
 machine.v
 base.v
 intermediate_rewrite_*
+rewrite-*
 *.glob
 *.vo
 *.vok
@@ -13,3 +14,4 @@ tests-*.txt
 *.lem
 *.thy
 temp/
+*.diff
