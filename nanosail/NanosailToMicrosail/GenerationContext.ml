@@ -196,81 +196,20 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.docume
      (* >>>>> source-path:line-number Some label *)
 *)
 let generation_block
-    (position : Lexing.position    )
-    (label    : PP.document        )
-    (contents : unit -> PP.document) : PP.document t
-  =
-  let* () = return () (* forces the logging to happen inside the constructor state monad, instead of before *)
-  in
-  let logging_label =
-    lazy (PP.string_of_document label)
-  in
-  Logging.surround position Logging.debug logging_label @@ fun () -> begin
-    let contents = PP.annotate position @@ contents ()
-    in
-    if
-      Configuration.(get show_generation_blocks)
-    then
-      let position_string =
-        let filename    = position.pos_fname
-        and line_number = position.pos_lnum
-        in
-        Printf.sprintf "%s:%d" filename line_number
-      in
-      let entry_block =
-        Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
-          PP.string "<<<<<";
-          PP.string position_string;
-          label
-        ]
-      and exit_block =
-        Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
-          PP.string ">>>>>";
-          PP.string position_string;
-          label
-        ]
-      in
-      return @@ PP.vertical [
-        entry_block;
-        PP.indent contents;
-        exit_block;
-      ]
-    else
-      return contents
-  end
-
-
-(*
-   If enabled (see configuration), surrounds <contents> by a tag and location. Helpful for debugging.
-
-   For example,
-
-     generation_block [%here] (PP.string "Some label") (PP.string "Contents")
-
-   produces
-
-     (* <<<<< source-path:line-number Some label *)
-     Contents
-     (* >>>>> source-path:line-number Some label *)
-*)
-let generation_block
     (position : Lexing.position)
     (label    : PP.document    )
     (contents : PP.document t  ) : PP.document t
   =
   let* () = return () (* forces the logging to happen inside the constructor state monad, instead of before *)
   in
-  let logging_label =
-    lazy (PP.string_of_document label)
-  in
   let* contents =
-    let* () = act @@ fun () -> Logging.debug position logging_label
+    let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" @@ PP.string_of_document label)
     and* () = act Logging.increase_indentation
     in
     let* contents
     in
     let* () = act Logging.decrease_indentation
-    and* () = act @@ fun () -> Logging.debug position logging_label
+    and* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Exiting %s" @@ PP.string_of_document label)
     in
     return contents
   in
