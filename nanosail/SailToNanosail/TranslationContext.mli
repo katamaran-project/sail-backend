@@ -46,3 +46,4 @@ val lift                           : f:('a -> 'b) -> 'a t -> 'b t
 val lift_option                    : 'a t option -> 'a option t
 
 val log                            : Lexing.position -> (Lexing.position -> string lazy_t -> unit) -> string lazy_t -> unit t
+val translation_block              : Lexing.position -> string -> 'a t -> 'a t

@@ -224,3 +224,19 @@ let log
     (message        : string lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
+
+
+let translation_block
+    (ocaml_position : Lexing.position                         )
+    (label          : string                                  )
+    (result         : 'a t                                    ) : 'a t
+  =
+  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
+  and* () = act Logging.increase_indentation
+  in
+  let* result
+  in
+  let* () = act Logging.decrease_indentation
+  and* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
+  in
+  return result
