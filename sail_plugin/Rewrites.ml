@@ -21,7 +21,13 @@ let katamaran_rewrites =
     ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);            (* From C backend   *)
     ("add_unspecified_rec", []);                                       (* From Coq backend *)
     ("undefined", [R.Bool_arg true]);                                  (* From Coq backend *)
+
+    (*
+       Translates 0b000 into [bitzero, bitzero, bitzero]
+       Required
+    *)
     ("vector_string_pats_to_bit_list", []);                            (* From Coq backend *)
+    
     ("remove_not_pats", []);                                           (* From Coq backend *)
     ("remove_impossible_int_cases", []);                               (* From Coq backend *)
     ("tuple_assignments", []);                                         (* From Coq backend *)
