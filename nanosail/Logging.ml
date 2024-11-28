@@ -26,17 +26,17 @@ let debug
 
 
 let surround
-    (logger   : string lazy_t -> unit )
-    (position : Lexing.position       )
-    (caption  : string                )
-    (f        : unit -> 'a            ) : 'a
+    (ocaml_position : Lexing.position                         )
+    (logger         : Lexing.position -> string lazy_t -> unit)
+    (caption        : string lazy_t                           )
+    (f              : unit -> 'a                              ) : 'a
   =
   let enter_block () =
-    logger @@ lazy (Printf.sprintf " IN %s (%s)" caption (StringOf.OCaml.position position))
+    logger ocaml_position @@ lazy (Printf.sprintf "Entering %s" (Lazy.force caption))
   and exited_block_successfully () =
-    logger @@ lazy (Printf.sprintf "OUT %s" caption)
+    logger ocaml_position @@ lazy (Printf.sprintf "Exiting %s" (Lazy.force caption))
   and exited_block_with_exception () =
-    logger @@ lazy (Printf.sprintf "XXX %s" caption)
+    logger ocaml_position @@ lazy (Printf.sprintf "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
   try
