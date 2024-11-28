@@ -5,8 +5,6 @@ module GC = GenerationContext
 
 
 let genblock loc label doc =
-  let* doc = doc
-  in
   GC.generation_block loc (PP.string label) doc
 
 

@@ -25,42 +25,43 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
   and typ =
     PP.annotate [%here] @@ PP.string "Ty -> Set"
   in
-  let* inductive_type =
+  GC.generation_block [%here] (PP.string "Reg Inductive Type") begin
     GC.block begin
-        GC.pp_annotate [%here] begin
-            GC.pp_inductive_type identifier typ (fun add_constructor ->
-                let make_constructor (register_definition : Ast.Definition.Register.t) : unit GC.t =
-                  let identifier =
-                    PP.annotate [%here] @@ Identifier.pp register_definition.identifier
-                  in
-                  let* register_type =
-                    GC.pp_annotate [%here] @@ Nanotype.pp_nanotype register_definition.typ
-                  in
-                  let typ =
-                    PP.annotate [%here] begin
-                        Coq.pp_application
-                          (PP.string "Reg")
-                          [ PP.(surround parens) register_type ]
-                      end
-                  in
-                  add_constructor ~typ:typ identifier
-                in
-                GC.iter ~f:make_constructor register_definitions
-              )
-          end
+      GC.pp_annotate [%here] begin
+        GC.pp_inductive_type identifier typ (fun add_constructor ->
+            let make_constructor (register_definition : Ast.Definition.Register.t) : unit GC.t =
+              let identifier =
+                PP.annotate [%here] @@ Identifier.pp register_definition.identifier
+              in
+              let* register_type =
+                GC.pp_annotate [%here] @@ Nanotype.pp_nanotype register_definition.typ
+              in
+              let typ =
+                PP.annotate [%here] begin
+                  Coq.pp_application
+                    (PP.string "Reg")
+                    [ PP.(surround parens) register_type ]
+                end
+              in
+              add_constructor ~typ:typ identifier
+            in
+            GC.iter ~f:make_constructor register_definitions
+          )
+      end
     end
-  in
-  GC.generation_block [%here] (PP.string "Reg Inductive Type") inductive_type
+  end
 
 
 let pp_no_confusion_for_reg () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "No Confusion for Reg") begin
-    Coq.pp_section (Ast.Identifier.mk "TransparentObligations") (
-      PP.(vertical [
-          string "Local Set Transparent Obligations.";
-          string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
-        ])
-    )
+    GC.return begin
+      Coq.pp_section (Ast.Identifier.mk "TransparentObligations") (
+        PP.(vertical [
+            string "Local Set Transparent Obligations.";
+            string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
+          ])
+      )
+    end
   end
 
 
@@ -142,18 +143,20 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   in
   GC.block begin
     GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
+      GC.return begin
         PP.annotate [%here] begin
-            PP.vertical [
-                Coq.pp_multiline_comment @@ PP.vertical [
-                                                PP.string "Registers' initial values";
-                                                PP.string "";
-                                                initial_values;
-                                              ];
-                inductive_type
-              ]
-          end
+          PP.vertical [
+            Coq.pp_multiline_comment @@ PP.vertical [
+              PP.string "Registers' initial values";
+              PP.string "";
+              initial_values;
+            ];
+            inductive_type
+          ]
+        end
       end
     end
+  end
 
 
 let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
@@ -193,22 +196,25 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   in
   GC.block begin
     GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
-      PP.(
-        vertical [
-          string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-          horizontal [
+      GC.return begin
+        PP.(
+          vertical [
+            string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
+            horizontal [
               string "  fun '(existT σ ";
               pp_id1;
               string ") '(existT τ ";
               pp_id2;
               string ") =>";
             ];
-          indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
-          string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
-        ]
-      )
+            indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
+            string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
+          ]
+        )
+      end
     end
-    end
+  end
+
 
 let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   let enum_values =
@@ -223,29 +229,33 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
     PP.annotate [%here] @@ Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.block begin
-      GC.generation_block [%here] (PP.string "REG_finite Instance") begin
-          PP.(
+    GC.generation_block [%here] (PP.string "REG_finite Instance") begin
+      GC.return begin
+        PP.(
           Coq.pp_sentence @@ vertical (
-                                 [
-                                   string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
-                                   PP.indent begin
-                                       Coq.pp_record_value [
-                                           (string "enum", enum_values)
-                                         ]
-                                     end
-                                 ]
-                               )
+            [
+              string "Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :=";
+              PP.indent begin
+                Coq.pp_record_value [
+                  (string "enum", enum_values)
+                ]
+              end
+            ]
           )
-        end
+        )
+      end
     end
-
+  end
+    
 
 let pp_obligation_tactic () : PP.document GC.t =
   GC.generation_block [%here] (PP.string "Obligation Tactic") begin
-    PP.vertical @@ List.map ~f:PP.string [
+    GC.return begin
+      PP.vertical @@ List.map ~f:PP.string [
         "Local Obligation Tactic :=";
         "  finite_from_eqdec."
       ]
+    end
   end
 
 

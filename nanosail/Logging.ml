@@ -1,6 +1,35 @@
 open Base
 
 
+let indentation_level = ref 0
+
+
+let increase_indentation () =
+  indentation_level := !indentation_level + 1
+
+
+let decrease_indentation () =
+  if
+    Int.equal !indentation_level 0
+  then
+    failwith "cannot decrease indentation level when already at level 0"
+  else
+    indentation_level := !indentation_level - 1
+
+
+let with_increased_indentation f =
+  increase_indentation ();
+  try
+    let result = f ()
+    in
+    decrease_indentation ();
+    result
+  with e -> begin
+      decrease_indentation ();
+      raise e
+    end    
+
+
 let log
     (level          : string         )
     (ocaml_position : Lexing.position)
@@ -8,8 +37,9 @@ let log
   =
   let filename    = ocaml_position.pos_fname
   and line_number = ocaml_position.pos_lnum
+  and indentation = String.make !indentation_level ' '
   in
-  ignore @@ Stdio.printf "[%s @ %s:%d] %s\n" level filename line_number (Lazy.force message)
+  ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n" indentation level filename line_number (Lazy.force message)
 
 
 let info    = log "INFO"
@@ -39,8 +69,8 @@ let surround
     logger ocaml_position @@ lazy (Printf.sprintf "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
-  try
-    let result = f ()
+  try    
+    let result = with_increased_indentation f
     in
     exited_block_successfully ();
     result

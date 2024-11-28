@@ -5,7 +5,7 @@ module GC = GenerationContext
 
 
 let pp_type_abbreviation (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.document GC.t =
-  GC.generation_block' [%here] (PP.string "Type abbreviation") begin
+  GC.generation_block [%here] (PP.string "Type abbreviation") begin
     let { identifier; abbreviation } : Ast.Definition.Type.Abbreviation.t = type_abbreviation
     in
     match abbreviation with
