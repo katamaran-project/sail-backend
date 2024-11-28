@@ -96,7 +96,7 @@ PASS feature-ifte2
 PASS feature-let
 PASS feature-pattern
 PASS feature-pattern2
-FAIL feature-pattern3
+PASS feature-pattern3
 PASS feature-pattern4
 FAIL feature-pattern5
 PASS feature-rec
@@ -224,4 +224,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:216 FAIL:10
+PASS:217 FAIL:9
