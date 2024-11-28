@@ -188,12 +188,12 @@ PASS statements-conditional
 PASS tuples-pair
 FAIL tuples-quad
 FAIL tuples-triple
+PASS type-alias-of-bitvector
 PASS type-alias-of-enum
 PASS type-alias-of-int
 PASS type-alias-of-record
 PASS type-alias-of-union
-PASS types-001
-PASS types-003
+PASS type-aliases
 PASS unions-005
 PASS unions-as-parameter
 PASS unions-bitvector
@@ -211,6 +211,7 @@ PASS unions-match-1-nullary
 PASS unions-match-1-ternary
 PASS unions-match-1-unary
 PASS unions-match-2-nullary
+FAIL unions-match-nested
 PASS unions-nested
 PASS unions-scattered-nullary
 PASS unions-scattered-unary
@@ -224,4 +225,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:217 FAIL:9
+PASS:217 FAIL:10
