@@ -6,7 +6,6 @@ module R = Libsail.Rewrites
  *)
 let katamaran_rewrites =
   [
-    ("prover_regstate", [R.Bool_arg true]);                            (* From Coq backend *)
     ("instantiate_outcomes", [R.String_arg "coq"]);                    (* From Coq backend *)
     ("realize_mappings", []);                                          (* From Coq backend *)
     ("remove_vector_subrange_pats", []);                               (* From Coq backend *)
