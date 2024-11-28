@@ -14,10 +14,10 @@ let katamaran_rewrites =
     ("pat_string_append", []);                                         (* From Coq backend *)
     ("mapping_patterns", []);                                          (* From Coq backend *)
     ("truncate_hex_literals", []);                                     (* From C backend   *)
-    ("mono_rewrites", [If_flag R.opt_mono_rewrites]);                  (* From C backend   *)
-    ("recheck_defs", [If_flag R.opt_mono_rewrites]);                   (* From C backend   *)
-    ("toplevel_nexps", [If_mono_arg]);                                 (* From C backend   *)
-    ("monomorphise", [String_arg "c"; If_mono_arg]);                   (* From C backend   *)
+    ("mono_rewrites", []);                  (* From C backend   *)
+    ("recheck_defs", []);                   (* From C backend   *)
+    ("toplevel_nexps", []);                                 (* From C backend   *)
+    ("monomorphise", [String_arg "c"]);                   (* From C backend   *)
     ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);            (* From C backend   *)
     ("add_unspecified_rec", []);                                       (* From Coq backend *)
     ("undefined", [R.Bool_arg true]);                                  (* From Coq backend *)
@@ -26,7 +26,7 @@ let katamaran_rewrites =
        Translates 0b000 into [bitzero, bitzero, bitzero]
        Required
     *)
-    ("vector_string_pats_to_bit_list", []);                            (* From Coq backend *)
+    (* ("vector_string_pats_to_bit_list", []);                            (\* From Coq backend *\) *)
     
     ("remove_not_pats", []);                                           (* From Coq backend *)
     ("remove_impossible_int_cases", []);                               (* From Coq backend *)
