@@ -303,15 +303,15 @@ end = struct
     and translate_and           = translate_binary_operation @@ fun l r -> And                  (l, r)
     in
     match unwrapped_numeric_constraint with
-    | S.NC_equal (x, y)                          -> translate_equal      x y
-    | S.NC_not_equal (x, y)                      -> translate_not_equal  x y
-    | S.NC_ge (x, y)                             -> translate_ge x         y
-    | S.NC_gt (x, y)                             -> translate_gt x         y
-    | S.NC_le (x, y)                             -> translate_le x         y
-    | S.NC_lt (x, y)                             -> translate_lt x         y
+    | S.NC_equal (x, y)                          -> translate_equal     x y
+    | S.NC_not_equal (x, y)                      -> translate_not_equal x y
+    | S.NC_ge (x, y)                             -> translate_ge        x y
+    | S.NC_gt (x, y)                             -> translate_gt        x y
+    | S.NC_le (x, y)                             -> translate_le        x y
+    | S.NC_lt (x, y)                             -> translate_lt        x y
+    | S.NC_or (x, y)                             -> translate_or        x y
+    | S.NC_and (x, y)                            -> translate_and       x y
     | S.NC_app (function_id, arguments)          -> translate_application function_id arguments
-    | S.NC_or (x, y)                             -> translate_or x y
-    | S.NC_and (x, y)                            -> translate_and x y
     | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ Ast.Numeric.Constraint.Var (Ast.Identifier.mk kind_id)
     | S.NC_true                                  -> TC.return @@ Ast.Numeric.Constraint.True
     | S.NC_false                                 -> TC.return @@ Ast.Numeric.Constraint.False
