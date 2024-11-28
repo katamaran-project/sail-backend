@@ -26,8 +26,10 @@ let translate_identifier
       (ocaml_location : Lexing.position)
       (identifier     : S.id           ) : Ast.Identifier.t TC.t
   =
-  let S.Id_aux (unwrapped_identifier, sail_location) = identifier
-  in
-  match unwrapped_identifier with
-  | Id id       -> TC.return @@ Ast.Identifier.mk id
-  | Operator op -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" op) ocaml_location sail_location
+  TC.translation_block [%here] ("Translating identifier " ^ StringOf.Sail.id identifier) begin
+    let S.Id_aux (unwrapped_identifier, sail_location) = identifier
+    in
+    match unwrapped_identifier with
+    | Id id       -> TC.return @@ Ast.Identifier.mk id
+    | Operator op -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" op) ocaml_location sail_location
+  end

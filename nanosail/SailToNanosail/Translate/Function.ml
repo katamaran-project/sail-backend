@@ -1360,26 +1360,28 @@ let translate_function_definition
       (definition_annotation : Sail.definition_annotation   )
       (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
-  let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
-  in
-  match funcls with
-  | [function_clause] -> begin
-      let* parts = extract_function_parts function_clause
-      in
-      let* function_name          = Identifier.translate_identifier [%here] parts.identifier
-      and* parameters             = translate_parameter_bindings parts.parameter_bindings
-      and* return_type            = translate_return_type parts.return_type
-      and* function_body          = translate_body parts.body
-      and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
-      in
-      TC.return @@ Ast.Definition.FunctionDefinition {
-        function_name;
-        function_type = {
+  TC.translation_block [%here] "Translating function" begin
+    let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
+    in
+    match funcls with
+    | [function_clause] -> begin
+        let* parts = extract_function_parts function_clause
+        in
+        let* function_name          = Identifier.translate_identifier [%here] parts.identifier
+        and* parameters             = translate_parameter_bindings parts.parameter_bindings
+        and* return_type            = translate_return_type parts.return_type
+        and* function_body          = translate_body parts.body
+        and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
+        in
+        TC.return @@ Ast.Definition.FunctionDefinition {
+          function_name;
+          function_type = {
             parameters;
             return_type;
           };
-        extended_function_type;
-        function_body;
-      }
-    end
-  | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
+          extended_function_type;
+          function_body;
+        }
+      end
+    | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
+  end

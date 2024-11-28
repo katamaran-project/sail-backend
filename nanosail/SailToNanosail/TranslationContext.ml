@@ -68,6 +68,30 @@ let recover    = Monad.recover
 let run f      = Monad.run f Context.empty
 
 
+let log
+    (ocaml_position : Lexing.position                         )
+    (logger         : Lexing.position -> string lazy_t -> unit)
+    (message        : string lazy_t                           ) : unit t
+  =
+  act (fun () -> logger ocaml_position message)
+
+
+let translation_block
+    (ocaml_position : Lexing.position                         )
+    (label          : string                                  )
+    (result         : 'a t                                    ) : 'a t
+  =
+  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
+  and* () = act Logging.increase_indentation
+  in
+  let* result
+  in
+  let* () = act Logging.decrease_indentation
+  and* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
+  in
+  return result
+
+
 let string_of_error (error : Error.t) : string =
   let string_of_ocaml_location (ocaml_location : Lexing.position) =
     Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
@@ -98,6 +122,8 @@ let debug_error f =
 
 
 let not_yet_implemented ?(message = "") ocaml_position sail_position =
+  let* () = log [%here] Logging.debug @@ lazy "Not yet implemented"
+  in
   let message =
     if String.is_empty message
     then None
@@ -216,27 +242,3 @@ let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Ide
   if underscore
   then return @@ Ast.Identifier.add_prefix "_" result
   else return result
-
-
-let log
-    (ocaml_position : Lexing.position                         )
-    (logger         : Lexing.position -> string lazy_t -> unit)
-    (message        : string lazy_t                           ) : unit t
-  =
-  act (fun () -> logger ocaml_position message)
-
-
-let translation_block
-    (ocaml_position : Lexing.position                         )
-    (label          : string                                  )
-    (result         : 'a t                                    ) : 'a t
-  =
-  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
-  and* () = act Logging.increase_indentation
-  in
-  let* result
-  in
-  let* () = act Logging.decrease_indentation
-  and* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
-  in
-  return result
