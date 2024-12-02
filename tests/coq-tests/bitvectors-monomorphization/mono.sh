@@ -1,7 +1,9 @@
 #! /usr/bin/env bash
 
 
-sail --auto-mono --mono-rewrites --lem -o output-words -lem-mwords ./model.sail
-sail --auto-mono --mono-rewrites --lem -o output ./model.sail
+sail --lem -o output_words -lem-mwords ./model.sail
+# sail --auto-mono --lem -o output ./model.sail
 
-# lem -isa -outdir ./temp/ -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_types.lem ./output.lem
+rm -rf temp
+mkdir temp
+lem -isa -outdir ./temp/ -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_words_types.lem ./output_words.lem
