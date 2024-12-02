@@ -137,23 +137,3 @@ mapping RegisterMapping: Register <-> registerAddressBits  = {
         R14   <-> 0b1110,
         R15   <-> 0b1111,
 }
-
-val init_base_regs: unit -> unit
-function init_base_regs() = {
-    PC_reg     = undefined; /* needs to be the address located at 0FFFEh */
-    SP_reg     = undefined; /* needs to be initialized by the user */
-    SRCG1_reg  = undefined;
-    CG2_reg    = undefined;
-    R4_reg     = undefined;
-    R5_reg     = undefined;
-    R6_reg     = undefined;
-    R7_reg     = undefined;
-    R8_reg     = undefined;
-    R9_reg     = undefined;
-    R10_reg    = undefined;
-    R11_reg    = undefined;
-    R12_reg    = undefined;
-    R13_reg    = undefined;
-    R14_reg    = undefined;
-    R15_reg    = undefined;
-}
