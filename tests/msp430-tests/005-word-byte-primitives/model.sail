@@ -138,13 +138,13 @@ mapping RegisterMapping: Register <-> registerAddressBits  = {
         R15   <-> 0b1111,
 }
 
-/* val toByte: (WordByte) -> WordByte */
-/* function clause toByte(Word(w)) = { */
-/*   Byte(w[7 .. 0]) */
-/* } */
-/* function clause toByte(Byte(b)) = { */
-/*   Byte(b) */
-/* } */
+val toByte: (WordByte) -> WordByte
+function clause toByte(Word(w)) = {
+  Byte(w[7 .. 0])
+}
+function clause toByte(Byte(b)) = {
+  Byte(b)
+}
 
 /* val signedWb: (WordByte) -> int */
 /* function clause signedWb(Word(w)) = { */
