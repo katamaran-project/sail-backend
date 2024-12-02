@@ -1,6 +1,10 @@
 module R = Libsail.Rewrites
 
 
+(*
+  List of all rewrites, copied from sail source code.
+  Note: some of these rewrites still need arguments; they can't be used as-is
+*)
 let all_rewrites =
   [
     ("recheck_defs", []);
@@ -163,4 +167,3 @@ let _c_rewrites =
     ("recheck_defs", []);
     ("constant_fold", [String_arg "c"]);
   ]
-
