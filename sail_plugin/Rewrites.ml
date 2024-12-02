@@ -26,7 +26,7 @@ let katamaran_rewrites =
        Translates 0b000 into [bitzero, bitzero, bitzero]
        Required
     *)
-    (* ("vector_string_pats_to_bit_list", []);                            (\* From Coq backend *\) *)
+    ("vector_string_pats_to_bit_list", []);                            (* From Coq backend *)
     
     ("remove_not_pats", []);                                           (* From Coq backend *)
     ("remove_impossible_int_cases", []);                               (* From Coq backend *)
