@@ -1,30 +1,21 @@
 #! /usr/bin/env bash
 
 
-echo Sail to Lem
-sail --lem -o output ./model.sail
+function build() {
+    echo $1
+    rm -rf output-$1
+    mkdir output-$1
 
-echo Lem to Isabelle
-rm -rf isabelle
-mkdir isabelle
-lem -isa -outdir ./isabelle -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_types.lem ./output.lem
+    echo Sail to Lem
+    (cd output-$1; sail --lem $2 -o output ../model.sail)
 
+    echo Lem to Isabelle
+    (cd output-$1; lem -isa -outdir . -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_types.lem ./output.lem)
 
-
-echo Sail to Lem with auto-mono
-sail --lem --auto-mono --mono-rewrites -o output_auto_mono ./model.sail
-
-echo Lem to Isabelle
-rm -rf isabelle-auto-mono
-mkdir isabelle-auto-mono
-lem -isa -outdir ./isabelle-auto-mono -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_auto_mono_types.lem ./output_auto_mono.lem
+    echo ---
+}
 
 
-
-echo Sail to Lem with -lem-mwords
-sail --lem -o output_mwords -lem-mwords ./model.sail
-
-echo Lem to Isabelle with -lem-mwords
-rm -rf isabelle-mwords
-mkdir isabelle-mwords
-lem -isa -outdir ./isabelle-mwords -lib Sail=~/repos/sail/src/lem_interp/ -lib Sail=~/repos/sail/src/gen_lib ./output_mwords_types.lem ./output_mwords.lem
+build "standard" ""
+build "automono" "--auto-mono --mono-rewrites"
+build "mwords" "--lem-mwords"
