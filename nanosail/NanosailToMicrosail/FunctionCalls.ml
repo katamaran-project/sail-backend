@@ -646,7 +646,7 @@ let translate
      GC.pp_annotate [%here] begin
          translate_bitvector_slicing arguments
        end
-  | _                  ->
+  | _ ->
      GC.pp_annotate [%here] begin
          GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
        end
