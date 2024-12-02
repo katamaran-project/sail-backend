@@ -85,7 +85,7 @@ let katamaran_rewrites =
     ("recheck_defs", []);
     ("toplevel_nexps", []);
     ("monomorphise", [String_arg "c"]);
-    ("atoms_to_singletons", [String_arg "c"]);
+    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]); (* this rewrite seems to cause some trouble if activated *)
     ("add_unspecified_rec", []);
     ("undefined", [R.Bool_arg true]);
 
