@@ -69,55 +69,55 @@ let all_rewrites =
  *)
 let katamaran_rewrites =
   [
-    ("instantiate_outcomes", [R.String_arg "coq"]);                    (* From Coq backend *)
-    ("realize_mappings", []);                                          (* From Coq backend *)
-    ("remove_vector_subrange_pats", []);                               (* From Coq backend *)
-    ("remove_duplicate_valspecs", []);                                 (* From Coq backend *)
-    ("toplevel_string_append", []);                                    (* From Coq backend *)
-    ("pat_string_append", []);                                         (* From Coq backend *)
-    ("mapping_patterns", []);                                          (* From Coq backend *)
-    ("truncate_hex_literals", []);                                     (* From C backend   *)
-    ("mono_rewrites", []);                                             (* From C backend   *)
-    ("recheck_defs", []);                                              (* From C backend   *)
-    ("toplevel_nexps", []);                                 (* From C backend   *)
-    ("monomorphise", [String_arg "c"]);                   (* From C backend   *)
-    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);            (* From C backend   *)
-    ("add_unspecified_rec", []);                                       (* From Coq backend *)
-    ("undefined", [R.Bool_arg true]);                                  (* From Coq backend *)
+    ("instantiate_outcomes", [R.String_arg "coq"]);
+    ("realize_mappings", []);
+    ("remove_vector_subrange_pats", []);
+    ("remove_duplicate_valspecs", []);
+    ("toplevel_string_append", []);
+    ("pat_string_append", []);
+    ("mapping_patterns", []);
+    ("truncate_hex_literals", []);
+    ("mono_rewrites", []);
+    ("recheck_defs", []);
+    ("toplevel_nexps", []);
+    ("monomorphise", [String_arg "c"]);
+    ("atoms_to_singletons", [String_arg "c"]);
+    ("add_unspecified_rec", []);
+    ("undefined", [R.Bool_arg true]);
 
     (*
        Translates 0b000 into [bitzero, bitzero, bitzero]
        Required
     *)
-    ("vector_string_pats_to_bit_list", []);                            (* From Coq backend *)
+    ("vector_string_pats_to_bit_list", []);
     
-    ("remove_not_pats", []);                                           (* From Coq backend *)
-    ("remove_impossible_int_cases", []);                               (* From Coq backend *)
-    ("tuple_assignments", []);                                         (* From Coq backend *)
-    ("vector_concat_assignments", []);                                 (* From Coq backend *)
-    ("simple_struct_assignments", []);                                 (* From C backend   *)
-    ("simple_assignments", []);                                        (* From Coq backend *)
-    ("remove_vector_concat", []);                                      (* From Coq backend *)
-    ("remove_bitvector_pats", []);                                     (* From Coq backend *)
-    ("remove_numeral_pats", []);                                       (* From Coq backend *)
+    ("remove_not_pats", []);
+    ("remove_impossible_int_cases", []);
+    ("tuple_assignments", []);
+    ("vector_concat_assignments", []);
+    ("simple_struct_assignments", []);
+    ("simple_assignments", []);
+    ("remove_vector_concat", []);
+    ("remove_bitvector_pats", []);
+    ("remove_numeral_pats", []);
     (* ("pattern_literals", [Literal_arg "lem"]);                (\* From Coq backend *\) *)
-    ("pattern_literals", [Literal_arg "all"]);                         (* From C   backend *)
-    ("guarded_pats", []);                                              (* From Coq backend *)
-    ("split", [R.String_arg "execute"]);                               (* From Coq backend *)
-    ("minimise_recursive_functions", []);                              (* From Coq backend *)
-    ("recheck_defs", []);                                              (* From Coq backend *)
-    ("move_termination_measures", []);                                 (* From Coq backend *)
-    ("const_prop_mutrec", [R.String_arg "coq"]);                       (* From Coq backend *)
-    ("exp_lift_assign", []);                                           (* From Coq backend *)
+    ("pattern_literals", [Literal_arg "all"]);
+    ("guarded_pats", []);
+    ("split", [R.String_arg "execute"]);
+    ("minimise_recursive_functions", []);
+    ("recheck_defs", []);
+    ("move_termination_measures", []);
+    ("const_prop_mutrec", [R.String_arg "coq"]);
+    ("exp_lift_assign", []);
     (* ("early_return", []);                                              (\* From Coq backend *\) *)
-    ("recheck_defs", []);                                              (* From Coq backend *)
-    ("make_cases_exhaustive", []);                                     (* From Coq backend *)
-    ("merge_function_clauses", []);                                    (* From Coq backend *)
-    ("constant_fold", [String_arg "c"]);                               (* From C backend   *)
-    ("recheck_defs", []);                                              (* From Coq backend *)
-    ("rewrite_explicit_measure", []);                                  (* From Coq backend *)
-    ("rewrite_loops_with_escape_effect", []);                          (* From Coq backend *)
-    ("recheck_defs", []);                                              (* From Coq backend *)
+    ("recheck_defs", []);
+    ("make_cases_exhaustive", []);
+    ("merge_function_clauses", []);
+    ("constant_fold", [String_arg "c"]);
+    ("recheck_defs", []);
+    ("rewrite_explicit_measure", []);
+    ("rewrite_loops_with_escape_effect", []);
+    ("recheck_defs", []);
     (* ("remove_blocks", []);                                             (\* From Coq backend *\) *)
     (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
     (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
