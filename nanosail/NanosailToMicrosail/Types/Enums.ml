@@ -13,7 +13,7 @@ let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
 let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
-  GC.generation_block [%here] (PP.string "Enum definition") begin
+  GC.generation_block [%here] "Enum Definition" begin
     let identifier = Identifier.pp enum_definition.identifier
     and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
     in

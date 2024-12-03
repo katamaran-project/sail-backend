@@ -47,7 +47,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
       end
   in
   let block_label =
-    PP.(horizontal [ string "Union Inductive Type for "; Identifier.pp variant_definition.identifier ])
+    Printf.sprintf "Union Inductive Type for %s" @@ Ast.Identifier.to_string variant_definition.identifier
   in
   GC.generation_block [%here] block_label @@ begin
     GC.block inductive_type
@@ -65,7 +65,7 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
   in
-  GC.generation_block [%here] PP.(horizontal [ string "Constructors Inductive Type for"; Identifier.pp variant_definition.identifier ]) @@ begin
+  GC.generation_block [%here] (Printf.sprintf "Constructors Inductive Type for %s" @@ Ast.Identifier.to_string variant_definition.identifier) @@ begin
     GC.block begin
       GC.pp_inductive_type identifier typ @@ fun add_constructor -> begin
         GC.iter ~f:(fun tag -> add_constructor @@ Identifier.pp tag) tags
@@ -75,7 +75,7 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
 
 
 let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
-  GC.generation_block [%here] (PP.string "Variant definition") begin
+  GC.generation_block [%here] "Variant Definition" begin
     let* inductive_type =
       generate_inductive_type variant_definition
     and* constructors_inductive_type =

@@ -197,19 +197,19 @@ let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.docume
 *)
 let generation_block
     (position : Lexing.position)
-    (label    : PP.document    )
+    (label    : string         )
     (contents : PP.document t  ) : PP.document t
   =
   let* () = return () (* forces the logging to happen inside the constructor state monad, instead of before *)
   in
   let* contents =
-    let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" @@ PP.string_of_document label)
+    let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" label)
     and* () = act Logging.increase_indentation
     in
     let* contents
     in
     let* () = act Logging.decrease_indentation
-    and* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Exiting %s" @@ PP.string_of_document label)
+    and* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Exiting %s" label)
     in
     return contents
   in
@@ -228,13 +228,13 @@ let generation_block
       Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
         PP.string "<<<<<";
         PP.string position_string;
-        label
+        PP.string label
       ]
     and exit_block =
       Coq.pp_inline_comment @@ PP.separate_horizontally ~separator:PP.space [
         PP.string ">>>>>";
         PP.string position_string;
-        label
+        PP.string label
       ]
     in
     return @@ PP.vertical [

@@ -8,7 +8,7 @@ end
 
 
 let genblock loc label (contents : PP.document GC.t) : PP.document GC.t =
-  GC.generation_block loc (PP.string label) contents
+  GC.generation_block loc label contents
 
 
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
@@ -81,7 +81,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     let* () = GC.log [%here] Logging.debug @@ lazy "pp_record_tags"
     in
     GC.block begin
-        genblock [%here] "Record Tags" @@ begin
+        genblock [%here] "Record Tags" begin
           Types.Records.generate_tags record_definitions
         end
       end
@@ -89,16 +89,20 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method pp_variant_tags : PP.document GC.t =
     let* () = GC.log [%here] Logging.debug @@ lazy "pp_variant_tags"
     in
-    genblock [%here] "Variant Tags" @@ begin
-      Types.Variants.generate_tags variant_definitions;
-    end
+    genblock [%here] "Variant Tags" begin
+        GC.block begin
+            Types.Variants.generate_tags variant_definitions;
+          end
+      end
 
   method pp_base_module : PP.document GC.t =    
     let* () = GC.log [%here] Logging.debug @@ lazy "pp_base_module"
     in
-    GC.block begin
-      GC.generation_block [%here] (PP.string "Base Module") @@ BaseModule.pp_base_module all_definitions
-    end
+    genblock [%here] "Base Module" begin
+        GC.block begin
+            BaseModule.pp_base_module all_definitions
+          end
+      end
 
   method pp_program_module : PP.document GC.t =
     let* () = GC.log [%here] Logging.debug @@ lazy "pp_program_module"

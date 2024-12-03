@@ -5,7 +5,7 @@ module GC = GenerationContext
 
 
 let pp_foreign_kit () : PP.document GC.t =
-  GC.generation_block [%here] (PP.string "Foreign kit") begin
+  GC.generation_block [%here] "Foreign Kit" begin
     let title = Ast.Identifier.mk "ForeignKit"
     and contents =
       PP.vertical @@ List.map ~f:PP.string [

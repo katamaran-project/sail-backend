@@ -15,7 +15,7 @@ let pp_function_definition
       ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
       (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t
   =
-  genblock [%here] PP.(horizontal [ string "Function Definition "; Identifier.pp function_definition.function_name ]) begin
+  genblock [%here] (Printf.sprintf "Function Definition %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
     GC.block begin
         let* () =
           GC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Generating code for function %s" (StringOf.Nanosail.identifier function_definition.function_name))
@@ -143,10 +143,7 @@ let pp_function_definition_kit
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
   =
-  genblock [%here] (PP.string "FunDefKit") begin
-      let* () =
-        GC.log [%here] Logging.debug @@ lazy "Generation FunDefKit"
-      in
+  genblock [%here] "FunDefKit" begin
       let fundef =
         let identifier =
           PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"

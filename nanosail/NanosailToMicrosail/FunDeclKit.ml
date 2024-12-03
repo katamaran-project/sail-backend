@@ -13,7 +13,7 @@ let genblock loc label (doc : PP.document GC.t) =
 
 
 let generate (function_definitions : Ast.Definition.Function.t list) =
-  genblock [%here] (PP.string "FunDeclKit") begin
+  genblock [%here] "FunDeclKit" begin
     let pp_function_declaration (function_definition : Ast.Definition.Function.t) =
       let name =
         PP.annotate [%here] @@ Identifier.pp function_definition.function_name

@@ -8,7 +8,7 @@ end
 
 
 let genblock loc label doc =
-  GC.generation_block loc (PP.string label) doc
+  GC.generation_block loc label doc
 
 
 (*

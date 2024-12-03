@@ -18,14 +18,12 @@ let regname_tag =
 
 (* todo improve name *)
 let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
-  let* () = GC.log [%here] Logging.debug @@ lazy "pp_reg_inductive_type"
-  in   
   let identifier =
     PP.annotate [%here] @@ PP.string "Reg"
   and typ =
     PP.annotate [%here] @@ PP.string "Ty -> Set"
   in
-  GC.generation_block [%here] (PP.string "Reg Inductive Type") begin
+  GC.generation_block [%here] "Reg Inductive Type" begin
     GC.block begin
       GC.pp_annotate [%here] begin
         GC.pp_inductive_type identifier typ (fun add_constructor ->
@@ -53,7 +51,7 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
 
 
 let pp_no_confusion_for_reg () : PP.document GC.t =
-  GC.generation_block [%here] (PP.string "No Confusion for Reg") begin
+  GC.generation_block [%here] "No Confusion for Reg" begin
     GC.return begin
       Coq.pp_section (Ast.Identifier.mk "TransparentObligations") (
         PP.(vertical [
@@ -141,8 +139,8 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
     GC.return @@ PP.description_list description_pairs
 
   in
-  GC.block begin
-    GC.generation_block [%here] (PP.string "Regname Inductive Type") begin
+  GC.generation_block [%here] "Regname Inductive Type" begin
+    GC.block begin
       GC.return begin
         PP.annotate [%here] begin
           PP.vertical [
@@ -195,7 +193,7 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   and pp_id2 = PP.annotate [%here] @@ Identifier.pp id2
   in
   GC.block begin
-    GC.generation_block [%here] (PP.string "REG_eq_dec Instance") begin
+    GC.generation_block [%here] "REG_eq_dec Instance" begin
       GC.return begin
         PP.(
           vertical [
@@ -229,7 +227,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
     PP.annotate [%here] @@ Coq.pp_list (List.map ~f:enum_value_of_register_name register_names)
   in
   GC.block begin
-    GC.generation_block [%here] (PP.string "REG_finite Instance") begin
+    GC.generation_block [%here] "REG_finite Instance" begin
       GC.return begin
         PP.(
           Coq.pp_sentence @@ vertical (
@@ -249,7 +247,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
     
 
 let pp_obligation_tactic () : PP.document GC.t =
-  GC.generation_block [%here] (PP.string "Obligation Tactic") begin
+  GC.generation_block [%here] "Obligation Tactic" begin
     GC.return begin
       PP.vertical @@ List.map ~f:PP.string [
         "Local Obligation Tactic :=";
