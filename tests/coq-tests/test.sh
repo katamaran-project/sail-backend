@@ -23,7 +23,7 @@ fi
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 
 
-if [[ -v DUMP_REWRITE ]]
+if [[ -v DUMP ]]
 then
     ../process-rewrites.rb
 fi
