@@ -213,7 +213,7 @@ let generation_block
     in
     return contents
   in
-  let contents = PP.annotate position contents
+  let contents = PP.annotate' position label contents
   in
   if
     Configuration.(get show_generation_blocks)
