@@ -102,6 +102,11 @@ let katamaran_rewrites =
     ("recheck_defs", []);
     
     ("add_unspecified_rec", []);
+
+    (*
+      Replaces undefined by calls to the appropriate undefined_xxx() function
+      depending on the type, e.g., undefined_int, undefined_bool, etc.
+    *)
     ("undefined", [R.Bool_arg true]);
 
     (*
