@@ -860,14 +860,14 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
                     GC.pp_annotate [%here] @@ Nanotype.pp_nanotype field_type
                   in
                   GC.return @@ PP.separate_horizontally ~separator:PP.space [
-                    PP.annotate [%here] @@ PP.string "►";
-                    PP.annotate [%here] @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [
-                      PP.annotate [%here] @@ PP.(surround dquotes) @@ Identifier.pp field_identifier;
-                      PP.annotate [%here] @@ PP.string "∷";
-                      PP.annotate [%here] @@ pp_field_type;
-                      PP.annotate [%here] @@ PP.string "↦";
-                      PP.annotate [%here] @@ Identifier.pp field_identifier;
-                      PP.annotate [%here] @@ Identifier.pp lambda_parameter
+                      PP.string "►";
+                      PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [
+                      PP.(surround dquotes) @@ Identifier.pp field_identifier;
+                      PP.string "∷";
+                      pp_field_type;
+                      PP.string "↦";
+                      Identifier.pp field_identifier;
+                      Identifier.pp lambda_parameter
                     ]
                   ]
                 in
