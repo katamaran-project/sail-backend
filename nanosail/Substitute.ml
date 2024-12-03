@@ -76,7 +76,7 @@ let sanitizing_substitution =
   remove_apostrophes_at_start
 
 let sanitize_identifier (identifier : Ast.Identifier.t) : Ast.Identifier.t option =
-  let s = Ast.Identifier.string_of identifier
+  let s = Ast.Identifier.to_string identifier
   in
   if String.is_prefix ~prefix:"'" s
   then Some (Id (remove_apostrophes_at_start s))

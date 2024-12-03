@@ -35,7 +35,7 @@ let translate_register
                 lazy begin
                   Printf.sprintf
                     "Failed to translate initial value for register %s:\n  %s"
-                    (Ast.Identifier.string_of identifier')
+                    (Ast.Identifier.to_string identifier')
                     (TC.Error.to_string error)
                 end
               in

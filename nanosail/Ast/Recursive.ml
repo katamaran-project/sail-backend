@@ -26,8 +26,8 @@ module NumericExpression = struct
     | Mul (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
     | Neg e        -> Printf.sprintf "-%s" (to_string e)
     | PowerOf2 e   -> Printf.sprintf "2^(%s)" (to_string e)
-    | Id id        -> Identifier.string_of id
-    | Var id       -> Identifier.string_of id
+    | Id id        -> Identifier.to_string id
+    | Var id       -> Identifier.to_string id
 
 
   let rec equal (t1 : t) (t2 : t) : bool =
@@ -168,10 +168,10 @@ end = struct
     | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
     | Unit             -> "Type.Unit"
     | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
-    | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.string_of id)
-    | Record id        -> Printf.sprintf "Type.Record(%s)" (Identifier.string_of id)
-    | Variant id       -> Printf.sprintf "Type.Variant(%s)" (Identifier.string_of id)
-    | Alias (id, _)    -> Printf.sprintf "Type.Alias(%s)" (Identifier.string_of id)
+    | Enum id          -> Printf.sprintf "Type.Enum(%s)" (Identifier.to_string id)
+    | Record id        -> Printf.sprintf "Type.Record(%s)" (Identifier.to_string id)
+    | Variant id       -> Printf.sprintf "Type.Variant(%s)" (Identifier.to_string id)
+    | Alias (id, _)    -> Printf.sprintf "Type.Alias(%s)" (Identifier.to_string id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs
@@ -422,7 +422,7 @@ end = struct
     | GreaterThan (e1, e2)          -> binop e1 ">"  e2
     | LessThanOrEqualTo (e1, e2)    -> binop e1 "<=" e2
     | LessThan (e1, e2)             -> binop e1 "<"  e2
-    | Var id                        -> Identifier.string_of id
+    | Var id                        -> Identifier.to_string id
     | True                          -> "NC_true"
     | False                         -> "NC_false"
     | Set (_, _)                    -> failwith "Not yet implemented"

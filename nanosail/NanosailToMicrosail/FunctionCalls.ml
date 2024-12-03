@@ -15,7 +15,7 @@ let report_incorrect_argument_count
   let message =
     PP.annotate [%here] @@ PP.string @@ Printf.sprintf
       "%s should receive %d argument(s) but instead received %d; falling back on default translation for function calls"
-      (Ast.Identifier.string_of original_function_name)
+      (Ast.Identifier.to_string original_function_name)
       expected_operand_count
       (List.length operands)
   in
@@ -118,10 +118,10 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
   | [ (_, value_definition) ] -> begin
       match value_definition.value with
       | Int n -> GC.return @@ n
-      | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.string_of identifier)
+      | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.to_string identifier)
     end
-  | []        -> GC.fail @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.string_of identifier)
-  | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.string_of identifier)
+  | []        -> GC.fail @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.to_string identifier)
+  | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.to_string identifier)
 
 
 (*
@@ -517,12 +517,12 @@ let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
-  let* () = GC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Translating function %s" (Ast.Identifier.string_of function_identifier))
+  let* () = GC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Translating function %s" (Ast.Identifier.to_string function_identifier))
   in
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
-  match Ast.Identifier.string_of function_identifier with
+  match Ast.Identifier.to_string function_identifier with
   | "not_bool" ->
      GC.pp_annotate [%here] begin
          translate_unary_operator function_identifier "uop.not" pp_arguments

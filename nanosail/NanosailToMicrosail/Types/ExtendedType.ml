@@ -211,7 +211,7 @@ let pp_extended_function_type
       (eft : Ast.ExtendedFunctionType.t   ) : PP.document GC.t
   =
   let parameter_names =
-    List.map ~f:(fun (id, _) -> Ast.Identifier.string_of id) ft.parameters
+    List.map ~f:(fun (id, _) -> Ast.Identifier.to_string id) ft.parameters
   and parameter_extended_types =
     eft.extended_parameter_types
   and return_extended_type =

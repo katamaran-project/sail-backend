@@ -67,7 +67,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     in
     GC.return begin
         PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.string_of tag
+            PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.to_string tag
           end
       end
 
@@ -77,7 +77,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     in
     GC.return begin
         PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.string_of tag
+            PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.to_string tag
           end
       end
 
@@ -87,7 +87,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     in
     GC.return begin
         PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.string_of tag
+            PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.to_string tag
           end
       end
 

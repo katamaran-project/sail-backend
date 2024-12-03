@@ -777,8 +777,8 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
               let arguments =
                 let f (field_identifier, _field_type) =
                   PP.annotate [%here] @@ PP.string @@ Printf.sprintf "%s.[??\"%s\"]"
-                    (Ast.Identifier.string_of lambda_parameter)
-                    (Ast.Identifier.string_of field_identifier)
+                    (Ast.Identifier.to_string lambda_parameter)
+                    (Ast.Identifier.to_string field_identifier)
                 in
                 List.map ~f record_definition.fields
               in

@@ -192,7 +192,7 @@ let rec expression_of_aval
         let* typ' = Nanotype.nanotype_of_sail_type typ
         in
         let* unique_id =
-          let prefix = Printf.sprintf "reg_%s_" (Ast.Identifier.string_of id')
+          let prefix = Printf.sprintf "reg_%s_" (Ast.Identifier.to_string id')
           in
           TC.generate_unique_identifier ~prefix ()
         in
@@ -459,7 +459,7 @@ let with_destructured_record
                 List.map ~f:fst fields
               in
               let* variable_identifiers =
-                TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.string_of x) ()) field_identifiers
+                TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
               in
               let* body =
                 body_generator {
@@ -482,7 +482,7 @@ let with_destructured_record
             end
           | None -> begin
               let message =
-                Printf.sprintf "Tried looking up %s; expected to find record type definition" (Ast.Identifier.string_of record_type_identifier)
+                Printf.sprintf "Tried looking up %s; expected to find record type definition" (Ast.Identifier.to_string record_type_identifier)
               in
               (* TC.fail [%here] message *) (* todo make this a failure again *)
               TC.not_yet_implemented ~message [%here] location
@@ -653,7 +653,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         and n_enum_cases = List.length enum_definition.cases
         in
         let error_message = lazy begin
-                                let enum_values = String.concat ~sep:", " (List.map ~f:Ast.Identifier.string_of enum_definition.cases)
+                                let enum_values = String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string enum_definition.cases)
                                 in
                                 Printf.sprintf
                                   "expected fewer or as many match cases (%d) as there are enum values (%d: %s)"
@@ -687,7 +687,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                         Printf.sprintf
                           "encountered unknown case %s while matching an %s value"
                           identifier
-                          (Ast.Identifier.string_of enum_definition.identifier)
+                          (Ast.Identifier.to_string enum_definition.identifier)
                       end
                       in
                       TC.check
@@ -958,7 +958,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             in
             TC.return @@ Ast.Statement.Expression expression
           end
-        | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Ast.Identifier.string_of record_type_identifier) (Ast.Identifier.string_of field_identifier)
+        | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Ast.Identifier.to_string record_type_identifier) (Ast.Identifier.to_string field_identifier)
       )
 
   and statement_of_value (value : S.typ S.aval) : Ast.Statement.t TC.t =
@@ -1050,7 +1050,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
     in
 
-    match Ast.Identifier.string_of receiver_identifier' with
+    match Ast.Identifier.to_string receiver_identifier' with
     | "sail_cons" -> statement_of_binary_operation Cons
     | "add_atom"  -> statement_of_binary_operation Plus
     | "sub_atom"  -> statement_of_binary_operation Minus
@@ -1129,7 +1129,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       (* Generate fresh name for variable that will be assigned the value of the field *)
       let* variable_identifier =
-        TC.generate_unique_identifier ~prefix:("updated_" ^ (Ast.Identifier.string_of field_identifier)) ()
+        TC.generate_unique_identifier ~prefix:("updated_" ^ (Ast.Identifier.to_string field_identifier)) ()
       in
       (* Convert assigned expression to statement *)
       let* (field_type, named_statement) =
@@ -1216,7 +1216,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
         else begin
             let message =
-              Printf.sprintf "assignment to local variable (nonregister) %s" (Ast.Identifier.string_of id_in_lhs)
+              Printf.sprintf "assignment to local variable (nonregister) %s" (Ast.Identifier.to_string id_in_lhs)
             in
             TC.not_yet_implemented ~message [%here] location
         end

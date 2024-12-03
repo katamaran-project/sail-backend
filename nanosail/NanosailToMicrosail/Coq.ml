@@ -498,8 +498,8 @@ let pp_derive
   let str =
     Printf.sprintf
       "Derive %s for %s."
-      (Ast.Identifier.string_of class_identifier)
-      (Ast.Identifier.string_of type_identifier)
+      (Ast.Identifier.to_string class_identifier)
+      (Ast.Identifier.to_string type_identifier)
   in
   PP.annotate [%here] @@ PP.string str
 

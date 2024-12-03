@@ -20,7 +20,7 @@ module Impl = struct
 
   let mk x = Id x
 
-  let string_of (Id x) = x
+  let to_string (Id x) = x
 
   let update f (Id x) = Id (f x)
 
@@ -32,7 +32,7 @@ module Impl = struct
 
   let to_fexpr (identifier : t) : FExpr.t =
     FExpr.mk_application
-      ~positional:[FExpr.mk_string @@ string_of identifier]
+      ~positional:[FExpr.mk_string @@ to_string identifier]
       "Identifier"
 end
 

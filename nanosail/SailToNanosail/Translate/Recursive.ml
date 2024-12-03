@@ -31,7 +31,7 @@ end = struct
         in
         let* identifier' = Identifier.translate_identifier [%here] identifier
         in
-        let id_as_string = Ast.Identifier.string_of identifier'
+        let id_as_string = Ast.Identifier.to_string identifier'
         in
         match id_as_string with
         | "bool"      -> TC.return @@ Ast.Type.Bool
@@ -78,7 +78,7 @@ end = struct
         let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
         and* identifier'     = Identifier.translate_identifier [%here] identifier
         in
-        match Ast.Identifier.string_of identifier' with
+        match Ast.Identifier.to_string identifier' with
         | "list"      -> nanotype_of_list type_arguments'
         | "atom"      -> nanotype_of_atom type_arguments'
         | "atom_bool" -> nanotype_of_atom_bool type_arguments'

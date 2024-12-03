@@ -74,7 +74,7 @@ let pp_reg_definition () : PP.document GC.t =
 let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.t =
   let prefix = "RegName_"
   in
-  Ast.Identifier.mk @@ Printf.sprintf "%s%s" prefix (Ast.Identifier.string_of register_identifier)
+  Ast.Identifier.mk @@ Printf.sprintf "%s%s" prefix (Ast.Identifier.to_string register_identifier)
 
 (*
   Defines RegName inductive type enumerating all registers

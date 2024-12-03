@@ -2,7 +2,7 @@ open Base
 
 
 let pp (identifier : Ast.Identifier.t) : PP.document =
-  PP.annotate [%here] @@ PP.string @@ Ast.Identifier.string_of identifier
+  PP.annotate [%here] @@ PP.string @@ Ast.Identifier.to_string identifier
 
 
 let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
