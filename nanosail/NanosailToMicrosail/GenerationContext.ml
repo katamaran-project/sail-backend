@@ -392,5 +392,13 @@ let pp_annotate
   lift ~f:(PP.annotate location) annotated
 
 
+let pp_annotate'
+      (location  : Lexing.position)
+      (label     : string         )
+      (annotated : PP.document t  ) : PP.document t
+  =
+  lift ~f:(PP.annotate' location label) annotated
+
+
 let get_program : Ast.program t =
   get program
