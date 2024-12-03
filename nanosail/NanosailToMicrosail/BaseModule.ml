@@ -25,12 +25,14 @@ let genblock loc label doc =
 
 *)
 let generate_base_prelude () : PP.document GC.t =
-  GC.return @@ PP.paragraphs [
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
-    PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~import:true  [ "Base"; "Bitvector" ];
-  ]
+  genblock [%here] "Base Prelude" begin
+      GC.return @@ PP.paragraphs [
+                       Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
+                       Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
+                       Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
+                       Coq.pp_require ~from:(Some "Katamaran") ~import:true  [ "Base"; "Bitvector" ];
+                     ]
+    end
 
 
 (*
@@ -42,7 +44,7 @@ let generate_base_prelude () : PP.document GC.t =
 
 *)
 let pp_imports () : PP.document GC.t =
-  genblock [%here] "Imports" begin
+  genblock [%here] "Module Imports" begin
     GC.return @@ PP.vertical [
       Coq.pp_imports ["ctx.notations"];
       Coq.pp_imports ["ctx.resolution"];
@@ -58,45 +60,49 @@ let pp_imports () : PP.document GC.t =
 
  *)
 let pp_open_string_scope () : PP.document GC.t =
-  GC.return @@ PP.annotate [%here] @@ PP.vertical @@ List.map ~f:PP.string [
-    "Local Open Scope string_scope."
-  ]
+  genblock [%here] "Scopes" begin
+      GC.return begin
+          PP.vertical @@ List.map ~f:PP.string [
+                             "Local Open Scope string_scope."
+                           ]
+        end
+    end
 
 
 let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
-  genblock [%here] "Notations for Aliases" begin
+  genblock [%here] "Alias Notations" begin
       let pp_alias_notation sail_definition (id, type_quantifier, typ) =
-        let quantifiers =
-          let Ast.TypeQuantifier.TypeQuantifier pairs = type_quantifier
-          in
-          List.map ~f:fst pairs
-        in
-        let notation =
-          PP.annotate [%here] begin
-              let head =
-                PP.(surround squotes) @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
-              and parameters =
-                List.map ~f:Identifier.pp quantifiers
+        genblock [%here] "Alias Notation" begin
+            let quantifiers =
+              let Ast.TypeQuantifier.TypeQuantifier pairs = type_quantifier
               in
-              PP.separate_horizontally ~separator:PP.space (head :: parameters)
-            end
-        in
-        let* expression =
-          GC.pp_annotate [%here] begin
-              Nanotype.pp_nanotype typ
-            end
-        in
-        GC.block begin
-            let* () = GC.add_original_definition sail_definition
+              List.map ~f:fst pairs
             in
-            GC.return @@ PP.annotate [%here] @@ Coq.pp_notation notation expression
+            let notation =
+              PP.annotate [%here] begin
+                  let head =
+                    PP.(surround squotes) @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
+                  and parameters =
+                    List.map ~f:Identifier.pp quantifiers
+                  in
+                  PP.separate_horizontally ~separator:PP.space (head :: parameters)
+                end
+            in
+            let* expression =
+              GC.pp_annotate [%here] begin
+                  Nanotype.pp_nanotype typ
+                end
+            in
+            GC.block begin
+                let* () = GC.add_original_definition sail_definition
+                in
+                GC.return @@ Coq.pp_notation notation expression
+              end
           end
       in
-      GC.block begin
-          let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
-          in
-          GC.return @@ PP.annotate [%here] @@ PP.vertical notations
-        end
+      let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
+      in
+      GC.return @@ PP.vertical notations
     end
 
 
@@ -134,23 +140,23 @@ let pp_denote_function
     ~(parameter_identifier : PP.document                            )
     ~(tag_type_identifier  : PP.document                            )
     ~(function_identifier  : PP.document                            ) () : PP.document GC.t
-  =
-  let identifier  = PP.annotate [%here] @@ function_identifier
+  =  
+  let identifier  = function_identifier
   and parameters  = [
       (
-        PP.annotate [%here] @@ parameter_identifier,
-        Some (PP.annotate [%here] @@ tag_type_identifier)
+        parameter_identifier,
+        Some (tag_type_identifier)
       )
     ]
   and result_type =
-    Some (PP.annotate [%here] @@ PP.string "Set")
+    Some (PP.string "Set")
   and body =
     let matched_expression = PP.annotate [%here] @@ parameter_identifier
     and cases              = denotations
     in
-    PP.annotate [%here] @@ Coq.pp_match ~scope matched_expression cases
+    Coq.pp_match ~scope matched_expression cases
   in
-  GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~parameters ~result_type body
+  GC.return @@ PP.annotate' [%here] "pp_denote_function" @@ Coq.pp_definition ~identifier ~parameters ~result_type body
 
 
 (*
@@ -189,7 +195,7 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
     and function_identifier  = PP.annotate [%here] @@ PP.string "enum_denote"
     in
     GC.block begin
-        GC.pp_annotate [%here] @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+        pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
       end
   end
 
@@ -222,7 +228,7 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
     and function_identifier  = PP.annotate [%here] @@ PP.string "union_denote"
     in
-      GC.pp_annotate [%here] @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
   end
 
 
@@ -244,18 +250,18 @@ let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : 
       in
       let denotation_pair_for record_identifier =
         (
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_record_name record_identifier,
-          PP.annotate [%here] @@ Identifier.pp record_identifier
+          Identifier.pp @@ Identifier.reified_record_name record_identifier,
+          Identifier.pp record_identifier
         )
       in
       List.map ~f:denotation_pair_for record_identifiers
 
-    and parameter_identifier = PP.annotate [%here] @@ PP.string "r"
-    and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Records"
-    and function_identifier  = PP.annotate [%here] @@ PP.string "record_denote"
+    and parameter_identifier = PP.string "r"
+    and tag_type_identifier  = PP.string "Records"
+    and function_identifier  = PP.string "record_denote"
     in
     GC.block begin
-      GC.pp_annotate [%here] @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
     end
   end
 
@@ -280,7 +286,7 @@ let pp_typedenotekit () : PP.document GC.t =
       "  |}.";
     ]
     in
-    GC.return @@ PP.annotate [%here] @@ PP.(vertical @@ List.map ~f:string coq_lines)
+    GC.return @@ PP.(vertical @@ List.map ~f:string coq_lines)
   end
 
 
@@ -302,18 +308,18 @@ let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t li
       in
       let denotation_pair_for variant_identifier =
         (
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_identifier
+          Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
+          Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_identifier
         )
       in
       List.map ~f:denotation_pair_for variant_identifiers
 
-    and parameter_identifier = PP.annotate [%here] @@ PP.string "u"
-    and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
-    and function_identifier  = PP.annotate [%here] @@ PP.string "union_constructor"
+    and parameter_identifier = PP.string "u"
+    and tag_type_identifier  = PP.string "Unions"
+    and function_identifier  = PP.string "union_constructor"
     in
     GC.block begin
-      GC.pp_annotate [%here] @@ pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
     end
   end
 
@@ -453,24 +459,26 @@ let pp_match_variant_constructors
     ~(variant_definitions : Ast.Definition.Type.Variant.t list)
     ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) GC.t) : PP.document GC.t
   =
-  let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : (PP.document * PP.document) GC.t =
-    let parameter_identifier = Ast.Identifier.mk "Kv"
-    in
-    let pattern =
-      PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier
-    in
-    let* expression =
-      let* lambda_body =
-        Types.Variants.generate_constructor_match
-          ~matched_identifier:parameter_identifier
-          ~variant_definition
-          ~constructor_case_handler
+  genblock [%here] "pp_match_variant_constructors" begin
+      let variant_case_handler (variant_definition : Ast.Definition.Type.Variant.t) : (PP.document * PP.document) GC.t =
+        let parameter_identifier = Ast.Identifier.mk "Kv"
+        in
+        let pattern =
+          Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier
+        in
+        let* expression =
+          let* lambda_body =
+            Types.Variants.generate_constructor_match
+              ~matched_identifier:parameter_identifier
+              ~variant_definition
+              ~constructor_case_handler
+          in
+          GC.return @@ Coq.pp_lambda (Identifier.pp parameter_identifier) lambda_body
+        in
+        GC.return (pattern, expression)
       in
-      GC.return @@ PP.annotate [%here] @@ Coq.pp_lambda (Identifier.pp parameter_identifier) lambda_body
-    in
-    GC.return (pattern, expression)
-  in
-  GC.pp_annotate [%here] @@ Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
+      Types.Variants.generate_tag_match ~matched_identifier ~variant_definitions ~variant_case_handler
+    end
 
 
 (*
@@ -1055,31 +1063,31 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
     in
     let* contents =
       let* sections = GC.sequence [
-        GC.pp_annotate [%here] @@ pp_imports ();
-        GC.pp_annotate [%here] @@ pp_open_string_scope ();
-        GC.pp_annotate [%here] @@ pp_alias_notations alias_definitions;
-        GC.pp_annotate [%here] @@ pp_typedeclkit ();
-        GC.pp_annotate [%here] @@ pp_enum_denote enum_definitions;
-        GC.pp_annotate [%here] @@ pp_union_denote variant_definitions;
-        GC.pp_annotate [%here] @@ pp_record_denote record_definitions;
-        GC.pp_annotate [%here] @@ pp_typedenotekit ();
-        GC.pp_annotate [%here] @@ pp_union_constructor variant_definitions;
-        GC.pp_annotate [%here] @@ pp_union_constructor_type variant_definitions;
-        GC.pp_annotate [%here] @@ pp_eqdec_and_finite_instances ();
-        GC.pp_annotate [%here] @@ pp_union_fold variant_definitions;
-        GC.pp_annotate [%here] @@ pp_union_unfold variant_definitions;
-        GC.pp_annotate [%here] @@ pp_record_field_type record_definitions;
-        GC.pp_annotate [%here] @@ pp_record_fold record_definitions;
-        GC.pp_annotate [%here] @@ pp_record_unfold record_definitions;
-        GC.pp_annotate [%here] @@ pp_typedefkit_instance ();
-        GC.pp_annotate [%here] @@ pp_canonicals ();
-        GC.pp_annotate [%here] @@ pp_varkit_instance ();
-        GC.pp_annotate [%here] @@ pp_regdeclkit register_definitions;
-        GC.pp_annotate [%here] @@ pp_memory_model ();
-        GC.pp_annotate [%here] @@ pp_include_mixin ();
+        pp_imports ();
+        pp_open_string_scope ();
+        pp_alias_notations alias_definitions;
+        pp_typedeclkit ();
+        pp_enum_denote enum_definitions;
+        pp_union_denote variant_definitions;
+        pp_record_denote record_definitions;
+        pp_typedenotekit ();
+        pp_union_constructor variant_definitions;
+        pp_union_constructor_type variant_definitions;
+        pp_eqdec_and_finite_instances ();
+        pp_union_fold variant_definitions;
+        pp_union_unfold variant_definitions;
+        pp_record_field_type record_definitions;
+        pp_record_fold record_definitions;
+        pp_record_unfold record_definitions;
+        pp_typedefkit_instance ();
+        pp_canonicals ();
+        pp_varkit_instance ();
+        pp_regdeclkit register_definitions;
+        pp_memory_model ();
+        pp_include_mixin ();
       ]
       in
-      GC.return @@ PP.annotate [%here] @@ PP.paragraphs sections
+      GC.return @@ PP.paragraphs sections
     in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_module ~flag ~includes base_module_name contents
+    GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
   end
