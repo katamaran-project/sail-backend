@@ -7,16 +7,27 @@ COQ=coqc
 
 SAIL_SOURCES=model.sail
 
-if [[ -v DUMP_REWRITE ]]
+if [[ -v DUMP ]]
 then
-    OPT="-ddump_rewrite_ast intermediate"
+    OPT="--ddump-rewrite-ast intermediate"
 else
-    OPT=
+    OPT=""
 fi
 
-ruby generate.rb > generated.sail
+if [[ -v MONOMO ]]
+then
+    OPT+=" --auto-mono --mono-rewrites"
+fi
+
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+
+
+if [[ -v DUMP ]]
+then
+    ../process-rewrites.rb
+fi
+
 
 if [[ ! -v NO_COQ ]]
 then
