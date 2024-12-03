@@ -74,7 +74,12 @@ let all_rewrites =
 let katamaran_rewrites =
   [
     ("instantiate_outcomes", [R.String_arg "coq"]);
+
+    (*
+      Rewrites mappings as two functions.
+    *)
     ("realize_mappings", []);
+    
     ("remove_vector_subrange_pats", []);
     ("remove_duplicate_valspecs", []);
     ("toplevel_string_append", []);
