@@ -146,37 +146,37 @@ function clause toByte(Byte(b)) = {
   Byte(b)
 }
 
-/* val signedWb: (WordByte) -> int */
-/* function clause signedWb(Word(w)) = { */
-/*   signed(w) */
-/* } */
-/* function clause signedWb(Byte(b)) = { */
-/*   signed(b) */
-/* } */
+val signedWb: (WordByte) -> int
+function clause signedWb(Word(w)) = {
+  signed(w)
+}
+function clause signedWb(Byte(b)) = {
+  signed(b)
+}
 
-/* val unsignedWb: (WordByte) -> int */
-/* function clause unsignedWb(Word(w)) = { */
-/*   unsigned(w) */
-/* } */
-/* function clause unsignedWb(Byte(b)) = { */
-/*   unsigned(b) */
-/* } */
+val unsignedWb: (WordByte) -> int
+function clause unsignedWb(Word(w)) = {
+  unsigned(w)
+}
+function clause unsignedWb(Byte(b)) = {
+  unsigned(b)
+}
 
-/* val addBw: (WordByte, WordByte) -> WordByte */
-/* function clause addBw(Byte(b1), Byte(b2)) = { */
-/*   Byte(b1 + b2) */
-/* } */
-/* function clause addBw(Word(w1), Word(w2)) = { */
-/*   Word(w1 + w2) */
-/* } */
-/* function clause addBw(Word(w), Byte(b)) = { */
-/*   Word(w + sail_zero_extend(b, 16)) */
-/* } */
-/* function clause addBw(Byte(b), Word(w)) = { */
-/*   Word(w + sail_zero_extend(b, 16)) */
-/* } */
+val addBw: (WordByte, WordByte) -> WordByte
+function clause addBw(Byte(b1), Byte(b2)) = {
+  Byte(b1 + b2)
+}
+function clause addBw(Word(w1), Word(w2)) = {
+  Word(w1 + w2)
+}
+function clause addBw(Word(w), Byte(b)) = {
+  Word(w + sail_zero_extend(b, 16))
+}
+function clause addBw(Byte(b), Word(w)) = {
+  Word(w + sail_zero_extend(b, 16))
+}
 
-/* overload operator + = {addBw} */
+overload operator + = {addBw}
 
 /* val W_zero_extend : forall 'n, 8 < 'n & 'n <= 16. (bits('n)) -> WordByte */
 /* function W_zero_extend(b) = { */
@@ -207,23 +207,23 @@ function clause toByte(Byte(b)) = {
 
 
 
-/* val not_wordByte: (WordByte) -> WordByte */
-/* function clause not_wordByte(Word(w)) = { */
-/*   Word(not_vec(w)) */
-/* } */
-/* function clause not_wordByte(Byte(b)) = { */
-/*   Byte(not_vec(b)) */
-/* } */
-/* overload ~ = {not_bool, not_vec, not_wordByte} */
+val not_wordByte: (WordByte) -> WordByte
+function clause not_wordByte(Word(w)) = {
+  Word(not_vec(w))
+}
+function clause not_wordByte(Byte(b)) = {
+  Byte(not_vec(b))
+}
+overload ~ = {not_bool, not_vec, not_wordByte}
 
 
-/* val and_wordByte: (WordByte,WordByte) -> WordByte */
-/* function clause and_wordByte(Word(w1),Word(w2)) = { */
-/*   Word(and_vec(w1,w2)) */
-/* } */
-/* function clause and_wordByte(Byte(b1),Byte(b2)) = { */
-/*   Byte(and_vec(b1,b2)) */
-/* } */
+val and_wordByte: (WordByte,WordByte) -> WordByte
+function clause and_wordByte(Word(w1),Word(w2)) = {
+  Word(and_vec(w1,w2))
+}
+function clause and_wordByte(Byte(b1),Byte(b2)) = {
+  Byte(and_vec(b1,b2))
+}
 
 /* function clause and_wordByte(_,_) = { */
 /*   throw(notImplemented("not implemented")) */
