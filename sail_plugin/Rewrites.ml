@@ -85,7 +85,18 @@ let katamaran_rewrites =
     ("recheck_defs", []);
     ("toplevel_nexps", []);
     ("monomorphise", [String_arg "c"]);
-    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]); (* this rewrite seems to cause some trouble if activated *)
+
+    (*
+      This rewrite needs to be followed by recheck_defs, otherwise a crash ensues.
+      It is unclear what recheck_defs does, as it seems to have no impact on the Sail code.
+      This can mean that
+      * it affects some internal state in Sail
+      * whatever changes it does make are not visible in the code
+      The second option seems more likely.
+    *)
+    ("atoms_to_singletons", [String_arg "c"]);
+    ("recheck_defs", []);
+    
     ("add_unspecified_rec", []);
     ("undefined", [R.Bool_arg true]);
 
