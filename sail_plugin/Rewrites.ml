@@ -130,12 +130,31 @@ let katamaran_rewrites =
     ("undefined", [R.Bool_arg true]);
 
     (*
-       Translates 0b000 into [bitzero, bitzero, bitzero]
+       Translates 0b010 into [bitzero, bitone, bitzero]
        Required
     *)
     ("vector_string_pats_to_bit_list", []);
     
     ("remove_not_pats", []);
+
+    (*
+      Simplifies code where sufficient information is available at compile time.Abi_aarch64_le
+
+        function let_test () =
+          let a = true in
+          let b = false in
+          let c = if b then a else b in
+          c
+
+      is rewritten to
+        
+        function let_test () =
+          let a = true in
+          let b = false
+          in let c = b in
+          c
+      
+    *)    
     ("remove_impossible_int_cases", []);
     ("tuple_assignments", []);
     ("vector_concat_assignments", []);
