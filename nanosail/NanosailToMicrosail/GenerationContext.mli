@@ -10,7 +10,6 @@ val block               : PP.document t -> PP.document t
 val add_annotation      : PP.document -> int t
 val add_comment         : PP.document -> unit t
 val not_yet_implemented : ?message : string -> Lexing.position -> PP.document t
-(* val generation_block    : Lexing.position -> PP.document -> PP.document   -> PP.document t *)
 val generation_block    : Lexing.position -> PP.document -> PP.document t -> PP.document t
 val pp_annotate         : Lexing.position -> PP.document t -> PP.document t
 val pp_annotate'        : Lexing.position -> string -> PP.document t -> PP.document t
