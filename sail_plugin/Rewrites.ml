@@ -233,7 +233,7 @@ let katamaran_rewrites =
             eax = $[overloaded { "name" = "-", "is_infix" = true }] sub_atom(eax, 1);
             eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
 
-        is rewritten to
+      is rewritten to
             
         function execute merge#var = match merge#var {
           Increment => {
