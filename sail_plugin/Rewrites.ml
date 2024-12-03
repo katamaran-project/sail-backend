@@ -88,6 +88,21 @@ let katamaran_rewrites =
     ("truncate_hex_literals", []);
     ("mono_rewrites", []);
     ("recheck_defs", []);
+
+    (*
+      Rewrites type signatures of polymorphic functions so that no numeric expressions
+      appear in the parameter/return types.
+
+      Example:
+
+        val append_64 = pure {_: "append_64"}: forall 'n. (bitvector('n), bitvector(64)) -> bitvector('n + 64)
+
+      gets rewritten to
+     
+        val append_64 = pure {_: "append_64"}: forall 'n 'n_plus_p64, 'n_plus_p64 == 'n + 64.
+          (bitvector('n), bitvector(64)) -> bitvector('n_plus_p64)
+      
+    *)
     ("toplevel_nexps", []);
     ("monomorphise", [String_arg "c"]);
 
