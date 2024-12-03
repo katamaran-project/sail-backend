@@ -99,3 +99,16 @@ let annotate
     Printf.sprintf "%s:%d" pos_fname pos_lnum
   in
   Doc.annotate [annotation] document
+
+
+let annotate'
+      (ocaml_location : Lexing.position)
+      (label          : string         )
+      (document       : document       ) : document
+  =
+  let { pos_fname; pos_lnum; _ } : Lexing.position = ocaml_location
+  in
+  let annotation =
+    Printf.sprintf "%s:%d %s" pos_fname pos_lnum label
+  in
+  Doc.annotate [annotation] document
