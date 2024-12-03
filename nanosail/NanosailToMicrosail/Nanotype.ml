@@ -57,7 +57,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
         PP.annotate [%here] begin
             Coq.pp_application
               (Identifier.pp @@ Ast.Identifier.mk "ty.bvec")
-              [ pp_nexpr ]
+              [ PP.(surround parens) pp_nexpr ]
           end
       end
 
