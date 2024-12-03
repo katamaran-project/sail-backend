@@ -221,6 +221,31 @@ let katamaran_rewrites =
 
     *)
     ("make_cases_exhaustive", []);
+
+    (*
+      Joins function clauses into one function.
+
+        function execute Increment = {
+            eax = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eax, 1);
+            eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
+        }
+        and execute Decrement = {
+            eax = $[overloaded { "name" = "-", "is_infix" = true }] sub_atom(eax, 1);
+            eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
+
+        is rewritten to
+            
+        function execute merge#var = match merge#var {
+          Increment => {
+              eax = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eax, 1);
+              eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
+          },
+          Decrement => {
+              eax = $[overloaded { "name" = "-", "is_infix" = true }] sub_atom(eax, 1);
+              eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
+          }
+      
+    *)
     ("merge_function_clauses", []);
     ("constant_fold", [String_arg "c"]);
     ("recheck_defs", []);
