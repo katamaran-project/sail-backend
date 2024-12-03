@@ -165,6 +165,23 @@ let katamaran_rewrites =
     ("remove_numeral_pats", []);
     (* ("pattern_literals", [Literal_arg "lem"]);                (\* From Coq backend *\) *)
     ("pattern_literals", [Literal_arg "all"]);
+
+    (*
+      Makes cases exhaustive.
+      
+        enum Foo = { x, y, z }
+      
+        function foo e = $[incomplete] match e {x => 1}
+
+        function foo e = match e {
+          x => 1,
+          _ => {
+              assert(false, "Pattern match failure at model.sail:10.18-12.1");
+              exit(())
+          }
+}
+      
+    *)
     ("guarded_pats", []);
     ("split", [R.String_arg "execute"]);
     ("minimise_recursive_functions", []);
@@ -174,6 +191,35 @@ let katamaran_rewrites =
     ("exp_lift_assign", []);
     (* ("early_return", []);                                              (\* From Coq backend *\) *)
     ("recheck_defs", []);
+
+    (*
+      One would expect this rewrite to make cases exhaustive, but it doesn't seem to.
+      Instead, the guarded_pats rewrite adds code dealing with missing cases.
+
+      One might think make_cases_exhaustive would do the same were it not
+      that guarded_pats already took care of it. However, this is not the case:
+      deactivating guarded_pats simply leads to Sail crashing.
+
+      This rewrite does seem to remove useless cases though.
+      It rewrote
+
+        function my_enum_to_int_forwards_matches arg# = $[complete] match arg# {
+          Foo => true,
+          Bar => true,
+          Baz => true,
+          _ => false
+        }
+
+      to
+
+        $[complete]
+        function my_enum_to_int_forwards_matches arg# = $[complete] match arg# {
+          Foo => true,
+          Bar => true,
+          Baz => true
+        }
+
+    *)
     ("make_cases_exhaustive", []);
     ("merge_function_clauses", []);
     ("constant_fold", [String_arg "c"]);
