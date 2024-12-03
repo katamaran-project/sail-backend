@@ -36,22 +36,20 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method top_level_type_constraint_definitions = top_level_type_constraint_definitions
 
   method pp_base_prelude : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_base_prelude"
-    in
-    genblock [%here] "Prelude" @@ begin
-      BaseModule.generate_base_prelude ()
-    end
+    GC.block begin
+        genblock [%here] "Prelude" @@ begin
+          BaseModule.generate_base_prelude ()
+        end
+      end
 
   method pp_program_prelude : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_program_prelude"
-    in
-    genblock [%here] "Prelude" @@ begin
-      ProgramModule.generate_program_prelude ()
-    end
+    GC.block begin
+        genblock [%here] "Prelude" @@ begin
+          ProgramModule.generate_program_prelude ()
+        end
+      end
 
   method pp_register_definitions : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_register_definitions"
-    in
     GC.block begin
         genblock [%here] "Register Definitions" @@ begin
           Registers.pp_regname_inductive_type register_definitions
@@ -59,8 +57,6 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_translated_type_definitions : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_translated_type_definitions"
-    in
     GC.block begin
         genblock [%here] "Translated Type Definitions" @@ begin
           let* type_definitions' =
@@ -71,15 +67,13 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_enum_tags : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_enum_tags"
-    in
-    genblock [%here] "Enum Tags" @@ begin
-      Types.Enums.generate_tags enum_definitions
-    end
+    GC.block begin
+        genblock [%here] "Enum Tags" @@ begin
+          Types.Enums.generate_tags enum_definitions
+        end
+      end
 
   method pp_record_tags : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_record_tags"
-    in
     GC.block begin
         genblock [%here] "Record Tags" begin
           Types.Records.generate_tags record_definitions
@@ -87,26 +81,20 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_variant_tags : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_variant_tags"
-    in
-    genblock [%here] "Variant Tags" begin
-        GC.block begin
+    GC.block begin
+        genblock [%here] "Variant Tags" begin
             Types.Variants.generate_tags variant_definitions;
           end
       end
 
-  method pp_base_module : PP.document GC.t =    
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_base_module"
-    in
-    genblock [%here] "Base Module" begin
-        GC.block begin
+  method pp_base_module : PP.document GC.t =
+    GC.block begin
+        genblock [%here] "Base Module" begin
             BaseModule.pp_base_module all_definitions
           end
       end
 
   method pp_program_module : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy "pp_program_module"
-    in
     let* program_module =
       ProgramModule.pp_program_module
         function_definitions
