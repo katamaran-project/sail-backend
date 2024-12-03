@@ -88,10 +88,14 @@ let katamaran_rewrites =
 
     (*
       This rewrite needs to be followed by recheck_defs, otherwise a crash ensues.
-      It is unclear what recheck_defs does, as it seems to have no impact on the Sail code.
+      It is unclear what recheck_defs does, as it seems to have no impact on the Sail code,
+      at least in cases where it makes a difference in whether atoms_to_singletons leads
+      to a crash or not.
+      
       This can mean that
       * it affects some internal state in Sail
       * whatever changes it does make are not visible in the code
+      
       The second option seems more likely.
     *)
     ("atoms_to_singletons", [String_arg "c"]);
