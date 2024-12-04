@@ -93,10 +93,24 @@ end = struct
           end
 
       and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
-        let message =
-          StringOf.Sail.typ typ
-        in
-        TC.not_yet_implemented ~message [%here] location
+        match args with
+        | [ type_argument ] -> begin
+            match type_argument with
+            | NumericExpression numeric_expression -> begin
+                match numeric_expression with
+                | Constant _     -> TC.not_yet_implemented [%here] location
+                | Add (_, _)     -> TC.not_yet_implemented [%here] location
+                | Sub (_, _)     -> TC.not_yet_implemented [%here] location
+                | Mul (_, _)     -> TC.not_yet_implemented [%here] location
+                | Neg _          -> TC.not_yet_implemented [%here] location
+                | PowerOf2 _     -> TC.not_yet_implemented [%here] location
+                | Id _           -> TC.not_yet_implemented [%here] location
+                | Var _          -> TC.return Ast.Type.Int
+              end
+            | Type _ -> TC.not_yet_implemented [%here] location
+            | Bool _ -> TC.not_yet_implemented [%here] location
+          end
+        | _ -> TC.fail [%here] "type 'itself' expected to receive exactly one parameter"
       
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
