@@ -19,7 +19,7 @@ module rec Nanotype : sig
   val nanotype_of_sail_type   : S.typ -> Ast.Type.t TC.t
   val translate_type_argument : S.typ_arg -> Ast.TypeArgument.t TC.t
 end = struct
-  let rec nanotype_of_sail_type typ : Ast.Type.t TC.t =
+  let rec nanotype_of_sail_type (typ : S.typ) : Ast.Type.t TC.t =
     TC.translation_block [%here] ("Translating type " ^ StringOf.Sail.typ typ) begin
       let (S.Typ_aux (typ, location)) = typ
       in                                   
