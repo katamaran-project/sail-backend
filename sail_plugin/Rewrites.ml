@@ -7,62 +7,62 @@ module R = Libsail.Rewrites
 *)
 let all_rewrites =
   [
-    ("recheck_defs", []);
-    ("realize_mappings", []);
-    ("remove_duplicate_valspecs", []);
-    ("toplevel_string_append", []);
-    ("pat_string_append", []);
-    ("mapping_patterns", []);
-    ("truncate_hex_literals", []);
-    ("mono_rewrites", []);
+    (* ("recheck_defs", []); *)
+    (* ("realize_mappings" *\), []); *)
+    (* ("remove_duplicate_valspecs", []); *)
+    (* ("toplevel_string_append", []); *)
+    (* ("pat_string_append", []); *)
+    (* ("mapping_patterns", []); *)
+    (* ("truncate_hex_literals", []); *)
+    (* ("mono_rewrites", []); *)
     ("complete_record_params", []);
-    ("toplevel_nexps", []);
+    (* ("toplevel_nexps", []); *)
     ("toplevel_consts", []);
-    ("monomorphise", []);
-    ("atoms_to_singletons", []);
+    (* ("monomorphise", []); *)
+    (* ("atoms_to_singletons", []); *)
     ("add_bitvector_casts", []);
-    ("remove_impossible_int_cases", []);
-    ("const_prop_mutrec", []);
-    ("make_cases_exhaustive", []);
-    ("undefined", []);
-    ("vector_string_pats_to_bit_list", []);
-    ("remove_not_pats", []);
-    ("pattern_literals", []);
-    ("vector_concat_assignments", []);
-    ("tuple_assignments", []);
-    ("simple_assignments", []);
-    ("simple_struct_assignments", []);
-    ("remove_vector_concat", []);
-    ("remove_vector_subrange_pats", []);
-    ("remove_bitvector_pats", []);
-    ("remove_numeral_pats", []);
-    ("guarded_pats", []);
-    ("bit_lists_to_lits", []);
-    ("exp_lift_assign", []);
+    (* ("remove_impossible_int_cases", []); *)
+    (* ("const_prop_mutrec", []); *)
+    (* ("make_cases_exhaustive", []); *)
+    (* ("undefined", []); *)
+    (* ("vector_string_pats_to_bit_list", []); *)
+    (* ("remove_not_pats", []); *)
+    (* ("pattern_literals", []); *)
+    (* ("vector_concat_assignments", []); *)
+    (* ("tuple_assignments", []); *)
+    (* ("simple_assignments", []); *)
+    (* ("simple_struct_assignments", []); *)
+    (* ("remove_vector_concat", []); *)
+    (* ("remove_vector_subrange_pats", []); *)
+    (* ("remove_bitvector_pats", []); *)
+    (* ("remove_numeral_pats", []); *)
+    (* ("guarded_pats", []); *)
+    (* ("bit_lists_to_lits", []); *)
+    (* ("exp_lift_assign", []); *)
     ("early_return", []);
     ("nexp_ids", []);
-    ("remove_blocks", []);
-    ("letbind_effects", []);
-    ("remove_e_assign", []);
-    ("internal_lets", []);
-    ("remove_superfluous_letbinds", []);
-    ("remove_superfluous_returns", []);
-    ("merge_function_clauses", []);
-    ("minimise_recursive_functions", []);
-    ("move_termination_measures", []);
-    ("rewrite_explicit_measure", []);
-    ("rewrite_loops_with_escape_effect", []);
+    (* ("remove_blocks", []); *)
+    (* ("letbind_effects", []); *)
+    (* ("remove_e_assign", []); *)
+    (* ("internal_lets", []); *)
+    (* ("remove_superfluous_letbinds", []); *)
+    (* ("remove_superfluous_returns", []); *)
+    (* ("merge_function_clauses", []); *)
+    (* ("minimise_recursive_functions", []); *)
+    (* ("move_termination_measures", []); *)
+    (* ("rewrite_explicit_measure", []); *)
+    (* ("rewrite_loops_with_escape_effect", []); *)
     ("simple_types", []);
-    ("instantiate_outcomes", []);
+    (* ("instantiate_outcomes", []); *)
     ("top_sort_defs", []);
-    ("constant_fold", []);
-    ("split", []);
+    (* ("constant_fold", []); *)
+    (* ("split", []); *)
     ("properties", []);
     ("infer_effects", []);
-    ("attach_effects", []);
+    (* ("attach_effects", []); *)
     ("prover_regstate", []);
-    ("add_unspecified_rec", []);
-    ("toplevel_let_patterns", []);
+    (* ("add_unspecified_rec", []); *)
+    (* ("toplevel_let_patterns", []); *)
     ("remove_bitfield_records", []);
   ]
 
@@ -275,36 +275,4 @@ let katamaran_rewrites =
     ("toplevel_let_patterns", []);                                     (* From Coq backend *)
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("attach_effects", []);                                            (* From Coq backend *)
-  ]
-
-
-(* Can be ignored *)
-let _c_rewrites =
-  [
-    ("instantiate_outcomes", [R.String_arg "c"]);
-    ("realize_mappings", []);
-    ("remove_vector_subrange_pats", []);
-    ("toplevel_string_append", []);
-    ("pat_string_append", []);
-    ("mapping_patterns", []);
-    ("truncate_hex_literals", []);
-    ("mono_rewrites", [If_flag R.opt_mono_rewrites]);
-    ("recheck_defs", [If_flag R.opt_mono_rewrites]);
-    ("toplevel_nexps", [If_mono_arg]);
-    ("monomorphise", [String_arg "c"; If_mono_arg]);
-    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);
-    ("recheck_defs", [If_mono_arg]);
-    ("undefined", [Bool_arg false]);
-    ("vector_string_pats_to_bit_list", []);
-    ("remove_not_pats", []);
-    ("remove_vector_concat", []);
-    ("remove_bitvector_pats", []);
-    ("pattern_literals", [Literal_arg "all"]);
-    ("tuple_assignments", []);
-    ("vector_concat_assignments", []);
-    ("simple_struct_assignments", []);
-    ("exp_lift_assign", []);
-    ("merge_function_clauses", []);
-    ("recheck_defs", []);
-    ("constant_fold", [String_arg "c"]);
   ]
