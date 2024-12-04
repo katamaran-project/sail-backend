@@ -21,7 +21,7 @@ module rec Nanotype : sig
 end = struct
   let rec nanotype_of_sail_type (typ : S.typ) : Ast.Type.t TC.t =
     TC.translation_block [%here] ("Translating type " ^ StringOf.Sail.typ typ) begin
-      let (S.Typ_aux (typ, location)) = typ
+      let (S.Typ_aux (unwrapped_type, location)) = typ
       in                                   
       (*
         Types are representing as strings in Sail.
@@ -87,7 +87,7 @@ end = struct
         | "range"     -> nanotype_of_range type_arguments'
         | "itself"    -> begin
             let message =
-              Printf.sprintf "#args=%d" (List.length type_arguments)
+              StringOf.Sail.typ typ
             in
             TC.not_yet_implemented ~message [%here] location
           end
@@ -166,7 +166,7 @@ end = struct
         | _          -> TC.return @@ Ast.Type.Tuple items'
 
       in
-      match typ with
+      match unwrapped_type with
       | Typ_tuple items                 -> nanotype_of_tuple items
       | Typ_id id                       -> nanotype_of_identifier id
       | Typ_app (identifier, type_args) -> nanotype_of_application identifier type_args
