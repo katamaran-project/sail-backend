@@ -119,26 +119,6 @@ module rec Type : sig
   val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
 end = struct
-(*
-  should mirror
-
-    Inductive Ty : Set :=
-    | int
-    | bool
-    | string
-    | list (σ : Ty)
-    | prod (σ τ : Ty)
-    | sum  (σ τ : Ty)
-    | unit
-    | enum (E : enumi)
-    | bvec (n : nat)
-    | tuple (σs : Ctx Ty)
-    | union (U : unioni)
-    | record (R : recordi)
-    .
-
-   defined in theories/Syntax/TypeDecl.v
- *)
   type t =
     | Int
     | Bool
