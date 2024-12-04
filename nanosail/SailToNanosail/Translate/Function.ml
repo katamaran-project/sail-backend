@@ -23,10 +23,10 @@ let type_from_lvar
       (loc  : S.l                  ) : S.typ TC.t
   =
   match lvar with
-  | S.Ast_util.Register t   -> TC.return t
-  | S.Ast_util.Enum t       -> TC.return t
-  | S.Ast_util.Local (_, t) -> TC.return t
-  | S.Ast_util.Unbound _    -> TC.not_yet_implemented [%here] loc
+  | Register t   -> TC.return t
+  | Enum t       -> TC.return t
+  | Local (_, t) -> TC.return t
+  | Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
 let create_if_statement
