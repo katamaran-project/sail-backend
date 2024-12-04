@@ -114,7 +114,11 @@ end = struct
       
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
-        | [ _ ] -> TC.return Ast.Type.Int
+        | [ _ ] -> begin
+            let* () = TC.log [%here] Logging.debug @@ lazy (Printf.sprintf "simplifying %s to int" @@ StringOf.Sail.typ typ)
+            in
+            TC.return Ast.Type.Int
+          end
         | _     -> TC.fail [%here] "atom expected to have exactly one argument"
 
       and nanotype_of_atom_bool (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
