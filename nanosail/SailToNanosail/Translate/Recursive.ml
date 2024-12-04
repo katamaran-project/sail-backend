@@ -85,18 +85,19 @@ end = struct
         | "bits"      -> nanotype_of_bits type_arguments'
         | "bitvector" -> nanotype_of_bitvector type_arguments'
         | "range"     -> nanotype_of_range type_arguments'
-        | "itself"    -> begin
-            let message =
-              StringOf.Sail.typ typ
-            in
-            TC.not_yet_implemented ~message [%here] location
-          end
+        | "itself"    -> nanotype_of_itself type_arguments'
         | _           -> begin
             let* constructor = nanotype_of_identifier identifier
             in
             TC.return @@ Ast.Type.Application (constructor, type_arguments')
           end
 
+      and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+        let message =
+          StringOf.Sail.typ typ
+        in
+        TC.not_yet_implemented ~message [%here] location
+      
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
         | [ _ ] -> TC.return Ast.Type.Int
