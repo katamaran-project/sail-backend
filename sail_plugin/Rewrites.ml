@@ -252,18 +252,29 @@ let katamaran_rewrites =
     ("rewrite_explicit_measure", []);
     ("rewrite_loops_with_escape_effect", []);
     ("recheck_defs", []);
-    (* ("remove_blocks", []);                                             (\* From Coq backend *\) *)
-    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
-    (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
-    (* ("remove_e_assign", []);                                           (\* From Coq backend *\) *)
-    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
-    (* ("internal_lets", []);                                             (\* From Coq backend *\) *)
-    (* ("remove_superfluous_letbinds", []);                               (\* From Coq backend *\) *)
-    (* ("remove_superfluous_returns", []);                                (\* From Coq backend *\) *)
-    (* ("bit_lists_to_lits", []);                                         (\* From Coq backend *\) *)
-    (* ("toplevel_let_patterns", []);                                     (\* From Coq backend *\) *)
-    (* ("recheck_defs", []);                                              (\* From Coq backend *\) *)
-    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
+    ("remove_blocks", []);                                             (* From Coq backend *)
+    ("attach_effects", []);                                            (* From Coq backend *)
+    ("letbind_effects", []);                                           (* From Coq backend *)
+    ("remove_e_assign", []);                                           (* From Coq backend *)
+    ("attach_effects", []);                                            (* From Coq backend *)
+    ("internal_lets", []);                                             (* From Coq backend *)
+    ("remove_superfluous_letbinds", []);                               (* From Coq backend *)
+    ("remove_superfluous_returns", []);                                (* From Coq backend *)
+
+    (*
+      Rewrites bit lists to binary literals.
+
+        [bitzero, bitone]
+
+      gets rewritten to
+
+        0b01  
+    *)
+    (* ("bit_lists_to_lits", []); *)
+    
+    ("toplevel_let_patterns", []);                                     (* From Coq backend *)
+    ("recheck_defs", []);                                              (* From Coq backend *)
+    ("attach_effects", []);                                            (* From Coq backend *)
   ]
 
 
