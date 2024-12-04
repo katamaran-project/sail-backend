@@ -408,7 +408,14 @@ let translate_extend
       in
       match bit_size_value with
       | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-      | None              -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None              -> begin
+          GC.fail [%here] begin
+              Printf.sprintf
+                "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
+                sail_name
+                (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
+            end
+        end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
