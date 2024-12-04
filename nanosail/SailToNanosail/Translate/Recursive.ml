@@ -48,7 +48,7 @@ end = struct
             in
             match type_definition with
             | Some (Abbreviation { identifier; abbreviation }) -> begin
-                let _ = identifier (* todo remove this *)
+                let _ = identifier (* keeps away unused var warning/error *)
                 in
                 match abbreviation with
                 | NumericExpression (_, _)     -> TC.not_yet_implemented [%here] location
@@ -85,6 +85,12 @@ end = struct
         | "bits"      -> nanotype_of_bits type_arguments'
         | "bitvector" -> nanotype_of_bitvector type_arguments'
         | "range"     -> nanotype_of_range type_arguments'
+        | "itself"    -> begin
+            let message =
+              Printf.sprintf "#args=%d" (List.length type_arguments)
+            in
+            TC.not_yet_implemented ~message [%here] location
+          end
         | _           -> begin
             let* constructor = nanotype_of_identifier identifier
             in
