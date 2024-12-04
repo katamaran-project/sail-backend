@@ -118,10 +118,10 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
   | [ (_, value_definition) ] -> begin
       match value_definition.value with
       | Int n -> GC.return @@ n
-      | _     -> GC.fail @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.to_string identifier)
+      | _     -> GC.fail [%here] @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.to_string identifier)
     end
-  | []        -> GC.fail @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.to_string identifier)
-  | _         -> GC.fail @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.to_string identifier)
+  | []        -> GC.fail [%here] @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.to_string identifier)
+  | _         -> GC.fail [%here] @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.to_string identifier)
 
 
 (*
@@ -201,13 +201,13 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
             pp_zeros (Z.to_int number_of_bits)
           end
         end
-      | None -> GC.fail "sail_zeros expects compile time known integer argument"
+      | None -> GC.fail [%here] "sail_zeros expects compile time known integer argument"
     end
   | _ -> begin
       let message =
         Printf.sprintf "expected sail_zeros to receive exactly one argument; instead got %d" (List.length arguments)
       in
-      GC.fail message
+      GC.fail [%here] message
     end
 
 
@@ -232,13 +232,13 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
             pp_ones (Z.to_int number_of_bits)
           end
         end
-      | None -> GC.fail "sail_ones expects compile time known integer argument"
+      | None -> GC.fail [%here] "sail_ones expects compile time known integer argument"
     end
   | _ -> begin
       let message =
         Printf.sprintf "expected sail_ones to receive exactly one argument; instead got %d" (List.length arguments)
       in
-      GC.fail message
+      GC.fail [%here] message
     end
 
 
@@ -290,7 +290,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
             [ pp_bitvector_argument; pp_integer_argument ]
         end
       end
-    | _ -> GC.fail "failed to determine bitvector size"
+    | _ -> GC.fail [%here] "failed to determine bitvector size"
   in
   match arguments with
   | [ bitvector_argument; shift_argument ] -> begin
@@ -298,9 +298,9 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
       in
       match shift_argument_value with
       | Some integer_value -> pp_addition bitvector_argument integer_value
-      | None               -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None               -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
-  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 (*
@@ -355,9 +355,9 @@ let translate_shift
       in
       match shift_argument_value with
       | Some bit_count -> pp_shift bitvector_argument bit_count
-      | None           -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None           -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
-  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -408,9 +408,9 @@ let translate_extend
       in
       match bit_size_value with
       | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-      | None              -> GC.fail @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None              -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
     end
-  | _ -> GC.fail @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -443,9 +443,9 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
           in
           GC.return @@ MuSail.Statement.pp_assert ~condition:pp_condition ~message:pp_error_message
         end
-      | None -> GC.fail @@ Printf.sprintf "%s should have its second argument known at compile time" sail_name
+      | None -> GC.fail [%here] @@ Printf.sprintf "%s should have its second argument known at compile time" sail_name
     end
-  | _ -> GC.fail @@ Printf.sprintf "expected %s to receive two arguments" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "expected %s to receive two arguments" sail_name
 
 
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -454,7 +454,7 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
   let derive_vector_length (expression : Ast.Expression.t) : Z.t GC.t =
     match Ast.Expression.infer_type expression with
     | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return n
-    | _                                                      -> GC.fail "Failed to determine bitvector size"
+    | _                                                      -> GC.fail [%here] "Failed to determine bitvector size"
   in
   match arguments with
   | [ bv1; bv2 ] -> begin
@@ -476,7 +476,7 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
       in
       translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some binop_name) [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
     end
-  | _ -> GC.fail @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
 
 
 let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -508,9 +508,9 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
             (Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
             [ PP.(surround parens) pp_bitvector ]
         end
-      | _ -> GC.fail @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+      | _ -> GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
     end
-  | _ -> GC.fail @@ Printf.sprintf "%s should receive three arguments" sail_name
+  | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
 let translate

@@ -16,7 +16,12 @@ type   'a t         = 'a Monad.t
 
 let return          = Monad.return
 let bind            = Monad.bind
-let fail            = Monad.fail
+
+let fail
+      (ocaml_position : Lexing.position)
+      (message        : string         ) : 'a t
+  =
+  Monad.fail @@ Printf.sprintf "(%s:%d) %s" ocaml_position.pos_fname ocaml_position.pos_lnum message
 
 let get             = Monad.get
 let put             = Monad.put

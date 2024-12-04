@@ -114,7 +114,7 @@ and pp_match_enum
     | [ clause ] -> begin
         GC.pp_annotate [%here] @@ pp_statement clause
       end
-    | _ -> GC.fail "expected exactly one case for unit-typed matches"
+    | _ -> GC.fail [%here] "expected exactly one case for unit-typed matches"
   else begin
     (*
        Reified enum type
