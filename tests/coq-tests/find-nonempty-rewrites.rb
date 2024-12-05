@@ -21,7 +21,13 @@ directories.each do |directory|
 end
 
 
-table.keys.sort.each do |tag|
+if ARGV.empty?
+  regex = /.*/
+else
+  regex = /#{ARGV[0]}/
+end
+
+table.keys.select { _1 =~ regex }.sort.each do |tag|
   directories = table[tag]
   
   puts tag
@@ -29,3 +35,4 @@ table.keys.sort.each do |tag|
     puts "  #{directory}"
   end
 end
+
