@@ -119,9 +119,11 @@ PASS functions-call-ternary
 PASS functions-call-unary
 PASS functions-double
 FAIL functions-flip
+FAIL functions-implicit
 PASS functions-increment
 PASS functions-list-functions
 PASS functions-nullary
+PASS functions-polymorphic
 PASS functions-sign
 PASS functions-ternary
 PASS functions-triple
@@ -137,6 +139,7 @@ PASS int-comparison-less-than-or-equal-to
 PASS int-multiplication
 PASS int-returning
 PASS int-subtraction
+FAIL itself-001
 PASS let-bool
 PASS let-fancy-notation
 PASS let-int
@@ -229,4 +232,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:212 FAIL:19
+PASS:213 FAIL:21
