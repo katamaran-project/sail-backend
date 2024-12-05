@@ -252,13 +252,34 @@ let katamaran_rewrites =
     ("rewrite_explicit_measure", []);
     ("rewrite_loops_with_escape_effect", []);
     ("recheck_defs", []);
+
+    (*
+        function neg x = {
+            neq_bool(x, true)
+        }
+
+       becomes
+        
+        function neg x = neq_bool(x, true)
+    *)
     ("remove_blocks", []);                                             (* From Coq backend *)
+
     ("attach_effects", []);                                            (* From Coq backend *)
-    ("letbind_effects", []);                                           (* From Coq backend *)
-    ("remove_e_assign", []);                                           (* From Coq backend *)
-    ("attach_effects", []);                                            (* From Coq backend *)
-    ("internal_lets", []);                                             (* From Coq backend *)
+    (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
+    (* ("remove_e_assign", []);                                           (\* From Coq backend *\) *)
+    (* ("attach_effects", []);                                            (\* From Coq backend *\) *)
+    (* ("internal_lets", []);                                             (\* From Coq backend *\) *)
+
+    (*
+       function foo _ = let x = true in x
+
+       becomes
+       
+       function foo _ = true
+
+    *)
     ("remove_superfluous_letbinds", []);                               (* From Coq backend *)
+    
     ("remove_superfluous_returns", []);                                (* From Coq backend *)
 
     (*
