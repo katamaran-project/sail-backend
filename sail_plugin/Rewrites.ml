@@ -162,6 +162,28 @@ let katamaran_rewrites =
     ("simple_assignments", []);
     ("remove_vector_concat", []);
     ("remove_bitvector_pats", []);
+
+    (*
+      
+      Numerical patterns are replaced by pattern guards.
+      
+        function iszero x = {
+          match x {
+            0 => true,
+            _ => false
+          }
+        }
+
+      gets rewritten to
+
+        function iszero x = {
+          match x {
+            l__0 if eq_int(l__0, 0) => true,
+              _ => false
+          }
+        }
+
+    *)
     ("remove_numeral_pats", []);
     (* ("pattern_literals", [Literal_arg "lem"]);                (\* From Coq backend *\) *)
     ("pattern_literals", [Literal_arg "all"]);
