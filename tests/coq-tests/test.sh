@@ -7,6 +7,8 @@ COQ=coqc
 
 SAIL_SOURCES=model.sail
 
+git clean -fX
+
 if [[ -v DUMP ]]
 then
     OPT="--ddump-rewrite-ast intermediate"
