@@ -249,7 +249,7 @@ let katamaran_rewrites =
     ("merge_function_clauses", []);
     ("constant_fold", [String_arg "c"]);
     ("recheck_defs", []);
-    ("rewrite_explicit_measure", []);
+    (* ("rewrite_explicit_measure", []); *)
     ("rewrite_loops_with_escape_effect", []);
     ("recheck_defs", []);
 
@@ -278,9 +278,9 @@ let katamaran_rewrites =
        function foo _ = true
 
     *)
-    ("remove_superfluous_letbinds", []);                               (* From Coq backend *)
+    (* ("remove_superfluous_letbinds", []);                               (\* From Coq backend *\) *)
     
-    ("remove_superfluous_returns", []);                                (* From Coq backend *)
+    (* ("remove_superfluous_returns", []);                                (\* From Coq backend *\) *)
 
     (*
       Rewrites bit lists to binary literals.
