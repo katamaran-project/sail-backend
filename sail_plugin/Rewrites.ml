@@ -258,7 +258,7 @@ let katamaran_rewrites =
             neq_bool(x, true)
         }
 
-       becomes
+      becomes
         
         function neg x = neq_bool(x, true)
     *)
