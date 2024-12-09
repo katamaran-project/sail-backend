@@ -3,10 +3,14 @@ default Order dec
 $include <prelude.sail>
 
 
-type word = bits(32)
+register reg : int = 0
 
 
-val foo : (word, word) -> word
-function foo(x, y) = {
-  x & y
+val increment : unit -> unit
+function increment() = {
+  reg = reg + 1
+}
+
+function main() -> unit = {
+  increment()
 }
