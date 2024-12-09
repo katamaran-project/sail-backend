@@ -1,3 +1,12 @@
 default Order dec
 
-let imm_size = 12
+$include <prelude.sail>
+
+
+type word = bits(32)
+
+
+val foo : (word, word) -> word
+function foo(x, y) = {
+  x & y
+}

@@ -7,26 +7,38 @@
                 "file_end"
                 "sail_internal")
 
-(ignore-functions "eq_unit"
-                  "neq_int"
-                  "neq_bool"
-                  "neq_bits"
-                  "slice_mask"
-                  "_shl_int_general"
-                  "_shr_int_general"
-                  "fdiv_int"
-                  "fmod_int"
-                  "is_none"
-                  "is_some"
-                  "bit_of_regval"
-                  "num_of_foo"
-                  "__id"
-                  "Capability_of_regval")
+(ignore-function-definition-predicate (lambda (identifier)
+                                        (or
+                                         (string-ends-with? "_of_num" identifier)
+                                         (string-starts-with? "num_of_" identifier)
+                                         (string-starts-with? "undefined_" identifier)
+                                         (string-starts-with? "regval_of_" identifier)
+                                         (string-ends-with? "_of_regval" identifier)
+                                         (contains? '(
+                                                      "eq_unit"
+                                                      "neq_int"
+                                                      "neq_bool"
+                                                      "neq_bits"
+                                                      "slice_mask"
+                                                      "_shl_int_general"
+                                                      "_shr_int_general"
+                                                      "fdiv_int"
+                                                      "fmod_int"
+                                                      "is_none"
+                                                      "is_some"
+                                                      "__id"
+                                                      "sail_mask"
+                                                      "sail_ones"
+                                                      "concat_str_bits"
+                                                      "concat_str_dec")
+                                                      identifier))))
 
-(ignore-definition-predicate (lambda (identifier)
+(ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
                                             "option"
-                                            "register_value")
+                                            "register_value"
+                                            "bits"
+                                            "regstate")
                                           identifier)))
 
 (ignore-value-definition-predicate
@@ -38,5 +50,7 @@
                 )
               identifier)))
 
-(template "template.v" "microsail.v")
-
+(template "base.template.v")
+(template "machine.template.v")
+(template "base.template.html")
+(template "machine.template.html")
