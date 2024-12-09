@@ -39,7 +39,7 @@ let all_rewrites =
     (* ("guarded_pats", []); *)
     (* ("bit_lists_to_lits", []); *)
     (* ("exp_lift_assign", []); *)
-    ("early_return", []);
+    (* ("early_return", []); *)
     ("nexp_ids", []);
     (* ("remove_blocks", []); *)
     (* ("letbind_effects", []); *)
@@ -54,7 +54,7 @@ let all_rewrites =
     (* ("rewrite_loops_with_escape_effect", []); *)
     ("simple_types", []);
     (* ("instantiate_outcomes", []); *)
-    ("top_sort_defs", []);
+    (* ("top_sort_defs", []); *)
     (* ("constant_fold", []); *)
     (* ("split", []); *)
     ("properties", []);
@@ -63,7 +63,7 @@ let all_rewrites =
     ("prover_regstate", []);
     (* ("add_unspecified_rec", []); *)
     (* ("toplevel_let_patterns", []); *)
-    ("remove_bitfield_records", []);
+    (* ("remove_bitfield_records", []); *)
   ]
 
 
@@ -79,9 +79,17 @@ let katamaran_rewrites =
       Rewrites mappings as two functions.
     *)
     ("realize_mappings", []);
+
+
+    (*
+      Simplifies types (turns them unrefined), but causes trouble in most cases
+    *)
+    (* ("simple_types", []); *)
+
     
     ("remove_vector_subrange_pats", []);
     ("remove_duplicate_valspecs", []);
+    ("remove_bitfield_records", []);
     ("toplevel_string_append", []);
     ("pat_string_append", []);
     ("mapping_patterns", []);
@@ -285,7 +293,7 @@ let katamaran_rewrites =
         function neg x = neq_bool(x, true)
     *)
     ("remove_blocks", []);                                             (* From Coq backend *)
-
+    
     ("attach_effects", []);                                            (* From Coq backend *)
     (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
     (* ("remove_e_assign", []);                                           (\* From Coq backend *\) *)
