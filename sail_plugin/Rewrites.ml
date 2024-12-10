@@ -324,5 +324,5 @@ let katamaran_rewrites =
       Simplifies types (turns them unrefined), but causes trouble in most cases
       If actived, should probably be placed at the very end of the rewrite list
     *)
-    ("simple_types", []);
+    (* ("simple_types", []); *)
   ]
