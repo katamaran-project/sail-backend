@@ -2,8 +2,6 @@ open Base
 
 module Big_int = Nat_big_num
 
-module Sanitation = Sanitation
-
 module S = struct
   include Libsail
   include Libsail.Ast
