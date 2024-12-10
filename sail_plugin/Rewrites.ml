@@ -80,13 +80,6 @@ let katamaran_rewrites =
     *)
     ("realize_mappings", []);
 
-
-    (*
-      Simplifies types (turns them unrefined), but causes trouble in most cases
-    *)
-    (* ("simple_types", []); *)
-
-    
     ("remove_vector_subrange_pats", []);
     ("remove_duplicate_valspecs", []);
     ("remove_bitfield_records", []);
@@ -184,7 +177,7 @@ let katamaran_rewrites =
 
       gets rewritten to
 
-        function iszero x = {
+        zero x = {
           match x {
             l__0 if eq_int(l__0, 0) => true,
               _ => false
@@ -326,4 +319,10 @@ let katamaran_rewrites =
     ("toplevel_let_patterns", []);                                     (* From Coq backend *)
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("attach_effects", []);                                            (* From Coq backend *)
+
+    (*
+      Simplifies types (turns them unrefined), but causes trouble in most cases
+      If actived, should probably be placed at the very end of the rewrite list
+    *)
+    ("simple_types", []);
   ]
