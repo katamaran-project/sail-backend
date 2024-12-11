@@ -3,12 +3,9 @@
 
     These modules should not be accessed directly, but rather through their aliases.
 *)
+module E = Error
 open Base
-
-
-module Error = struct
-  type t = string
-end
+module Error = E
 
 
 module rec Value : sig
