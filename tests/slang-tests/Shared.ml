@@ -1,6 +1,7 @@
 open Base
 open OUnit2
 
+module Slang = Nanosail.Slang
 
 module ListMonadNotations = struct
   let (let*) x f = List.bind x ~f

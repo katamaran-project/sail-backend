@@ -16,8 +16,6 @@ depends: [
   "base"
   "stdio"
   "auxlib"
-  "slang"
-  "ConfigLib"
   "odoc" {with-doc}
 ]
 build: [

@@ -15,31 +15,6 @@
 (maintainers "Frederic Vogels")
 
 (package
-	(name slang)
-	(synopsis
-		"S-Expression Language")
-	(depends ocaml
-                 dune
-                 base
-                 stdio
-                 auxlib
-                 ounit2
-                 monads)
-	(allow_empty))
-
-(package
-	(name ConfigLib)
-	(synopsis
-		"Configuration library")
-	(depends ocaml
-                 dune
-                 base
-                 monads
-                 stdio
-                 slang)
-	(allow_empty))
-
-(package
 	(name nanosail)
 	(synopsis
 		"Intermediate representation language for the Sail to µSail translation")
@@ -50,9 +25,7 @@
                  pprint
                  base
                  stdio
-                 auxlib
-                 slang
-                 ConfigLib)
+                 auxlib)
 	(allow_empty))
 
 (package
@@ -85,6 +58,5 @@
                  base
                  stdio
                  pprint
-                 auxlib
-                 slang)
+                 auxlib)
 	(allow_empty))

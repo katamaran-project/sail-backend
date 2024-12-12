@@ -1,7 +1,8 @@
 open Base
 open OUnit2
-open Slang.Tokenizing
 
+module Slang = Nanosail.Slang
+open Slang.Tokenizing
 module T = Slang.Token
 
 

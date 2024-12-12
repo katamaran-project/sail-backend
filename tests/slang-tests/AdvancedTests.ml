@@ -5,6 +5,7 @@ open OUnit2
 open Shared
 open Shared.ListMonadNotations
 
+module Slang = Nanosail.Slang
 
 let modulo_tests =
   let open Slang.Value

@@ -1,8 +1,0 @@
-(library
- (name ConfigLib)
- (public_name ConfigLib)
- (libraries base
-            stdio
-            auxlib
-            monads
-            slang))

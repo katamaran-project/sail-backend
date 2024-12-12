@@ -3,6 +3,8 @@ open Auxlib
 open OUnit2
 open Shared
 
+module Slang = Nanosail.Slang
+
 
 let heap_access_tests =
   let open Slang.Value

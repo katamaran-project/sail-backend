@@ -1,4 +1,6 @@
 open OUnit2
+
+module Slang = Nanosail.Slang
 open Slang.Parser
 open Slang.Value
 

@@ -124,6 +124,7 @@ PASS functions-increment
 PASS functions-list-functions
 PASS functions-nullary
 PASS functions-polymorphic
+PASS functions-polymorphic-2
 PASS functions-sign
 PASS functions-ternary
 PASS functions-triple
@@ -136,6 +137,7 @@ PASS int-comparison-greater-than-or-equal-to
 PASS int-comparison-inequality
 PASS int-comparison-less-than
 PASS int-comparison-less-than-or-equal-to
+PASS int-matching
 PASS int-multiplication
 PASS int-returning
 PASS int-subtraction
@@ -177,6 +179,7 @@ PASS records-definition-4-fields
 PASS records-definition-with-pair
 FAIL records-definition-with-triple
 PASS records-field-access
+FAIL records-field-update
 PASS registers-as-parameter
 PASS registers-increment
 PASS registers-initial-value-bool
@@ -226,10 +229,11 @@ PASS unions-scattered-with-alias
 PASS unions-with-record-field
 PASS unions-with-union-field
 PASS unit-equality
+PASS unit-parameter
 PASS unit-return
 PASS value-definition-bitvector
 PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:213 FAIL:21
+PASS:216 FAIL:22

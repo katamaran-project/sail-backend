@@ -15,10 +15,7 @@
         base
         stdio
         auxlib
-        monads
-        slang
-        ConfigLib
-        nanosail))
+        monads))
 
 (install
   (section

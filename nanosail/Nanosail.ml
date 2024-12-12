@@ -15,3 +15,6 @@ module Document            = Document
 module Html                = Html
 module StringOf            = StringOf
 module Util                = Util
+module Slang               = Slang
+module ConfigLib           = ConfigLib
+

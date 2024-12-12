@@ -1,5 +1,6 @@
 open OUnit2
 
+module Slang = Nanosail.Slang
 module V = Slang.Value
 module C = Slang.Converters
 

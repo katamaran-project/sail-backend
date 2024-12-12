@@ -15,7 +15,6 @@ depends: [
   "stdio"
   "pprint"
   "auxlib"
-  "slang"
   "odoc" {with-doc}
 ]
 build: [
