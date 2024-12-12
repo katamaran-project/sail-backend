@@ -26,7 +26,7 @@ let test_two_steps _ =
   assert_equal 3 result
 
 
-let tests =
+let test_suite =
   "continuation tests" >::: [
     "simple continuation" >:: test_simple_continuation;
     "test_two_steps" >:: test_two_steps;
