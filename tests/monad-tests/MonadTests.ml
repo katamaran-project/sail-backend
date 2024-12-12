@@ -6,7 +6,7 @@ let tests =
     ContinuationTests.test_suite;
     StateMonadTests.test_suite;
     Writer_monad_tests.test_suite;
-    Reader_monad_tests.test_suite;
+    ReaderMonadTests.test_suite;
   ]
 
 
