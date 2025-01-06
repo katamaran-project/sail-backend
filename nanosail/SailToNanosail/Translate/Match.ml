@@ -116,12 +116,12 @@ let rec translate_pattern
       in
       TC.return @@ Pattern.Identifier identifier
     end
+  | S.AP_wild _typ     -> TC.return @@ Pattern.Wildcard
   | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
   | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
   | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
   | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
   | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AP_wild _        -> TC.not_yet_implemented [%here] location
   
 
 let translate_case
