@@ -117,9 +117,12 @@ let rec translate_pattern
 let translate_case
     (matched_type   : Ast.Type.t  )
     (sail_pattern   : S.typ S.apat)
-    (sail_condition : S.typ S.aexp)
-    (sail_clause    : S.typ S.aexp) : unit TC.t
+    (_sail_condition : S.typ S.aexp)
+    (_sail_clause    : S.typ S.aexp) : unit TC.t
   =
+  let* pattern = translate_pattern matched_type sail_pattern
+  in
+  Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
   TC.return ()
   
 
@@ -130,7 +133,7 @@ let process
   =
   let* type_of_matched = determine_type matched location
   in
-  let* translated_cases =
+  let* _translated_cases =
     let f (pattern, condition, clause) =
       translate_case type_of_matched pattern condition clause
     in
