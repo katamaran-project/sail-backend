@@ -24,7 +24,7 @@ val foo : C -> string
 function foo(x) = match x {
   C1(B1(A1(a, b))) => "a",
   C2(A2(a, b))     => "b",
-  C1(B2(A2(a, b))) => "c",
+  C1(B2(_))        => "c",
   C3(A1(a, b))     => "d",
   C3(A2(a, b))     => "e",
   _                => "z",
