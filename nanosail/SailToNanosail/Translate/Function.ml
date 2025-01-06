@@ -534,7 +534,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         let error_message =
           lazy "matching list; expected exactly two cases"
         in
-        TC.check [%here] (List.length cases = 2) error_message
+        TC.check [%here] (Int.equal 2 @@ List.length cases) error_message
       in
 
       let* nil_case, cons_case =
