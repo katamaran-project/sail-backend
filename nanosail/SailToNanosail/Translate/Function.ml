@@ -436,7 +436,7 @@ let with_destructured_record
       (body_generator : with_destructured_record_data -> Ast.Statement.t TC.t) : Ast.Statement.t TC.t
   =
   match value with
-  | S.AV_id (record_identifier, lvar) -> begin
+  | AV_id (record_identifier, lvar) -> begin
       let* record_identifier =
         Identifier.translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) =
@@ -496,13 +496,13 @@ let with_destructured_record
       | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
       | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
-  | Libsail.Anf.AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_ref (_, _)      -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_tuple _         -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_list (_, _)     -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_record (_, _)   -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_ref (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_tuple _         -> TC.not_yet_implemented [%here] location
+  | AV_list (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
+  | AV_record (_, _)   -> TC.not_yet_implemented [%here] location
+  | AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
