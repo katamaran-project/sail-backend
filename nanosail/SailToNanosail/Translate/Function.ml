@@ -771,7 +771,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
+        | AE_aux (AE_val (AV_lit (L_aux (L_true, _), _)), _) -> begin
             let AP_aux (pattern, _environment, _pattern_location) = pattern
             in
             match pattern with
