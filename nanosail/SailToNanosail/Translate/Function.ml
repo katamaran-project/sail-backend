@@ -1345,7 +1345,6 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
-
 let translate_body body =
   let* body' = statement_of_aexp body
   in
