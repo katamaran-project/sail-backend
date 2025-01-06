@@ -16,3 +16,4 @@ tests-*.txt
 temp/
 *.diff
 *.c
+_sbuild/
