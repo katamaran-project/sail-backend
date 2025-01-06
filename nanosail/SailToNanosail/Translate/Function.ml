@@ -907,9 +907,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               let S.AP_aux (pattern, _type_check_environment, _loc) = pattern
               in
               match pattern with
-               | S.AP_id (_, _)   -> TC.not_yet_implemented [%here] location
-               | S.AP_wild _      -> statement_of_aexp clause
-               | _                -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
+               | AP_id (_, _)   -> TC.not_yet_implemented [%here] location
+               | AP_wild _      -> statement_of_aexp clause
+               | _              -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
             end
           | _        -> TC.fail [%here] "Matching unit; expected exactly one case"
         end
