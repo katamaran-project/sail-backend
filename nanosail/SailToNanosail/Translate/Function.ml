@@ -926,6 +926,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
+    let* _ = Match.process location matched cases (* todo remove *)
+    in
     match matched with
     | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
