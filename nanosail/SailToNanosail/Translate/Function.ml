@@ -883,15 +883,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
       match type_of_matched with
-      | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-      | S.Typ_tuple _                        -> match_tuple ()
-      | S.Typ_id id                          -> match_type_by_identifier id
-      | S.Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
-      | S.Typ_var _                          -> TC.not_yet_implemented [%here] location
-      | S.Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
-      | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
-      | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
-      | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
+      | Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+      | Typ_tuple _                        -> match_tuple ()
+      | Typ_id id                          -> match_type_by_identifier id
+      | Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
+      | Typ_var _                          -> TC.not_yet_implemented [%here] location
+      | Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
+      | Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
+      | Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
+      | Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
 
     and match_literal
         (literal       : S.lit)
@@ -899,7 +899,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let L_aux (literal, _loc) = literal
       in
       match literal with
-      | S.L_unit     -> begin
+      | L_unit     -> begin
           match cases with
           | [ case ] -> begin
               let pattern, _condition, clause = case
@@ -913,33 +913,33 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             end
           | _        -> TC.fail [%here] "Matching unit; expected exactly one case"
         end
-      | S.L_zero     -> TC.not_yet_implemented [%here] location
-      | S.L_one      -> TC.not_yet_implemented [%here] location
-      | S.L_true     -> TC.not_yet_implemented [%here] location
-      | S.L_false    -> TC.not_yet_implemented [%here] location
-      | S.L_num _    -> TC.not_yet_implemented [%here] location
-      | S.L_hex _    -> TC.not_yet_implemented [%here] location
-      | S.L_bin _    -> TC.not_yet_implemented [%here] location
-      | S.L_string _ -> TC.not_yet_implemented [%here] location
-      | S.L_undef    -> TC.not_yet_implemented [%here] location
-      | S.L_real _   -> TC.not_yet_implemented [%here] location
+      | L_zero     -> TC.not_yet_implemented [%here] location
+      | L_one      -> TC.not_yet_implemented [%here] location
+      | L_true     -> TC.not_yet_implemented [%here] location
+      | L_false    -> TC.not_yet_implemented [%here] location
+      | L_num _    -> TC.not_yet_implemented [%here] location
+      | L_hex _    -> TC.not_yet_implemented [%here] location
+      | L_bin _    -> TC.not_yet_implemented [%here] location
+      | L_string _ -> TC.not_yet_implemented [%here] location
+      | L_undef    -> TC.not_yet_implemented [%here] location
+      | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
     match matched with
-    | S.AV_id (_id, lvar) -> begin
+    | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
-        | S.Ast_util.Local (_mut, typ) -> match_typed typ
-        | S.Ast_util.Register typ      -> match_typed typ
-        | S.Ast_util.Enum typ          -> match_typed typ
-        | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
+        | Local (_mut, typ) -> match_typed typ
+        | Register typ      -> match_typed typ
+        | Enum typ          -> match_typed typ
+        | Unbound _         -> TC.not_yet_implemented [%here] location
       end
-    | S.AV_lit (literal, literal_type) -> match_literal literal literal_type
-    | S.AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
-    | S.AV_tuple _                     -> match_tuple ()
-    | S.AV_list (_, _)                 -> match_list ()
-    | S.AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
-    | S.AV_record (_, _)               -> TC.not_yet_implemented [%here] location
-    | S.AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+    | AV_lit (literal, literal_type) -> match_literal literal literal_type
+    | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
+    | AV_tuple _                     -> match_tuple ()
+    | AV_list (_, _)                 -> match_list ()
+    | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
+    | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
+    | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
 
   and statement_of_field_access
         (location         : S.l         )
