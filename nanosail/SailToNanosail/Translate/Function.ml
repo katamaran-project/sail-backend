@@ -895,7 +895,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
     and match_literal
         (literal       : S.lit)
-        (_literal_type : S.typ) : Ast.Statement.t TC.t =
+        (_literal_type : S.typ) : Ast.Statement.t TC.t
+      =
       let L_aux (literal, _loc) = literal
       in
       match literal with
