@@ -673,7 +673,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         (*
            condition is an extra condition that needs to be satisfied for the branch to be taken;
-           if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
+           if no condition is given, the condition is simply true (i.e., the Sail representation for true)
         *)
         match condition with
         | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
