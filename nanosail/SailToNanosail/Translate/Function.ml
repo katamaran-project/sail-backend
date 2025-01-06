@@ -911,7 +911,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                | AP_wild _      -> statement_of_aexp clause
                | _              -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
             end
-          | _        -> TC.fail [%here] "Matching unit; expected exactly one case"
+          | _ -> TC.fail [%here] "Matching unit; expected exactly one case"
         end
       | L_zero     -> TC.not_yet_implemented [%here] location
       | L_one      -> TC.not_yet_implemented [%here] location
