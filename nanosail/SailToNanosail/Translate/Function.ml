@@ -899,7 +899,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let L_aux (literal, _loc) = literal
       in
       match literal with
-      | L_unit     -> begin
+      | L_unit -> begin
           match cases with
           | [ case ] -> begin
               let pattern, _condition, clause = case
