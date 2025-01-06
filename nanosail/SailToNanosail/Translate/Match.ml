@@ -104,9 +104,19 @@ let rec translate_pattern
         end
       | _ -> TC.fail [%here] "expected list type"
     end
-  | S.AP_nil _         -> TC.not_yet_implemented [%here] location
+  | S.AP_nil _typ      -> begin
+      match matched_type with
+      | List _ -> begin
+          TC.return @@ Pattern.ListPatternNil
+        end
+      | _ -> TC.fail [%here] "expected list type"
+    end
+  | S.AP_id (identifier, _typ) -> begin
+      let* identifier = Identifier.translate_identifier [%here] identifier
+      in
+      TC.return @@ Pattern.Identifier identifier
+    end
   | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
-  | S.AP_id (_, _)     -> TC.not_yet_implemented [%here] location
   | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
   | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
   | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
