@@ -771,7 +771,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
+        | AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
             let AP_aux (pattern, _environment, _pattern_location) = pattern
             in
             match pattern with
@@ -786,7 +786,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 let AP_aux (subpattern, _environment, subpattern_location) = subpattern
                 in
                 match subpattern with
-                | S.AP_tuple tuple_patterns -> begin
+                | AP_tuple tuple_patterns -> begin
                     (* assumes tuple patterns are all identifiers *)
                     let extract_identifiers (tuple_pattern : S.typ S.apat) =
                       let S.AP_aux (tuple_pattern, _env, tuple_pattern_location) = tuple_pattern
@@ -806,27 +806,27 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
                   end
-                | S.AP_id (identifier, _typ) -> begin
+                | AP_id (identifier, _typ) -> begin
                     let* identifier = Identifier.translate_identifier [%here] identifier
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
-                | S.AP_wild _typ     -> begin
+                | AP_wild _typ     -> begin
                     let* identifier = TC.generate_unique_identifier ~underscore:true ()
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
-                | S.AP_app (_identifier, _pattern, _typ) -> begin
+                | AP_app (_identifier, _pattern, _typ) -> begin
                     Stdio.printf "AP_app(%s, %s, %s)\n" (StringOf.Sail.id _identifier) (StringOf.Sail.apat _pattern) (StringOf.Sail.typ _typ);
                     TC.not_yet_implemented [%here] subpattern_location
                   end
-                | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
               end
-            | S.AP_wild _ -> begin
+            | AP_wild _ -> begin
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
                     (acc                 : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
@@ -844,13 +844,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 in
                 TC.fold_left ~f:add_missing_case ~init:acc variant_definition.constructors
               end
-            | S.AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_cons (_, _)   -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_cons (_, _)   -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
