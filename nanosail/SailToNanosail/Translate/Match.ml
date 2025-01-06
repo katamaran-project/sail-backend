@@ -104,7 +104,7 @@ let rec translate_pattern
         end
       | _ -> TC.fail [%here] "expected list type"
     end
-  | S.AP_nil _typ      -> begin
+  | S.AP_nil _typ -> begin
       match matched_type with
       | List _ -> begin
           TC.return @@ Pattern.ListPatternNil
