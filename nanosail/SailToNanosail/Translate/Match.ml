@@ -101,7 +101,7 @@ let rec translate_pattern
   let S.AP_aux (unwrapped_sail_pattern, _type_environment, location) = sail_pattern
   in
   match unwrapped_sail_pattern with
-  | S.AP_cons (head_pattern, tail_pattern) -> begin
+  | AP_cons (head_pattern, tail_pattern) -> begin
       match matched_type with
       | List element_type -> begin
           let* head_pattern = translate_pattern element_type head_pattern
@@ -111,20 +111,20 @@ let rec translate_pattern
         end
       | _ -> TC.fail [%here] "expected list type"
     end
-  | S.AP_nil _typ -> begin
+  | AP_nil _typ -> begin
       match matched_type with
       | List _ -> begin
           TC.return @@ Pattern.ListNil
         end
       | _ -> TC.fail [%here] "expected list type"
     end
-  | S.AP_id (identifier, _typ) -> begin
+  | AP_id (identifier, _typ) -> begin
       let* identifier = Identifier.translate_identifier [%here] identifier
       in
       TC.return @@ Pattern.Identifier identifier
     end
-  | S.AP_wild _typ     -> TC.return @@ Pattern.Wildcard
-  | S.AP_tuple subpatterns -> begin
+  | AP_wild _typ     -> TC.return @@ Pattern.Wildcard
+  | AP_tuple subpatterns -> begin
       let aux subpatterns subpattern_types =
         match List.zip subpattern_types subpatterns with
         | Ok pairs -> begin
@@ -145,10 +145,10 @@ let rec translate_pattern
           TC.fail [%here] error_message
         end
     end
-  | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
-  | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
-  | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
-  | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] location
+  | AP_global (_, _) -> TC.not_yet_implemented [%here] location
+  | AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
+  | AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
+  | AP_struct (_, _) -> TC.not_yet_implemented [%here] location
   
 
 let translate_case
