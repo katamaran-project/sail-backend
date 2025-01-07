@@ -477,17 +477,17 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "bitvector_concat"
   in
-  let derive_vector_length (expression : Ast.Expression.t) : Z.t GC.t =
+  let derive_vector_length (expression : Ast.Expression.t) : PP.document GC.t =
     match Ast.Expression.infer_type expression with
-    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return n
-    | _                                                      -> GC.fail [%here] "Failed to determine bitvector size"
+    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return @@ PP.string @@ Z.to_string n
+    | _                                                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
   in
   match arguments with
   | [ bv1; bv2 ] -> begin
-      let* bv1'       = Expressions.pp_expression bv1
-      and* bv2'       = Expressions.pp_expression bv2
-      and* bv1_length = derive_vector_length bv1
-      and* bv2_length = derive_vector_length bv2
+      let* pp_bv1        = Expressions.pp_expression bv1
+      and* pp_bv2        = Expressions.pp_expression bv2
+      and* pp_bv1_length = derive_vector_length bv1
+      and* pp_bv2_length = derive_vector_length bv2
       in
       let binop_name =
         PP.(surround parens) begin
@@ -495,12 +495,18 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
               (PP.string "bop.bvapp")
               [
                 PP.string "_";
-                PP.string @@ Z.to_string bv1_length;
-                PP.string @@ Z.to_string bv2_length;
+                pp_bv1_length;
+                pp_bv2_length;
               ]
           end
       in
-      translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some binop_name) [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
+      translate_binary_operator
+        (Ast.Identifier.mk sail_name)
+        ~name:(Some binop_name)
+        [
+          PP.(surround parens) pp_bv1;
+          PP.(surround parens) pp_bv2
+        ]
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
 
