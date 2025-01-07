@@ -1,4 +1,3 @@
-s
 open Base
 open Monads.Notations.Star(GenerationContext)
 
@@ -552,7 +551,10 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
             pp_bitvector
         end
       | _ -> begin
-          GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          in
+          pp_slice low_index length pp_bitvector
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
