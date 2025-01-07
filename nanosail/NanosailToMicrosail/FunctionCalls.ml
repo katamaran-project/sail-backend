@@ -1,3 +1,4 @@
+s
 open Base
 open Monads.Notations.Star(GenerationContext)
 
@@ -510,6 +511,22 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
   in
   match arguments with
   | [bitvector; first_index; second_index] -> begin
+      let pp_slice
+          (low_index : PP.document)
+          (length    : PP.document)
+          (bitvector : PP.document) : PP.document GC.t
+        =
+        translate_unary_operator
+          (Ast.Identifier.mk sail_name)
+          (
+            PP.(surround parens) begin
+              Coq.pp_application
+                (PP.string "uop.vector_subrange")
+                [ low_index; length ]
+            end
+          )
+          [ PP.(surround parens) bitvector ]
+      in
       (*
         How indices need to be interpreted depends on the order
         Here we assume that "backward slices" are not possible, i.e.,
@@ -529,10 +546,10 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
           in
           let length        = high_index - low_index + 1
           in
-          translate_unary_operator
-            (Ast.Identifier.mk sail_name)
-            (PP.string @@ Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
-            [ PP.(surround parens) pp_bitvector ]
+          pp_slice
+            (PP.integer low_index)
+            (PP.integer length   )
+            pp_bitvector
         end
       | _ -> begin
           GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
