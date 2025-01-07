@@ -3,18 +3,18 @@ default Order dec
 $include <prelude.sail>
 
 
-enum Foo = {
+enum MyEnum = {
   Foo,
   Bar
 }
 
 
-val my_function : (Foo, Foo) -> string
+val my_function : (MyEnum, MyEnum) -> string
 function my_function(x) = {
   match x {
     (Foo, Foo) => "A",
-    (Foo, Bar) => "B",
+    (Foo, x  ) => "B",
     (Bar, Foo) => "C",
-    (Bar, Bar) => "D"
+    (Bar, _  ) => "D"
   }
 }
