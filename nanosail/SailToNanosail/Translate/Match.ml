@@ -16,9 +16,10 @@ open Monads.Notations.Star(TC)
 
 module Pattern = struct
   type t =
-    | ListPatternCons of { head_pattern : t; tail_pattern : t }
-    | ListPatternNil
-    | Identifier      of Ast.Identifier.t
+    | ListCons   of { head_pattern : t; tail_pattern : t }
+    | ListNil
+    | Tuple      of t list
+    | Identifier of Ast.Identifier.t
     | Wildcard
 
   let rec to_fexpr (pattern : t) : FExpr.t =
@@ -26,7 +27,7 @@ module Pattern = struct
       Printf.sprintf "Pattern:%s" id
     in
     match pattern with
-    | ListPatternCons { head_pattern; tail_pattern } -> begin
+    | ListCons { head_pattern; tail_pattern } -> begin
         let keyword =
           [
             ("head", to_fexpr head_pattern);
@@ -34,6 +35,13 @@ module Pattern = struct
           ]
         in
         FExpr.mk_application ~keyword @@ head "Cons"
+      end
+    | ListNil -> FExpr.mk_symbol "Nil"
+    | Tuple subpatterns -> begin
+        let positional =
+          List.map ~f:to_fexpr subpatterns
+        in
+        FExpr.mk_application ~positional @@ head "Tuple"
       end
     | Identifier identifier -> begin
         let positional =
@@ -43,7 +51,6 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Identifier"
       end
-    | ListPatternNil -> FExpr.mk_symbol "Nil"
     | Wildcard       -> FExpr.mk_symbol "Wildcard"
 end
 
@@ -100,14 +107,14 @@ let rec translate_pattern
           let* head_pattern = translate_pattern element_type head_pattern
           and* tail_pattern = translate_pattern matched_type tail_pattern
           in
-          TC.return @@ Pattern.ListPatternCons { head_pattern; tail_pattern }
+          TC.return @@ Pattern.ListCons { head_pattern; tail_pattern }
         end
       | _ -> TC.fail [%here] "expected list type"
     end
   | S.AP_nil _typ -> begin
       match matched_type with
       | List _ -> begin
-          TC.return @@ Pattern.ListPatternNil
+          TC.return @@ Pattern.ListNil
         end
       | _ -> TC.fail [%here] "expected list type"
     end
@@ -117,7 +124,27 @@ let rec translate_pattern
       TC.return @@ Pattern.Identifier identifier
     end
   | S.AP_wild _typ     -> TC.return @@ Pattern.Wildcard
-  | S.AP_tuple _       -> TC.not_yet_implemented [%here] location
+  | S.AP_tuple subpatterns -> begin
+      let aux subpatterns subpattern_types =
+        match List.zip subpattern_types subpatterns with
+        | Ok pairs -> begin
+            let* translated_subpatterns =
+              TC.map ~f:(Auxlib.uncurry translate_pattern) pairs
+            in
+            TC.return @@ Pattern.Tuple translated_subpatterns
+          end
+        | Unequal_lengths -> TC.fail [%here] "expected as many types as patterns in tuple"
+      in
+      match matched_type with
+      | Tuple subpattern_types -> aux subpatterns subpattern_types
+      | Product (t1, t2)       -> aux subpatterns [t1; t2]
+      | _ -> begin
+          let error_message =
+            Printf.sprintf "expected tuple or product type, instead got: %s" @@ FExpr.to_string @@ Ast.Type.to_fexpr matched_type
+          in
+          TC.fail [%here] error_message
+        end
+    end
   | S.AP_global (_, _) -> TC.not_yet_implemented [%here] location
   | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
   | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
