@@ -64,6 +64,13 @@ module Pattern = struct
 end
 
 
+module Structure = struct
+  type 'a t =
+    | Match of Pattern.t * 'a t
+    | Code  of 'a
+end
+
+
 let sail_type_of_lvar
     (lvar : S.typ S.Ast_util.lvar)
     (loc  : S.l                  ) : S.typ TC.t
@@ -177,12 +184,61 @@ let rec translate_pattern
   
 
 let translate_case
+    (location       : S.l         )
     (matched_type   : Ast.Type.t  )
     (sail_pattern   : S.typ S.apat)
-    (_sail_condition : S.typ S.aexp)
-    (_sail_clause    : S.typ S.aexp) : unit TC.t
+    (sail_condition : S.typ S.aexp)
+    (sail_clause    : S.typ S.aexp) : unit TC.t
   =
   let* pattern = translate_pattern matched_type sail_pattern
+  in
+  let S.AE_aux (unwrapped_sail_condition, _) = sail_condition
+  in
+  (* Check that the condition is simply true *)
+  let* () =
+    match unwrapped_sail_condition with
+    | AE_val value -> begin
+        match value with
+        | AV_lit (literal, _) -> begin
+            let S.L_aux (unwrapped_literal, _) = literal
+            in
+            match unwrapped_literal with
+             | S.L_unit          -> TC.not_yet_implemented [%here] location
+             | S.L_zero          -> TC.not_yet_implemented [%here] location
+             | S.L_one           -> TC.not_yet_implemented [%here] location
+             | S.L_true          -> TC.return ()
+             | S.L_false         -> TC.not_yet_implemented [%here] location
+             | S.L_num _         -> TC.not_yet_implemented [%here] location
+             | S.L_hex _         -> TC.not_yet_implemented [%here] location
+             | S.L_bin _         -> TC.not_yet_implemented [%here] location
+             | S.L_string _      -> TC.not_yet_implemented [%here] location
+             | S.L_undef         -> TC.not_yet_implemented [%here] location
+             | S.L_real _        -> TC.not_yet_implemented [%here] location
+          end
+        | AV_id (_, _)           -> TC.not_yet_implemented [%here] location
+        | AV_ref (_, _)          -> TC.not_yet_implemented [%here] location
+        | AV_tuple _             -> TC.not_yet_implemented [%here] location
+        | AV_list (_, _)         -> TC.not_yet_implemented [%here] location
+        | AV_vector (_, _)       -> TC.not_yet_implemented [%here] location
+        | AV_record (_, _)       -> TC.not_yet_implemented [%here] location
+        | AV_cval (_, _)         -> TC.not_yet_implemented [%here] location
+      end
+    | AE_app (_, _, _)           -> TC.not_yet_implemented [%here] location
+    | AE_typ (_, _)              -> TC.not_yet_implemented [%here] location
+    | AE_assign (_, _)           -> TC.not_yet_implemented [%here] location
+    | AE_let (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
+    | AE_block (_, _, _)         -> TC.not_yet_implemented [%here] location
+    | AE_return (_, _)           -> TC.not_yet_implemented [%here] location
+    | AE_exit (_, _)             -> TC.not_yet_implemented [%here] location
+    | AE_throw (_, _)            -> TC.not_yet_implemented [%here] location
+    | AE_if (_, _, _, _)         -> TC.not_yet_implemented [%here] location
+    | AE_field (_, _, _)         -> TC.not_yet_implemented [%here] location
+    | AE_match (_, _, _)         -> TC.not_yet_implemented [%here] location
+    | AE_try (_, _, _)           -> TC.not_yet_implemented [%here] location
+    | AE_struct_update (_, _, _) -> TC.not_yet_implemented [%here] location
+    | AE_for (_, _, _, _, _, _)  -> TC.not_yet_implemented [%here] location
+    | AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
+    | AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
   in
   Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
   TC.return ()
@@ -197,7 +253,7 @@ let process
   in
   let* _translated_cases =
     let f (pattern, condition, clause) =
-      translate_case type_of_matched pattern condition clause
+      translate_case location type_of_matched pattern condition clause
     in
     TC.map ~f cases
   in
