@@ -973,9 +973,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression
 
   and statement_of_application
-          (receiver_identifier : S.id             )
-          (arguments           : S.typ S.aval list)
-          (_typ                : S.typ            )
+      (receiver_identifier : S.id             )
+      (arguments           : S.typ S.aval list)
+      (_typ                : S.typ            ) : Ast.Statement.t TC.t
     =
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
