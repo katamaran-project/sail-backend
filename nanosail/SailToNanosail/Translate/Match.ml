@@ -162,7 +162,7 @@ let rec translate_pattern
       in
       match matched_type with
       | Tuple subpattern_types -> aux subpatterns subpattern_types
-      | Product (t1, t2)       -> aux subpatterns [t1; t2]
+      | Product (t1, t2) -> aux subpatterns [t1; t2]
       | _ -> begin
           let error_message =
             Printf.sprintf "expected tuple or product type, instead got: %s" @@ FExpr.to_string @@ Ast.Type.to_fexpr matched_type
