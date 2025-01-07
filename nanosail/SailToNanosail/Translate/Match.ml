@@ -60,7 +60,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Identifier"
       end
-    | Wildcard       -> FExpr.mk_symbol "Wildcard"
+    | Wildcard -> FExpr.mk_symbol "Wildcard"
 end
 
 
