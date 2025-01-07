@@ -19,7 +19,7 @@ then
     OPT+=" --auto-mono --mono-rewrites"
 fi
 
-
+ruby generate.rb
 
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 
