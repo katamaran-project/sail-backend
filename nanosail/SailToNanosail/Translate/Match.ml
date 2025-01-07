@@ -19,6 +19,7 @@ module Pattern = struct
     | ListCons   of { head_pattern : t; tail_pattern : t }
     | ListNil
     | Tuple      of t list
+    | EnumCase   of Ast.Identifier.t
     | Identifier of Ast.Identifier.t
     | Wildcard
 
@@ -42,6 +43,14 @@ module Pattern = struct
           List.map ~f:to_fexpr subpatterns
         in
         FExpr.mk_application ~positional @@ head "Tuple"
+      end
+    | EnumCase identifier -> begin
+        let positional =
+          [
+            Ast.Identifier.to_fexpr identifier
+          ]
+        in
+        FExpr.mk_application ~positional @@ head "EnumCase"
       end
     | Identifier identifier -> begin
         let positional =
@@ -121,7 +130,23 @@ let rec translate_pattern
   | AP_id (identifier, _typ) -> begin
       let* identifier = Identifier.translate_identifier [%here] identifier
       in
-      TC.return @@ Pattern.Identifier identifier
+      match matched_type with
+      | Enum enum_identifier -> begin
+          let* enum_definition =
+            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_enum enum_identifier
+          in
+          match enum_definition with
+          | Some enum_definition -> begin
+              if
+                List.mem enum_definition.cases identifier ~equal:Ast.Identifier.equal
+              then
+                TC.return @@ Pattern.EnumCase identifier
+              else
+                TC.return @@ Pattern.Identifier identifier
+            end
+          | None -> TC.fail [%here] @@ Printf.sprintf "inconsistency: unknown enum type %s" @@ Ast.Identifier.to_string enum_identifier
+        end
+      | _ -> TC.return @@ Pattern.Identifier identifier
     end
   | AP_wild _typ     -> TC.return @@ Pattern.Wildcard
   | AP_tuple subpatterns -> begin
