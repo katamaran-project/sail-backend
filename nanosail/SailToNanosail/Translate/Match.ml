@@ -148,7 +148,7 @@ let rec translate_pattern
         end
       | _ -> TC.return @@ Pattern.Identifier identifier
     end
-  | AP_wild _typ     -> TC.return @@ Pattern.Wildcard
+  | AP_wild _typ -> TC.return @@ Pattern.Wildcard
   | AP_tuple subpatterns -> begin
       let aux subpatterns subpattern_types =
         match List.zip subpattern_types subpatterns with
