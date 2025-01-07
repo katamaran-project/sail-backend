@@ -583,30 +583,31 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     *)
     and match_tuple () =
       (* the matched variable is a tuple *)
-      let* () =
-        let n_cases = List.length cases
-        in
-        let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
-        in
-        TC.check [%here] (n_cases = 1) error_message
+      let n_cases = List.length cases
       in
-
-      match cases with
-      | [ (AP_aux (AP_tuple [
-                       AP_aux (AP_id (id_l, _), _, _);
-                       AP_aux (AP_id (id_r, _), _, _);
-                     ], _, _),_ , clause) ] -> begin
-          let* (matched, named_statements) =
-            let* expression, _expression_type, named_statements = expression_of_aval location matched
+      if not (Int.equal 1 n_cases)
+      then
+        let message = Printf.sprintf "match tuple; expected only one case, got %d" n_cases
+        in
+        TC.not_yet_implemented ~message [%here] location
+      else begin
+        match cases with
+        | [ (AP_aux (AP_tuple [
+            AP_aux (AP_id (id_l, _), _, _);
+            AP_aux (AP_id (id_r, _), _, _);
+          ], _, _),_ , clause) ] -> begin
+            let* (matched, named_statements) =
+              let* expression, _expression_type, named_statements = expression_of_aval location matched
+              in
+              TC.return (Ast.Statement.Expression expression, named_statements)
+            and* id_fst = Identifier.translate_identifier [%here] id_l
+            and* id_snd = Identifier.translate_identifier [%here] id_r
+            and* body   = statement_of_aexp clause
             in
-            TC.return (Ast.Statement.Expression expression, named_statements)
-          and* id_fst = Identifier.translate_identifier [%here] id_l
-          and* id_snd = Identifier.translate_identifier [%here] id_r
-          and* body   = statement_of_aexp clause
-          in
-          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MatchProduct { matched; id_fst; id_snd; body })
-        end
-      | _ -> TC.not_yet_implemented [%here] location
+            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MatchProduct { matched; id_fst; id_snd; body })
+          end
+        | _ -> TC.not_yet_implemented [%here] location
+      end
 
     and match_type_by_identifier (type_identifier : S.id) =
       let S.Id_aux (type_identifier, location) = type_identifier
@@ -926,8 +927,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    let* _ = Match.process location matched cases (* todo remove *)
-    in
+    (* let* _ = Match.process location matched cases (\* todo remove *\) *)
+    (* in *)
     match matched with
     | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
