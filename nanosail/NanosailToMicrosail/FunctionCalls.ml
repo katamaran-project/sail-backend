@@ -379,6 +379,24 @@ let translate_extend
     ~(musail_name : string               )
     ~(arguments   : Ast.Expression.t list) : PP.document GC.t
   =
+  (* "Raw" version of pp_zero_extend that takes arguments in PP.document form *)
+  let pp_zero_extend_raw
+      (bitvector    : PP.document)
+      (new_bit_size : PP.document) : PP.document GC.t
+    =
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        MuSail.Statement.pp_expression begin
+          Coq.pp_application
+            (PP.string "exp_unop")
+            [
+              new_bit_size;
+              bitvector
+            ]
+        end
+      end
+    end
+  in
   let pp_zero_extend
       (bitvector    : Ast.Expression.t)
       (new_bit_size : int             ) : PP.document GC.t
@@ -389,18 +407,10 @@ let translate_extend
       in
       GC.return @@ PP.(surround parens) doc
     in
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        MuSail.Statement.pp_expression begin
-          Coq.pp_application
-            (PP.string "exp_unop")
-            [
-              PP.string @@ Printf.sprintf "(uop.%s (n := %d))" musail_name new_bit_size;
-              pp_bitvector
-            ]
-        end
-      end
-    end
+    let pp_new_bit_size =
+      PP.string @@ Printf.sprintf "(uop.%s (n := %d))" musail_name new_bit_size
+    in
+    pp_zero_extend_raw pp_bitvector pp_new_bit_size
   in
   match arguments with
   | [ bitvector_argument; bit_size_argument ] -> begin
@@ -409,12 +419,21 @@ let translate_extend
       match bit_size_value with
       | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
       | None              -> begin
-          GC.fail [%here] begin
-              Printf.sprintf
-                "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
-                sail_name
-                (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
-            end
+          let* pp_bitvector =
+            let* doc =
+              Expressions.pp_expression bitvector_argument
+            in
+            GC.return @@ PP.(surround parens) doc
+          in
+          let message =
+            Printf.sprintf
+              "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
+              sail_name
+              (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
+          in
+          let* pp_new_bit_size = GC.not_yet_implemented ~message [%here]
+          in
+          pp_zero_extend_raw pp_bitvector pp_new_bit_size
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
