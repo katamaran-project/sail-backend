@@ -1,5 +1,5 @@
 //zero value for our registers so we can zero them out
-let zero_reg : wordBits = zero_extend(0x0)
+let zero_reg : wordBits = 0b0000000000000000
 
 register    PC_reg  : wordBits /* program counter    */
 register    SP_reg  : wordBits /* stack pointer      */
