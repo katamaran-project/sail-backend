@@ -13,9 +13,10 @@ function zero_extend(m, v) = sail_zero_extend(v, m)
 
 
 //bitshift opperator
-infixl 7 <<
-val operator << = pure "shiftl" : forall 'm. (bits('m), int) -> bits('m)
 val shiftl = pure "shiftl" : forall 'm. (bits('m), int) -> bits('m)
+
+infixl 7 <<
+overload operator << = { shiftl }
 
 // adding the division and modulo operators
 overload operator / = {ediv_int}
