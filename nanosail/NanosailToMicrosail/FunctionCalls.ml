@@ -38,9 +38,9 @@ let report_incorrect_argument_count
 
 
 let translate_unary_operator
-    (original_function_name : Ast.Identifier.t )
-    (operator               : string           )
-    (operands               : PP.document list ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t)
+    (operator               : PP.document     )
+    (operands               : PP.document list) : PP.document GC.t
   =
   match operands with
   | [x] -> begin
@@ -49,7 +49,7 @@ let translate_unary_operator
           MuSail.Statement.pp_expression begin
             Coq.pp_application
               (PP.string "exp_unop")
-              [PP.string operator; x]
+              [operator; x]
           end
         end
       end
@@ -531,10 +531,12 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
           in
           translate_unary_operator
             (Ast.Identifier.mk sail_name)
-            (Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
+            (PP.string @@ Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
             [ PP.(surround parens) pp_bitvector ]
         end
-      | _ -> GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+      | _ -> begin
+          GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+        end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
@@ -551,15 +553,15 @@ let translate
   match Ast.Identifier.to_string function_identifier with
   | "not_bool" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.not" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
        end
   | "signed" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.signed" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
        end
   | "unsigned" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.unsigned" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
        end
   | "eq_bit"           ->
      GC.pp_annotate [%here] begin
