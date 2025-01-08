@@ -32,9 +32,26 @@ let type_from_lvar
 let create_if_statement
       ~(condition  : Ast.Statement.t)
       ~(when_true  : Ast.Statement.t)
-      ~(when_false : Ast.Statement.t) : Ast.Statement.t
+      ~(when_false : Ast.Statement.t) : Ast.Statement.t TC.t
   =
-  Ast.Statement.Match (MatchBool { condition; when_true; when_false })
+  let* condition_variable =
+    TC.generate_unique_identifier ()
+  in
+  let match_pattern =
+    Ast.Statement.MatchBool {
+      condition = condition_variable;
+      when_true;
+      when_false
+    }
+  in
+  TC.return begin
+    Ast.Statement.Let {
+      variable_identifier = condition_variable;
+      binding_statement_type = Ast.Type.Bool;
+      binding_statement = condition;
+      body_statement = Ast.Statement.Match match_pattern
+    }
+  end
 
 
 let statement_of_lvar
@@ -1137,10 +1154,30 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* condition_expression, _condition_expression_type, named_statements = expression_of_aval location condition
       in
       TC.return (Ast.Statement.Expression condition_expression, named_statements)
-    and* when_true = statement_of_aexp then_clause
-    and* when_false = statement_of_aexp else_clause
+    and* when_true =
+      statement_of_aexp then_clause
+    and* when_false =
+      statement_of_aexp else_clause
+    and* condition_variable =
+      TC.generate_unique_identifier ()
     in
-    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (MatchBool { condition; when_true; when_false })
+    let match_pattern =
+      Ast.Statement.MatchBool {
+        condition = condition_variable;
+        when_true;
+        when_false
+      }
+    in
+    TC.return begin
+      wrap_in_named_statements_context condition_named_statements begin
+        Ast.Statement.Let {
+          variable_identifier    = condition_variable;
+          binding_statement_type = Ast.Type.Bool;
+          binding_statement      = condition;
+          body_statement         = Ast.Statement.Match match_pattern;
+        }
+      end
+    end
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
@@ -1278,7 +1315,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     let lhs_expr_as_statement = Ast.Statement.Expression lhs_expression
     in
-    let if_statement =
+    let* if_statement =
       match logical_operator with
       | Libsail.Anf.SC_and -> begin
           (*

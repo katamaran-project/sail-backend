@@ -90,11 +90,18 @@ and pp_match_product
 
 
 and pp_match_bool
-    ~(condition  : Ast.Statement.t)
-    ~(when_true  : Ast.Statement.t)
-    ~(when_false : Ast.Statement.t) : PP.document GC.t
+    ~(condition  : Ast.Identifier.t)
+    ~(when_true  : Ast.Statement.t )
+    ~(when_false : Ast.Statement.t ) : PP.document GC.t
   =
-  let* pp_condition  = GC.pp_annotate [%here] @@ pp_statement condition
+  let* pp_condition =
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        PP.(surround parens) begin
+          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp condition
+        end
+      end
+    end
   and* pp_when_true  = GC.pp_annotate [%here] @@ pp_statement when_true
   and* pp_when_false = GC.pp_annotate [%here] @@ pp_statement when_false
   in

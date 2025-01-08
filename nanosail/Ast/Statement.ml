@@ -39,9 +39,9 @@ and match_pattern =
                       id_fst   : Identifier.t ;
                       id_snd   : Identifier.t ;
                       body     : t            }
-  | MatchBool    of { condition : t  ;
-                      when_true : t  ;
-                      when_false : t }
+  | MatchBool    of { condition  : Identifier.t ;
+                      when_true  : t            ;
+                      when_false : t            }
   | MatchEnum    of { matched      : Identifier.t       ;
                       matched_type : Identifier.t       ;
                       cases        : t Identifier.Map.t }
@@ -99,7 +99,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
     | MatchBool { condition; when_true; when_false } -> begin
         let keyword =
           [
-            ("condition", to_fexpr condition);
+            ("condition", Identifier.to_fexpr condition);
             ("when_true", to_fexpr when_true);
             ("when_false", to_fexpr when_false);
           ]
