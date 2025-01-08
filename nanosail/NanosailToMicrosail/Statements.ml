@@ -34,7 +34,7 @@ let rec pp_match_list
   =
   let id_head, id_tail, when_cons_body = when_cons
   in
-  let* pp_matched   =
+  let* pp_matched =
     GC.pp_annotate [%here] begin
       GC.return begin
         PP.(surround parens) begin
@@ -60,13 +60,20 @@ let rec pp_match_list
   end
 
 and pp_match_product
-    ~(matched : Ast.Statement.t )
+    ~(matched : Ast.Identifier.t)
     ~(id_fst  : Ast.Identifier.t)
     ~(id_snd  : Ast.Identifier.t)
     ~(body    : Ast.Statement.t ) : PP.document GC.t
   =
-  let* pp_matched = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
-  and* pp_body    = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
+  let* pp_matched =
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        PP.(surround parens) begin
+          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+        end
+      end
+    end
+  and* pp_body = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
   in
   let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
   and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
@@ -375,11 +382,11 @@ and pp_match_variant
 
 and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   match match_pattern with
-  | MatchList { matched; when_nil; when_cons; _ }  -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
-  | MatchProduct { matched; id_fst; id_snd; body } -> GC.pp_annotate [%here] @@ pp_match_product ~matched ~id_fst ~id_snd ~body
-  | MatchBool { condition; when_true; when_false } -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
-  | MatchEnum { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
-  | MatchVariant { matched; matched_type; cases }  -> GC.pp_annotate [%here] @@ pp_match_variant ~matched ~matched_type ~cases
+  | MatchList { matched; when_nil; when_cons; _ }     -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
+  | MatchProduct { matched; id_fst; id_snd; body; _ } -> GC.pp_annotate [%here] @@ pp_match_product ~matched ~id_fst ~id_snd ~body
+  | MatchBool { condition; when_true; when_false }    -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
+  | MatchEnum { matched; matched_type; cases }        -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
+  | MatchVariant { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_variant ~matched ~matched_type ~cases
 
 
 and pp_call

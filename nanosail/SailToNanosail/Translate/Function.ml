@@ -612,15 +612,35 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             AP_aux (AP_id (id_l, _), _, _);
             AP_aux (AP_id (id_r, _), _, _);
           ], _, _),_ , clause) ] -> begin
-            let* (matched, named_statements) =
-              let* expression, _expression_type, named_statements = expression_of_aval location matched
+            let* (matched, named_statements, matched_type) =
+              let* expression, expression_type, named_statements = expression_of_aval location matched
               in
-              TC.return (Ast.Statement.Expression expression, named_statements)
+              TC.return (Ast.Statement.Expression expression, named_statements, expression_type)
             and* id_fst = Identifier.translate_identifier [%here] id_l
             and* id_snd = Identifier.translate_identifier [%here] id_r
             and* body   = statement_of_aexp clause
             in
-            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MatchProduct { matched; id_fst; id_snd; body })
+            let* type_fst, type_snd =
+              match matched_type with
+              | Product (type_fst, type_snd) -> TC.return (type_fst, type_snd)
+              | Tuple [type_fst; type_snd]   -> TC.return (type_fst, type_snd)
+              | _                            -> TC.fail [%here] "expected product or 2-tuple type"
+            and* matched_variable =
+              TC.generate_unique_identifier ()
+            in
+            let match_pattern =
+              Ast.Statement.MatchProduct { matched = matched_variable; id_fst; id_snd; type_fst; type_snd; body }
+            in
+            TC.return begin
+              wrap_in_named_statements_context named_statements begin
+                Ast.Statement.Let {
+                  variable_identifier = matched_variable;
+                  binding_statement_type = Ast.Type.Product (type_fst, type_snd);
+                  binding_statement = matched;
+                  body_statement = Ast.Statement.Match match_pattern;
+                }
+              end
+            end
           end
         | _ -> TC.not_yet_implemented [%here] location
       end

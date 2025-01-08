@@ -33,10 +33,12 @@ and match_pattern =
                       element_type : Nanotype.t                      ;
                       when_cons    : Identifier.t * Identifier.t * t ;
                       when_nil     : t                               }
-  | MatchProduct of { matched : t            ;
-                      id_fst  : Identifier.t ;
-                      id_snd  : Identifier.t ;
-                      body    : t            }
+  | MatchProduct of { matched  : Identifier.t ;
+                      type_fst : Nanotype.t   ;
+                      type_snd : Nanotype.t   ;
+                      id_fst   : Identifier.t ;
+                      id_snd   : Identifier.t ;
+                      body     : t            }
   | MatchBool    of { condition : t  ;
                       when_true : t  ;
                       when_false : t }
@@ -80,12 +82,14 @@ let rec to_fexpr (statement : t) : FExpr.t =
         FExpr.mk_application ~keyword "Stm:MatchList"
       end
 
-    | MatchProduct { matched; id_fst; id_snd; body } -> begin
+    | MatchProduct { matched; id_fst; id_snd; type_fst; type_snd; body } -> begin
         let keyword =
           [
-            ("matched", to_fexpr matched);
+            ("matched", Identifier.to_fexpr matched);
             ("id_fst", Identifier.to_fexpr id_fst);
             ("id_snd", Identifier.to_fexpr id_snd);
+            ("type_fst", Nanotype.to_fexpr type_fst);
+            ("type_snd", Nanotype.to_fexpr type_snd);
             ("body", to_fexpr body)
           ]
         in
