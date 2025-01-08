@@ -203,19 +203,20 @@ let translate_case
   in
   Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
   TC.return (pattern, body)
-  
 
-let process
+
+
+
+let translate
     (location           : S.l                                              )
     (matched_identifier : Ast.Identifier.t                                 )
     (matched_type       : Ast.Type.t                                       )
     (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list) : unit TC.t
   =
-  let* _translated_cases =
+  let* translated_cases =
     let f (pattern, condition, clause) =
       translate_case location matched_type pattern condition clause
     in
     TC.map ~f cases
   in
-  Stdio.printf "%s\n" @@ FExpr.to_string @@ Ast.Type.to_fexpr matched_type;
   TC.return ()

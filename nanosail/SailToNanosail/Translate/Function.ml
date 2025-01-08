@@ -999,21 +999,21 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    let* _ = (* todo remove *)
-      let* matched_variable =
-        TC.generate_unique_identifier ()
-      and* matched_variable_type =
-        type_of_aval matched location
-      and* cases_with_translated_bodies =
-        let translate_case_body (pattern, condition, body) =
-          let* translated_body = statement_of_aexp body
-          in
-          TC.return (pattern, condition, translated_body)
-        in
-        TC.map ~f:translate_case_body cases
-      in
-      Match.process location matched_variable matched_variable_type cases_with_translated_bodies
-    in
+    (* let* _ = (\* todo remove *\) *)
+    (*   let* matched_variable = *)
+    (*     TC.generate_unique_identifier () *)
+    (*   and* matched_variable_type = *)
+    (*     type_of_aval matched location *)
+    (*   and* cases_with_translated_bodies = *)
+    (*     let translate_case_body (pattern, condition, body) = *)
+    (*       let* translated_body = statement_of_aexp body *)
+    (*       in *)
+    (*       TC.return (pattern, condition, translated_body) *)
+    (*     in *)
+    (*     TC.map ~f:translate_case_body cases *)
+    (*   in *)
+    (*   Match.translate location matched_variable matched_variable_type cases_with_translated_bodies *)
+    (* in *)
     match matched with
     | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
