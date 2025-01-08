@@ -992,9 +992,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         | Unbound _         -> TC.not_yet_implemented [%here] location
       end
     | AV_lit (literal, literal_type) -> match_literal literal literal_type
-    | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
     | AV_tuple _                     -> match_tuple ()
     | AV_list (_, _)                 -> match_list ()
+    | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
     | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
     | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
     | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
