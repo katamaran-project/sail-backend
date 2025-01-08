@@ -552,10 +552,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                        AP_aux (AP_id (id_h, _), _, _),
                        AP_aux (AP_id (id_t, _), _, _)
                      ), _, _), _, cons_clause) ) -> begin
-          let* matched =
-            let* expression, _expression_type, named_statements = expression_of_aval location matched
+          let* matched, matched_type =
+            let* expression, expression_type, named_statements = expression_of_aval location matched
             in
-            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression
+            TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
 
           and* when_nil =
             statement_of_aexp nil_clause
@@ -565,16 +565,32 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             and* id_tail = Identifier.translate_identifier [%here] id_t
             and* clause = statement_of_aexp cons_clause
             in
-            TC.return (id_head, id_tail, clause)
+            TC.return (id_head, id_tail, clause)              
+          in
+          
+          let* matched_variable = TC.generate_unique_identifier ()
+          in
+          let* element_type =
+            match matched_type with
+            | List element_type -> TC.return element_type
+            | _                 -> TC.fail [%here] "expected list type"
           in
           let match_pattern =
             Ast.Statement.MatchList {
-                matched;
-                when_cons;
-                when_nil;
-              }
+              matched = matched_variable;
+              element_type = element_type;
+              when_cons;
+              when_nil;
+            }
           in
-          TC.return @@ Ast.Statement.Match match_pattern
+          TC.return begin
+            Ast.Statement.Let {
+              variable_identifier    = matched_variable;
+              binding_statement_type = matched_type;
+              binding_statement      = matched;
+              body_statement         = Ast.Statement.Match match_pattern
+            }
+          end
         end
       | _ -> TC.fail [%here] "list cases do not have expected structure"
 
@@ -927,8 +943,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    let* _ = Match.process location matched cases (* todo remove *)
-    in
+    (* let* _ = (\* todo remove *\) *)
+    (*   Match.process location matched cases *)
+    (* in *)
     match matched with
     | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)

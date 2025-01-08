@@ -188,7 +188,7 @@ let translate_case
     (matched_type   : Ast.Type.t  )
     (sail_pattern   : S.typ S.apat)
     (sail_condition : S.typ S.aexp)
-    (sail_clause    : S.typ S.aexp) : unit TC.t
+    (sail_clause    : S.typ S.aexp) : (Pattern.t * S.typ S.aexp) TC.t
   =
   let* pattern = translate_pattern matched_type sail_pattern
   in
@@ -241,7 +241,7 @@ let translate_case
     | AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
   in
   Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
-  TC.return ()
+  TC.return (pattern, sail_clause)
   
 
 let process

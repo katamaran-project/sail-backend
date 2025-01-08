@@ -28,13 +28,20 @@ let parenthesize =
 
 *)
 let rec pp_match_list
-    ~(matched   : Ast.Statement.t                                      )
+    ~(matched   : Ast.Identifier.t                                     )
     ~(when_nil  : Ast.Statement.t                                      )
     ~(when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
   =
   let id_head, id_tail, when_cons_body = when_cons
   in
-  let* pp_matched   = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement matched
+  let* pp_matched   =
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        PP.(surround parens) begin
+          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+        end
+      end
+    end
   and* pp_when_nil  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_nil
   and* pp_when_cons = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_cons_body
   in
@@ -368,7 +375,7 @@ and pp_match_variant
 
 and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   match match_pattern with
-  | MatchList { matched; when_nil; when_cons }     -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
+  | MatchList { matched; when_nil; when_cons; _ }  -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
   | MatchProduct { matched; id_fst; id_snd; body } -> GC.pp_annotate [%here] @@ pp_match_product ~matched ~id_fst ~id_snd ~body
   | MatchBool { condition; when_true; when_false } -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
   | MatchEnum { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
