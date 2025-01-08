@@ -65,49 +65,10 @@ end
 
 
 module Structure = struct
-  type 'a t =
-    | Match of Pattern.t * 'a t
-    | Code  of 'a
+  type t =
+    | Match     of Pattern.t * t
+    | Statement of Ast.Statement.t
 end
-
-
-let sail_type_of_lvar
-    (lvar : S.typ S.Ast_util.lvar)
-    (loc  : S.l                  ) : S.typ TC.t
-  =
-  match lvar with
-  | Register t   -> TC.return t
-  | Enum t       -> TC.return t
-  | Local (_, t) -> TC.return t
-  | Unbound _    -> TC.not_yet_implemented [%here] loc
-
-
-let nanotype_of_lvar
-    (lvar : S.typ S.Ast_util.lvar)
-    (loc  : S.l                  ) : Ast.Type.t TC.t
-  =
-  let* sail_type = sail_type_of_lvar lvar loc
-  in
-  Nanotype.nanotype_of_sail_type sail_type
-
-
-let determine_type
-    (value    : S.typ S.aval)
-    (location : S.l         ) : Ast.Type.t TC.t
-  =
-  match value with
-   | AV_lit (_literal, literal_type) -> Nanotype.nanotype_of_sail_type literal_type
-   | AV_id (_identifier, lvar)       -> nanotype_of_lvar lvar location
-   | AV_list (_elements, typ)        -> begin
-       let* element_type = Nanotype.nanotype_of_sail_type typ
-       in
-       TC.return @@ Ast.Type.List element_type
-     end
-   | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
-   | AV_tuple _                      -> TC.not_yet_implemented [%here] location
-   | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
-   | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
-   | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
 
 
 let rec translate_pattern
@@ -184,11 +145,11 @@ let rec translate_pattern
   
 
 let translate_case
-    (location       : S.l         )
-    (matched_type   : Ast.Type.t  )
-    (sail_pattern   : S.typ S.apat)
-    (sail_condition : S.typ S.aexp)
-    (sail_clause    : S.typ S.aexp) : (Pattern.t * S.typ S.aexp) TC.t
+    (location       : S.l            )
+    (matched_type   : Ast.Type.t     )
+    (sail_pattern   : S.typ S.apat   )
+    (sail_condition : S.typ S.aexp   )
+    (body           : Ast.Statement.t) : (Pattern.t * Ast.Statement.t) TC.t
   =
   let* pattern = translate_pattern matched_type sail_pattern
   in
@@ -241,21 +202,20 @@ let translate_case
     | AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
   in
   Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
-  TC.return (pattern, sail_clause)
+  TC.return (pattern, body)
   
 
 let process
-    (location : S.l                                              )
-    (matched  : S.typ S.aval                                     )
-    (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : unit TC.t
+    (location           : S.l                                              )
+    (matched_identifier : Ast.Identifier.t                                 )
+    (matched_type       : Ast.Type.t                                       )
+    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list) : unit TC.t
   =
-  let* type_of_matched = determine_type matched location
-  in
   let* _translated_cases =
     let f (pattern, condition, clause) =
-      translate_case location type_of_matched pattern condition clause
+      translate_case location matched_type pattern condition clause
     in
     TC.map ~f cases
   in
-  Stdio.printf "%s\n" @@ FExpr.to_string @@ Ast.Type.to_fexpr type_of_matched;
+  Stdio.printf "%s\n" @@ FExpr.to_string @@ Ast.Type.to_fexpr matched_type;
   TC.return ()

@@ -18,15 +18,34 @@ open Monads.Notations.Star(TC)
 
 (* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
 
-let type_from_lvar
-      (lvar : S.typ S.Ast_util.lvar)
-      (loc  : S.l                  ) : S.typ TC.t
+let sail_type_of_lvar
+      (lvar : S.typ S.lvar)
+      (loc  : S.l         ) : S.typ TC.t
   =
   match lvar with
   | Register t   -> TC.return t
   | Enum t       -> TC.return t
   | Local (_, t) -> TC.return t
   | Unbound _    -> TC.not_yet_implemented [%here] loc
+
+
+let type_of_aval
+    (value    : S.typ S.aval)
+    (location : S.l         ) : Ast.Type.t TC.t
+  =
+  match value with
+   | AV_lit (_literal, literal_type) -> Nanotype.nanotype_of_sail_type literal_type
+   | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Nanotype.nanotype_of_sail_type t
+   | AV_list (_elements, typ)        -> begin
+       let* element_type = Nanotype.nanotype_of_sail_type typ
+       in
+       TC.return @@ Ast.Type.List element_type
+     end
+   | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
+   | AV_tuple _                      -> TC.not_yet_implemented [%here] location
+   | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
+   | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
+   | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
 
 
 let create_if_statement
@@ -457,7 +476,7 @@ let with_destructured_record
       let* record_identifier =
         Identifier.translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) =
-        type_from_lvar lvar location
+        sail_type_of_lvar lvar location
       in
       match t with
       | Typ_id record_type_identifier -> begin
@@ -980,9 +999,21 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    (* let* _ = (\* todo remove *\) *)
-    (*   Match.process location matched cases *)
-    (* in *)
+    let* _ = (* todo remove *)
+      let* matched_variable =
+        TC.generate_unique_identifier ()
+      and* matched_variable_type =
+        type_of_aval matched location
+      and* cases_with_translated_bodies =
+        let translate_case_body (pattern, condition, body) =
+          let* translated_body = statement_of_aexp body
+          in
+          TC.return (pattern, condition, translated_body)
+        in
+        TC.map ~f:translate_case_body cases
+      in
+      Match.process location matched_variable matched_variable_type cases_with_translated_bodies
+    in
     match matched with
     | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
