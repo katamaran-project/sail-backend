@@ -24,7 +24,8 @@ let string_of_document document =
 
 let run_code
       (translation : katamaran)
-      (source      : string   ) : string =
+      (source      : string   ) : string
+  =
   let program =
     let* () = Slang.Prelude.initialize
     and* fetch_generated = Prelude.prelude translation

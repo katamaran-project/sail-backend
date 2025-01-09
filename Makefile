@@ -43,8 +43,6 @@ mc: minimal-caps
 
 clean:
 	rm -rf _build
-	make -C working-example clean
-	make -C minimal-caps clean
 
 ws:
 	ruby remove-trailing-whitespace.rb

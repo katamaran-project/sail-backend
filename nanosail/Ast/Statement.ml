@@ -29,16 +29,19 @@ type t =
   | Fail              of string
 
 and match_pattern =
-  | MatchList    of { matched   : t                               ;
-                      when_cons : Identifier.t * Identifier.t * t ;
-                      when_nil  : t                               }
-  | MatchProduct of { matched : t                                 ;
-                      id_fst  : Identifier.t ;
-                      id_snd  : Identifier.t ;
-                      body    : t            }
-  | MatchBool    of { condition : t  ;
-                      when_true : t  ;
-                      when_false : t }
+  | MatchList    of { matched      : Identifier.t                    ;
+                      element_type : Nanotype.t                      ;
+                      when_cons    : Identifier.t * Identifier.t * t ;
+                      when_nil     : t                               }
+  | MatchProduct of { matched  : Identifier.t ;
+                      type_fst : Nanotype.t   ;
+                      type_snd : Nanotype.t   ;
+                      id_fst   : Identifier.t ;
+                      id_snd   : Identifier.t ;
+                      body     : t            }
+  | MatchBool    of { condition  : Identifier.t ;
+                      when_true  : t            ;
+                      when_false : t            }
   | MatchEnum    of { matched      : Identifier.t       ;
                       matched_type : Identifier.t       ;
                       cases        : t Identifier.Map.t }
@@ -50,9 +53,11 @@ and match_pattern =
 let rec to_fexpr (statement : t) : FExpr.t =
   let match_pattern_to_fexpr (pattern : match_pattern) : FExpr.t =
     match pattern with
-    | MatchList { matched; when_cons; when_nil } -> begin
+    | MatchList { matched; element_type; when_cons; when_nil } -> begin
         let matched' =
-          to_fexpr matched
+          Identifier.to_fexpr matched
+        and element_type' =
+          Nanotype.to_fexpr element_type
         and when_cons' =
           let head_identifier, tail_identifier, body = when_cons
           in
@@ -69,6 +74,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         let keyword =
           [
             ("matched", matched');
+            ("element_type", element_type');
             ("when_cons", when_cons');
             ("when_nil", when_nil');
           ]
@@ -76,12 +82,14 @@ let rec to_fexpr (statement : t) : FExpr.t =
         FExpr.mk_application ~keyword "Stm:MatchList"
       end
 
-    | MatchProduct { matched; id_fst; id_snd; body } -> begin
+    | MatchProduct { matched; id_fst; id_snd; type_fst; type_snd; body } -> begin
         let keyword =
           [
-            ("matched", to_fexpr matched);
+            ("matched", Identifier.to_fexpr matched);
             ("id_fst", Identifier.to_fexpr id_fst);
             ("id_snd", Identifier.to_fexpr id_snd);
+            ("type_fst", Nanotype.to_fexpr type_fst);
+            ("type_snd", Nanotype.to_fexpr type_snd);
             ("body", to_fexpr body)
           ]
         in
@@ -91,7 +99,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
     | MatchBool { condition; when_true; when_false } -> begin
         let keyword =
           [
-            ("condition", to_fexpr condition);
+            ("condition", Identifier.to_fexpr condition);
             ("when_true", to_fexpr when_true);
             ("when_false", to_fexpr when_false);
           ]

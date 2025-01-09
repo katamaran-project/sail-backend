@@ -18,9 +18,9 @@ open Monads.Notations.Star(TC)
 
 (* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
 
-let type_from_lvar
-      (lvar : S.typ S.Ast_util.lvar)
-      (loc  : S.l                  ) : S.typ TC.t
+let sail_type_of_lvar
+      (lvar : S.typ S.lvar)
+      (loc  : S.l         ) : S.typ TC.t
   =
   match lvar with
   | Register t   -> TC.return t
@@ -29,12 +29,48 @@ let type_from_lvar
   | Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
+let type_of_aval
+    (value    : S.typ S.aval)
+    (location : S.l         ) : Ast.Type.t TC.t
+  =
+  match value with
+   | AV_lit (_literal, literal_type) -> Nanotype.nanotype_of_sail_type literal_type
+   | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Nanotype.nanotype_of_sail_type t
+   | AV_list (_elements, typ)        -> begin
+       let* element_type = Nanotype.nanotype_of_sail_type typ
+       in
+       TC.return @@ Ast.Type.List element_type
+     end
+   | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
+   | AV_tuple _                      -> TC.not_yet_implemented [%here] location
+   | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
+   | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
+   | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
+
+
 let create_if_statement
       ~(condition  : Ast.Statement.t)
       ~(when_true  : Ast.Statement.t)
-      ~(when_false : Ast.Statement.t) : Ast.Statement.t
+      ~(when_false : Ast.Statement.t) : Ast.Statement.t TC.t
   =
-  Ast.Statement.Match (MatchBool { condition; when_true; when_false })
+  let* condition_variable =
+    TC.generate_unique_identifier ()
+  in
+  let match_pattern =
+    Ast.Statement.MatchBool {
+      condition = condition_variable;
+      when_true;
+      when_false
+    }
+  in
+  TC.return begin
+    Ast.Statement.Let {
+      variable_identifier = condition_variable;
+      binding_statement_type = Ast.Type.Bool;
+      binding_statement = condition;
+      body_statement = Ast.Statement.Match match_pattern
+    }
+  end
 
 
 let statement_of_lvar
@@ -436,11 +472,11 @@ let with_destructured_record
       (body_generator : with_destructured_record_data -> Ast.Statement.t TC.t) : Ast.Statement.t TC.t
   =
   match value with
-  | S.AV_id (record_identifier, lvar) -> begin
+  | AV_id (record_identifier, lvar) -> begin
       let* record_identifier =
         Identifier.translate_identifier [%here] record_identifier
       and* S.Typ_aux (t, _loc) =
-        type_from_lvar lvar location
+        sail_type_of_lvar lvar location
       in
       match t with
       | Typ_id record_type_identifier -> begin
@@ -496,13 +532,13 @@ let with_destructured_record
       | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
       | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
-  | Libsail.Anf.AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_ref (_, _)      -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_tuple _         -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_list (_, _)     -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_record (_, _)   -> TC.not_yet_implemented [%here] location
-  | Libsail.Anf.AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_ref (_, _)      -> TC.not_yet_implemented [%here] location
+  | AV_tuple _         -> TC.not_yet_implemented [%here] location
+  | AV_list (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
+  | AV_record (_, _)   -> TC.not_yet_implemented [%here] location
+  | AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
 
 
 let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
@@ -534,7 +570,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         let error_message =
           lazy "matching list; expected exactly two cases"
         in
-        TC.check [%here] (List.length cases = 2) error_message
+        TC.check [%here] (Int.equal 2 @@ List.length cases) error_message
       in
 
       let* nil_case, cons_case =
@@ -552,10 +588,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                        AP_aux (AP_id (id_h, _), _, _),
                        AP_aux (AP_id (id_t, _), _, _)
                      ), _, _), _, cons_clause) ) -> begin
-          let* matched =
-            let* expression, _expression_type, named_statements = expression_of_aval location matched
+          let* matched, matched_type =
+            let* expression, expression_type, named_statements = expression_of_aval location matched
             in
-            TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression
+            TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
 
           and* when_nil =
             statement_of_aexp nil_clause
@@ -565,16 +601,32 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             and* id_tail = Identifier.translate_identifier [%here] id_t
             and* clause = statement_of_aexp cons_clause
             in
-            TC.return (id_head, id_tail, clause)
+            TC.return (id_head, id_tail, clause)              
+          in
+          
+          let* matched_variable = TC.generate_unique_identifier ()
+          in
+          let* element_type =
+            match matched_type with
+            | List element_type -> TC.return element_type
+            | _                 -> TC.fail [%here] "expected list type"
           in
           let match_pattern =
             Ast.Statement.MatchList {
-                matched;
-                when_cons;
-                when_nil;
-              }
+              matched = matched_variable;
+              element_type = element_type;
+              when_cons;
+              when_nil;
+            }
           in
-          TC.return @@ Ast.Statement.Match match_pattern
+          TC.return begin
+            Ast.Statement.Let {
+              variable_identifier    = matched_variable;
+              binding_statement_type = matched_type;
+              binding_statement      = matched;
+              body_statement         = Ast.Statement.Match match_pattern
+            }
+          end
         end
       | _ -> TC.fail [%here] "list cases do not have expected structure"
 
@@ -583,30 +635,51 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     *)
     and match_tuple () =
       (* the matched variable is a tuple *)
-      let* () =
-        let n_cases = List.length cases
-        in
-        let error_message = lazy (Printf.sprintf "match tuple; expected only one case, got %d" n_cases)
-        in
-        TC.check [%here] (n_cases = 1) error_message
+      let n_cases = List.length cases
       in
-
-      match cases with
-      | [ (AP_aux (AP_tuple [
-                       AP_aux (AP_id (id_l, _), _, _);
-                       AP_aux (AP_id (id_r, _), _, _);
-                     ], _, _),_ , clause) ] -> begin
-          let* (matched, named_statements) =
-            let* expression, _expression_type, named_statements = expression_of_aval location matched
+      if not (Int.equal 1 n_cases)
+      then
+        let message = Printf.sprintf "match tuple; expected only one case, got %d" n_cases
+        in
+        TC.not_yet_implemented ~message [%here] location
+      else begin
+        match cases with
+        | [ (AP_aux (AP_tuple [
+            AP_aux (AP_id (id_l, _), _, _);
+            AP_aux (AP_id (id_r, _), _, _);
+          ], _, _),_ , clause) ] -> begin
+            let* (matched, named_statements, matched_type) =
+              let* expression, expression_type, named_statements = expression_of_aval location matched
+              in
+              TC.return (Ast.Statement.Expression expression, named_statements, expression_type)
+            and* id_fst = Identifier.translate_identifier [%here] id_l
+            and* id_snd = Identifier.translate_identifier [%here] id_r
+            and* body   = statement_of_aexp clause
             in
-            TC.return (Ast.Statement.Expression expression, named_statements)
-          and* id_fst = Identifier.translate_identifier [%here] id_l
-          and* id_snd = Identifier.translate_identifier [%here] id_r
-          and* body   = statement_of_aexp clause
-          in
-          TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Match (Ast.Statement.MatchProduct { matched; id_fst; id_snd; body })
-        end
-      | _ -> TC.not_yet_implemented [%here] location
+            let* type_fst, type_snd =
+              match matched_type with
+              | Product (type_fst, type_snd) -> TC.return (type_fst, type_snd)
+              | Tuple [type_fst; type_snd]   -> TC.return (type_fst, type_snd)
+              | _                            -> TC.fail [%here] "expected product or 2-tuple type"
+            and* matched_variable =
+              TC.generate_unique_identifier ()
+            in
+            let match_pattern =
+              Ast.Statement.MatchProduct { matched = matched_variable; id_fst; id_snd; type_fst; type_snd; body }
+            in
+            TC.return begin
+              wrap_in_named_statements_context named_statements begin
+                Ast.Statement.Let {
+                  variable_identifier = matched_variable;
+                  binding_statement_type = Ast.Type.Product (type_fst, type_snd);
+                  binding_statement = matched;
+                  body_statement = Ast.Statement.Match match_pattern;
+                }
+              end
+            end
+          end
+        | _ -> TC.not_yet_implemented [%here] location
+      end
 
     and match_type_by_identifier (type_identifier : S.id) =
       let S.Id_aux (type_identifier, location) = type_identifier
@@ -673,7 +746,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         (*
            condition is an extra condition that needs to be satisfied for the branch to be taken;
-           if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
+           if no condition is given, the condition is simply true (i.e., the Sail representation for true)
         *)
         match condition with
         | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
@@ -771,7 +844,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            if no condition is given, the condition is simply true (or at least, the Sail representation for this value)
         *)
         match condition with
-        | S.AE_aux (S.AE_val (S.AV_lit (L_aux (L_true, _), _)), _) -> begin
+        | AE_aux (AE_val (AV_lit (L_aux (L_true, _), _)), _) -> begin
             let AP_aux (pattern, _environment, _pattern_location) = pattern
             in
             match pattern with
@@ -786,44 +859,47 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 let AP_aux (subpattern, _environment, subpattern_location) = subpattern
                 in
                 match subpattern with
-                | S.AP_tuple tuple_patterns -> begin
+                | AP_tuple tuple_patterns -> begin
                     (* assumes tuple patterns are all identifiers *)
                     let extract_identifiers (tuple_pattern : S.typ S.apat) =
                       let S.AP_aux (tuple_pattern, _env, tuple_pattern_location) = tuple_pattern
                       in
                       match tuple_pattern with
-                      | Libsail.Anf.AP_id (identifier, _typ) -> Identifier.translate_identifier [%here] identifier
-                      | Libsail.Anf.AP_tuple _               -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_global (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_app (_, _, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_cons (_, _)           -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_as (_, _, _)          -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_struct (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_nil _                 -> TC.not_yet_implemented [%here] tuple_pattern_location
-                      | Libsail.Anf.AP_wild _                -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_id (identifier, _typ) -> Identifier.translate_identifier [%here] identifier
+                      | AP_tuple _               -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_global (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_app (_, _, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_cons (_, _)           -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_as (_, _, _)          -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_struct (_, _)         -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_nil _                 -> TC.not_yet_implemented [%here] tuple_pattern_location
+                      | AP_wild _                -> TC.not_yet_implemented [%here] tuple_pattern_location
                     in
                     let* identifiers = TC.map ~f:extract_identifiers tuple_patterns
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:(identifiers, translated_clause)
                   end
-                | S.AP_id (identifier, _typ) -> begin
+                | AP_id (identifier, _typ) -> begin
                     let* identifier = Identifier.translate_identifier [%here] identifier
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
-                | S.AP_wild _typ     -> begin
+                | AP_wild _typ     -> begin
                     let* identifier = TC.generate_unique_identifier ~underscore:true ()
                     in
                     TC.return @@ Ast.Identifier.Map.add_exn acc ~key:variant_tag_identifier ~data:([identifier], translated_clause)
                   end
-                | S.AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_app (_, _, _) -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
-                | S.AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_app (_identifier, _pattern, _typ) -> begin
+                    Stdio.printf "AP_app(%s, %s, %s)\n" (StringOf.Sail.id _identifier) (StringOf.Sail.apat _pattern) (StringOf.Sail.typ _typ);
+                    TC.not_yet_implemented [%here] subpattern_location
+                  end
+                | AP_global (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_cons (_, _)   -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_as (_, _, _)  -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_struct (_, _) -> TC.not_yet_implemented [%here] subpattern_location
+                | AP_nil _         -> TC.not_yet_implemented [%here] subpattern_location
               end
-            | S.AP_wild _ -> begin
+            | AP_wild _ -> begin
                 (* only adds to table if constructor is missing *)
                 let add_missing_case
                     (acc                 : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
@@ -841,13 +917,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 in
                 TC.fold_left ~f:add_missing_case ~init:acc variant_definition.constructors
               end
-            | S.AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_cons (_, _)   -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
-            | S.AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_tuple _       -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_id (_, _)     -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_global (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_cons (_, _)   -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_as (_, _, _)  -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_struct (_, _) -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
+            | AP_nil _         -> TC.fail [%here] "we're matching a variant; only AP_app should occur here"
           end
         | _ -> TC.fail [%here] "variant cases do not have expected structure"
       in
@@ -880,23 +956,24 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
       match type_of_matched with
-      | S.Typ_app (Id_aux (Id "list", _), _) -> match_list ()
-      | S.Typ_tuple _                        -> match_tuple ()
-      | S.Typ_id id                          -> match_type_by_identifier id
-      | S.Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
-      | S.Typ_var _                          -> TC.not_yet_implemented [%here] location
-      | S.Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
-      | S.Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
-      | S.Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
-      | S.Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
+      | Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+      | Typ_tuple _                        -> match_tuple ()
+      | Typ_id id                          -> match_type_by_identifier id
+      | Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
+      | Typ_var _                          -> TC.not_yet_implemented [%here] location
+      | Typ_fn (_, _)                      -> TC.not_yet_implemented [%here] location
+      | Typ_bidir (_, _)                   -> TC.not_yet_implemented [%here] location
+      | Typ_app (_, _)                     -> TC.not_yet_implemented [%here] location
+      | Typ_exist (_, _, _)                -> TC.not_yet_implemented [%here] location
 
     and match_literal
         (literal       : S.lit)
-        (_literal_type : S.typ) : Ast.Statement.t TC.t =
+        (_literal_type : S.typ) : Ast.Statement.t TC.t
+      =
       let L_aux (literal, _loc) = literal
       in
       match literal with
-      | S.L_unit     -> begin
+      | L_unit -> begin
           match cases with
           | [ case ] -> begin
               let pattern, _condition, clause = case
@@ -904,39 +981,54 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               let S.AP_aux (pattern, _type_check_environment, _loc) = pattern
               in
               match pattern with
-               | S.AP_id (_, _)   -> TC.not_yet_implemented [%here] location
-               | S.AP_wild _      -> statement_of_aexp clause
-               | _                -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
+               | AP_id (_, _)   -> TC.not_yet_implemented [%here] location
+               | AP_wild _      -> statement_of_aexp clause
+               | _              -> TC.fail [%here] "Expected unit to be bound to either wildcard or identifier"
             end
-          | _        -> TC.fail [%here] "Matching unit; expected exactly one case"
+          | _ -> TC.fail [%here] "Matching unit; expected exactly one case"
         end
-      | S.L_zero     -> TC.not_yet_implemented [%here] location
-      | S.L_one      -> TC.not_yet_implemented [%here] location
-      | S.L_true     -> TC.not_yet_implemented [%here] location
-      | S.L_false    -> TC.not_yet_implemented [%here] location
-      | S.L_num _    -> TC.not_yet_implemented [%here] location
-      | S.L_hex _    -> TC.not_yet_implemented [%here] location
-      | S.L_bin _    -> TC.not_yet_implemented [%here] location
-      | S.L_string _ -> TC.not_yet_implemented [%here] location
-      | S.L_undef    -> TC.not_yet_implemented [%here] location
-      | S.L_real _   -> TC.not_yet_implemented [%here] location
+      | L_zero     -> TC.not_yet_implemented [%here] location
+      | L_one      -> TC.not_yet_implemented [%here] location
+      | L_true     -> TC.not_yet_implemented [%here] location
+      | L_false    -> TC.not_yet_implemented [%here] location
+      | L_num _    -> TC.not_yet_implemented [%here] location
+      | L_hex _    -> TC.not_yet_implemented [%here] location
+      | L_bin _    -> TC.not_yet_implemented [%here] location
+      | L_string _ -> TC.not_yet_implemented [%here] location
+      | L_undef    -> TC.not_yet_implemented [%here] location
+      | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
+    (* let* _ = (\* todo remove *\) *)
+    (*   let* matched_variable = *)
+    (*     TC.generate_unique_identifier () *)
+    (*   and* matched_variable_type = *)
+    (*     type_of_aval matched location *)
+    (*   and* cases_with_translated_bodies = *)
+    (*     let translate_case_body (pattern, condition, body) = *)
+    (*       let* translated_body = statement_of_aexp body *)
+    (*       in *)
+    (*       TC.return (pattern, condition, translated_body) *)
+    (*     in *)
+    (*     TC.map ~f:translate_case_body cases *)
+    (*   in *)
+    (*   Match.translate location matched_variable matched_variable_type cases_with_translated_bodies *)
+    (* in *)
     match matched with
-    | S.AV_id (_id, lvar) -> begin
+    | AV_id (_id, lvar) -> begin
         match lvar with (* todo replace by type_from_lvar *)
-        | S.Ast_util.Local (_mut, typ) -> match_typed typ
-        | S.Ast_util.Register typ      -> match_typed typ
-        | S.Ast_util.Enum typ          -> match_typed typ
-        | S.Ast_util.Unbound _         -> TC.not_yet_implemented [%here] location
+        | Local (_mut, typ) -> match_typed typ
+        | Register typ      -> match_typed typ
+        | Enum typ          -> match_typed typ
+        | Unbound _         -> TC.not_yet_implemented [%here] location
       end
-    | S.AV_lit (literal, literal_type) -> match_literal literal literal_type
-    | S.AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
-    | S.AV_tuple _                     -> match_tuple ()
-    | S.AV_list (_, _)                 -> match_list ()
-    | S.AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
-    | S.AV_record (_, _)               -> TC.not_yet_implemented [%here] location
-    | S.AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+    | AV_lit (literal, literal_type) -> match_literal literal literal_type
+    | AV_tuple _                     -> match_tuple ()
+    | AV_list (_, _)                 -> match_list ()
+    | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
+    | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
+    | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
+    | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
 
   and statement_of_field_access
         (location         : S.l         )
@@ -967,9 +1059,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     TC.return @@ wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression
 
   and statement_of_application
-          (receiver_identifier : S.id             )
-          (arguments           : S.typ S.aval list)
-          (_typ                : S.typ            )
+      (receiver_identifier : S.id             )
+      (arguments           : S.typ S.aval list)
+      (_typ                : S.typ            ) : Ast.Statement.t TC.t
     =
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
@@ -1093,10 +1185,30 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let* condition_expression, _condition_expression_type, named_statements = expression_of_aval location condition
       in
       TC.return (Ast.Statement.Expression condition_expression, named_statements)
-    and* when_true = statement_of_aexp then_clause
-    and* when_false = statement_of_aexp else_clause
+    and* when_true =
+      statement_of_aexp then_clause
+    and* when_false =
+      statement_of_aexp else_clause
+    and* condition_variable =
+      TC.generate_unique_identifier ()
     in
-    TC.return @@ wrap_in_named_statements_context condition_named_statements @@ Ast.Statement.Match (MatchBool { condition; when_true; when_false })
+    let match_pattern =
+      Ast.Statement.MatchBool {
+        condition = condition_variable;
+        when_true;
+        when_false
+      }
+    in
+    TC.return begin
+      wrap_in_named_statements_context condition_named_statements begin
+        Ast.Statement.Let {
+          variable_identifier    = condition_variable;
+          binding_statement_type = Ast.Type.Bool;
+          binding_statement      = condition;
+          body_statement         = Ast.Statement.Match match_pattern;
+        }
+      end
+    end
 
   and statement_of_block
         (statements     : S.typ S.aexp list)
@@ -1234,7 +1346,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     let lhs_expr_as_statement = Ast.Statement.Expression lhs_expression
     in
-    let if_statement =
+    let* if_statement =
       match logical_operator with
       | Libsail.Anf.SC_and -> begin
           (*
@@ -1328,8 +1440,8 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
   let S.Pat_aux (unwrapped_clause, (location, _annotation)) = clause
   in
   match unwrapped_clause with
-   | Libsail.Ast.Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
-   | Libsail.Ast.Pat_exp (parameter_bindings, raw_body) -> begin
+   | Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
+   | Pat_exp (parameter_bindings, raw_body) -> begin
        let body = S.anf raw_body in
        let return_type = Libsail.Type_check.typ_of raw_body
        in
@@ -1342,18 +1454,10 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
-let apply_rewrites (body : Ast.Statement.t) : Ast.Statement.t =
-  List.fold_left Rewrites.statement_rewrites ~init:body ~f:(fun body rewrite -> rewrite body)
-
-
-let simplify_body (body : Ast.Statement.t) : Ast.Statement.t =
-  body (* todo used to call apply rewrites, but not necessary anymore; maybe remove rewrite stuff *)
-
-
 let translate_body body =
   let* body' = statement_of_aexp body
   in
-  TC.return @@ simplify_body body'
+  TC.return body'
 
 
 let translate_function_definition

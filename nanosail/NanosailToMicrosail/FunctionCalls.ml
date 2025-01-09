@@ -38,9 +38,9 @@ let report_incorrect_argument_count
 
 
 let translate_unary_operator
-    (original_function_name : Ast.Identifier.t )
-    (operator               : string           )
-    (operands               : PP.document list ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t)
+    (operator               : PP.document     )
+    (operands               : PP.document list) : PP.document GC.t
   =
   match operands with
   | [x] -> begin
@@ -49,7 +49,7 @@ let translate_unary_operator
           MuSail.Statement.pp_expression begin
             Coq.pp_application
               (PP.string "exp_unop")
-              [PP.string operator; x]
+              [operator; x]
           end
         end
       end
@@ -379,6 +379,24 @@ let translate_extend
     ~(musail_name : string               )
     ~(arguments   : Ast.Expression.t list) : PP.document GC.t
   =
+  (* "Raw" version of pp_zero_extend that takes arguments in PP.document form *)
+  let pp_zero_extend_raw
+      (bitvector    : PP.document)
+      (new_bit_size : PP.document) : PP.document GC.t
+    =
+    GC.pp_annotate [%here] begin
+      GC.return begin
+        MuSail.Statement.pp_expression begin
+          Coq.pp_application
+            (PP.string "exp_unop")
+            [
+              new_bit_size;
+              bitvector
+            ]
+        end
+      end
+    end
+  in
   let pp_zero_extend
       (bitvector    : Ast.Expression.t)
       (new_bit_size : int             ) : PP.document GC.t
@@ -389,18 +407,10 @@ let translate_extend
       in
       GC.return @@ PP.(surround parens) doc
     in
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        MuSail.Statement.pp_expression begin
-          Coq.pp_application
-            (PP.string "exp_unop")
-            [
-              PP.string @@ Printf.sprintf "(uop.%s (n := %d))" musail_name new_bit_size;
-              pp_bitvector
-            ]
-        end
-      end
-    end
+    let pp_new_bit_size =
+      PP.string @@ Printf.sprintf "(uop.%s (n := %d))" musail_name new_bit_size
+    in
+    pp_zero_extend_raw pp_bitvector pp_new_bit_size
   in
   match arguments with
   | [ bitvector_argument; bit_size_argument ] -> begin
@@ -409,12 +419,21 @@ let translate_extend
       match bit_size_value with
       | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
       | None              -> begin
-          GC.fail [%here] begin
-              Printf.sprintf
-                "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
-                sail_name
-                (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
-            end
+          let* pp_bitvector =
+            let* doc =
+              Expressions.pp_expression bitvector_argument
+            in
+            GC.return @@ PP.(surround parens) doc
+          in
+          let message =
+            Printf.sprintf
+              "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
+              sail_name
+              (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
+          in
+          let* pp_new_bit_size = GC.not_yet_implemented ~message [%here]
+          in
+          pp_zero_extend_raw pp_bitvector pp_new_bit_size
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
@@ -458,17 +477,17 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
   let sail_name = "bitvector_concat"
   in
-  let derive_vector_length (expression : Ast.Expression.t) : Z.t GC.t =
+  let derive_vector_length (expression : Ast.Expression.t) : PP.document GC.t =
     match Ast.Expression.infer_type expression with
-    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return n
-    | _                                                      -> GC.fail [%here] "Failed to determine bitvector size"
+    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return @@ PP.string @@ Z.to_string n
+    | _                                                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
   in
   match arguments with
   | [ bv1; bv2 ] -> begin
-      let* bv1'       = Expressions.pp_expression bv1
-      and* bv2'       = Expressions.pp_expression bv2
-      and* bv1_length = derive_vector_length bv1
-      and* bv2_length = derive_vector_length bv2
+      let* pp_bv1        = Expressions.pp_expression bv1
+      and* pp_bv2        = Expressions.pp_expression bv2
+      and* pp_bv1_length = derive_vector_length bv1
+      and* pp_bv2_length = derive_vector_length bv2
       in
       let binop_name =
         PP.(surround parens) begin
@@ -476,12 +495,18 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
               (PP.string "bop.bvapp")
               [
                 PP.string "_";
-                PP.string @@ Z.to_string bv1_length;
-                PP.string @@ Z.to_string bv2_length;
+                pp_bv1_length;
+                pp_bv2_length;
               ]
           end
       in
-      translate_binary_operator (Ast.Identifier.mk sail_name) ~name:(Some binop_name) [ PP.(surround parens) bv1'; PP.(surround parens) bv2' ]
+      translate_binary_operator
+        (Ast.Identifier.mk sail_name)
+        ~name:(Some binop_name)
+        [
+          PP.(surround parens) pp_bv1;
+          PP.(surround parens) pp_bv2
+        ]
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
 
@@ -491,6 +516,22 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
   in
   match arguments with
   | [bitvector; first_index; second_index] -> begin
+      let pp_slice
+          (low_index : PP.document)
+          (length    : PP.document)
+          (bitvector : PP.document) : PP.document GC.t
+        =
+        translate_unary_operator
+          (Ast.Identifier.mk sail_name)
+          (
+            PP.(surround parens) begin
+              Coq.pp_application
+                (PP.string "uop.vector_subrange")
+                [ low_index; length ]
+            end
+          )
+          [ PP.(surround parens) bitvector ]
+      in
       (*
         How indices need to be interpreted depends on the order
         Here we assume that "backward slices" are not possible, i.e.,
@@ -510,12 +551,17 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
           in
           let length        = high_index - low_index + 1
           in
-          translate_unary_operator
-            (Ast.Identifier.mk sail_name)
-            (Printf.sprintf "(uop.vector_subrange %d %d)" low_index length)
-            [ PP.(surround parens) pp_bitvector ]
+          pp_slice
+            (PP.integer low_index)
+            (PP.integer length   )
+            pp_bitvector
         end
-      | _ -> GC.fail [%here] @@ Printf.sprintf "%s's indices should be known at compile time" sail_name
+      | _ -> begin
+          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          in
+          pp_slice low_index length pp_bitvector
+        end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
@@ -532,15 +578,15 @@ let translate
   match Ast.Identifier.to_string function_identifier with
   | "not_bool" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.not" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
        end
   | "signed" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.signed" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
        end
   | "unsigned" ->
      GC.pp_annotate [%here] begin
-         translate_unary_operator function_identifier "uop.unsigned" pp_arguments
+         translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
        end
   | "eq_bit"           ->
      GC.pp_annotate [%here] begin

@@ -21,7 +21,6 @@ fi
 
 ruby generate.rb > generated.sail
 
-
 $SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
 
 
