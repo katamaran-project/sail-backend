@@ -320,12 +320,20 @@ let translate_enum_match
         let pattern, body = case
         in
         match pattern with
-        | Pattern.EnumCase enum_value_identifier -> begin
+        | EnumCase enum_value_identifier -> begin
             match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
             | `Duplicate -> TC.fail [%here] "same enum case matched against twice"
             | `Ok updated_table -> TC.return updated_table
           end
-        | _ -> TC.fail [%here] "unexpected pattern while dealing with enum match"
+        | Variable _ -> begin
+            let fill_in_missing_case table enum_value_identifier =
+              match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
+              | `Duplicate        -> table
+              | `Ok updated_table -> updated_table
+            in
+            TC.return @@ List.fold enum_definition.cases ~init:table ~f:fill_in_missing_case
+          end
+        | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
       in
       let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
         TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
