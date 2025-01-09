@@ -21,7 +21,6 @@ module Pattern = struct
     | Tuple    of t list
     | EnumCase of Ast.Identifier.t
     | Variable of Ast.Identifier.t
-    | Wildcard
 
   let rec to_fexpr (pattern : t) : FExpr.t =
     let head id =
@@ -60,7 +59,6 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Variable"
       end
-    | Wildcard -> FExpr.mk_symbol "Wildcard"
 end
 
 
@@ -109,7 +107,12 @@ let rec translate_pattern
         end
       | _ -> TC.return @@ Pattern.Variable identifier
     end
-  | AP_wild _typ -> TC.return @@ Pattern.Wildcard
+  | AP_wild _typ -> begin
+      let* identifier =
+        TC.generate_unique_identifier ~underscore:true ()
+      in
+      TC.return @@ Pattern.Variable identifier
+    end
   | AP_tuple subpatterns -> begin
       let aux subpatterns subpattern_types =
         match List.zip subpattern_types subpatterns with
@@ -217,7 +220,7 @@ let translate_case
        }
 
    The match cases can be in any order.
-   Subpatterns are not allowed in the current implementation.
+   Subpatterns are not allowed in the current implementation2.
 *)
 let translate_list_match
     (location           : S.l                               )
