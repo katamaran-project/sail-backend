@@ -16,11 +16,11 @@ open Monads.Notations.Star(TC)
 
 module Pattern = struct
   type t =
-    | ListCons   of { head_pattern : t; tail_pattern : t }
+    | ListCons of { head_pattern : t; tail_pattern : t }
     | ListNil
-    | Tuple      of t list
-    | EnumCase   of Ast.Identifier.t
-    | Identifier of Ast.Identifier.t
+    | Tuple    of t list
+    | EnumCase of Ast.Identifier.t
+    | Variable of Ast.Identifier.t
     | Wildcard
 
   let rec to_fexpr (pattern : t) : FExpr.t =
@@ -52,13 +52,13 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "EnumCase"
       end
-    | Identifier identifier -> begin
+    | Variable identifier -> begin
         let positional =
           [
             Ast.Identifier.to_fexpr identifier
           ]
         in
-        FExpr.mk_application ~positional @@ head "Identifier"
+        FExpr.mk_application ~positional @@ head "Variable"
       end
     | Wildcard -> FExpr.mk_symbol "Wildcard"
 end
@@ -103,11 +103,11 @@ let rec translate_pattern
               then
                 TC.return @@ Pattern.EnumCase identifier
               else
-                TC.return @@ Pattern.Identifier identifier
+                TC.return @@ Pattern.Variable identifier
             end
           | None -> TC.fail [%here] @@ Printf.sprintf "inconsistency: unknown enum type %s" @@ Ast.Identifier.to_string enum_identifier
         end
-      | _ -> TC.return @@ Pattern.Identifier identifier
+      | _ -> TC.return @@ Pattern.Variable identifier
     end
   | AP_wild _typ -> TC.return @@ Pattern.Wildcard
   | AP_tuple subpatterns -> begin
