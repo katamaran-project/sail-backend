@@ -213,10 +213,10 @@ let translate_list_match
     TC.return begin
       Ast.Statement.Match begin
         Ast.Statement.MatchList {
-          matched = matched_identifier;
-          element_type;
-          when_cons = (head_identifier, tail_identifier, cons_body);
-          when_nil = nil_body
+          matched      = matched_identifier                           ;
+          element_type                                                ;
+          when_cons    = (head_identifier, tail_identifier, cons_body);
+          when_nil     = nil_body                                     ;
         }
       end
     end
