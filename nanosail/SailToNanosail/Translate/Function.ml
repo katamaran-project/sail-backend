@@ -621,7 +621,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           if
             String.equal id "unit"
           then
-            match_unit ()
+            TC.fail [%here] "should be dealt with by Match module"
           else begin
             let* type_definition = TC.lookup_type_definition @@ Ast.Identifier.mk id
             in
@@ -635,17 +635,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location
 
-    (*
-       MATCHING UNIT
-    *)
-    and match_unit () =
-      match cases with
-      | [case] -> begin
-          let (_, _, body) = case
-          in
-          statement_of_aexp body
-        end
-      | _      -> TC.fail [%here] "Expected exactly one case when matching unit"
 
     (*
        MATCHING ENUMS
