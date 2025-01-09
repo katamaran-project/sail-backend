@@ -956,7 +956,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
     and match_typed (Typ_aux (type_of_matched, location) : S.typ) =
       match type_of_matched with
-      | Typ_app (Id_aux (Id "list", _), _) -> match_list ()
+      | Typ_app (Id_aux (Id "list", _), _) -> TC.fail [%here] "list should be handled by Match module"
       | Typ_tuple _                        -> match_tuple ()
       | Typ_id id                          -> match_type_by_identifier id
       | Typ_internal_unknown               -> TC.not_yet_implemented [%here] location
@@ -1025,7 +1025,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           body_statement         = match_statement
         }
       end
-    end begin fun _ ->
+    end begin fun error ->
+      Stdio.printf "Match module failed: %s\n" @@ TranslationContext.Error.to_string error;
       match matched with
       | AV_id (_id, lvar) -> begin
           match lvar with (* todo replace by type_from_lvar *)
