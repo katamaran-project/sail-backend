@@ -157,9 +157,10 @@ PASS match-enum-pair
 FAIL match-enum-pair-2
 PASS match-enum-single-case
 PASS match-enum-wildcard
-FAIL match-list-deep-pattern
 PASS match-list-literal
+PASS match-list-three-cases
 PASS match-list-variable
+PASS match-list-wildcard
 PASS match-register
 FAIL match-tuple-of-enums
 FAIL match-tuple-of-enums-scattered
@@ -172,6 +173,7 @@ PASS match-union-single-unary
 PASS match-union-two-nullaries
 FAIL match-unions-nested
 FAIL match-unions-nested-2
+PASS match-unit
 PASS mc-001-types
 PASS mc-002-prelude
 PASS model-001
@@ -242,4 +244,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:217 FAIL:27
+PASS:220 FAIL:26
