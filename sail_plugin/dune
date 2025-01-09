@@ -15,7 +15,8 @@
         base
         stdio
         auxlib
-        monads))
+        monads
+        nanosail))
 
 (install
   (section
