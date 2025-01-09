@@ -9,6 +9,7 @@ let tests =
     ExtendedIntegerTests.test_suite;
     ConvertBitsToZTests.test_suite;
     NumericExpressionPrettyPrintingTests.test_suite;
+    PatternTests.test_suite;
   ]
 
 
