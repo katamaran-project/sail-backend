@@ -36,7 +36,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~keyword @@ head "Cons"
       end
-    | ListNil -> FExpr.mk_symbol "Nil"
+    | ListNil -> FExpr.mk_symbol @@ head "Nil"
     | Tuple subpatterns -> begin
         let positional =
           List.map ~f:to_fexpr subpatterns
