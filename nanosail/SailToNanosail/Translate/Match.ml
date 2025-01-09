@@ -302,6 +302,52 @@ let translate_unit_match
   | _ :: _ :: _                    -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
 
 
+let translate_enum_match
+    (_location           : S.l                              )
+    (matched_identifier : Ast.Identifier.t                  )
+    (enum_identifier    : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  let* enum_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_enum enum_identifier
+  in
+  match enum_definition with
+  | None -> TC.fail [%here] @@ Printf.sprintf "unknown enum type %s" (Ast.Identifier.to_string enum_identifier)
+  | Some enum_definition -> begin
+      let process_case
+          (table : Ast.Statement.t Ast.Identifier.Map.t)
+          (case  : Pattern.t * Ast.Statement.t         ) : Ast.Statement.t Ast.Identifier.Map.t TC.t
+        =
+        let pattern, body = case
+        in
+        match pattern with
+        | Pattern.EnumCase enum_value_identifier -> begin
+            match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
+            | `Duplicate -> TC.fail [%here] "same enum case matched against twice"
+            | `Ok updated_table -> TC.return updated_table
+          end
+        | _ -> TC.fail [%here] "unexpected pattern while dealing with enum match"
+      in
+      let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
+        TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+      in
+      let all_enum_cases_handled =
+        List.for_all enum_definition.cases ~f:(Ast.Identifier.Map.mem case_table)
+      in
+      if not all_enum_cases_handled
+      then TC.fail [%here] "not all enum cases are handled; todo: fill empty cases with fails"
+      else begin
+        let match_pattern =
+          Ast.Statement.MatchEnum {
+            matched = matched_identifier;
+            matched_type = enum_identifier;
+            cases = case_table
+          }
+        in
+        TC.return @@ Ast.Statement.Match match_pattern
+      end
+    end
+
+
 let translate
     (location           : S.l                                                 )
     (matched_identifier : Ast.Identifier.t                                    )
@@ -315,20 +361,20 @@ let translate
     TC.map ~f cases
   in
   match matched_type with
-  | List element_type  -> translate_list_match location matched_identifier element_type translated_cases
-  | Unit               -> translate_unit_match location matched_identifier translated_cases
-  | Product (_, _)     -> TC.not_yet_implemented [%here] location
-  | Int                -> TC.not_yet_implemented [%here] location
-  | Bool               -> TC.not_yet_implemented [%here] location
-  | String             -> TC.not_yet_implemented [%here] location
-  | Bit                -> TC.not_yet_implemented [%here] location
-  | Sum (_, _)         -> TC.not_yet_implemented [%here] location
-  | Enum _             -> TC.not_yet_implemented [%here] location
-  | Bitvector _        -> TC.not_yet_implemented [%here] location
-  | Tuple _            -> TC.not_yet_implemented [%here] location
-  | Variant _          -> TC.not_yet_implemented [%here] location
-  | Record _           -> TC.not_yet_implemented [%here] location
-  | Application (_, _) -> TC.not_yet_implemented [%here] location
-  | Alias (_, _)       -> TC.not_yet_implemented [%here] location
-  | Range (_, _)       -> TC.not_yet_implemented [%here] location
+  | List element_type    -> translate_list_match location matched_identifier element_type translated_cases
+  | Unit                 -> translate_unit_match location matched_identifier translated_cases
+  | Enum enum_identifier -> translate_enum_match location matched_identifier enum_identifier translated_cases
+  | Product (_, _)       -> TC.not_yet_implemented [%here] location
+  | Int                  -> TC.not_yet_implemented [%here] location
+  | Bool                 -> TC.not_yet_implemented [%here] location
+  | String               -> TC.not_yet_implemented [%here] location
+  | Bit                  -> TC.not_yet_implemented [%here] location
+  | Sum (_, _)           -> TC.not_yet_implemented [%here] location
+  | Bitvector _          -> TC.not_yet_implemented [%here] location
+  | Tuple _              -> TC.not_yet_implemented [%here] location
+  | Variant _            -> TC.not_yet_implemented [%here] location
+  | Record _             -> TC.not_yet_implemented [%here] location
+  | Application (_, _)   -> TC.not_yet_implemented [%here] location
+  | Alias (_, _)         -> TC.not_yet_implemented [%here] location
+  | Range (_, _)         -> TC.not_yet_implemented [%here] location
 
