@@ -1019,10 +1019,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return begin
         Ast.Statement.Let {
-          variable_identifier = matched_variable;
+          variable_identifier    = matched_variable;
           binding_statement_type = matched_variable_type;
-          binding_statement = matched;
-          body_statement = match_statement
+          binding_statement      = matched;
+          body_statement         = match_statement
         }
       end
     end begin fun _ ->
