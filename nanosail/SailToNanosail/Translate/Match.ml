@@ -21,7 +21,9 @@ module Pattern = struct
     | Tuple    of t list
     | EnumCase of Ast.Identifier.t
     | Variable of Ast.Identifier.t
+    | Unit
 
+  
   let rec to_fexpr (pattern : t) : FExpr.t =
     let head id =
       Printf.sprintf "Pattern:%s" id
@@ -59,6 +61,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Variable"
       end
+    | Unit -> FExpr.mk_symbol @@ head "Unit"
 end
 
 
@@ -286,6 +289,19 @@ let translate_list_match
   | _ -> TC.not_yet_implemented [%here] location
 
 
+let translate_unit_match
+    (_location           : S.l                               )
+    (_matched_identifier : Ast.Identifier.t                  )
+    (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  match cases with
+  | [ (Pattern.Unit, body) ]       -> TC.return body
+  | [ (Pattern.Variable _, body) ] -> TC.return body                                  
+  | [ (pattern, _) ]               -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+  | []                             -> TC.fail [%here] "expected exactly one pattern; got zero"
+  | _ :: _ :: _                    -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
+
+
 let translate
     (location           : S.l                                                 )
     (matched_identifier : Ast.Identifier.t                                    )
@@ -300,13 +316,13 @@ let translate
   in
   match matched_type with
   | List element_type  -> translate_list_match location matched_identifier element_type translated_cases
+  | Unit               -> translate_unit_match location matched_identifier translated_cases
+  | Product (_, _)     -> TC.not_yet_implemented [%here] location
   | Int                -> TC.not_yet_implemented [%here] location
   | Bool               -> TC.not_yet_implemented [%here] location
   | String             -> TC.not_yet_implemented [%here] location
   | Bit                -> TC.not_yet_implemented [%here] location
-  | Product (_, _)     -> TC.not_yet_implemented [%here] location
   | Sum (_, _)         -> TC.not_yet_implemented [%here] location
-  | Unit               -> TC.not_yet_implemented [%here] location
   | Enum _             -> TC.not_yet_implemented [%here] location
   | Bitvector _        -> TC.not_yet_implemented [%here] location
   | Tuple _            -> TC.not_yet_implemented [%here] location
