@@ -149,6 +149,7 @@ PASS lists-return-singleton-int-list
 PASS mapping-enum-int
 PASS mapping-int-bool
 PASS mapping-usage
+PASS match-bool
 PASS match-enum
 PASS match-enum-incomplete
 PASS match-enum-literal-pair
@@ -241,4 +242,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:216 FAIL:27
+PASS:217 FAIL:27
