@@ -562,78 +562,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t =
 
     (*
-        MATCHING LISTS
-    *)
-    let rec match_list () =
-      (* matched is a list *)
-      let* () =
-        let error_message =
-          lazy "matching list; expected exactly two cases"
-        in
-        TC.check [%here] (Int.equal 2 @@ List.length cases) error_message
-      in
-
-      let* nil_case, cons_case =
-        match cases with
-        | [ (AP_aux (AP_nil  _, _, _), _, _) as nil_case;
-            (AP_aux (AP_cons _, _, _), _, _) as cons_case ] -> TC.return (nil_case, cons_case)
-        | [ (AP_aux (AP_cons _, _, _), _, _) as cons_case;
-            (AP_aux (AP_nil  _, _, _), _, _) as nil_case  ] -> TC.return (nil_case, cons_case)
-        | _                                                 -> TC.fail [%here] "unrecognized cases; should be nil and cons"
-      in
-
-      match nil_case, cons_case with
-      | ( (AP_aux (AP_nil _, _, _), _, nil_clause),
-          (AP_aux (AP_cons (
-                       AP_aux (AP_id (id_h, _), _, _),
-                       AP_aux (AP_id (id_t, _), _, _)
-                     ), _, _), _, cons_clause) ) -> begin
-          let* matched, matched_type =
-            let* expression, expression_type, named_statements = expression_of_aval location matched
-            in
-            TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
-
-          and* when_nil =
-            statement_of_aexp nil_clause
-
-          and* when_cons =
-            let* id_head = Identifier.translate_identifier [%here] id_h
-            and* id_tail = Identifier.translate_identifier [%here] id_t
-            and* clause = statement_of_aexp cons_clause
-            in
-            TC.return (id_head, id_tail, clause)              
-          in
-          
-          let* matched_variable = TC.generate_unique_identifier ()
-          in
-          let* element_type =
-            match matched_type with
-            | List element_type -> TC.return element_type
-            | _                 -> TC.fail [%here] "expected list type"
-          in
-          let match_pattern =
-            Ast.Statement.MatchList {
-              matched = matched_variable;
-              element_type = element_type;
-              when_cons;
-              when_nil;
-            }
-          in
-          TC.return begin
-            Ast.Statement.Let {
-              variable_identifier    = matched_variable;
-              binding_statement_type = matched_type;
-              binding_statement      = matched;
-              body_statement         = Ast.Statement.Match match_pattern
-            }
-          end
-        end
-      | _ -> TC.fail [%here] "list cases do not have expected structure"
-
-    (*
         MATCHING TUPLES
     *)
-    and match_tuple () =
+    let rec match_tuple () =
       (* the matched variable is a tuple *)
       let n_cases = List.length cases
       in
