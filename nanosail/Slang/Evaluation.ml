@@ -1,4 +1,4 @@
-module P = Parsing
+module P = Parser
 open Base
 open Auxlib
 open Exception
