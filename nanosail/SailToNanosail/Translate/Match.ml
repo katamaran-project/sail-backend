@@ -148,7 +148,7 @@ let translate_case
   in
   let S.AE_aux (unwrapped_sail_condition, _) = sail_condition
   in
-  (* Check that the condition is simply true *)
+  (* Check that the condition is simply true; we expect this to be the case if the correct rewrites have been activated *)
   let* () =
     match unwrapped_sail_condition with
     | AE_val value -> begin
