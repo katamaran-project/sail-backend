@@ -64,13 +64,6 @@ module Pattern = struct
 end
 
 
-module Structure = struct
-  type t =
-    | Match     of Pattern.t * t
-    | Statement of Ast.Statement.t
-end
-
-
 let rec translate_pattern
     (matched_type : Ast.Type.t  )
     (sail_pattern : S.typ S.apat) : Pattern.t TC.t
@@ -203,8 +196,6 @@ let translate_case
   in
   Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
   TC.return (pattern, body)
-
-
 
 
 let translate
