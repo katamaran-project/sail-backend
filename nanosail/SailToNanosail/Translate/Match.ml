@@ -205,6 +205,7 @@ let translate_list_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   let translate
+      (matched_identifier : Ast.Identifier.t)
       (head_identifier : Ast.Identifier.t)
       (tail_identifier : Ast.Identifier.t)
       (cons_body       : Ast.Statement.t )
@@ -221,14 +222,42 @@ let translate_list_match
       end
     end
   in
-  match cases with
-  | [ (Pattern.ListCons (Pattern.Variable head_identifier, Pattern.Variable tail_identifier), cons_body);
-      (Pattern.ListNil, nil_body) ] -> begin
-      translate head_identifier tail_identifier cons_body nil_body
-    end
+  let cases_sorted_by_pattern_depth =
+    let rec pattern_depth (pattern : Pattern.t) : int =
+      match pattern with
+      | ListCons (_, tail) -> 1 + pattern_depth tail
+      | ListNil            -> 0
+      | Variable _         -> 0
+      | _                  -> failwith "should not occur"
+    in
+    let compare (p1, _) (p2, _) =
+      pattern_depth p1 - pattern_depth p2
+    in
+    List.sort cases ~compare
+  in
+  match cases_sorted_by_pattern_depth with
   | [ (Pattern.ListNil, nil_body);
       (Pattern.ListCons (Pattern.Variable head_identifier, Pattern.Variable tail_identifier), cons_body) ] -> begin
-      translate head_identifier tail_identifier cons_body nil_body
+      translate matched_identifier head_identifier tail_identifier cons_body nil_body
+    end
+  | [ (Pattern.ListNil, zero_body);
+      (Pattern.ListCons (Pattern.Variable first_identifier_1, Pattern.ListNil), one_body);
+      (Pattern.ListCons (Pattern.Variable first_identifier_2, Pattern.ListCons (Pattern.Variable second_identifier, Pattern.Variable rest_identifier)), two_or_more_body)] -> begin
+      if
+        not (Ast.Identifier.equal first_identifier_1 first_identifier_2)
+      then
+        TC.not_yet_implemented ~message:"differently named first elements in list matching patterns" [%here] location
+      else begin
+        let first_identifier = first_identifier_1
+        in
+        let* tail_identifier =
+          TC.generate_unique_identifier ()
+        in
+        let* inner_match =
+          translate tail_identifier second_identifier rest_identifier two_or_more_body one_body
+        in
+        translate matched_identifier first_identifier tail_identifier inner_match zero_body
+      end
     end
   | _ -> TC.not_yet_implemented [%here] location
 
