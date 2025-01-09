@@ -16,7 +16,7 @@ open Monads.Notations.Star(TC)
 
 module Pattern = struct
   type t =
-    | ListCons of { head_pattern : t; tail_pattern : t }
+    | ListCons of t * t
     | ListNil
     | Tuple    of t list
     | EnumCase of Ast.Identifier.t
@@ -28,7 +28,7 @@ module Pattern = struct
       Printf.sprintf "Pattern:%s" id
     in
     match pattern with
-    | ListCons { head_pattern; tail_pattern } -> begin
+    | ListCons (head_pattern, tail_pattern) -> begin
         let keyword =
           [
             ("head", to_fexpr head_pattern);
@@ -77,7 +77,7 @@ let rec translate_pattern
           let* head_pattern = translate_pattern element_type head_pattern
           and* tail_pattern = translate_pattern matched_type tail_pattern
           in
-          TC.return @@ Pattern.ListCons { head_pattern; tail_pattern }
+          TC.return @@ Pattern.ListCons (head_pattern, tail_pattern)
         end
       | _ -> TC.fail [%here] "expected list type"
     end
@@ -204,7 +204,33 @@ let translate_list_match
     (element_type       : Ast.Type.t                        )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
-  TC.not_yet_implemented [%here] location
+  let translate
+      (head_identifier : Ast.Identifier.t)
+      (tail_identifier : Ast.Identifier.t)
+      (cons_body       : Ast.Statement.t )
+      (nil_body        : Ast.Statement.t ) : Ast.Statement.t TC.t
+    =
+    TC.return begin
+      Ast.Statement.Match begin
+        Ast.Statement.MatchList {
+          matched = matched_identifier;
+          element_type;
+          when_cons = (head_identifier, tail_identifier, cons_body);
+          when_nil = nil_body
+        }
+      end
+    end
+  in
+  match cases with
+  | [ (Pattern.ListCons (Pattern.Variable head_identifier, Pattern.Variable tail_identifier), cons_body);
+      (Pattern.ListNil, nil_body) ] -> begin
+      translate head_identifier tail_identifier cons_body nil_body
+    end
+  | [ (Pattern.ListNil, nil_body);
+      (Pattern.ListCons (Pattern.Variable head_identifier, Pattern.Variable tail_identifier), cons_body) ] -> begin
+      translate head_identifier tail_identifier cons_body nil_body
+    end
+  | _ -> TC.not_yet_implemented [%here] location
 
 
 let translate
