@@ -198,11 +198,20 @@ let translate_case
   TC.return (pattern, body)
 
 
+let translate_list_match
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (element_type       : Ast.Type.t                        )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  TC.not_yet_implemented [%here] location
+
+
 let translate
-    (location           : S.l                                              )
-    (matched_identifier : Ast.Identifier.t                                 )
-    (matched_type       : Ast.Type.t                                       )
-    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list) : unit TC.t
+    (location           : S.l                                                 )
+    (matched_identifier : Ast.Identifier.t                                    )
+    (matched_type       : Ast.Type.t                                          )
+    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   let* translated_cases =
     let f (pattern, condition, clause) =
@@ -210,4 +219,21 @@ let translate
     in
     TC.map ~f cases
   in
-  TC.return ()
+  match matched_type with
+  | List element_type  -> translate_list_match location matched_identifier element_type translated_cases
+  | Int                -> TC.not_yet_implemented [%here] location
+  | Bool               -> TC.not_yet_implemented [%here] location
+  | String             -> TC.not_yet_implemented [%here] location
+  | Bit                -> TC.not_yet_implemented [%here] location
+  | Product (_, _)     -> TC.not_yet_implemented [%here] location
+  | Sum (_, _)         -> TC.not_yet_implemented [%here] location
+  | Unit               -> TC.not_yet_implemented [%here] location
+  | Enum _             -> TC.not_yet_implemented [%here] location
+  | Bitvector _        -> TC.not_yet_implemented [%here] location
+  | Tuple _            -> TC.not_yet_implemented [%here] location
+  | Variant _          -> TC.not_yet_implemented [%here] location
+  | Record _           -> TC.not_yet_implemented [%here] location
+  | Application (_, _) -> TC.not_yet_implemented [%here] location
+  | Alias (_, _)       -> TC.not_yet_implemented [%here] location
+  | Range (_, _)       -> TC.not_yet_implemented [%here] location
+

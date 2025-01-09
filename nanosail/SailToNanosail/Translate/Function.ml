@@ -999,36 +999,37 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    (* let* _ = (\* todo remove *\) *)
-    (*   let* matched_variable = *)
-    (*     TC.generate_unique_identifier () *)
-    (*   and* matched_variable_type = *)
-    (*     type_of_aval matched location *)
-    (*   and* cases_with_translated_bodies = *)
-    (*     let translate_case_body (pattern, condition, body) = *)
-    (*       let* translated_body = statement_of_aexp body *)
-    (*       in *)
-    (*       TC.return (pattern, condition, translated_body) *)
-    (*     in *)
-    (*     TC.map ~f:translate_case_body cases *)
-    (*   in *)
-    (*   Match.translate location matched_variable matched_variable_type cases_with_translated_bodies *)
-    (* in *)
-    match matched with
-    | AV_id (_id, lvar) -> begin
-        match lvar with (* todo replace by type_from_lvar *)
-        | Local (_mut, typ) -> match_typed typ
-        | Register typ      -> match_typed typ
-        | Enum typ          -> match_typed typ
-        | Unbound _         -> TC.not_yet_implemented [%here] location
-      end
-    | AV_lit (literal, literal_type) -> match_literal literal literal_type
-    | AV_tuple _                     -> match_tuple ()
-    | AV_list (_, _)                 -> match_list ()
-    | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
-    | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
-    | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
-    | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+    TC.recover begin (* todo rewrite without need for recovering *)
+      let* matched_variable =
+        TC.generate_unique_identifier ()
+      and* matched_variable_type =
+        type_of_aval matched location
+      and* cases_with_translated_bodies =
+        let translate_case_body (pattern, condition, body) =
+          let* translated_body = statement_of_aexp body
+          in
+          TC.return (pattern, condition, translated_body)
+        in
+        TC.map ~f:translate_case_body cases
+      in
+      Match.translate location matched_variable matched_variable_type cases_with_translated_bodies
+    end begin fun _ ->
+      match matched with
+      | AV_id (_id, lvar) -> begin
+          match lvar with (* todo replace by type_from_lvar *)
+          | Local (_mut, typ) -> match_typed typ
+          | Register typ      -> match_typed typ
+          | Enum typ          -> match_typed typ
+          | Unbound _         -> TC.not_yet_implemented [%here] location
+        end
+      | AV_lit (literal, literal_type) -> match_literal literal literal_type
+      | AV_tuple _                     -> match_tuple ()
+      | AV_list (_, _)                 -> match_list ()
+      | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
+      | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
+      | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
+      | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+    end
 
   and statement_of_field_access
         (location         : S.l         )
