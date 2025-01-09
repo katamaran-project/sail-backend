@@ -198,6 +198,27 @@ let translate_case
   TC.return (pattern, body)
 
 
+(*
+   Matching lists currently only supports very specific patterns.
+
+   * Empty and nonempty list:
+   
+       match list {
+         [| |] => ...,
+         x :: xs => ...
+       }
+
+   * Empty, singleton and 2+ list:
+
+       match list {
+         [| |] => ...,
+         [| x |] => ...,
+         x :: y :: rest => ...
+       }
+
+   The match cases can be in any order.
+   Subpatterns are not allowed in the current implementation.
+*)
 let translate_list_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
