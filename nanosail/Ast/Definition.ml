@@ -130,6 +130,19 @@ module Type = struct
       }
 
     and constructor = (Identifier.t * Type.t list)
+
+    let find_constructor_field_types
+        (definition : t               )
+        (target     : Ast.Identifier.t) : Type.t list option
+      =
+      let is_right_constructor (constructor : constructor) : bool =
+        let constructor_identifier, _ = constructor
+        in
+        Ast.Identifier.equal constructor_identifier target
+      in
+      match List.find definition.constructors ~f:is_right_constructor with
+      | Some (_, fields) -> Some fields
+      | None             -> None
   end
 
   module Enum = struct
