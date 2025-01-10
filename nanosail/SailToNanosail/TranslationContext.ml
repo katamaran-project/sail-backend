@@ -242,3 +242,16 @@ let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Ide
   if underscore
   then return @@ Ast.Identifier.add_prefix "_" result
   else return result
+
+
+let rec generate_unique_identifiers ?(prefix = "") ?(underscore = false) (count : int) : Ast.Identifier.t list t =
+  if
+    Int.equal 0 count
+  then
+    return []
+  else
+    let* id  = generate_unique_identifier ~prefix ~underscore ()
+    and* ids = generate_unique_identifiers ~prefix ~underscore (count - 1)
+    in
+    return @@ id :: ids
+
