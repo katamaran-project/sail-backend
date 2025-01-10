@@ -169,9 +169,9 @@ let rec translate_pattern
     end
   | Unit -> begin
       match unwrapped_sail_pattern with
-      | AP_id (_sail_identifier, _sail_type) -> translate_wildcard_pattern ()
-      | AP_wild _type                        -> translate_wildcard_pattern ()
-      | _                                    -> unexpected_pattern [%here]
+      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+      | AP_wild _type                       -> translate_wildcard_pattern ()
+      | _                                   -> unexpected_pattern [%here]
     end
   | Tuple subtypes -> begin
       match unwrapped_sail_pattern with
@@ -674,7 +674,6 @@ let translate_variant_match
         TC.return @@ Ast.Statement.Match match_pattern
       end
     end
-
 
 
 let translate
