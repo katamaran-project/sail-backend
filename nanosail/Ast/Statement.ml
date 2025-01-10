@@ -133,7 +133,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             let keyword =
               [
                 ("constructor", Identifier.to_fexpr constructor);
-                ("ids", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr identifiers);
+                ("binders", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr identifiers);
                 ("clause", to_fexpr clause);
               ]
             in
