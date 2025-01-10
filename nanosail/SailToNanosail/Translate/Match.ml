@@ -69,31 +69,69 @@ let rec translate_pattern
     (matched_type : Ast.Type.t  )
     (sail_pattern : S.typ S.apat) : Pattern.t TC.t
   =
-  let S.AP_aux (unwrapped_sail_pattern, _type_environment, location) = sail_pattern
+  let S.AP_aux (unwrapped_sail_pattern, _type_environment, _location) = sail_pattern
   in
-  match unwrapped_sail_pattern with
-  | AP_cons (head_pattern, tail_pattern) -> begin
-      match matched_type with
-      | List element_type -> begin
+
+  let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
+    let* identifier = Identifier.translate_identifier [%here] sail_identifier
+    in
+    TC.return @@ Pattern.Variable identifier
+      
+  and translate_wildcard_pattern () : Pattern.t TC.t =
+    let* fresh_identifier = TC.generate_unique_identifier ~underscore:true ()
+    in
+    TC.return @@ Pattern.Variable fresh_identifier
+
+  and unexpected_pattern (location : Lexing.position) =
+    let error_message =
+      Printf.sprintf
+        "expected pattern %s while matching type %s"
+        (StringOf.Sail.apat sail_pattern)
+        (FExpr.to_string @@ Ast.Type.to_fexpr matched_type)
+    in
+    TC.fail location error_message
+
+  and translate_tuple_pattern
+      (subpatterns : S.typ S.apat list)
+      (subtypes    : Ast.Type.t list  ) : Pattern.t TC.t
+    =
+    match List.zip subtypes subpatterns with
+    | Ok pairs -> begin
+        let* translated_subpatterns =
+          TC.map ~f:(Auxlib.uncurry translate_pattern) pairs
+        in
+        TC.return @@ Pattern.Tuple translated_subpatterns
+      end
+    | Unequal_lengths -> TC.fail [%here] "expected as many types as patterns in tuple"
+
+  in
+  let translate_for_atomic_type () =
+    match unwrapped_sail_pattern with
+    | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+    | AP_wild _sail_type                  -> translate_wildcard_pattern ()
+    | _                                   -> unexpected_pattern [%here]
+
+  in
+  match matched_type with
+  | List element_type -> begin
+      match unwrapped_sail_pattern with
+      | AP_cons (head_pattern, tail_pattern) -> begin
           let* head_pattern = translate_pattern element_type head_pattern
           and* tail_pattern = translate_pattern matched_type tail_pattern
           in
           TC.return @@ Pattern.ListCons (head_pattern, tail_pattern)
         end
-      | _ -> TC.fail [%here] "expected list type"
+      | AP_nil _typ                   -> TC.return @@ Pattern.ListNil
+      | AP_id (identifier, _sail_typ) -> translate_variable_pattern identifier
+      | AP_wild _type                 -> translate_wildcard_pattern ()
+      | _                             -> unexpected_pattern [%here]
     end
-  | AP_nil _typ -> begin
-      match matched_type with
-      | List _ -> begin
-          TC.return @@ Pattern.ListNil
-        end
-      | _ -> TC.fail [%here] "expected list type"
-    end
-  | AP_id (identifier, _typ) -> begin
-      let* identifier = Identifier.translate_identifier [%here] identifier
-      in
-      match matched_type with
-      | Enum enum_identifier -> begin
+  | Enum enum_identifier -> begin
+      match unwrapped_sail_pattern with
+      | AP_id (sail_identifier, _sail_type) -> begin
+          let* identifier =
+            Identifier.translate_identifier [%here] sail_identifier
+          in
           let* enum_definition =
             TC.lookup_type_definition_of_kind Ast.Definition.Select.of_enum enum_identifier
           in
@@ -106,41 +144,49 @@ let rec translate_pattern
               else
                 TC.return @@ Pattern.Variable identifier
             end
-          | None -> TC.fail [%here] @@ Printf.sprintf "inconsistency: unknown enum type %s" @@ Ast.Identifier.to_string enum_identifier
+          | None -> begin
+              (* This really should never happen *)
+              TC.fail [%here] @@ Printf.sprintf "unknown enum type %s" @@ Ast.Identifier.to_string enum_identifier
+            end          
         end
-      | _ -> TC.return @@ Pattern.Variable identifier
+      | AP_wild _type -> translate_wildcard_pattern ()
+      | _ -> unexpected_pattern [%here]
     end
-  | AP_wild _typ -> begin
-      let* identifier =
-        TC.generate_unique_identifier ~underscore:true ()
-      in
-      TC.return @@ Pattern.Variable identifier
+  | Unit -> begin
+      match unwrapped_sail_pattern with
+      | AP_id (_sail_identifier, _sail_type) -> translate_wildcard_pattern ()
+      | AP_wild _type                        -> translate_wildcard_pattern ()
+      | _                                    -> unexpected_pattern [%here]
     end
-  | AP_tuple subpatterns -> begin
-      let aux subpatterns subpattern_types =
-        match List.zip subpattern_types subpatterns with
-        | Ok pairs -> begin
-            let* translated_subpatterns =
-              TC.map ~f:(Auxlib.uncurry translate_pattern) pairs
-            in
-            TC.return @@ Pattern.Tuple translated_subpatterns
-          end
-        | Unequal_lengths -> TC.fail [%here] "expected as many types as patterns in tuple"
-      in
-      match matched_type with
-      | Tuple subpattern_types -> aux subpatterns subpattern_types
-      | Product (t1, t2) -> aux subpatterns [t1; t2]
-      | _ -> begin
-          let error_message =
-            Printf.sprintf "expected tuple or product type, instead got: %s" @@ FExpr.to_string @@ Ast.Type.to_fexpr matched_type
-          in
-          TC.fail [%here] error_message
+  | Tuple subtypes -> begin
+      match unwrapped_sail_pattern with
+      | AP_tuple sail_subpatterns           -> translate_tuple_pattern sail_subpatterns subtypes
+      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+      | AP_wild _type                       -> translate_wildcard_pattern ()
+      | _                                   -> unexpected_pattern [%here]
+    end
+  | Product (left_subtype, right_subtype) -> begin
+      match unwrapped_sail_pattern with
+      | AP_tuple sail_subpatterns -> begin
+          match sail_subpatterns with
+          | [ sail_left_subpattern; sail_right_subpattern ] -> translate_tuple_pattern [sail_left_subpattern; sail_right_subpattern] [left_subtype; right_subtype]
+          | _                                               -> unexpected_pattern [%here]
         end
+      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+      | AP_wild _type                       -> translate_wildcard_pattern ()
+      | _                                   -> unexpected_pattern [%here]
     end
-  | AP_global (_, _) -> TC.not_yet_implemented [%here] location
-  | AP_app (_, _, _) -> TC.not_yet_implemented [%here] location
-  | AP_as (_, _, _)  -> TC.not_yet_implemented [%here] location
-  | AP_struct (_, _) -> TC.not_yet_implemented [%here] location
+  | Int                -> translate_for_atomic_type ()
+  | Bool               -> translate_for_atomic_type ()
+  | String             -> translate_for_atomic_type ()
+  | Bit                -> translate_for_atomic_type ()
+  | Sum (_, _)         -> translate_for_atomic_type ()
+  | Bitvector _        -> translate_for_atomic_type ()
+  | Variant _          -> translate_for_atomic_type ()
+  | Record _           -> translate_for_atomic_type ()
+  | Application (_, _) -> translate_for_atomic_type ()
+  | Alias (_, _)       -> translate_for_atomic_type ()
+  | Range (_, _)       -> translate_for_atomic_type ()
   
 
 let translate_case
