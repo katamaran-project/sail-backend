@@ -16,11 +16,12 @@ open Monads.Notations.Star(TC)
 
 module Pattern = struct
   type t =
-    | ListCons of t * t
+    | ListCons    of t * t
     | ListNil
-    | Tuple    of t list
-    | EnumCase of Ast.Identifier.t
-    | Variable of Ast.Identifier.t
+    | Tuple       of t list
+    | EnumCase    of Ast.Identifier.t
+    | VariantCase of Ast.Identifier.t * t
+    | Variable    of Ast.Identifier.t
     | Unit
 
   
@@ -52,6 +53,14 @@ module Pattern = struct
           ]
         in
         FExpr.mk_application ~positional @@ head "EnumCase"
+      end
+    | VariantCase (identifier, subpattern) -> begin
+        let positional = [
+          Ast.Identifier.to_fexpr identifier;
+          to_fexpr subpattern
+        ]
+        in
+        FExpr.mk_application ~positional @@ head "VariantCase"
       end
     | Variable identifier -> begin
         let positional =
@@ -176,13 +185,53 @@ let rec translate_pattern
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
+  | Variant variant_identifier -> begin
+      match unwrapped_sail_pattern with
+      | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
+          let* head_identifier =
+            Identifier.translate_identifier [%here] head_sail_identifier
+          in
+          let* variant_definition =
+            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant variant_identifier
+          in
+          match variant_definition with
+          | None -> begin
+              (* This really should never occur *)
+              TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string variant_identifier
+            end
+          | Some variant_definition -> begin
+              match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with
+              | Some (constructor_identifier, field_types) -> begin
+                  let field_type : Ast.Type.t =
+                    match field_types with
+                    | []  -> Ast.Type.Unit
+                    | [t] -> t
+                    | ts  -> Ast.Type.Tuple ts
+                  in
+                  let* subpattern =
+                    translate_pattern field_type sail_subpattern
+                  in
+                  TC.return @@ Pattern.VariantCase (constructor_identifier, subpattern)
+                end
+              | None -> begin
+                  (* This really should never occur *)
+                  let error_message =
+                    Printf.sprintf "variant %s has no constructor %s" (Ast.Identifier.to_string variant_identifier) (Ast.Identifier.to_string head_identifier)
+                  in
+                  TC.fail [%here] error_message
+                end
+            end
+        end
+      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+      | AP_wild _sail_type                  -> translate_wildcard_pattern ()
+      | _                                   -> unexpected_pattern [%here]
+    end
   | Int                -> translate_for_atomic_type ()
   | Bool               -> translate_for_atomic_type ()
   | String             -> translate_for_atomic_type ()
   | Bit                -> translate_for_atomic_type ()
   | Sum (_, _)         -> translate_for_atomic_type ()
   | Bitvector _        -> translate_for_atomic_type ()
-  | Variant _          -> translate_for_atomic_type ()
   | Record _           -> translate_for_atomic_type ()
   | Application (_, _) -> translate_for_atomic_type ()
   | Alias (_, _)       -> translate_for_atomic_type ()
@@ -301,7 +350,7 @@ let translate_list_match
       | ListCons (_, tail) -> 1 + pattern_depth tail
       | ListNil            -> 0
       | Variable _         -> 0
-      | _                  -> failwith "should not occur"
+      | _                  -> failwith "error in pattern_depth; should never occur"
     in
     let compare (p1, _) (p2, _) =
       pattern_depth p1 - pattern_depth p2
@@ -349,7 +398,7 @@ let translate_unit_match
 
 
 let translate_enum_match
-    (_location           : S.l                              )
+    (_location          : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (enum_identifier    : Ast.Identifier.t                  )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
@@ -359,6 +408,7 @@ let translate_enum_match
   in
   match enum_definition with
   | None -> begin
+      (* This really should never occur *)
       TC.fail [%here] @@ Printf.sprintf "unknown enum type %s" (Ast.Identifier.to_string enum_identifier)
     end
   | Some enum_definition -> begin
@@ -440,6 +490,184 @@ let translate_enum_match
     end
 
 
+let translate_variant_match
+    (location          : S.l                                )
+    (matched_identifier : Ast.Identifier.t                  )
+    (variant_identifier : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  (* Look up variant definition, we need to know which constructors there are *)
+  let* variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant variant_identifier
+  in
+  match variant_definition with
+  | None -> begin
+      (* This really should never occur *)
+      TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" (Ast.Identifier.to_string variant_identifier)
+    end
+  | Some variant_definition -> begin
+      (*
+         Set up constructor table: it maps constructors to variables to which the fields need to be bound and the clause
+      *)
+      let* case_table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
+        let process_case
+            (table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
+            (case  : Pattern.t * Ast.Statement.t                                   ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+          =
+          let pattern, body = case
+          in
+          let add_to_table
+              (constructor_identifier : Ast.Identifier.t     )
+              (binder_identifiers     : Ast.Identifier.t list) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+            =
+            match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(binder_identifiers, body) with
+            | `Duplicate -> begin
+                (* This case shouldn't occur given the limitations the current implementation imposes on pattern matching *)
+                TC.fail [%here] "same constructor matched against twice"
+              end
+            | `Ok updated_table -> begin
+                (* We add the (constructor, clause) association to the table *)
+                TC.return updated_table
+              end
+          in
+          match pattern with
+          | VariantCase (constructor_identifier, subpattern) -> begin
+              (* Look up information about the current constructor *)
+              match Ast.Definition.Type.Variant.find_constructor_field_types variant_definition constructor_identifier with
+              | None -> begin
+                  (* No constructor for the variant we're matching against. Should not occur *)
+                  let error_message =
+                    Printf.sprintf
+                      "unknown constructor %s for variant %s"
+                      (Ast.Identifier.to_string constructor_identifier)
+                      (Ast.Identifier.to_string variant_identifier)
+                  in
+                  TC.fail [%here] error_message
+                end
+              | Some field_types -> begin
+                  match subpattern with
+                  | Tuple tuple_subpatterns -> begin
+                      (*
+                         We're dealing with
+    
+                           match variant_value {
+                             Constructor(subpattern1, subpattern2, ...) => ...
+                           }
+    
+                         In our current implementation, we expect all subpatterns to be binders, i.e.,
+                         we don't support nested patterns.
+                      *)
+                      if
+                        not @@ Int.equal (List.length tuple_subpatterns) (List.length field_types)
+                      then
+                        TC.fail [%here] "mismatch between number of subpatterns and number of fields"
+                      else begin
+                        (* For now, we expect the tuple pattern to contain only Variable patterns *)
+                        let extract_identifier_from_variable_pattern (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                          match pattern with
+                          | Variable identifier -> TC.return identifier
+                          | _                   -> TC.fail [%here] "only variable subpatterns supported"
+                        in
+                        let* binders =
+                          TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
+                        in
+                        add_to_table constructor_identifier binders
+                      end                    
+                    end
+                  | Variable identifier -> begin
+                      (*
+                         We're dealing with
+    
+                           match variant_value {
+                             Constructor(x) => ...
+                           }
+    
+                         Three cases need to be considered:
+                         * Constructor has zero fields, in which case x should be bound to unit
+                         * Constructor has one field, in which case x should be bound to that field
+                         * Constructor has more than one field, in which case x should be bound to a tuple of field values.
+                           Our current implementation does not support this.
+                      *)
+                      match List.length field_types with
+                      | 0 -> begin
+                          (* We're dealing with a fieldless constructor, which is actually a constructor with one unit-typed field *)
+                          add_to_table constructor_identifier [ identifier ]
+                        end
+                      | 1 -> add_to_table constructor_identifier [ identifier ]
+                      | _ -> begin
+                          let message =
+                            Printf.sprintf
+                              "each field needs its own binder; problematic constructor %s"
+                              (Ast.Identifier.to_string constructor_identifier)
+                          in
+                          TC.not_yet_implemented ~message [%here] location
+                        end
+                    end
+                  | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
+                end
+            end
+          | Variable _ -> begin
+              (*
+                 The pattern binds the constructor to a variable, meaning
+                 it should match all constructors that have hitherto not been processed.
+              *)
+              let fill_in_missing_case
+                  (table       : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
+                  (constructor : Ast.Identifier.t * Ast.Type.t list                            ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+                =
+                let constructor_identifier, field_types = constructor
+                in
+                (* Generate new identifiers to be used as binders for each field *)
+                let* identifiers : Ast.Identifier.t list = TC.generate_unique_identifiers (List.length field_types)
+                in
+                match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, body) with
+                | `Duplicate -> begin
+                    (*
+                       We tried to add an extra (constructor, clause) association to the table, but there
+                       already existed one, which is okay. We simply keep the table as is.
+                    *)
+                    TC.return table
+                  end
+                | `Ok updated_table -> TC.return updated_table
+              in
+              (*
+                 We go through all possible constructors and try to add associations for them to the table, i.e.,
+                 we only add associations for constructors that are missing from the table.
+              *)
+              TC.fold_left variant_definition.constructors ~init:table ~f:fill_in_missing_case
+            end
+          | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+        in
+        TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+      in
+      (* Check that all enum cases have been handled *)
+      let all_constructors_handled =
+        let constructor_identifiers =
+          List.map ~f:fst variant_definition.constructors
+        in
+        List.for_all constructor_identifiers ~f:(Ast.Identifier.Map.mem case_table)
+      in
+      if
+        not all_constructors_handled
+      then
+        (*
+           Some enum values were not handled by the match.
+           For now, we simply fail, but we could instead fill up the gaps with failure statements.
+        *)
+        TC.fail [%here] "not all enum cases are handled"
+      else begin
+        let match_pattern =
+          Ast.Statement.MatchVariant {
+            matched = matched_identifier;
+            matched_type = variant_identifier;
+            cases = case_table
+          }
+        in
+        TC.return @@ Ast.Statement.Match match_pattern
+      end
+    end
+
+
+
 let translate
     (location           : S.l                                                 )
     (matched_identifier : Ast.Identifier.t                                    )
@@ -453,19 +681,19 @@ let translate
     TC.map ~f cases
   in
   match matched_type with
-  | List element_type    -> translate_list_match location matched_identifier element_type translated_cases
-  | Unit                 -> translate_unit_match location matched_identifier translated_cases
-  | Enum enum_identifier -> translate_enum_match location matched_identifier enum_identifier translated_cases
-  | Product (_, _)       -> TC.not_yet_implemented [%here] location
-  | Int                  -> TC.not_yet_implemented [%here] location
-  | Bool                 -> TC.not_yet_implemented [%here] location
-  | String               -> TC.not_yet_implemented [%here] location
-  | Bit                  -> TC.not_yet_implemented [%here] location
-  | Sum (_, _)           -> TC.not_yet_implemented [%here] location
-  | Bitvector _          -> TC.not_yet_implemented [%here] location
-  | Tuple _              -> TC.not_yet_implemented [%here] location
-  | Variant _            -> TC.not_yet_implemented [%here] location
-  | Record _             -> TC.not_yet_implemented [%here] location
-  | Application (_, _)   -> TC.not_yet_implemented [%here] location
-  | Alias (_, _)         -> TC.not_yet_implemented [%here] location
-  | Range (_, _)         -> TC.not_yet_implemented [%here] location
+  | List element_type          -> translate_list_match location matched_identifier element_type translated_cases
+  | Unit                       -> translate_unit_match location matched_identifier translated_cases
+  | Enum enum_identifier       -> translate_enum_match location matched_identifier enum_identifier translated_cases
+  | Variant variant_identifier -> translate_variant_match location matched_identifier variant_identifier translated_cases
+  | Product (_, _)             -> TC.not_yet_implemented [%here] location
+  | Int                        -> TC.not_yet_implemented [%here] location
+  | Bool                       -> TC.not_yet_implemented [%here] location
+  | String                     -> TC.not_yet_implemented [%here] location
+  | Bit                        -> TC.not_yet_implemented [%here] location
+  | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
+  | Bitvector _                -> TC.not_yet_implemented [%here] location
+  | Tuple _                    -> TC.not_yet_implemented [%here] location
+  | Record _                   -> TC.not_yet_implemented [%here] location
+  | Application (_, _)         -> TC.not_yet_implemented [%here] location
+  | Alias (_, _)               -> TC.not_yet_implemented [%here] location
+  | Range (_, _)               -> TC.not_yet_implemented [%here] location
