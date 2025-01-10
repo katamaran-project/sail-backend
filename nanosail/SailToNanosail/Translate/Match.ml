@@ -39,13 +39,16 @@ module Pattern = struct
         in
         FExpr.mk_application ~keyword @@ head "Cons"
       end
+      
     | ListNil -> FExpr.mk_symbol @@ head "Nil"
+        
     | Tuple subpatterns -> begin
         let positional =
           List.map ~f:to_fexpr subpatterns
         in
         FExpr.mk_application ~positional @@ head "Tuple"
       end
+      
     | EnumCase identifier -> begin
         let positional =
           [
@@ -54,6 +57,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "EnumCase"
       end
+      
     | VariantCase (identifier, subpattern) -> begin
         let positional = [
           Ast.Identifier.to_fexpr identifier;
@@ -62,6 +66,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
+      
     | Variable identifier -> begin
         let positional =
           [
@@ -70,6 +75,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Variable"
       end
+      
     | Unit -> FExpr.mk_symbol @@ head "Unit"
 end
 
