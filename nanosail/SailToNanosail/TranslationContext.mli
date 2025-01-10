@@ -35,7 +35,7 @@ val lookup_type_definition_of_kind : (Ast.Definition.Type.t -> 'a option) -> Ast
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
 val lookup_register_type           : Ast.Identifier.t -> Ast.Type.t option t
 val generate_unique_int            : int t
-val generate_unique_identifier     : ?prefix:string -> ?underscore:bool -> unit ->  Ast.Identifier.t t
+val generate_unique_identifier     : ?prefix:string -> ?underscore:bool -> unit -> Ast.Identifier.t t
 val generate_unique_identifiers    : ?prefix:string -> ?underscore:bool -> unit -> int -> Ast.Identifier.t list t
 val is_register                    : Ast.Identifier.t -> bool t
 
