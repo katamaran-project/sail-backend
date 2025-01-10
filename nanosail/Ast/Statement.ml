@@ -241,27 +241,27 @@ let rec to_fexpr (statement : t) : FExpr.t =
 
   in
   match statement with
-  | Match pattern -> match_pattern_to_fexpr pattern
-  | Expression expression -> expression_to_fexpr expression
+  | Match pattern                -> match_pattern_to_fexpr pattern
+  | Expression expression        -> expression_to_fexpr expression
   | Call (identifier, arguments) -> call_to_fexpr identifier arguments
+  | Seq (t1, t2)                 -> seq_to_fexpr t1 t2
+  | ReadRegister id              -> read_register_to_fexpr id
+  | Cast (expression, typ)       -> cast_to_fexpr expression typ
+  | Fail message                 -> fail_to_fexpr message
   | Let {
       variable_identifier   ;
       binding_statement_type;
       binding_statement     ;
       body_statement
-    } -> let_to_fexpr variable_identifier binding_statement_type binding_statement body_statement
+    }                            -> let_to_fexpr variable_identifier binding_statement_type binding_statement body_statement
   | DestructureRecord {
       record_type_identifier;
       field_identifiers;
       variable_identifiers;
       destructured_record;
       body
-    } -> destructure_record_to_fexpr record_type_identifier field_identifiers variable_identifiers destructured_record body
-  | Seq (t1, t2) -> seq_to_fexpr t1 t2
-  | ReadRegister id -> read_register_to_fexpr id
+    }                            -> destructure_record_to_fexpr record_type_identifier field_identifiers variable_identifiers destructured_record body
   | WriteRegister {
       register_identifier;
       written_value
-    } -> write_register_to_fexpr register_identifier written_value
-  | Cast (expression, typ) -> cast_to_fexpr expression typ
-  | Fail message -> fail_to_fexpr message
+    }                            -> write_register_to_fexpr register_identifier written_value
