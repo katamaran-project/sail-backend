@@ -21,7 +21,7 @@ module Pattern = struct
     | Tuple       of t list
     | EnumCase    of Ast.Identifier.t
     | VariantCase of Ast.Identifier.t * t
-    | Variable    of Ast.Identifier.t
+    | Binder      of Ast.Identifier.t
     | Unit
 
   
@@ -67,7 +67,7 @@ module Pattern = struct
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
       
-    | Variable identifier -> begin
+    | Binder identifier -> begin
         let positional =
           [
             Ast.Identifier.to_fexpr identifier
@@ -90,12 +90,12 @@ let rec translate_pattern
   let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
     let* identifier = Identifier.translate_identifier [%here] sail_identifier
     in
-    TC.return @@ Pattern.Variable identifier
+    TC.return @@ Pattern.Binder identifier
       
   and translate_wildcard_pattern () : Pattern.t TC.t =
     let* fresh_identifier = TC.generate_unique_identifier ~underscore:true ()
     in
-    TC.return @@ Pattern.Variable fresh_identifier
+    TC.return @@ Pattern.Binder fresh_identifier
 
   and unexpected_pattern (location : Lexing.position) =
     let error_message =
@@ -157,7 +157,7 @@ let rec translate_pattern
               then
                 TC.return @@ Pattern.EnumCase identifier
               else
-                TC.return @@ Pattern.Variable identifier
+                TC.return @@ Pattern.Binder identifier
             end
           | None -> begin
               (* This really should never happen *)
@@ -358,7 +358,7 @@ let translate_list_match
       match pattern with
       | ListCons (_, tail) -> 1 + pattern_depth tail
       | ListNil            -> 0
-      | Variable _         -> 0
+      | Binder _           -> 0
       | _                  -> failwith "error in pattern_depth; should never occur"
     in
     let compare (p1, _) (p2, _) =
@@ -368,12 +368,12 @@ let translate_list_match
   in
   match cases_sorted_by_pattern_depth with
   | [ (Pattern.ListNil, nil_body);
-      (Pattern.ListCons (Pattern.Variable head_identifier, Pattern.Variable tail_identifier), cons_body) ] -> begin
+      (Pattern.ListCons (Pattern.Binder head_identifier, Pattern.Binder tail_identifier), cons_body) ] -> begin
       translate matched_identifier head_identifier tail_identifier cons_body nil_body
     end
   | [ (Pattern.ListNil, zero_body);
-      (Pattern.ListCons (Pattern.Variable first_identifier_1, Pattern.ListNil), one_body);
-      (Pattern.ListCons (Pattern.Variable first_identifier_2, Pattern.ListCons (Pattern.Variable second_identifier, Pattern.Variable rest_identifier)), two_or_more_body)] -> begin
+      (Pattern.ListCons (Pattern.Binder first_identifier_1, Pattern.ListNil), one_body);
+      (Pattern.ListCons (Pattern.Binder first_identifier_2, Pattern.ListCons (Pattern.Binder second_identifier, Pattern.Binder rest_identifier)), two_or_more_body)] -> begin
       if
         not (Ast.Identifier.equal first_identifier_1 first_identifier_2)
       then
@@ -399,11 +399,11 @@ let translate_unit_match
     (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   match cases with
-  | [ (Pattern.Unit, body) ]       -> TC.return body
-  | [ (Pattern.Variable _, body) ] -> TC.return body                                  
-  | [ (pattern, _) ]               -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-  | []                             -> TC.fail [%here] "expected exactly one pattern; got zero"
-  | _ :: _ :: _                    -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
+  | [ (Pattern.Unit, body) ]     -> TC.return body
+  | [ (Pattern.Binder _, body) ] -> TC.return body                                  
+  | [ (pattern, _) ]             -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+  | []                           -> TC.fail [%here] "expected exactly one pattern; got zero"
+  | _ :: _ :: _                  -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
 
 
 let translate_enum_match
@@ -445,7 +445,7 @@ let translate_enum_match
                   TC.return updated_table
                 end
             end
-          | Variable _ -> begin
+          | Binder _ -> begin
               (*
                  The pattern binds the enum value to a variable, meaning
                  it should match all enum values that have hitherto not been processed.
@@ -573,8 +573,8 @@ let translate_variant_match
                         (* For now, we expect the tuple pattern to contain only Variable patterns *)
                         let extract_identifier_from_variable_pattern (pattern : Pattern.t) : Ast.Identifier.t TC.t =
                           match pattern with
-                          | Variable identifier -> TC.return identifier
-                          | _                   -> TC.fail [%here] "only variable subpatterns supported"
+                          | Binder identifier -> TC.return identifier
+                          | _                 -> TC.fail [%here] "only variable subpatterns supported"
                         in
                         let* binders =
                           TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
@@ -582,7 +582,7 @@ let translate_variant_match
                         add_to_table constructor_identifier binders
                       end                    
                     end
-                  | Variable identifier -> begin
+                  | Binder identifier -> begin
                       (*
                          We're dealing with
     
@@ -614,7 +614,7 @@ let translate_variant_match
                   | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
                 end
             end
-          | Variable _ -> begin
+          | Binder _ -> begin
               (*
                  The pattern binds the constructor to a variable, meaning
                  it should match all constructors that have hitherto not been processed.
