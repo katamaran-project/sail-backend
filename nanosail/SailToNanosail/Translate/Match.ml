@@ -222,7 +222,10 @@ let rec translate_pattern
               | None -> begin
                   (* This really should never occur *)
                   let error_message =
-                    Printf.sprintf "variant %s has no constructor %s" (Ast.Identifier.to_string variant_identifier) (Ast.Identifier.to_string head_identifier)
+                    Printf.sprintf
+                      "variant %s has no constructor %s"
+                      (Ast.Identifier.to_string variant_identifier)
+                      (Ast.Identifier.to_string head_identifier)
                   in
                   TC.fail [%here] error_message
                 end
