@@ -118,7 +118,7 @@ module Pattern = struct
   *)
   let smart_pp (identifiers : PP.document list) : PP.document =
     match identifiers with
-    | []     -> failwith "should not occur"
+    | []     -> failwith "smart_pp: should not occur"
     | [x]    -> pp_variable x
     | [x; y] -> pp_pair x y
     | _      -> pp_tuple identifiers
