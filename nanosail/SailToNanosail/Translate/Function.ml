@@ -48,6 +48,18 @@ let type_of_aval
    | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
 
 
+(*
+   If statements need to be translated to a match on boolean values.
+
+     if condition then A else B
+
+   becomes
+
+     match condition {
+       true => A,
+       false => B
+     }
+*)
 let create_if_statement
       ~(condition  : Ast.Statement.t)
       ~(when_true  : Ast.Statement.t)
