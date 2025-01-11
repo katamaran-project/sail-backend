@@ -445,7 +445,7 @@ let translate_enum_match
                   TC.return updated_table
                 end
             end
-          | Binder _ -> begin
+          | Binder binder_identifier -> begin
               (*
                  The pattern binds the enum value to a variable, meaning
                  it should match all enum values that have hitherto not been processed.
@@ -454,7 +454,30 @@ let translate_enum_match
                   (table                 : Ast.Statement.t Ast.Identifier.Map.t)
                   (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
                 =
-                match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
+                (*
+                     match enum_value {
+                       binder_identifier => X
+                     }
+
+                   gets translated to
+
+                     match enum_value {
+                       EnumCaseA => let binder_identifier = enum_value in X,
+                       EnumCaseB => let binder_identifier = enum_value in X,
+                       ...
+                     }
+                *)
+                let extended_body =
+                  let matched_type = Ast.Type.Enum enum_identifier
+                  in
+                  Ast.Statement.Let {
+                    variable_identifier    = binder_identifier;
+                    binding_statement_type = matched_type;
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+                    body_statement         = body;
+                  }
+                in                  
+                match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
                 | `Duplicate        -> begin
                     (*
                        We tried to add an extra (enum value, clause) association to the table, but there
