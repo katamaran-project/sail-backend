@@ -111,14 +111,13 @@ module Pattern = struct
       Coq.pp_application (PP.string "pat_tuple") [ pp_variable_tuple ]
     end
 
-
   (*
      Depending on the number of identifiers,
      picks the right way to represent the binding.
   *)
   let smart_pp (identifiers : PP.document list) : PP.document =
     match identifiers with
-    | []     -> failwith "smart_pp: should not occur"
+    | []     -> raise @@ Invalid_argument "smart_pp expects at least one identifier"
     | [x]    -> pp_variable x
     | [x; y] -> pp_pair x y
     | _      -> pp_tuple identifiers
