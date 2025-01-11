@@ -637,7 +637,7 @@ let translate_variant_match
                   | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
                 end
             end
-          | Binder _ -> begin
+          | Binder binder_identifier -> begin
               (*
                  The pattern binds the constructor to a variable, meaning
                  it should match all constructors that have hitherto not been processed.
@@ -646,6 +646,30 @@ let translate_variant_match
                   (table       : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
                   (constructor : Ast.Identifier.t * Ast.Type.t list                            ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
                 =
+                (*
+                     match variant_value {
+                       binder_identifier => X
+                     }
+
+                   gets translated to
+
+                     match variant_value {
+                       ConstructorA(gensym, ...) => let binder_identifier = enum_value in X,
+                       ConstructorB(gensym, ...) => let binder_identifier = enum_value in X,
+                       ...
+                     }
+                *)
+                let extended_body =
+                  let matched_type = Ast.Type.Variant variant_identifier
+                  in
+                  Ast.Statement.Let {
+                    variable_identifier    = binder_identifier;
+                    binding_statement_type = matched_type;
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+                    body_statement         = body;
+                  }
+                in                  
+                
                 let constructor_identifier, field_types = constructor
                 in
                 (* Generate new identifiers to be used as binders for each field *)
@@ -656,7 +680,7 @@ let translate_variant_match
                   in
                   TC.generate_unique_identifiers n_identifiers_needed
                 in
-                match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, body) with
+                match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, extended_body) with
                 | `Duplicate -> begin
                     (*
                        We tried to add an extra (constructor, clause) association to the table, but there
