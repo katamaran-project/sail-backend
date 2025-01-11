@@ -626,7 +626,12 @@ let translate_variant_match
                 let constructor_identifier, field_types = constructor
                 in
                 (* Generate new identifiers to be used as binders for each field *)
-                let* identifiers : Ast.Identifier.t list = TC.generate_unique_identifiers (List.length field_types)
+                let* identifiers : Ast.Identifier.t list =
+                  let n_identifiers_needed =
+                    (* If there are zero types, we still need one binder for unit *)
+                    Int.max 1 @@ List.length field_types
+                  in
+                  TC.generate_unique_identifiers n_identifiers_needed
                 in
                 match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, body) with
                 | `Duplicate -> begin
