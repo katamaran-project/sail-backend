@@ -101,7 +101,11 @@ function clause or_wordByte(Byte(b1),Byte(b2)) = {
   Byte(or_vec(b1,b2))
 }
 
-function clause or_wordByte(_,_) = {
+function clause or_wordByte(Byte(_),Word(_)) = {
+  throw(notImplemented("not implemented"))
+}
+
+function clause or_wordByte(Word(_),Byte(_)) = {
   throw(notImplemented("not implemented"))
 }
 
