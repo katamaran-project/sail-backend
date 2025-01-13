@@ -23,6 +23,8 @@ let fail
   =
   Monad.fail @@ Printf.sprintf "(%s:%d) %s" ocaml_position.pos_fname ocaml_position.pos_lnum message
 
+let recover         = Monad.recover
+
 let get             = Monad.get
 let put             = Monad.put
 let act             = Monad.act

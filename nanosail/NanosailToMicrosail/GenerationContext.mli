@@ -1,9 +1,10 @@
 type 'a t
 
-val act    : (unit -> 'a) -> 'a t
-val return : 'a -> 'a t
-val bind   : 'a t -> ('a -> 'b t) -> 'b t
-val fail   : Lexing.position -> string -> 'a t
+val act     : (unit -> 'a) -> 'a t
+val return  : 'a -> 'a t
+val bind    : 'a t -> ('a -> 'b t) -> 'b t
+val fail    : Lexing.position -> string -> 'a t
+val recover : 'a t -> (string -> 'a t) -> 'a t
 
 val generate            : Ast.program -> PP.document t -> PP.document
 val block               : PP.document t -> PP.document t
@@ -14,6 +15,7 @@ val generation_block    : Lexing.position -> string -> PP.document t -> PP.docum
 val pp_annotate         : Lexing.position -> PP.document t -> PP.document t
 val pp_annotate'        : Lexing.position -> string -> PP.document t -> PP.document t
 
+(* todo move this elsewhere *)
 val pp_inductive_type :
   PP.document ->
   ?parameters : (PP.document * PP.document) list ->
