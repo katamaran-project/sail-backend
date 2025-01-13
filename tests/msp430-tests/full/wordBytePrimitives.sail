@@ -134,7 +134,11 @@ function clause eq_wordByte(Word(w1),Word(w2)) = {
   w1 == w2
 }
 
-function clause eq_wordByte(_,_) = {
+function clause eq_wordByte(Byte(_),Word(_)) = {
+  false
+}
+
+function clause eq_wordByte(Word(_),Byte(_)) = {
   false
 }
 
