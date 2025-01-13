@@ -374,18 +374,18 @@ let translate_list_match
   | [ (Pattern.ListNil, if_empty_list);
       (Pattern.ListCons (Pattern.Binder first_identifier_1,
                          Pattern.ListNil),
-       one_body);
+       if_singleton_list);
       (Pattern.ListCons (Pattern.Binder first_identifier_2,
                          Pattern.ListCons (Pattern.Binder second_identifier,
                                            Pattern.Binder rest_identifier)),
-       two_or_more_body) ] -> begin
+       if_two_or_more_elements) ] -> begin
       (*
          We're dealing with
 
            match lst {
              [| |] => if_empty_list,
-             [| first_identifier_1 |] => one_body,
-             first_identifier_2 :: second_identifier :: rest_identifier => two_or_more_body
+             [| first_identifier_1 |] => if_singleton_list,
+             first_identifier_2 :: second_identifier :: rest_identifier => if_two_or_more_elements
            }
 
          Note that this implementation expects that first_identifier_1 equals first_identifier_2.
@@ -401,7 +401,7 @@ let translate_list_match
           TC.generate_unique_identifier ()
         in
         let* inner_match =
-          translate tail_identifier second_identifier rest_identifier two_or_more_body one_body
+          translate tail_identifier second_identifier rest_identifier if_two_or_more_elements if_singleton_list
         in
         translate matched_identifier first_identifier tail_identifier inner_match if_empty_list
       end
