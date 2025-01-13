@@ -77,6 +77,16 @@ module Pattern = struct
       end
       
     | Unit -> FExpr.mk_symbol @@ head "Unit"
+
+  let is_binder (pattern : t) : bool =
+    match pattern with
+     | Binder _ -> true
+     | _        -> false
+
+  let identifier_of_binder (pattern : t) : Ast.Identifier.t =
+    match pattern with
+    | Binder identifier -> identifier
+    | _                 -> failwith "bug: should only be called on Binder patterns"
 end
 
 
@@ -786,6 +796,55 @@ let translate_variant_match
     end
 
 
+let translate_tuple_match
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (element_types      : Ast.Type.t list                   )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  (*
+     This function deals with the special case of having a single match pattern that contains nothing but binders, i.e.,
+
+       match tuple_value {
+         (X1, X2, ..., Xn) => ...
+       }
+  *)
+  let translate_tuple_of_binders
+      (binding_variables : Ast.Identifier.t list)
+      (body              : Ast.Statement.t      ) : Ast.Statement.t TC.t
+    =
+    match List.zip binding_variables element_types with
+    | List.Or_unequal_lengths.Unequal_lengths -> begin
+        (* Should never occur *)
+        TC.fail [%here] "different number of tuple pattern elements and tuple pattern types"
+      end
+    | List.Or_unequal_lengths.Ok binder_type_pairs -> begin
+        match binder_type_pairs with
+        | [] -> TC.fail [%here] "unexpected empty tuple"
+        | [_] -> TC.fail [%here] "unexpected singleton tuple"
+        | [(id_fst, type_fst); (id_snd, type_snd)] -> begin
+            let match_pattern =
+              Ast.Statement.MatchProduct {
+                matched = matched_identifier;
+                type_fst;
+                type_snd;
+                id_fst;
+                id_snd;
+                body
+              }
+            in
+            TC.return @@ Ast.Statement.Match match_pattern
+          end
+        | _ -> TC.not_yet_implemented [%here] location
+      end
+  in
+  match cases with
+  | [ (Pattern.Tuple subpatterns, body) ] when List.for_all subpatterns ~f:Pattern.is_binder -> begin
+      translate_tuple_of_binders (List.map subpatterns ~f:Pattern.identifier_of_binder) body
+    end
+  | _ -> TC.not_yet_implemented [%here] location
+
+
 let translate
     (location           : S.l                                                 )
     (matched_identifier : Ast.Identifier.t                                    )
@@ -799,19 +858,19 @@ let translate
     TC.map ~f cases
   in
   match matched_type with
-  | List element_type          -> translate_list_match location matched_identifier element_type translated_cases
-  | Unit                       -> translate_unit_match location matched_identifier translated_cases
-  | Enum enum_identifier       -> translate_enum_match location matched_identifier enum_identifier translated_cases
-  | Variant variant_identifier -> translate_variant_match location matched_identifier variant_identifier translated_cases
-  | Tuple _                    -> TC.not_yet_implemented [%here] location
-  | Product (_, _)             -> TC.not_yet_implemented [%here] location
-  | Int                        -> TC.not_yet_implemented [%here] location
-  | Bool                       -> TC.not_yet_implemented [%here] location
-  | String                     -> TC.not_yet_implemented [%here] location
-  | Bit                        -> TC.not_yet_implemented [%here] location
-  | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
-  | Bitvector _                -> TC.not_yet_implemented [%here] location
-  | Record _                   -> TC.not_yet_implemented [%here] location
-  | Application (_, _)         -> TC.not_yet_implemented [%here] location
-  | Alias (_, _)               -> TC.not_yet_implemented [%here] location
-  | Range (_, _)               -> TC.not_yet_implemented [%here] location
+  | List element_type            -> translate_list_match location matched_identifier element_type translated_cases
+  | Unit                         -> translate_unit_match location matched_identifier translated_cases
+  | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases
+  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases
+  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases
+  | Product (fst_type, snd_type) -> translate_tuple_match location matched_identifier [ fst_type; snd_type ] translated_cases
+  | Int                          -> TC.not_yet_implemented [%here] location
+  | Bool                         -> TC.not_yet_implemented [%here] location
+  | String                       -> TC.not_yet_implemented [%here] location
+  | Bit                          -> TC.not_yet_implemented [%here] location
+  | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
+  | Bitvector _                  -> TC.not_yet_implemented [%here] location
+  | Record _                     -> TC.not_yet_implemented [%here] location
+  | Application (_, _)           -> TC.not_yet_implemented [%here] location
+  | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
+  | Range (_, _)                 -> TC.not_yet_implemented [%here] location
