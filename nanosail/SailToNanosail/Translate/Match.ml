@@ -367,6 +367,27 @@ let translate_list_match
     List.sort cases ~compare
   in
   match cases_sorted_by_pattern_depth with
+  | [ (Pattern.Binder binder_identifier, body) ] -> begin
+      (*
+         We're dealing with
+
+           match lst {
+             xs => body
+           }
+
+         which we translate to
+
+           let xs = lst in body
+      *)
+      let matched_type = Ast.Type.List element_type
+      in
+      TC.return @@ Ast.Statement.Let {
+        variable_identifier = binder_identifier;
+        binding_statement_type = matched_type;
+        binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+        body_statement = body
+      }
+    end
   | [ (Pattern.ListNil, nil_body);
       (Pattern.ListCons (Pattern.Binder head_identifier, Pattern.Binder tail_identifier), cons_body) ] -> begin
       translate matched_identifier head_identifier tail_identifier cons_body nil_body
