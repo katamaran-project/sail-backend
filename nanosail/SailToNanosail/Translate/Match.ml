@@ -14,6 +14,8 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
+exception InconsistentBinders of (Ast.Identifier.t list * Ast.Identifier.t list)
+
 module Pattern = struct
   type t =
     | ListCons    of t * t
@@ -591,7 +593,7 @@ let translate_enum_match
 
 
 let translate_variant_match
-    (location          : S.l                                )
+    (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (variant_identifier : Ast.Identifier.t                  )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
@@ -796,6 +798,9 @@ let translate_variant_match
     end
 
 
+(*
+   We support a small number of specific matching structures.
+*)
 let translate_tuple_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
@@ -810,7 +815,7 @@ let translate_tuple_match
        }
   *)
   let translate_tuple_of_binders : Ast.Statement.t TC.t =
-    (* Forces laziness *)
+    (* Keeps thing lazy *)
     let* () = TC.return ()
     in
     match cases with
@@ -840,12 +845,121 @@ let translate_tuple_match
                 in
                 TC.return @@ Ast.Statement.Match match_pattern
               end
-            | _ -> TC.not_yet_implemented [%here] location
+            | _ -> begin
+                let match_pattern =
+                  Ast.Statement.MatchTuple {
+                    matched = matched_identifier;
+                    elements = binder_type_pairs;
+                    body
+                  }
+                in
+                TC.return @@ Ast.Statement.Match match_pattern
+              end
           end
       end
     | _ -> TC.not_yet_implemented [%here] location
+
+  and translate_pair_of_variants : Ast.Statement.t TC.t =
+    (* Keeps things lazy *)
+    let* () = TC.return ()
+    in
+    match element_types with
+    | [ (Ast.Type.Variant fst_variant_identifier) as type_fst; (Ast.Type.Variant snd_variant_identifier) as type_snd ] -> begin
+        let* fst_variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant fst_variant_identifier
+        and* snd_variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant snd_variant_identifier
+        in
+        match fst_variant_definition, snd_variant_definition with
+        | None, _ -> TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string fst_variant_identifier
+        | _, None -> TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string snd_variant_identifier
+        | Some _fst_variant_definition, Some _snd_variant_definition -> begin (* todo use these definitions to check for exhaustivity *)
+            let* table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t =
+              let init = Ast.Identifier.Map.empty
+              in
+              let add_to_table
+                  (table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t)
+                  (pair  : Pattern.t * Ast.Statement.t                                          ) : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t TC.t
+                =
+                let pattern, body = pair
+                in
+                match pattern with
+                | Pattern.Tuple [Pattern.VariantCase (constructor_identifier, field_pattern); snd_pattern] -> begin
+                    let add (previous_data : (Pattern.t * (Pattern.t * Ast.Statement.t) list) option) : Pattern.t * (Pattern.t * Ast.Statement.t) list =
+                      match previous_data with
+                      | None -> (field_pattern, [(snd_pattern, body)])
+                      | Some (previous_field_pattern, previous_pairs) -> begin
+                          (* TODO check for equal field patterns, previous_field_pattern should be equal to field_pattern *)
+                          (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
+                        end
+                    in
+                    try
+                      TC.return @@ Ast.Identifier.Map.update table constructor_identifier ~f:add
+                    with
+                      InconsistentBinders (previous_field_binders, field_binders) -> begin
+                        let message =
+                          Printf.sprintf
+                            "inconsistent binders: %s vs %s"
+                            (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string previous_field_binders))
+                            (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string field_binders))
+                        in
+                        TC.not_yet_implemented ~message [%here] location
+                      end
+                  end
+                | _ -> TC.not_yet_implemented [%here] location
+              in
+              TC.fold_left ~f:add_to_table ~init cases
+            in
+            (*
+               We use pattern matching against the pair, thereby giving names to each value inside it:
+
+                 match pair {
+                   (id_fst, id_snd) => ...
+                 }
+            *)
+            let* id_fst = TC.generate_unique_identifier ()
+            and* id_snd = TC.generate_unique_identifier ()
+            in
+            let* snd_match_alist : (Pattern.t * Ast.Statement.t) list =
+              let build_match_statement (clauses : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t =
+                let* statement =
+                  translate_variant_match location id_snd snd_variant_identifier clauses
+                in
+                TC.return statement
+              in
+              let pairs =
+                Ast.Identifier.Map.to_alist table
+              in
+              TC.map
+                pairs
+                ~f:(fun (constructor_identifier, (field_pattern, cs)) ->
+                    let* s = build_match_statement cs
+                    in
+                    TC.return (Pattern.VariantCase (constructor_identifier, field_pattern), s)
+                  )
+            in
+            let* fst_match =
+              translate_variant_match location id_fst fst_variant_identifier snd_match_alist
+            in
+            let* tuple_match_statement =
+              let match_pattern =
+                Ast.Statement.MatchProduct {
+                  matched = matched_identifier;
+                  type_fst;
+                  type_snd;
+                  id_fst;
+                  id_snd;
+                  body = fst_match;
+                }
+              in            
+              TC.return @@ Ast.Statement.Match match_pattern
+            in
+            TC.return tuple_match_statement
+          end
+      end
+    | _ -> TC.not_yet_implemented [%here] location
+
   in
-  TC.try_multiple [ translate_tuple_of_binders ]
+  translate_pair_of_variants
+  (* TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ] *)
 
 
 let translate
