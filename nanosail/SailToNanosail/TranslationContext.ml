@@ -255,3 +255,8 @@ let rec generate_unique_identifiers ?(prefix = "") ?(underscore = false) (count 
     in
     return @@ id :: ids
 
+
+let rec try_multiple (fs : 'a t list) : 'a t =
+  match fs with
+  | f::fs -> recover f (fun _error -> try_multiple fs)
+  | []    -> fail [%here] "ran out of alternatives"

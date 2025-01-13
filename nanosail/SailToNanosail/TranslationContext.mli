@@ -25,6 +25,7 @@ val not_yet_implemented            : ?message : string -> Lexing.position -> Lib
 val check                          : Lexing.position -> bool -> string Lazy.t -> unit t
 val fail                           : Lexing.position -> string -> 'a t
 val recover                        : 'a t -> (Error.t -> 'a t) -> 'a t
+val try_multiple                   : 'a t list -> 'a t
 val run                            : 'a t -> 'a result * Context.t
 val debug_error                    : 'a t -> 'a t
 
