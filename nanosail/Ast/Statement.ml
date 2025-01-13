@@ -39,6 +39,9 @@ and match_pattern =
                       id_fst   : Identifier.t ;
                       id_snd   : Identifier.t ;
                       body     : t            }
+  | MatchTuple   of { matched  : Identifier.t                     ;
+                      elements : (Identifier.t * Nanotype.t) list ;
+                      body     : t                                }
   | MatchBool    of { condition  : Identifier.t ;
                       when_true  : t            ;
                       when_false : t            }
@@ -94,6 +97,20 @@ let rec to_fexpr (statement : t) : FExpr.t =
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchProduct"
+      end
+
+    | MatchTuple { matched; elements; body } -> begin
+        let fexpr_of_pair (identifier, typ) =
+          FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Stm:MatchTuple"
+        in
+        let keyword =
+          [
+            ("matched", Identifier.to_fexpr matched);
+            ("elements", FExpr.mk_list @@ List.map elements ~f:fexpr_of_pair);
+            ("body", to_fexpr body)
+          ]
+        in
+        FExpr.mk_application ~keyword "Stm:MatchTuple"             
       end
 
     | MatchBool { condition; when_true; when_false } -> begin

@@ -416,6 +416,36 @@ module Statement = struct
         end
 
 
+    let pp_tuple
+        ~(matched_value : PP.document     )
+        ~(elements      : PP.document list)
+        ~(body          : PP.document     ) : PP.document
+      =
+      let binders =
+        let rec build_binder_list elements =
+          match elements with
+          | []        -> PP.string "tuplepat_nil"
+          | elt::elts -> Coq.pp_application
+                           (PP.string "tuplepat_snoc")
+                           [
+                             PP.(surround parens) @@ build_binder_list elts;
+                             elt
+                           ]
+        in
+        build_binder_list elements
+      in
+      PP.annotate [%here] begin
+          Coq.pp_hanging_application
+            (PP.string "stm_match_tuple")
+            [
+              matched_value;
+              PP.(surround parens) binders;
+              body;
+            ]
+        end
+      
+
+
     let pp_record
           ~(matched_type  : PP.document                     )
           ~(matched_value : PP.document                     )
