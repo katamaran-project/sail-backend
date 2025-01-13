@@ -166,9 +166,9 @@ PASS match-list-two-cases
 PASS match-list-wildcard
 PASS match-register
 FAIL match-tuple-of-enums-scattered
-FAIL match-tuple-of-unions
 PASS match-tuple-pair
 FAIL match-tuple-pair-of-enums
+PASS match-tuple-pair-of-unions
 FAIL match-tuple-triple
 PASS match-union
 PASS match-union-binder
@@ -257,4 +257,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:232 FAIL:27
+PASS:233 FAIL:26
