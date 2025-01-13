@@ -803,6 +803,7 @@ let translate
   | Unit                       -> translate_unit_match location matched_identifier translated_cases
   | Enum enum_identifier       -> translate_enum_match location matched_identifier enum_identifier translated_cases
   | Variant variant_identifier -> translate_variant_match location matched_identifier variant_identifier translated_cases
+  | Tuple _                    -> TC.not_yet_implemented [%here] location
   | Product (_, _)             -> TC.not_yet_implemented [%here] location
   | Int                        -> TC.not_yet_implemented [%here] location
   | Bool                       -> TC.not_yet_implemented [%here] location
@@ -810,7 +811,6 @@ let translate
   | Bit                        -> TC.not_yet_implemented [%here] location
   | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
   | Bitvector _                -> TC.not_yet_implemented [%here] location
-  | Tuple _                    -> TC.not_yet_implemented [%here] location
   | Record _                   -> TC.not_yet_implemented [%here] location
   | Application (_, _)         -> TC.not_yet_implemented [%here] location
   | Alias (_, _)               -> TC.not_yet_implemented [%here] location
