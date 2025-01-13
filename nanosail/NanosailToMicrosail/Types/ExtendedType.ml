@@ -210,29 +210,30 @@ let pp_extended_function_type
       (ft  : Ast.Definition.FunctionType.t)
       (eft : Ast.ExtendedFunctionType.t   ) : PP.document GC.t
   =
-  let parameter_names =
-    List.map ~f:(fun (id, _) -> Ast.Identifier.to_string id) ft.parameters
-  and parameter_extended_types =
-    eft.extended_parameter_types
-  and return_extended_type =
-    eft.extended_return_type
-  in
-  let* pp_parameter_names =
-    GC.return begin
+  let result =
+    let parameter_names =
+      List.map ~f:(fun (id, _) -> Ast.Identifier.to_string id) ft.parameters
+    and parameter_extended_types =
+      eft.extended_parameter_types
+    and return_extended_type =
+      eft.extended_return_type
+    in
+    let* pp_parameter_names =
+      GC.return begin
         List.map ~f:(fun name -> PP.(horizontal [ string "parameter "; PP.string name ])) parameter_names
       end
-  and* pp_parameter_extended_types =
-    GC.map ~f:pp_extended_parameter_type parameter_extended_types
-  in
-  let* pp_parameter_pairs : (Prec.output * Prec.output) list =
-    match List.zip pp_parameter_names pp_parameter_extended_types with
-    | List.Or_unequal_lengths.Ok result -> GC.return result
-    | List.Or_unequal_lengths.Unequal_lengths -> begin
+    and* pp_parameter_extended_types =
+      GC.map ~f:pp_extended_parameter_type parameter_extended_types
+    in
+    let* pp_parameter_pairs : (Prec.output * Prec.output) list =
+      match List.zip pp_parameter_names pp_parameter_extended_types with
+      | List.Or_unequal_lengths.Ok result -> GC.return result
+      | List.Or_unequal_lengths.Unequal_lengths -> begin
         (*
            Probably reason for this error happening:
            a function has 2+ parameters, but instead of naming each parameter separately,
            a single parameter is used to be bound to a tuple.
-           
+
               val foo : (int, int) -> int
               function foo(pair) = { ... }
 
@@ -243,30 +244,35 @@ let pp_extended_function_type
 
            The current implementation only works with the second form.
         *)
-        let message =
-          let pp_parameters =
-            PP.separate_horizontally
-              ~separator:PP.comma
-              pp_parameter_names
-          and pp_extended_types =
-            PP.separate_horizontally
-              ~separator:PP.comma
-              pp_parameter_extended_types
-          in          
-          Printf.sprintf
-            "number of parameters (%s) is different from number of number of extended types (%s)"
-            (PP.string_of_document pp_parameters)
-            (PP.string_of_document pp_extended_types)
-        in
-        GC.fail [%here] message
-      end
-  in
-  let* pp_return_value_pair =
-    let* ret = pp_extended_return_value_type return_extended_type
+          let message =
+            let pp_parameters =
+              PP.separate_horizontally
+                ~separator:PP.comma
+                pp_parameter_names
+            and pp_extended_types =
+              PP.separate_horizontally
+                ~separator:PP.comma
+                pp_parameter_extended_types
+            in          
+            Printf.sprintf
+              "number of parameters (%s) is different from number of number of extended types (%s)"
+              (PP.string_of_document pp_parameters)
+              (PP.string_of_document pp_extended_types)
+          in
+          GC.fail [%here] message
+        end
     in
-    GC.return (PP.string "return value", ret)
+    let* pp_return_value_pair =
+      let* ret = pp_extended_return_value_type return_extended_type
+      in
+      GC.return (PP.string "return value", ret)
+    in
+    let pairs =
+      List.append pp_parameter_pairs [pp_return_value_pair]
+    in
+    GC.return @@ PP.description_list pairs
   in
-  let pairs =
-    List.append pp_parameter_pairs [pp_return_value_pair]
+  let error_recovery error =
+    GC.return @@ PP.horizontal [ PP.string "An error occurred: "; PP.string error ]
   in
-  GC.return @@ PP.description_list pairs
+  GC.recover result error_recovery
