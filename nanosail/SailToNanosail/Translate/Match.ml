@@ -809,7 +809,10 @@ let translate_tuple_match
          (X1, X2, ..., Xn) => ...
        }
   *)
-  let translate_tuple_of_binders () : Ast.Statement.t TC.t =
+  let translate_tuple_of_binders : Ast.Statement.t TC.t =
+    (* Forces laziness *)
+    let* () = TC.return ()
+    in
     match cases with
     | [ (Pattern.Tuple subpatterns, body) ] when List.for_all subpatterns ~f:Pattern.is_binder -> begin
         let binding_variables =
@@ -842,7 +845,7 @@ let translate_tuple_match
       end
     | _ -> TC.not_yet_implemented [%here] location
   in
-  translate_tuple_of_binders ()
+  TC.try_multiple [ translate_tuple_of_binders ]
 
 
 let translate
