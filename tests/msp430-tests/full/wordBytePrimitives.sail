@@ -118,7 +118,11 @@ function clause xor_wordByte(Byte(b1),Byte(b2)) = {
   Byte(xor_vec(b1,b2))
 }
 
-function clause xor_wordByte(_,_) = {
+function clause xor_wordByte(Word(_),Byte(_)) = {
+  throw(notImplemented("not implemented"))
+}
+
+function clause xor_wordByte(Byte(_),Word(_)) = {
   throw(notImplemented("not implemented"))
 }
 
