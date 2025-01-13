@@ -379,6 +379,17 @@ let translate_list_match
                          Pattern.ListCons (Pattern.Binder second_identifier,
                                            Pattern.Binder rest_identifier)),
        two_or_more_body) ] -> begin
+      (*
+         We're dealing with
+
+           match lst {
+             [| |] => nil_body,
+             [| first_identifier_1 |] => one_body,
+             first_identifier_2 :: second_identifier :: rest_identifier => two_or_more_body
+           }
+
+         Note that this implementation expects that first_identifier_1 equals first_identifier_2.
+      *)
       if
         not (Ast.Identifier.equal first_identifier_1 first_identifier_2)
       then
