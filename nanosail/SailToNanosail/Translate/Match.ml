@@ -809,40 +809,40 @@ let translate_tuple_match
          (X1, X2, ..., Xn) => ...
        }
   *)
-  let translate_tuple_of_binders
-      (binding_variables : Ast.Identifier.t list)
-      (body              : Ast.Statement.t      ) : Ast.Statement.t TC.t
-    =
-    match List.zip binding_variables element_types with
-    | List.Or_unequal_lengths.Unequal_lengths -> begin
-        (* Should never occur *)
-        TC.fail [%here] "different number of tuple pattern elements and tuple pattern types"
-      end
-    | List.Or_unequal_lengths.Ok binder_type_pairs -> begin
-        match binder_type_pairs with
-        | [] -> TC.fail [%here] "unexpected empty tuple"
-        | [_] -> TC.fail [%here] "unexpected singleton tuple"
-        | [(id_fst, type_fst); (id_snd, type_snd)] -> begin
-            let match_pattern =
-              Ast.Statement.MatchProduct {
-                matched = matched_identifier;
-                type_fst;
-                type_snd;
-                id_fst;
-                id_snd;
-                body
-              }
-            in
-            TC.return @@ Ast.Statement.Match match_pattern
+  let translate_tuple_of_binders () : Ast.Statement.t TC.t =
+    match cases with
+    | [ (Pattern.Tuple subpatterns, body) ] when List.for_all subpatterns ~f:Pattern.is_binder -> begin
+        let binding_variables =
+          List.map subpatterns ~f:Pattern.identifier_of_binder
+        in
+        match List.zip binding_variables element_types with
+        | List.Or_unequal_lengths.Unequal_lengths -> begin
+            (* Should never occur *)
+            TC.fail [%here] "different number of tuple pattern elements and tuple pattern types"
           end
-        | _ -> TC.not_yet_implemented [%here] location
+        | List.Or_unequal_lengths.Ok binder_type_pairs -> begin
+            match binder_type_pairs with
+            | [] -> TC.fail [%here] "unexpected empty tuple"
+            | [_] -> TC.fail [%here] "unexpected singleton tuple"
+            | [(id_fst, type_fst); (id_snd, type_snd)] -> begin
+                let match_pattern =
+                  Ast.Statement.MatchProduct {
+                    matched = matched_identifier;
+                    type_fst;
+                    type_snd;
+                    id_fst;
+                    id_snd;
+                    body
+                  }
+                in
+                TC.return @@ Ast.Statement.Match match_pattern
+              end
+            | _ -> TC.not_yet_implemented [%here] location
+          end
       end
+    | _ -> TC.not_yet_implemented [%here] location
   in
-  match cases with
-  | [ (Pattern.Tuple subpatterns, body) ] when List.for_all subpatterns ~f:Pattern.is_binder -> begin
-      translate_tuple_of_binders (List.map subpatterns ~f:Pattern.identifier_of_binder) body
-    end
-  | _ -> TC.not_yet_implemented [%here] location
+  translate_tuple_of_binders ()
 
 
 let translate
