@@ -414,10 +414,10 @@ let translate_unit_match
       *)
       TC.return begin
         Ast.Statement.Let {
-          variable_identifier = binding_identifier;
+          variable_identifier    = binding_identifier;
           binding_statement_type = Ast.Type.Unit;
-          binding_statement = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-          body_statement = body
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+          body_statement         = body
         }
       end
     end
