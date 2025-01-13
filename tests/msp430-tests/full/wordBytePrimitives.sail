@@ -29,11 +29,11 @@ function clause addBw(Byte(b1), Byte(b2)) = {
 function clause addBw(Word(w1), Word(w2)) = {
   Word(w1 + w2)
 }
-function clause addBw(Word(w), Byte(b)) = {
-  Word(w + zero_extend(b))
+function clause addBw(Word(w1), Byte(b2)) = {
+  Word(w1 + zero_extend(b2))
 }
-function clause addBw(Byte(b), Word(w)) = {
-  Word(w + zero_extend(b))
+function clause addBw(Byte(b1), Word(w2)) = {
+  Word(w2 + zero_extend(b1))
 }
 
 overload operator + = {addBw}
