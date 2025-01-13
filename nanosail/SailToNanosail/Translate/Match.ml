@@ -348,10 +348,10 @@ let translate_list_match
   =
   let translate
       (matched_identifier : Ast.Identifier.t)
-      (head_identifier : Ast.Identifier.t)
-      (tail_identifier : Ast.Identifier.t)
-      (cons_body       : Ast.Statement.t )
-      (nil_body        : Ast.Statement.t ) : Ast.Statement.t TC.t
+      (head_identifier    : Ast.Identifier.t)
+      (tail_identifier    : Ast.Identifier.t)
+      (cons_body          : Ast.Statement.t )
+      (nil_body           : Ast.Statement.t ) : Ast.Statement.t TC.t
     =
     TC.return begin
       Ast.Statement.Match begin
