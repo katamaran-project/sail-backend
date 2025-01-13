@@ -316,7 +316,6 @@ let translate_case
     | AE_loop (_, _, _)          -> TC.not_yet_implemented [%here] location
     | AE_short_circuit (_, _, _) -> TC.not_yet_implemented [%here] location
   in
-  Stdio.print_endline @@ FExpr.to_string @@ Pattern.to_fexpr pattern;
   TC.return (pattern, body)
 
 
