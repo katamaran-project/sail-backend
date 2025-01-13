@@ -371,7 +371,7 @@ let translate_list_match
       (Pattern.ListCons (Pattern.Binder head_identifier, Pattern.Binder tail_identifier), cons_body) ] -> begin
       translate matched_identifier head_identifier tail_identifier cons_body nil_body
     end
-  | [ (Pattern.ListNil, zero_body);
+  | [ (Pattern.ListNil, if_empty_list);
       (Pattern.ListCons (Pattern.Binder first_identifier_1,
                          Pattern.ListNil),
        one_body);
@@ -383,7 +383,7 @@ let translate_list_match
          We're dealing with
 
            match lst {
-             [| |] => nil_body,
+             [| |] => if_empty_list,
              [| first_identifier_1 |] => one_body,
              first_identifier_2 :: second_identifier :: rest_identifier => two_or_more_body
            }
@@ -403,7 +403,7 @@ let translate_list_match
         let* inner_match =
           translate tail_identifier second_identifier rest_identifier two_or_more_body one_body
         in
-        translate matched_identifier first_identifier tail_identifier inner_match zero_body
+        translate matched_identifier first_identifier tail_identifier inner_match if_empty_list
       end
     end
   | _ -> TC.not_yet_implemented [%here] location
