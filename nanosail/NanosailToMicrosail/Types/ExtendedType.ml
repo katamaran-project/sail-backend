@@ -224,8 +224,18 @@ let pp_extended_function_type
   and* pp_parameter_extended_types =
     GC.map ~f:pp_extended_parameter_type parameter_extended_types
   in
-  let pp_parameter_pairs =
-    List.zip_exn pp_parameter_names pp_parameter_extended_types
+  let* pp_parameter_pairs =
+    match List.zip pp_parameter_names pp_parameter_extended_types with
+    | List.Or_unequal_lengths.Ok result -> GC.return result
+    | List.Or_unequal_lengths.Unequal_lengths -> begin
+        let error_message =
+          Printf.sprintf
+            "number of parameters (%d) is different from number of number of extended types (%d)"
+            (List.length pp_parameter_names)
+            (List.length pp_parameter_extended_types)
+        in
+        GC.fail [%here] error_message
+      end
   in
   let* pp_return_value_pair =
     let* ret = pp_extended_return_value_type return_extended_type
