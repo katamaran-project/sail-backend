@@ -224,17 +224,26 @@ let pp_extended_function_type
   and* pp_parameter_extended_types =
     GC.map ~f:pp_extended_parameter_type parameter_extended_types
   in
-  let* pp_parameter_pairs =
+  let* pp_parameter_pairs : (Prec.output * Prec.output) list =
     match List.zip pp_parameter_names pp_parameter_extended_types with
     | List.Or_unequal_lengths.Ok result -> GC.return result
     | List.Or_unequal_lengths.Unequal_lengths -> begin
-        let error_message =
+        let message =
+          let pp_parameters =
+            PP.separate_horizontally
+              ~separator:PP.comma
+              pp_parameter_names
+          and pp_extended_types =
+            PP.separate_horizontally
+              ~separator:PP.comma
+              pp_parameter_extended_types
+          in          
           Printf.sprintf
-            "number of parameters (%d) is different from number of number of extended types (%d)"
-            (List.length pp_parameter_names)
-            (List.length pp_parameter_extended_types)
+            "number of parameters (%s) is different from number of number of extended types (%s)"
+            (PP.string_of_document pp_parameters)
+            (PP.string_of_document pp_extended_types)
         in
-        GC.fail [%here] error_message
+        GC.fail [%here] message
       end
   in
   let* pp_return_value_pair =
