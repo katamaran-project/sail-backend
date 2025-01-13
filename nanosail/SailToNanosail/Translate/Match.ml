@@ -372,8 +372,13 @@ let translate_list_match
       translate matched_identifier head_identifier tail_identifier cons_body nil_body
     end
   | [ (Pattern.ListNil, zero_body);
-      (Pattern.ListCons (Pattern.Binder first_identifier_1, Pattern.ListNil), one_body);
-      (Pattern.ListCons (Pattern.Binder first_identifier_2, Pattern.ListCons (Pattern.Binder second_identifier, Pattern.Binder rest_identifier)), two_or_more_body)] -> begin
+      (Pattern.ListCons (Pattern.Binder first_identifier_1,
+                         Pattern.ListNil),
+       one_body);
+      (Pattern.ListCons (Pattern.Binder first_identifier_2,
+                         Pattern.ListCons (Pattern.Binder second_identifier,
+                                           Pattern.Binder rest_identifier)),
+       two_or_more_body) ] -> begin
       if
         not (Ast.Identifier.equal first_identifier_1 first_identifier_2)
       then
