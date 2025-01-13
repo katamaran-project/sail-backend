@@ -228,6 +228,21 @@ let pp_extended_function_type
     match List.zip pp_parameter_names pp_parameter_extended_types with
     | List.Or_unequal_lengths.Ok result -> GC.return result
     | List.Or_unequal_lengths.Unequal_lengths -> begin
+        (*
+           Probably reason for this error happening:
+           a function has 2+ parameters, but instead of naming each parameter separately,
+           a single parameter is used to be bound to a tuple.
+           
+              val foo : (int, int) -> int
+              function foo(pair) = { ... }
+
+            vs
+
+              val foo : (int, int) -> int
+              function foo(fst, snd) = { ... }
+
+           The current implementation only works with the second form.
+        *)
         let message =
           let pp_parameters =
             PP.separate_horizontally
