@@ -85,7 +85,11 @@ function clause and_wordByte(Byte(b1),Byte(b2)) = {
   Byte(and_vec(b1,b2))
 }
 
-function clause and_wordByte(_,_) = {
+function clause and_wordByte(Word(_),Byte(_)) = {
+  throw(notImplemented("not implemented"))
+}
+
+function clause and_wordByte(Byte(_),Word(_)) = {
   throw(notImplemented("not implemented"))
 }
 
