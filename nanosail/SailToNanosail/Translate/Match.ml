@@ -822,7 +822,7 @@ let translate_tuple_match
           end
         | List.Or_unequal_lengths.Ok binder_type_pairs -> begin
             match binder_type_pairs with
-            | [] -> TC.fail [%here] "unexpected empty tuple"
+            | []  -> TC.fail [%here] "unexpected empty tuple"
             | [_] -> TC.fail [%here] "unexpected singleton tuple"
             | [(id_fst, type_fst); (id_snd, type_snd)] -> begin
                 let match_pattern =
