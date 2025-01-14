@@ -153,8 +153,7 @@ PASS match-bool
 PASS match-enum-binder
 PASS match-enum-incomplete
 PASS match-enum-literal
-PASS match-enum-pair
-FAIL match-enum-pair-2
+FAIL match-enum-pair
 PASS match-enum-single-case
 PASS match-enum-three-cases
 PASS match-enum-used-binder
@@ -168,7 +167,10 @@ PASS match-register
 FAIL match-tuple-of-enums-scattered
 PASS match-tuple-pair
 FAIL match-tuple-pair-of-enums
+FAIL match-tuple-pair-of-union-int
 PASS match-tuple-pair-of-unions
+FAIL match-tuple-pair-of-unions-fst-wildcard
+PASS match-tuple-pair-of-unions-snd-wildcard
 FAIL match-tuple-triple
 PASS match-union
 PASS match-union-binder
@@ -257,4 +259,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:233 FAIL:26
+PASS:233 FAIL:28
