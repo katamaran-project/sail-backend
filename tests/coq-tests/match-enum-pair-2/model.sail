@@ -7,10 +7,8 @@ enum MyEnum = { x, y }
 
 
 val foo : (MyEnum, MyEnum) -> int
-function foo(e1, e2) = {
-  let bar = (e1, e2)
-  in
-  match bar {
+function foo(pair) = {
+  match pair {
     (x, x) => 1,
     (x, y) => 2,
     (y, x) => 3,
