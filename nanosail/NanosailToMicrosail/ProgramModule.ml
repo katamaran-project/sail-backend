@@ -66,8 +66,8 @@ let generate_program_prelude () : PP.document GC.t =
 
 
 let pp_program_module
-      (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list                          )
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.top_level_type_constraint_definition) list) : PP.document GC.t
+      (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document GC.t
   =
   genblock [%here] "Program Module" begin
     let flag            = Coq.Import

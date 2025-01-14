@@ -190,10 +190,13 @@ module Type = struct
 end
 
 
-type top_level_type_constraint_definition =
-  {
-    identifier : Identifier.t;
-  }
+module TopLevelTypeConstraint = struct
+  type t =
+    {
+      identifier : Identifier.t;
+    }
+end
+
 
 module Value = struct
   type t =
@@ -205,7 +208,7 @@ end
 
 
 type t =
-  | TopLevelTypeConstraintDefinition of top_level_type_constraint_definition
+  | TopLevelTypeConstraintDefinition of TopLevelTypeConstraint.t
   | FunctionDefinition               of Function.t
   | TypeDefinition                   of Type.t
   | RegisterDefinition               of Register.t
