@@ -195,12 +195,13 @@ type top_level_type_constraint_definition =
     identifier : Identifier.t;
   }
 
-
-type value_definition =
-  {
-    identifier : Identifier.t;
-    value      : Value.t     ;
-  }
+module Value = struct
+  type t =
+    {
+      identifier : Identifier.t;
+      value      : Value.t     ;
+    }
+end
 
 
 type t =
@@ -209,7 +210,7 @@ type t =
   | TypeDefinition                   of Type.t
   | RegisterDefinition               of Register.t
   | UntranslatedDefinition           of Untranslated.t
-  | ValueDefinition                  of value_definition
+  | ValueDefinition                  of Value.t
   | IgnoredDefinition
 
 

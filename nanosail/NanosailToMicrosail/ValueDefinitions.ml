@@ -19,9 +19,9 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
   | Bitvector bv -> GC.return @@ PP.annotate [%here] @@ MuSail.Value.pp_bitvector (List.length bv) (Util.convert_bits_to_z bv)
 
 
-let pp_value_definition (value_definition : Ast.Definition.value_definition) : PP.document GC.t =
+let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.document GC.t =
   GC.block begin
-      let { identifier; value } : Ast.Definition.value_definition = value_definition
+      let { identifier; value } : Ast.Definition.Value.t = value_definition
       in
       let definition =
         let identifier = PP.annotate [%here] @@ Identifier.pp identifier
