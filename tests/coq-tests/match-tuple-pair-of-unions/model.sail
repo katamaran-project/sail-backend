@@ -5,8 +5,7 @@ union MyUnion = {
 
 
 val my_function : (MyUnion, MyUnion) -> string
-function my_function(a, b) = {
-  let pair = (a, b) in
+function my_function(pair) = {
   match pair {
     (Foo(x), Foo(y)) => "A",
     (Foo(x), Bar(y)) => "B",
