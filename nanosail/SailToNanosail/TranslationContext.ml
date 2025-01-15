@@ -157,7 +157,7 @@ let register (definition : Ast.Definition.t) =
 (*
    Looks up a type definition based on the name of the type.
 
-   The selector (see Ast.Select) can be used to get a specific kind of type
+   The selector (see Ast.Definition.Select) can be used to get a specific kind of type
 *)
 let lookup_type_definition_of_kind
       (selector   : Ast.Definition.Type.t -> 'a option)
