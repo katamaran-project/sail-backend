@@ -219,13 +219,13 @@ type t =
 
 module Select = struct
   let select
-      (extractor   : t -> 'a option                 )
+      (selector    : t -> 'a option                 )
       (definitions : (Sail.sail_definition * t) list)
     =
-    let lift_extractor extractor (sail_definition, definition) =
-      Option.map ~f:(fun def -> (sail_definition, def)) (extractor definition)
+    let lift selector (sail_definition, definition) =
+      Option.map ~f:(fun def -> (sail_definition, def)) (selector definition)
     in
-    List.filter_map ~f:(lift_extractor extractor) definitions
+    List.filter_map ~f:(lift selector) definitions
 
 
   let identity x = Some x
