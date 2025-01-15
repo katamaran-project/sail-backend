@@ -157,10 +157,10 @@ let register (definition : Ast.Definition.t) =
 (*
    Looks up a type definition based on the name of the type.
 
-   The extractor (see Ast.Extract) can be used to get a specific kind of type
+   The selector (see Ast.Select) can be used to get a specific kind of type
 *)
 let lookup_type_definition_of_kind
-      (extractor  : Ast.Definition.Type.t -> 'a option)
+      (selector   : Ast.Definition.Type.t -> 'a option)
       (identifier : Ast.Identifier.t                  ) : 'a option t
   =
   let predicate (definition : Ast.Definition.t) : Ast.Definition.Type.t option =
@@ -179,7 +179,7 @@ let lookup_type_definition_of_kind
   in
   let type_definition = List.find_map definitions ~f:predicate
   in
-  return @@ Option.bind type_definition ~f:extractor
+  return @@ Option.bind type_definition ~f:selector
 
 
 let lookup_type_definition =
