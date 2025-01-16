@@ -218,6 +218,9 @@ type t =
 
 
 module Select = struct
+  (*
+     Returns all definitions satisfying the selector.
+  *)
   let select
       (selector    : t -> 'a option                 )
       (definitions : (Sail.sail_definition * t) list)
