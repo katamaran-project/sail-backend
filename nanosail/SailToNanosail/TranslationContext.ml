@@ -121,13 +121,8 @@ let debug_error f =
   recover f show
 
 
-let not_yet_implemented ?(message = "") ocaml_position sail_position =
+let not_yet_implemented ?(message : string option) ocaml_position sail_position =
   let* () = log [%here] Logging.debug @@ lazy "Not yet implemented"
-  in
-  let message =
-    if String.is_empty message
-    then None
-    else Some message
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
 

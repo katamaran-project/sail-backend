@@ -59,31 +59,25 @@ let element
 
 
 let span
-      ?(class_name : string = "")
-      (child       : t          ) : t
+      ?(class_name : string option)
+      (child       : t            ) : t
   =
   let attributes =
-    if
-      String.is_empty class_name
-    then
-      []
-    else
-      [("class", class_name)]
+    match class_name with
+    | None            -> []
+    | Some class_name -> [("class", class_name)]
   in
   element "span" ~attributes child
 
 
 let div
-      ?(class_name : string = "")
-      (child       : t          ) : t
+      ?(class_name : string option)
+      (child       : t            ) : t
   =
   let attributes =
-    if
-      String.is_empty class_name
-    then
-      []
-    else
-      [("class", class_name)]
+    match class_name with
+    | None            -> []
+    | Some class_name -> [("class", class_name)]
   in
   element "div" ~attributes child
 

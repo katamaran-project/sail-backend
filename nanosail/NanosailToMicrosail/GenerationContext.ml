@@ -173,12 +173,12 @@ let add_comment (comment : PP.document) : unit t =
   update comments (fun cs -> comment :: cs)
 
 
-let not_yet_implemented ?(message = "") (position : Lexing.position) : PP.document t =
+let not_yet_implemented ?(message : string option) (position : Lexing.position) : PP.document t =
   let annotation_document =
     let message_suffix =
-      if String.is_empty message
-      then ""
-      else Printf.sprintf " (%s)" message
+      match message with
+      | None         -> ""
+      | Some message -> Printf.sprintf " (%s)" message
     in
     PP.string @@ Printf.sprintf "Not yet implemented; see %s line %d%s" position.pos_fname position.pos_lnum message_suffix
   in
