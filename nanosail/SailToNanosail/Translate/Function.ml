@@ -297,7 +297,7 @@ let rec expression_of_aval
           Identifier.translate_identifier [%here] type_identifier
         in
         let* type_definition =
-          TC.lookup_type_definition_of_kind Ast.Definition.Select.of_record type_identifier'
+          TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_record ~named:type_identifier'
         in
         match type_definition with
         | Some record_definition -> begin
@@ -496,7 +496,7 @@ let with_destructured_record
             Identifier.translate_identifier [%here] record_type_identifier
           in
           let* lookup_result =
-            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_record record_type_identifier
+            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_record ~named:record_type_identifier
           in
           match lookup_result with
           | Some record_type_definition -> begin

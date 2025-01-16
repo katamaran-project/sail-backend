@@ -1044,17 +1044,20 @@ let pp_include_mixin () : PP.document GC.t =
   end
 
 
-let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
+let pp_base_module (definition_pairs : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
+  let definitions =
+    Ast.Definition.Select.drop_sail_definitions definition_pairs
+  in
   let enum_definitions =
-    List.map ~f:snd Ast.Definition.Select.(select (type_definition of_enum) definitions)
+    Ast.Definition.Select.(select (type_definition of_enum) definitions)
   and variant_definitions =
-    List.map ~f:snd Ast.Definition.Select.(select (type_definition of_variant) definitions)
+    Ast.Definition.Select.(select (type_definition of_variant) definitions)
   and record_definitions =
-    List.map ~f:snd Ast.Definition.Select.(select (type_definition of_record) definitions)
+    Ast.Definition.Select.(select (type_definition of_record) definitions)
   and alias_definitions =
-    Ast.Definition.Select.(select (type_definition of_alias) definitions)
+    Ast.Definition.Select.(select (sail_accompanied (type_definition of_alias)) definition_pairs)
   and register_definitions =
-    Ast.Definition.Select.(select register_definition definitions)
+    Ast.Definition.Select.(select (sail_accompanied register_definition) definition_pairs)
   in
   begin
     let base_module_name = Configuration.(get base_name)

@@ -25,7 +25,7 @@ let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.docum
 
 let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : PP.document GC.t =
   let enum_definitions =
-    List.map ~f:snd enum_definitions
+    Ast.Definition.Select.drop_sail_definitions enum_definitions
   in
   let identifier = Identifier.pp enums_inductive_type_identifier
   and typ = PP.string "Set"
@@ -77,6 +77,6 @@ let generate_enum_finiteness (enum_definition  : Ast.Definition.Type.Enum.t) =
 
 
 let generate_finiteness (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) =
-  let definitions = List.map ~f:snd enum_definitions
+  let definitions = Ast.Definition.Select.drop_sail_definitions enum_definitions
   in
   List.map ~f:generate_enum_finiteness definitions

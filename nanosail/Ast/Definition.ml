@@ -218,19 +218,30 @@ type t =
 
 
 module Select = struct
+  type ('a, 'b) selector = 'a -> 'b option
+  
   (*
      Returns all definitions satisfying the selector.
   *)
   let select
-      (selector    : t -> 'a option                 )
-      (definitions : (Sail.sail_definition * t) list)
+      (selector    : ('a, 'b) selector)
+      (definitions : 'a list          )
     =
-    let lift selector (sail_definition, definition) =
-      Option.map ~f:(fun def -> (sail_definition, def)) (selector definition)
+    List.filter_map ~f:selector definitions
+
+  let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
+    List.map ~f:snd pairs
+
+  let sail_accompanied
+      (selector : ('a, 'b) selector        )
+      (pair     : Sail.sail_definition * 'a)
+    =
+    let sail_definition, nano_definition = pair
     in
-    List.filter_map ~f:(lift selector) definitions
-
-
+    match selector nano_definition with
+    | Some x -> Some (sail_definition, x)
+    | None   -> None
+  
   let identity x = Some x
 
   let function_definition (definition : t) =
@@ -238,39 +249,59 @@ module Select = struct
     | FunctionDefinition x -> Some x
     | _                    -> None
 
-  let type_definition
-      (of_kind    : Type.t -> 'a option)
-      (definition : t                  )
+  let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
+    let selector (definition : t) =
+      match definition with
+      | TypeDefinition x -> of_kind x
+      | _                -> None
+    in
+    selector
+
+  (*
+     Helper function used in selectors
+  *)
+  let is_named
+      (identifier  : Identifier.t       )
+      (identifier' : Identifier.t option) : bool
     =
-    match definition with
-    | TypeDefinition x -> of_kind x
-    | _                -> None
+    match identifier' with
+    | Some identifier' -> Identifier.equal identifier identifier'
+    | None             -> true
 
-  let of_anything = Option.some
+  let of_anything
+      ?(named           : Identifier.t option)
+       (type_definition : Type.t             ) : Type.t option
+    =
+    if
+      is_named (Type.identifier type_definition) named
+    then
+      Some type_definition
+    else
+      None
 
-  let of_enum (type_definition : Type.t) =
+  let of_enum ?(named : Identifier.t option) (type_definition : Type.t) =
     match type_definition with
-    | Enum x -> Some x
-    | _      -> None
+    | Enum x when is_named x.identifier named -> Some x
+    | _                                       -> None
 
-  let of_variant (type_definition : Type.t) =
+  let of_variant ?(named : Identifier.t option) (type_definition : Type.t) =
     match type_definition with
-    | Variant x -> Some x
-    | _         -> None
+    | Variant x when is_named x.identifier named -> Some x
+    | _                                          -> None
 
-  let of_record (type_definition : Type.t) =
+  let of_record ?(named : Identifier.t option) (type_definition : Type.t) =
     match type_definition with
-    | Record x -> Some x
-    | _        -> None
+    | Record x when is_named x.identifier named -> Some x
+    | _                                         -> None
 
-  let of_abbreviation (type_definition : Type.t) =
+  let of_abbreviation ?(named : Identifier.t option)(type_definition : Type.t) =
     match type_definition with
-    | Abbreviation x -> Some x
-    | _              -> None
+    | Abbreviation x when is_named x.identifier named -> Some x
+    | _                                               -> None
 
-  let of_alias (type_definition : Type.t) =
+  let of_alias ?(named : Identifier.t option) (type_definition : Type.t) =
     match type_definition with
-    | Type.Abbreviation { identifier; abbreviation } -> begin
+    | Type.Abbreviation { identifier; abbreviation } when is_named identifier named -> begin
         match abbreviation with
         | NumericExpression (_, _) -> None
         | NumericConstraint (_, _) -> None
@@ -298,14 +329,8 @@ module Select = struct
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
 
-  let value_definition ?(identifier : Identifier.t option) (definition : t) =
+  let value_definition ?(named : Identifier.t option) (definition : t) =
     match definition with
-    | ValueDefinition def -> begin
-        match identifier with
-        | Some identifier -> if Identifier.equal identifier def.identifier
-                             then Some def
-                             else None
-        | None            -> Some def
-      end
-    | _                 -> None
+    | ValueDefinition def when is_named def.identifier named -> Some def
+    | _                                                      -> None
 end

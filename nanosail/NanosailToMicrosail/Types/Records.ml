@@ -32,7 +32,7 @@ let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP
 
 let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
   let record_definitions =
-    List.map ~f:snd record_definitions
+    Ast.Definition.Select.drop_sail_definitions record_definitions
   in
   let identifier = Identifier.pp records_inductive_type_identifier
   and typ = PP.string "Set"

@@ -174,7 +174,7 @@ let pp_function_definition_kit
                 PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
               )
             in
-            List.map ~f:case_of_function_definition @@ List.map ~f:snd function_definitions
+            List.map ~f:case_of_function_definition @@ Ast.Definition.Select.drop_sail_definitions function_definitions
           in
           PP.annotate [%here] @@ Coq.pp_match matched_expression cases
         in

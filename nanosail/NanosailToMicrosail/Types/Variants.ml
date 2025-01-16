@@ -87,7 +87,7 @@ let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) :
 
 let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : PP.document GC.t =
   let variant_definitions =
-    List.map ~f:snd variant_definitions
+    Ast.Definition.Select.drop_sail_definitions variant_definitions
   in
   let identifier = Identifier.pp variants_inductive_type_identifier
   and typ = PP.string "Set"
@@ -172,6 +172,6 @@ let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Va
 
 
 let generate_finiteness (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) =
-  let definitions = List.map ~f:snd variant_definitions
+  let definitions = Ast.Definition.Select.drop_sail_definitions variant_definitions
   in
   List.map ~f:generate_constructor_finiteness definitions

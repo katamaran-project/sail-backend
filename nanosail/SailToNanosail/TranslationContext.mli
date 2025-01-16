@@ -32,7 +32,7 @@ val debug_error                    : 'a t -> 'a t
 
 val register                       : Ast.Definition.t -> unit t
 val lookup_type_definition         : Ast.Identifier.t -> Ast.Definition.Type.t option t
-val lookup_type_definition_of_kind : (Ast.Definition.Type.t -> 'a option) -> Ast.Identifier.t -> 'a option t
+val lookup_type_definition_of_kind : (Ast.Definition.Type.t -> 'a option) -> 'a option t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
 val lookup_register_type           : Ast.Identifier.t -> Ast.Type.t option t
 val generate_unique_int            : int t

@@ -79,7 +79,7 @@ let pp_program_module
     let* contents =
       let* function_declaration_kit =
         GC.pp_annotate [%here] begin
-            FunDeclKit.generate @@ List.map ~f:snd function_definitions;
+            FunDeclKit.generate @@ Ast.Definition.Select.drop_sail_definitions function_definitions;
           end
 
       and* function_definition_kit =

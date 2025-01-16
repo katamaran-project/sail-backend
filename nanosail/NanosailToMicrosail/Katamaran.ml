@@ -13,15 +13,15 @@ let genblock loc label (contents : PP.document GC.t) : PP.document GC.t =
 
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
   val all_definitions                          = intermediate_representation.definitions
-  val type_definitions                         = Ast.Definition.Select.(select (type_definition of_anything)        intermediate_representation.definitions)
-  val enum_definitions                         = Ast.Definition.Select.(select (type_definition of_enum    )        intermediate_representation.definitions)
-  val record_definitions                       = Ast.Definition.Select.(select (type_definition of_record  )        intermediate_representation.definitions)
-  val variant_definitions                      = Ast.Definition.Select.(select (type_definition of_variant )        intermediate_representation.definitions)
-  val register_definitions                     = Ast.Definition.Select.(select register_definition                  intermediate_representation.definitions)
-  val ignored_definitions                      = Ast.Definition.Select.(select ignored_definition                   intermediate_representation.definitions)
-  val untranslated_definitions                 = Ast.Definition.Select.(select untranslated_definition              intermediate_representation.definitions)
-  val function_definitions                     = Ast.Definition.Select.(select function_definition                  intermediate_representation.definitions)
-  val top_level_type_constraint_definitions    = Ast.Definition.Select.(select top_level_type_constraint_definition intermediate_representation.definitions)
+  val type_definitions                         = Ast.Definition.Select.(select (sail_accompanied @@ type_definition of_anything         ) intermediate_representation.definitions)
+  val enum_definitions                         = Ast.Definition.Select.(select (sail_accompanied @@ type_definition of_enum             ) intermediate_representation.definitions)
+  val record_definitions                       = Ast.Definition.Select.(select (sail_accompanied @@ type_definition of_record           ) intermediate_representation.definitions)
+  val variant_definitions                      = Ast.Definition.Select.(select (sail_accompanied @@ type_definition of_variant          ) intermediate_representation.definitions)
+  val register_definitions                     = Ast.Definition.Select.(select (sail_accompanied @@ register_definition                 ) intermediate_representation.definitions)
+  val ignored_definitions                      = Ast.Definition.Select.(select (sail_accompanied @@ ignored_definition                  ) intermediate_representation.definitions)
+  val untranslated_definitions                 = Ast.Definition.Select.(select (sail_accompanied @@ untranslated_definition             ) intermediate_representation.definitions)
+  val function_definitions                     = Ast.Definition.Select.(select (sail_accompanied @@ function_definition                 ) intermediate_representation.definitions)
+  val top_level_type_constraint_definitions    = Ast.Definition.Select.(select (sail_accompanied @@ top_level_type_constraint_definition) intermediate_representation.definitions)
 
   method program                               = intermediate_representation
   method all_definitions                       = all_definitions

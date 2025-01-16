@@ -159,31 +159,19 @@ let register (definition : Ast.Definition.t) =
 
    The selector (see Ast.Definition.Select) can be used to get a specific kind of type
 *)
-let lookup_type_definition_of_kind
-      (selector   : Ast.Definition.Type.t -> 'a option)
-      (identifier : Ast.Identifier.t                  ) : 'a option t
+let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a option) : 'a option t
   =
-  let predicate (definition : Ast.Definition.t) : Ast.Definition.Type.t option =
-    match definition with
-    | TypeDefinition type_definition -> begin
-        if
-          Ast.Identifier.equal identifier (Ast.Definition.Type.identifier type_definition)
-        then
-          Some type_definition
-        else
-          None
-      end
-    | _ -> None
-  in
+  (* Fetch definitions from state *)
   let* definitions
   in
-  let type_definition = List.find_map definitions ~f:predicate
-  in
-  return @@ Option.bind type_definition ~f:selector
+  match Ast.Definition.Select.(select (type_definition selector) definitions) with
+  | [ definition ] -> return @@ Some definition
+  | []             -> return None
+  | _              -> fail [%here] "more than one match found"
 
 
-let lookup_type_definition =
-  lookup_type_definition_of_kind Ast.Definition.Select.of_anything
+let lookup_type_definition (identifier : Ast.Identifier.t) =
+  lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
 
 
 (* Looks up type of register with given name *)

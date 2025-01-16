@@ -160,7 +160,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] sail_identifier
           in
           let* enum_definition =
-            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_enum enum_identifier
+            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_enum ~named:enum_identifier
           in
           match enum_definition with
           | Some enum_definition -> begin
@@ -210,7 +210,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] head_sail_identifier
           in
           let* variant_definition =
-            TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant variant_identifier
+            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:variant_identifier
           in
           match variant_definition with
           | None -> begin
@@ -482,7 +482,7 @@ let translate_enum_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   (* Look up enum definition, we need to know which values there are *)
-  let* enum_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_enum enum_identifier
+  let* enum_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.(of_enum ~named:enum_identifier)
   in
   match enum_definition with
   | None -> begin
@@ -598,7 +598,8 @@ let translate_variant_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   (* Look up variant definition, we need to know which constructors there are *)
-  let* variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant variant_identifier
+  let* variant_definition =
+    TC.lookup_type_definition_of_kind Ast.Definition.Select.(of_variant ~named:variant_identifier)
   in
   match variant_definition with
   | None -> begin
@@ -864,8 +865,8 @@ let translate_tuple_match
     in
     match element_types with
     | [ (Ast.Type.Variant fst_variant_identifier) as type_fst; (Ast.Type.Variant snd_variant_identifier) as type_snd ] -> begin
-        let* fst_variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant fst_variant_identifier
-        and* snd_variant_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.of_variant snd_variant_identifier
+        let* fst_variant_definition = TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:fst_variant_identifier
+        and* snd_variant_definition = TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:snd_variant_identifier
         in
         match fst_variant_definition, snd_variant_definition with
         | None, _ -> TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string fst_variant_identifier

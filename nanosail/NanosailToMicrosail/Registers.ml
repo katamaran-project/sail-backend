@@ -266,7 +266,7 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
   in
   let* section_contents =
     let* items = GC.sequence [
-      GC.pp_annotate [%here] @@ pp_reg_inductive_type @@ List.map ~f:snd register_definitions;
+      GC.pp_annotate [%here] @@ pp_reg_inductive_type @@ Ast.Definition.Select.drop_sail_definitions register_definitions;
       GC.pp_annotate [%here] @@ pp_no_confusion_for_reg ();
       GC.pp_annotate [%here] @@ pp_reg_definition ();
       GC.pp_annotate [%here] @@ pp_instance_reg_eq_dec register_names;
