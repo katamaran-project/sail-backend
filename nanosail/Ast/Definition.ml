@@ -225,6 +225,45 @@ module Type = struct
         identifier   : Identifier.t     ;
         abbreviation : type_abbreviation;
       }
+
+    let to_fexpr (type_abbreviation_definition : t) =
+      let fexpr_of_abbreviation (abbreviation : type_abbreviation) : FExpr.t =
+        match abbreviation with
+        | NumericExpression (type_quantifier, expression) -> begin
+            let keyword =
+              [
+                ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
+                ("expression", Numeric.Expression.to_fexpr expression);
+              ]
+            in
+            FExpr.mk_application ~keyword "NE"
+          end
+        | NumericConstraint (type_quantifier, constr) -> begin
+            let keyword =
+              [
+                ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
+                ("constraint", Numeric.Constraint.to_fexpr constr);
+              ]
+            in
+            FExpr.mk_application ~keyword "NC"
+          end
+        | Alias (type_quantifier, aliased_type) -> begin
+            let keyword =
+              [
+                ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
+                ("type", Type.to_fexpr aliased_type);
+              ]
+            in
+            FExpr.mk_application ~keyword "Alias"
+          end
+      in      
+      let positional =
+        [
+          Identifier.to_fexpr type_abbreviation_definition.identifier;
+          fexpr_of_abbreviation type_abbreviation_definition.abbreviation;
+        ]
+      in
+      FExpr.mk_application ~positional "Def:Type:Abbreviation"
   end
 
   type t =
