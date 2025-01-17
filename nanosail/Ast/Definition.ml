@@ -334,3 +334,14 @@ module Select = struct
     | ValueDefinition def when is_named def.identifier named -> Some def
     | _                                                      -> None
 end
+
+
+let to_fexpr (definition : t) =
+  match definition with
+  | TopLevelTypeConstraintDefinition x -> TopLevelTypeConstraintDefinition.
+  | FunctionDefinition _ -> _
+  | TypeDefinition _ -> _
+  | RegisterDefinition _ -> _
+  | UntranslatedDefinition _ -> _
+  | ValueDefinition _ -> _
+  | IgnoredDefinition -> _
