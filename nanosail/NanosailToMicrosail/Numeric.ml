@@ -6,8 +6,8 @@ module GC = GenerationContext
 module rec Expression : sig
   val pp : Ast.Numeric.Expression.t -> PP.document GC.t
 end = struct
-  let pp (numeric_expression : Ast.Numeric.Expression.t) =
-    let rec pp level (numexp : Ast.Numeric.Expression.t) =
+  let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.document GC.t =
+    let rec pp level (numexp : Ast.Numeric.Expression.t) : PP.document =
       let parens_if lvl doc =
         if level <= lvl
         then doc
