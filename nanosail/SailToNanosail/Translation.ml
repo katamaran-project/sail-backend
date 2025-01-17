@@ -26,36 +26,24 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
       let translation =
         let* result =
           match unwrapped_sail_definition with
-          | DEF_type type_definition -> begin
-              Translate.TypeDefinition.translate_type_definition annotation type_definition
-            end
-          | DEF_let value_definition -> begin
-              Translate.ValueDefinition.translate_value_definition annotation value_definition
-            end
-          | DEF_val value_specification -> begin
-              Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
-            end
-          | DEF_register specification -> begin
-              Translate.Register.translate_register annotation specification
-            end
-          | DEF_fundef function_definition -> begin
-              Translate.Function.translate_function_definition annotation function_definition
-            end
-          | DEF_pragma (pragma, _argument, location) -> begin
-              TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
-            end
-          | DEF_fixity (_, _, _)     -> TC.return Ast.Definition.IgnoredDefinition
-          | DEF_outcome (_, _)       -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_impl _               -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_mapdef _             -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_instantiation (_, _) -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_overload (_, _)      -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_default _            -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_scattered _          -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_measure (_, _, _)    -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_loop_measures (_, _) -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_internal_mutrec _    -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_constraint _         -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_type type_definition                 -> Translate.TypeDefinition.translate_type_definition annotation type_definition
+          | DEF_let value_definition                 -> Translate.ValueDefinition.translate_value_definition annotation value_definition
+          | DEF_val value_specification              -> Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
+          | DEF_register specification               -> Translate.Register.translate_register annotation specification
+          | DEF_fundef function_definition           -> Translate.Function.translate_function_definition annotation function_definition
+          | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
+          | DEF_fixity (_, _, _)                     -> TC.return Ast.Definition.IgnoredDefinition
+          | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_overload (_, _)                      -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_default _                            -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_scattered _                          -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_measure (_, _, _)                    -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_loop_measures (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
+          | DEF_constraint _                         -> TC.not_yet_implemented [%here] annotation.loc
         in
         let* () = TC.store_definition result
         in
