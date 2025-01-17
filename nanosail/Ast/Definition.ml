@@ -199,7 +199,7 @@ module Type = struct
         let keyword =
           [
             ("identifier", Identifier.to_fexpr field_identifier);
-            ("type", Type.to_fexpr field_type;
+            ("type", Type.to_fexpr field_type);
           ]
         in
         FExpr.mk_application ~keyword "Field"               
@@ -281,7 +281,7 @@ module Type = struct
 
   let to_fexpr (type_definition : t) : FExpr.t =
     match type_definition with
-    | Abbreviation abbreviation -> Abbreviation.to_fexpr abbrevation
+    | Abbreviation abbreviation -> Abbreviation.to_fexpr abbreviation
     | Variant variant           -> Variant.to_fexpr variant
     | Enum enum                 -> Enum.to_fexpr enum
     | Record record             -> Record.to_fexpr record
@@ -315,7 +315,7 @@ module Value = struct
     let keyword =
       [
         ("identifier", Ast.Identifier.to_fexpr value_definition.identifier);
-        ("value": Value.to_fexpr value_definition.value);
+        ("value", Value.to_fexpr value_definition.value);
       ]
     in
     FExpr.mk_application ~keyword "Def:Value"
@@ -453,7 +453,7 @@ end
 
 let to_fexpr (definition : t) =
   match definition with
-  | TopLevelTypeConstraintDefinition definition -> TopLevelTypeConstraintDefinition.to_fexpr definition
+  | TopLevelTypeConstraintDefinition definition -> TopLevelTypeConstraint.to_fexpr definition
   | FunctionDefinition definition               -> Function.to_fexpr definition
   | TypeDefinition definition                   -> Type.to_fexpr definition
   | RegisterDefinition definition               -> Register.to_fexpr definition
