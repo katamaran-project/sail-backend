@@ -414,7 +414,7 @@ module Select = struct
 
   let of_variant
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             )
+      (type_definition : Type.t             ) : Type.Variant.t option
     =
     match type_definition with
     | Variant x when is_named x.identifier named -> Some x
