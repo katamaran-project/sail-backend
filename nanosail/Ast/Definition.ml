@@ -438,8 +438,7 @@ module Select = struct
     match definition.abbreviation with
     | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
     | NumericConstraint (_, _)                                -> None
-    | Alias (_, _)                                            -> None
-    
+    | Alias (_, _)                                            -> None    
 
   let register_definition ?(named : Identifier.t option) (definition : t) =
     match definition with
