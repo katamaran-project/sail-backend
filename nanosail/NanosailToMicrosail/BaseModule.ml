@@ -61,12 +61,12 @@ let pp_imports () : PP.document GC.t =
  *)
 let pp_open_string_scope () : PP.document GC.t =
   genblock [%here] "Scopes" begin
-      GC.return begin
-          PP.vertical @@ List.map ~f:PP.string [
-                             "Local Open Scope string_scope."
-                           ]
-        end
+    GC.return begin
+      PP.vertical @@ List.map ~f:PP.string [
+        "Local Open Scope string_scope."
+      ]
     end
+  end
 
 
 let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
