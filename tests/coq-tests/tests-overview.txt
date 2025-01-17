@@ -163,6 +163,7 @@ PASS match-list-single-case
 PASS match-list-three-cases
 PASS match-list-two-cases
 PASS match-list-wildcard
+FAIL match-record
 PASS match-register
 FAIL match-tuple-of-enums-scattered
 PASS match-tuple-pair
@@ -199,6 +200,7 @@ PASS model-005
 PASS model-006
 PASS model-007
 FAIL model-008
+FAIL no-confusion-hom
 PASS overloading
 PASS products-match
 PASS records-construction
@@ -259,4 +261,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:234 FAIL:27
+PASS:234 FAIL:29
