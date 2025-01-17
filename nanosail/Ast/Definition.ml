@@ -406,21 +406,24 @@ module Select = struct
 
   let of_enum
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) =
+      (type_definition : Type.t             )
+    =
     match type_definition with
     | Enum x when is_named x.identifier named -> Some x
     | _                                       -> None
 
   let of_variant
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) =
+      (type_definition : Type.t             )
+    =
     match type_definition with
     | Variant x when is_named x.identifier named -> Some x
     | _                                          -> None
 
   let of_record
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) : Type.Record.t option =
+      (type_definition : Type.t             ) : Type.Record.t option
+    =
     match type_definition with
     | Record x when is_named x.identifier named -> Some x
     | _                                         -> None
