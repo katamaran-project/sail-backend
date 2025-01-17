@@ -48,14 +48,14 @@ module NumericExpression = struct
     let rec aux (numeric_expression : t) : t
       =
       match numeric_expression with
-      | Constant _ -> numeric_expression
+      | Constant _        -> numeric_expression
       | Add (left, right) -> Add (aux left, aux right)
       | Sub (left, right) -> Sub (aux left, aux right)
       | Mul (left, right) -> Mul (aux left, aux right)
-      | Neg operand -> Neg (aux operand)
-      | PowerOf2 operand -> PowerOf2 (aux operand)
-      | Var _ -> numeric_expression
-      | Id id -> begin
+      | Neg operand       -> Neg (aux operand)
+      | PowerOf2 operand  -> PowerOf2 (aux operand)
+      | Var _             -> numeric_expression
+      | Id id             -> begin
           if
             Ast.Identifier.equal id identifier
           then
