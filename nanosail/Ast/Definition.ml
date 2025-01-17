@@ -310,6 +310,15 @@ module Value = struct
       identifier : Identifier.t;
       value      : Value.t     ;
     }
+
+  let to_fexpr (value_definition : t) : FExpr.t =
+    let keyword =
+      [
+        ("identifier", Ast.Identifier.to_fexpr value_definition.identifier);
+        ("value": Value.to_fexpr value_definition.value);
+      ]
+    in
+    FExpr.mk_application ~keyword "Def:Value"
 end
 
 
