@@ -309,10 +309,10 @@ module Select = struct
       end
     | _ -> None
 
-  let register_definition (definition : t) =
+  let register_definition ?(named : Identifier.t option) (definition : t) =
     match definition with
-    | RegisterDefinition x -> Some x
-    | _                    -> None
+    | RegisterDefinition x when is_named x.identifier named -> Some x
+    | _                                                     -> None
 
   let untranslated_definition (definition : t) =
     match definition with
