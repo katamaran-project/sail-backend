@@ -171,7 +171,7 @@ FAIL match-tuple-pair-of-union-int
 PASS match-tuple-pair-of-unions
 FAIL match-tuple-pair-of-unions-fst-wildcard
 PASS match-tuple-pair-of-unions-snd-wildcard
-FAIL match-tuple-triple
+PASS match-tuple-triple
 PASS match-union
 PASS match-union-binder
 PASS match-union-incomplete
@@ -259,4 +259,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:233 FAIL:28
+PASS:234 FAIL:27
