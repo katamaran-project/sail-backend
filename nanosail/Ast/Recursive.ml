@@ -25,14 +25,14 @@ module NumericExpression = struct
   let identifiers (numeric_expression : t) : Identifier.t list =
     let rec aux (numeric_expression : t) : Identifier.t list =
       match numeric_expression with
-       | Constant _ -> []
+       | Constant _        -> []
        | Add (left, right) -> List.append (aux left) (aux right)
        | Sub (left, right) -> List.append (aux left) (aux right)
        | Mul (left, right) -> List.append (aux left) (aux right)
-       | Neg operand -> aux operand
-       | PowerOf2 operand -> aux operand
-       | Id id -> [id]
-       | Var _ -> []
+       | Neg operand       -> aux operand
+       | PowerOf2 operand  -> aux operand
+       | Id id             -> [id]
+       | Var _             -> []
     in
     List.dedup_and_sort (aux numeric_expression) ~compare:Ast.Identifier.compare
 
