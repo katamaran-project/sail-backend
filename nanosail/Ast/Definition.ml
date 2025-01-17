@@ -420,7 +420,7 @@ module Select = struct
 
   let of_record
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) =
+      (type_definition : Type.t             ) : Type.Record.t option =
     match type_definition with
     | Record x when is_named x.identifier named -> Some x
     | _                                         -> None
