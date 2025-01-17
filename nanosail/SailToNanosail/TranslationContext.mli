@@ -33,6 +33,7 @@ val debug_error                    : 'a t -> 'a t
 val register_definition            : Ast.Definition.t -> unit t
 val select_definitions             : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
 val lookup_definition              : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a t
+val lookup_definition_opt          : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t
 val lookup_type_definition         : Ast.Identifier.t -> Ast.Definition.Type.t option t
 val lookup_type_definition_of_kind : (Ast.Definition.Type.t -> 'a option) -> 'a option t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
