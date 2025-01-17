@@ -434,6 +434,13 @@ module Select = struct
       end
     | _ -> None
 
+  let of_numeric_expression (definition : Type.Abbreviation.t) : (TypeQuantifier.t * Ast.Numeric.Expression.t) option =
+    match definition.abbreviation with
+    | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
+    | NumericConstraint (_, _)                                -> None
+    | Alias (_, _)                                            -> None
+    
+
   let register_definition ?(named : Identifier.t option) (definition : t) =
     match definition with
     | RegisterDefinition x when is_named x.identifier named -> Some x
