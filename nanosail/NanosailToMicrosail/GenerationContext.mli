@@ -29,3 +29,5 @@ val add_original_definitions : Sail.sail_definition list -> unit t
 val log : Lexing.position -> (Lexing.position -> string lazy_t -> unit) -> string lazy_t -> unit t
 
 val get_program : Ast.program t
+
+val lookup_type_abbreviation_definition : Ast.Identifier.t -> Ast.Definition.Type.Abbreviation.t option t
