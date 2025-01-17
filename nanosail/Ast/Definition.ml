@@ -446,8 +446,8 @@ module Select = struct
     in
     selector
 
-  let of_numeric_expression (definition : Type.Abbreviation.t) : (TypeQuantifier.t * Numeric.Expression.t) option =
-    match definition.abbreviation with
+  let of_numeric_expression (abbreviation : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Numeric.Expression.t) option =
+    match abbreviation with
     | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
     | NumericConstraint (_, _)                                -> None
     | Alias (_, _)                                            -> None    
