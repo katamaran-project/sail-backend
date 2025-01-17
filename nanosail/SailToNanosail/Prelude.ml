@@ -9,4 +9,4 @@ let prelude = [
 
 
 let register_types () =
-  TC.iter ~f:TC.register prelude
+  TC.iter ~f:TC.register_definition prelude
