@@ -174,6 +174,15 @@ module Type = struct
         identifier : Identifier.t     ;
         cases      : Identifier.t list;
       }
+
+    let to_fexpr (enum_definition : t) : FExpr.t =
+      let keyword =
+        [
+          ("identifier", Identifier.to_fexpr enum_definition.identifier);
+          ("cases", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr enum_definition.cases);
+        ]
+      in
+      FExpr.mk_application ~keyword "Def:Type:Enum"
   end
 
   module Record = struct
