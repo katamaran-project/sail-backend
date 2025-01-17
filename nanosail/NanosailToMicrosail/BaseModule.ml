@@ -74,13 +74,13 @@ let pp_open_string_scope () : PP.document GC.t =
 
      Notation "'ty.ID' param1 param2" := expression.
 *)
-let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
+let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast.TypeQuantifier.t * Ast.Type.t))) list) : PP.document GC.t =
   genblock [%here] "Alias Notations" begin
     let pp_alias_notation
-        (sail_definition : Sail.sail_definition)
-        (triple          : Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t) : PP.document GC.t
+        (sail_definition : Sail.sail_definition                                  )
+        (triple          : Ast.Identifier.t * (Ast.TypeQuantifier.t * Ast.Type.t)) : PP.document GC.t
       =
-      let id, type_quantifier, typ = triple
+      let id, (type_quantifier, typ) = triple
       in
       genblock [%here] "Alias Notation" begin
         let quantifiers =
@@ -1076,7 +1076,7 @@ let pp_base_module (definition_pairs : (Sail.sail_definition * Ast.Definition.t)
   and record_definitions =
     Ast.Definition.Select.(select (type_definition of_record) definitions)
   and alias_definitions =
-    Ast.Definition.Select.(select (sail_accompanied (type_definition of_alias)) definition_pairs)
+    Ast.Definition.Select.(select (sail_accompanied (type_definition @@ of_abbreviation @@ of_alias)) definition_pairs)
   and register_definitions =
     Ast.Definition.Select.(select (sail_accompanied register_definition) definition_pairs)
   in

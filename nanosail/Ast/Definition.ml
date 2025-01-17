@@ -429,12 +429,16 @@ module Select = struct
 
   let of_abbreviation
       ?(named  : Identifier.t option                               )
-      (of_type : (Type.Abbreviation.type_abbreviation, 'a) selector) : (Type.t, 'a) selector
+      (of_type : (Type.Abbreviation.type_abbreviation, 'a) selector) : (Type.t, (Identifier.t * 'a)) selector
     =
-    let selector (type_definition : Type.t) : 'a option =
+    let selector (type_definition : Type.t) : (Identifier.t * 'a) option =
       match type_definition with
-      | Abbreviation x when is_named x.identifier named -> of_type x.abbreviation
-      | _                                               -> None
+      | Abbreviation x when is_named x.identifier named -> begin
+          match of_type x.abbreviation with
+          | Some r -> Some (x.identifier, r)
+          | None   -> None
+        end
+      | _ -> None
     in
     selector
         

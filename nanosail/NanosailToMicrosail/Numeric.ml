@@ -1,4 +1,6 @@
 open Base
+open Monads.Notations.Star(GenerationContext)
+
 
 module GC = GenerationContext
 
@@ -23,6 +25,44 @@ end = struct
       | Id id      -> Identifier.pp id
       | Var id     -> Identifier.pp id
     in
+    let* numeric_expression =
+      if
+        Configuration.(get inline_definitions_in_notations)
+      then
+        (*
+           Inline definitions if configuration requires it
+        *)
+        let lookup_substitution (identifier : Ast.Identifier.t) : (Ast.Identifier.t * Ast.Numeric.Expression.t) option GC.t =
+          let* definition =
+            GC.lookup_definition_opt (Ast.Definition.Select.(without_sail @@ type_definition @@ of_abbreviation ~named:identifier @@ of_numeric_expression))
+          in
+          let definition = Option.map ~f:snd definition
+          in
+          match definition with
+          | None                               -> GC.return None
+          | Some (type_quantifier, definition) -> begin
+              match type_quantifier with
+              | TypeQuantifier [] -> GC.return @@ Some (identifier, definition)
+              | _                 -> GC.fail [%here] "no support for type quantifiers yet"
+            end
+        in
+        let identifiers = Ast.Numeric.Expression.identifiers numeric_expression
+        in
+        let* substitutions : (Ast.Identifier.t * Ast.Definition.NumericExpression.t) list =
+          let* pairs =
+            GC.map ~f:lookup_substitution identifiers
+          in
+          GC.return @@ List.filter_opt pairs
+        in
+        GC.return begin
+          List.fold
+            substitutions
+            ~init:numeric_expression
+            ~f:(fun numeric_expression (identifier, substitution) -> Ast.Numeric.Expression.substitute_identifier identifier substitution numeric_expression)
+        end
+      else
+        GC.return numeric_expression
+    in          
     GC.return @@ PP.annotate [%here] @@ pp 0 numeric_expression
 end
 
