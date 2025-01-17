@@ -278,6 +278,13 @@ module Type = struct
     | Variant x      -> x.identifier
     | Enum x         -> x.identifier
     | Record x       -> x.identifier
+
+  let to_fexpr (type_definition : t) : FExpr.t =
+    match type_definition with
+    | Abbreviation abbreviation -> Abbreviation.to_fexpr abbrevation
+     | Variant variant -> Variant.to_fexpr variant
+     | Enum enum -> Enum.to_fexpr enum
+     | Record record -> Record.to_fexpr record
 end
 
 
