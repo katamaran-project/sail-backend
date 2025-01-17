@@ -14,14 +14,14 @@ end = struct
         else PP.(surround parens) doc
       in
       match numexp with
-      | Constant z -> PP.annotate [%here] @@ PP.string (Z.to_string z)
-      | Add (x, y) -> PP.annotate [%here] @@ parens_if 0 @@ PP.pp_binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
-      | Sub (x, y) -> PP.annotate [%here] @@ parens_if 0 @@ PP.pp_binary_operation Coq.Operator.subtraction    [pp 0 x; pp 1 y]
-      | Mul (x, y) -> PP.annotate [%here] @@ parens_if 1 @@ PP.pp_binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
-      | Neg x      -> PP.annotate [%here] @@ parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
-      | PowerOf2 x -> PP.annotate [%here] @@ parens_if 3 @@ PP.(horizontal [ PP.string "2^"; pp 4 x]) (* todo this notation probably needs fixing *)
-      | Id id      -> PP.annotate [%here] @@ Identifier.pp id
-      | Var id     -> PP.annotate [%here] @@ Identifier.pp id
+      | Constant z -> PP.string (Z.to_string z)
+      | Add (x, y) -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
+      | Sub (x, y) -> parens_if 0 @@ PP.pp_binary_operation Coq.Operator.subtraction    [pp 0 x; pp 1 y]
+      | Mul (x, y) -> parens_if 1 @@ PP.pp_binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
+      | Neg x      -> parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
+      | PowerOf2 x -> parens_if 3 @@ PP.(horizontal [ PP.string "2^"; pp 4 x]) (* todo this notation probably needs fixing *)
+      | Id id      -> Identifier.pp id
+      | Var id     -> Identifier.pp id
     in
     GC.return @@ PP.annotate [%here] @@ pp 0 numeric_expression
 end
