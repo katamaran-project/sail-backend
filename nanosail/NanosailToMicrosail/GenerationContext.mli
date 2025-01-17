@@ -5,6 +5,7 @@ val return  : 'a -> 'a t
 val bind    : 'a t -> ('a -> 'b t) -> 'b t
 val fail    : Lexing.position -> string -> 'a t
 val recover : 'a t -> (string -> 'a t) -> 'a t
+val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
 val generate            : Ast.program -> PP.document t -> PP.document
 val block               : PP.document t -> PP.document t
@@ -30,4 +31,5 @@ val log : Lexing.position -> (Lexing.position -> string lazy_t -> unit) -> strin
 
 val get_program : Ast.program t
 
-val lookup_type_abbreviation_definition : Ast.Identifier.t -> Ast.Definition.Type.Abbreviation.t option t
+val select_definitions    : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
+val lookup_definition_opt : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t

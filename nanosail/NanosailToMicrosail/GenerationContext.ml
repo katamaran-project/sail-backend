@@ -42,6 +42,9 @@ exception FrameException of string
 
 open Monads.Notations.Star(Monad)
 
+module MonadUtil = Monads.Util.Make(Monad)
+include MonadUtil
+
 
 let mk_initial_state (program : Ast.program) : state = ([], 0, program)
 
@@ -411,13 +414,16 @@ let get_program : Ast.program t =
   get program
 
 
-let lookup_type_abbreviation_definition (identifier : Ast.Identifier.t) : Ast.Definition.Type.Abbreviation.t option t =
-  let* p = get program
+let select_definitions (selector : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a list t =
+  let* program = get program
   in
-  let definitions : Ast.Definition.t list =
-    Ast.Definition.Select.drop_sail_definitions p.definitions
+  return @@ Ast.Definition.Select.select selector program.definitions
+  
+
+let lookup_definition_opt (selector : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a option t =
+  let* matches = select_definitions selector
   in
-  match Ast.Definition.Select.(select (type_definition @@ of_abbreviation ~named:identifier) definitions) with
-  | [ definition ] -> return @@ Some definition
-  | []             -> return None
-  | _              -> fail [%here] "multiple abbreviations found for same identifier"
+  match matches with
+  | [ result ] -> return @@ Some result
+  | []         -> return None
+  | _          -> fail [%here] "expected exactly one matching definition"
