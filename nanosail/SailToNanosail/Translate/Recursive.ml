@@ -42,10 +42,11 @@ end = struct
         | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
         | "bitvector" -> TC.fail [%here] "Type bitvector should be intercepted higher up"
         | _           -> begin
-            let* type_definition : Ast.Definition.Type.t option = TC.lookup_type_definition identifier'
+            let* type_definition : Ast.Definition.Type.t =
+              TC.lookup_definition (Ast.Definition.Select.(type_definition @@ of_anything ~named:identifier'))
             in
             match type_definition with
-            | Some (Abbreviation { identifier; abbreviation }) -> begin
+            | Abbreviation { identifier; abbreviation } -> begin
                 let _ = identifier (* keeps away unused var warning/error *)
                 in
                 match abbreviation with
@@ -59,10 +60,9 @@ end = struct
                     | _::_ -> TC.not_yet_implemented [%here] location
                   end
               end
-            | Some (Variant _) -> TC.return @@ Ast.Type.Variant identifier'
-            | Some (Record _)  -> TC.return @@ Ast.Type.Record identifier'
-            | Some (Enum _)    -> TC.return @@ Ast.Type.Enum identifier'
-            | None             -> TC.not_yet_implemented ~message:(Printf.sprintf "Unknown type %s" id_as_string) [%here] location
+            | Variant _ -> TC.return @@ Ast.Type.Variant identifier'
+            | Record _  -> TC.return @@ Ast.Type.Record identifier'
+            | Enum _    -> TC.return @@ Ast.Type.Enum identifier'
           end
 
       (*

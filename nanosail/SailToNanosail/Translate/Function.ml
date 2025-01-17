@@ -621,14 +621,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           then
             TC.fail [%here] "should be dealt with by Match module"
           else begin
-            let* type_definition = TC.lookup_type_definition @@ Ast.Identifier.mk id
+            let* type_definition = TC.lookup_definition (Ast.Definition.Select.(type_definition @@ of_anything ~named:(Ast.Identifier.mk id)))
             in
             match type_definition with
-            | Some (Abbreviation def) -> match_abbreviation def
-            | Some (Variant _)        -> TC.fail [%here] "should be handled by Match module"
-            | Some (Enum _)           -> TC.fail [%here] "should be handled by Match module"
-            | Some (Record def)       -> match_record def
-            | None                    -> TC.fail [%here] @@ Printf.sprintf "Unknown type %s" id
+            | Abbreviation def -> match_abbreviation def
+            | Variant _        -> TC.fail [%here] "should be handled by Match module"
+            | Enum _           -> TC.fail [%here] "should be handled by Match module"
+            | Record def       -> match_record def
           end
         end
       | S.Operator _ -> TC.not_yet_implemented [%here] location

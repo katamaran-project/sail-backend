@@ -34,7 +34,6 @@ val store_definition               : Ast.Definition.t -> unit t
 val select_definitions             : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
 val lookup_definition              : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a t
 val lookup_definition_opt          : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t
-val lookup_type_definition         : Ast.Identifier.t -> Ast.Definition.Type.t option t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
 val lookup_register_type           : Ast.Identifier.t -> Ast.Type.t option t
 val generate_unique_int            : int t

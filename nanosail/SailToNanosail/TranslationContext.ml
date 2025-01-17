@@ -198,10 +198,6 @@ let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a optio
   | _              -> fail [%here] "more than one match found"
 
 
-let lookup_type_definition (identifier : Ast.Identifier.t) =
-  lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
-
-
 (*
    Looks up the type of a register with the given name.
 *)
