@@ -461,7 +461,10 @@ module Select = struct
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
 
-  let value_definition ?(named : Identifier.t option) (definition : t) : Value.t option =
+  let value_definition
+      ?(named     : Identifier.t option)
+      (definition : t                  ) : Value.t option
+    =
     match definition with
     | ValueDefinition def when is_named def.identifier named -> Some def
     | _                                                      -> None
