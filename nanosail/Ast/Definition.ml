@@ -421,7 +421,7 @@ module Select = struct
 
   let of_abbreviation
       ?(named          : Identifier.t option)
-      (type_definition : Type.t             )
+      (type_definition : Type.t             ) : Type.Abbreviation.t option
     =
     match type_definition with
     | Abbreviation x when is_named x.identifier named -> Some x
