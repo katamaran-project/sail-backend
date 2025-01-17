@@ -206,9 +206,14 @@ let lookup_type_definition (identifier : Ast.Identifier.t) =
    Looks up the type of a register with the given name.
 *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
-  let* register_definition = lookup_definition_opt (Ast.Definition.Select.register_definition ~named:identifier)
+  let* register_definition =
+    lookup_definition_opt (Ast.Definition.Select.register_definition ~named:identifier)
   in
-  return @@ Option.map ~f:(fun register_definition -> register_definition.typ) register_definition
+  return begin
+    Option.map
+      register_definition
+      ~f:(fun register_definition -> register_definition.typ)
+  end
 
 
 let is_register (identifier : Ast.Identifier.t) : bool t =
