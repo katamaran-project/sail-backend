@@ -165,7 +165,6 @@ module Type = struct
         ]
       in
       FExpr.mk_application ~keyword "Def:Type:Variant"
-      
   end
 
   module Enum = struct
