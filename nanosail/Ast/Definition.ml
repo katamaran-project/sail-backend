@@ -1,7 +1,6 @@
 open Base
 include Recursive
 
-
 module FunctionType = struct
   type t =
     {
@@ -429,23 +428,23 @@ module Select = struct
     | _                                         -> None
 
   let of_abbreviation
-      ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) : Type.Abbreviation.t option
+      ?(named  : Identifier.t option                               )
+      (of_type : (Type.Abbreviation.type_abbreviation, 'a) selector) : (Type.t, 'a) selector
     =
-    match type_definition with
-    | Abbreviation x when is_named x.identifier named -> Some x
-    | _                                               -> None
-
-  (* todo rewrite *)
-  let of_alias ?(named : Identifier.t option) (type_definition : Type.t) =
-    match type_definition with
-    | Type.Abbreviation { identifier; abbreviation } when is_named identifier named -> begin
-        match abbreviation with
-        | NumericExpression (_, _) -> None
-        | NumericConstraint (_, _) -> None
-        | Alias (quant, t)         -> Some (identifier, quant, t)
-      end
-    | _ -> None
+    let selector (type_definition : Type.t) : 'a option =
+      match type_definition with
+      | Abbreviation x when is_named x.identifier named -> of_type x.abbreviation
+      | _                                               -> None
+    in
+    selector
+        
+  let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Nanotype.t) selector =
+    let selector (type_abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Nanotype.t) option =
+      match type_abbreviation_definition with
+      | Alias (type_quantifier, typ) -> Some (type_quantifier, typ)
+      | _                            -> None
+    in
+    selector
 
   let of_numeric_expression (definition : Type.Abbreviation.t) : (TypeQuantifier.t * Ast.Numeric.Expression.t) option =
     match definition.abbreviation with
