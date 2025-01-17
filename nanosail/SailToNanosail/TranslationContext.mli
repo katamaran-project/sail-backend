@@ -30,7 +30,7 @@ val run                            : 'a t -> 'a result * Context.t
 val debug_error                    : 'a t -> 'a t
 
 
-val register_definition            : Ast.Definition.t -> unit t
+val store_definition               : Ast.Definition.t -> unit t
 val select_definitions             : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
 val lookup_definition              : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a t
 val lookup_definition_opt          : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t

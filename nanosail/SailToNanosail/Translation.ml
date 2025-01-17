@@ -57,7 +57,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
           | DEF_internal_mutrec _    -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_constraint _         -> TC.not_yet_implemented [%here] annotation.loc
         in
-        let* () = TC.register_definition result
+        let* () = TC.store_definition result
         in
         TC.return (sail_definition, result)
       in

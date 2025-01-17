@@ -141,7 +141,7 @@ let definitions : Ast.Definition.t list t =
   Monad.get Context.definitions
 
 
-let register_definition (definition : Ast.Definition.t) =
+let store_definition (definition : Ast.Definition.t) =
   let* old_definitions = definitions
   in
   let new_definitions = definition :: old_definitions
