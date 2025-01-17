@@ -178,6 +178,18 @@ let select_definitions (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.
   return @@ Ast.Definition.Select.(select selector definitions)
 
 
+(*
+   Returns definition satisfying selector. Causes failure if there are none or multiple.
+*)
+let lookup_definition (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a t =
+  let* definitions = select_definitions selector
+  in
+  match definitions with
+  | [ definition ] -> return definition
+  | []             -> fail [%here] "no definition found matching the selector"
+  | _              -> fail [%here] "expected only one match"
+
+
 (* Looks up type of register with given name *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let predicate (definition : Ast.Definition.t) : Ast.Definition.Register.t option =
