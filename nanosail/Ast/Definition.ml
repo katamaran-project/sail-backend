@@ -424,6 +424,7 @@ module Select = struct
     | Abbreviation x when is_named x.identifier named -> Some x
     | _                                               -> None
 
+  (* todo rewrite *)
   let of_alias ?(named : Identifier.t option) (type_definition : Type.t) =
     match type_definition with
     | Type.Abbreviation { identifier; abbreviation } when is_named identifier named -> begin
