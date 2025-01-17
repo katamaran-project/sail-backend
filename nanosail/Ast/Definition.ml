@@ -462,7 +462,7 @@ module Select = struct
     | UntranslatedDefinition x -> Some x
     | _                        -> None
 
-  let ignored_definition (definition : t) : unit/2 option =
+  let ignored_definition (definition : t) : unit option =
     match definition with
     | IgnoredDefinition -> Some ()
     | _                 -> None
