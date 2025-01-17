@@ -296,39 +296,35 @@ let rec expression_of_aval
         let* type_identifier' =
           Identifier.translate_identifier [%here] type_identifier
         in
-        let* type_definition =
-          TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_record ~named:type_identifier'
+        let* record_definition =
+          TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record ~named:type_identifier')
         in
-        match type_definition with
-        | Some record_definition -> begin
-            let record_field_names =
-              List.map ~f:fst record_definition.fields
-            in
-            let* mapping, named_statements =
-              translate_bindings location bindings
-            in
-            (*
-               List of variables that contain the values
-               for each of the record's fields
-            *)
-            let* field_value_identifiers =
-              TC.map
-                record_field_names
-                ~f:(fun record_field_name -> begin
-                      match Ast.Identifier.Map.find mapping record_field_name with
-                      | Some value_identifier -> TC.return value_identifier
-                      | None                  -> TC.fail [%here] "Field names in definition do not match those in literal"
-                    end)
-            in
-            let record =
-              Ast.Expression.Record {
-                type_identifier = type_identifier';
-                variable_identifiers = field_value_identifiers;
-              }
-            in
-            TC.return (record, Ast.Type.Record type_identifier', named_statements)
-          end
-        | None -> TC.fail [%here] @@ Printf.sprintf "Expected to find record definition for %s" @@ StringOf.Sail.id type_identifier
+        let record_field_names =
+          List.map ~f:fst record_definition.fields
+        in
+        let* mapping, named_statements =
+          translate_bindings location bindings
+        in
+        (*
+           List of variables that contain the values
+           for each of the record's fields
+        *)
+        let* field_value_identifiers =
+          TC.map
+            record_field_names
+            ~f:(fun record_field_name -> begin
+                  match Ast.Identifier.Map.find mapping record_field_name with
+                  | Some value_identifier -> TC.return value_identifier
+                  | None                  -> TC.fail [%here] "Field names in definition do not match those in literal"
+                end)
+        in
+        let record =
+          Ast.Expression.Record {
+            type_identifier = type_identifier';
+            variable_identifiers = field_value_identifiers;
+          }
+        in
+        TC.return (record, Ast.Type.Record type_identifier', named_statements)
       end
     | _ -> TC.fail [%here] "Unexpected type"
 
@@ -495,47 +491,37 @@ let with_destructured_record
           let* record_type_identifier =
             Identifier.translate_identifier [%here] record_type_identifier
           in
-          let* lookup_result =
-            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_record ~named:record_type_identifier
+          let* record_type_definition =
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record ~named:record_type_identifier)
           in
-          match lookup_result with
-          | Some record_type_definition -> begin
-              let fields =
-                record_type_definition.fields
-              in
-              let field_identifiers =
-                List.map ~f:fst fields
-              in
-              let* variable_identifiers =
-                TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
-              in
-              let* body =
-                body_generator {
-                  record_identifier;
-                  record_type_identifier;
-                  fields;
-                  variable_identifiers
-                }
-              in
-              let* destructured_record =
-                statement_of_lvar record_identifier lvar location
-              in
-              TC.return @@ Ast.Statement.DestructureRecord {
-                               record_type_identifier;
-                               field_identifiers;
-                               variable_identifiers;
-                               destructured_record;
-                               body
-                             }
-            end
-          | None -> begin
-              let message =
-                Printf.sprintf "Tried looking up %s; expected to find record type definition" (Ast.Identifier.to_string record_type_identifier)
-              in
-              (* TC.fail [%here] message *) (* todo make this a failure again *)
-              TC.not_yet_implemented ~message [%here] location
-            end
-        end
+          let fields =
+            record_type_definition.fields
+          in
+          let field_identifiers =
+            List.map ~f:fst fields
+          in
+          let* variable_identifiers =
+            TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
+          in
+          let* body =
+            body_generator {
+              record_identifier;
+              record_type_identifier;
+              fields;
+              variable_identifiers
+            }
+          in
+          let* destructured_record =
+            statement_of_lvar record_identifier lvar location
+          in
+          TC.return @@ Ast.Statement.DestructureRecord {
+                           record_type_identifier;
+                           field_identifiers;
+                           variable_identifiers;
+                           destructured_record;
+                           body
+                         }
+        end    
       | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | Typ_var _            -> TC.not_yet_implemented [%here] location
       | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location

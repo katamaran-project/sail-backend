@@ -160,21 +160,14 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] sail_identifier
           in
           let* enum_definition =
-            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_enum ~named:enum_identifier
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier)
           in
-          match enum_definition with
-          | Some enum_definition -> begin
-              if
-                List.mem enum_definition.cases identifier ~equal:Ast.Identifier.equal
-              then
-                TC.return @@ Pattern.EnumCase identifier
-              else
-                TC.return @@ Pattern.Binder identifier
-            end
-          | None -> begin
-              (* This really should never happen *)
-              TC.fail [%here] @@ Printf.sprintf "unknown enum type %s" @@ Ast.Identifier.to_string enum_identifier
-            end          
+          if
+            List.mem enum_definition.cases identifier ~equal:Ast.Identifier.equal
+          then
+            TC.return @@ Pattern.EnumCase identifier
+          else
+            TC.return @@ Pattern.Binder identifier
         end
       | AP_wild _type -> translate_wildcard_pattern ()
       | _ -> unexpected_pattern [%here]
@@ -210,37 +203,30 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] head_sail_identifier
           in
           let* variant_definition =
-            TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:variant_identifier
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier)
           in
-          match variant_definition with
+          match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with (* todo create separate function *)
+          | Some (constructor_identifier, field_types) -> begin
+              let field_type : Ast.Type.t =
+                match field_types with
+                | []  -> Ast.Type.Unit
+                | [t] -> t
+                | ts  -> Ast.Type.Tuple ts
+              in
+              let* subpattern =
+                translate_pattern field_type sail_subpattern
+              in
+              TC.return @@ Pattern.VariantCase (constructor_identifier, subpattern)
+            end
           | None -> begin
               (* This really should never occur *)
-              TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string variant_identifier
-            end
-          | Some variant_definition -> begin
-              match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with
-              | Some (constructor_identifier, field_types) -> begin
-                  let field_type : Ast.Type.t =
-                    match field_types with
-                    | []  -> Ast.Type.Unit
-                    | [t] -> t
-                    | ts  -> Ast.Type.Tuple ts
-                  in
-                  let* subpattern =
-                    translate_pattern field_type sail_subpattern
-                  in
-                  TC.return @@ Pattern.VariantCase (constructor_identifier, subpattern)
-                end
-              | None -> begin
-                  (* This really should never occur *)
-                  let error_message =
-                    Printf.sprintf
-                      "variant %s has no constructor %s"
-                      (Ast.Identifier.to_string variant_identifier)
-                      (Ast.Identifier.to_string head_identifier)
-                  in
-                  TC.fail [%here] error_message
-                end
+              let error_message =
+                Printf.sprintf
+                  "variant %s has no constructor %s"
+                  (Ast.Identifier.to_string variant_identifier)
+                  (Ast.Identifier.to_string head_identifier)
+              in
+              TC.fail [%here] error_message
             end
         end
       | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
@@ -482,113 +468,107 @@ let translate_enum_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   (* Look up enum definition, we need to know which values there are *)
-  let* enum_definition = TC.lookup_type_definition_of_kind Ast.Definition.Select.(of_enum ~named:enum_identifier)
+  let* enum_definition =
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier)
   in
-  match enum_definition with
-  | None -> begin
-      (* This really should never occur *)
-      TC.fail [%here] @@ Printf.sprintf "unknown enum type %s" (Ast.Identifier.to_string enum_identifier)
-    end
-  | Some enum_definition -> begin
-      (*
-         Set up case table: it maps enum values to corresponding bodies
-         Note that enum values are represented using identifiers.
-      *)
-      let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
-        let process_case
-            (table : Ast.Statement.t Ast.Identifier.Map.t)
-            (case  : Pattern.t * Ast.Statement.t         ) : Ast.Statement.t Ast.Identifier.Map.t TC.t
-          =
-          let pattern, body = case
-          in
-          match pattern with
-          | EnumCase enum_value_identifier -> begin
-              (* A pattern matches a specific enum value *)
-              match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
-              | `Duplicate -> begin
-                  (* This case shouldn't occur. It means that two patterns match the same enum value, making the second one redundant *)
-                  TC.fail [%here] "same enum case matched against twice"
-                end
-              | `Ok updated_table -> begin
-                  (* We add the (enum value, clause) association to the table *)
-                  TC.return updated_table
-                end
-            end
-          | Binder binder_identifier -> begin
-              (*
-                 The pattern binds the enum value to a variable, meaning
-                 it should match all enum values that have hitherto not been processed.
-              *)
-              let fill_in_missing_case
-                  (table                 : Ast.Statement.t Ast.Identifier.Map.t)
-                  (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
-                =
-                (*
-                     match enum_value {
-                       binder_identifier => X
-                     }
-
-                   gets translated to
-
-                     match enum_value {
-                       EnumCaseA => let binder_identifier = enum_value in X,
-                       EnumCaseB => let binder_identifier = enum_value in X,
-                       ...
-                     }
-                *)
-                let extended_body =
-                  let matched_type = Ast.Type.Enum enum_identifier
-                  in
-                  Ast.Statement.Let {
-                    variable_identifier    = binder_identifier;
-                    binding_statement_type = matched_type;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
-                    body_statement         = body;
-                  }
-                in                  
-                match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
-                | `Duplicate        -> begin
-                    (*
-                       We tried to add an extra (enum value, clause) association to the table, but there
-                       already existed one, which is okay. We simply keep the table as is.
-                    *)
-                    table
-                  end
-                | `Ok updated_table -> updated_table
-              in
-              (*
-                 We go through all possible enum values and try to add associations for them to the table, i.e.,
-                 we only add associations for enum values that are missing from the table.
-              *)
-              TC.return @@ List.fold enum_definition.cases ~init:table ~f:fill_in_missing_case
-            end
-          | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-        in
-        TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+  (*
+     Set up case table: it maps enum values to corresponding bodies
+     Note that enum values are represented using identifiers.
+  *)
+  let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
+    let process_case
+        (table : Ast.Statement.t Ast.Identifier.Map.t)
+        (case  : Pattern.t * Ast.Statement.t         ) : Ast.Statement.t Ast.Identifier.Map.t TC.t
+      =
+      let pattern, body = case
       in
-      (* Check that all enum cases have been handled *)
-      let all_enum_cases_handled =
-        List.for_all enum_definition.cases ~f:(Ast.Identifier.Map.mem case_table)
-      in
-      if
-        not all_enum_cases_handled
-      then
+      match pattern with
+      | EnumCase enum_value_identifier -> begin
+          (* A pattern matches a specific enum value *)
+          match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
+          | `Duplicate -> begin
+              (* This case shouldn't occur. It means that two patterns match the same enum value, making the second one redundant *)
+              TC.fail [%here] "same enum case matched against twice"
+            end
+          | `Ok updated_table -> begin
+              (* We add the (enum value, clause) association to the table *)
+              TC.return updated_table
+            end
+        end
+      | Binder binder_identifier -> begin
         (*
-           Some enum values were not handled by the match.
-           For now, we simply fail, but we could instead fill up the gaps with failure statements.
+           The pattern binds the enum value to a variable, meaning
+           it should match all enum values that have hitherto not been processed.
         *)
-        TC.fail [%here] "not all enum cases are handled"
-      else begin
-        let match_pattern =
-          Ast.Statement.MatchEnum {
-            matched = matched_identifier;
-            matched_type = enum_identifier;
-            cases = case_table
-          }
-        in
-        TC.return @@ Ast.Statement.Match match_pattern
-      end
-    end
+          let fill_in_missing_case
+              (table                 : Ast.Statement.t Ast.Identifier.Map.t)
+              (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
+            =
+            (*
+                 match enum_value {
+                   binder_identifier => X
+                 }
+
+               gets translated to
+
+                 match enum_value {
+                   EnumCaseA => let binder_identifier = enum_value in X,
+                   EnumCaseB => let binder_identifier = enum_value in X,
+                   ...
+                 }
+            *)
+            let extended_body =
+              let matched_type = Ast.Type.Enum enum_identifier
+              in
+              Ast.Statement.Let {
+                variable_identifier    = binder_identifier;
+                binding_statement_type = matched_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+                body_statement         = body;
+              }
+            in                  
+            match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
+            | `Duplicate        -> begin
+                (*
+                   We tried to add an extra (enum value, clause) association to the table, but there
+                   already existed one, which is okay. We simply keep the table as is.
+                *)
+                table
+              end
+            | `Ok updated_table -> updated_table
+          in
+          (*
+             We go through all possible enum values and try to add associations for them to the table, i.e.,
+             we only add associations for enum values that are missing from the table.
+          *)
+          TC.return @@ List.fold enum_definition.cases ~init:table ~f:fill_in_missing_case
+        end
+      | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+    in
+    TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+  in
+  (* Check that all enum cases have been handled *)
+  let all_enum_cases_handled =
+    List.for_all enum_definition.cases ~f:(Ast.Identifier.Map.mem case_table)
+  in
+  if
+    not all_enum_cases_handled
+  then
+    (*
+       Some enum values were not handled by the match.
+       For now, we simply fail, but we could instead fill up the gaps with failure statements.
+    *)
+    TC.fail [%here] "not all enum cases are handled"
+  else begin
+    let match_pattern =
+      Ast.Statement.MatchEnum {
+        matched = matched_identifier;
+        matched_type = enum_identifier;
+        cases = case_table
+      }
+    in
+    TC.return @@ Ast.Statement.Match match_pattern
+  end
 
 
 let translate_variant_match
@@ -599,203 +579,194 @@ let translate_variant_match
   =
   (* Look up variant definition, we need to know which constructors there are *)
   let* variant_definition =
-    TC.lookup_type_definition_of_kind Ast.Definition.Select.(of_variant ~named:variant_identifier)
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier)
   in
-  match variant_definition with
-  | None -> begin
-      (* This really should never occur *)
-      TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" (Ast.Identifier.to_string variant_identifier)
-    end
-  | Some variant_definition -> begin
-      (*
-         Set up constructor table: it maps constructors to variables to which the fields need to be bound and the clause
-      *)
-      let* case_table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
-        let process_case
-            (table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-            (case  : Pattern.t * Ast.Statement.t                                   ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
-          =
-          let pattern, body = case
-          in
-          let add_to_table
-              (constructor_identifier : Ast.Identifier.t     )
-              (binder_identifiers     : Ast.Identifier.t list) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
-            =
-            match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(binder_identifiers, body) with
-            | `Duplicate -> begin
-                (* This case shouldn't occur given the limitations the current implementation imposes on pattern matching *)
-                TC.fail [%here] "same constructor matched against twice"
-              end
-            | `Ok updated_table -> begin
-                (* We add the (constructor, clause) association to the table *)
-                TC.return updated_table
-              end
-          in
-          match pattern with
-          | VariantCase (constructor_identifier, subpattern) -> begin
-              (* Look up information about the current constructor *)
-              match Ast.Definition.Type.Variant.find_constructor_field_types variant_definition constructor_identifier with
-              | None -> begin
-                  (* No constructor for the variant we're matching against. Should not occur *)
-                  let error_message =
-                    Printf.sprintf
-                      "unknown constructor %s for variant %s"
-                      (Ast.Identifier.to_string constructor_identifier)
-                      (Ast.Identifier.to_string variant_identifier)
-                  in
-                  TC.fail [%here] error_message
-                end
-              | Some field_types -> begin
-                  match subpattern with
-                  | Tuple tuple_subpatterns -> begin
-                      (*
-                         We're dealing with
-    
-                           match variant_value {
-                             Constructor(subpattern1, subpattern2, ...) => ...
-                           }
-    
-                         In our current implementation, we expect all subpatterns to be binders, i.e.,
-                         we don't support nested patterns.
-                      *)
-                      if
-                        not @@ Int.equal (List.length tuple_subpatterns) (List.length field_types)
-                      then
-                        TC.fail [%here] "mismatch between number of subpatterns and number of fields"
-                      else begin
-                        (* For now, we expect the tuple pattern to contain only Variable patterns *)
-                        let extract_identifier_from_variable_pattern (pattern : Pattern.t) : Ast.Identifier.t TC.t =
-                          match pattern with
-                          | Binder identifier -> TC.return identifier
-                          | _                 -> TC.fail [%here] "only variable subpatterns supported"
-                        in
-                        let* binders =
-                          TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
-                        in
-                        add_to_table constructor_identifier binders
-                      end                    
-                    end
-                  | Binder identifier -> begin
-                      (*
-                         We're dealing with
-    
-                           match variant_value {
-                             Constructor(x) => ...
-                           }
-    
-                         Three cases need to be considered:
-                         * Constructor has zero fields, in which case x should be bound to unit
-                         * Constructor has one field, in which case x should be bound to that field
-                         * Constructor has more than one field, in which case x should be bound to a tuple of field values.
-                           Our current implementation does not support this.
-                      *)
-                      match List.length field_types with
-                      | 0 -> begin
-                          (* We're dealing with a fieldless constructor, which is actually a constructor with one unit-typed field *)
-                          add_to_table constructor_identifier [ identifier ]
-                        end
-                      | 1 -> add_to_table constructor_identifier [ identifier ]
-                      | _ -> begin
-                          let message =
-                            Printf.sprintf
-                              "each field needs its own binder; problematic constructor %s"
-                              (Ast.Identifier.to_string constructor_identifier)
-                          in
-                          TC.not_yet_implemented ~message [%here] location
-                        end
-                    end
-                  | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
-                end
-            end
-          | Binder binder_identifier -> begin
-              (*
-                 The pattern binds the constructor to a variable, meaning
-                 it should match all constructors that have hitherto not been processed.
-              *)
-              let fill_in_missing_case
-                  (table       : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
-                  (constructor : Ast.Identifier.t * Ast.Type.t list                            ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
-                =
-                (*
-                     match variant_value {
-                       binder_identifier => X
-                     }
-
-                   gets translated to
-
-                     match variant_value {
-                       ConstructorA(gensym, ...) => let binder_identifier = enum_value in X,
-                       ConstructorB(gensym, ...) => let binder_identifier = enum_value in X,
-                       ...
-                     }
-                *)
-                let extended_body =
-                  let matched_type = Ast.Type.Variant variant_identifier
-                  in
-                  Ast.Statement.Let {
-                    variable_identifier    = binder_identifier;
-                    binding_statement_type = matched_type;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
-                    body_statement         = body;
-                  }
-                in                  
-                
-                let constructor_identifier, field_types = constructor
-                in
-                (* Generate new identifiers to be used as binders for each field *)
-                let* identifiers : Ast.Identifier.t list =
-                  let n_identifiers_needed =
-                    (* If there are zero types, we still need one binder for unit *)
-                    Int.max 1 @@ List.length field_types
-                  in
-                  TC.generate_unique_identifiers n_identifiers_needed
-                in
-                match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, extended_body) with
-                | `Duplicate -> begin
-                    (*
-                       We tried to add an extra (constructor, clause) association to the table, but there
-                       already existed one, which is okay. We simply keep the table as is.
-                    *)
-                    TC.return table
-                  end
-                | `Ok updated_table -> TC.return updated_table
+  (*
+     Set up constructor table: it maps constructors to variables to which the fields need to be bound and the clause
+  *)
+  let* case_table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
+    let process_case
+        (table : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
+        (case  : Pattern.t * Ast.Statement.t                                   ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+      =
+      let pattern, body = case
+      in
+      let add_to_table
+          (constructor_identifier : Ast.Identifier.t     )
+          (binder_identifiers     : Ast.Identifier.t list) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+        =
+        match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(binder_identifiers, body) with
+        | `Duplicate -> begin
+            (* This case shouldn't occur given the limitations the current implementation imposes on pattern matching *)
+            TC.fail [%here] "same constructor matched against twice"
+          end
+        | `Ok updated_table -> begin
+            (* We add the (constructor, clause) association to the table *)
+            TC.return updated_table
+          end
+      in
+      match pattern with
+      | VariantCase (constructor_identifier, subpattern) -> begin
+          (* Look up information about the current constructor *)
+          match Ast.Definition.Type.Variant.find_constructor_field_types variant_definition constructor_identifier with
+          | None -> begin
+              (* No constructor for the variant we're matching against. Should not occur *)
+              let error_message =
+                Printf.sprintf
+                  "unknown constructor %s for variant %s"
+                  (Ast.Identifier.to_string constructor_identifier)
+                  (Ast.Identifier.to_string variant_identifier)
               in
-              (*
-                 We go through all possible constructors and try to add associations for them to the table, i.e.,
-                 we only add associations for constructors that are missing from the table.
-              *)
-              TC.fold_left variant_definition.constructors ~init:table ~f:fill_in_missing_case
+              TC.fail [%here] error_message
             end
-          | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-        in
-        TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
-      in
-      (* Check that all enum cases have been handled *)
-      let all_constructors_handled =
-        let constructor_identifiers =
-          List.map ~f:fst variant_definition.constructors
-        in
-        List.for_all constructor_identifiers ~f:(Ast.Identifier.Map.mem case_table)
-      in
-      if
-        not all_constructors_handled
-      then
-        (*
-           Some enum values were not handled by the match.
-           For now, we simply fail, but we could instead fill up the gaps with failure statements.
-        *)
-        TC.fail [%here] "not all enum cases are handled"
-      else begin
-        let match_pattern =
-          Ast.Statement.MatchVariant {
-            matched = matched_identifier;
-            matched_type = variant_identifier;
-            cases = case_table
-          }
-        in
-        TC.return @@ Ast.Statement.Match match_pattern
-      end
-    end
+          | Some field_types -> begin
+              match subpattern with
+              | Tuple tuple_subpatterns -> begin
+                  (*
+                     We're dealing with
+
+                       match variant_value {
+                         Constructor(subpattern1, subpattern2, ...) => ...
+                       }
+
+                     In our current implementation, we expect all subpatterns to be binders, i.e.,
+                     we don't support nested patterns.
+                  *)
+                  if
+                    not @@ Int.equal (List.length tuple_subpatterns) (List.length field_types)
+                  then
+                    TC.fail [%here] "mismatch between number of subpatterns and number of fields"
+                  else begin
+                    (* For now, we expect the tuple pattern to contain only Variable patterns *)
+                    let extract_identifier_from_variable_pattern (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                      match pattern with
+                      | Binder identifier -> TC.return identifier
+                      | _                 -> TC.fail [%here] "only variable subpatterns supported"
+                    in
+                    let* binders =
+                      TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
+                    in
+                    add_to_table constructor_identifier binders
+                  end                    
+                end
+              | Binder identifier -> begin
+                  (*
+                     We're dealing with
+
+                       match variant_value {
+                         Constructor(x) => ...
+                       }
+
+                     Three cases need to be considered:
+                     * Constructor has zero fields, in which case x should be bound to unit
+                     * Constructor has one field, in which case x should be bound to that field
+                     * Constructor has more than one field, in which case x should be bound to a tuple of field values.
+                       Our current implementation does not support this.
+                  *)
+                  match List.length field_types with
+                  | 0 -> begin
+                      (* We're dealing with a fieldless constructor, which is actually a constructor with one unit-typed field *)
+                      add_to_table constructor_identifier [ identifier ]
+                    end
+                  | 1 -> add_to_table constructor_identifier [ identifier ]
+                  | _ -> begin
+                      let message =
+                        Printf.sprintf
+                          "each field needs its own binder; problematic constructor %s"
+                          (Ast.Identifier.to_string constructor_identifier)
+                      in
+                      TC.not_yet_implemented ~message [%here] location
+                    end
+                end
+              | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
+            end
+        end
+      | Binder binder_identifier -> begin
+          (*
+             The pattern binds the constructor to a variable, meaning
+             it should match all constructors that have hitherto not been processed.
+          *)
+          let fill_in_missing_case
+              (table       : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t)
+              (constructor : Ast.Identifier.t * Ast.Type.t list                            ) : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t TC.t
+            =
+            (*
+                 match variant_value {
+                   binder_identifier => X
+                 }
+                gets translated to
+                  match variant_value {
+                   ConstructorA(gensym, ...) => let binder_identifier = enum_value in X,
+                   ConstructorB(gensym, ...) => let binder_identifier = enum_value in X,
+                   ...
+                 }
+            *)
+            let extended_body =
+              let matched_type = Ast.Type.Variant variant_identifier
+              in
+              Ast.Statement.Let {
+                variable_identifier    = binder_identifier;
+                binding_statement_type = matched_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+                body_statement         = body;
+              }
+            in                  
+            
+            let constructor_identifier, field_types = constructor
+            in
+            (* Generate new identifiers to be used as binders for each field *)
+            let* identifiers : Ast.Identifier.t list =
+              let n_identifiers_needed =
+                (* If there are zero types, we still need one binder for unit *)
+                Int.max 1 @@ List.length field_types
+              in
+              TC.generate_unique_identifiers n_identifiers_needed
+            in
+            match Ast.Identifier.Map.add table ~key:constructor_identifier ~data:(identifiers, extended_body) with
+            | `Duplicate -> begin
+                (*
+                   We tried to add an extra (constructor, clause) association to the table, but there
+                   already existed one, which is okay. We simply keep the table as is.
+                *)
+                TC.return table
+              end
+            | `Ok updated_table -> TC.return updated_table
+          in
+          (*
+             We go through all possible constructors and try to add associations for them to the table, i.e.,
+             we only add associations for constructors that are missing from the table.
+          *)
+          TC.fold_left variant_definition.constructors ~init:table ~f:fill_in_missing_case
+        end
+      | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+    in
+    TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+  in
+  (* Check that all enum cases have been handled *)
+  let all_constructors_handled =
+    let constructor_identifiers =
+      List.map ~f:fst variant_definition.constructors
+    in
+    List.for_all constructor_identifiers ~f:(Ast.Identifier.Map.mem case_table)
+  in
+  if
+    not all_constructors_handled
+  then
+    (*
+       Some enum values were not handled by the match.
+       For now, we simply fail, but we could instead fill up the gaps with failure statements.
+    *)
+    TC.fail [%here] "not all enum cases are handled"
+  else begin
+    let match_pattern =
+      Ast.Statement.MatchVariant {
+        matched = matched_identifier;
+        matched_type = variant_identifier;
+        cases = case_table
+      }
+    in
+    TC.return @@ Ast.Statement.Match match_pattern
+  end
 
 
 (*
@@ -865,101 +836,96 @@ let translate_tuple_match
     in
     match element_types with
     | [ (Ast.Type.Variant fst_variant_identifier) as type_fst; (Ast.Type.Variant snd_variant_identifier) as type_snd ] -> begin
-        let* fst_variant_definition = TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:fst_variant_identifier
-        and* snd_variant_definition = TC.lookup_type_definition_of_kind @@ Ast.Definition.Select.of_variant ~named:snd_variant_identifier
+        (* todo use these definitions to check for exhaustivity *)
+        let* _fst_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:fst_variant_identifier)
+        and* _snd_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:snd_variant_identifier)
         in
-        match fst_variant_definition, snd_variant_definition with
-        | None, _ -> TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string fst_variant_identifier
-        | _, None -> TC.fail [%here] @@ Printf.sprintf "unknown variant type %s" @@ Ast.Identifier.to_string snd_variant_identifier
-        | Some _fst_variant_definition, Some _snd_variant_definition -> begin (* todo use these definitions to check for exhaustivity *)
-            let* table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t =
-              let init = Ast.Identifier.Map.empty
-              in
-              let add_to_table
-                  (table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t)
-                  (pair  : Pattern.t * Ast.Statement.t                                          ) : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t TC.t
-                =
-                let pattern, body = pair
+        let* table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t =
+          let init = Ast.Identifier.Map.empty
+          in
+          let add_to_table
+              (table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t)
+              (pair  : Pattern.t * Ast.Statement.t                                          ) : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t TC.t
+            =
+            let pattern, body = pair
+            in
+            match pattern with
+            | Pattern.Tuple [Pattern.VariantCase (constructor_identifier, field_pattern); snd_pattern] -> begin
+                let add (previous_data : (Pattern.t * (Pattern.t * Ast.Statement.t) list) option) : Pattern.t * (Pattern.t * Ast.Statement.t) list =
+                  match previous_data with
+                  | None -> (field_pattern, [(snd_pattern, body)])
+                  | Some (previous_field_pattern, previous_pairs) -> begin
+                      (* TODO check for equal field patterns, previous_field_pattern should be equal to field_pattern *)
+                      (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
+                    end
                 in
-                match pattern with
-                | Pattern.Tuple [Pattern.VariantCase (constructor_identifier, field_pattern); snd_pattern] -> begin
-                    let add (previous_data : (Pattern.t * (Pattern.t * Ast.Statement.t) list) option) : Pattern.t * (Pattern.t * Ast.Statement.t) list =
-                      match previous_data with
-                      | None -> (field_pattern, [(snd_pattern, body)])
-                      | Some (previous_field_pattern, previous_pairs) -> begin
-                          (* TODO check for equal field patterns, previous_field_pattern should be equal to field_pattern *)
-                          (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
-                        end
+                try
+                  TC.return @@ Ast.Identifier.Map.update table constructor_identifier ~f:add
+                with
+                  InconsistentBinders (previous_field_binders, field_binders) -> begin
+                    let message =
+                      Printf.sprintf
+                        "inconsistent binders: %s vs %s"
+                        (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string previous_field_binders))
+                        (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string field_binders))
                     in
-                    try
-                      TC.return @@ Ast.Identifier.Map.update table constructor_identifier ~f:add
-                    with
-                      InconsistentBinders (previous_field_binders, field_binders) -> begin
-                        let message =
-                          Printf.sprintf
-                            "inconsistent binders: %s vs %s"
-                            (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string previous_field_binders))
-                            (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string field_binders))
-                        in
-                        TC.not_yet_implemented ~message [%here] location
-                      end
+                    TC.not_yet_implemented ~message [%here] location
                   end
-                | _ -> TC.not_yet_implemented [%here] location
-              in
-              TC.fold_left ~f:add_to_table ~init cases
+              end
+            | _ -> TC.not_yet_implemented [%here] location
+          in
+          TC.fold_left ~f:add_to_table ~init cases
+        in
+        (*
+           We use pattern matching against the pair, thereby giving names to each value inside it:
+              match pair {
+               (id_fst, id_snd) => ...
+             }
+        *)
+        let* id_fst = TC.generate_unique_identifier ()
+        and* id_snd = TC.generate_unique_identifier ()
+        in
+        let* snd_match_alist : (Pattern.t * Ast.Statement.t) list =
+          let build_match_statement (clauses : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t =
+            let* statement =
+              translate_variant_match location id_snd snd_variant_identifier clauses
             in
-            (*
-               We use pattern matching against the pair, thereby giving names to each value inside it:
-
-                 match pair {
-                   (id_fst, id_snd) => ...
-                 }
-            *)
-            let* id_fst = TC.generate_unique_identifier ()
-            and* id_snd = TC.generate_unique_identifier ()
-            in
-            let* snd_match_alist : (Pattern.t * Ast.Statement.t) list =
-              let build_match_statement (clauses : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t =
-                let* statement =
-                  translate_variant_match location id_snd snd_variant_identifier clauses
+            TC.return statement
+          in
+          let pairs =
+            Ast.Identifier.Map.to_alist table
+          in
+          TC.map
+            pairs
+            ~f:(fun (constructor_identifier, (field_pattern, cs)) ->
+                let* s = build_match_statement cs
                 in
-                TC.return statement
-              in
-              let pairs =
-                Ast.Identifier.Map.to_alist table
-              in
-              TC.map
-                pairs
-                ~f:(fun (constructor_identifier, (field_pattern, cs)) ->
-                    let* s = build_match_statement cs
-                    in
-                    TC.return (Pattern.VariantCase (constructor_identifier, field_pattern), s)
-                  )
-            in
-            let* fst_match =
-              translate_variant_match location id_fst fst_variant_identifier snd_match_alist
-            in
-            let* tuple_match_statement =
-              let match_pattern =
-                Ast.Statement.MatchProduct {
-                  matched = matched_identifier;
-                  type_fst;
-                  type_snd;
-                  id_fst;
-                  id_snd;
-                  body = fst_match;
-                }
-              in            
-              TC.return @@ Ast.Statement.Match match_pattern
-            in
-            TC.return tuple_match_statement
-          end
+                TC.return (Pattern.VariantCase (constructor_identifier, field_pattern), s)
+              )
+        in
+        let* fst_match =
+          translate_variant_match location id_fst fst_variant_identifier snd_match_alist
+        in
+        let* tuple_match_statement =
+          let match_pattern =
+            Ast.Statement.MatchProduct {
+              matched = matched_identifier;
+              type_fst;
+              type_snd;
+              id_fst;
+              id_snd;
+              body = fst_match;
+            }
+          in            
+          TC.return @@ Ast.Statement.Match match_pattern
+        in
+        TC.return tuple_match_statement
       end
-    | _ -> TC.not_yet_implemented [%here] location
+ | _ -> TC.not_yet_implemented [%here] location
 
   in
-  translate_pair_of_variants
-  (* TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ] *)
+  (* translate_pair_of_variants *)
+  TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ]
 
 
 let translate
