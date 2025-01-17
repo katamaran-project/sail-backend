@@ -34,16 +34,16 @@ module NumericExpression = struct
        | Id id             -> [id]
        | Var _             -> []
     in
-    List.dedup_and_sort (aux numeric_expression) ~compare:Ast.Identifier.compare
+    List.dedup_and_sort (aux numeric_expression) ~compare:Identifier.compare
 
 
   (*
      Replaces occurrences of Id id by the given numeric expression.
   *)
   let substitute_identifier
-      (identifier         : Ast.Identifier.t)
-      (replace_by         : t               )
-      (numeric_expression : t               ) : t
+      (identifier         : Identifier.t)
+      (replace_by         : t           )
+      (numeric_expression : t           ) : t
     =
     let rec aux (numeric_expression : t) : t
       =
@@ -57,7 +57,7 @@ module NumericExpression = struct
       | Var _             -> numeric_expression
       | Id id             -> begin
           if
-            Ast.Identifier.equal id identifier
+            Identifier.equal id identifier
           then
             replace_by
           else
