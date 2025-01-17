@@ -207,7 +207,7 @@ let lookup_type_definition (identifier : Ast.Identifier.t) =
 *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let* register_definition =
-    lookup_definition_opt (Ast.Definition.Select.register_definition ~named:identifier)
+    lookup_definition_opt @@ Ast.Definition.Select.register_definition ~named:identifier
   in
   return begin
     Option.map
