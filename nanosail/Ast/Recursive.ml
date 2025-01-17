@@ -37,6 +37,36 @@ module NumericExpression = struct
     List.dedup_and_sort (aux numeric_expression) ~compare:Ast.Identifier.compare
 
 
+  (*
+     Replaces occurrences of Id id by the given numeric expression.
+  *)
+  let substitute_identifier
+      (identifier         : Ast.Identifier.t)
+      (replace_by         : t               )
+      (numeric_expression : t               ) : t
+    =
+    let rec aux (numeric_expression : t) : t
+      =
+      match numeric_expression with
+      | Constant _ -> numeric_expression
+      | Add (left, right) -> Add (aux left, aux right)
+      | Sub (left, right) -> Sub (aux left, aux right)
+      | Mul (left, right) -> Mul (aux left, aux right)
+      | Neg operand -> Neg (aux operand)
+      | PowerOf2 operand -> PowerOf2 (aux operand)
+      | Var _ -> numeric_expression
+      | Id id -> begin
+          if
+            Ast.Identifier.equal id identifier
+          then
+            replace_by
+          else
+            numeric_expression
+        end
+    in
+    aux numeric_expression
+
+
   let rec to_string (numeric_expression : t) =
     match numeric_expression with
     | Constant n   -> Z.to_string n
