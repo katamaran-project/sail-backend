@@ -409,3 +409,15 @@ let pp_annotate'
 
 let get_program : Ast.program t =
   get program
+
+
+let lookup_type_abbreviation_definition (identifier : Ast.Identifier.t) : Ast.Definition.Type.Abbreviation.t option t =
+  let* p = get program
+  in
+  let definitions : Ast.Definition.t list =
+    Ast.Definition.Select.drop_sail_definitions p.definitions
+  in
+  match Ast.Definition.Select.(select (type_definition @@ of_abbreviation ~named:identifier) definitions) with
+  | [ definition ] -> return @@ Some definition
+  | []             -> return None
+  | _              -> fail [%here] "multiple abbreviations found for same identifier"
