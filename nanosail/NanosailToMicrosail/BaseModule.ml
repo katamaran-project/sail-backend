@@ -71,39 +71,39 @@ let pp_open_string_scope () : PP.document GC.t =
 
 let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
   genblock [%here] "Alias Notations" begin
-      let pp_alias_notation sail_definition (id, type_quantifier, typ) =
-        genblock [%here] "Alias Notation" begin
-            let quantifiers =
-              let Ast.TypeQuantifier.TypeQuantifier pairs = type_quantifier
-              in
-              List.map ~f:fst pairs
+    let pp_alias_notation sail_definition (id, type_quantifier, typ) =
+      genblock [%here] "Alias Notation" begin
+        let quantifiers =
+          let Ast.TypeQuantifier.TypeQuantifier pairs = type_quantifier
+          in
+          List.map ~f:fst pairs
+        in
+        let notation =
+          PP.annotate [%here] begin
+            let head =
+              PP.(surround squotes) @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
+            and parameters =
+              List.map ~f:Identifier.pp quantifiers
             in
-            let notation =
-              PP.annotate [%here] begin
-                  let head =
-                    PP.(surround squotes) @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
-                  and parameters =
-                    List.map ~f:Identifier.pp quantifiers
-                  in
-                  PP.separate_horizontally ~separator:PP.space (head :: parameters)
-                end
-            in
-            let* expression =
-              GC.pp_annotate [%here] begin
-                  Nanotype.pp_nanotype typ
-                end
-            in
-            GC.block begin
-                let* () = GC.add_original_definition sail_definition
-                in
-                GC.return @@ Coq.pp_notation notation expression
-              end
+            PP.separate_horizontally ~separator:PP.space (head :: parameters)
           end
-      in
-      let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
-      in
-      GC.return @@ PP.vertical notations
-    end
+        in
+        let* expression =
+          GC.pp_annotate [%here] begin
+            Nanotype.pp_nanotype typ
+          end
+        in
+        GC.block begin
+          let* () = GC.add_original_definition sail_definition
+          in
+          GC.return @@ Coq.pp_notation notation expression
+        end
+      end
+    in
+    let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
+    in
+    GC.return @@ PP.vertical notations
+  end
 
 
 (*
