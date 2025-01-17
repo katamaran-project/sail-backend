@@ -359,7 +359,7 @@ module Select = struct
   
   let sail_accompanied
       (selector : ('a, 'b) selector        )
-      (pair     : Sail.sail_definition * 'a)
+      (pair     : Sail.sail_definition * 'a) : (Sail.sail_definition * 'b) option
     =
     let sail_definition, nano_definition = pair
     in
