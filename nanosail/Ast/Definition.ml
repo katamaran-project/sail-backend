@@ -143,6 +143,29 @@ module Type = struct
       match List.find definition.constructors ~f:is_right_constructor with
       | Some (_, fields) -> Some fields
       | None             -> None
+
+    let to_fexpr (variant_definition : t) : FExpr.t =
+      let constructor_to_fexpr (constructor : constructor) : FExpr.t =
+        let constructor_identifier, constructor_field_types = constructor
+        in
+        let positional =
+          [
+            Identifier.to_fexpr constructor_identifier;
+            FExpr.mk_list @@ List.map ~f:Type.to_fexpr constructor_field_types
+          ]
+        in
+        FExpr.mk_application ~positional "Constructor"
+      in
+      
+      let keyword =
+        [
+          ("identifier", Identifier.to_fexpr variant_definition.identifier);
+          ("type_quantifier", TypeQuantifier.to_fexpr variant_definition.type_quantifier);
+          ("constructors", FExpr.mk_list @@ List.map ~f:constructor_to_fexpr variant_definition.constructors);
+        ]
+      in
+      FExpr.mk_application ~keyword "Def:Type:Variant"
+      
   end
 
   module Enum = struct
