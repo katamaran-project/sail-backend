@@ -44,11 +44,11 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
           | DEF_pragma (pragma, _argument, location) -> begin
               TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
             end
+          | DEF_fixity (_, _, _)     -> TC.return Ast.Definition.IgnoredDefinition
           | DEF_outcome (_, _)       -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_impl _               -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_mapdef _             -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_instantiation (_, _) -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_fixity (_, _, _)     -> TC.return Ast.Definition.IgnoredDefinition
           | DEF_overload (_, _)      -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_default _            -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_scattered _          -> TC.not_yet_implemented [%here] annotation.loc
