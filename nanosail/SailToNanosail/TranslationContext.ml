@@ -169,6 +169,15 @@ let lookup_type_definition (identifier : Ast.Identifier.t) =
   lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
 
 
+(*
+   Returns all definitions satisfying the selector
+*)
+let select_definitions (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a list t =
+  let* definitions
+  in
+  return @@ Ast.Definition.Select.(select selector definitions)
+
+
 (* Looks up type of register with given name *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let predicate (definition : Ast.Definition.t) : Ast.Definition.Register.t option =
