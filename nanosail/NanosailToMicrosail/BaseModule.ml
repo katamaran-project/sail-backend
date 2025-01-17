@@ -69,6 +69,11 @@ let pp_open_string_scope () : PP.document GC.t =
   end
 
 
+(*
+   Generates
+
+     Notation "'ty.ID' param1 param2" := expression.
+*)
 let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.TypeQuantifier.t * Ast.Type.t)) list) : PP.document GC.t =
   genblock [%here] "Alias Notations" begin
     let pp_alias_notation
@@ -83,6 +88,14 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.
           in
           List.map ~f:fst pairs
         in
+        (*
+           Construct the
+           
+             'ty.ID' param1 param2
+           
+           part of the notation definition.
+           Note that the double quotes are left out, since they will be added by Coq.pp_notation.
+        *)
         let notation =
           PP.annotate [%here] begin
             let head =
@@ -93,6 +106,9 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * Ast.
             PP.separate_horizontally ~separator:PP.space (head :: parameters)
           end
         in
+        (*
+           Construct the rhs of the notation definition.
+        *)
         let* expression =
           GC.pp_annotate [%here] begin
             Nanotype.pp_nanotype typ
