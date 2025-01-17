@@ -347,6 +347,16 @@ module Select = struct
   let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
     List.map ~f:snd pairs
 
+  let without_sail
+      (selector : ('a, 'b) selector        )
+      (pair     : Sail.sail_definition * 'a) : 'b option
+    =
+    let _, nano_definition = pair
+    in
+    match selector nano_definition with
+    | Some x -> Some x
+    | None   -> None
+  
   let sail_accompanied
       (selector : ('a, 'b) selector        )
       (pair     : Sail.sail_definition * 'a)
