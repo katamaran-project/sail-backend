@@ -293,6 +293,14 @@ module TopLevelTypeConstraint = struct
     {
       identifier : Identifier.t;
     }
+
+  let to_fexpr (top_level_type_constraint : t) : FExpr.t =
+    let positional =
+      [
+        Identifier.to_fexpr top_level_type_constraint.identifier
+      ]
+    in
+    FExpr.mk_application ~positional "Def:TopLevelTypeConstraint"
 end
 
 
