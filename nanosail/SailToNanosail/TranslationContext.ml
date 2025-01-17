@@ -202,21 +202,13 @@ let lookup_type_definition (identifier : Ast.Identifier.t) =
   lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
 
 
-(* Looks up type of register with given name *)
+(*
+   Looks up the type of a register with the given name.
+*)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
-  let predicate (definition : Ast.Definition.t) : Ast.Definition.Register.t option =
-    match definition with
-    | RegisterDefinition register_definition ->
-       begin
-         if Ast.Identifier.equal register_definition.identifier identifier
-         then Some register_definition
-         else None
-       end
-    | _ -> None
+  let* register_definition = lookup_definition_opt (Ast.Definition.Select.register_definition ~named:identifier)
   in
-  let* definitions
-  in
-  return @@ Option.map (List.find_map definitions ~f:predicate) ~f:(fun r -> r.typ)
+  return @@ Option.map ~f:(fun register_definition -> register_definition.typ) register_definition
 
 
 let is_register (identifier : Ast.Identifier.t) : bool t =
