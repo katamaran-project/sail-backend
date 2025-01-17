@@ -192,6 +192,27 @@ module Type = struct
         type_quantifier : TypeQuantifier.t            ;
         fields          : (Identifier.t * Type.t) list;
       }
+
+    let to_fexpr (record_definition : t) : FExpr.t =
+      let fexpr_of_field (field : Identifier.t * Type.t) : FExpr.t =
+        let field_identifier, field_type = field
+        in
+        let keyword =
+          [
+            ("identifier", Identifier.to_fexpr field_identifier);
+            ("type", Type.to_fexpr field_type;
+          ]
+        in
+        FExpr.mk_application ~keyword "Field"               
+      in
+      let keyword =
+        [
+          ("identifier", Identifier.to_fexpr record_definition.identifier);
+          ("type_quantifier", TypeQuantifier.to_fexpr record_definition.type_quantifier);
+          ("fields", FExpr.mk_list @@ List.map ~f:fexpr_of_field record_definition.fields);
+        ]
+      in
+      FExpr.mk_application ~keyword "Def:Type:Record"
   end
 
   module Abbreviation = struct
