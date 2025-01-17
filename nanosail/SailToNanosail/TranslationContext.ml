@@ -150,26 +150,6 @@ let store_definition (definition : Ast.Definition.t) =
 
 
 (*
-   Looks up a type definition based on the name of the type.
-
-   The selector (see Ast.Definition.Select) can be used to get a specific kind of type
-*)
-let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a option) : 'a option t
-  =
-  (* Fetch definitions from state *)
-  let* definitions
-  in
-  match Ast.Definition.Select.(select (type_definition selector) definitions) with
-  | [ definition ] -> return @@ Some definition
-  | []             -> return None
-  | _              -> fail [%here] "more than one match found"
-
-
-let lookup_type_definition (identifier : Ast.Identifier.t) =
-  lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
-
-
-(*
    Returns all definitions satisfying the selector
 *)
 let select_definitions (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a list t =
@@ -200,6 +180,26 @@ let lookup_definition_opt (selector : (Ast.Definition.t, 'a) Ast.Definition.Sele
   | [ definition ] -> return @@ Some definition
   | []             -> return @@ None
   | _              -> fail [%here] "expected only one match"
+
+
+(*
+   Looks up a type definition based on the name of the type.
+
+   The selector (see Ast.Definition.Select) can be used to get a specific kind of type
+*)
+let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a option) : 'a option t
+  =
+  (* Fetch definitions from state *)
+  let* definitions
+  in
+  match Ast.Definition.Select.(select (type_definition selector) definitions) with
+  | [ definition ] -> return @@ Some definition
+  | []             -> return None
+  | _              -> fail [%here] "more than one match found"
+
+
+let lookup_type_definition (identifier : Ast.Identifier.t) =
+  lookup_type_definition_of_kind Ast.Definition.Select.(of_anything ~named:identifier)
 
 
 (* Looks up type of register with given name *)
