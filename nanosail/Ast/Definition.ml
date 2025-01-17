@@ -453,10 +453,10 @@ end
 
 let to_fexpr (definition : t) =
   match definition with
-  | TopLevelTypeConstraintDefinition x -> TopLevelTypeConstraintDefinition.
-  | FunctionDefinition _ -> _
-  | TypeDefinition _ -> _
-  | RegisterDefinition _ -> _
-  | UntranslatedDefinition _ -> _
-  | ValueDefinition _ -> _
-  | IgnoredDefinition -> _
+  | TopLevelTypeConstraintDefinition definition -> TopLevelTypeConstraintDefinition.to_fexpr definition
+  | FunctionDefinition definition -> Function.to_fexpr definition
+  | TypeDefinition definition -> Type.to_fexpr definition
+  | RegisterDefinition definition -> Register.to_fexpr definition
+  | UntranslatedDefinition definition -> Untranslated.to_fexpr definition
+  | ValueDefinition definition -> Value.to_fexpr definition
+  | IgnoredDefinition -> FExpr.String "Def:Ignored"
