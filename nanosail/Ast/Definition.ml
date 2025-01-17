@@ -446,22 +446,22 @@ module Select = struct
     | RegisterDefinition x when is_named x.identifier named -> Some x
     | _                                                     -> None
 
-  let untranslated_definition (definition : t) =
+  let untranslated_definition (definition : t) : Untranslated.t option =
     match definition with
     | UntranslatedDefinition x -> Some x
     | _                        -> None
 
-  let ignored_definition (definition : t) =
+  let ignored_definition (definition : t) : unit/2 option =
     match definition with
     | IgnoredDefinition -> Some ()
     | _                 -> None
 
-  let top_level_type_constraint_definition (definition : t) =
+  let top_level_type_constraint_definition (definition : t) : TopLevelTypeConstraint.t option =
     match definition with
     | TopLevelTypeConstraintDefinition x -> Some x
     | _                                  -> None
 
-  let value_definition ?(named : Identifier.t option) (definition : t) =
+  let value_definition ?(named : Identifier.t option) (definition : t) : Value.t option =
     match definition with
     | ValueDefinition def when is_named def.identifier named -> Some def
     | _                                                      -> None
