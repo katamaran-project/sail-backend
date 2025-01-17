@@ -216,6 +216,9 @@ let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   end
 
 
+(*
+   Checks if there exists a register with the given name.
+*)
 let is_register (identifier : Ast.Identifier.t) : bool t =
   MonadUtil.lift ~f:Option.is_some @@ lookup_register_type identifier
 
