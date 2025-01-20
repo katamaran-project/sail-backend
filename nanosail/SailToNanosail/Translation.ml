@@ -68,7 +68,17 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             and pretty_printed_sail_code =
               StringOf.Sail.definition sail_definition
             in
-            failwith @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
+            let* () = TC.log [%here] Logging.error @@ lazy (Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code)
+            in
+            let untranslated_definition = Ast.Definition.UntranslatedDefinition
+                {
+                  filename      = ocaml_location.pos_fname;
+                  line_number   = ocaml_location.pos_lnum ;
+                  sail_location = annotation.loc          ;
+                  message       = Some "assertion error"  ;
+                }
+            in
+            TC.return (sail_definition, untranslated_definition)
           end
       end
     end
