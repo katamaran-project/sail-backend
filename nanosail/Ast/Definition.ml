@@ -359,7 +359,7 @@ module Select = struct
     end
     
 
-    class virtual ['a, 'b] named_selector (name : Identifier.t option) = object
+    class virtual ['a, 'b] named_definition_selector (name : Identifier.t option) = object
       inherit ['a, 'b] selector
 
       method private matching_name (identifier : Identifier.t) : bool =
@@ -375,7 +375,7 @@ module Select = struct
     
 
     class virtual ['a] kind_selector (name : Identifier.t option) = object
-      inherit [Type.t, 'a] named_selector name
+      inherit [Type.t, 'a] named_definition_selector name
     end
     
 
@@ -501,7 +501,7 @@ module Select = struct
     
 
     class register_selector (name : Identifier.t option) = object(self)
-      inherit [t, Register.t] named_selector name
+      inherit [t, Register.t] named_definition_selector name
 
       method select (definition : t) : Register.t option =
         match definition with
@@ -543,7 +543,7 @@ module Select = struct
 
     
     class value_selector (name : Identifier.t option) = object(self)
-      inherit [t, Value.t] named_selector name
+      inherit [t, Value.t] named_definition_selector name
 
       method select (definition : t) : Value.t option =
         match definition with
@@ -605,7 +605,7 @@ module Select = struct
     end
 
     class function_selector (name : Identifier.t option) = object(self)
-      inherit [t, Function.t] named_selector name
+      inherit [t, Function.t] named_definition_selector name
 
       method select (definition : t) : Function.t option =
         match definition with
