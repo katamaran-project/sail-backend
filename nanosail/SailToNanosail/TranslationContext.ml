@@ -86,18 +86,28 @@ let log
   act (fun () -> logger ocaml_position message)
 
 
+let with_excursion (block : 'a t) : 'a t =
+  let* restore_indentation = act @@ Logging.create_indentation_restorer
+  in
+  let block' =
+    let* block
+    and* () = act restore_indentation
+    in
+    return block
+  in
+  recover block' (fun error -> let* () = act restore_indentation in Monad.fail error)
+
+
 let translation_block
     (ocaml_position : Lexing.position                         )
     (label          : string                                  )
     (result         : 'a t                                    ) : 'a t
   =
   let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
-  and* () = act Logging.increase_indentation
   in
-  let* result
+  let* result = with_excursion result
   in
-  let* () = act Logging.decrease_indentation
-  and* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
+  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
   in
   return result
 

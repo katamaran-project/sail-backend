@@ -17,17 +17,23 @@ let decrease_indentation () =
     indentation_level := !indentation_level - 1
 
 
+let create_indentation_restorer () : unit -> unit =
+  let current_indentation = !indentation_level
+  in
+  fun () -> indentation_level := current_indentation
+
+
 let with_increased_indentation f =
-  let previous_indentation = !indentation_level
+  let restore_indentation = create_indentation_restorer ()
   in
   increase_indentation ();
   try
     let result = f ()
     in
-    indentation_level := previous_indentation;
+    restore_indentation ();
     result
   with e -> begin
-      indentation_level := previous_indentation;
+      restore_indentation ();
       raise e
     end
 
