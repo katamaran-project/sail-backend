@@ -513,7 +513,7 @@ module Select = struct
     end
 
 
-    class register_selector (name : Identifier.t option) = object(self)
+    class register_definition_selector (name : Identifier.t option) = object(self)
       inherit [t, Register.t] named_definition_selector name
 
       method select (definition : t) : Register.t option =
@@ -658,8 +658,6 @@ module Select = struct
   let function_definition ?(named : Identifier.t option) () : (t, Function.t) selector =
     new Selectors.function_selector named
   
-  (* todo improve selector class names; add "definition" *)
-  
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
     new Selectors.type_definition_selector of_kind
   
@@ -691,7 +689,7 @@ module Select = struct
     new Selectors.numeric_constraint_abbreviation_subselector
 
   let register_definition ?(named : Identifier.t option) () : (t, Register.t) selector =
-    new Selectors.register_selector named
+    new Selectors.register_definition_selector named
 
   let untranslated_definition : (t, Untranslated.t) selector =
     new Selectors.untranslated_selector
