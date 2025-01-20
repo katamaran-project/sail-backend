@@ -53,7 +53,7 @@ let log
     (message        : string lazy_t  ) : unit
   =
   if
-    Configuration.(get verbose) >= level
+    Configuration.(get verbosity_level) >= level
   then
     let filename    = ocaml_position.pos_fname
     and line_number = ocaml_position.pos_lnum
