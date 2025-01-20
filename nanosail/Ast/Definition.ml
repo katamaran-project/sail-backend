@@ -498,7 +498,20 @@ module Select = struct
       method to_fexpr : FExpr.t =
         FExpr.mk_symbol "NumericExpression"
     end
-    
+
+
+    class numeric_constraint_abbreviation_subselector = object
+      inherit [TypeQuantifier.t * Numeric.Constraint.t] abbreviation_subselector
+
+      method select (abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Numeric.Constraint.t) option =
+        match abbreviation_definition with
+        | NumericConstraint (type_quantifier, numeric_constraint) -> Some (type_quantifier, numeric_constraint)
+        | _                                                       -> None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "NumericConstraint"
+    end
+
 
     class register_selector (name : Identifier.t option) = object(self)
       inherit [t, Register.t] named_definition_selector name
@@ -637,7 +650,7 @@ module Select = struct
   let without_sail (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, 'b) selector =
     new Selectors.without_sail_selector subselector
 
-  let sail_accompanied (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, Sail.sail_definition * 'b) selector =
+  let with_sail_definition (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, Sail.sail_definition * 'b) selector =
     new Selectors.with_sail_selector subselector
 
   let identity x = Some x
@@ -645,7 +658,6 @@ module Select = struct
   let function_definition ?(named : Identifier.t option) () : (t, Function.t) selector =
     new Selectors.function_selector named
   
-  (* todo numeric_constraint subselector *)
   (* todo improve selector class names; add "definition" *)
   (* update selector fexpr *)
   
@@ -675,6 +687,9 @@ module Select = struct
         
   let of_numeric_expression : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Expression.t) selector =
     new Selectors.numeric_expression_abbreviation_subselector
+
+  let of_numeric_constraint : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Constraint.t) selector =
+    new Selectors.numeric_constraint_abbreviation_subselector
 
   let register_definition ?(named : Identifier.t option) () : (t, Register.t) selector =
     new Selectors.register_selector named
