@@ -570,49 +570,82 @@ module Select = struct
       method to_fexpr : FExpr.t =
         FExpr.mk_symbol "UntranslatedSelector"
     end
+
+
+    class ['a, 'b] without_sail_selector (subselector : ('a, 'b) selector) = object
+      inherit [Sail.sail_definition * 'a, 'b] selector
+
+      method select (pair : Sail.sail_definition * 'a) : 'b option =
+        let _, definition = pair
+        in
+        subselector#select definition
+
+      method to_fexpr : FExpr.t =
+        let positional =
+          [ subselector#to_fexpr ]
+        in
+        FExpr.mk_application ~positional "Selector:WithoutSail"
+    end
+
+    class ['a, 'b] with_sail_selector (subselector : ('a, 'b) selector) = object
+      inherit [Sail.sail_definition * 'a, Sail.sail_definition * 'b] selector
+
+      method select (pair : Sail.sail_definition * 'a) : (Sail.sail_definition * 'b) option =
+        let sail_definition, definition = pair
+        in
+        Option.map
+          (subselector#select definition)
+          ~f:(fun r -> (sail_definition, r))
+
+      method to_fexpr : FExpr.t =
+        let positional =
+          [ subselector#to_fexpr ]
+        in
+        FExpr.mk_application ~positional "Selector:WithoutSail"
+    end
+
+    class function_selector (name : Identifier.t option) = object(self)
+      inherit [t, Function.t] named_selector name
+
+      method select (definition : t) : Function.t option =
+        match definition with
+        | FunctionDefinition function_definition when self#matching_name function_definition.function_name -> Some function_definition
+        | _                                                                                                -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Selector:Function"
+    end    
   end
 
   type ('a, 'b) selector = ('a, 'b) Selectors.selector
+  (* type ('a, 'b) selector = 'a -> 'b option *)
 
   (*
      Returns all definitions satisfying the selector.
   *)
   let select
       (selector    : ('a, 'b) selector)
-      (definitions : 'a list          )
+      (definitions : 'a list          ) : 'b list
     =
     List.filter_map ~f:(fun definition -> selector#select definition) definitions
 
   let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
     List.map ~f:snd pairs
+  
+  let without_sail (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, 'b) selector =
+    new Selectors.without_sail_selector subselector
 
-  let without_sail
-      (selector : ('a, 'b) selector        )
-      (pair     : Sail.sail_definition * 'a) : 'b option
-    =
-    let _, nano_definition = pair
-    in
-    match selector#select nano_definition with
-    | Some x -> Some x
-    | None   -> None
-
-  let sail_accompanied
-      (selector : ('a, 'b) selector        )
-      (pair     : Sail.sail_definition * 'a) : (Sail.sail_definition * 'b) option
-    =
-    let sail_definition, nano_definition = pair
-    in
-    match selector#select nano_definition with
-    | Some x -> Some (sail_definition, x)
-    | None   -> None
+  let sail_accompanied (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, Sail.sail_definition * 'b) selector =
+    new Selectors.with_sail_selector subselector
 
   let identity x = Some x
 
-  let function_definition (definition : t) =
-    match definition with
-    | FunctionDefinition x -> Some x
-    | _                    -> None
-
+  let function_definition ?(named : Identifier.t option) () : (t, Function.t) selector =
+    new Selectors.function_selector named
+  
   (* todo numeric_constraint subselector *)
   (* todo generalize return types *)
   (* todo improve selector class names; add "definition" *)
