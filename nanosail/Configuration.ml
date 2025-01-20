@@ -111,7 +111,7 @@ end
 
 include C.S
 
-let verbose = ConfigLib.Setting.mk false
+let verbose = ConfigLib.Setting.mk 0
 
 let load_configuration = C.load_configuration
 let get                = ConfigLib.Setting.get

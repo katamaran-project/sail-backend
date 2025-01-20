@@ -49,11 +49,14 @@ let katamaran_options = [
 let configure_verbosity () =
   let verbosity_from_environment_variable () =
     match Sys.getenv "VERBOSE" with
-    | Some _ -> Nanosail.Configuration.(set verbose true)
+    | Some verbosity_level -> Nanosail.Configuration.(set verbose @@ Int.of_string verbosity_level)
     | None   -> ()
   in
   let verbosity_from_command_line () =
-    if !verbose then Nanosail.Configuration.(set verbose true)
+    if
+      !verbose
+    then
+      Nanosail.Configuration.(set verbose 3)
   in
   verbosity_from_environment_variable ();
   verbosity_from_command_line ()

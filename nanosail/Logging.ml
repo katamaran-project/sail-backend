@@ -38,31 +38,36 @@ let with_increased_indentation f =
     end
 
 
+let verbosity_level_name (verbosity_level : int) : string =
+  match verbosity_level with
+  | 0 -> "NONE"
+  | 1 -> "INFO"
+  | 2 -> "DEBUG"
+  | 3 -> "ERROR"
+  | _ -> failwith "unknown verbosity level"
+
+
 let log
-    (level          : string         )
+    (level          : int            )
     (ocaml_position : Lexing.position)
     (message        : string lazy_t  ) : unit
   =
-  let filename    = ocaml_position.pos_fname
-  and line_number = ocaml_position.pos_lnum
-  and indentation = String.make !indentation_level ' '
-  in
-  (* %! forces a flush *)
-  ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n%!" indentation level filename line_number (Lazy.force message)
+  if
+    Configuration.(get verbose) >= level
+  then
+    let filename    = ocaml_position.pos_fname
+    and line_number = ocaml_position.pos_lnum
+    and indentation = String.make !indentation_level ' '
+    and level_name  = verbosity_level_name level
+    in
+    (* %! forces a flush *)
+    ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n%!" indentation level_name filename line_number (Lazy.force message)
 
 
-let info    = log "INFO"
-let warning = log "WARN"
-let error   = log "ERROR"
-
-
-let debug
-    (ocaml_position : Lexing.position)
-    (message        : string lazy_t  ) : unit
-  =
-  if Configuration.(get verbose)
-  then log "DEBUG" ocaml_position message
-  else ()
+let info    = log 1
+let warning = log 2
+let debug   = log 3
+let error   = log 4
 
 
 let surround
