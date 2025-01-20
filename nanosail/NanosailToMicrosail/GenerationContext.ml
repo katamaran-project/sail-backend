@@ -214,11 +214,11 @@ let generation_block
   in
   let* contents =
     let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" label)
-    and* () = act Logging.increase_indentation
-    in
+    and* restore_indentation = act Logging.create_indentation_restorer
+    in    
     let* contents
     in
-    let* () = act Logging.decrease_indentation
+    let* () = act restore_indentation (* fix indentation restoration to handle failures correctly *)
     and* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Exiting %s" label)
     in
     return contents
