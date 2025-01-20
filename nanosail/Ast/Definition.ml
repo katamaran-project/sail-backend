@@ -355,7 +355,7 @@ module Select = struct
         let keyword =
           [ ("kind", kind_selector#to_fexpr) ]
         in
-        FExpr.mk_application ~keyword "TypeSelector"
+        FExpr.mk_application ~keyword "Selector:Type"
     end
     
 
@@ -525,7 +525,7 @@ module Select = struct
         let keyword =
           self#fexpr_named_keywords
         in
-        FExpr.mk_application ~keyword "RegisterSelector"
+        FExpr.mk_application ~keyword "Selector:Register"
     end
 
     
@@ -538,7 +538,7 @@ module Select = struct
         | _                 -> None
 
       method to_fexpr : FExpr.t =
-        FExpr.mk_symbol "IgnoredSelector"
+        FExpr.mk_symbol "Selector:Ignored"
     end
     
 
@@ -551,7 +551,7 @@ module Select = struct
         | _                                                                     -> None
 
       method to_fexpr : FExpr.t =
-        FExpr.mk_symbol "TopLevelTypeConstraintSelector"
+        FExpr.mk_symbol "Selector:TopLevelTypeConstraint"
     end
 
     
@@ -581,7 +581,7 @@ module Select = struct
 
 
       method to_fexpr : FExpr.t =
-        FExpr.mk_symbol "UntranslatedSelector"
+        FExpr.mk_symbol "Selector:Untranslated"
     end
 
 
@@ -659,7 +659,6 @@ module Select = struct
     new Selectors.function_selector named
   
   (* todo improve selector class names; add "definition" *)
-  (* update selector fexpr *)
   
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
     new Selectors.type_definition_selector of_kind
