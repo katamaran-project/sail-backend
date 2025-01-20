@@ -64,6 +64,7 @@ let katamaran_target
       (_     : string option                   )
       (state : Libsail.Interactive.State.istate)
   =
+  Stdio.print_endline "Starting translation from Sail to muSail";
   configure_verbosity ();
   let ast = state.ast
   in
