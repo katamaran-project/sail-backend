@@ -176,8 +176,8 @@ let lookup_definition (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.s
   in
   match definitions with
   | [ definition ] -> return definition
-  | []             -> fail [%here] "no definition found matching the selector"
-  | _              -> fail [%here] "expected only one match"
+  | []             -> fail [%here] @@ Printf.sprintf "no definition found matching the selector %s" selector#to_string
+  | _              -> fail [%here] @@ Printf.sprintf "expected only one match for selector %s" selector#to_string
 
 
 (*
