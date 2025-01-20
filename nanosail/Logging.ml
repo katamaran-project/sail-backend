@@ -18,14 +18,16 @@ let decrease_indentation () =
 
 
 let with_increased_indentation f =
+  let previous_indentation = !indentation_level
+  in
   increase_indentation ();
   try
     let result = f ()
     in
-    decrease_indentation ();
+    indentation_level := previous_indentation;
     result
   with e -> begin
-      decrease_indentation ();
+      indentation_level := previous_indentation;
       raise e
     end
 
