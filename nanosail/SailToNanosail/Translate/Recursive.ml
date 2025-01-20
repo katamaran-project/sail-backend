@@ -43,7 +43,7 @@ end = struct
         | "bitvector" -> TC.fail [%here] "Type bitvector should be intercepted higher up"
         | _           -> begin
             let* type_definition : Ast.Definition.Type.t =
-              TC.lookup_definition (Ast.Definition.Select.(type_definition @@ of_anything ~named:identifier'))
+              TC.lookup_definition (Ast.Definition.Select.(type_definition @@ of_anything ~named:identifier' ()))
             in
             match type_definition with
             | Abbreviation { identifier; abbreviation } -> begin

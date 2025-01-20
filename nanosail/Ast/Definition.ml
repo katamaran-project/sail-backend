@@ -332,7 +332,247 @@ type t =
 
 
 module Select = struct
-  type ('a, 'b) selector = 'a -> 'b option
+
+  module Selectors = struct
+    class virtual ['a, 'b] selector = object(self)
+      method virtual select   : 'a -> 'b option
+      method virtual to_fexpr : FExpr.t
+                                  
+      method to_string : string =
+        FExpr.to_string self#to_fexpr
+    end
+    
+
+    class ['a] type_definition_selector (kind_selector : (Type.t, 'a) selector) = object
+      inherit [t, 'a] selector
+
+      method select (definition : t) =
+        match definition with
+        | TypeDefinition type_definition -> kind_selector#select type_definition
+        | _                              -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          [ ("kind", kind_selector#to_fexpr) ]
+        in
+        FExpr.mk_application ~keyword "TypeSelector"
+    end
+    
+
+    class virtual ['a, 'b] named_selector (name : Identifier.t option) = object
+      inherit ['a, 'b] selector
+
+      method private matching_name (identifier : Identifier.t) : bool =
+        match name with
+        | Some name -> Identifier.equal name identifier
+        | None      -> true
+
+      method private fexpr_named_keywords : (string * FExpr.t) list =
+        match name with
+        | Some name -> [ ("named", Identifier.to_fexpr name) ]
+        | None      -> []
+    end
+    
+
+    class virtual ['a] kind_selector (name : Identifier.t option) = object
+      inherit [Type.t, 'a] named_selector name
+    end
+    
+
+    class any_kind_selector (name : Identifier.t option) = object(self)
+      inherit [Type.t] kind_selector name
+
+      method select (type_definition : Type.t) : Type.t option =
+        if
+          self#matching_name @@ Type.identifier type_definition
+        then
+          Some type_definition
+        else
+          None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "Any"
+    end
+    
+
+    class enum_kind_selector (name : Identifier.t option) = object(self)
+      inherit [Type.Enum.t] kind_selector name
+
+      method select (type_definition : Type.t) : Type.Enum.t option =
+        match type_definition with
+        | Enum enum_definition when self#matching_name enum_definition.identifier -> Some enum_definition
+        | _                                                                       -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Enum"
+    end
+    
+    
+    class variant_kind_selector (name : Identifier.t option) = object(self)
+      inherit [Type.Variant.t] kind_selector name
+
+      method select (type_definition : Type.t) : Type.Variant.t option =
+        match type_definition with
+        | Variant variant_definition when self#matching_name variant_definition.identifier -> Some variant_definition
+        | _                                                                                -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Variant"
+    end
+    
+
+    class record_kind_selector (name : Identifier.t option) = object(self)
+      inherit [Type.Record.t] kind_selector name
+
+      method select (type_definition : Type.t) : Type.Record.t option =
+        match type_definition with
+        | Record record_definition when self#matching_name record_definition.identifier -> Some record_definition
+        | _                                                                             -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Record"
+    end
+    
+
+    class virtual ['a] abbreviation_subselector = object
+      inherit [Type.Abbreviation.type_abbreviation, 'a] selector
+    end
+
+    
+    class ['a] abbreviation_kind_selector
+        (name        : Identifier.t option                        )
+        (subselector : 'a abbreviation_subselector)
+      =
+      object(self)
+        inherit [Identifier.t * 'a] kind_selector name
+
+        method select (type_definition : Type.t) : (Identifier.t * 'a) option =
+          match type_definition with
+          | Abbreviation abbreviation_definition when self#matching_name abbreviation_definition.identifier -> begin
+              Option.map
+                ~f:(fun x -> (abbreviation_definition.identifier, x))
+                (subselector#select abbreviation_definition.abbreviation) 
+            end
+          | _ -> None
+
+        method to_fexpr : FExpr.t =
+          let keyword =
+            self#fexpr_named_keywords
+          and positional =
+            [ subselector#to_fexpr ]
+          in
+          FExpr.mk_application ~keyword ~positional "Abbreviation"
+      end
+
+    
+    class alias_abbreviation_subselector = object
+      inherit [TypeQuantifier.t * Nanotype.t] abbreviation_subselector
+
+      method select (abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Nanotype.t) option =
+        match abbreviation_definition with
+        | Alias (type_quantifier, typ) -> Some (type_quantifier, typ)
+        | _                            -> None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "Alias"
+    end
+    
+
+    class numeric_expression_abbreviation_subselector = object
+      inherit [TypeQuantifier.t * Numeric.Expression.t] abbreviation_subselector
+
+      method select (abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Numeric.Expression.t) option =
+        match abbreviation_definition with
+        | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
+        | _                                                       -> None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "Alias"
+    end
+    
+
+    class register_selector (name : Identifier.t option) = object(self)
+      inherit [t, Register.t] named_selector name
+
+      method select (definition : t) : Register.t option =
+        match definition with
+        | RegisterDefinition register_definition when self#matching_name register_definition.identifier -> Some register_definition
+        | _                                                                                             -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "RegisterSelector"
+    end
+
+    
+    class ignored_selector = object
+      inherit [t, unit] selector
+
+      method select (definition : t) : unit option =
+        match definition with
+        | IgnoredDefinition -> Some ()
+        | _                 -> None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "IgnoredSelector"
+    end
+    
+
+    class top_level_type_constraint_definition_selector = object
+      inherit [t, TopLevelTypeConstraint.t] selector
+
+      method select (definition : t) : TopLevelTypeConstraint.t option =
+        match definition with
+        | TopLevelTypeConstraintDefinition top_level_type_constraint_definition -> Some top_level_type_constraint_definition
+        | _                                                                     -> None
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "TopLevelTypeConstraintSelector"
+    end
+
+    
+    class value_selector (name : Identifier.t option) = object(self)
+      inherit [t, Value.t] named_selector name
+
+      method select (definition : t) : Value.t option =
+        match definition with
+        | ValueDefinition value_definition when self#matching_name value_definition.identifier -> Some value_definition
+        | _                                                                                    -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Selector:Value"
+    end
+
+    
+    class untranslated_selector = object
+      inherit [t, Untranslated.t] selector
+
+      method select (definition : t) : Untranslated.t option =
+        match definition with
+        | UntranslatedDefinition untranslated_definition -> Some untranslated_definition
+        | _                                              -> None
+
+
+      method to_fexpr : FExpr.t =
+        FExpr.mk_symbol "UntranslatedSelector"
+    end
+  end
+
+  type ('a, 'b) selector = ('a, 'b) Selectors.selector
 
   (*
      Returns all definitions satisfying the selector.
@@ -341,7 +581,7 @@ module Select = struct
       (selector    : ('a, 'b) selector)
       (definitions : 'a list          )
     =
-    List.filter_map ~f:selector definitions
+    List.filter_map ~f:(fun definition -> selector#select definition) definitions
 
   let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
     List.map ~f:snd pairs
@@ -352,7 +592,7 @@ module Select = struct
     =
     let _, nano_definition = pair
     in
-    match selector nano_definition with
+    match selector#select nano_definition with
     | Some x -> Some x
     | None   -> None
 
@@ -362,7 +602,7 @@ module Select = struct
     =
     let sail_definition, nano_definition = pair
     in
-    match selector nano_definition with
+    match selector#select nano_definition with
     | Some x -> Some (sail_definition, x)
     | None   -> None
 
@@ -373,116 +613,52 @@ module Select = struct
     | FunctionDefinition x -> Some x
     | _                    -> None
 
+  (* todo numeric_constraint subselector *)
+  (* todo generalize return types *)
+  (* todo improve selector class names; add "definition" *)
+  (* update selector fexpr *)
+  
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
-    let selector (definition : t) =
-      match definition with
-      | TypeDefinition x -> of_kind x
-      | _                -> None
-    in
-    selector
+    new Selectors.type_definition_selector of_kind
+  
+  let of_anything ?(named : Identifier.t option) () =
+    new Selectors.any_kind_selector named
 
-  (*
-     Helper function used in selectors
-  *)
-  let is_named
-      (identifier  : Identifier.t       )
-      (identifier' : Identifier.t option) : bool
-    =
-    match identifier' with
-    | Some identifier' -> Identifier.equal identifier identifier'
-    | None             -> true
+  let of_enum ?(named : Identifier.t option) () : Selectors.enum_kind_selector =
+    new Selectors.enum_kind_selector named
 
-  let of_anything
-      ?(named           : Identifier.t option)
-       (type_definition : Type.t             ) : Type.t option
-    =
-    if
-      is_named (Type.identifier type_definition) named
-    then
-      Some type_definition
-    else
-      None
-
-  let of_enum
-      ?(named          : Identifier.t option)
-      (type_definition : Type.t             )
-    =
-    match type_definition with
-    | Enum x when is_named x.identifier named -> Some x
-    | _                                       -> None
-
-  let of_variant
-      ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) : Type.Variant.t option
-    =
-    match type_definition with
-    | Variant x when is_named x.identifier named -> Some x
-    | _                                          -> None
-
-  let of_record
-      ?(named          : Identifier.t option)
-      (type_definition : Type.t             ) : Type.Record.t option
-    =
-    match type_definition with
-    | Record x when is_named x.identifier named -> Some x
-    | _                                         -> None
+  let of_variant ?(named : Identifier.t option) () : Selectors.variant_kind_selector =
+    new Selectors.variant_kind_selector named
+  
+  let of_record ?(named : Identifier.t option) () : Selectors.record_kind_selector =
+    new Selectors.record_kind_selector named
 
   let of_abbreviation
-      ?(named  : Identifier.t option                               )
-      (of_type : (Type.Abbreviation.type_abbreviation, 'a) selector) : (Type.t, (Identifier.t * 'a)) selector
+      ?(named  : Identifier.t option                  )
+      (of_type : 'a Selectors.abbreviation_subselector) : 'a Selectors.abbreviation_kind_selector
     =
-    let selector (type_definition : Type.t) : (Identifier.t * 'a) option =
-      match type_definition with
-      | Abbreviation x when is_named x.identifier named -> begin
-          match of_type x.abbreviation with
-          | Some r -> Some (x.identifier, r)
-          | None   -> None
-        end
-      | _ -> None
-    in
-    selector
+    new Selectors.abbreviation_kind_selector named of_type
 
   let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Nanotype.t) selector =
-    let selector (type_abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Nanotype.t) option =
-      match type_abbreviation_definition with
-      | Alias (type_quantifier, typ) -> Some (type_quantifier, typ)
-      | _                            -> None
-    in
-    selector
+    new Selectors.alias_abbreviation_subselector
+        
+  let of_numeric_expression : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Expression.t) selector =
+    new Selectors.numeric_expression_abbreviation_subselector
 
-  let of_numeric_expression (abbreviation : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Numeric.Expression.t) option =
-    match abbreviation with
-    | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
-    | NumericConstraint (_, _)                                -> None
-    | Alias (_, _)                                            -> None
+  let register_definition ?(named : Identifier.t option) () : (t, Register.t) selector =
+    new Selectors.register_selector named
 
-  let register_definition ?(named : Identifier.t option) (definition : t) =
-    match definition with
-    | RegisterDefinition x when is_named x.identifier named -> Some x
-    | _                                                     -> None
+  let untranslated_definition : (t, Untranslated.t) selector =
+    new Selectors.untranslated_selector
 
-  let untranslated_definition (definition : t) : Untranslated.t option =
-    match definition with
-    | UntranslatedDefinition x -> Some x
-    | _                        -> None
-
-  let ignored_definition (definition : t) : unit option =
-    match definition with
-    | IgnoredDefinition -> Some ()
-    | _                 -> None
-
-  let top_level_type_constraint_definition (definition : t) : TopLevelTypeConstraint.t option =
-    match definition with
-    | TopLevelTypeConstraintDefinition x -> Some x
-    | _                                  -> None
-
-  let value_definition
-      ?(named     : Identifier.t option)
-      (definition : t                  ) : Value.t option
-    =
-    match definition with
-    | ValueDefinition def when is_named def.identifier named -> Some def
-    | _                                                      -> None
+  let ignored_definition : (t, unit) selector =
+      new Selectors.ignored_selector
+ 
+  let top_level_type_constraint_definition =
+    new Selectors.top_level_type_constraint_definition_selector
+  
+  let value_definition ?(named : Identifier.t option) () : (t, Value.t) selector =
+    new Selectors.value_selector named
 end
 
 

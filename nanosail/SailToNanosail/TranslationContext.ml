@@ -197,7 +197,7 @@ let lookup_definition_opt (selector : (Ast.Definition.t, 'a) Ast.Definition.Sele
 
    The selector (see Ast.Definition.Select) can be used to get a specific kind of type
 *)
-let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a option) : 'a option t
+let lookup_type_definition_of_kind (selector : (Ast.Definition.Type.t, 'a) Ast.Definition.Select.selector) : 'a option t
   =
   (* Fetch definitions from state *)
   let* definitions
@@ -213,7 +213,7 @@ let lookup_type_definition_of_kind (selector : Ast.Definition.Type.t -> 'a optio
 *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
   let* register_definition =
-    lookup_definition_opt @@ Ast.Definition.Select.register_definition ~named:identifier
+    lookup_definition_opt @@ Ast.Definition.Select.register_definition ~named:identifier ()
   in
   return begin
     Option.map
@@ -237,7 +237,7 @@ let lookup_variant_by_constructor (constructor_identifier : Ast.Identifier.t) : 
     List.exists variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
   in
   let* variant_definitions =
-    select_definitions Ast.Definition.Select.(type_definition of_variant)
+    select_definitions Ast.Definition.Select.(type_definition @@ of_variant ()) 
   in
   return @@ List.find variant_definitions ~f:has_constructor
 

@@ -160,7 +160,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] sail_identifier
           in
           let* enum_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier)
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
           in
           if
             List.mem enum_definition.cases identifier ~equal:Ast.Identifier.equal
@@ -203,7 +203,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] head_sail_identifier
           in
           let* variant_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier)
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
           in
           match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with (* todo create separate function *)
           | Some (constructor_identifier, field_types) -> begin
@@ -469,7 +469,7 @@ let translate_enum_match
   =
   (* Look up enum definition, we need to know which values there are *)
   let* enum_definition =
-    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier)
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
   in
   (*
      Set up case table: it maps enum values to corresponding bodies
@@ -579,7 +579,7 @@ let translate_variant_match
   =
   (* Look up variant definition, we need to know which constructors there are *)
   let* variant_definition =
-    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier)
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
   in
   (*
      Set up constructor table: it maps constructors to variables to which the fields need to be bound and the clause
@@ -837,8 +837,8 @@ let translate_tuple_match
     match element_types with
     | [ (Ast.Type.Variant fst_variant_identifier) as type_fst; (Ast.Type.Variant snd_variant_identifier) as type_snd ] -> begin
         (* todo use these definitions to check for exhaustivity *)
-        let* _fst_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:fst_variant_identifier)
-        and* _snd_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:snd_variant_identifier)
+        let* _fst_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:fst_variant_identifier ())
+        and* _snd_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:snd_variant_identifier ())
         in
         let* table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t =
           let init = Ast.Identifier.Map.empty
