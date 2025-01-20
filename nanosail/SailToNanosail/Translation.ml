@@ -52,12 +52,13 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
       TC.recover translation begin fun error ->
         match error with
         | NotYetImplemented (ocaml_location, sail_location, message) -> begin
-            let untranslated_definition = Ast.Definition.UntranslatedDefinition {
-                filename = ocaml_location.pos_fname;
-                line_number = ocaml_location.pos_lnum;
-                sail_location = sail_location;
-                message = message
-              }
+            let untranslated_definition = Ast.Definition.UntranslatedDefinition
+                {
+                  filename      = ocaml_location.pos_fname;
+                  line_number   = ocaml_location.pos_lnum ;
+                  sail_location                           ;
+                  message                                 ;
+                }
             in
             TC.return (sail_definition, untranslated_definition)
           end
