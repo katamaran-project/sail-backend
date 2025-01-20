@@ -710,7 +710,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         }
       end
     end begin fun error ->
-      Stdio.printf "Match module failed: %s\n" @@ TranslationContext.Error.to_string error;
+      let* () = TC.log [%here] Logging.error @@ lazy (Printf.sprintf "Match module failed: %s\n" @@ TranslationContext.Error.to_string error)
+      in
       match matched with
       | AV_id (_id, lvar) -> begin
           match lvar with (* todo replace by type_from_lvar *)
