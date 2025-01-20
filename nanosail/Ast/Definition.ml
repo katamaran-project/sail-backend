@@ -646,7 +646,6 @@ module Select = struct
     new Selectors.function_selector named
   
   (* todo numeric_constraint subselector *)
-  (* todo generalize return types *)
   (* todo improve selector class names; add "definition" *)
   (* update selector fexpr *)
   
@@ -656,18 +655,18 @@ module Select = struct
   let of_anything ?(named : Identifier.t option) () =
     new Selectors.any_kind_selector named
 
-  let of_enum ?(named : Identifier.t option) () : Selectors.enum_kind_selector =
+  let of_enum ?(named : Identifier.t option) () : (Type.t, Type.Enum.t) selector =
     new Selectors.enum_kind_selector named
 
-  let of_variant ?(named : Identifier.t option) () : Selectors.variant_kind_selector =
+  let of_variant ?(named : Identifier.t option) () : (Type.t, Type.Variant.t) selector =
     new Selectors.variant_kind_selector named
   
-  let of_record ?(named : Identifier.t option) () : Selectors.record_kind_selector =
+  let of_record ?(named : Identifier.t option) () : (Type.t, Type.Record.t) selector  =
     new Selectors.record_kind_selector named
 
   let of_abbreviation
       ?(named  : Identifier.t option                  )
-      (of_type : 'a Selectors.abbreviation_subselector) : 'a Selectors.abbreviation_kind_selector
+      (of_type : 'a Selectors.abbreviation_subselector) : (Type.t, Identifier.t * 'a) selector
     =
     new Selectors.abbreviation_kind_selector named of_type
 
