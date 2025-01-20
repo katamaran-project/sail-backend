@@ -621,7 +621,6 @@ module Select = struct
   end
 
   type ('a, 'b) selector = ('a, 'b) Selectors.selector
-  (* type ('a, 'b) selector = 'a -> 'b option *)
 
   (*
      Returns all definitions satisfying the selector.
