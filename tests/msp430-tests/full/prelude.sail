@@ -2,7 +2,7 @@ default Order dec
 $include <prelude.sail>
 $include <string.sail>
 $include <smt.sail> //division modulo and absulute value
-$include <elf.sail>
+
 
 
 //extention for bitvectors of all lengths
@@ -33,4 +33,4 @@ overload neg = {neg_vec}
 
 overload operator + = {concat_str}
 
-val __GetVerbosity = {c: "sail_get_verbosity"}: unit -> bits(64)
+val __GetVerbosity = monadic {c: "sail_get_verbosity"}: unit -> bits(64)
