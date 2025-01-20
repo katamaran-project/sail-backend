@@ -23,6 +23,8 @@ let translate_enum
     let* identifier' = Identifier.translate_identifier [%here] identifier
     and* cases'      = TC.map ~f:(Identifier.translate_identifier [%here]) cases
     in
+    let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated enum %s" (Ast.Identifier.to_string identifier'))
+    in
     TC.return @@ Ast.Definition.Type.Enum {
       identifier = identifier';
       cases      = cases'     ;

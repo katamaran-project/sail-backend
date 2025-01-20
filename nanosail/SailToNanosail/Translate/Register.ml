@@ -48,7 +48,8 @@ let translate_register
             on_failed_translation
         end
       | None -> TC.return Ast.Definition.Register.NoneSpecified
-
+    in
+    let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated register %s" @@ Ast.Identifier.to_string identifier')
     in
     TC.return @@ Ast.Definition.RegisterDefinition {
       identifier    = identifier'   ;
