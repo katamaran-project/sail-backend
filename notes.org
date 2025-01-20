@@ -2,6 +2,14 @@
 
 * TODO
 
+** NoConfuseHom
+
+Steven:
+
+I suggest that you implement the manual derivation of EqDec like for RISC-V PMP and skip the NoConfusionHom.
+In your case you can derive EqDec automatically without NoConfusionHom, but that does not work for e.g. MinimalCaps.
+I have also adapted the MinimalCaps code to add the manual derivation of EqDec without NoConfusionHom: https://github.com/katamaran-project/katamaran/commit/fa11745030f3fd9ab5d4b050989c45b08b1d0a47 
+
 ** Have Sail inline functions
 ** Check monomorphization abilities
 
