@@ -39,7 +39,8 @@ let log
   and line_number = ocaml_position.pos_lnum
   and indentation = String.make !indentation_level ' '
   in
-  ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n" indentation level filename line_number (Lazy.force message)
+  (* %! forces a flush *)
+  ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n%!" indentation level filename line_number (Lazy.force message)
 
 
 let info    = log "INFO"
