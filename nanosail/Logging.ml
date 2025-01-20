@@ -44,6 +44,7 @@ let log
 
 let info    = log "INFO"
 let warning = log "WARN"
+let error   = log "ERROR"
 
 
 let debug
