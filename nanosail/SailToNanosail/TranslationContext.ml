@@ -193,22 +193,6 @@ let lookup_definition_opt (selector : (Ast.Definition.t, 'a) Ast.Definition.Sele
 
 
 (*
-   Looks up a type definition based on the name of the type.
-
-   The selector (see Ast.Definition.Select) can be used to get a specific kind of type
-*)
-let lookup_type_definition_of_kind (selector : (Ast.Definition.Type.t, 'a) Ast.Definition.Select.selector) : 'a option t
-  =
-  (* Fetch definitions from state *)
-  let* definitions
-  in
-  match Ast.Definition.Select.(select (type_definition selector) definitions) with
-  | [ definition ] -> return @@ Some definition
-  | []             -> return None
-  | _              -> fail [%here] "more than one match found"
-
-
-(*
    Looks up the type of a register with the given name.
 *)
 let lookup_register_type (identifier : Ast.Identifier.t) : Ast.Type.t option t =
