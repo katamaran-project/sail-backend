@@ -391,7 +391,10 @@ module Select = struct
           None
 
       method to_fexpr : FExpr.t =
-        FExpr.mk_symbol "Any"
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Any"
     end
     
 
