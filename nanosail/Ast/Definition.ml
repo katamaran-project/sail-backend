@@ -57,10 +57,10 @@ module Function = struct
     in
     let keyword =
       [
-        ("name", function_name');
-        ("type", function_type');
+        ("name"         , function_name'         );
+        ("type"         , function_type'         );
         ("extended_type", extended_function_type');
-        ("body", function_body');
+        ("body"         , function_body'         );
       ]
     in
     FExpr.mk_application ~keyword "Def:Function"
@@ -529,7 +529,7 @@ module Select = struct
     end
 
     
-    class ignored_selector = object
+    class ignored_definition_selector = object
       inherit [t, unit] selector
 
       method select (definition : t) : unit option =
@@ -555,7 +555,7 @@ module Select = struct
     end
 
     
-    class value_selector (name : Identifier.t option) = object(self)
+    class value_definition_selector (name : Identifier.t option) = object(self)
       inherit [t, Value.t] named_definition_selector name
 
       method select (definition : t) : Value.t option =
@@ -571,7 +571,7 @@ module Select = struct
     end
 
     
-    class untranslated_selector = object
+    class untranslated_definition_selector = object
       inherit [t, Untranslated.t] selector
 
       method select (definition : t) : Untranslated.t option =
@@ -600,6 +600,7 @@ module Select = struct
         FExpr.mk_application ~positional "Selector:WithoutSail"
     end
 
+    
     class ['a, 'b] with_sail_selector (subselector : ('a, 'b) selector) = object
       inherit [Sail.sail_definition * 'a, Sail.sail_definition * 'b] selector
 
@@ -617,7 +618,8 @@ module Select = struct
         FExpr.mk_application ~positional "Selector:WithoutSail"
     end
 
-    class function_selector (name : Identifier.t option) = object(self)
+    
+    class function_definition_selector (name : Identifier.t option) = object(self)
       inherit [t, Function.t] named_definition_selector name
 
       method select (definition : t) : Function.t option =
@@ -656,7 +658,7 @@ module Select = struct
   let identity x = Some x
 
   let function_definition ?(named : Identifier.t option) () : (t, Function.t) selector =
-    new Selectors.function_selector named
+    new Selectors.function_definition_selector named
   
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
     new Selectors.type_definition_selector of_kind
@@ -692,16 +694,16 @@ module Select = struct
     new Selectors.register_definition_selector named
 
   let untranslated_definition : (t, Untranslated.t) selector =
-    new Selectors.untranslated_selector
+    new Selectors.untranslated_definition_selector
 
   let ignored_definition : (t, unit) selector =
-      new Selectors.ignored_selector
+      new Selectors.ignored_definition_selector
  
   let top_level_type_constraint_definition =
     new Selectors.top_level_type_constraint_definition_selector
   
   let value_definition ?(named : Identifier.t option) () : (t, Value.t) selector =
-    new Selectors.value_selector named
+    new Selectors.value_definition_selector named
 end
 
 
