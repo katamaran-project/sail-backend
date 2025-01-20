@@ -11,3 +11,5 @@ base.html
 machine.html
 tests-*.txt
 generated.sail
+delta-*.diff
+rewrite-*.sail
