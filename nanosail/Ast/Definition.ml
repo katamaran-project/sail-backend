@@ -496,7 +496,7 @@ module Select = struct
         | _                                                       -> None
 
       method to_fexpr : FExpr.t =
-        FExpr.mk_symbol "Alias"
+        FExpr.mk_symbol "NumericExpression"
     end
     
 
