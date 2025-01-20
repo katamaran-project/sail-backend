@@ -224,7 +224,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     in
     ValueDefinitions.generate all_definitions
 
-  method pp_base : PP.document GC.t =    
+  method pp_base : PP.document GC.t =
     let* () = GC.log [%here] Logging.debug @@ lazy "pp_base"
     in
     let* sections = GC.sequence [

@@ -20,7 +20,7 @@ end = struct
   let rec nanotype_of_sail_type (typ : S.typ) : Ast.Type.t TC.t =
     TC.translation_block [%here] ("Translating type " ^ StringOf.Sail.typ typ) begin
       let (S.Typ_aux (unwrapped_type, location)) = typ
-      in                                   
+      in
       (*
         Types are representing as strings in Sail.
       *)
@@ -109,7 +109,7 @@ end = struct
             | Bool _ -> TC.not_yet_implemented [%here] location
           end
         | _ -> TC.fail [%here] "type 'itself' expected to receive exactly one parameter"
-      
+
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
         | [ _ ] -> begin
@@ -232,7 +232,7 @@ end = struct
         TC.return @@ factory left' right'
       end
     in
-    
+
     let translate_sum   = translate_binary_operation @@ fun l r -> Add (l, r)
     and translate_minus = translate_binary_operation @@ fun l r -> Sub (l, r)
     and translate_times = translate_binary_operation @@ fun l r -> Mul (l, r)
@@ -331,7 +331,7 @@ end = struct
     and translate_lt            = translate_comparison       @@ fun l r -> LessThan             (l, r)
     and translate_or            = translate_binary_operation @@ fun l r -> Or                   (l, r)
     and translate_and           = translate_binary_operation @@ fun l r -> And                  (l, r)
-        
+
     in
     TC.translation_block [%here] "Translating numeric constraint" begin
       match unwrapped_numeric_constraint with

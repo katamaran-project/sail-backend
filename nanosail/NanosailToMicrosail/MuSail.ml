@@ -5,7 +5,7 @@ module Value = struct
   let pp_bit (value : bool) : PP.document =
     Coq.pp_bool value
 
-  
+
   let pp_bitvector (size : int) (value : Z.t) : PP.document =
     Coq.pp_explicit_application
       (PP.string "bv.mk")
@@ -28,15 +28,15 @@ module Operator = struct
       let unsigned_less_than_or_equal_to    = PP.string "<=ᵘ"
       let unsigned_greater_than             = PP.string ">ᵘ"
       let unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
-      
+
       let addition = PP.string "+ᵇ"
       let subtraction = PP.string "-ᵇ"
       let equality = PP.string "="
       let inequality = PP.string "!="
     end
-      
+
     let bit_equality = PP.string "="
-    
+
     let bool_equality = PP.string "="
     let bool_inequality = PP.string "!="
   end
@@ -47,7 +47,7 @@ module Operator = struct
     let bitvector_conjunction = PP.string "bop.bvand"
     let bitvector_disjunction = PP.string "bop.bvor"
     let bitvector_xor = PP.string "bop.bvxor"
-    
+
     let bool_equality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
     let bool_inequality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
   end
@@ -443,7 +443,7 @@ module Statement = struct
               body;
             ]
         end
-      
+
 
 
     let pp_record

@@ -418,7 +418,7 @@ let select_definitions (selector : (Sail.sail_definition * Ast.Definition.t, 'a)
   let* program = get program
   in
   return @@ Ast.Definition.Select.select selector program.definitions
-  
+
 
 let lookup_definition_opt (selector : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a option t =
   let* matches = select_definitions selector

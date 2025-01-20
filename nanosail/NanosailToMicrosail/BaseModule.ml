@@ -90,9 +90,9 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast
         in
         (*
            Construct the
-           
+
              'ty.ID' param1 param2
-           
+
            part of the notation definition.
            Note that the double quotes are left out, since they will be added by Coq.pp_notation.
         *)
@@ -161,7 +161,7 @@ let pp_denote_function
     ~(parameter_identifier : PP.document                            )
     ~(tag_type_identifier  : PP.document                            )
     ~(function_identifier  : PP.document                            ) () : PP.document GC.t
-  =  
+  =
   let identifier  = function_identifier
   and parameters  = [
       (

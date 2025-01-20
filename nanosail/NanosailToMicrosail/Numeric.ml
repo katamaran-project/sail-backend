@@ -62,7 +62,7 @@ end = struct
         end
       else
         GC.return numeric_expression
-    in          
+    in
     GC.return @@ PP.annotate [%here] @@ pp 0 numeric_expression
 end
 

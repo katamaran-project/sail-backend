@@ -155,7 +155,7 @@ module Type = struct
         in
         FExpr.mk_application ~positional "Constructor"
       in
-      
+
       let keyword =
         [
           ("identifier", Identifier.to_fexpr variant_definition.identifier);
@@ -201,7 +201,7 @@ module Type = struct
             ("type", Type.to_fexpr field_type);
           ]
         in
-        FExpr.mk_application ~keyword "Field"               
+        FExpr.mk_application ~keyword "Field"
       in
       let keyword =
         [
@@ -255,7 +255,7 @@ module Type = struct
             in
             FExpr.mk_application ~keyword "Alias"
           end
-      in      
+      in
       let positional =
         [
           Identifier.to_fexpr type_abbreviation_definition.identifier;
@@ -333,7 +333,7 @@ type t =
 
 module Select = struct
   type ('a, 'b) selector = 'a -> 'b option
-  
+
   (*
      Returns all definitions satisfying the selector.
   *)
@@ -355,7 +355,7 @@ module Select = struct
     match selector nano_definition with
     | Some x -> Some x
     | None   -> None
-  
+
   let sail_accompanied
       (selector : ('a, 'b) selector        )
       (pair     : Sail.sail_definition * 'a) : (Sail.sail_definition * 'b) option
@@ -365,7 +365,7 @@ module Select = struct
     match selector nano_definition with
     | Some x -> Some (sail_definition, x)
     | None   -> None
-  
+
   let identity x = Some x
 
   let function_definition (definition : t) =
@@ -441,7 +441,7 @@ module Select = struct
       | _ -> None
     in
     selector
-        
+
   let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Nanotype.t) selector =
     let selector (type_abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Nanotype.t) option =
       match type_abbreviation_definition with
@@ -454,7 +454,7 @@ module Select = struct
     match abbreviation with
     | NumericExpression (type_quantifier, numeric_expression) -> Some (type_quantifier, numeric_expression)
     | NumericConstraint (_, _)                                -> None
-    | Alias (_, _)                                            -> None    
+    | Alias (_, _)                                            -> None
 
   let register_definition ?(named : Identifier.t option) (definition : t) =
     match definition with

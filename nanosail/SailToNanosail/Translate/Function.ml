@@ -521,7 +521,7 @@ let with_destructured_record
                            destructured_record;
                            body
                          }
-        end    
+        end
       | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | Typ_var _            -> TC.not_yet_implemented [%here] location
       | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location

@@ -253,7 +253,7 @@ let pp_extended_function_type
               PP.separate_horizontally
                 ~separator:PP.comma
                 pp_parameter_extended_types
-            in          
+            in
             Printf.sprintf
               "number of parameters (%s) is different from number of number of extended types (%s)"
               (PP.string_of_document pp_parameters)

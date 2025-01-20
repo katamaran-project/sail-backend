@@ -27,7 +27,7 @@ let with_increased_indentation f =
   with e -> begin
       decrease_indentation ();
       raise e
-    end    
+    end
 
 
 let log
@@ -69,7 +69,7 @@ let surround
     logger ocaml_position @@ lazy (Printf.sprintf "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
-  try    
+  try
     let result = with_increased_indentation f
     in
     exited_block_successfully ();

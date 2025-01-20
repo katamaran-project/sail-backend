@@ -244,7 +244,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
       end
     end
   end
-    
+
 
 let pp_obligation_tactic () : PP.document GC.t =
   GC.generation_block [%here] "Obligation Tactic" begin

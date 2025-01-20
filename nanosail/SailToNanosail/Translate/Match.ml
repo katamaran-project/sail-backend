@@ -26,7 +26,7 @@ module Pattern = struct
     | Binder      of Ast.Identifier.t
     | Unit
 
-  
+
   let rec to_fexpr (pattern : t) : FExpr.t =
     let head id =
       Printf.sprintf "Pattern:%s" id
@@ -41,16 +41,16 @@ module Pattern = struct
         in
         FExpr.mk_application ~keyword @@ head "Cons"
       end
-      
+
     | ListNil -> FExpr.mk_symbol @@ head "Nil"
-        
+
     | Tuple subpatterns -> begin
         let positional =
           List.map ~f:to_fexpr subpatterns
         in
         FExpr.mk_application ~positional @@ head "Tuple"
       end
-      
+
     | EnumCase identifier -> begin
         let positional =
           [
@@ -59,7 +59,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "EnumCase"
       end
-      
+
     | VariantCase (identifier, subpattern) -> begin
         let positional = [
           Ast.Identifier.to_fexpr identifier;
@@ -68,7 +68,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
-      
+
     | Binder identifier -> begin
         let positional =
           [
@@ -77,7 +77,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "Variable"
       end
-      
+
     | Unit -> FExpr.mk_symbol @@ head "Unit"
 
   let is_binder (pattern : t) : bool =
@@ -103,7 +103,7 @@ let rec translate_pattern
     let* identifier = Identifier.translate_identifier [%here] sail_identifier
     in
     TC.return @@ Pattern.Binder identifier
-      
+
   and translate_wildcard_pattern () : Pattern.t TC.t =
     let* fresh_identifier = TC.generate_unique_identifier ~underscore:true ()
     in
@@ -243,7 +243,7 @@ let rec translate_pattern
   | Application (_, _) -> translate_for_atomic_type ()
   | Alias (_, _)       -> translate_for_atomic_type ()
   | Range (_, _)       -> translate_for_atomic_type ()
-  
+
 
 let translate_case
     (location       : S.l            )
@@ -309,7 +309,7 @@ let translate_case
    Matching lists currently only supports very specific patterns.
 
    * Empty and nonempty list:
-   
+
        match list {
          [| |] => ...,
          x :: xs => ...
@@ -526,7 +526,7 @@ let translate_enum_match
                 binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
                 body_statement         = body;
               }
-            in                  
+            in
             match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
             | `Duplicate        -> begin
                 (*
@@ -647,7 +647,7 @@ let translate_variant_match
                       TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
                     in
                     add_to_table constructor_identifier binders
-                  end                    
+                  end
                 end
               | Binder identifier -> begin
                   (*
@@ -710,8 +710,8 @@ let translate_variant_match
                 binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
                 body_statement         = body;
               }
-            in                  
-            
+            in
+
             let constructor_identifier, field_types = constructor
             in
             (* Generate new identifiers to be used as binders for each field *)
@@ -916,7 +916,7 @@ let translate_tuple_match
               id_snd;
               body = fst_match;
             }
-          in            
+          in
           TC.return @@ Ast.Statement.Match match_pattern
         in
         TC.return tuple_match_statement

@@ -99,10 +99,10 @@ let katamaran_rewrites =
         val append_64 = pure {_: "append_64"}: forall 'n. (bitvector('n), bitvector(64)) -> bitvector('n + 64)
 
       gets rewritten to
-     
+
         val append_64 = pure {_: "append_64"}: forall 'n 'n_plus_p64, 'n_plus_p64 == 'n + 64.
           (bitvector('n), bitvector(64)) -> bitvector('n_plus_p64)
-      
+
     *)
     ("toplevel_nexps", []);
     ("monomorphise", [String_arg "c"]);
@@ -112,16 +112,16 @@ let katamaran_rewrites =
       It is unclear what recheck_defs does, as it seems to have no impact on the Sail code,
       at least in cases where it makes a difference in whether atoms_to_singletons leads
       to a crash or not.
-      
+
       This can mean that
       * it affects some internal state in Sail
       * whatever changes it does make are not visible in the code
-      
+
       The second option seems more likely.
     *)
     ("atoms_to_singletons", [String_arg "c"]);
     ("recheck_defs", []);
-    
+
     ("add_unspecified_rec", []);
 
     (*
@@ -135,7 +135,7 @@ let katamaran_rewrites =
        Required
     *)
     ("vector_string_pats_to_bit_list", []);
-    
+
     ("remove_not_pats", []);
 
     (*
@@ -148,14 +148,14 @@ let katamaran_rewrites =
           c
 
       is rewritten to
-        
+
         function let_test () =
           let a = true in
           let b = false
           in let c = b in
           c
-      
-    *)    
+
+    *)
     ("remove_impossible_int_cases", []);
     ("tuple_assignments", []);
     ("vector_concat_assignments", []);
@@ -165,9 +165,9 @@ let katamaran_rewrites =
     ("remove_bitvector_pats", []);
 
     (*
-      
+
       Numerical patterns are replaced by pattern guards.
-      
+
         function iszero x = {
           match x {
             0 => true,
@@ -191,9 +191,9 @@ let katamaran_rewrites =
 
     (*
       Makes cases exhaustive.
-      
+
         enum Foo = { x, y, z }
-      
+
         function foo e = $[incomplete] match e {x => 1}
 
         function foo e = match e {
@@ -203,7 +203,7 @@ let katamaran_rewrites =
               exit(())
           }
 }
-      
+
     *)
     ("guarded_pats", []);
     ("split", [R.String_arg "execute"]);
@@ -257,7 +257,7 @@ let katamaran_rewrites =
             eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
 
       is rewritten to
-            
+
         function execute merge#var = match merge#var {
           Increment => {
               eax = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eax, 1);
@@ -267,7 +267,7 @@ let katamaran_rewrites =
               eax = $[overloaded { "name" = "-", "is_infix" = true }] sub_atom(eax, 1);
               eip = $[overloaded { "name" = "+", "is_infix" = true }] add_atom(eip, 1)
           }
-      
+
     *)
     ("merge_function_clauses", []);
     ("constant_fold", [String_arg "c"]);
@@ -282,11 +282,11 @@ let katamaran_rewrites =
         }
 
       becomes
-        
+
         function neg x = neq_bool(x, true)
     *)
     ("remove_blocks", []);                                             (* From Coq backend *)
-    
+
     ("attach_effects", []);                                            (* From Coq backend *)
     (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)
     (* ("remove_e_assign", []);                                           (\* From Coq backend *\) *)
@@ -297,12 +297,12 @@ let katamaran_rewrites =
        function foo _ = let x = true in x
 
        becomes
-       
+
        function foo _ = true
 
     *)
     (* ("remove_superfluous_letbinds", []);                               (\* From Coq backend *\) *)
-    
+
     (* ("remove_superfluous_returns", []);                                (\* From Coq backend *\) *)
 
     (*
@@ -312,10 +312,10 @@ let katamaran_rewrites =
 
       gets rewritten to
 
-        0b01  
+        0b01
     *)
     (* ("bit_lists_to_lits", []); *)
-    
+
     ("toplevel_let_patterns", []);                                     (* From Coq backend *)
     ("recheck_defs", []);                                              (* From Coq backend *)
     ("attach_effects", []);                                            (* From Coq backend *)

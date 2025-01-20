@@ -12,7 +12,7 @@ union Bar = {
   BarX : Foo,
   BarY : Foo
 }
-  
+
 val foo : Bar -> int
 function foo(x) = match x {
   BarX(FooX(n)) => n,

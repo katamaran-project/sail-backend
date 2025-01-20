@@ -110,7 +110,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("body", to_fexpr body)
           ]
         in
-        FExpr.mk_application ~keyword "Stm:MatchTuple"             
+        FExpr.mk_application ~keyword "Stm:MatchTuple"
       end
 
     | MatchBool { condition; when_true; when_false } -> begin

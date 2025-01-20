@@ -19,7 +19,7 @@ union C = {
   C2 : A,
   C3 : A,
 }
-  
+
 val foo : C -> string
 function foo(x) = match x {
   C1(B1(A1(a, b))) => "a",
