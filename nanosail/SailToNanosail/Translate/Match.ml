@@ -661,6 +661,7 @@ let translate_variant_match
               in
               TC.fail [%here] error_message
             end
+
           | Some field_types -> begin
               match subpattern with
               | Tuple tuple_subpatterns -> begin
@@ -723,6 +724,7 @@ let translate_variant_match
               | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
             end
         end
+
       | Binder { identifier = binder_identifier; _ } -> begin
           (*
              The pattern binds the constructor to a variable, meaning
@@ -780,6 +782,7 @@ let translate_variant_match
           *)
           TC.fold_left variant_definition.constructors ~init:table ~f:fill_in_missing_case
         end
+
       | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
     in
     TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
