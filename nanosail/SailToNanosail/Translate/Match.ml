@@ -352,11 +352,18 @@ let translate_list_match
   in
   let cases_sorted_by_pattern_depth =
     let rec pattern_depth (pattern : Pattern.t) : int =
+      let fail () =
+        failwith "unexpected pattern; only patterns applicable on lists should appear"
+      in
       match pattern with
       | ListCons (_, tail) -> 1 + pattern_depth tail
       | ListNil            -> 0
       | Binder _           -> 0
-      | _                  -> failwith "error in pattern_depth; should never occur"
+      | Tuple _            -> fail ()
+      | EnumCase _         -> fail ()
+      | VariantCase (_, _) -> fail ()
+      | Unit               -> fail ()
+
     in
     let compare (p1, _) (p2, _) =
       pattern_depth p1 - pattern_depth p2
