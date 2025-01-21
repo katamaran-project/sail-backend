@@ -40,10 +40,9 @@ let with_increased_indentation f =
 
 let verbosity_level_name (verbosity_level : int) : string =
   match verbosity_level with
-  | 0 -> "NONE"
+  | 0 -> "ERROR"
   | 1 -> "INFO"
   | 2 -> "DEBUG"
-  | 3 -> "ERROR"
   | _ -> failwith "unknown verbosity level"
 
 
@@ -64,10 +63,10 @@ let log
     ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n%!" indentation level_name filename line_number (Lazy.force message)
 
 
+let error   = log 0
 let info    = log 1
 let warning = log 2
 let debug   = log 3
-let error   = log 4
 
 
 let surround
