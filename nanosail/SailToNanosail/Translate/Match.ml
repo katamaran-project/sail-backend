@@ -119,6 +119,9 @@ module Pattern = struct
 end
 
 
+(*
+   Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
+*)
 let rec translate_pattern
     (matched_type : Ast.Type.t  )
     (sail_pattern : S.typ S.apat) : Pattern.t TC.t
