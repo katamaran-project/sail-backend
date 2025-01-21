@@ -324,7 +324,7 @@ let translate_case
        }
 
    The match cases can be in any order.
-   Subpatterns are not allowed in the current implementation2.
+   Subpatterns are not allowed in the current implementation.
 *)
 let translate_list_match
     (location           : S.l                               )
