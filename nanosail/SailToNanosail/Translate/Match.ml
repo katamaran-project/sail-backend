@@ -17,13 +17,36 @@ open Monads.Notations.Star(TC)
 exception InconsistentBinders of (Ast.Identifier.t list * Ast.Identifier.t list)
 
 module Pattern = struct
+  (*
+     Wildcards in Sail code are translated into Binder { identifier = gensym; wildcard = true },
+     whereas regular binders are translated into Binder { identifier = sail_identifier; wildcard = false }.
+     We need to be able to make the distinction when checking for consistent binder names.
+     For example,
+
+       match lst {
+         [| _ |]   => A,
+         [| _, _|] => B,
+         _         => C
+       }
+
+     should be allowed, whereas
+
+       match lst {
+         [| x |]   => A,
+         [| y, _|] => B,
+         _         => C
+       }
+
+     gives different names to the first element of the matched list.
+     This is a situation which we do not support but want to detect so as to give an error message.
+  *)
   type t =
     | ListCons    of t * t
     | ListNil
     | Tuple       of t list
     | EnumCase    of Ast.Identifier.t
     | VariantCase of Ast.Identifier.t * t
-    | Binder      of Ast.Identifier.t
+    | Binder      of { identifier : Ast.Identifier.t; wildcard : bool }
     | Unit
 
 
@@ -69,13 +92,17 @@ module Pattern = struct
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
 
-    | Binder identifier -> begin
+    | Binder { identifier; wildcard } -> begin
         let positional =
           [
-            Ast.Identifier.to_fexpr identifier
+            Ast.Identifier.to_fexpr identifier;
+          ]
+        and keyword =
+          [
+            ("wildcard", FExpr.mk_bool wildcard)
           ]
         in
-        FExpr.mk_application ~positional @@ head "Variable"
+        FExpr.mk_application ~positional ~keyword @@ head "Variable"
       end
 
     | Unit -> FExpr.mk_symbol @@ head "Unit"
@@ -87,8 +114,8 @@ module Pattern = struct
 
   let identifier_of_binder (pattern : t) : Ast.Identifier.t =
     match pattern with
-    | Binder identifier -> identifier
-    | _                 -> failwith "bug: should only be called on Binder patterns"
+    | Binder { identifier; _ } -> identifier
+    | _                        -> failwith "bug: should only be called on Binder patterns"
 end
 
 
@@ -102,12 +129,12 @@ let rec translate_pattern
   let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
     let* identifier = Identifier.translate_identifier [%here] sail_identifier
     in
-    TC.return @@ Pattern.Binder identifier
+    TC.return @@ Pattern.Binder { identifier; wildcard = false }
 
   and translate_wildcard_pattern () : Pattern.t TC.t =
-    let* fresh_identifier = TC.generate_unique_identifier ~underscore:true ()
+    let* identifier = TC.generate_unique_identifier ~underscore:true ()
     in
-    TC.return @@ Pattern.Binder fresh_identifier
+    TC.return @@ Pattern.Binder { identifier; wildcard = true }
 
   and unexpected_pattern (location : Lexing.position) =
     let error_message =
@@ -167,7 +194,7 @@ let rec translate_pattern
           then
             TC.return @@ Pattern.EnumCase identifier
           else
-            TC.return @@ Pattern.Binder identifier
+            TC.return @@ Pattern.Binder { identifier; wildcard = false }
         end
       | AP_wild _type -> translate_wildcard_pattern ()
       | _ -> unexpected_pattern [%here]
@@ -371,7 +398,7 @@ let translate_list_match
     List.sort cases ~compare
   in
   match cases_sorted_by_pattern_depth with
-  | [ (Pattern.Binder binder_identifier, body) ] -> begin
+  | [ (Pattern.Binder { identifier = binder_identifier; _ }, body) ] -> begin
       (*
          We're dealing with
 
@@ -393,16 +420,16 @@ let translate_list_match
       }
     end
   | [ (Pattern.ListNil, nil_body);
-      (Pattern.ListCons (Pattern.Binder head_identifier, Pattern.Binder tail_identifier), cons_body) ] -> begin
+      (Pattern.ListCons (Pattern.Binder { identifier = head_identifier; _ }, Pattern.Binder { identifier = tail_identifier; _ }), cons_body) ] -> begin
       translate matched_identifier head_identifier tail_identifier cons_body nil_body
     end
   | [ (Pattern.ListNil, if_empty_list);
-      (Pattern.ListCons (Pattern.Binder first_identifier_1,
+      (Pattern.ListCons (Pattern.Binder { identifier = first_identifier_1; wildcard = wildcard_1 },
                          Pattern.ListNil),
        if_singleton_list);
-      (Pattern.ListCons (Pattern.Binder first_identifier_2,
-                         Pattern.ListCons (Pattern.Binder second_identifier,
-                                           Pattern.Binder rest_identifier)),
+      (Pattern.ListCons (Pattern.Binder { identifier = first_identifier_2; wildcard = wildcard_2 },
+                         Pattern.ListCons (Pattern.Binder { identifier = second_identifier; _ },
+                                           Pattern.Binder { identifier = rest_identifier; _ })),
        if_two_or_more_elements) ] -> begin
       (*
          We're dealing with
@@ -413,10 +440,18 @@ let translate_list_match
              first_identifier_2 :: second_identifier :: rest_identifier => if_two_or_more_elements
            }
 
-         Note that this implementation expects that first_identifier_1 equals first_identifier_2.
+         Note that this implementation expects that, in case neither is a wildcard, first_identifier_1 equals first_identifier_2,.
       *)
+      let are_first_element_binders_consistent =
+        if
+          wildcard_1 || wildcard_2
+        then
+          true
+        else
+          Ast.Identifier.equal first_identifier_1 first_identifier_2
+      in
       if
-        not (Ast.Identifier.equal first_identifier_1 first_identifier_2)
+        not are_first_element_binders_consistent
       then
         TC.not_yet_implemented ~message:"differently named first elements in list matching patterns" [%here] location
       else begin
@@ -440,7 +475,7 @@ let translate_unit_match
     (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   match cases with
-  | [ (Pattern.Binder binding_identifier, body) ] -> begin
+  | [ (Pattern.Binder { identifier = binding_identifier; _ }, body) ] -> begin
       (*
          We're dealing with
 
@@ -502,7 +537,7 @@ let translate_enum_match
               TC.return updated_table
             end
         end
-      | Binder binder_identifier -> begin
+      | Binder { identifier = binder_identifier; _ } -> begin
         (*
            The pattern binds the enum value to a variable, meaning
            it should match all enum values that have hitherto not been processed.
@@ -535,7 +570,7 @@ let translate_enum_match
               }
             in
             match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
-            | `Duplicate        -> begin
+            | `Duplicate -> begin
                 (*
                    We tried to add an extra (enum value, clause) association to the table, but there
                    already existed one, which is okay. We simply keep the table as is.
@@ -647,8 +682,8 @@ let translate_variant_match
                     (* For now, we expect the tuple pattern to contain only Variable patterns *)
                     let extract_identifier_from_variable_pattern (pattern : Pattern.t) : Ast.Identifier.t TC.t =
                       match pattern with
-                      | Binder identifier -> TC.return identifier
-                      | _                 -> TC.fail [%here] "only variable subpatterns supported"
+                      | Binder { identifier; _ } -> TC.return identifier
+                      | _                        -> TC.fail [%here] "only variable subpatterns supported"
                     in
                     let* binders =
                       TC.map ~f:extract_identifier_from_variable_pattern tuple_subpatterns
@@ -656,7 +691,7 @@ let translate_variant_match
                     add_to_table constructor_identifier binders
                   end
                 end
-              | Binder identifier -> begin
+              | Binder { identifier; _ } -> begin
                   (*
                      We're dealing with
 
@@ -688,7 +723,7 @@ let translate_variant_match
               | _ -> TC.fail [%here] @@ Printf.sprintf "Unexpected variant subpattern %s" @@ FExpr.to_string @@ Pattern.to_fexpr subpattern
             end
         end
-      | Binder binder_identifier -> begin
+      | Binder { identifier = binder_identifier; _ } -> begin
           (*
              The pattern binds the constructor to a variable, meaning
              it should match all constructors that have hitherto not been processed.
