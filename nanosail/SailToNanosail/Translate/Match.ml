@@ -183,6 +183,7 @@ let rec translate_pattern
       | AP_wild _type                 -> translate_wildcard_pattern ()
       | _                             -> unexpected_pattern [%here]
     end
+    
   | Enum enum_identifier -> begin
       match unwrapped_sail_pattern with
       | AP_id (sail_identifier, _sail_type) -> begin
@@ -202,12 +203,14 @@ let rec translate_pattern
       | AP_wild _type -> translate_wildcard_pattern ()
       | _ -> unexpected_pattern [%here]
     end
+    
   | Unit -> begin
       match unwrapped_sail_pattern with
       | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
+    
   | Tuple subtypes -> begin
       match unwrapped_sail_pattern with
       | AP_tuple sail_subpatterns           -> translate_tuple_pattern sail_subpatterns subtypes
@@ -215,6 +218,7 @@ let rec translate_pattern
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
+    
   | Product (left_subtype, right_subtype) -> begin
       match unwrapped_sail_pattern with
       | AP_tuple sail_subpatterns -> begin
@@ -226,6 +230,7 @@ let rec translate_pattern
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
+    
   | Variant variant_identifier -> begin
       match unwrapped_sail_pattern with
       | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
@@ -263,6 +268,7 @@ let rec translate_pattern
       | AP_wild _sail_type                  -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
+    
   | Int                -> translate_for_atomic_type ()
   | Bool               -> translate_for_atomic_type ()
   | String             -> translate_for_atomic_type ()
