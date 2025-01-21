@@ -14,8 +14,6 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-exception InconsistentBinders of (Ast.Identifier.t list * Ast.Identifier.t list)
-
 module Pattern = struct
   (*
      Wildcards in Sail code are translated into Binder { identifier = gensym; wildcard = true },
@@ -118,6 +116,69 @@ module Pattern = struct
     | _                        -> failwith "bug: should only be called on Binder patterns"
 end
 
+
+exception InconsistentPatterns of (Pattern.t * Pattern.t)
+
+
+let rec consistent_patterns
+    (pattern_1 : Pattern.t)
+    (pattern_2 : Pattern.t) : bool
+  =
+  match pattern_1 with
+  | ListCons (head_pattern_1, tail_pattern_1) -> begin
+      match pattern_2 with
+      | ListCons (head_pattern_2, tail_pattern_2) -> consistent_patterns head_pattern_1 head_pattern_2 && consistent_patterns tail_pattern_1 tail_pattern_2
+      | _                                         -> false
+    end
+    
+  | ListNil -> begin
+      match pattern_2 with
+      | ListNil -> true
+      | _       -> false
+    end
+    
+  | Tuple subpatterns_1 -> begin
+      match pattern_2 with
+      | Tuple subpatterns_2 -> begin
+          match List.zip subpatterns_1 subpatterns_2 with
+          | List.Or_unequal_lengths.Ok pairs -> begin
+              List.for_all pairs ~f:(Auxlib.uncurry consistent_patterns)
+            end
+          | List.Or_unequal_lengths.Unequal_lengths -> begin
+              failwith "should not occur; tuple patterns should have same size, given that they target the same type"
+            end
+        end
+      | _ -> false      
+    end
+    
+  | EnumCase identifier_1 -> begin
+      match pattern_2 with
+      | EnumCase identifier_2 -> Ast.Identifier.equal identifier_1 identifier_2
+      | _                     -> false
+    end
+    
+  | VariantCase (identifier_1, field_pattern_1) -> begin
+      match pattern_2 with
+      | VariantCase (identifier_2, field_pattern_2) -> begin
+          Ast.Identifier.equal identifier_1 identifier_2 && consistent_patterns field_pattern_1 field_pattern_2
+        end
+      | _ -> false
+    end
+    
+  | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
+      match pattern_2 with
+      | Binder { identifier = identifier_2; wildcard = wildcard_2 } -> begin
+          wildcard_1 || wildcard_2 || Ast.Identifier.equal identifier_1 identifier_2
+        end
+      | _ -> false
+    end
+    
+  | Unit -> begin
+      match pattern_2 with
+      | Unit -> true
+      | _    -> false
+    end
+  
 
 (*
    Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
@@ -909,19 +970,23 @@ let translate_tuple_match
                   match previous_data with
                   | None -> (field_pattern, [(snd_pattern, body)])
                   | Some (previous_field_pattern, previous_pairs) -> begin
-                      (* TODO check for equal field patterns, previous_field_pattern should be equal to field_pattern *)
-                      (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
+                      if
+                        consistent_patterns previous_field_pattern field_pattern
+                      then
+                        (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
+                      else
+                        raise @@ InconsistentPatterns (previous_field_pattern, field_pattern)
                     end
                 in
                 try
                   TC.return @@ Ast.Identifier.Map.update table constructor_identifier ~f:add
                 with
-                  InconsistentBinders (previous_field_binders, field_binders) -> begin
+                  InconsistentPatterns (previous_field_pattern, field_pattern) -> begin
                     let message =
                       Printf.sprintf
-                        "inconsistent binders: %s vs %s"
-                        (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string previous_field_binders))
-                        (String.concat ~sep:", " (List.map ~f:Ast.Identifier.to_string field_binders))
+                        "inconsistent patterns: %s vs %s"
+                        (FExpr.to_string @@ Pattern.to_fexpr previous_field_pattern)
+                        (FExpr.to_string @@ Pattern.to_fexpr field_pattern)
                     in
                     TC.not_yet_implemented ~message [%here] location
                   end
