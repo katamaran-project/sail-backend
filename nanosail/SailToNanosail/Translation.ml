@@ -75,7 +75,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
                   filename      = ocaml_location.pos_fname;
                   line_number   = ocaml_location.pos_lnum ;
                   sail_location = annotation.loc          ;
-                  message       = Some "assertion error"  ;
+                  message       = Some message            ;
                 }
             in
             TC.return (sail_definition, untranslated_definition)

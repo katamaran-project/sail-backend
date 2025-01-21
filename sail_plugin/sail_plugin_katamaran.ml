@@ -1,9 +1,6 @@
 open Base
 
 
-let verbose = ref false
-
-
 let print_check_message () =
   Stdio.print_endline("The Katamaran plugin is functioning correctly")
 
@@ -31,6 +28,11 @@ module CLI = struct
   end
 end
 
+
+let set_verbosity_level (level : int) =
+  Nanosail.Configuration.(set Nanosail.Logging.verbosity_level @@ Nanosail.Logging.VerbosityLevel.from_int level)
+
+
 (** Command line options added to sail when the sail_katamaran_backend is loaded
     or installed. *)
 let katamaran_options = [
@@ -41,7 +43,7 @@ let katamaran_options = [
    Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
   (CLI.Arg.verbose,
-   Stdlib.Arg.Set verbose,
+   Stdlib.Arg.Int set_verbosity_level,
    "Verbose");
 ]
 
@@ -49,17 +51,10 @@ let katamaran_options = [
 let configure_verbosity () =
   let verbosity_from_environment_variable () =
     match Sys.getenv "VERBOSE" with
-    | Some level -> Nanosail.Configuration.(set verbosity_level @@ Int.of_string level)
+    | Some level -> set_verbosity_level @@ Int.of_string level
     | None       -> ()
   in
-  let verbosity_from_command_line () =
-    if
-      !verbose
-    then
-      Nanosail.Configuration.(set verbosity_level 3)
-  in
-  verbosity_from_environment_variable ();
-  verbosity_from_command_line ()
+  verbosity_from_environment_variable ()
 
 
 (* Entry point for Katamaran target *)

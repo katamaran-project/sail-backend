@@ -17,4 +17,4 @@ module StringOf            = StringOf
 module Util                = Util
 module Slang               = Slang
 module ConfigLib           = ConfigLib
-
+module Logging             = Logging

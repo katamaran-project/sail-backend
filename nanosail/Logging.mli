@@ -1,3 +1,20 @@
+module VerbosityLevel : sig
+  type t
+
+  val to_string   : t -> string
+  val from_int    : int -> t
+  val should_show : filter_level:t -> message_level:t -> bool
+
+  val quiet       : t
+  val error       : t
+  val warning     : t
+  val info        : t
+  val debug       : t
+  val default     : t
+end
+
+val verbosity_level : VerbosityLevel.t ConfigLib.Setting.t
+
 val info     : Lexing.position -> string lazy_t -> unit
 val debug    : Lexing.position -> string lazy_t -> unit
 val warning  : Lexing.position -> string lazy_t -> unit
