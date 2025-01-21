@@ -94,7 +94,7 @@ PASS feature-pattern
 PASS feature-pattern2
 PASS feature-pattern3
 PASS feature-pattern4
-FAIL feature-pattern5
+PASS feature-pattern5
 PASS feature-rec
 PASS feature-types-and-literals
 PASS feature-types-and-literals-2
@@ -261,4 +261,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:235 FAIL:28
+PASS:236 FAIL:27
