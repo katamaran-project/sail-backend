@@ -200,7 +200,7 @@ PASS model-005
 PASS model-006
 PASS model-007
 FAIL model-008
-FAIL no-confusion-hom
+PASS no-confusion-hom
 PASS overloading
 PASS products-match
 PASS records-construction
@@ -261,4 +261,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:234 FAIL:29
+PASS:235 FAIL:28
