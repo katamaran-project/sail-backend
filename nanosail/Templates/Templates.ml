@@ -14,14 +14,6 @@ end
 type katamaran = NanosailToMicrosail.Katamaran.katamaran
 
 
-let string_of_document document =
-  let text_width = Configuration.(get output_width)
-  and buffer     = Stdlib.Buffer.create 10000
-  in
-  PPrint.ToBuffer.pretty 1.0 text_width buffer document;
-  Stdlib.Buffer.contents buffer
-
-
 let run_code
       (translation : katamaran)
       (source      : string   ) : string
