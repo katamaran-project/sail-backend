@@ -159,6 +159,7 @@ PASS match-enum-three-cases
 PASS match-enum-used-binder
 PASS match-enum-wildcard
 PASS match-list-literal
+FAIL match-list-nested
 PASS match-list-single-case
 PASS match-list-three-cases
 PASS match-list-two-cases
@@ -261,4 +262,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:236 FAIL:27
+PASS:236 FAIL:28
