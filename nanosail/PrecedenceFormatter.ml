@@ -1,28 +1,50 @@
+(*
+   Module to help format expressions involving infix notations
+   where operators have certain precedences and parenthesizing
+   may be a necessity.
+*)
+
+
 module type Output = sig
+  (* Type of the output, e.g., string *)
   type t
 
+  (* Surrounds the given output with parentheses *)
   val parenthesize : t -> t
 end
+
 
 module Make(O : Output) = struct
   module ExtendedIntegerNotations = ComparisonNotations.Make(ExtendedInteger)
 
-  type output = O.t
-  type ast    = Ast of O.t * ExtendedInteger.t
 
+  (* Aliases the output type *)
+  type output = O.t
+
+  (*
+     Ast annotates output with a precedence level.
+     When bulding output, this precedence level will
+     determine whether parenthesization is necessary.
+  *)
+  type ast = Ast of O.t * ExtendedInteger.t
+
+  
   let output_of (ast : ast) : output =
     let Ast (x, _) = ast
     in
     x
 
+  
   let level_of (ast : ast) : ExtendedInteger.t =
     let Ast (_, n) = ast
     in
     n
 
+  
   let parenthesize (ast : ast) : ast =
     Ast (O.parenthesize @@ output_of ast, ExtendedInteger.PositiveInfinity)
 
+  
   let define_left_associative_binary_operator
       (precedence : int                       )
       (formatter  : output -> output -> output) : ast -> ast -> ast
@@ -49,6 +71,7 @@ module Make(O : Output) = struct
     in
     format
 
+  
   let define_right_associative_binary_operator
       (precedence : int                       )
       (formatter  : output -> output -> output) : ast -> ast -> ast
@@ -75,9 +98,11 @@ module Make(O : Output) = struct
     in
     format
 
+
   let define_atom (output : output) : ast =
     Ast (output, ExtendedInteger.PositiveInfinity)
 
+  
   let define_unary_prefix_operator
       (precedence : int             )
       (formatter  : output -> output) : ast -> ast
