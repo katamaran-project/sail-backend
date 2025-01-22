@@ -848,6 +848,125 @@ let translate_variant_match
 
 
 (*
+   Groups together functions that are related to matching against tuples
+*)
+module TupleMatching = struct
+  module PatternNode = struct
+    type t =
+      | Enum     of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t }
+      | Terminal of Ast.Statement.t option
+  end
+
+
+  let rec build_tuple_pattern_chain
+      (location      : S.l            )
+      (element_types : Ast.Type.t list) : PatternNode.t TC.t
+    =
+    let build_enum_node
+        (enum_identifier : Ast.Identifier.t)
+        (tail            : PatternNode.t   )  : PatternNode.t TC.t
+      =
+      let* enum_definition =
+        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+      in
+      let add_to_table
+          (table                : PatternNode.t Ast.Identifier.Map.t)
+          (enum_case_identifier : Ast.Identifier.t                  ) : PatternNode.t Ast.Identifier.Map.t
+        =
+        Ast.Identifier.Map.add_exn table ~key:enum_case_identifier ~data:tail
+      in
+      let table = List.fold enum_definition.cases ~init:Ast.Identifier.Map.empty ~f:add_to_table
+      in
+      TC.return @@ PatternNode.Enum { enum_identifier; table }
+    in
+
+    match element_types with
+    | []           -> TC.return @@ PatternNode.Terminal None
+    | head :: tail -> begin
+        let* tail = build_tuple_pattern_chain location tail
+        in 
+        match head with
+        | Enum enum_identifier -> build_enum_node enum_identifier tail
+        | Int                -> TC.not_yet_implemented [%here] location
+        | Bool               -> TC.not_yet_implemented [%here] location
+        | String             -> TC.not_yet_implemented [%here] location
+        | Bit                -> TC.not_yet_implemented [%here] location
+        | List _             -> TC.not_yet_implemented [%here] location
+        | Product (_, _)     -> TC.not_yet_implemented [%here] location
+        | Sum (_, _)         -> TC.not_yet_implemented [%here] location
+        | Unit               -> TC.not_yet_implemented [%here] location
+        | Bitvector _        -> TC.not_yet_implemented [%here] location
+        | Tuple _            -> TC.not_yet_implemented [%here] location
+        | Variant _          -> TC.not_yet_implemented [%here] location
+        | Record _           -> TC.not_yet_implemented [%here] location
+        | Application (_, _) -> TC.not_yet_implemented [%here] location
+        | Alias (_, _)       -> TC.not_yet_implemented [%here] location
+        | Range (_, _)       -> TC.not_yet_implemented [%here] location
+      end
+
+
+  let rec categorize_case
+      (location          : S.l            )
+      (pattern_chain     : PatternNode.t  )
+      (tuple_subpatterns : Pattern.t list )
+      (body              : Ast.Statement.t)
+      (gap_filling       : bool           ) : PatternNode.t TC.t
+    =
+    let invalid_number_of_subpatterns (location : Lexing.position) =
+      TC.fail location "there should be as many nodes in the pattern chain as there are tuple subpatterns"
+    and invalid_pattern (location : Lexing.position) =
+      TC.fail location "pattern is incompatible with type of value being matched"
+    in
+    match pattern_chain with
+    | Enum { enum_identifier; table } -> begin
+        match tuple_subpatterns with
+        | first_subpattern :: remaining_subpatterns -> begin
+            match first_subpattern with
+            | EnumCase case_identifier -> begin
+                let* updated_table =
+                  let chain_tail = Ast.Identifier.Map.find_exn table case_identifier
+                  in
+                  let* updated_chain_tail = categorize_case location chain_tail remaining_subpatterns body gap_filling
+                  in                  
+                  TC.return @@ Ast.Identifier.Map.update table case_identifier ~f:(fun _ -> updated_chain_tail)
+                in
+                TC.return @@ PatternNode.Enum { enum_identifier; table = updated_table }
+              end
+            | Binder _           -> TC.not_yet_implemented [%here] location
+            | Unit               -> invalid_pattern [%here]
+            | ListCons (_, _)    -> invalid_pattern [%here]
+            | ListNil            -> invalid_pattern [%here]
+            | Tuple _            -> invalid_pattern [%here]
+            | VariantCase (_, _) -> invalid_pattern [%here]
+          end
+        | [] -> invalid_number_of_subpatterns [%here]
+      end
+      
+    | Terminal statement -> begin
+        match tuple_subpatterns with
+        | [] -> begin
+            match statement with
+            | Some _ -> begin
+                if
+                  gap_filling
+                then
+                  (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
+                  TC.return pattern_chain
+                else
+                  (*
+                     We're not in gap-filling mode, and we expect a gap.
+                     However, there is none, which means we're dealing with the same case twice, which should never occur.
+                  *)
+                  TC.fail [%here] "clashing patterns"
+              end
+            | None -> TC.return @@ PatternNode.Terminal (Some body)
+          end
+        | _::_ -> invalid_number_of_subpatterns [%here]
+      end
+end
+
+  
+(*
    We support a small number of specific matching structures.
 *)
 let translate_tuple_match
