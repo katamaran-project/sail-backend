@@ -571,10 +571,10 @@ let translate_enum_match
             end
         end
       | Binder { identifier = binder_identifier; _ } -> begin
-        (*
-           The pattern binds the enum value to a variable, meaning
-           it should match all enum values that have hitherto not been processed.
-        *)
+          (*
+             The pattern binds the enum value to a variable, meaning
+             it should match all enum values that have hitherto not been processed.
+          *)
           let fill_in_missing_case
               (table                 : Ast.Statement.t Ast.Identifier.Map.t)
               (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
