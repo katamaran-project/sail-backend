@@ -224,12 +224,14 @@ module M (_ : sig end) = struct
       ~(return_value : Slang.Value.t) : Slang.Value.callable
     =
     let script_function arguments =
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* _ = EC.map ~f:evaluate arguments
+      in
+      let argument_count = List.length arguments
       in
       if
-        not @@ Int.equal (List.length evaluated_arguments) arity
+        not @@ Int.equal argument_count arity
       then
-        failwith "Invalid arity" (* todo better error reporting *)
+        failwith @@ Printf.sprintf "function of arity %d received %d arguments" arity argument_count
       else
         EC.return return_value
     in
