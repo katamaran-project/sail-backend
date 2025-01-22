@@ -8,7 +8,7 @@ module Make(O : Output) = struct
   module ExtendedIntegerNotations = ComparisonNotations.Make(ExtendedInteger)
 
   type output = O.t
-  type ast = Ast of O.t * ExtendedInteger.t
+  type ast    = Ast of O.t * ExtendedInteger.t
 
   let output_of (ast : ast) : output =
     let Ast (x, _) = ast
