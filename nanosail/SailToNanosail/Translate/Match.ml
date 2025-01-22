@@ -120,6 +120,7 @@ end
 exception InconsistentPatterns of (Pattern.t * Pattern.t)
 
 
+(* todo probably needs to go *)
 let rec consistent_patterns
     (pattern_1 : Pattern.t)
     (pattern_2 : Pattern.t) : bool
