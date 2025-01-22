@@ -99,9 +99,9 @@ let with_excursion (block : 'a t) : 'a t =
 
 
 let translation_block
-    (ocaml_position : Lexing.position                         )
-    (label          : string                                  )
-    (result         : 'a t                                    ) : 'a t
+    (ocaml_position : Lexing.position)
+    (label          : string         )
+    (result         : 'a t           ) : 'a t
   =
   let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
   in
