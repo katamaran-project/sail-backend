@@ -117,7 +117,7 @@ module Pattern = struct
 end
 
 
-exception InconsistentPatterns of (Pattern.t * Pattern.t)
+exception InconsistentBinders of (Pattern.t * Pattern.t)
 
 
 (* todo probably needs to go *)
@@ -179,7 +179,30 @@ let rec consistent_patterns
       | Unit -> true
       | _    -> false
     end
-  
+
+
+(*
+   Check that both patterns are binders and have the same name, taking into account wildcards.
+*)
+let consistent_binders
+    (pattern_1 : Pattern.t)
+    (pattern_2 : Pattern.t) : bool
+  =
+  match pattern_1 with
+   | ListCons (_, _) -> false
+   | ListNil -> false
+   | Tuple _ -> false
+   | EnumCase _ -> false
+   | VariantCase (_, _) -> false
+   | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
+       match pattern_2 with
+       | Binder { identifier = identifier_2; wildcard = wildcard_2 } -> begin
+           wildcard_1 || wildcard_2 || Ast.Identifier.equal identifier_1 identifier_2
+         end
+       | _ -> false
+     end
+   | Unit -> false (* todo might need more nuanced logic *)
+
 
 (*
    Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
@@ -972,17 +995,17 @@ let translate_tuple_match
                   | None -> (field_pattern, [(snd_pattern, body)])
                   | Some (previous_field_pattern, previous_pairs) -> begin
                       if
-                        consistent_patterns previous_field_pattern field_pattern
+                        consistent_binders previous_field_pattern field_pattern
                       then
                         (previous_field_pattern, List.append previous_pairs [(snd_pattern, body)])
                       else
-                        raise @@ InconsistentPatterns (previous_field_pattern, field_pattern)
+                        raise @@ InconsistentBinders (previous_field_pattern, field_pattern)
                     end
                 in
                 try
                   TC.return @@ Ast.Identifier.Map.update table constructor_identifier ~f:add
                 with
-                  InconsistentPatterns (previous_field_pattern, field_pattern) -> begin
+                  InconsistentBinders (previous_field_pattern, field_pattern) -> begin
                     let message =
                       Printf.sprintf
                         "inconsistent patterns: %s vs %s"
