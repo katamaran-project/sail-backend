@@ -120,67 +120,6 @@ end
 exception InconsistentBinders of (Pattern.t * Pattern.t)
 
 
-(* todo probably needs to go *)
-let rec consistent_patterns
-    (pattern_1 : Pattern.t)
-    (pattern_2 : Pattern.t) : bool
-  =
-  match pattern_1 with
-  | ListCons (head_pattern_1, tail_pattern_1) -> begin
-      match pattern_2 with
-      | ListCons (head_pattern_2, tail_pattern_2) -> consistent_patterns head_pattern_1 head_pattern_2 && consistent_patterns tail_pattern_1 tail_pattern_2
-      | _                                         -> false
-    end
-    
-  | ListNil -> begin
-      match pattern_2 with
-      | ListNil -> true
-      | _       -> false
-    end
-    
-  | Tuple subpatterns_1 -> begin
-      match pattern_2 with
-      | Tuple subpatterns_2 -> begin
-          match List.zip subpatterns_1 subpatterns_2 with
-          | List.Or_unequal_lengths.Ok pairs -> begin
-              List.for_all pairs ~f:(Auxlib.uncurry consistent_patterns)
-            end
-          | List.Or_unequal_lengths.Unequal_lengths -> begin
-              failwith "should not occur; tuple patterns should have same size, given that they target the same type"
-            end
-        end
-      | _ -> false      
-    end
-    
-  | EnumCase identifier_1 -> begin
-      match pattern_2 with
-      | EnumCase identifier_2 -> Ast.Identifier.equal identifier_1 identifier_2
-      | _                     -> false
-    end
-    
-  | VariantCase (identifier_1, field_pattern_1) -> begin
-      match pattern_2 with
-      | VariantCase (identifier_2, field_pattern_2) -> begin
-          Ast.Identifier.equal identifier_1 identifier_2 && consistent_patterns field_pattern_1 field_pattern_2
-        end
-      | _ -> false
-    end
-    
-  | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
-      match pattern_2 with
-      | Binder { identifier = identifier_2; wildcard = wildcard_2 } -> begin
-          wildcard_1 || wildcard_2 || Ast.Identifier.equal identifier_1 identifier_2
-        end
-      | _ -> false
-    end
-    
-  | Unit -> begin
-      match pattern_2 with
-      | Unit -> true
-      | _    -> false
-    end
-
-
 (*
    Check that both patterns are binders and have the same name, taking into account wildcards.
 *)
