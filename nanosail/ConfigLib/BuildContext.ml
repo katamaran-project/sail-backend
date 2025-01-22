@@ -224,6 +224,7 @@ module M (_ : sig end) = struct
       ~(return_value : Slang.Value.t) : Slang.Value.callable
     =
     let script_function arguments =
+      (* strict evaluation demands we evaluate the arguments *)
       let* _ = EC.map ~f:evaluate arguments
       in
       let argument_count = List.length arguments
