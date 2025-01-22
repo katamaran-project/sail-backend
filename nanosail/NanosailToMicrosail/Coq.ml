@@ -170,20 +170,18 @@ let pp_definition
       ?(result_type         : PP.document option                      = None)
        (body                : PP.document                                   ) : PP.document
   =
-  let open PP (* todo remove *)
-  in
   let pp_parameters =
     let pp_implicit_parameters =
       let pp_implicit_parameter (var, typ) =
         match typ with
-        | Some typ -> PP.annotate [%here] @@ surround braces @@ separate_horizontally ~separator:space [ var; colon; typ ]
-        | None     -> PP.annotate [%here] @@ surround braces @@ var
+        | Some typ -> PP.(annotate [%here] @@ surround braces @@ separate_horizontally ~separator:space [ var; colon; typ ])
+        | None     -> PP.(annotate [%here] @@ surround braces @@ var)
       in
       List.map ~f:pp_implicit_parameter implicit_parameters
     and pp_explicit_parameters =
       let pp_parameter (var, typ) =
         match typ with
-        | Some typ -> PP.annotate [%here] @@ surround parens @@ horizontal [ var; string " : "; typ ]
+        | Some typ -> PP.(annotate [%here] @@ surround parens @@ horizontal [ var; string " : "; typ ])
         | None     -> PP.annotate [%here] @@ var
       in
       List.map ~f:pp_parameter parameters
@@ -198,18 +196,18 @@ let pp_definition
   let pp_return_type =
     match result_type with
     | None    -> None
-    | Some rt -> Some (PP.annotate [%here] @@ PP.(separate_horizontally ~separator:PP.space [ PP.colon; rt ]))
+    | Some rt -> Some PP.(annotate [%here] @@ separate_horizontally ~separator:PP.space [ PP.colon; rt ])
   in
   let definition_line =
     PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list begin fun { add; addopt; _ } ->
-      add    @@ PP.annotate [%here] @@ PP.string "Definition";
+      add    @@ PP.(annotate [%here] @@ string "Definition");
       add    @@ PP.annotate [%here] @@ identifier;
       addopt @@ Option.(pp_parameters >>| PP.annotate [%here]);
       addopt @@ Option.(pp_return_type >>| PP.annotate [%here]);
-      add    @@ PP.annotate [%here] @@ string ":=";
+      add    @@ PP.(annotate [%here] @@ string ":=");
     end
   in
-  PP.annotate [%here] @@ pp_sentence @@ PP.vertical [ definition_line; indent body ]
+  PP.(annotate [%here] @@ pp_sentence @@ vertical [ definition_line; indent body ])
 
 
 let pp_match
