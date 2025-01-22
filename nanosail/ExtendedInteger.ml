@@ -1,3 +1,7 @@
+(*
+   Extends the integers with positive and negative infinity.
+*)
+
 type t = Int of int
        | PositiveInfinity
        | NegativeInfinity
