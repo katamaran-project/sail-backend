@@ -24,8 +24,8 @@ module Make(O : Output) = struct
     Ast (O.parenthesize @@ output_of ast, ExtendedInteger.PositiveInfinity)
 
   let define_left_associative_binary_operator
-        (precedence : int                       )
-        (formatter  : output -> output -> output) : ast -> ast -> ast
+      (precedence : int                       )
+      (formatter  : output -> output -> output) : ast -> ast -> ast
     =
     let open ExtendedIntegerNotations
     in
@@ -34,24 +34,24 @@ module Make(O : Output) = struct
     let format (left : ast) (right : ast) : ast =
       let left' =
         output_of begin
-            if level_of left << precedence
-            then parenthesize left
-            else left
-          end
+          if level_of left << precedence
+          then parenthesize left
+          else left
+        end
       and right' =
         output_of begin
-            if level_of right <<= precedence
-            then parenthesize right
-            else right
-          end
+          if level_of right <<= precedence
+          then parenthesize right
+          else right
+        end
       in
       Ast (formatter left' right', precedence)
     in
     format
 
   let define_right_associative_binary_operator
-        (precedence : int                       )
-        (formatter  : output -> output -> output) : ast -> ast -> ast
+      (precedence : int                       )
+      (formatter  : output -> output -> output) : ast -> ast -> ast
     =
     let open ExtendedIntegerNotations
     in
@@ -60,16 +60,16 @@ module Make(O : Output) = struct
     let format (left : ast) (right : ast) : ast =
       let left' =
         output_of begin
-            if level_of left <<= precedence
-            then parenthesize left
-            else left
-          end
+          if level_of left <<= precedence
+          then parenthesize left
+          else left
+        end
       and right' =
         output_of begin
-            if level_of right << precedence
-            then parenthesize right
-            else right
-          end
+          if level_of right << precedence
+          then parenthesize right
+          else right
+        end
       in
       Ast (formatter left' right', precedence)
     in
@@ -79,8 +79,8 @@ module Make(O : Output) = struct
     Ast (output, ExtendedInteger.PositiveInfinity)
 
   let define_unary_prefix_operator
-        (precedence : int             )
-        (formatter  : output -> output) : ast -> ast
+      (precedence : int             )
+      (formatter  : output -> output) : ast -> ast
     =
     let open ExtendedIntegerNotations
     in
@@ -89,10 +89,10 @@ module Make(O : Output) = struct
     let format (operand : ast) : ast =
       let operand' =
         output_of begin
-            if level_of operand << precedence
-            then parenthesize operand
-            else operand
-          end
+          if level_of operand << precedence
+          then parenthesize operand
+          else operand
+        end
       in
       Ast (formatter operand', precedence)
     in
