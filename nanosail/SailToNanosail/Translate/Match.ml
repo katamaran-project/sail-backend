@@ -864,7 +864,7 @@ let translate_tuple_match
        }
   *)
   let translate_tuple_of_binders : Ast.Statement.t TC.t =
-    (* Keeps thing lazy *)
+    (* Keeps things lazy *)
     let* () = TC.return ()
     in
     match cases with
