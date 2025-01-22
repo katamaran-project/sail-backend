@@ -43,8 +43,8 @@ module M (_ : sig end) = struct
 
 
   let export_strict_function
-        (export_as : string                  )
-        (process   : Slang.Value.t list -> 'a) : unit
+      (export_as : string                  )
+      (process   : Slang.Value.t list -> 'a) : unit
     =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
@@ -56,9 +56,9 @@ module M (_ : sig end) = struct
 
 
   let generic_strict
-        (export_as : string                  )
-        ~init
-        (translate : Slang.Value.t list -> 'a)
+      (export_as : string                  )
+      ~init
+      (translate : Slang.Value.t list -> 'a)
     =
     let setting = Setting.mk init
     in
@@ -199,8 +199,8 @@ module M (_ : sig end) = struct
 
 
   let callable'
-        (export_as : string              )
-        (default   : Slang.Value.callable)
+      (export_as : string              )
+      (default   : Slang.Value.callable)
     =
     let setting = Setting.mk default
     in
@@ -220,8 +220,8 @@ module M (_ : sig end) = struct
 
 
   let constant_function
-        ~(arity        : int          )
-        ~(return_value : Slang.Value.t) : Slang.Value.callable
+      ~(arity        : int          )
+      ~(return_value : Slang.Value.t) : Slang.Value.callable
     =
     let script_function arguments =
       let* evaluated_arguments = EC.map ~f:evaluate arguments
