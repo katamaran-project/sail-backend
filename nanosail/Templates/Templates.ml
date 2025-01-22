@@ -37,7 +37,7 @@ let run_code
 let process_template_streams
     (translation    : katamaran          )
     (input_channel  : Stdio.In_channel.t )
-    (output_channel : Stdio.Out_channel.t)
+    (output_channel : Stdio.Out_channel.t) : unit
   =
   let output_line line =
     Stdio.Out_channel.output_lines output_channel [line]
@@ -70,7 +70,7 @@ let process_template_streams
 let process_template
     (translation : katamaran)
     (input_file  : string   )
-    (output_file : string   )
+    (output_file : string   ) : unit
   =
   Logging.debug [%here] @@ lazy (Printf.sprintf "Processing template %s -> %s" input_file output_file);
   Stdio.In_channel.with_file ~binary:false input_file ~f:begin fun input_stream ->
