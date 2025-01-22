@@ -1043,7 +1043,6 @@ let translate_tuple_match
  | _ -> TC.not_yet_implemented [%here] location
 
   in
-  (* translate_pair_of_variants *)
   TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ]
 
 
