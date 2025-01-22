@@ -177,7 +177,7 @@ let pp_denote_function
     in
     Coq.pp_match ~scope matched_expression cases
   in
-  GC.return @@ PP.annotate' [%here] "pp_denote_function" @@ Coq.pp_definition ~identifier ~parameters ~result_type body
+  GC.return @@ PP.annotate [%here] ~label:"pp_denote_function" @@ Coq.pp_definition ~identifier ~parameters ~result_type body
 
 
 (*

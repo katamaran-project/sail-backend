@@ -223,7 +223,7 @@ let generation_block
     in
     return contents
   in
-  let contents = PP.annotate' position label contents
+  let contents = PP.annotate position ~label contents
   in
   if
     Configuration.(get show_generation_blocks)
@@ -407,7 +407,7 @@ let pp_annotate'
       (label     : string         )
       (annotated : PP.document t  ) : PP.document t
   =
-  lift ~f:(PP.annotate' location label) annotated
+  lift ~f:(PP.annotate location ~label) annotated
 
 
 let get_program : Ast.program t =
