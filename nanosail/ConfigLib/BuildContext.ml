@@ -9,8 +9,7 @@ module EC = Slang.EvaluationContext
 module C  = Slang.Converters
 
 
-
-module M (_ : sig end) = struct
+module Make (_ : sig end) = struct
   let exported_functions : (string * Slang.Value.callable) list ref =
     ref []
 

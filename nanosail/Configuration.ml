@@ -4,7 +4,7 @@ type sail_definition = Sail.sail_definition
 
 
 module C = struct
-  include ConfigLib.BuildContext.M(struct end)
+  include ConfigLib.BuildContext.Make(struct end)
 
   module EC = Slang.EvaluationContext
   module C  = Slang.Converters
