@@ -12,25 +12,25 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
     let* pp_elts = GC.map ~f:pp_nanotype elts
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "ty.tuple")
-              [ Coq.pp_list pp_elts ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "ty.tuple")
+          [ Coq.pp_list pp_elts ]
       end
+    end
 
   and pp_list element_type =
     let* pp_element_type = pp_nanotype element_type
     in
     GC.return begin
-        PP.annotate [%here] begin
-            PP.(surround parens) begin
-                Coq.pp_application
-                  (Identifier.pp @@ Ast.Identifier.mk "ty.list")
-                  [ pp_element_type ]
-              end
-          end
+      PP.annotate [%here] begin
+        PP.(surround parens) begin
+          Coq.pp_application
+            (Identifier.pp @@ Ast.Identifier.mk "ty.list")
+            [ pp_element_type ]
+        end
       end
+    end
 
   and pp_application
       (constructor    : Ast.Type.t             )
@@ -42,54 +42,54 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       GC.map ~f:(GC.(compose (Fn.compose return PP.(surround parens)) pp_type_argument)) type_arguments
     in
     GC.return begin
-        PP.annotate [%here] begin
-            PP.(surround parens) begin
-                PP.separate_horizontally ~separator:PP.space (pp_constructor :: pp_type_arguments)
-              end
-          end
+      PP.annotate [%here] begin
+        PP.(surround parens) begin
+          PP.separate_horizontally ~separator:PP.space (pp_constructor :: pp_type_arguments)
+        end
       end
+    end
 
   and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.document GC.t =
     let* pp_nexpr =
       GC.pp_annotate [%here] @@ Numeric.Expression.pp nexpr
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application
-              (Identifier.pp @@ Ast.Identifier.mk "ty.bvec")
-              [ PP.(surround parens) pp_nexpr ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (Identifier.pp @@ Ast.Identifier.mk "ty.bvec")
+          [ PP.(surround parens) pp_nexpr ]
       end
+    end
 
   and pp_enum (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag =
       Identifier.reified_enum_name identifier
     in
     GC.return begin
-        PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.to_string tag
-          end
+      PP.annotate [%here] begin
+        PP.string @@ Printf.sprintf "ty.enum %s" @@ Ast.Identifier.to_string tag
       end
+    end
 
   and pp_record (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag =
       Identifier.reified_record_name identifier
     in
     GC.return begin
-        PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.to_string tag
-          end
+      PP.annotate [%here] begin
+        PP.string @@ Printf.sprintf "ty.record %s" @@ Ast.Identifier.to_string tag
       end
+    end
 
   and pp_variant (identifier : Ast.Identifier.t) : PP.document GC.t =
     let tag =
       Identifier.reified_variant_name identifier
     in
     GC.return begin
-        PP.annotate [%here] begin
-            PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.to_string tag
-          end
+      PP.annotate [%here] begin
+        PP.string @@ Printf.sprintf "ty.union %s" @@ Ast.Identifier.to_string tag
       end
+    end
 
   and pp_product
       (t1 : Ast.Type.t)
@@ -101,13 +101,13 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       GC.pp_annotate [%here] @@ pp_nanotype t2
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application (PP.string "ty.prod") [
-                PP.(surround parens) t1';
-                PP.(surround parens) t2';
-              ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application (PP.string "ty.prod") [
+          PP.(surround parens) t1';
+          PP.(surround parens) t2';
+        ]
       end
+    end
 
   and pp_alias id _typ =
     GC.return @@ PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
@@ -117,22 +117,22 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
 
   in
   match typ with
-   | Unit                             -> GC.pp_annotate [%here] @@ ty "unit"
-   | Bool                             -> GC.pp_annotate [%here] @@ ty "bool"
-   | Int                              -> GC.pp_annotate [%here] @@ ty "int"
-   | String                           -> GC.pp_annotate [%here] @@ ty "string"
-   | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
-   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
-   | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
-   | Product (t1, t2)                 -> GC.pp_annotate [%here] @@ pp_product t1 t2
-   | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
-   | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
-   | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ
-   | Tuple ts                         -> GC.pp_annotate [%here] @@ pp_tuple ts
-   | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
-   | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
-   | Sum (_, _)                       -> GC.not_yet_implemented [%here]
-   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
+  | Unit                             -> GC.pp_annotate [%here] @@ ty "unit"
+  | Bool                             -> GC.pp_annotate [%here] @@ ty "bool"
+  | Int                              -> GC.pp_annotate [%here] @@ ty "int"
+  | String                           -> GC.pp_annotate [%here] @@ ty "string"
+  | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
+  | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
+  | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
+  | Product (t1, t2)                 -> GC.pp_annotate [%here] @@ pp_product t1 t2
+  | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
+  | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
+  | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ
+  | Tuple ts                         -> GC.pp_annotate [%here] @@ pp_tuple ts
+  | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
+  | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
+  | Sum (_, _)                       -> GC.not_yet_implemented [%here]
+  | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
 
 
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
@@ -141,24 +141,24 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
       GC.pp_annotate [%here] @@ Numeric.Expression.pp n
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "bv")
-              [ n' ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "bv")
+          [ n' ]
       end
+    end
 
   and coq_type_of_list_type t =
     let* t' =
       GC.pp_annotate [%here] @@ coq_type_of_nanotype t
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "list")
-              [ PP.(surround parens) t' ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "list")
+          [ PP.(surround parens) t' ]
       end
+    end
 
   and coq_type_of_application t ts =
     let* t   = GC.pp_annotate [%here] @@ coq_type_of_nanotype t

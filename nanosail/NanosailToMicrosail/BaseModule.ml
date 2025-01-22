@@ -177,7 +177,11 @@ let pp_denote_function
     in
     Coq.pp_match ~scope matched_expression cases
   in
-  GC.return @@ PP.annotate [%here] ~label:"pp_denote_function" @@ Coq.pp_definition ~identifier ~parameters ~result_type body
+  GC.return begin
+    PP.annotate [%here] ~label:"pp_denote_function" begin
+      Coq.pp_definition ~identifier ~parameters ~result_type body
+    end
+  end
 
 
 (*
@@ -216,8 +220,8 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.doc
     and function_identifier  = PP.annotate [%here] @@ PP.string "enum_denote"
     in
     GC.block begin
-        pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
-      end
+      pp_denote_function ~denotations ~parameter_identifier ~tag_type_identifier ~function_identifier ()
+    end
   end
 
 
@@ -476,8 +480,8 @@ let pp_eqdec_and_finite_instances () : PP.document GC.t =
 
 (* Helper function for pp_union_fold and pp_union_unfold *)
 let pp_match_variant_constructors
-    ~(matched_identifier  : Ast.Identifier.t                  )
-    ~(variant_definitions : Ast.Definition.Type.Variant.t list)
+    ~(matched_identifier       : Ast.Identifier.t                                                      )
+    ~(variant_definitions      : Ast.Definition.Type.Variant.t list                                    )
     ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) GC.t) : PP.document GC.t
   =
   genblock [%here] "pp_match_variant_constructors" begin
@@ -1051,7 +1055,7 @@ let pp_memory_model () : PP.document GC.t =
         end
     in
     GC.return @@ Coq.pp_section identifier content
-    end
+  end
 
 
 (*

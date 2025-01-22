@@ -244,7 +244,11 @@ let generate_unique_int : int t =
   return index
 
 
-let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Identifier.t t =
+let generate_unique_identifier
+    ?(prefix     : string = ""   )
+    ?(underscore : bool   = false)
+    (_           : unit          ) : Ast.Identifier.t t
+  =
   let* index = generate_unique_int
   in
   let result = Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Printf.sprintf "%s%d" prefix index
@@ -254,7 +258,11 @@ let generate_unique_identifier ?(prefix = "") ?(underscore = false) () : Ast.Ide
   else return result
 
 
-let rec generate_unique_identifiers ?(prefix = "") ?(underscore = false) (count : int) : Ast.Identifier.t list t =
+let rec generate_unique_identifiers
+    ?(prefix     : string = "" )
+    ?(underscore : bool = false)
+    (count       : int         ) : Ast.Identifier.t list t
+  =
   if
     Int.equal 0 count
   then
