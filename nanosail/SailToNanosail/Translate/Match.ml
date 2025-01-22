@@ -1028,12 +1028,12 @@ let translate_tuple_match
         let* tuple_match_statement =
           let match_pattern =
             Ast.Statement.MatchProduct {
-              matched = matched_identifier;
-              type_fst;
-              type_snd;
-              id_fst;
-              id_snd;
-              body = fst_match;
+              matched   = matched_identifier;
+              type_fst                      ;
+              type_snd                      ;
+              id_fst                        ;
+              id_snd                        ;
+              body     = fst_match          ;
             }
           in
           TC.return @@ Ast.Statement.Match match_pattern
