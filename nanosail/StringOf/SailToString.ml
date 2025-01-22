@@ -1,3 +1,7 @@
+(*
+   Convenience module. Groups all sail_value_to_string functionality in one place.
+*)
+
 open Base
 
 
@@ -110,10 +114,11 @@ let location (location : Libsail.Parse_ast.l) =
 
 
 let definition
-      ?(buffer_initial_size = 1000)
-      ?(line_width = 160)
-      ?(ribbon_width = 1.0)
-      sail_definition =
+    ?(buffer_initial_size : int   = 1000                )
+    ?(line_width          : int   = 160                 )
+    ?(ribbon_width        : float = 1.0                 )
+    (sail_definition      : Libsail.Type_check.typed_def) : string
+  =
   let buffer = Buffer.create buffer_initial_size
   in
   let document = Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
