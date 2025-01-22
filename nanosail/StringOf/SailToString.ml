@@ -25,14 +25,14 @@ let index_range  = Libsail.Ast_util.string_of_index_range
 
 let aval (aval : 'a Libsail.Anf.aval) =
   match aval with
-  | Libsail.Anf.AV_lit (x, _)      -> Printf.sprintf "AV_lit(%s)" (lit x)
-  | Libsail.Anf.AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (id x)
-  | Libsail.Anf.AV_ref (_, _)      -> Printf.sprintf "AV_ref(_,_)"
-  | Libsail.Anf.AV_tuple _         -> Printf.sprintf "AV_tuple(_)"
-  | Libsail.Anf.AV_list (_, _)     -> Printf.sprintf "AV_list(_, _)"
-  | Libsail.Anf.AV_vector (_, _)   -> Printf.sprintf "AV_vector(_, _)"
-  | Libsail.Anf.AV_record (_, _)   -> Printf.sprintf "AV_record(_, _)"
-  | Libsail.Anf.AV_cval (_, _)     -> Printf.sprintf "AV_cval(_, _)"
+  | AV_lit (x, _)      -> Printf.sprintf "AV_lit(%s)" (lit x)
+  | AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (id x)
+  | AV_ref (_, _)      -> Printf.sprintf "AV_ref(_,_)"
+  | AV_tuple _         -> Printf.sprintf "AV_tuple(_)"
+  | AV_list (_, _)     -> Printf.sprintf "AV_list(_, _)"
+  | AV_vector (_, _)   -> Printf.sprintf "AV_vector(_, _)"
+  | AV_record (_, _)   -> Printf.sprintf "AV_record(_, _)"
+  | AV_cval (_, _)     -> Printf.sprintf "AV_cval(_, _)"
 
 
 let list ~(f:'a -> string) (xs : 'a list) =
@@ -41,49 +41,49 @@ let list ~(f:'a -> string) (xs : 'a list) =
 
 let alexp (location_expression : 'a Libsail.Anf.alexp) =
   match location_expression with
-  | Libsail.Anf.AL_id (_, _)    -> Printf.sprintf "AL_id (_, _)"
-  | Libsail.Anf.AL_addr (_, _)  -> Printf.sprintf "AL_addr (_, _)"
-  | Libsail.Anf.AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
+  | AL_id (_, _)    -> Printf.sprintf "AL_id (_, _)"
+  | AL_addr (_, _)  -> Printf.sprintf "AL_addr (_, _)"
+  | AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
 
 
 let rec apat (pattern : 'a Libsail.Anf.apat) =
   let AP_aux (pattern, _env, _location) = pattern
   in
   match pattern with
-  | Libsail.Anf.AP_app (identifier, subpattern, _) -> begin
+  | AP_app (identifier, subpattern, _) -> begin
       Printf.sprintf "AP_app (%s, %s, _)" (id identifier) (apat subpattern)
     end
-  | Libsail.Anf.AP_tuple _       -> Printf.sprintf "AP_tuple _"
-  | Libsail.Anf.AP_id (_, _)     -> Printf.sprintf "AP_id (_, _)"
-  | Libsail.Anf.AP_global (_, _) -> Printf.sprintf "AP_global (_, _)"
-  | Libsail.Anf.AP_cons (_, _)   -> Printf.sprintf "AP_cons (_, _)"
-  | Libsail.Anf.AP_as (_, _, _)  -> Printf.sprintf "AP_as (_, _, _)"
-  | Libsail.Anf.AP_struct (_, _) -> Printf.sprintf "AP_struct (_, _)"
-  | Libsail.Anf.AP_nil _         -> Printf.sprintf "AP_nil _"
-  | Libsail.Anf.AP_wild _        -> Printf.sprintf "AP_wild _"
+  | AP_tuple _       -> Printf.sprintf "AP_tuple _"
+  | AP_id (_, _)     -> Printf.sprintf "AP_id (_, _)"
+  | AP_global (_, _) -> Printf.sprintf "AP_global (_, _)"
+  | AP_cons (_, _)   -> Printf.sprintf "AP_cons (_, _)"
+  | AP_as (_, _, _)  -> Printf.sprintf "AP_as (_, _, _)"
+  | AP_struct (_, _) -> Printf.sprintf "AP_struct (_, _)"
+  | AP_nil _         -> Printf.sprintf "AP_nil _"
+  | AP_wild _        -> Printf.sprintf "AP_wild _"
 
 
 let rec aexp (expression : 'a Libsail.Anf.aexp) =
   let AE_aux (expression, _annotation) = expression
   in
   match expression with
-  | Libsail.Anf.AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)
-  | Libsail.Anf.AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id identifier) (list ~f:aval values)
-  | Libsail.Anf.AE_typ (expression, _)         -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
-  | Libsail.Anf.AE_assign (_, _)               -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
-  | Libsail.Anf.AE_let (_, _, _, _, _, _)      -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
-  | Libsail.Anf.AE_block (_, _, _)             -> Printf.sprintf "AE_block (_, _, _)"
-  | Libsail.Anf.AE_return (_, _)               -> Printf.sprintf "AE_return (_, _)"
-  | Libsail.Anf.AE_exit (_, _)                 -> Printf.sprintf "AE_exit (_, _)"
-  | Libsail.Anf.AE_throw (_, _)                -> Printf.sprintf "AE_throw (_, _)"
-  | Libsail.Anf.AE_if (_, _, _, _)             -> Printf.sprintf "AE_if (_, _, _, _)"
-  | Libsail.Anf.AE_field (_, _, _)             -> Printf.sprintf "AE_field (_, _, _)"
-  | Libsail.Anf.AE_match (_, _, _)             -> Printf.sprintf "AE_match (_, _, _)"
-  | Libsail.Anf.AE_try (_, _, _)               -> Printf.sprintf "AE_try (_, _, _)"
-  | Libsail.Anf.AE_struct_update (_, _, _)     -> Printf.sprintf "AE_struct_update (_, _, _)"
-  | Libsail.Anf.AE_for (_, _, _, _, _, _)      -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
-  | Libsail.Anf.AE_loop (_, _, _)              -> Printf.sprintf "AE_loop (_, _, _)"
-  | Libsail.Anf.AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
+  | AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)
+  | AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id identifier) (list ~f:aval values)
+  | AE_typ (expression, _)         -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
+  | AE_assign (_, _)               -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
+  | AE_let (_, _, _, _, _, _)      -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
+  | AE_block (_, _, _)             -> Printf.sprintf "AE_block (_, _, _)"
+  | AE_return (_, _)               -> Printf.sprintf "AE_return (_, _)"
+  | AE_exit (_, _)                 -> Printf.sprintf "AE_exit (_, _)"
+  | AE_throw (_, _)                -> Printf.sprintf "AE_throw (_, _)"
+  | AE_if (_, _, _, _)             -> Printf.sprintf "AE_if (_, _, _, _)"
+  | AE_field (_, _, _)             -> Printf.sprintf "AE_field (_, _, _)"
+  | AE_match (_, _, _)             -> Printf.sprintf "AE_match (_, _, _)"
+  | AE_try (_, _, _)               -> Printf.sprintf "AE_try (_, _, _)"
+  | AE_struct_update (_, _, _)     -> Printf.sprintf "AE_struct_update (_, _, _)"
+  | AE_for (_, _, _, _, _, _)      -> Printf.sprintf "AE_for (_, _, _, _, _, _)"
+  | AE_loop (_, _, _)              -> Printf.sprintf "AE_loop (_, _, _)"
+  | AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
 
 
 let pat (pattern : Libsail.Type_check.tannot Libsail.Ast.pat) : string =
