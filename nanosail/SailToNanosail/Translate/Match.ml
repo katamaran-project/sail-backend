@@ -186,7 +186,7 @@ let rec translate_pattern
     | Unequal_lengths -> TC.fail [%here] "expected as many types as patterns in tuple"
 
   in
-  let translate_for_atomic_type () =
+  let translate_pattern_for_atomic_type () =
     match unwrapped_sail_pattern with
     | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
     | AP_wild _sail_type                  -> translate_wildcard_pattern ()
@@ -293,16 +293,16 @@ let rec translate_pattern
       | _                                   -> unexpected_pattern [%here]
     end
     
-  | Int                -> translate_for_atomic_type ()
-  | Bool               -> translate_for_atomic_type ()
-  | String             -> translate_for_atomic_type ()
-  | Bit                -> translate_for_atomic_type ()
-  | Sum (_, _)         -> translate_for_atomic_type ()
-  | Bitvector _        -> translate_for_atomic_type ()
-  | Record _           -> translate_for_atomic_type ()
-  | Application (_, _) -> translate_for_atomic_type ()
-  | Alias (_, _)       -> translate_for_atomic_type ()
-  | Range (_, _)       -> translate_for_atomic_type ()
+  | Int                -> translate_pattern_for_atomic_type ()
+  | Bool               -> translate_pattern_for_atomic_type ()
+  | String             -> translate_pattern_for_atomic_type ()
+  | Bit                -> translate_pattern_for_atomic_type ()
+  | Sum (_, _)         -> translate_pattern_for_atomic_type ()
+  | Bitvector _        -> translate_pattern_for_atomic_type ()
+  | Record _           -> translate_pattern_for_atomic_type ()
+  | Application (_, _) -> translate_pattern_for_atomic_type ()
+  | Alias (_, _)       -> translate_pattern_for_atomic_type ()
+  | Range (_, _)       -> translate_pattern_for_atomic_type ()
 
 
 let translate_case
