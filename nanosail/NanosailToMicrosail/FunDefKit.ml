@@ -22,7 +22,7 @@ let pp_function_definition
           lazy begin
             Printf.sprintf
               "Generating code for function %s"
-              (StringOf.Nanosail.identifier function_definition.function_name)
+              (Ast.Identifier.to_string function_definition.function_name)
           end
         end
       in
