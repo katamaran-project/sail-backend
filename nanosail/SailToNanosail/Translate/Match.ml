@@ -128,11 +128,12 @@ let consistent_binders
     (pattern_2 : Pattern.t) : bool
   =
   match pattern_1 with
-   | ListCons (_, _) -> false
-   | ListNil -> false
-   | Tuple _ -> false
-   | EnumCase _ -> false
+   | ListCons (_, _)    -> false
+   | ListNil            -> false
+   | Tuple _            -> false
+   | EnumCase _         -> false
    | VariantCase (_, _) -> false
+   | Unit               -> false (* todo might need more nuanced logic *)
    | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
        match pattern_2 with
        | Binder { identifier = identifier_2; wildcard = wildcard_2 } -> begin
@@ -140,7 +141,6 @@ let consistent_binders
          end
        | _ -> false
      end
-   | Unit -> false (* todo might need more nuanced logic *)
 
 
 (*
