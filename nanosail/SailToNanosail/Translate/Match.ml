@@ -896,20 +896,20 @@ module TupleMatching = struct
         in 
         match head with
         | Enum enum_identifier -> build_enum_node enum_identifier tail
-        | Int                -> TC.not_yet_implemented [%here] location
-        | Bool               -> TC.not_yet_implemented [%here] location
-        | String             -> TC.not_yet_implemented [%here] location
-        | Bit                -> TC.not_yet_implemented [%here] location
-        | List _             -> TC.not_yet_implemented [%here] location
-        | Sum (_, _)         -> TC.not_yet_implemented [%here] location
-        | Unit               -> TC.not_yet_implemented [%here] location
-        | Bitvector _        -> TC.not_yet_implemented [%here] location
-        | Tuple _            -> TC.not_yet_implemented [%here] location
-        | Variant _          -> TC.not_yet_implemented [%here] location
-        | Record _           -> TC.not_yet_implemented [%here] location
-        | Application (_, _) -> TC.not_yet_implemented [%here] location
-        | Alias (_, _)       -> TC.not_yet_implemented [%here] location
-        | Range (_, _)       -> TC.not_yet_implemented [%here] location
+        | Int                  -> TC.not_yet_implemented [%here] location
+        | Bool                 -> TC.not_yet_implemented [%here] location
+        | String               -> TC.not_yet_implemented [%here] location
+        | Bit                  -> TC.not_yet_implemented [%here] location
+        | List _               -> TC.not_yet_implemented [%here] location
+        | Sum (_, _)           -> TC.not_yet_implemented [%here] location
+        | Unit                 -> TC.not_yet_implemented [%here] location
+        | Bitvector _          -> TC.not_yet_implemented [%here] location
+        | Tuple _              -> TC.not_yet_implemented [%here] location
+        | Variant _            -> TC.not_yet_implemented [%here] location
+        | Record _             -> TC.not_yet_implemented [%here] location
+        | Application (_, _)   -> TC.not_yet_implemented [%here] location
+        | Alias (_, _)         -> TC.not_yet_implemented [%here] location
+        | Range (_, _)         -> TC.not_yet_implemented [%here] location
       end
 
 
