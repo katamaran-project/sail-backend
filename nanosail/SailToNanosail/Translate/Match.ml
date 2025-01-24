@@ -1276,8 +1276,8 @@ let translate_tuple_match
   in
   TC.try_multiple [
     translate_using_chains;
-    (* translate_tuple_of_binders; *)
-    (* translate_pair_of_variants; *)
+    translate_tuple_of_binders;
+    translate_pair_of_variants;
   ]
 
 
