@@ -90,7 +90,7 @@ let test_build_chain_enum_1 =
     ignore @@ run_tc tc
 
   in
-  "building chain for (enum)" >:: test
+  "building chain for (enum[A1,A2])" >:: test
 
 
 let test_chain_building_suite =
