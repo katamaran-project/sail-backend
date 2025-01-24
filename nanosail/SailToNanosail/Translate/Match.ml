@@ -1217,7 +1217,7 @@ let translate_tuple_match
         in
         TC.return tuple_match_statement
       end
- | _ -> TC.not_yet_implemented [%here] location
+    | _ -> TC.not_yet_implemented [%here] location
 
   in
   TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ]
