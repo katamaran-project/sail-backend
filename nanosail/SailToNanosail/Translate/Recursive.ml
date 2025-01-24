@@ -179,9 +179,7 @@ end = struct
       and nanotype_of_tuple (items : Libsail.Ast.typ list) : Ast.Type.t TC.t =
         let* items' = TC.map ~f:nanotype_of_sail_type items
         in
-        match items' with
-        | [ t1; t2 ] -> TC.return @@ Ast.Type.Product (t1, t2) (* represent pairs using products *)
-        | _          -> TC.return @@ Ast.Type.Tuple items'
+        TC.return @@ Ast.Type.Tuple items'
 
       in
       match unwrapped_type with

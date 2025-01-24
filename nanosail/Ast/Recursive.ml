@@ -152,7 +152,6 @@ module rec Type : sig
     | String
     | Bit
     | List        of t
-    | Product     of t * t
     | Sum         of t * t
     | Unit
     | Enum        of Identifier.t
@@ -174,7 +173,6 @@ end = struct
     | String
     | Bit
     | List        of t
-    | Product     of t * t
     | Sum         of t * t
     | Unit
     | Enum        of Identifier.t
@@ -193,7 +191,6 @@ end = struct
     | String           -> "Type.String"
     | List _           -> "Type.List"
     | Bit              -> "Type.Bit"
-    | Product (t1, t2) -> Printf.sprintf "(%s * %s)" (to_string t1) (to_string t2)
     | Sum (t1, t2)     -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
     | Unit             -> "Type.Unit"
     | Bitvector numexp -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
@@ -226,7 +223,6 @@ end = struct
     | Bit                -> FExpr.mk_symbol @@ prefix "Bit"
     | Unit               -> FExpr.mk_symbol @@ prefix "Unit"
     | List t             -> FExpr.mk_application ~positional:[to_fexpr t]                         @@ prefix "List"
-    | Product (t1, t2)   -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]           @@ prefix "Product"
     | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]           @@ prefix "Sum"
     | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Enum"
     | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
@@ -284,12 +280,6 @@ end = struct
         match t2 with
         | List x' -> equal x x'
         | _       -> false
-      end
-      
-    | Product (x, y) -> begin
-        match t2 with
-        | Product (x', y') -> equal x x' && equal y y'
-        | _                -> false
       end
       
     | Sum (x, y) -> begin

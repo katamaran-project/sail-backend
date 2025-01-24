@@ -31,7 +31,6 @@ module Subst = struct
       | Record id               -> Record id
       | Enum id                 -> Enum id
       | Variant id              -> Variant id
-      | Product (t1, t2)        -> Product (aux t1, aux t2)
       | Sum (t1, t2)            -> Sum (aux t1, aux t2)
       | Alias (id, t)           -> Alias (id, t)
       | Range (a, b)            -> Range (numeric_expression subst a, numeric_expression subst b)

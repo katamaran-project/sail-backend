@@ -31,7 +31,6 @@ let translate_variant
       let field_nanotypes =
         match typ' with
         | Tuple ts         -> ts
-        | Product (t1, t2) -> [t1; t2]
         | Unit             -> []
         | _                -> [ typ' ]
       in

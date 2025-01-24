@@ -215,7 +215,6 @@ let rec expression_of_aval
           match translation_types with
           | []       -> TC.fail [%here] "should not occur"
           | [_]      -> TC.fail [%here] "should not occur"
-          | [t1; t2] -> TC.return @@ Ast.Type.Product (t1, t2)
           | _        -> TC.return @@ Ast.Type.Tuple translation_types
         in                
         TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
@@ -594,7 +593,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             in
             let* type_fst, type_snd =
               match matched_type with
-              | Product (type_fst, type_snd) -> TC.return (type_fst, type_snd)
               | Tuple [type_fst; type_snd]   -> TC.return (type_fst, type_snd)
               | _                            -> TC.fail [%here] "expected product or 2-tuple type"
             and* matched_variable =
@@ -607,7 +605,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               wrap_in_named_statements_context named_statements begin
                 Ast.Statement.Let {
                   variable_identifier = matched_variable;
-                  binding_statement_type = Ast.Type.Product (type_fst, type_snd);
+                  binding_statement_type = Ast.Type.Tuple [type_fst; type_snd];
                   binding_statement = matched;
                   body_statement = Ast.Statement.Match match_pattern;
                 }

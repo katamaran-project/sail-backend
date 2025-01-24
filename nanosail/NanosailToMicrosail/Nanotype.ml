@@ -8,16 +8,41 @@ end
 
 
 let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
-  let pp_tuple elts =
-    let* pp_elts = GC.map ~f:pp_nanotype elts
-    in
-    GC.return begin
-      PP.annotate [%here] begin
-        Coq.pp_application
-          (PP.string "ty.tuple")
-          [ Coq.pp_list pp_elts ]
+  (* Tuple of two elements get represented as products *)
+  let pp_tuple (subtypes : Ast.Type.t list) =
+    let pp_product
+        (t1 : Ast.Type.t)
+        (t2 : Ast.Type.t) : PP.document GC.t
+      =
+      let* t1' =
+        GC.pp_annotate [%here] @@ pp_nanotype t1
+      and* t2' =
+        GC.pp_annotate [%here] @@ pp_nanotype t2
+      in
+      GC.return begin
+        PP.annotate [%here] begin
+          Coq.pp_application (PP.string "ty.prod") [
+            PP.(surround parens) t1';
+            PP.(surround parens) t2';
+          ]
+        end
       end
-    end
+    in    
+    match subtypes with
+    | []       -> GC.fail [%here] "should not occur"
+    | [_]      -> GC.fail [%here] "should not occur"
+    | [t1; t2] -> pp_product t1 t2
+    | _        -> begin
+        let* pp_elts = GC.map ~f:pp_nanotype subtypes
+        in
+        GC.return begin
+          PP.annotate [%here] begin
+            Coq.pp_application
+              (PP.string "ty.tuple")
+              [ Coq.pp_list pp_elts ]
+          end
+        end
+      end
 
   and pp_list element_type =
     let* pp_element_type = pp_nanotype element_type
@@ -91,24 +116,6 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       end
     end
 
-  and pp_product
-      (t1 : Ast.Type.t)
-      (t2 : Ast.Type.t) : PP.document GC.t
-    =
-    let* t1' =
-      GC.pp_annotate [%here] @@ pp_nanotype t1
-    and* t2' =
-      GC.pp_annotate [%here] @@ pp_nanotype t2
-    in
-    GC.return begin
-      PP.annotate [%here] begin
-        Coq.pp_application (PP.string "ty.prod") [
-          PP.(surround parens) t1';
-          PP.(surround parens) t2';
-        ]
-      end
-    end
-
   and pp_alias id _typ =
     GC.return @@ PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "ty." id
 
@@ -124,7 +131,6 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
   | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
-  | Product (t1, t2)                 -> GC.pp_annotate [%here] @@ pp_product t1 t2
   | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
   | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
   | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ
@@ -173,13 +179,13 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   and coq_type_of_tuple ts =
     let* ts' = GC.map ~f:coq_type_of_nanotype ts
     in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
+    match ts' with
+    | []       -> GC.fail [%here] "should not occur"
+    | [_]      -> GC.fail [%here] "should not occur"
+    | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
+    | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
 
-  and coq_type_of_product t1 t2 =
-    let* t1' = GC.pp_annotate [%here] @@ coq_type_of_nanotype t1
-    and* t2' = GC.pp_annotate [%here] @@ coq_type_of_nanotype t2
-    in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1'; t2' ]
+  
 
   in
   match nanotype with
@@ -195,7 +201,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | List t              -> GC.pp_annotate [%here] @@ coq_type_of_list_type t
   | Application (t, ts) -> GC.pp_annotate [%here] @@ coq_type_of_application t ts
   | Tuple ts            -> GC.pp_annotate [%here] @@ coq_type_of_tuple ts
-  | Product (t1, t2)    -> GC.pp_annotate [%here] @@ coq_type_of_product t1 t2
   | Bit                 -> GC.not_yet_implemented [%here]
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
   | Range (_, _)        -> GC.not_yet_implemented [%here]

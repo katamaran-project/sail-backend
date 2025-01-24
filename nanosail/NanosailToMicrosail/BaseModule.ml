@@ -415,7 +415,6 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                     match constructor_field_types with
                     | []     -> Ast.Type.Unit
                     | [x]    -> x
-                    | [x; y] -> Ast.Type.Product (x, y)
                     | xs     -> Ast.Type.Tuple xs
                   in
                   GC.pp_annotate [%here] @@ Nanotype.pp_nanotype packed_type

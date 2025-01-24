@@ -243,18 +243,6 @@ let rec translate_pattern
       | _                                   -> unexpected_pattern [%here]
     end
     
-  | Product (left_subtype, right_subtype) -> begin
-      match unwrapped_sail_pattern with
-      | AP_tuple sail_subpatterns -> begin
-          match sail_subpatterns with
-          | [ sail_left_subpattern; sail_right_subpattern ] -> translate_tuple_pattern [sail_left_subpattern; sail_right_subpattern] [left_subtype; right_subtype]
-          | _                                               -> unexpected_pattern [%here]
-        end
-      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
-      | AP_wild _type                       -> translate_wildcard_pattern ()
-      | _                                   -> unexpected_pattern [%here]
-    end
-    
   | Variant variant_identifier -> begin
       match unwrapped_sail_pattern with
       | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
@@ -913,7 +901,6 @@ module TupleMatching = struct
         | String             -> TC.not_yet_implemented [%here] location
         | Bit                -> TC.not_yet_implemented [%here] location
         | List _             -> TC.not_yet_implemented [%here] location
-        | Product (_, _)     -> TC.not_yet_implemented [%here] location
         | Sum (_, _)         -> TC.not_yet_implemented [%here] location
         | Unit               -> TC.not_yet_implemented [%here] location
         | Bitvector _        -> TC.not_yet_implemented [%here] location
@@ -1299,7 +1286,6 @@ let translate
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases
   | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases
   | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases
-  | Product (fst_type, snd_type) -> translate_tuple_match location matched_identifier [ fst_type; snd_type ] translated_cases
   | Int                          -> TC.not_yet_implemented [%here] location
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location
