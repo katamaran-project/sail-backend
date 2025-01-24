@@ -984,6 +984,80 @@ module TupleMatching = struct
           end
         | _::_ -> invalid_number_of_subpatterns [%here]
       end
+
+
+  let rec build_match_statement
+      (tuple_elements : Ast.Identifier.t list)
+      (pattern_chain  : PatternNode.t   ) : Ast.Statement.t TC.t
+    =
+    let invalid_number_of_tuple_elements (location : Lexing.position) =
+      TC.fail location "invalid number of tuple elements"
+    in
+    match pattern_chain with
+    | Enum { enum_identifier; table } -> begin
+        match tuple_elements with
+        | [] -> invalid_number_of_tuple_elements [%here]
+        | first_tuple_element :: remaining_tuple_elements -> begin
+            let* cases : Ast.Statement.t Ast.Identifier.Map.t =
+              let table_pairs =
+                Ast.Identifier.Map.to_alist table
+              in
+              let* updated_pairs =
+                TC.map
+                  ~f:(fun (id, node) -> let* node' = build_match_statement remaining_tuple_elements node in TC.return (id, node'))
+                  table_pairs
+              in
+              TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
+            in
+            TC.return begin
+              Ast.Statement.Match begin
+                Ast.Statement.MatchEnum {
+                  matched      = first_tuple_element;
+                  matched_type = enum_identifier;
+                  cases;
+                }
+              end
+            end
+          end
+      end
+      
+    | Terminal statement -> begin
+        match tuple_elements with
+        | [] -> begin
+            match statement with
+            | None           -> TC.return @@ Ast.Statement.Fail "incomplete matching"
+            | Some statement -> TC.return @@ statement
+          end
+        | _::_ -> invalid_number_of_tuple_elements [%here]
+      end
+
+
+  let create_tuple_match
+      (matched       : Ast.Identifier.t                             )
+      (element_types : Ast.Type.t list                              )
+      (body_builder  : Ast.Identifier.t list -> Ast.Statement.t TC.t) : Ast.Statement.t TC.t
+    =
+    let tuple_size =
+      List.length element_types
+    in
+    let* binder_identifiers =
+      TC.generate_unique_identifiers tuple_size
+    in
+    let* body =
+      body_builder binder_identifiers
+    in
+    let binders =
+      List.zip_exn binder_identifiers element_types
+    in
+    TC.return begin
+      Ast.Statement.Match begin
+        Ast.Statement.MatchTuple {
+          matched;
+          binders;
+          body
+        }
+      end
+    end
 end
 
   
@@ -1038,7 +1112,7 @@ let translate_tuple_match
                 let match_pattern =
                   Ast.Statement.MatchTuple {
                     matched = matched_identifier;
-                    elements = binder_type_pairs;
+                    binders = binder_type_pairs;
                     body
                   }
                 in
