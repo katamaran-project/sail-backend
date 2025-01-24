@@ -196,7 +196,16 @@ let test_chain_building_suite =
   ]
 
 
+let test_categorizing_suite =
+  "chain building test suite" >::: [
+    test_build_chain_enum_1;
+    test_build_chain_enum_2;
+    test_build_chain_enum_3;
+  ]
+
+
 let test_suite =
   "tuple pattern matching test suite" >::: [
-    test_chain_building_suite
+    test_chain_building_suite;
+    test_categorizing_suite;
   ]
