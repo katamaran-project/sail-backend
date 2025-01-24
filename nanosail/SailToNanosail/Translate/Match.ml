@@ -855,6 +855,28 @@ module TupleMatching = struct
     type t =
       | Enum     of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t }
       | Terminal of Ast.Statement.t option
+
+    let rec equal
+        (node_1 : t)
+        (node_2 : t) : bool
+      =
+      match node_1 with
+      | Enum { enum_identifier = enum_identifier_1; table = table_1 } -> begin
+          match node_2 with
+          | Enum { enum_identifier = enum_identifier_2; table = table_2 } -> begin
+              Ast.Identifier.equal enum_identifier_1 enum_identifier_2 && Ast.Identifier.Map.equal equal table_1 table_2
+            end
+          | _ -> false
+        end
+        
+      | Terminal statement_1 -> begin
+          match node_2 with
+          | Terminal statement_2 -> begin
+              Option.equal Ast.Statement.equal statement_1 statement_2
+            end
+          | _ -> false
+        end
+        
   end
 
 
