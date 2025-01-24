@@ -57,7 +57,7 @@ let run_tc (tc : 'a TC.t) : 'a =
 let build_tuple_pattern_chain = TM.build_tuple_pattern_chain dummy_location
 
 
-let test_build_chain_enum =
+let test_build_chain_enum_1 =
   let test _ =
     let tc =
       let* enum_type =
@@ -95,7 +95,7 @@ let test_build_chain_enum =
 
 let test_chain_building_suite =
   "chain building test suite" >::: [
-    test_build_chain_enum;
+    test_build_chain_enum_1;
   ]
 
 
