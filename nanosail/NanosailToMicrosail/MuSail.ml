@@ -29,27 +29,27 @@ module Operator = struct
       let unsigned_greater_than             = PP.string ">ᵘ"
       let unsigned_greater_than_or_equal_to = PP.string ">=ᵘ"
 
-      let addition = PP.string "+ᵇ"
-      let subtraction = PP.string "-ᵇ"
-      let equality = PP.string "="
-      let inequality = PP.string "!="
+      let addition                          = PP.string "+ᵇ"
+      let subtraction                       = PP.string "-ᵇ"
+      let equality                          = PP.string "="
+      let inequality                        = PP.string "!="
     end
 
-    let bit_equality = PP.string "="
+    let bit_equality                        = PP.string "="
 
-    let bool_equality = PP.string "="
-    let bool_inequality = PP.string "!="
+    let bool_equality                       = PP.string "="
+    let bool_inequality                     = PP.string "!="
   end
 
   module Name = struct
-    let bitvector_addition    = PP.string "bop.bvadd"
-    let bitvector_subtraction = PP.string "bop.bvsub"
-    let bitvector_conjunction = PP.string "bop.bvand"
-    let bitvector_disjunction = PP.string "bop.bvor"
-    let bitvector_xor         = PP.string "bop.bvxor"
+    let bitvector_addition                  = PP.string "bop.bvadd"
+    let bitvector_subtraction               = PP.string "bop.bvsub"
+    let bitvector_conjunction               = PP.string "bop.bvand"
+    let bitvector_disjunction               = PP.string "bop.bvor"
+    let bitvector_xor                       = PP.string "bop.bvxor"
 
-    let bool_equality         = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
-    let bool_inequality       = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
+    let bool_equality                       = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
+    let bool_inequality                     = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
   end
 end
 
