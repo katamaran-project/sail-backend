@@ -69,7 +69,6 @@ let test_build_chain_enum_1 =
       match chain with
       | Enum { enum_identifier; table } -> begin
           assert_equal ~cmp:Ast.Identifier.equal (mkid "A") enum_identifier;
-          assert_equal ~cmp:Int.equal 2 (Ast.Identifier.Map.length table);
           let expected_table : TM.PatternNode.t Ast.Identifier.Map.t =
             Ast.Identifier.Map.of_alist_exn [
               (
