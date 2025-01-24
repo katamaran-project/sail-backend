@@ -90,7 +90,7 @@ and pp_match_product
 
 and pp_match_tuple
     ~(matched  : Ast.Identifier.t                    )
-    ~(elements : (Ast.Identifier.t * Ast.Type.t) list)
+    ~(binders  : (Ast.Identifier.t * Ast.Type.t) list)
     ~(body     : Ast.Statement.t                     ) : PP.document GC.t
   =
   let* pp_matched =
@@ -104,14 +104,14 @@ and pp_match_tuple
   and* pp_body =
     GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
   in
-  let pp_elements : PP.document list =
-    List.map elements ~f:(fun (id, _) -> PP.(surround dquotes) (Identifier.pp id))
+  let pp_binders : PP.document list =
+    List.map binders ~f:(fun (id, _) -> PP.(surround dquotes) (Identifier.pp id))
   in
   GC.return begin
     PP.annotate [%here] begin
       MuSail.Statement.Match.pp_tuple
         ~matched_value:pp_matched
-        ~elements:pp_elements
+        ~binders:pp_binders
         ~body:pp_body
     end
   end
@@ -421,7 +421,7 @@ and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   | MatchBool { condition; when_true; when_false }    -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
   | MatchEnum { matched; matched_type; cases }        -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
   | MatchVariant { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_variant ~matched ~matched_type ~cases
-  | MatchTuple { matched; elements; body }            -> GC.pp_annotate [%here] @@ pp_match_tuple ~matched ~elements ~body
+  | MatchTuple { matched; binders; body }             -> GC.pp_annotate [%here] @@ pp_match_tuple ~matched ~binders ~body
 
 
 and pp_call

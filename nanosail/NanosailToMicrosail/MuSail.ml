@@ -418,7 +418,7 @@ module Statement = struct
 
     let pp_tuple
         ~(matched_value : PP.document     )
-        ~(elements      : PP.document list)
+        ~(binders       : PP.document list)
         ~(body          : PP.document     ) : PP.document
       =
       let binders =
@@ -432,7 +432,7 @@ module Statement = struct
                              elt
                            ]
         in
-        build_binder_list elements
+        build_binder_list binders
       in
       PP.annotate [%here] begin
           Coq.pp_hanging_application
@@ -443,7 +443,6 @@ module Statement = struct
               body;
             ]
         end
-
 
 
     let pp_record
