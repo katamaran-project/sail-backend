@@ -131,10 +131,68 @@ let test_build_chain_enum_2 =
   "building chain for (enum[A1,A2,A3])" >:: test
 
 
+let test_build_chain_enum_3 =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"]
+      in
+      let* chain =
+        build_tuple_pattern_chain [ enum_type; enum_type ]
+      in
+      let expected_chain =
+        TM.PatternNode.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "A1",
+                TM.PatternNode.Enum {
+                  enum_identifier = mkid "A";
+                  table = Ast.Identifier.Map.of_alist_exn [
+                      (
+                        mkid "A1",
+                        TM.PatternNode.Terminal None
+                      );
+                      (
+                        mkid "A2",
+                        TM.PatternNode.Terminal None
+                      );
+                    ]
+                }
+              );
+              (
+                mkid "A2",
+                TM.PatternNode.Enum {
+                  enum_identifier = mkid "A";
+                  table = Ast.Identifier.Map.of_alist_exn [
+                      (
+                        mkid "A1",
+                        TM.PatternNode.Terminal None
+                      );
+                      (
+                        mkid "A2",
+                        TM.PatternNode.Terminal None
+                      );
+                    ]
+                }
+              );
+            ]
+        }
+      in
+      assert_equal ~cmp:TM.PatternNode.equal expected_chain chain;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+
+  in
+  "building chain for (enum[A1,A2], enum[A1, A2])" >:: test
+
+
 let test_chain_building_suite =
   "chain building test suite" >::: [
     test_build_chain_enum_1;
     test_build_chain_enum_2;
+    test_build_chain_enum_3;
   ]
 
 
