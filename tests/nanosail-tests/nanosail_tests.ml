@@ -10,6 +10,7 @@ let tests =
     ConvertBitsToZTests.test_suite;
     NumericExpressionPrettyPrintingTests.test_suite;
     PatternTests.test_suite;
+    TuplePatternMatchingTests.test_suite;
   ]
 
 
