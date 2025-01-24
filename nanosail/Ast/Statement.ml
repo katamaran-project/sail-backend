@@ -53,6 +53,128 @@ and match_pattern =
                       cases        : (Identifier.t list * t) Identifier.Map.t }
 
 
+(* todo get rid of this exception once all equality rules have been implemented *)
+exception UnimplementedStatementEquality
+
+(* todo complete implementation; this partially implemented equality is used in tests *)
+let rec equal
+    (statement_1 : t)
+    (statement_2 : t)
+  =
+  match statement_1 with
+  | Match _ -> begin
+      match statement_2 with
+      | Match _ -> raise UnimplementedStatementEquality
+      | _ -> false
+    end
+    
+  | Expression _ -> begin
+      match statement_2 with
+      | Expression _ -> raise UnimplementedStatementEquality
+      | _ -> false
+    end
+    
+  | Call (_, _) -> begin
+      match statement_2 with
+      | Call (_, _) -> raise UnimplementedStatementEquality
+      | _ -> false
+    end
+    
+  | Let data_1 -> begin
+      match statement_2 with
+      | Let data_2 -> begin
+          Ast.Identifier.equal
+            data_1.variable_identifier
+            data_2.variable_identifier
+          &&
+          Ast.Type.equal
+            data_1.binding_statement_type
+            data_2.binding_statement_type
+          &&
+          equal
+            data_1.binding_statement
+            data_2.binding_statement
+          &&
+          equal
+            data_1.body_statement
+            data_2.body_statement
+        end
+      | _ -> false
+    end
+    
+  | DestructureRecord data_1 -> begin
+      match statement_2 with
+      | DestructureRecord data_2 -> begin
+          Ast.Identifier.equal
+            data_1.record_type_identifier
+            data_2.record_type_identifier
+          &&
+          List.equal Ast.Identifier.equal
+            data_1.field_identifiers
+            data_2.field_identifiers
+          &&
+          List.equal Ast.Identifier.equal
+            data_1.variable_identifiers
+            data_2.variable_identifiers
+          &&
+          equal
+            data_1.destructured_record
+            data_2.destructured_record
+          &&
+          equal
+            data_1.body
+            data_2.body
+        end
+      | _ -> false
+    end
+    
+  | Seq (left_1, right_1) -> begin
+      match statement_2 with
+      | Seq (left_2, right_2) -> equal left_1 left_2 && equal right_1 right_2
+      | _ -> false
+    end
+    
+  | ReadRegister register_identifier_1 -> begin
+      match statement_2 with
+      | ReadRegister register_identifier_2 -> Ast.Identifier.equal register_identifier_1 register_identifier_2
+      | _ -> false
+    end
+    
+  | WriteRegister data_1 -> begin
+      match statement_2 with
+      | WriteRegister data_2 -> begin
+          Ast.Identifier.equal
+            data_1.register_identifier
+            data_2.register_identifier
+          &&
+          Ast.Identifier.equal
+            data_1.written_value
+            data_2.written_value
+        end
+      | _ -> false
+    end
+    
+  | Cast (statement_1, type_1) -> begin
+      match statement_2 with
+      | Cast (statement_2, type_2) -> begin
+          equal
+            statement_1
+            statement_2
+          &&
+          Ast.Type.equal
+            type_1
+            type_2
+        end
+      | _ -> false
+    end
+    
+  | Fail message_1 -> begin
+      match statement_2 with
+      | Fail message_2 -> String.equal message_1 message_2
+      | _ -> false
+    end
+            
+
 let rec to_fexpr (statement : t) : FExpr.t =
   let match_pattern_to_fexpr (pattern : match_pattern) : FExpr.t =
     match pattern with
