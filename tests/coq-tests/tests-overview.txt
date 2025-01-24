@@ -69,7 +69,7 @@ PASS bool-return-false
 PASS bool-return-true
 PASS combination-001
 PASS enums-as-parameters
-FAIL enums-as-parameters-2
+PASS enums-as-parameters-2
 PASS enums-definition-1
 PASS enums-definition-2
 PASS enums-definition-3
@@ -152,10 +152,11 @@ PASS mapping-usage
 PASS match-bool
 PASS match-enum-binder
 PASS match-enum-incomplete
-PASS match-enum-literal
-FAIL match-enum-pair
+FAIL match-enum-literal
+PASS match-enum-pair
 PASS match-enum-single-case
 PASS match-enum-three-cases
+PASS match-enum-triple
 PASS match-enum-used-binder
 PASS match-enum-wildcard
 PASS match-list-literal
@@ -262,4 +263,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:236 FAIL:28
+PASS:238 FAIL:27
