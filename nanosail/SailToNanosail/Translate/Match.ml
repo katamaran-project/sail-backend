@@ -986,9 +986,9 @@ module TupleMatching = struct
       end
 
 
-  let rec build_match_statement
+  let rec build_leveled_match_statements
       (tuple_elements : Ast.Identifier.t list)
-      (pattern_chain  : PatternNode.t   ) : Ast.Statement.t TC.t
+      (pattern_chain  : PatternNode.t        ) : Ast.Statement.t TC.t
     =
     let invalid_number_of_tuple_elements (location : Lexing.position) =
       TC.fail location "invalid number of tuple elements"
@@ -1004,7 +1004,7 @@ module TupleMatching = struct
               in
               let* updated_pairs =
                 TC.map
-                  ~f:(fun (id, node) -> let* node' = build_match_statement remaining_tuple_elements node in TC.return (id, node'))
+                  ~f:(fun (id, node) -> let* node' = build_leveled_match_statements remaining_tuple_elements node in TC.return (id, node'))
                   table_pairs
               in
               TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
@@ -1070,6 +1070,35 @@ let translate_tuple_match
     (element_types      : Ast.Type.t list                   )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
+  let translate_using_chains : Ast.Statement.t TC.t =
+    let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
+      let* initial_chain =
+        TupleMatching.build_tuple_pattern_chain
+          location
+          element_types
+      in
+      let categorize
+          (chain     : TupleMatching.PatternNode.t)
+          (pattern   : Pattern.t                  )
+          (statement : Ast.Statement.t            ) : TupleMatching.PatternNode.t TC.t
+        =
+        match pattern with
+        | Tuple subpatterns -> TupleMatching.categorize_case location chain subpatterns statement false
+        | _                 -> TC.fail [%here] "expected tuple pattern"
+      in
+      let* final_chain =
+        TC.fold_left
+          ~init:initial_chain
+          ~f:(fun chain (pattern, statement) -> categorize chain pattern statement)
+          cases
+      in
+      TupleMatching.build_leveled_match_statements binder_identifiers final_chain
+    in
+    TupleMatching.create_tuple_match
+      matched_identifier
+      element_types
+      builder
+  
   (*
      This function deals with the special case of having a single match pattern that contains nothing but binders, i.e.,
 
@@ -1077,7 +1106,7 @@ let translate_tuple_match
          (X1, X2, ..., Xn) => ...
        }
   *)
-  let translate_tuple_of_binders : Ast.Statement.t TC.t =
+  and translate_tuple_of_binders : Ast.Statement.t TC.t =
     (* Keeps things lazy *)
     let* () = TC.return ()
     in
@@ -1220,7 +1249,11 @@ let translate_tuple_match
     | _ -> TC.not_yet_implemented [%here] location
 
   in
-  TC.try_multiple [ translate_tuple_of_binders; translate_pair_of_variants ]
+  TC.try_multiple [
+    translate_tuple_of_binders;
+    translate_pair_of_variants;
+    translate_using_chains;
+  ]
 
 
 let translate
