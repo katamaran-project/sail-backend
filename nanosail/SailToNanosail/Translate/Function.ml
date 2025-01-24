@@ -211,7 +211,14 @@ let rec expression_of_aval
         in
         let resulting_expression    = Auxlib.reduce ~f:make_pair translation_expressions
         in
-        TC.return (resulting_expression, Ast.Type.Tuple translation_types, flatten_named_statements translation_statements)
+        let* expression_type =
+          match translation_types with
+          | []       -> TC.fail [%here] "should not occur"
+          | [_]      -> TC.fail [%here] "should not occur"
+          | [t1; t2] -> TC.return @@ Ast.Type.Product (t1, t2)
+          | _        -> TC.return @@ Ast.Type.Tuple translation_types
+        in                
+        TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
       end
 
   and expression_of_literal
