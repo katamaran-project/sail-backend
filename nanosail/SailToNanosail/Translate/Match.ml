@@ -1049,14 +1049,33 @@ module TupleMatching = struct
     let binders =
       List.zip_exn binder_identifiers element_types
     in
-    TC.return begin
-      Ast.Statement.Match begin
-        Ast.Statement.MatchTuple {
-          matched;
-          binders;
-          body
-        }
+    match binders with
+    | [] -> TC.fail [%here] "empty tuple should not occur"
+    | [_] -> TC.fail [%here] "singleton tuple should not occur"
+    | [ (id_fst, type_fst); (id_snd, type_snd) ] -> begin
+        TC.return begin
+          Ast.Statement.Match begin
+            Ast.Statement.MatchProduct {
+              matched;
+              type_fst;
+              type_snd;
+              id_fst;
+              id_snd;
+              body;
+            }
+          end
+        end
       end
+    | _ -> begin
+        TC.return begin
+          Ast.Statement.Match begin
+            Ast.Statement.MatchTuple {
+              matched;
+              binders;
+              body;
+            }
+          end
+        end
     end
 end
 
@@ -1071,6 +1090,9 @@ let translate_tuple_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   let translate_using_chains : Ast.Statement.t TC.t =
+    (* keeps things lazy *)
+    let* () = TC.return ()
+    in
     let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
       let* initial_chain =
         TupleMatching.build_tuple_pattern_chain
@@ -1094,10 +1116,13 @@ let translate_tuple_match
       in
       TupleMatching.build_leveled_match_statements binder_identifiers final_chain
     in
-    TupleMatching.create_tuple_match
-      matched_identifier
-      element_types
-      builder
+    let* result =
+      TupleMatching.create_tuple_match
+        matched_identifier
+        element_types
+        builder
+    in
+    TC.return result
   
   (*
      This function deals with the special case of having a single match pattern that contains nothing but binders, i.e.,
@@ -1250,9 +1275,9 @@ let translate_tuple_match
 
   in
   TC.try_multiple [
-    translate_tuple_of_binders;
-    translate_pair_of_variants;
     translate_using_chains;
+    (* translate_tuple_of_binders; *)
+    (* translate_pair_of_variants; *)
   ]
 
 
