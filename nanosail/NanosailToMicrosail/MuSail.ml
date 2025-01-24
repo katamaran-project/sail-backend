@@ -42,14 +42,14 @@ module Operator = struct
   end
 
   module Name = struct
-    let bitvector_addition = PP.string "bop.bvadd"
+    let bitvector_addition    = PP.string "bop.bvadd"
     let bitvector_subtraction = PP.string "bop.bvsub"
     let bitvector_conjunction = PP.string "bop.bvand"
     let bitvector_disjunction = PP.string "bop.bvor"
-    let bitvector_xor = PP.string "bop.bvxor"
+    let bitvector_xor         = PP.string "bop.bvxor"
 
-    let bool_equality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
-    let bool_inequality = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
+    let bool_equality         = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.eq" ]
+    let bool_inequality       = PP.(surround parens) @@ Coq.pp_application (PP.string "bop.relop") [ PP.string "bop.neq" ]
   end
 end
 
