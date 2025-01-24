@@ -83,11 +83,11 @@ let rec equal
   | Let data_1 -> begin
       match statement_2 with
       | Let data_2 -> begin
-          Ast.Identifier.equal
+          Identifier.equal
             data_1.variable_identifier
             data_2.variable_identifier
           &&
-          Ast.Type.equal
+          Type.equal
             data_1.binding_statement_type
             data_2.binding_statement_type
           &&
@@ -105,15 +105,15 @@ let rec equal
   | DestructureRecord data_1 -> begin
       match statement_2 with
       | DestructureRecord data_2 -> begin
-          Ast.Identifier.equal
+          Identifier.equal
             data_1.record_type_identifier
             data_2.record_type_identifier
           &&
-          List.equal Ast.Identifier.equal
+          List.equal Identifier.equal
             data_1.field_identifiers
             data_2.field_identifiers
           &&
-          List.equal Ast.Identifier.equal
+          List.equal Identifier.equal
             data_1.variable_identifiers
             data_2.variable_identifiers
           &&
@@ -136,18 +136,18 @@ let rec equal
     
   | ReadRegister register_identifier_1 -> begin
       match statement_2 with
-      | ReadRegister register_identifier_2 -> Ast.Identifier.equal register_identifier_1 register_identifier_2
+      | ReadRegister register_identifier_2 -> Identifier.equal register_identifier_1 register_identifier_2
       | _ -> false
     end
     
   | WriteRegister data_1 -> begin
       match statement_2 with
       | WriteRegister data_2 -> begin
-          Ast.Identifier.equal
+          Identifier.equal
             data_1.register_identifier
             data_2.register_identifier
           &&
-          Ast.Identifier.equal
+          Identifier.equal
             data_1.written_value
             data_2.written_value
         end
@@ -161,7 +161,7 @@ let rec equal
             statement_1
             statement_2
           &&
-          Ast.Type.equal
+          Type.equal
             type_1
             type_2
         end
