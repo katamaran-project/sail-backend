@@ -152,7 +152,7 @@ PASS mapping-usage
 PASS match-bool
 PASS match-enum-binder
 PASS match-enum-incomplete
-FAIL match-enum-literal
+PASS match-enum-literal
 PASS match-enum-pair
 PASS match-enum-single-case
 PASS match-enum-three-cases
@@ -263,4 +263,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:238 FAIL:27
+PASS:239 FAIL:26
