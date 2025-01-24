@@ -875,8 +875,7 @@ module TupleMatching = struct
               Option.equal Ast.Statement.equal statement_1 statement_2
             end
           | _ -> false
-        end
-        
+        end        
   end
 
 
