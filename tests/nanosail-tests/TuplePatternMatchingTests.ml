@@ -3,11 +3,19 @@ open OUnit2
 open Nanosail
 
 module TC = SailToNanosail.TranslationContext
+open Monads.Notations.Star(TC)
 
+module TM = SailToNanosail.Translate.Match.TupleMatching
+
+
+let dummy_location : Libsail.Ast.l =
+  Libsail.Parse_ast.Unknown
+
+let mkid = Ast.Identifier.mk
 
 let define_enum
     (identifier : Ast.Identifier.t     )
-    (cases      : Ast.Identifier.t list) : unit TC.t
+    (cases      : Ast.Identifier.t list) : Ast.Type.t TC.t
   =
   let enum_definition : Ast.Definition.Type.Enum.t =
     {
@@ -18,7 +26,19 @@ let define_enum
   let definition =
     Ast.Definition.TypeDefinition (Ast.Definition.Type.Enum enum_definition)
   in
-  TC.store_definition definition
+  let* () = TC.store_definition definition
+  in
+  TC.return @@ Ast.Type.Enum identifier
+
+
+let define_enum_str
+    (identifier : string     )
+    (cases      : string list) : Ast.Type.t TC.t
+  =
+  let identifier = Ast.Identifier.mk identifier
+  and cases      = List.map ~f:Ast.Identifier.mk cases
+  in
+  define_enum identifier cases
 
 
 let run_tc (tc : 'a TC.t) : 'a =
@@ -34,20 +54,48 @@ let run_tc (tc : 'a TC.t) : 'a =
     end
 
 
+let build_tuple_pattern_chain = TM.build_tuple_pattern_chain dummy_location
+
+
 let test_build_chain_enum =
   let test _ =
     let tc =
-      TC.return ()
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"]
+      in
+      let* chain =
+        build_tuple_pattern_chain [ enum_type ]
+      in
+      match chain with
+      | Enum { enum_identifier; table } -> begin
+          assert_equal ~cmp:Ast.Identifier.equal (mkid "A") enum_identifier;
+          assert_equal ~cmp:Int.equal 2 (Ast.Identifier.Map.length table);
+          let expected_table : TM.PatternNode.t Ast.Identifier.Map.t =
+            Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "A1",
+                TM.PatternNode.Terminal None
+              );
+              (
+                mkid "A2",
+                TM.PatternNode.Terminal None
+              );
+            ]
+          in
+          assert_equal ~cmp:(Ast.Identifier.Map.equal TM.PatternNode.equal) expected_table table;
+          TC.return ()
+        end
+       | Terminal _ -> assert_failure "expected enum node"
     in
-    let result = run_tc tc
-    in
-    assert_equal () result
+    ignore @@ run_tc tc
+
   in
   "building chain for (enum)" >:: test
 
 
 let test_chain_building_suite =
   "chain building test suite" >::: [
+    test_build_chain_enum;
   ]
 
 
