@@ -1116,38 +1116,44 @@ module TupleMatching = struct
                   let binder_identifier, tail =
                     Ast.Identifier.Map.find_exn table enum_case
                   in
-                  let* updated_tail : PatternNode.t =
-                    categorize_case
-                      location
-                      tail
-                      remaining_subpatterns
-                      body
-                      true
-                  in
-                  let* updated_binder_identifier : Ast.Identifier.t option =
-                    match binder_identifier, pattern_binder_wildcard with
-                    | None                  , true  -> TC.return None
-                    | None                  , false -> TC.return @@ Some pattern_binder_identifier
-                    | Some binder_identifier, true  -> TC.return @@ Some binder_identifier
-                    | Some binder_identifier, false -> begin
-                        if
-                          Ast.Identifier.equal binder_identifier pattern_binder_identifier
-                        then
-                          TC.return @@ Some binder_identifier
-                        else
+                  if
+                    contains_gap tail
+                  then begin  
+                    let* updated_tail : PatternNode.t =
+                      categorize_case
+                        location
+                        tail
+                        remaining_subpatterns
+                        body
+                        true
+                    in
+                    let* updated_binder_identifier : Ast.Identifier.t option =
+                      match binder_identifier, pattern_binder_wildcard with
+                      | None                  , true  -> TC.return None
+                      | None                  , false -> TC.return @@ Some pattern_binder_identifier
+                      | Some binder_identifier, true  -> TC.return @@ Some binder_identifier
+                      | Some binder_identifier, false -> begin
+                          if
+                            Ast.Identifier.equal binder_identifier pattern_binder_identifier
+                          then
+                            TC.return @@ Some binder_identifier
+                          else
                           (*
                              The same value was bound to differently named binders.
                              This is not supported.
-  
+
                              match value_1, value_2 {
                                x, Foo => ...,
                                y, Bar => ...
                              }
                           *)
-                          TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
-                      end
-                  in
-                  TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:(updated_binder_identifier, updated_tail)
+                            TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
+                        end
+                    in
+                    TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:(updated_binder_identifier, updated_tail)
+                  end
+                  else
+                    TC.return table
                 in
                 let* updated_table =
                   TC.fold_left ~f:update_table ~init:table enum_cases
