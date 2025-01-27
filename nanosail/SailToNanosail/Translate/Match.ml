@@ -1060,9 +1060,11 @@ module TupleMatching = struct
             match first_subpattern with
             | EnumCase case_identifier -> begin
                 let* updated_table =
-                  let chain_tail = Ast.Identifier.Map.find_exn table case_identifier
+                  let chain_tail =
+                    Ast.Identifier.Map.find_exn table case_identifier
                   in
-                  let* updated_chain_tail = categorize_case location chain_tail remaining_subpatterns body gap_filling
+                  let* updated_chain_tail =
+                    categorize_case location chain_tail remaining_subpatterns body gap_filling
                   in                  
                   TC.return begin
                     Ast.Identifier.Map.update
