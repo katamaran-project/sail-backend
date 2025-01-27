@@ -228,8 +228,13 @@ let test_categorize_enum_1 =
     ignore @@ run_tc tc
 
   in
-  "building chain for (enum[A1,A2], enum[A1, A2])" >:: test
+  {|
+    enum A { A1 }
 
+    match a {
+      A1 => read_register r1
+    }
+  |} >:: test
 
 let test_chain_building_suite =
   "chain building test suite" >::: [
