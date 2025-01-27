@@ -5,6 +5,16 @@ module Signedness = struct
     match signedness with
     | Signed   -> FExpr.mk_symbol "Signed"
     | Unsigned -> FExpr.mk_symbol "Unsigned"
+
+  let equal
+      (signedness_1 : t)
+      (signedness_2 : t) : bool
+    =
+    match signedness_1, signedness_2 with
+    | Signed  , Signed   -> true
+    | Unsigned, Unsigned -> true
+    | Signed  , _        -> false
+    | Unsigned, _        -> false
 end
 
 module Comparison = struct
@@ -20,6 +30,20 @@ module Comparison = struct
     | LessThan             -> FExpr.mk_symbol "LessThan"
     | GreaterThanOrEqualTo -> FExpr.mk_symbol "GreaterThanOrEqualTo"
     | GreaterThan          -> FExpr.mk_symbol "GreaterThan"
+
+  let equal
+      (comparison_1 : t)
+      (comparison_2 : t) : bool
+    =
+    match comparison_1, comparison_2 with
+    | LessThanOrEqualTo   , LessThanOrEqualTo    -> true
+    | LessThan            , LessThan             -> true
+    | GreaterThanOrEqualTo, GreaterThanOrEqualTo -> true
+    | GreaterThan         , GreaterThan          -> true
+    | LessThanOrEqualTo   , _                    -> false
+    | LessThan            , _                    -> false
+    | GreaterThanOrEqualTo, _                    -> false
+    | GreaterThan         , _                    -> false
 end
 
 
@@ -65,3 +89,44 @@ let to_fexpr (operator : t) : FExpr.t =
        in
        FExpr.mk_application ~positional "BitvectorComparison"
      end
+
+
+let equal
+    (operator_1 : t)
+    (operator_2 : t) : bool
+  =
+  match operator_1, operator_2 with
+   | Plus                                            , Plus       -> true
+   | Times                                           , Times      -> true
+   | Minus                                           , Minus      -> true
+   | And                                             , And        -> true
+   | Or                                              , Or         -> true
+   | Pair                                            , Pair       -> true
+   | Cons                                            , Cons       -> true
+   | Append                                          , Append     -> true
+   | EqualTo                                         , EqualTo    -> true
+   | NotEqualTo                                      , NotEqualTo -> true
+   | StandardComparison comparison_1                 ,
+     StandardComparison comparison_2                              -> Comparison.equal comparison_1 comparison_2
+   | BitvectorComparison (signedness_1, comparison_1),
+     BitvectorComparison (signedness_2, comparison_2)             -> begin
+       Signedness.equal
+         signedness_1
+         signedness_2
+       &&
+       Comparison.equal
+         comparison_1
+         comparison_2
+     end
+   | Plus                                            , _          -> false
+   | Times                                           , _          -> false
+   | Minus                                           , _          -> false
+   | And                                             , _          -> false
+   | Or                                              , _          -> false
+   | Pair                                            , _          -> false
+   | Cons                                            , _          -> false
+   | Append                                          , _          -> false
+   | EqualTo                                         , _          -> false
+   | NotEqualTo                                      , _          -> false
+   | StandardComparison _                            , _          -> false
+   | BitvectorComparison _                           , _          -> false
