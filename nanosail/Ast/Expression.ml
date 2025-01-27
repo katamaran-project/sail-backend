@@ -18,20 +18,64 @@ type t =
   | Bitvector       of t list
 
 
-exception MissingTypeInference
+
+exception UnimplementedExpressionEquality
 
 
+(* Still incomplete, raises UnimplementedExpressionEquality in unimplemented cases, todo complete this *)
+let rec equal
+    (expression_1 : t)
+    (expression_2 : t) : bool
+  =
+  match expression_1, expression_2 with
+  | Variable (identifier_1, type_1), Variable (identifier_2, type_2) -> begin
+      Identifier.equal
+        identifier_1
+        identifier_2
+      &&
+      Nanotype.equal
+        type_1
+        type_2
+    end
+  | List subexpressions_1, List subexpressions_2 -> begin
+      List.equal equal subexpressions_1 subexpressions_2
+    end
+  | Tuple subexpressions_1, Tuple subexpressions_2 -> begin
+      List.equal equal subexpressions_1 subexpressions_2
+    end
+  | UnaryOperation (_, _), UnaryOperation (_, _)         -> raise UnimplementedExpressionEquality
+  | BinaryOperation (_, _, _), BinaryOperation (_, _, _) -> raise UnimplementedExpressionEquality
+  | Val _, Val _                                         -> raise UnimplementedExpressionEquality
+  | Record _, Record _                                   -> raise UnimplementedExpressionEquality
+  | Enum _, Enum _                                       -> raise UnimplementedExpressionEquality
+  | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
+  | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
+  | Variable _, _                                        -> false
+  | Val _, _                                             -> false
+  | List _, _                                            -> false
+  | UnaryOperation _, _                                  -> false
+  | BinaryOperation (_, _, _), _                         -> false
+  | Record _, _                                          -> false
+  | Enum _, _                                            -> false
+  | Variant _, _                                         -> false
+  | Tuple _, _                                           -> false
+  | Bitvector _, _                                       -> false
+
+
+exception UnimplementedTypeInference
+
+(* Still incomplete, raises UnimplementedTypeInference in unimplemented cases, todo complete this *)
 let infer_type (expression : t) : Nanotype.t =
   match expression with
    | Variable (_, typ)         -> typ
-   | Val _                     -> raise MissingTypeInference
-   | List _                    -> raise MissingTypeInference
-   | UnaryOperation (_, _)     -> raise MissingTypeInference
-   | BinaryOperation (_, _, _) -> raise MissingTypeInference
-   | Record _                  -> raise MissingTypeInference
-   | Enum _                    -> raise MissingTypeInference
-   | Variant _                 -> raise MissingTypeInference
-   | Tuple _                   -> raise MissingTypeInference
+   | Val _                     -> raise UnimplementedTypeInference
+   | List _                    -> raise UnimplementedTypeInference
+   | UnaryOperation (_, _)     -> raise UnimplementedTypeInference
+   | BinaryOperation (_, _, _) -> raise UnimplementedTypeInference
+   | Record _                  -> raise UnimplementedTypeInference
+   | Enum _                    -> raise UnimplementedTypeInference
+   | Variant _                 -> raise UnimplementedTypeInference
+   | Tuple _                   -> raise UnimplementedTypeInference
    | Bitvector bits            -> Nanotype.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bits))
 
 
