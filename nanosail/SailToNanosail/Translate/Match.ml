@@ -840,10 +840,14 @@ let translate_variant_match
 *)
 module TupleMatching = struct
   module PatternNode = struct
+    type atomic_data = { identifier : Ast.Identifier.t; wildcard : bool }
+    
     type t =
-      | Enum     of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t }
-      | Terminal of Ast.Statement.t option
+      | Enum       of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t }
+      | Atomic     of Ast.Type.t * atomic_data option * t
+      | Terminal   of Ast.Statement.t option
 
+    
     let rec equal
         (node_1 : t)
         (node_2 : t) : bool
@@ -863,7 +867,34 @@ module TupleMatching = struct
               Option.equal Ast.Statement.equal statement_1 statement_2
             end
           | _ -> false
-        end        
+        end
+
+      | Atomic (type_1, data_1, tail_1) -> begin
+          match node_2 with
+          | Atomic (type_2, data_2, tail_2) -> begin
+              Ast.Type.equal
+                type_1
+                type_2
+              &&
+              Option.equal
+                (fun data_1 data_2 -> begin
+                     Ast.Identifier.equal
+                       data_1.identifier
+                       data_2.identifier
+                     &&
+                     Bool.equal
+                       data_1.wildcard
+                       data_2.wildcard
+                   end)
+                data_1
+                data_2
+              &&
+              equal
+                tail_1
+                tail_2
+            end
+          | _ -> false
+        end
   end
 
 
@@ -887,8 +918,14 @@ module TupleMatching = struct
       let table = List.fold enum_definition.cases ~init:Ast.Identifier.Map.empty ~f:add_to_table
       in
       TC.return @@ PatternNode.Enum { enum_identifier; table }
+    
+    and build_singleton_node
+        (element_type : Ast.Type.t   )
+        (tail         : PatternNode.t) : PatternNode.t TC.t
+      =
+      TC.return @@ PatternNode.Atomic (element_type, None, tail)
+        
     in
-
     match element_types with
     | []           -> TC.return @@ PatternNode.Terminal None
     | head :: tail -> begin
@@ -896,7 +933,7 @@ module TupleMatching = struct
         in 
         match head with
         | Enum enum_identifier -> build_enum_node enum_identifier tail
-        | Int                  -> TC.not_yet_implemented [%here] location
+        | Int                  -> build_singleton_node Ast.Type.Int tail
         | Bool                 -> TC.not_yet_implemented [%here] location
         | String               -> TC.not_yet_implemented [%here] location
         | Bit                  -> TC.not_yet_implemented [%here] location
@@ -949,6 +986,52 @@ module TupleMatching = struct
           end
         | [] -> invalid_number_of_subpatterns [%here]
       end
+
+    | Atomic (element_type, atomic_data, tail) -> begin
+        match tuple_subpatterns with
+        | first_subpattern :: remaining_subpatterns -> begin
+            match first_subpattern with
+            | Binder { identifier = pattern_identifier; wildcard = pattern_wildcard } -> begin
+                let* tail' =
+                  categorize_case
+                    location
+                    tail
+                    remaining_subpatterns
+                    body
+                    gap_filling
+                in
+                match atomic_data, pattern_wildcard with
+                | None,  _ -> begin
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = pattern_wildcard }, tail')
+                  end
+                | Some { identifier = _; wildcard = true }, _ -> begin
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = false }, tail')
+                  end
+                | Some { identifier; wildcard = false as wildcard }, true -> begin
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, tail')
+                  end
+                | Some { identifier; wildcard = false as wildcard }, false -> begin
+                    if
+                      Ast.Identifier.equal identifier pattern_identifier
+                    then
+                      TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, tail' )
+                    else
+                      (*
+                         The same value was matched against binders with different names.
+                         This case is not supported.
+                         
+                           match (value1, value2) {
+                             x, Foo => ...,
+                             y, Bar => ...,
+                           }
+                      *)
+                      TC.not_yet_implemented ~message:"inconsistent binder identifiers" [%here] location
+                  end
+              end
+            | _ -> TC.fail [%here] "invalid pattern"
+          end
+        | [] -> invalid_number_of_subpatterns [%here]
+      end
       
     | Terminal statement -> begin
         match tuple_subpatterns with
@@ -980,6 +1063,9 @@ module TupleMatching = struct
     let invalid_number_of_tuple_elements (location : Lexing.position) =
       TC.fail location "invalid number of tuple elements"
     in
+    let fail_due_to_unhandled_cases =
+      TC.return @@ Ast.Statement.Fail "incomplete matching"
+    in
     match pattern_chain with
     | Enum { enum_identifier; table } -> begin
         match tuple_elements with
@@ -1007,12 +1093,34 @@ module TupleMatching = struct
             end
           end
       end
-      
+
+    | Atomic (element_type, atomic_data, tail) -> begin
+        match tuple_elements with
+        | [] -> invalid_number_of_tuple_elements [%here]
+        | first_tuple_element :: remaining_tuple_elements -> begin
+            match atomic_data with
+            | Some { identifier; wildcard = _ } -> begin
+                let* continuation =
+                  build_leveled_match_statements remaining_tuple_elements tail
+                in
+                TC.return begin
+                  Ast.Statement.Let {
+                    variable_identifier    = identifier;
+                    binding_statement_type = element_type;
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, element_type));
+                    body_statement         = continuation;
+                  }
+                end
+              end
+            | None -> fail_due_to_unhandled_cases
+          end
+      end  
+  
     | Terminal statement -> begin
         match tuple_elements with
         | [] -> begin
             match statement with
-            | None           -> TC.return @@ Ast.Statement.Fail "incomplete matching"
+            | None           -> fail_due_to_unhandled_cases
             | Some statement -> TC.return @@ statement
           end
         | _::_ -> invalid_number_of_tuple_elements [%here]
