@@ -55,6 +55,16 @@ module Map = struct
     in
     of_alist_exn updated_pairs
 
+  (* Only adds if key is not element yet *)
+  let add_new
+      (map   : 'a t  )
+      ~(key  : Impl.t)
+      ~(data : 'a    ) : 'a t
+    =
+    match add map ~key ~data with
+    | `Duplicate      -> map
+    | `Ok updated_map -> updated_map
+
   let to_fexpr
       (value_formatter : 'a -> FExpr.t)
       (map             : 'a t         ) : FExpr.t
