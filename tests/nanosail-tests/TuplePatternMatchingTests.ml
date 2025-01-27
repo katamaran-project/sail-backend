@@ -5,6 +5,7 @@ open Nanosail
 module TC = SailToNanosail.TranslationContext
 open Monads.Notations.Star(TC)
 
+module P  = SailToNanosail.Translate.Match.Pattern
 module TM = SailToNanosail.Translate.Match.TupleMatching
 
 
@@ -12,6 +13,7 @@ let dummy_location : Libsail.Ast.l =
   Libsail.Parse_ast.Unknown
 
 let mkid = Ast.Identifier.mk
+
 
 let define_enum
     (identifier : Ast.Identifier.t     )
@@ -55,6 +57,7 @@ let run_tc (tc : 'a TC.t) : 'a =
 
 
 let build_tuple_pattern_chain = TM.build_tuple_pattern_chain dummy_location
+let categorize                = TM.categorize_case dummy_location
 
 
 let test_build_chain_enum_1 =
@@ -188,6 +191,46 @@ let test_build_chain_enum_3 =
   "building chain for (enum[A1,A2], enum[A1, A2])" >:: test
 
 
+let test_categorize_enum_1 =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* chain =
+        let* chain = build_tuple_pattern_chain [ enum_type ]
+        in
+        let* chain = categorize
+          chain
+          [ P.EnumCase (mkid "A1") ]
+          a1_statement
+          false
+        in
+        TC.return chain
+      in
+      let expected_chain =
+        TM.PatternNode.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "A1",
+                TM.PatternNode.Terminal (Some a1_statement)
+              );
+            ]
+        }
+      in
+      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+
+  in
+  "building chain for (enum[A1,A2], enum[A1, A2])" >:: test
+
+
 let test_chain_building_suite =
   "chain building test suite" >::: [
     test_build_chain_enum_1;
@@ -198,9 +241,7 @@ let test_chain_building_suite =
 
 let test_categorizing_suite =
   "chain building test suite" >::: [
-    test_build_chain_enum_1;
-    test_build_chain_enum_2;
-    test_build_chain_enum_3;
+    test_categorize_enum_1;
   ]
 
 
