@@ -33,18 +33,18 @@ and match_pattern =
                       element_type : Nanotype.t                      ;
                       when_cons    : Identifier.t * Identifier.t * t ;
                       when_nil     : t                               }
-  | MatchProduct of { matched  : Identifier.t ;
-                      type_fst : Nanotype.t   ;
-                      type_snd : Nanotype.t   ;
-                      id_fst   : Identifier.t ;
-                      id_snd   : Identifier.t ;
-                      body     : t            }
-  | MatchTuple   of { matched  : Identifier.t                     ;
-                      binders  : (Identifier.t * Nanotype.t) list ;
-                      body     : t                                }
-  | MatchBool    of { condition  : Identifier.t ;
-                      when_true  : t            ;
-                      when_false : t            }
+  | MatchProduct of { matched      : Identifier.t ;
+                      type_fst     : Nanotype.t   ;
+                      type_snd     : Nanotype.t   ;
+                      id_fst       : Identifier.t ;
+                      id_snd       : Identifier.t ;
+                      body         : t            }
+  | MatchTuple   of { matched      : Identifier.t                     ;
+                      binders      : (Identifier.t * Nanotype.t) list ;
+                      body         : t                                }
+  | MatchBool    of { condition    : Identifier.t ;
+                      when_true    : t            ;
+                      when_false   : t            }
   | MatchEnum    of { matched      : Identifier.t       ;
                       matched_type : Identifier.t       ;
                       cases        : t Identifier.Map.t }
