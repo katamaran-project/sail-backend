@@ -1051,6 +1051,21 @@ module TupleMatching = struct
       end
 
 
+  let rec contains_gap (pattern_chain : PatternNode.t) : bool =
+    match pattern_chain with
+    | Enum { table; _ } -> begin
+        let values : (Ast.Identifier.t option * PatternNode.t) list =
+          Ast.Identifier.Map.data table
+        in
+        let tails : PatternNode.t list =
+          List.map ~f:snd values
+        in
+        List.exists tails ~f:contains_gap
+      end
+    | Atomic (_, _, tail) -> contains_gap tail
+    | Terminal statement  -> Option.is_none statement
+    
+
   let rec categorize_case
       (location          : S.l            )
       (pattern_chain     : PatternNode.t  )
