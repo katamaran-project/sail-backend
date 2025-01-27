@@ -911,7 +911,7 @@ module TupleMatching = struct
               );
               (
                 "table",
-                FExpr.mk_string "todo"
+                Ast.Identifier.Map.to_fexpr to_fexpr table
               );
             ]
           in
