@@ -59,25 +59,54 @@ exception UnimplementedStatementEquality
 (* todo complete implementation; this partially implemented equality is used in tests *)
 let rec equal
     (statement_1 : t)
-    (statement_2 : t)
+    (statement_2 : t) : bool
   =
+  let equal_match_patterns
+    (pattern_1 : match_pattern)
+    (pattern_2 : match_pattern) : bool
+    =
+    match pattern_1 with
+    | MatchEnum { matched = matched_1; matched_type = matched_type_1; cases = cases_1 } -> begin
+        match pattern_2 with
+        | MatchEnum { matched = matched_2; matched_type = matched_type_2; cases = cases_2 } -> begin
+            Identifier.equal
+              matched_1
+              matched_2
+            &&
+            Identifier.equal
+              matched_type_1
+              matched_type_2
+            &&
+            Identifier.Map.equal equal
+              cases_1
+              cases_2
+          end
+        | _ -> false
+      end
+    | MatchList _    -> raise UnimplementedStatementEquality
+    | MatchProduct _ -> raise UnimplementedStatementEquality
+    | MatchTuple _   -> raise UnimplementedStatementEquality
+    | MatchBool _    -> raise UnimplementedStatementEquality
+    | MatchVariant _ -> raise UnimplementedStatementEquality
+  in
+  
   match statement_1 with
-  | Match _ -> begin
+  | Match match_pattern_1 -> begin
       match statement_2 with
-      | Match _ -> raise UnimplementedStatementEquality
-      | _ -> false
+      | Match match_pattern_2 -> equal_match_patterns match_pattern_1 match_pattern_2
+      | _                     -> false
     end
     
   | Expression _ -> begin
       match statement_2 with
       | Expression _ -> raise UnimplementedStatementEquality
-      | _ -> false
+      | _            -> false
     end
     
   | Call (_, _) -> begin
       match statement_2 with
       | Call (_, _) -> raise UnimplementedStatementEquality
-      | _ -> false
+      | _           -> false
     end
     
   | Let data_1 -> begin
@@ -131,13 +160,13 @@ let rec equal
   | Seq (left_1, right_1) -> begin
       match statement_2 with
       | Seq (left_2, right_2) -> equal left_1 left_2 && equal right_1 right_2
-      | _ -> false
+      | _                     -> false
     end
     
   | ReadRegister register_identifier_1 -> begin
       match statement_2 with
       | ReadRegister register_identifier_2 -> Identifier.equal register_identifier_1 register_identifier_2
-      | _ -> false
+      | _                                  -> false
     end
     
   | WriteRegister data_1 -> begin
@@ -170,8 +199,12 @@ let rec equal
     
   | Fail message_1 -> begin
       match statement_2 with
-      | Fail message_2 -> String.equal message_1 message_2
-      | _ -> false
+      | Fail message_2 -> begin
+          String.equal
+            message_1
+            message_2
+        end
+      | _              -> false
     end
             
 
