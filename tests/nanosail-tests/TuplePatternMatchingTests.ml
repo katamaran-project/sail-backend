@@ -858,6 +858,7 @@ let test_generate_match_suite =
     test_build_match_for_enum_4;
   ]
 
+
 let test_suite =
   "tuple pattern matching test suite" >::: [
     test_chain_building_suite;
