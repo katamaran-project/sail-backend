@@ -237,6 +237,54 @@ let test_categorize_enum_1 =
   |} >:: test
 
 
+let test_categorize_enum_2 =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* chain =
+        let* chain = build_tuple_pattern_chain [ enum_type ]
+        in
+        let* chain = categorize
+          chain
+          [
+            P.Binder { identifier = mkid "x"; wildcard = false }
+          ]
+          a1_statement
+          false
+        in
+        TC.return chain
+      in
+      let expected_chain =
+        TM.PatternNode.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "A1",
+                TM.PatternNode.Terminal (Some a1_statement)
+              );
+            ]
+        }
+      in
+      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+
+  in
+  {|
+    enum A { A1 }
+
+    match a {
+      A1 => read_register r1
+    }
+  |} >:: test
+
+
 let test_chain_building_suite =
   "chain building test suite" >::: [
     test_build_chain_enum_1;
@@ -248,6 +296,7 @@ let test_chain_building_suite =
 let test_categorizing_suite =
   "chain building test suite" >::: [
     test_categorize_enum_1;
+    test_categorize_enum_2;
   ]
 
 
