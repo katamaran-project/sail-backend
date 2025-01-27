@@ -252,7 +252,7 @@ let test_categorize_enum_2 =
         let* chain = categorize
           chain
           [
-            P.Binder { identifier = mkid "x"; wildcard = false }
+            P.Binder { identifier = mkid "x"; wildcard = true }
           ]
           a1_statement
           false
@@ -280,7 +280,7 @@ let test_categorize_enum_2 =
     enum A { A1 }
 
     match a {
-      A1 => read_register r1
+      _ => read_register r1
     }
   |} >:: test
 
