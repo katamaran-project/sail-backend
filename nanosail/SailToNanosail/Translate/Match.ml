@@ -843,7 +843,7 @@ module TupleMatching = struct
     type atomic_data = { identifier : Ast.Identifier.t; wildcard : bool }
     
     type t =
-      | Enum       of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t }
+      | Enum       of { enum_identifier : Ast.Identifier.t; table : t Ast.Identifier.Map.t; binder_identifier : Ast.Identifier.t option }
       | Atomic     of Ast.Type.t * atomic_data option * t
       | Terminal   of Ast.Statement.t option
 
@@ -853,10 +853,20 @@ module TupleMatching = struct
         (node_2 : t) : bool
       =
       match node_1 with
-      | Enum { enum_identifier = enum_identifier_1; table = table_1 } -> begin
+      | Enum { enum_identifier = enum_identifier_1; table = table_1; binder_identifier = binder_identifier_1 } -> begin
           match node_2 with
-          | Enum { enum_identifier = enum_identifier_2; table = table_2 } -> begin
-              Ast.Identifier.equal enum_identifier_1 enum_identifier_2 && Ast.Identifier.Map.equal equal table_1 table_2
+          | Enum { enum_identifier = enum_identifier_2; table = table_2; binder_identifier = binder_identifier_2 } -> begin
+              Ast.Identifier.equal
+                enum_identifier_1
+                enum_identifier_2
+              &&
+              Ast.Identifier.Map.equal equal
+                table_1
+                table_2
+              &&
+              Option.equal Ast.Identifier.equal
+                binder_identifier_1
+                binder_identifier_2
             end
           | _ -> false
         end
@@ -902,7 +912,7 @@ module TupleMatching = struct
         Printf.sprintf "PatternNode:%s" tag
       in
       match node with
-      | Enum { enum_identifier; table } -> begin
+      | Enum { enum_identifier; table; binder_identifier } -> begin
           let keyword =
             [
               (
@@ -913,6 +923,10 @@ module TupleMatching = struct
                 "table",
                 Ast.Identifier.Map.to_fexpr to_fexpr table
               );
+              (
+                "binder",
+                FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr binder_identifier
+              )
             ]
           in
           FExpr.mk_application ~keyword @@ mk_head "Enum"
@@ -988,7 +1002,13 @@ module TupleMatching = struct
       in
       let table = List.fold enum_definition.cases ~init:Ast.Identifier.Map.empty ~f:add_to_table
       in
-      TC.return @@ PatternNode.Enum { enum_identifier; table }
+      TC.return begin
+        PatternNode.Enum {
+          enum_identifier;
+          table;
+          binder_identifier = None
+        }
+      end
     
     and build_singleton_node
         (element_type : Ast.Type.t   )
@@ -1034,7 +1054,7 @@ module TupleMatching = struct
       TC.fail location "pattern is incompatible with type of value being matched"
     in
     match pattern_chain with
-    | Enum { enum_identifier; table } -> begin
+    | Enum { enum_identifier; table; binder_identifier } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
@@ -1044,11 +1064,22 @@ module TupleMatching = struct
                   in
                   let* updated_chain_tail = categorize_case location chain_tail remaining_subpatterns body gap_filling
                   in                  
-                  TC.return @@ Ast.Identifier.Map.update table case_identifier ~f:(fun _ -> updated_chain_tail)
+                  TC.return begin
+                    Ast.Identifier.Map.update
+                      table
+                      case_identifier
+                      ~f:(fun _ -> updated_chain_tail)
+                  end
                 in
-                TC.return @@ PatternNode.Enum { enum_identifier; table = updated_table }
+                TC.return begin
+                  PatternNode.Enum {
+                    enum_identifier                  ;
+                    table             = updated_table;
+                    binder_identifier                ;
+                  }
+                end
               end
-            | Binder { identifier = binder_identifier; wildcard = binder_wildcard } -> begin
+            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
                 let* enum_definition =
                   TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
                 in
@@ -1075,7 +1106,36 @@ module TupleMatching = struct
                 let* updated_table =
                   TC.fold_left ~f:update_table ~init:table enum_cases
                 in
-                TC.return @@ PatternNode.Enum { enum_identifier; table = updated_table }
+                let* updated_binder_identifier =
+                  match binder_identifier, pattern_binder_wildcard with
+                  | None                  , true  -> TC.return None
+                  | None                  , false -> TC.return @@ Some pattern_binder_identifier
+                  | Some binder_identifier, true  -> TC.return @@ Some binder_identifier
+                  | Some binder_identifier, false -> begin
+                      if
+                        Ast.Identifier.equal binder_identifier pattern_binder_identifier
+                      then
+                        TC.return @@ Some binder_identifier
+                      else
+                        (*
+                           The same value was bound to differently named binders.
+                           This is not supported.
+                           
+                           match value_1, value_2 {
+                             x, Foo => ...,
+                             y, Bar => ...
+                           }
+                        *)
+                        TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
+                    end
+                in
+                TC.return begin
+                  PatternNode.Enum {
+                    enum_identifier                              ;
+                    table             = updated_table            ;
+                    binder_identifier = updated_binder_identifier;
+                  }
+                end
               end
             | Unit               -> invalid_pattern [%here]
             | ListCons (_, _)    -> invalid_pattern [%here]
@@ -1166,17 +1226,49 @@ module TupleMatching = struct
       TC.return @@ Ast.Statement.Fail "incomplete matching"
     in
     match pattern_chain with
-    | Enum { enum_identifier; table } -> begin
+    | Enum { enum_identifier; table; binder_identifier } -> begin
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
+            (*
+               The decorator adds an extra let if necessary.
+
+                 match enum_value {
+                   x => ...
+                 }
+
+               becomes
+
+                 match enum_value {
+                   Foo => let x = enum_value in ...,
+                   Bar => let x = enum_value in ...,
+                   ...
+                 }
+               
+            *)
+            let statement_decorator : Ast.Statement.t -> Ast.Statement.t =
+              let add_let
+                  (variable_identifier : Ast.Identifier.t)
+                  (statement : Ast.Statement.t) : Ast.Statement.t
+                =
+                Ast.Statement.Let {
+                  variable_identifier;
+                  binding_statement_type = Ast.Type.Enum enum_identifier;
+                  binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, Ast.Type.Enum enum_identifier));
+                  body_statement         = statement;
+                }
+              in
+              match binder_identifier with
+              | Some binder_identifier -> add_let binder_identifier
+              | None                   -> Fn.id
+            in
             let* cases : Ast.Statement.t Ast.Identifier.Map.t =
               let table_pairs =
                 Ast.Identifier.Map.to_alist table
               in
               let* updated_pairs =
                 TC.map
-                  ~f:(fun (id, node) -> let* node' = build_leveled_match_statements remaining_tuple_elements node in TC.return (id, node'))
+                  ~f:(fun (id, node) -> let* statement = build_leveled_match_statements remaining_tuple_elements node in TC.return (id, statement_decorator statement))
                   table_pairs
               in
               TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
