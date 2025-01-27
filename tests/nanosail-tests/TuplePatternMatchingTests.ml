@@ -1421,7 +1421,7 @@ let test_build_match_for_int_2 =
   |} >:: test
 
 
-let test_build_match_for_int_int =
+let test_build_match_for_int_int_1 =
   let test _ =
     let tc =
       let statement =
@@ -1568,7 +1568,7 @@ let test_generate_match_suite =
     
     test_build_match_for_int_1;
     test_build_match_for_int_2;
-    test_build_match_for_int_int;
+    test_build_match_for_int_int_1;
 
     test_build_match_for_enum_int;
   ]
