@@ -93,6 +93,12 @@ let mk_nil =
   Nil
 
 
+let mk_option (fexpr : t option) =
+  match fexpr with
+  | Some fexpr -> mk_application ~positional:[fexpr] "Some"
+  | None       -> mk_symbol "None"
+
+
 let mk_ocaml_location (location : Lexing.position) =
   let keyword = [
       ("pos_fname", mk_string location.pos_fname);
