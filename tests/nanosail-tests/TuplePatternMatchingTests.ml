@@ -1285,7 +1285,7 @@ let test_build_match_for_enum_8 =
                 (
                   mkid "A2",
                   Ast.Statement.Let {
-                      variable_identifier = mkid "x";
+                      variable_identifier    = mkid "x";
                       binding_statement_type = Ast.Type.Enum (mkid "A");
                       binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Enum (mkid "A")));
                       body_statement         = Ast.Statement.Match begin
