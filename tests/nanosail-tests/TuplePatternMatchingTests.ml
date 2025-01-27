@@ -336,11 +336,17 @@ let test_categorize_enum_3 =
 
   in
   {|
-    enum A { A1 }
+      enum A { A1 }
+  
+      match a {
+        x => read_register r1
+      }
 
-    match a {
-      x => let x = a in read_register r1
-    }
+    should become
+
+      match a {
+        A1 => let x = a in read_register r1
+      }
   |} >:: test
 
 
