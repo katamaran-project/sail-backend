@@ -1048,7 +1048,35 @@ module TupleMatching = struct
                 in
                 TC.return @@ PatternNode.Enum { enum_identifier; table = updated_table }
               end
-            | Binder _           -> TC.not_yet_implemented [%here] location
+            | Binder { identifier = binder_identifier; wildcard = binder_wildcard } -> begin
+                let* enum_definition =
+                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+                in
+                let enum_cases =
+                  enum_definition.cases
+                in                
+                let update_table
+                    (table     : PatternNode.t Ast.Identifier.Map.t)
+                    (enum_case : Ast.Identifier.t                  ) : PatternNode.t Ast.Identifier.Map.t TC.t
+                  =
+                  let tail =
+                    Ast.Identifier.Map.find_exn table enum_case
+                  in
+                  let* updated_tail =
+                    categorize_case
+                      location
+                      tail
+                      remaining_subpatterns
+                      body
+                      true
+                  in
+                  TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:updated_tail
+                in
+                let* updated_table =
+                  TC.fold_left ~f:update_table ~init:table enum_cases
+                in
+                TC.return @@ PatternNode.Enum { enum_identifier; table = updated_table }
+              end
             | Unit               -> invalid_pattern [%here]
             | ListCons (_, _)    -> invalid_pattern [%here]
             | ListNil            -> invalid_pattern [%here]
