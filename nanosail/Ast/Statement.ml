@@ -204,7 +204,7 @@ let rec equal
             message_1
             message_2
         end
-      | _              -> false
+      | _ -> false
     end
             
 
