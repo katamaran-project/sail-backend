@@ -1370,7 +1370,7 @@ let test_build_match_for_int_1 =
   in
   {|
       match intval {
-        n => read_register r1,
+        _ => read_register r1,
       }
   |} >:: test
 
@@ -1468,7 +1468,7 @@ let test_build_match_for_int_int_1 =
   in
   {|
       match (intval, intval) {
-        (n, k) => read_register r1,
+        (_, _) => read_register r1,
       }
   |} >:: test
 
