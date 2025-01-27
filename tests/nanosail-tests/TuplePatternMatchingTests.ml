@@ -84,7 +84,7 @@ let test_build_chain_enum_1 =
           assert_equal ~cmp:(Ast.Identifier.Map.equal TM.PatternNode.equal) expected_table table;
           TC.return ()
         end
-       | Terminal _ -> assert_failure "expected enum node"
+       | _ -> assert_failure "expected enum node"
     in
     ignore @@ run_tc tc
 
@@ -123,7 +123,7 @@ let test_build_chain_enum_2 =
           assert_equal ~cmp:(Ast.Identifier.Map.equal TM.PatternNode.equal) expected_table table;
           TC.return ()
         end
-       | Terminal _ -> assert_failure "expected enum node"
+       | _ -> assert_failure "expected enum node"
     in
     ignore @@ run_tc tc
 
