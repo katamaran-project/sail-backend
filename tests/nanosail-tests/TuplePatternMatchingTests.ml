@@ -610,6 +610,78 @@ let test_build_match_for_enum_1 =
   |} >:: test
 
 
+let test_build_match_for_enum_2 =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      and a2_statement =
+        Ast.Statement.ReadRegister (mkid "r2")
+      in
+      let* chain =
+        let* chain = build_tuple_pattern_chain [ enum_type ]
+        in
+        let* chain = categorize
+            chain
+            [
+              Pattern.EnumCase (mkid "A1")
+            ]
+            a1_statement
+            false
+        in
+        let* chain = categorize
+            chain
+            [
+              Pattern.EnumCase (mkid "A2")
+            ]
+            a2_statement
+            false
+        in
+        TC.return chain
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"] chain
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchEnum {
+            matched = mkid "value1";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  a1_statement
+                );
+                (
+                  mkid "A2",
+                  a2_statement
+                );
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        expected_match_statement
+        actual_match_statement;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      enum A { A1, A2 }
+  
+      match value1 {
+        A1 => read_register r1,
+        A2 => read_register r2,
+      }
+  |} >:: test
+
+
 let test_chain_building_suite =
   "chain building test suite" >::: [
     test_build_chain_enum_1;
@@ -632,6 +704,7 @@ let test_categorizing_suite =
 let test_generate_match_suite =
   "match generation" >::: [
     test_build_match_for_enum_1;
+    test_build_match_for_enum_2;
   ]
 
 let test_suite =
