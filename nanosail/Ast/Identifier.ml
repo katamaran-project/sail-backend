@@ -54,6 +54,27 @@ module Map = struct
     let updated_pairs = List.map ~f:(fun (k, v) -> (k, f v)) pairs
     in
     of_alist_exn updated_pairs
+
+  let to_fexpr
+      (value_formatter : 'a -> FExpr.t)
+      (map             : 'a t         ) : FExpr.t
+    =
+    let pairs : (Impl.t * 'a) list =
+      to_alist map
+    in
+    let formatted_pairs : FExpr.t list =
+      let format_pair (key : Impl.t) (value : 'a) =
+        let positional =
+          [
+            Impl.to_fexpr key;
+            value_formatter value
+          ]
+        in
+        FExpr.mk_application ~positional "Entry"
+      in
+      List.map ~f:(Auxlib.uncurry format_pair) pairs
+    in
+    FExpr.mk_application ~positional:formatted_pairs "Mapping"
 end
 
 include Impl
