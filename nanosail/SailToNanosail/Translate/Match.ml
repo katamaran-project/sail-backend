@@ -895,6 +895,77 @@ module TupleMatching = struct
             end
           | _ -> false
         end
+
+
+    let rec to_fexpr (node : t) : FExpr.t =
+      let mk_head (tag : string) =
+        Printf.sprintf "PatternNode:%s" tag
+      in
+      match node with
+      | Enum { enum_identifier; table } -> begin
+          let keyword =
+            [
+              (
+                "enum_identifier",
+                Ast.Identifier.to_fexpr enum_identifier
+              );
+              (
+                "table",
+                FExpr.mk_string "todo"
+              );
+            ]
+          in
+          FExpr.mk_application ~keyword @@ mk_head "Enum"
+        end
+        
+      | Atomic (typ, data, tail) -> begin
+          let fexpr_of_atomic_data (data : atomic_data) =
+            let keyword =
+              [
+                (
+                  "identifier",
+                  Ast.Identifier.to_fexpr data.identifier
+                );
+                (
+                  "wildcard",
+                  FExpr.mk_bool data.wildcard
+                );
+              ]
+            in
+            FExpr.mk_application ~keyword "Data"
+          in
+          let keyword =
+            [
+              (
+                "type",
+                Ast.Type.to_fexpr typ
+              );
+              (
+                "data",
+                FExpr.mk_option begin
+                  Option.map data ~f:fexpr_of_atomic_data
+                end
+              );
+              (
+                "tail",
+                to_fexpr tail
+              )
+            ]
+          in
+          FExpr.mk_application ~keyword @@ mk_head "Atomic"
+        end
+            
+      | Terminal statement -> begin
+          let keyword =
+            [
+              (
+                "statement",
+                FExpr.mk_option @@ Option.map statement ~f:Ast.Statement.to_fexpr
+              );
+            ]
+          in
+          FExpr.mk_application ~keyword @@ mk_head "Terminal"
+        end
   end
 
 
