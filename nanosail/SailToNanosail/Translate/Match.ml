@@ -1366,7 +1366,7 @@ module TupleMatching = struct
       List.zip_exn binder_identifiers element_types
     in
     match binders with
-    | [] -> TC.fail [%here] "empty tuple should not occur"
+    | []  -> TC.fail [%here] "empty tuple should not occur"
     | [_] -> TC.fail [%here] "singleton tuple should not occur"
     | [ (id_fst, type_fst); (id_snd, type_snd) ] -> begin
         TC.return begin
