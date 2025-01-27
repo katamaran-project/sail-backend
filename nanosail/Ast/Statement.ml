@@ -97,10 +97,10 @@ let rec equal
       | _                     -> false
     end
     
-  | Expression _ -> begin
+  | Expression expression_1 -> begin
       match statement_2 with
-      | Expression _ -> raise UnimplementedStatementEquality
-      | _            -> false
+      | Expression expression_2 -> Expression.equal expression_1 expression_2
+      | _                       -> false
     end
     
   | Call (_, _) -> begin
