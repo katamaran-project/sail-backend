@@ -1329,6 +1329,51 @@ let test_build_match_for_enum_8 =
   |} >:: test
 
 
+let test_build_match_for_int =
+  let test _ =
+    let tc =
+      let statement =
+        mkstm 1
+      in
+      let* chain =
+        let* chain = build_tuple_pattern_chain [ Ast.Type.Int ]
+        in
+        let* chain = categorize
+            chain
+            [
+              Pattern.Binder { identifier = mkid "n"; wildcard = true }
+            ]
+            statement
+            false
+        in
+        TC.return chain
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"] chain
+      in
+      let expected_match_statement =
+        Ast.Statement.Let {
+          variable_identifier    = mkid "n";
+          binding_statement_type = Ast.Type.Int;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
+          body_statement         = statement;
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        expected_match_statement
+        actual_match_statement;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      match intval {
+        n => read_register r1,
+      }
+  |} >:: test
+
 
 let test_chain_building_suite =
   "chain building test suite" >::: [
@@ -1359,6 +1404,8 @@ let test_generate_match_suite =
     test_build_match_for_enum_6;
     test_build_match_for_enum_7;
     test_build_match_for_enum_8;
+    
+    test_build_match_for_int;
   ]
 
 
