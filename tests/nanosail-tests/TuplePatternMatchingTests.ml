@@ -60,38 +60,39 @@ let build_tuple_pattern_chain = TM.build_tuple_pattern_chain dummy_location
 let categorize                = TM.categorize_case dummy_location
 let build_match               = TM.build_leveled_match_statements
 
+
 let test_build_chain_enum_1 =
   let test _ =
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let* chain =
+      let* actual_chain =
         build_tuple_pattern_chain [ enum_type ]
       in
-      match chain with
-      | Enum { enum_identifier; table; binder_identifier } -> begin
-          assert_equal ~cmp:Ast.Identifier.equal (mkid "A") enum_identifier;
-          let expected_table : TM.PatternNode.t Ast.Identifier.Map.t =
-            Ast.Identifier.Map.of_alist_exn [
+      let expected_chain =
+        TM.PatternNode.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal None
+                (None, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                TM.PatternNode.Terminal None
+                (None, TM.PatternNode.Terminal None)
               );
-            ]
-          in
-          assert_equal ~cmp:(Ast.Identifier.Map.equal TM.PatternNode.equal) expected_table table;
-          assert_equal ~cmp:(Option.equal Ast.Identifier.equal) None binder_identifier;
-          TC.return ()
-        end
-       | _ -> assert_failure "expected enum node"
+            ];
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
+        ~cmp:TM.PatternNode.equal
+        expected_chain
+        actual_chain;
+      TC.return ()
     in
     ignore @@ run_tc tc
-
   in
   "building chain for (enum[A1,A2])" >:: test
 
@@ -102,36 +103,36 @@ let test_build_chain_enum_2 =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"; "A3"]
       in
-      let* chain =
+      let* actual_chain =
         build_tuple_pattern_chain [ enum_type ]
       in
-      match chain with
-      | Enum { enum_identifier; table; binder_identifier } -> begin
-          assert_equal ~cmp:Ast.Identifier.equal (mkid "A") enum_identifier;
-          let expected_table : TM.PatternNode.t Ast.Identifier.Map.t =
-            Ast.Identifier.Map.of_alist_exn [
+      let expected_chain =
+        TM.PatternNode.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal None
+                (None, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                TM.PatternNode.Terminal None
+                (None, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A3",
-                TM.PatternNode.Terminal None
+                (None, TM.PatternNode.Terminal None)
               );
-            ]
-          in
-          assert_equal ~cmp:(Ast.Identifier.Map.equal TM.PatternNode.equal) expected_table table;
-          assert_equal ~cmp:(Option.equal Ast.Identifier.equal) None binder_identifier;
-          TC.return ()
-        end
-       | _ -> assert_failure "expected enum node"
+            ];
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
+        ~cmp:TM.PatternNode.equal
+        expected_chain
+        actual_chain;
+      TC.return ()
     in
     ignore @@ run_tc tc
-
   in
   "building chain for (enum[A1,A2,A3])" >:: test
 
@@ -142,52 +143,55 @@ let test_build_chain_enum_3 =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let* chain =
+      let* actual_chain =
         build_tuple_pattern_chain [ enum_type; enum_type ]
       in
-      let expected_chain =
+      let expected_chain : TM.PatternNode.t =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Enum {
-                  enum_identifier = mkid "A";
-                  table = Ast.Identifier.Map.of_alist_exn [
-                      (
-                        mkid "A1",
-                        TM.PatternNode.Terminal None
-                      );
-                      (
-                        mkid "A2",
-                        TM.PatternNode.Terminal None
-                      );
-                    ];
-                  binder_identifier = None;
-                }
+                (
+                  None,
+                  TM.PatternNode.Enum {
+                    enum_identifier = mkid "A";
+                    table = Ast.Identifier.Map.of_alist_exn [
+                        (
+                          mkid "A1",
+                          (None, TM.PatternNode.Terminal None)
+                        );
+                        (
+                          mkid "A2",
+                          (None, TM.PatternNode.Terminal None)
+                        );
+                      ];
+                  }
+                )
               );
               (
                 mkid "A2",
-                TM.PatternNode.Enum {
-                  enum_identifier = mkid "A";
-                  table = Ast.Identifier.Map.of_alist_exn [
-                      (
-                        mkid "A1",
-                        TM.PatternNode.Terminal None
-                      );
-                      (
-                        mkid "A2",
-                        TM.PatternNode.Terminal None
-                      );
-                    ];
-                  binder_identifier = None;
-                }
+                (
+                  None,
+                  TM.PatternNode.Enum {
+                    enum_identifier = mkid "A";
+                    table = Ast.Identifier.Map.of_alist_exn [
+                        (
+                          mkid "A1",
+                          (None, TM.PatternNode.Terminal None)
+                        );
+                        (
+                          mkid "A2",
+                          (None, TM.PatternNode.Terminal None)
+                        );
+                      ];
+                  }
+                )
               );
             ];
-          binder_identifier = None;
         }
       in
-      assert_equal ~cmp:TM.PatternNode.equal expected_chain chain;
+      assert_equal ~cmp:TM.PatternNode.equal expected_chain actual_chain;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -222,10 +226,9 @@ let test_categorize_enum_1 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement);
+                (None, TM.PatternNode.Terminal (Some a1_statement));
               );
             ];
-          binder_identifier = None;
         }
       in
       assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
@@ -271,10 +274,9 @@ let test_categorize_enum_2 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement)
+                (None, TM.PatternNode.Terminal (Some a1_statement))
               );
-            ];
-          binder_identifier = None;
+            ];          
         }
       in
       assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
@@ -320,10 +322,9 @@ let test_categorize_enum_3 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement)
+                (Some (mkid "x"), TM.PatternNode.Terminal (Some a1_statement))
               );
             ];
-          binder_identifier = Some (mkid "x");
         }
       in
       assert_equal
@@ -389,14 +390,13 @@ let test_categorize_enum_4 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement)
+                (None, TM.PatternNode.Terminal (Some a1_statement))
               );
               (
                 mkid "A2",
-                TM.PatternNode.Terminal (Some a2_statement)
+                (None, TM.PatternNode.Terminal (Some a2_statement))
               );
             ];
-          binder_identifier = None;
         }
       in
       assert_equal
@@ -430,7 +430,7 @@ let test_categorize_enum_5 =
       let a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
+      let* actual_chain =
         let* chain = build_tuple_pattern_chain [ enum_type ]
         in
         let* chain = categorize
@@ -457,20 +457,26 @@ let test_categorize_enum_5 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement)
+                (
+                  None,  (* no binder since pattern mentions A1 explicitly *)
+                  TM.PatternNode.Terminal (Some a1_statement)
+                )
               );
               (
                 mkid "A2",
-                TM.PatternNode.Terminal (Some a2_statement)
+                (
+                  None,  (* no binder since pattern is wildcard *)
+                  TM.PatternNode.Terminal (Some a2_statement)
+                )
               );
             ];
-          binder_identifier = None;
         }
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain chain;
+        expected_chain
+        actual_chain;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -525,14 +531,19 @@ let test_categorize_enum_6 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                TM.PatternNode.Terminal (Some a1_statement)
+                (
+                  None,  (* no binder since pattern mentions "A1" explicitly *)
+                  TM.PatternNode.Terminal (Some a1_statement)
+                )
               );
               (
                 mkid "A2",
-                TM.PatternNode.Terminal (Some a2_statement)
+                (
+                  Some (mkid "x"),  (* binder necessary because pattern requires the value to be bound to x *)
+                  TM.PatternNode.Terminal (Some a2_statement)
+                )
               );
-            ];
-          binder_identifier = Some (mkid "x");
+            ];          
         }
       in
       assert_equal
@@ -804,7 +815,7 @@ let test_build_match_for_enum_4 =
                   Ast.Statement.Let {
                     variable_identifier    = mkid "x";
                     binding_statement_type = Ast.Type.Enum (mkid "A");
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "A", Ast.Type.Enum (mkid "A")));
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Enum (mkid "A")));
                     body_statement         = a2_statement
                   }
                 );
@@ -840,7 +851,7 @@ let test_chain_building_suite =
 
 
 let test_categorizing_suite =
-  "chain building test suite" >::: [
+  "categorizing test suite" >::: [
     test_categorize_enum_1;
     test_categorize_enum_2;
     test_categorize_enum_3;
