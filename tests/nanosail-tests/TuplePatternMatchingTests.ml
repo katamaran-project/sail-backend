@@ -236,6 +236,7 @@ let test_categorize_enum_1 =
     }
   |} >:: test
 
+
 let test_chain_building_suite =
   "chain building test suite" >::: [
     test_build_chain_enum_1;
