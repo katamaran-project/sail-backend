@@ -45,7 +45,7 @@ let test_build_chain_enum_1 =
     ignore @@ run_tc tc
   in
   {|
-    enum A { A1, A2 }
+    enum A = { A1, A2 }
 
     tuple (A)
   |} >:: test
@@ -89,7 +89,7 @@ let test_build_chain_enum_2 =
     ignore @@ run_tc tc
   in
   {|
-    enum A { A1, A2, A3 }
+    enum A = { A1, A2, A3 }
 
     tuple (A)
   |} >:: test
@@ -156,7 +156,7 @@ let test_build_chain_enum_3 =
 
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
 
       tuple (A, A)
   |} >:: test
