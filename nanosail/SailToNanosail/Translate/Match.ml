@@ -1094,9 +1094,9 @@ module TupleMatching = struct
   
     and build_singleton_node
         (element_type : Ast.Type.t   )
-        (tail         : PatternNode.t) : PatternNode.t TC.t
+        (subtree      : PatternNode.t) : PatternNode.t TC.t
       =
-      TC.return @@ PatternNode.Atomic (element_type, None, tail)
+      TC.return @@ PatternNode.Atomic (element_type, None, subtree)
         
     in
     match element_types with
