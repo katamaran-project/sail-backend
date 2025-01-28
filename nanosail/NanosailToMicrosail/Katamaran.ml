@@ -20,7 +20,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   val register_definitions                     = Ast.Definition.Select.(select (with_sail_definition @@ (register_definition ())            ) intermediate_representation.definitions)
   val ignored_definitions                      = Ast.Definition.Select.(select (with_sail_definition @@ ignored_definition                  ) intermediate_representation.definitions)
   val untranslated_definitions                 = Ast.Definition.Select.(select (with_sail_definition @@ untranslated_definition             ) intermediate_representation.definitions)
-  val function_definitions                     = Ast.Definition.Select.(select (with_sail_definition @@ (function_definition ())            ) intermediate_representation.definitions)
+  val function_definitions                     = Ast.Definition.Select.(select (with_sail_definition @@ function_definition                 ) intermediate_representation.definitions)
   val top_level_type_constraint_definitions    = Ast.Definition.Select.(select (with_sail_definition @@ top_level_type_constraint_definition) intermediate_representation.definitions)
 
   method program                               = intermediate_representation
