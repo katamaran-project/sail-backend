@@ -64,7 +64,7 @@ let test_build_match_for_enum_1 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1 }
+      enum A = { A1 }
   
       match value1 {
         A1 => read_register r1,
@@ -135,7 +135,7 @@ let test_build_match_for_enum_2 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1 {
         A1 => read_register r1,
@@ -207,7 +207,7 @@ let test_build_match_for_enum_3 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1 {
         A1 => read_register r1,
@@ -284,7 +284,7 @@ let test_build_match_for_enum_4 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1 {
         A1 => read_register r1,
@@ -410,7 +410,7 @@ let test_build_match_for_enum_5 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1, value2 {
         A1, A1 => r1,
@@ -538,7 +538,7 @@ let test_build_match_for_enum_6 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1, value2 {
         A1, A1 => r1,
@@ -648,7 +648,7 @@ let test_build_match_for_enum_7 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1, value2 {
         _, A1 => r1,
@@ -771,7 +771,7 @@ let test_build_match_for_enum_8 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match value1, value2 {
         x, A1 => r1,
