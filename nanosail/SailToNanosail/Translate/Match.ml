@@ -1272,8 +1272,14 @@ module TupleMatching = struct
                   let* pattern_field_binder_identifiers : Ast.Identifier.t list =
                     match List.length constructor_field_types with
                     | 0 -> begin
-                        (* Matched variant case has zero fields, i.e., unit *)
-                        TC.not_yet_implemented [%here] location
+                        match field_pattern with
+                        | ListCons (_, _)    -> invalid_pattern [%here]
+                        | ListNil            -> invalid_pattern [%here]
+                        | Tuple _            -> invalid_pattern [%here]
+                        | EnumCase _         -> invalid_pattern [%here]
+                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
+                        | Unit               -> TC.return []
                       end
                     | 1 -> begin
                         (* Matched variant case has one field *)
