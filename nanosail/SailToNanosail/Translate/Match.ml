@@ -1123,8 +1123,8 @@ module TupleMatching = struct
       end
 
 
-  let rec contains_gap (pattern_chain : PatternNode.t) : bool =
-    match pattern_chain with
+  let rec contains_gap (pattern_tree : PatternNode.t) : bool =
+    match pattern_tree with
     | Enum { table; _ } -> begin
         let values : (Ast.Identifier.t option * PatternNode.t) list =
           Ast.Identifier.Map.data table
