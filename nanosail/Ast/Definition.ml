@@ -666,6 +666,12 @@ module Select = struct
   let function_definition_named (name : Identifier.t option) () : (t, Function.t) selector =
     new Selectors.function_definition_selector name
 
+  (*
+     of_kind is a selector that allows us to specify which "kind"
+     of type we're interested in, such as enums, variants, records, etc.
+
+     See the other selectors of_anything, of_enum, of_variant, of_record, etc.
+  *)
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
     new Selectors.type_definition_selector of_kind
   
