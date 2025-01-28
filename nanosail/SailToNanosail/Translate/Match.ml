@@ -1646,13 +1646,13 @@ let translate_tuple_match
         | Tuple subpatterns -> TupleMatching.categorize_case location tree subpatterns statement false
         | _                 -> TC.fail [%here] "expected tuple pattern"
       in
-      let* final_chain =
+      let* final_tree =
         TC.fold_left
           ~init:initial_tree
-          ~f:(fun chain (pattern, statement) -> categorize chain pattern statement)
+          ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
           cases
       in
-      TupleMatching.build_leveled_match_statements binder_identifiers final_chain
+      TupleMatching.build_leveled_match_statements binder_identifiers final_tree
     in
     let* result =
       TupleMatching.create_tuple_match
