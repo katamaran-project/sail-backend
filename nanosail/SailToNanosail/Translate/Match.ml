@@ -858,16 +858,16 @@ module TupleMatching = struct
           match node_2 with
           | Enum { enum_identifier = enum_identifier_2; table = table_2 } -> begin
               let table_entry_equality
-                  (binder_identifier_1, tail_1)
-                  (binder_identifier_2, tail_2)
+                  (binder_identifier_1, subtree_1)
+                  (binder_identifier_2, subtree_2)
                 =
                 Option.equal Ast.Identifier.equal
                   binder_identifier_1
                   binder_identifier_2
                 &&
                 equal
-                  tail_1
-                  tail_2
+                  subtree_1
+                  subtree_2
               in
               Ast.Identifier.equal
                 enum_identifier_1
