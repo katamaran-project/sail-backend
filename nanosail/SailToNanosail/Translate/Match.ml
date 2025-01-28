@@ -1461,10 +1461,10 @@ module TupleMatching = struct
                 Ast.Identifier.Map.to_alist table
               in
               let* updated_pairs : (Ast.Identifier.t * Ast.Statement.t) list =
-                let update_pair (enum_case, (binder_identifier, tail)) =
+                let update_pair (enum_case, (binder_identifier, subtree)) =
                   let* statement : Ast.Statement.t =
                     let* tail_statement =
-                      build_leveled_match_statements remaining_tuple_elements tail
+                      build_leveled_match_statements remaining_tuple_elements subtree
                     in
                     TC.return @@ decorate_statement binder_identifier tail_statement
                   in
