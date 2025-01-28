@@ -1263,8 +1263,8 @@ module TupleMatching = struct
                   let* variant_definition =
                     TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                   in
-                  let constructor =
-                    List.find_exn variant_definition.constructors ~f:(fun (constructor_identifier, _) -> Ast.Identifier.equal constructor_identifier constructor_identifier)
+                  let constructor : Ast.Identifier.t * Ast.Type.t list =
+                    List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
                   in
                   let constructor_field_types =
                     snd constructor
