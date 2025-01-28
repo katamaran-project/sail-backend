@@ -1638,12 +1638,12 @@ let translate_tuple_match
           element_types
       in
       let categorize
-          (chain     : TupleMatching.PatternNode.t)
+          (tree      : TupleMatching.PatternNode.t)
           (pattern   : Pattern.t                  )
           (statement : Ast.Statement.t            ) : TupleMatching.PatternNode.t TC.t
         =
         match pattern with
-        | Tuple subpatterns -> TupleMatching.categorize_case location chain subpatterns statement false
+        | Tuple subpatterns -> TupleMatching.categorize_case location tree subpatterns statement false
         | _                 -> TC.fail [%here] "expected tuple pattern"
       in
       let* final_chain =
