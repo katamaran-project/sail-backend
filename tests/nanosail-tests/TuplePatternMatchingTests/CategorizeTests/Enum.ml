@@ -91,7 +91,7 @@ let test_categorize_enum_2 =
                 mkid "A1",
                 (None, TM.PatternNode.Terminal (Some a1_statement))
               );
-            ];          
+            ];
         }
       in
       assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_tree tree;
@@ -115,7 +115,7 @@ let test_categorize_enum_3 =
       let* enum_type =
         define_enum_str "A" ["A1"]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
@@ -153,7 +153,7 @@ let test_categorize_enum_3 =
   in
   {|
       enum A = { A1 }
-  
+
       match a {
         x => read_register r1
       }
@@ -172,7 +172,7 @@ let test_categorize_enum_4 =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let a2_statement =
@@ -196,7 +196,7 @@ let test_categorize_enum_4 =
             ]
             a2_statement
             false
-        in            
+        in
         TC.return tree
       in
       let expected_tree =
@@ -225,7 +225,7 @@ let test_categorize_enum_4 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match a {
         A1 => read_register r1,
         A2 => read_register r2,
@@ -239,7 +239,7 @@ let test_categorize_enum_5 =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let a2_statement =
@@ -263,7 +263,7 @@ let test_categorize_enum_5 =
             ]
             a2_statement
             false
-        in            
+        in
         TC.return tree
       in
       let expected_tree =
@@ -299,7 +299,7 @@ let test_categorize_enum_5 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match a {
         A1 => read_register r1,
         _  => read_register r2,
@@ -313,7 +313,7 @@ let test_categorize_enum_6 =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let a2_statement =
@@ -337,7 +337,7 @@ let test_categorize_enum_6 =
             ]
             a2_statement
             false
-        in            
+        in
         TC.return tree
       in
       let expected_tree =
@@ -358,7 +358,7 @@ let test_categorize_enum_6 =
                   TM.PatternNode.Terminal (Some a2_statement)
                 )
               );
-            ];          
+            ];
         }
       in
       assert_equal
@@ -371,7 +371,7 @@ let test_categorize_enum_6 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match a {
         A1 => read_register r1,
         x  => read_register r2,

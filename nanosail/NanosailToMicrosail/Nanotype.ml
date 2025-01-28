@@ -27,7 +27,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
           ]
         end
       end
-    in    
+    in
     match subtypes with
     | []       -> GC.fail [%here] "should not occur"
     | [_]      -> GC.fail [%here] "should not occur"
@@ -185,7 +185,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
     | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
     | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
 
-  
+
 
   in
   match nanotype with

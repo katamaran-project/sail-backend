@@ -102,7 +102,7 @@ let location (location : Libsail.Parse_ast.l) =
   let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
   in
-  let rec string_of_location (location : Libsail.Parse_ast.l) =    
+  let rec string_of_location (location : Libsail.Parse_ast.l) =
     match location with
     | Unknown                 -> "UnknownLocation"
     | Unique (k, loc)         -> Printf.sprintf "UniqueLocation(%d, %s)" k (string_of_location loc)

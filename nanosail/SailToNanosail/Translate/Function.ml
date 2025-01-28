@@ -216,7 +216,7 @@ let rec expression_of_aval
           | []       -> TC.fail [%here] "should not occur"
           | [_]      -> TC.fail [%here] "should not occur"
           | _        -> TC.return @@ Ast.Type.Tuple translation_types
-        in                
+        in
         TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
       end
 

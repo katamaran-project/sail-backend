@@ -19,7 +19,7 @@ let test_build_match_for_enum_1 =
       let* enum_type =
         define_enum_str "A" ["A1"]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
@@ -63,7 +63,7 @@ let test_build_match_for_enum_1 =
   in
   {|
       enum A = { A1 }
-  
+
       match value1 {
         A1 => read_register r1,
       }
@@ -134,7 +134,7 @@ let test_build_match_for_enum_2 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1 {
         A1 => read_register r1,
         A2 => read_register r2,
@@ -206,7 +206,7 @@ let test_build_match_for_enum_3 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1 {
         A1 => read_register r1,
         _  => read_register r2,
@@ -283,7 +283,7 @@ let test_build_match_for_enum_4 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1 {
         A1 => read_register r1,
         x  => read_register r2,
@@ -326,7 +326,7 @@ let test_build_match_for_enum_5 =
             ]
             a1_a2_statement
             false
-        in        
+        in
         let* tree = categorize
             tree
             [
@@ -335,7 +335,7 @@ let test_build_match_for_enum_5 =
             ]
             a2_a1_statement
             false
-        in        
+        in
         let* tree = categorize
             tree
             [
@@ -344,7 +344,7 @@ let test_build_match_for_enum_5 =
             ]
             a2_a2_statement
             false
-        in        
+        in
         TC.return tree
       in
       let* actual_match_statement =
@@ -409,7 +409,7 @@ let test_build_match_for_enum_5 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1, value2 {
         A1, A1 => r1,
         A1, A2 => r2,
@@ -454,7 +454,7 @@ let test_build_match_for_enum_6 =
             ]
             a1_a2_statement
             false
-        in        
+        in
         let* tree = categorize
             tree
             [
@@ -463,7 +463,7 @@ let test_build_match_for_enum_6 =
             ]
             a2_a1_statement
             false
-        in        
+        in
         let* tree = categorize
             tree
             [
@@ -472,7 +472,7 @@ let test_build_match_for_enum_6 =
             ]
             a2_a2_statement
             false
-        in        
+        in
         TC.return tree
       in
       let* actual_match_statement =
@@ -537,7 +537,7 @@ let test_build_match_for_enum_6 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1, value2 {
         A1, A1 => r1,
         A1, A2 => r2,
@@ -582,7 +582,7 @@ let test_build_match_for_enum_7 =
             ]
             a1_a2_statement
             false
-        in        
+        in
         TC.return tree
       in
       let* actual_match_statement =
@@ -647,7 +647,7 @@ let test_build_match_for_enum_7 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1, value2 {
         _, A1 => r1,
         _, A2 => r2,
@@ -695,7 +695,7 @@ let test_build_match_for_enum_8 =
             ]
             a1_a2_statement
             false
-        in        
+        in
         TC.return tree
       in
       let* actual_match_statement =
@@ -770,7 +770,7 @@ let test_build_match_for_enum_8 =
   in
   {|
       enum A = { A1, A2 }
-  
+
       match value1, value2 {
         x, A1 => r1,
         _, A2 => r2,
@@ -785,7 +785,7 @@ let test_build_match_for_enum_9 =
         define_enum_str "A" ["A1"; "A2"]
       and* enum_type_b =
         define_enum_str "B" ["B1"; "B2"]
-      in      
+      in
       let a1_b1_statement =
         mkstm 1
       and a1_b2_statement =
@@ -815,7 +815,7 @@ let test_build_match_for_enum_9 =
             ]
             a1_b2_statement
             false
-        in        
+        in
         let* tree = categorize
             tree
             [
@@ -833,7 +833,7 @@ let test_build_match_for_enum_9 =
             ]
             a2_b2_statement
             false
-        in        
+        in
         TC.return tree
       in
       let* actual_match_statement =
@@ -899,7 +899,7 @@ let test_build_match_for_enum_9 =
   {|
       enum A = { A1, A2 }
       enum B = { B1, B2 }
-  
+
       match a, b {
         A1, B1 => r1,
         A1, B2 => r2,

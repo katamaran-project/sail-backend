@@ -257,85 +257,85 @@ end = struct
         | Int -> true
         | _   -> false
       end
-      
+
     | Bool -> begin
         match t2 with
         | Bool -> true
         | _    -> false
       end
-      
+
     | String -> begin
         match t2 with
         | String -> true
         | _      -> false
       end
-      
+
     | Bit -> begin
         match t2 with
         | Bit -> true
         | _   -> false
       end
-      
+
     | List x -> begin
         match t2 with
         | List x' -> equal x x'
         | _       -> false
       end
-      
+
     | Sum (x, y) -> begin
         match t2 with
         | Sum (x', y') -> equal x x' && equal y y'
         | _            -> false
       end
-      
+
     | Unit -> begin
         match t2 with
         | Unit -> true
         | _    -> false
       end
-      
+
     | Enum x -> begin
         match t2 with
         | Enum x' -> Identifier.equal x x'
         | _       -> false
       end
-      
+
     | Bitvector x -> begin
         match t2 with
         | Bitvector x' -> NumericExpression.equal x x'
         | _            -> false
       end
-      
+
     | Tuple xs -> begin
         match t2 with
         | Tuple xs' -> List.equal equal xs xs'
         | _         -> false
       end
-      
+
     | Variant x -> begin
         match t2 with
         | Variant x' -> Identifier.equal x x'
         | _          -> false
       end
-      
+
     | Record x -> begin
         match t2 with
         | Record x' -> Identifier.equal x x'
         | _         -> false
       end
-      
+
     | Application (x, ys) -> begin
         match t2 with
         | Application (x', ys') -> equal x x' && List.equal TypeArgument.equal ys ys'
         | _                     -> false
       end
-      
+
     | Alias (x, y) -> begin
         match t2 with
         | Alias (x', y') -> Identifier.equal x x' && equal y y'
         | _              -> false
       end
-      
+
     | Range (x, y) -> begin
         match t2 with
         | Range (x', y') -> NumericExpression.equal x x' && NumericExpression.equal y y'

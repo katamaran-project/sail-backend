@@ -337,11 +337,11 @@ module Select = struct
     class virtual ['a, 'b] selector = object(self)
       method virtual select   : 'a -> 'b option
       method virtual to_fexpr : FExpr.t
-                                  
+
       method to_string : string =
         FExpr.to_string self#to_fexpr
     end
-    
+
 
     class ['a] type_definition_selector (kind_selector : (Type.t, 'a) selector) = object
       inherit [t, 'a] selector
@@ -357,7 +357,7 @@ module Select = struct
         in
         FExpr.mk_application ~keyword "Selector:Type"
     end
-    
+
 
     class virtual ['a, 'b] named_definition_selector (name : Identifier.t option) = object
       inherit ['a, 'b] selector
@@ -372,12 +372,12 @@ module Select = struct
         | Some name -> [ ("named", Identifier.to_fexpr name) ]
         | None      -> []
     end
-    
+
 
     class virtual ['a] kind_selector (name : Identifier.t option) = object
       inherit [Type.t, 'a] named_definition_selector name
     end
-    
+
 
     class any_kind_selector (name : Identifier.t option) = object(self)
       inherit [Type.t] kind_selector name
@@ -396,7 +396,7 @@ module Select = struct
         in
         FExpr.mk_application ~keyword "Any"
     end
-    
+
 
     class enum_kind_selector (name : Identifier.t option) = object(self)
       inherit [Type.Enum.t] kind_selector name
@@ -412,8 +412,8 @@ module Select = struct
         in
         FExpr.mk_application ~keyword "Enum"
     end
-    
-    
+
+
     class variant_kind_selector (name : Identifier.t option) = object(self)
       inherit [Type.Variant.t] kind_selector name
 
@@ -428,7 +428,7 @@ module Select = struct
         in
         FExpr.mk_application ~keyword "Variant"
     end
-    
+
 
     class record_kind_selector (name : Identifier.t option) = object(self)
       inherit [Type.Record.t] kind_selector name
@@ -444,13 +444,13 @@ module Select = struct
         in
         FExpr.mk_application ~keyword "Record"
     end
-    
+
 
     class virtual ['a] abbreviation_subselector = object
       inherit [Type.Abbreviation.type_abbreviation, 'a] selector
     end
 
-    
+
     class ['a] abbreviation_kind_selector
         (name        : Identifier.t option                        )
         (subselector : 'a abbreviation_subselector)
@@ -463,7 +463,7 @@ module Select = struct
           | Abbreviation abbreviation_definition when self#matching_name abbreviation_definition.identifier -> begin
               Option.map
                 ~f:(fun x -> (abbreviation_definition.identifier, x))
-                (subselector#select abbreviation_definition.abbreviation) 
+                (subselector#select abbreviation_definition.abbreviation)
             end
           | _ -> None
 
@@ -476,7 +476,7 @@ module Select = struct
           FExpr.mk_application ~keyword ~positional "Abbreviation"
       end
 
-    
+
     class alias_abbreviation_subselector = object
       inherit [TypeQuantifier.t * Nanotype.t] abbreviation_subselector
 
@@ -488,7 +488,7 @@ module Select = struct
       method to_fexpr : FExpr.t =
         FExpr.mk_symbol "Alias"
     end
-    
+
 
     class numeric_expression_abbreviation_subselector = object
       inherit [TypeQuantifier.t * Numeric.Expression.t] abbreviation_subselector
@@ -531,7 +531,7 @@ module Select = struct
         FExpr.mk_application ~keyword "Selector:Register"
     end
 
-    
+
     class ignored_definition_selector = object
       inherit [t, unit] selector
 
@@ -543,7 +543,7 @@ module Select = struct
       method to_fexpr : FExpr.t =
         FExpr.mk_symbol "Selector:Ignored"
     end
-    
+
 
     class top_level_type_constraint_definition_selector = object
       inherit [t, TopLevelTypeConstraint.t] selector
@@ -557,7 +557,7 @@ module Select = struct
         FExpr.mk_symbol "Selector:TopLevelTypeConstraint"
     end
 
-    
+
     class value_definition_selector (name : Identifier.t option) = object(self)
       inherit [t, Value.t] named_definition_selector name
 
@@ -573,7 +573,7 @@ module Select = struct
         FExpr.mk_application ~keyword "Selector:Value"
     end
 
-    
+
     class untranslated_definition_selector = object
       inherit [t, Untranslated.t] selector
 
@@ -603,7 +603,7 @@ module Select = struct
         FExpr.mk_application ~positional "Selector:WithoutSail"
     end
 
-    
+
     class ['a, 'b] with_sail_selector (subselector : ('a, 'b) selector) = object
       inherit [Sail.sail_definition * 'a, Sail.sail_definition * 'b] selector
 
@@ -621,7 +621,7 @@ module Select = struct
         FExpr.mk_application ~positional "Selector:WithoutSail"
     end
 
-    
+
     class function_definition_selector (name : Identifier.t option) = object(self)
       inherit [t, Function.t] named_definition_selector name
 
@@ -635,7 +635,7 @@ module Select = struct
           self#fexpr_named_keywords
         in
         FExpr.mk_application ~keyword "Selector:Function"
-    end    
+    end
   end
 
   type ('a, 'b) selector = ('a, 'b) Selectors.selector
@@ -651,7 +651,7 @@ module Select = struct
 
   let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
     List.map ~f:snd pairs
-  
+
   let without_sail_definition (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, 'b) selector =
     new Selectors.without_sail_selector subselector
 
@@ -674,7 +674,7 @@ module Select = struct
   *)
   let type_definition (of_kind : (Type.t, 'a) selector) : (t, 'a) selector =
     new Selectors.type_definition_selector of_kind
-  
+
   let of_anything =
     new Selectors.any_kind_selector None
 
@@ -692,13 +692,13 @@ module Select = struct
 
   let of_variant_named (name : Identifier.t) : (Type.t, Type.Variant.t) selector =
     new Selectors.variant_kind_selector (Some name)
-  
+
   let of_record : (Type.t, Type.Record.t) selector  =
     new Selectors.record_kind_selector None
 
   let of_record_named (name : Identifier.t) : (Type.t, Type.Record.t) selector  =
     new Selectors.record_kind_selector (Some name)
-  
+
   let of_abbreviation
       ?(named  : Identifier.t option                  )
       (of_type : 'a Selectors.abbreviation_subselector) : (Type.t, Identifier.t * 'a) selector
@@ -707,7 +707,7 @@ module Select = struct
 
   let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Nanotype.t) selector =
     new Selectors.alias_abbreviation_subselector
-        
+
   let of_numeric_expression : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Expression.t) selector =
     new Selectors.numeric_expression_abbreviation_subselector
 
@@ -719,16 +719,16 @@ module Select = struct
 
   let register_definition_named (name : Identifier.t) : (t, Register.t) selector =
     new Selectors.register_definition_selector (Some name)
-  
+
   let untranslated_definition : (t, Untranslated.t) selector =
     new Selectors.untranslated_definition_selector
 
   let ignored_definition : (t, unit) selector =
       new Selectors.ignored_definition_selector
- 
+
   let top_level_type_constraint_definition =
     new Selectors.top_level_type_constraint_definition_selector
-  
+
   let value_definition : (t, Value.t) selector =
     new Selectors.value_definition_selector None
 

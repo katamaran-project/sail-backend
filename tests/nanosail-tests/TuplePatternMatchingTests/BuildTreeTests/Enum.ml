@@ -165,5 +165,5 @@ let test_build_pattern_tree_enum_3 =
 let test_suite = "enum" >::: [
     test_build_pattern_tree_enum_1;
     test_build_pattern_tree_enum_2;
-    test_build_pattern_tree_enum_3;    
+    test_build_pattern_tree_enum_3;
 ]

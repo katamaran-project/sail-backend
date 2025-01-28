@@ -69,7 +69,7 @@ let test_build_match_for_enum_int =
   in
   {|
       enum A = { A1 }
-    
+
       match (enumval, intval) {
         (A1, k) => read_register r1,
       }

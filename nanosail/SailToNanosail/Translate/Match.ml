@@ -207,7 +207,7 @@ let rec translate_pattern
       | AP_wild _type                 -> translate_wildcard_pattern ()
       | _                             -> unexpected_pattern [%here]
     end
-    
+
   | Enum enum_identifier -> begin
       match unwrapped_sail_pattern with
       | AP_id (sail_identifier, _sail_type) -> begin
@@ -227,14 +227,14 @@ let rec translate_pattern
       | AP_wild _type -> translate_wildcard_pattern ()
       | _ -> unexpected_pattern [%here]
     end
-    
+
   | Unit -> begin
       match unwrapped_sail_pattern with
       | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
-    
+
   | Tuple subtypes -> begin
       match unwrapped_sail_pattern with
       | AP_tuple sail_subpatterns           -> translate_tuple_pattern sail_subpatterns subtypes
@@ -242,7 +242,7 @@ let rec translate_pattern
       | AP_wild _type                       -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
-    
+
   | Variant variant_identifier -> begin
       match unwrapped_sail_pattern with
       | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
@@ -280,7 +280,7 @@ let rec translate_pattern
       | AP_wild _sail_type                  -> translate_wildcard_pattern ()
       | _                                   -> unexpected_pattern [%here]
     end
-    
+
   | Int                -> translate_pattern_for_atomic_type ()
   | Bool               -> translate_pattern_for_atomic_type ()
   | String             -> translate_pattern_for_atomic_type ()
@@ -841,14 +841,14 @@ let translate_variant_match
 module TupleMatching = struct
   module PatternNode = struct
     type atomic_data = { identifier : Ast.Identifier.t; wildcard : bool }
-    
+
     type t =
       | Enum       of { enum_identifier : Ast.Identifier.t; table : (Ast.Identifier.t option * t) Ast.Identifier.Map.t; }
       | Variant    of { variant_identifier : Ast.Identifier.t; table : (Ast.Identifier.t list option * t) Ast.Identifier.Map.t }
       | Atomic     of Ast.Type.t * atomic_data option * t
       | Terminal   of Ast.Statement.t option
 
-    
+
     let rec equal
         (node_1 : t)
         (node_2 : t) : bool
@@ -905,7 +905,7 @@ module TupleMatching = struct
             end
           | _ -> false
         end
-        
+
       | Terminal statement_1 -> begin
           match node_2 with
           | Terminal statement_2 -> begin
@@ -990,7 +990,7 @@ module TupleMatching = struct
           in
           FExpr.mk_application ~keyword @@ mk_head "Variant"
         end
-        
+
       | Atomic (typ, data, subtree) -> begin
           let fexpr_of_atomic_data (data : atomic_data) =
             let keyword =
@@ -1027,7 +1027,7 @@ module TupleMatching = struct
           in
           FExpr.mk_application ~keyword @@ mk_head "Atomic"
         end
-            
+
       | Terminal statement -> begin
           let keyword =
             [
@@ -1090,20 +1090,20 @@ module TupleMatching = struct
           variant_identifier;
           table
         }
-      end            
-  
+      end
+
     and build_singleton_node
         (element_type : Ast.Type.t   )
         (subtree      : PatternNode.t) : PatternNode.t TC.t
       =
       TC.return @@ PatternNode.Atomic (element_type, None, subtree)
-        
+
     in
     match element_types with
     | []           -> TC.return @@ PatternNode.Terminal None
     | head :: tail -> begin
         let* tail = build_tuple_pattern_tree location tail
-        in 
+        in
         match head with
         | Enum enum_identifier       -> build_enum_node enum_identifier tail
         | Int                        -> build_singleton_node Ast.Type.Int tail
@@ -1134,7 +1134,7 @@ module TupleMatching = struct
         in
         List.exists subtrees ~f:contains_gap
       end
-      
+
     | Variant { table; _ } -> begin
         let values : (Ast.Identifier.t list option * PatternNode.t) list =
           Ast.Identifier.Map.data table
@@ -1144,10 +1144,10 @@ module TupleMatching = struct
         in
         List.exists subtrees ~f:contains_gap
       end
-      
+
     | Atomic (_, _, subtree) -> contains_gap subtree
     | Terminal statement     -> Option.is_none statement
-    
+
 
   let rec categorize_case
       (location          : S.l            )
@@ -1173,7 +1173,7 @@ module TupleMatching = struct
                   in
                   let* updated_subtree =
                     categorize_case location subtree remaining_subpatterns body gap_filling
-                  in                  
+                  in
                   TC.return begin
                     Ast.Identifier.Map.overwrite
                       table
@@ -1191,7 +1191,7 @@ module TupleMatching = struct
                 in
                 let enum_cases =
                   enum_definition.cases
-                in                
+                in
                 let update_table
                     (table     : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
                     (enum_case : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t TC.t
@@ -1201,7 +1201,7 @@ module TupleMatching = struct
                   in
                   if
                     contains_gap subtree
-                  then begin  
+                  then begin
                     let* updated_subtree : PatternNode.t =
                       categorize_case
                         location
@@ -1287,12 +1287,12 @@ module TupleMatching = struct
                         | Binder { identifier = binder_identifier; wildcard = _binder_wildcard } -> begin
                             TC.return [binder_identifier]
                           end
-                        | ListCons (_, _)    -> invalid_pattern [%here] 
-                        | ListNil            -> invalid_pattern [%here] 
-                        | Tuple _            -> invalid_pattern [%here] 
-                        | EnumCase _         -> invalid_pattern [%here] 
-                        | VariantCase (_, _) -> invalid_pattern [%here] 
-                        | Unit               -> invalid_pattern [%here] 
+                        | ListCons (_, _)    -> invalid_pattern [%here]
+                        | ListNil            -> invalid_pattern [%here]
+                        | Tuple _            -> invalid_pattern [%here]
+                        | EnumCase _         -> invalid_pattern [%here]
+                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Unit               -> invalid_pattern [%here]
                       end
                     | _ -> begin
                         (* Matched variant case has two or more fields *)
@@ -1306,12 +1306,12 @@ module TupleMatching = struct
                             in
                             TC.map subpatterns ~f:extract_identifier_from_binder
                           end
-                        | ListCons (_, _)    -> invalid_pattern [%here] 
-                        | ListNil            -> invalid_pattern [%here] 
-                        | EnumCase _         -> invalid_pattern [%here] 
-                        | VariantCase (_, _) -> invalid_pattern [%here] 
-                        | Binder _           -> invalid_pattern [%here] 
-                        | Unit               -> invalid_pattern [%here] 
+                        | ListCons (_, _)    -> invalid_pattern [%here]
+                        | ListNil            -> invalid_pattern [%here]
+                        | EnumCase _         -> invalid_pattern [%here]
+                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Binder _           -> invalid_pattern [%here]
+                        | Unit               -> invalid_pattern [%here]
                       end
                   in
                   let _existing_field_binder_identifiers, subtree =
@@ -1326,7 +1326,7 @@ module TupleMatching = struct
                       table
                       ~key:constructor_identifier
                       ~data:(Some pattern_field_binder_identifiers, updated_subtree)
-                  end                  
+                  end
                 in
                 TC.return begin
                   PatternNode.Variant {
@@ -1343,7 +1343,7 @@ module TupleMatching = struct
             | Tuple _            -> invalid_pattern [%here]
           end
         | [] -> invalid_number_of_subpatterns [%here]
-         
+
       end
 
     | Atomic (element_type, atomic_data, subtree) -> begin
@@ -1378,7 +1378,7 @@ module TupleMatching = struct
                       (*
                          The same value was matched against binders with different names.
                          This case is not supported.
-                         
+
                            match (value1, value2) {
                              x, Foo => ...,
                              y, Bar => ...,
@@ -1391,7 +1391,7 @@ module TupleMatching = struct
           end
         | [] -> invalid_number_of_subpatterns [%here]
       end
-      
+
     | Terminal statement -> begin
         match tuple_subpatterns with
         | [] -> begin
@@ -1444,7 +1444,7 @@ module TupleMatching = struct
                    Bar => let x = enum_value in ...,
                    ...
                  }
-               
+
             *)
             let decorate_statement
                 (binder_identifier : Ast.Identifier.t option)
@@ -1525,7 +1525,7 @@ module TupleMatching = struct
                   in
                   TC.return (constructor_identifier, (field_binder_identifiers, statement))
                 in
-                TC.map table_pairs ~f:(fun (id, (fids, pn)) -> build_statement_pair id fids pn)                      
+                TC.map table_pairs ~f:(fun (id, (fids, pn)) -> build_statement_pair id fids pn)
               in
               TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
             in
@@ -1561,8 +1561,8 @@ module TupleMatching = struct
               end
             | None -> fail_due_to_unhandled_cases
           end
-      end  
-  
+      end
+
     | Terminal statement -> begin
         match tuple_elements with
         | [] -> begin
@@ -1621,7 +1621,7 @@ module TupleMatching = struct
     end
 end
 
-  
+
 (*
    We support a small number of specific matching structures.
 *)
@@ -1665,7 +1665,7 @@ let translate_tuple_match
         builder
     in
     TC.return result
-  
+
   (*
      This function deals with the special case of having a single match pattern that contains nothing but binders, i.e.,
 

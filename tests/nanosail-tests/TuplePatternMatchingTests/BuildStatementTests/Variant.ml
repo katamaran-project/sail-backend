@@ -19,7 +19,7 @@ let test_build_match_for_variant_1 =
       let* enum_type =
         define_variant "A" [("A1", [])]
       in
-      let a1_statement =        
+      let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
@@ -68,7 +68,7 @@ let test_build_match_for_variant_1 =
       union A = {
         A1 : unit
       }
-  
+
       match value1 {
         A1() => read_register r1,
       }

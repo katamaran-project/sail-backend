@@ -117,26 +117,26 @@ let rec equal
     | MatchTuple _   -> raise UnimplementedStatementEquality
     | MatchBool _    -> raise UnimplementedStatementEquality
   in
-  
+
   match statement_1 with
   | Match match_pattern_1 -> begin
       match statement_2 with
       | Match match_pattern_2 -> equal_match_patterns match_pattern_1 match_pattern_2
       | _                     -> false
     end
-    
+
   | Expression expression_1 -> begin
       match statement_2 with
       | Expression expression_2 -> Expression.equal expression_1 expression_2
       | _                       -> false
     end
-    
+
   | Call (_, _) -> begin
       match statement_2 with
       | Call (_, _) -> raise UnimplementedStatementEquality
       | _           -> false
     end
-    
+
   | Let data_1 -> begin
       match statement_2 with
       | Let data_2 -> begin
@@ -158,7 +158,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | DestructureRecord data_1 -> begin
       match statement_2 with
       | DestructureRecord data_2 -> begin
@@ -184,19 +184,19 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Seq (left_1, right_1) -> begin
       match statement_2 with
       | Seq (left_2, right_2) -> equal left_1 left_2 && equal right_1 right_2
       | _                     -> false
     end
-    
+
   | ReadRegister register_identifier_1 -> begin
       match statement_2 with
       | ReadRegister register_identifier_2 -> Identifier.equal register_identifier_1 register_identifier_2
       | _                                  -> false
     end
-    
+
   | WriteRegister data_1 -> begin
       match statement_2 with
       | WriteRegister data_2 -> begin
@@ -210,7 +210,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Cast (statement_1, type_1) -> begin
       match statement_2 with
       | Cast (statement_2, type_2) -> begin
@@ -224,7 +224,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Fail message_1 -> begin
       match statement_2 with
       | Fail message_2 -> begin
@@ -234,7 +234,7 @@ let rec equal
         end
       | _ -> false
     end
-            
+
 
 let rec to_fexpr (statement : t) : FExpr.t =
   let match_pattern_to_fexpr (pattern : match_pattern) : FExpr.t =

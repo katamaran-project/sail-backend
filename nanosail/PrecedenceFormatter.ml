@@ -28,23 +28,23 @@ module Make(O : Output) = struct
   *)
   type ast = Ast of O.t * ExtendedInteger.t
 
-  
+
   let output_of (ast : ast) : output =
     let Ast (x, _) = ast
     in
     x
 
-  
+
   let level_of (ast : ast) : ExtendedInteger.t =
     let Ast (_, n) = ast
     in
     n
 
-  
+
   let parenthesize (ast : ast) : ast =
     Ast (O.parenthesize @@ output_of ast, ExtendedInteger.PositiveInfinity)
 
-  
+
   let define_left_associative_binary_operator
       (precedence : int                       )
       (formatter  : output -> output -> output) : ast -> ast -> ast
@@ -71,7 +71,7 @@ module Make(O : Output) = struct
     in
     format
 
-  
+
   let define_right_associative_binary_operator
       (precedence : int                       )
       (formatter  : output -> output -> output) : ast -> ast -> ast
@@ -102,7 +102,7 @@ module Make(O : Output) = struct
   let define_atom (output : output) : ast =
     Ast (output, ExtendedInteger.PositiveInfinity)
 
-  
+
   let define_unary_prefix_operator
       (precedence : int             )
       (formatter  : output -> output) : ast -> ast
