@@ -207,9 +207,107 @@ let test_build_match_for_variant_3 =
   |} >:: test
 
 
+let test_build_match_for_variant_4 =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_variant "A" [
+          ("A1", [Ast.Type.Int; Ast.Type.Int]);
+          ("A2", [Ast.Type.Int]);
+        ]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      and a2_statement =
+        Ast.Statement.ReadRegister (mkid "r2")
+      in
+      let* pattern_tree =
+        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        in
+        let* pattern_tree = categorize
+            pattern_tree
+            [
+              Pattern.(
+                VariantCase (
+                  mkid "A1",
+                  Tuple [
+                    Binder { identifier = mkid "x"; wildcard = false };
+                    Binder { identifier = mkid "y"; wildcard = false };
+                  ]
+                )
+              )
+            ]
+            a1_statement
+            false
+        in
+        let* pattern_tree = categorize
+            pattern_tree
+            [
+              Pattern.(
+                VariantCase (
+                  mkid "A2",
+                  Binder { identifier = mkid "x"; wildcard = false };
+                )
+              )
+            ]
+            a1_statement
+            false
+        in
+        TC.return pattern_tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"] pattern_tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchVariant {
+            matched = mkid "value1";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  (
+                    [ mkid "x"; mkid "y" ],
+                    a1_statement
+                  )
+                );
+                (
+                  mkid "A2",
+                  (
+                    [ mkid "x" ],
+                    a2_statement
+                  )
+                );
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        expected_match_statement
+        actual_match_statement;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      union A = {
+        A1 : (int, int),
+        A2 : int
+      }
+
+      match value1 {
+        A1(x, y) => read_register r1,
+        A2(x)    => read_register r2
+      }
+  |} >:: test
+
+
 let test_suite =
   "match generation" >::: [
     test_build_match_for_variant_1;
     test_build_match_for_variant_2;
     test_build_match_for_variant_3;
+    test_build_match_for_variant_4;
   ]
