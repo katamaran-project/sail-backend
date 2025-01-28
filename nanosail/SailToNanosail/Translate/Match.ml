@@ -1501,7 +1501,7 @@ module TupleMatching = struct
                 let build_statement_pair
                     (constructor_identifier   : Ast.Identifier.t            )
                     (field_binder_identifiers : Ast.Identifier.t list option)
-                    (tail                     : PatternNode.t               ) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                    (subtree                  : PatternNode.t               ) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                   =
                   let* field_binder_identifiers : Ast.Identifier.t list =
                     match field_binder_identifiers with
@@ -1517,7 +1517,7 @@ module TupleMatching = struct
                       end
                   in
                   let* statement =
-                    build_leveled_match_statements remaining_tuple_elements tail
+                    build_leveled_match_statements remaining_tuple_elements subtree
                   in
                   TC.return (constructor_identifier, (field_binder_identifiers, statement))
                 in
@@ -1537,14 +1537,14 @@ module TupleMatching = struct
           end
       end
 
-    | Atomic (element_type, atomic_data, tail) -> begin
+    | Atomic (element_type, atomic_data, subtree) -> begin
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
             match atomic_data with
             | Some { identifier; wildcard = _ } -> begin
                 let* continuation =
-                  build_leveled_match_statements remaining_tuple_elements tail
+                  build_leveled_match_statements remaining_tuple_elements subtree
                 in
                 TC.return begin
                   Ast.Statement.Let {
