@@ -1145,8 +1145,8 @@ module TupleMatching = struct
         List.exists subtrees ~f:contains_gap
       end
       
-    | Atomic (_, _, tail) -> contains_gap tail
-    | Terminal statement  -> Option.is_none statement
+    | Atomic (_, _, subtree) -> contains_gap subtree
+    | Terminal statement     -> Option.is_none statement
     
 
   let rec categorize_case
