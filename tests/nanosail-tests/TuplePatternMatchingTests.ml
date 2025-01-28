@@ -94,7 +94,11 @@ let test_build_chain_enum_1 =
     in
     ignore @@ run_tc tc
   in
-  "building chain for (enum[A1,A2])" >:: test
+  {|
+    enum A { A1, A2 }
+
+    tuple (A)
+  |} >:: test
 
 
 let test_build_chain_enum_2 =
@@ -134,7 +138,11 @@ let test_build_chain_enum_2 =
     in
     ignore @@ run_tc tc
   in
-  "building chain for (enum[A1,A2,A3])" >:: test
+  {|
+    enum A { A1, A2, A3 }
+
+    tuple (A)
+  |} >:: test
 
 
 let test_build_chain_enum_3 =
@@ -197,7 +205,11 @@ let test_build_chain_enum_3 =
     ignore @@ run_tc tc
 
   in
-  "building chain for (enum[A1,A2], enum[A1, A2])" >:: test
+  {|
+      enum A { A1, A2 }
+
+      tuple (A, A)
+  |} >:: test
 
 
 let test_categorize_enum_1 =
