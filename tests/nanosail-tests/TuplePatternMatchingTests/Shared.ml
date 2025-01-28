@@ -15,6 +15,7 @@ let dummy_location : Libsail.Ast.l =
 let mkid    = Ast.Identifier.mk
 let mkstm n = Ast.Statement.ReadRegister (mkid @@ Printf.sprintf "r%d" n)
 
+
 let define_enum
     (identifier : Ast.Identifier.t     )
     (cases      : Ast.Identifier.t list) : Ast.Type.t TC.t
@@ -41,6 +42,29 @@ let define_enum_str
   and cases      = List.map ~f:Ast.Identifier.mk cases
   in
   define_enum identifier cases
+
+
+let define_variant
+    (identifier   : string                         )
+    (constructors : (string * Ast.Type.t list) list) : Ast.Type.t TC.t
+  =
+  let identifier      = Ast.Identifier.mk identifier
+  and type_quantifier = Ast.TypeQuantifier.TypeQuantifier []
+  and constructors    = List.map ~f:(fun (id, ts) -> (Ast.Identifier.mk id, ts)) constructors
+  in
+  let variant_definition : Ast.Definition.Type.Variant.t =
+    {
+      identifier;
+      type_quantifier;
+      constructors;
+    }
+  in
+  let definition =
+    Ast.Definition.TypeDefinition (Ast.Definition.Type.Variant variant_definition)
+  in
+  let* () = TC.store_definition definition
+  in
+  TC.return @@ Ast.Type.Variant identifier
 
 
 let run_tc (tc : 'a TC.t) : 'a =
