@@ -1335,8 +1335,6 @@ module TupleMatching = struct
             | ListCons (_, _)    -> invalid_pattern [%here]
             | ListNil            -> invalid_pattern [%here]
             | Tuple _            -> invalid_pattern [%here]
-
-                  
           end
         | [] -> invalid_number_of_subpatterns [%here]
          
