@@ -1,5 +1,7 @@
 open OUnit2
 
+module TuplePatternMatchingTests = TuplePatternMatchingTests
+
 
 let tests =
   "all tests" >::: [
