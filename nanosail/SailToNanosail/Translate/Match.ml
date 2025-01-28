@@ -1129,20 +1129,20 @@ module TupleMatching = struct
         let values : (Ast.Identifier.t option * PatternNode.t) list =
           Ast.Identifier.Map.data table
         in
-        let tails : PatternNode.t list =
+        let subtrees : PatternNode.t list =
           List.map ~f:snd values
         in
-        List.exists tails ~f:contains_gap
+        List.exists subtrees ~f:contains_gap
       end
       
     | Variant { table; _ } -> begin
         let values : (Ast.Identifier.t list option * PatternNode.t) list =
           Ast.Identifier.Map.data table
         in
-        let tails : PatternNode.t list =
+        let subtrees : PatternNode.t list =
           List.map ~f:snd values
         in
-        List.exists tails ~f:contains_gap
+        List.exists subtrees ~f:contains_gap
       end
       
     | Atomic (_, _, tail) -> contains_gap tail
