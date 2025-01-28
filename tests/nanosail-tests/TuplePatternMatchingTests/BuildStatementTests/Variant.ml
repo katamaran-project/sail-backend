@@ -250,7 +250,7 @@ let test_build_match_for_variant_4 =
                 )
               )
             ]
-            a1_statement
+            a2_statement
             false
         in
         TC.return pattern_tree
