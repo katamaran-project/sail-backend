@@ -277,8 +277,8 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
     GC.return @@ PP.annotate [%here] @@ PP.paragraphs items
   in
   GC.block begin
-      GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
-    end
+    GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
+  end
 
 
 let extra_eqdec_identifiers () : Ast.Identifier.t list =
