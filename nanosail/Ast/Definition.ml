@@ -663,8 +663,8 @@ module Select = struct
   let function_definition : (t, Function.t) selector =
     new Selectors.function_definition_selector None
 
-  let function_definition_named (name : Identifier.t option) : (t, Function.t) selector =
-    new Selectors.function_definition_selector name
+  let function_definition_named (name : Identifier.t) : (t, Function.t) selector =
+    new Selectors.function_definition_selector (Some name)
 
   (*
      of_kind is a selector that allows us to specify which "kind"
