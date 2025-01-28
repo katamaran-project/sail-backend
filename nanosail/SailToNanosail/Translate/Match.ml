@@ -1196,16 +1196,16 @@ module TupleMatching = struct
                     (table     : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
                     (enum_case : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t TC.t
                   =
-                  let binder_identifier, tail =
+                  let binder_identifier, subtree =
                     Ast.Identifier.Map.find_exn table enum_case
                   in
                   if
-                    contains_gap tail
+                    contains_gap subtree
                   then begin  
-                    let* updated_tail : PatternNode.t =
+                    let* updated_subtree : PatternNode.t =
                       categorize_case
                         location
-                        tail
+                        subtree
                         remaining_subpatterns
                         body
                         true
@@ -1233,7 +1233,7 @@ module TupleMatching = struct
                             TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
                         end
                     in
-                    TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:(updated_binder_identifier, updated_tail)
+                    TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:(updated_binder_identifier, updated_subtree)
                   end
                   else
                     TC.return table
