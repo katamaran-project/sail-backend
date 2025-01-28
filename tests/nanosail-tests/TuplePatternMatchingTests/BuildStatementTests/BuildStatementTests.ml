@@ -4,5 +4,6 @@ module Enum = Enum
 
 
 let test_suite = "build statement" >::: [
-    Enum.test_suite
+    Enum.test_suite;
+    Int.test_suite;
   ]
