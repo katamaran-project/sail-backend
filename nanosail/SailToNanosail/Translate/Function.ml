@@ -626,7 +626,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           then
             TC.fail [%here] "should be dealt with by Match module"
           else begin
-            let* type_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_anything ~named:(Ast.Identifier.mk id) ())
+            let* type_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_anything_named (Ast.Identifier.mk id))
             in
             match type_definition with
             | Abbreviation def -> match_abbreviation def

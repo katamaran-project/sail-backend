@@ -13,7 +13,7 @@ let genblock loc label (contents : PP.document GC.t) : PP.document GC.t =
 
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
   val all_definitions                          = intermediate_representation.definitions
-  val type_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition (of_anything ())    ) intermediate_representation.definitions)
+  val type_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition of_anything         ) intermediate_representation.definitions)
   val enum_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition (of_enum ())        ) intermediate_representation.definitions)
   val record_definitions                       = Ast.Definition.Select.(select (with_sail_definition @@ type_definition (of_record ())      ) intermediate_representation.definitions)
   val variant_definitions                      = Ast.Definition.Select.(select (with_sail_definition @@ type_definition (of_variant ())     ) intermediate_representation.definitions)
