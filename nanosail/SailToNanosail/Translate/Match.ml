@@ -1308,18 +1308,18 @@ module TupleMatching = struct
                         | Unit               -> invalid_pattern [%here] 
                       end
                   in
-                  let _existing_field_binder_identifiers, tail =
+                  let _existing_field_binder_identifiers, subtree =
                     Ast.Identifier.Map.find_exn table constructor_identifier
                   in
                   (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
-                  let* updated_tail =
-                    categorize_case location tail remaining_subpatterns body gap_filling
+                  let* updated_subtree =
+                    categorize_case location subtree remaining_subpatterns body gap_filling
                   in
                   TC.return begin
                     Ast.Identifier.Map.overwrite
                       table
                       ~key:constructor_identifier
-                      ~data:(Some pattern_field_binder_identifiers, updated_tail)
+                      ~data:(Some pattern_field_binder_identifiers, updated_subtree)
                   end                  
                 in
                 TC.return begin
