@@ -1042,7 +1042,7 @@ module TupleMatching = struct
   end
 
 
-  let rec build_tuple_pattern_chain
+  let rec build_tuple_pattern_tree
       (location      : S.l            )
       (element_types : Ast.Type.t list) : PatternNode.t TC.t
     =
@@ -1102,7 +1102,7 @@ module TupleMatching = struct
     match element_types with
     | []           -> TC.return @@ PatternNode.Terminal None
     | head :: tail -> begin
-        let* tail = build_tuple_pattern_chain location tail
+        let* tail = build_tuple_pattern_tree location tail
         in 
         match head with
         | Enum enum_identifier       -> build_enum_node enum_identifier tail
@@ -1633,7 +1633,7 @@ let translate_tuple_match
     in
     let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
       let* initial_chain =
-        TupleMatching.build_tuple_pattern_chain
+        TupleMatching.build_tuple_pattern_tree
           location
           element_types
       in
