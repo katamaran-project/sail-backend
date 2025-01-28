@@ -114,7 +114,7 @@ let translate_binary_operator
 let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
   let* program = GC.get_program
   in
-  match Ast.Definition.Select.(select (value_definition ~named:identifier ()) (drop_sail_definitions program.definitions)) with
+  match Ast.Definition.Select.(select (value_definition_named identifier) (drop_sail_definitions program.definitions)) with
   | [ value_definition ] -> begin
       match value_definition.value with
       | Int n -> GC.return @@ n
@@ -131,7 +131,7 @@ let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
 let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t option GC.t =
   let* program = GC.get_program
   in
-  match Ast.Definition.Select.(select (value_definition ~named:identifier ()) (drop_sail_definitions program.definitions)) with
+  match Ast.Definition.Select.(select (value_definition_named identifier) (drop_sail_definitions program.definitions)) with
   | [ value_definition ] -> begin
       match value_definition.value with
       | Int n -> GC.return @@ Some n
@@ -147,7 +147,7 @@ let try_lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t opti
 let try_lookup_string_value_bound_to (identifier : Ast.Identifier.t) : string option GC.t =
   let* program = GC.get_program
   in
-  match Ast.Definition.Select.(select (value_definition ~named:identifier ()) (drop_sail_definitions program.definitions)) with
+  match Ast.Definition.Select.(select (value_definition_named identifier) (drop_sail_definitions program.definitions)) with
   | [ value_definition ] -> begin
       match value_definition.value with
       | String s -> GC.return @@ Some s

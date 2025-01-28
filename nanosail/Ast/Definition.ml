@@ -729,8 +729,11 @@ module Select = struct
   let top_level_type_constraint_definition =
     new Selectors.top_level_type_constraint_definition_selector
   
-  let value_definition ?(named : Identifier.t option) () : (t, Value.t) selector =
-    new Selectors.value_definition_selector named
+  let value_definition : (t, Value.t) selector =
+    new Selectors.value_definition_selector None
+
+  let value_definition_named (name : Identifier.t) : (t, Value.t) selector =
+    new Selectors.value_definition_selector (Some name)
 end
 
 
