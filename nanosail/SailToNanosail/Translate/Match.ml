@@ -1306,11 +1306,11 @@ module TupleMatching = struct
                             in
                             TC.map subpatterns ~f:extract_identifier_from_binder
                           end
+                        | Binder _           -> invalid_pattern [%here] (* todo implement this *)
                         | ListCons (_, _)    -> invalid_pattern [%here]
                         | ListNil            -> invalid_pattern [%here]
                         | EnumCase _         -> invalid_pattern [%here]
                         | VariantCase (_, _) -> invalid_pattern [%here]
-                        | Binder _           -> invalid_pattern [%here]
                         | Unit               -> invalid_pattern [%here]
                       end
                   in
