@@ -1306,7 +1306,7 @@ module TupleMatching = struct
                             in
                             TC.map subpatterns ~f:extract_identifier_from_binder
                           end
-                        | Binder _           -> invalid_pattern [%here] (* todo implement this *)
+                        | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
                         | ListCons (_, _)    -> invalid_pattern [%here]
                         | ListNil            -> invalid_pattern [%here]
                         | EnumCase _         -> invalid_pattern [%here]
