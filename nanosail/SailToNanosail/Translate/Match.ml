@@ -1342,34 +1342,34 @@ module TupleMatching = struct
          
       end
 
-    | Atomic (element_type, atomic_data, tail) -> begin
+    | Atomic (element_type, atomic_data, subtree) -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
             | Binder { identifier = pattern_identifier; wildcard = pattern_wildcard } -> begin
-                let* tail' =
+                let* updated_subtree =
                   categorize_case
                     location
-                    tail
+                    subtree
                     remaining_subpatterns
                     body
                     gap_filling
                 in
                 match atomic_data, pattern_wildcard with
                 | None,  _ -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = pattern_wildcard }, tail')
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = pattern_wildcard }, updated_subtree)
                   end
                 | Some { identifier = _; wildcard = true }, _ -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = false }, tail')
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = false }, updated_subtree)
                   end
                 | Some { identifier; wildcard = false as wildcard }, true -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, tail')
+                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, updated_subtree)
                   end
                 | Some { identifier; wildcard = false as wildcard }, false -> begin
                     if
                       Ast.Identifier.equal identifier pattern_identifier
                     then
-                      TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, tail' )
+                      TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, updated_subtree)
                     else
                       (*
                          The same value was matched against binders with different names.
