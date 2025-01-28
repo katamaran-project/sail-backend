@@ -1048,7 +1048,7 @@ module TupleMatching = struct
     =
     let build_enum_node
         (enum_identifier : Ast.Identifier.t)
-        (tail            : PatternNode.t   ) : PatternNode.t TC.t
+        (subtree         : PatternNode.t   ) : PatternNode.t TC.t
       =
       let* enum_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
@@ -1058,7 +1058,7 @@ module TupleMatching = struct
             (table                : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
             (enum_case_identifier : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t
           =
-          Ast.Identifier.Map.add_exn table ~key:enum_case_identifier ~data:(None, tail)
+          Ast.Identifier.Map.add_exn table ~key:enum_case_identifier ~data:(None, subtree)
         in
         List.fold enum_definition.cases ~init:Ast.Identifier.Map.empty ~f:add_to_table
       in
