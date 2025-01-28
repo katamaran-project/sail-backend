@@ -1157,7 +1157,7 @@ module TupleMatching = struct
       (gap_filling       : bool           ) : PatternNode.t TC.t
     =
     let invalid_number_of_subpatterns (location : Lexing.position) =
-      TC.fail location "there should be as many nodes in the pattern chain as there are tuple subpatterns"
+      TC.fail location "the tree should be as deep as there are tuple subpatterns"
     and invalid_pattern (location : Lexing.position) =
       TC.fail location "pattern is incompatible with type of value being matched"
     in
