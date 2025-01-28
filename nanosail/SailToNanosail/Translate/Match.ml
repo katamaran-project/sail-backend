@@ -1071,7 +1071,7 @@ module TupleMatching = struct
 
     and build_variant_node
         (variant_identifier : Ast.Identifier.t)
-        (tail               : PatternNode.t   ) : PatternNode.t TC.t
+        (subtree            : PatternNode.t   ) : PatternNode.t TC.t
       =
       let* variant_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
@@ -1081,7 +1081,7 @@ module TupleMatching = struct
             (table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t)
             ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list) : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t
           =
-          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data:(None, tail)
+          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data:(None, subtree)
         in
         List.fold variant_definition.constructors ~init:Ast.Identifier.Map.empty ~f:add_to_table
       in
