@@ -778,6 +778,137 @@ let test_build_match_for_enum_8 =
   |} >:: test
 
 
+let test_build_match_for_enum_9 =
+  let test _ =
+    let tc =
+      let* enum_type_a =
+        define_enum_str "A" ["A1"; "A2"]
+      and* enum_type_b =
+        define_enum_str "B" ["B1"; "B2"]
+      in      
+      let a1_b1_statement =
+        mkstm 1
+      and a1_b2_statement =
+        mkstm 2
+      and a2_b1_statement =
+        mkstm 3
+      and a2_b2_statement =
+        mkstm 4
+      in
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
+        in
+        let* tree = categorize
+            tree
+            [
+              Pattern.EnumCase (mkid "A1");
+              Pattern.EnumCase (mkid "B1");
+            ]
+            a1_b1_statement
+            false
+        in
+        let* tree = categorize
+            tree
+            [
+              Pattern.EnumCase (mkid "A1");
+              Pattern.EnumCase (mkid "B2");
+            ]
+            a1_b2_statement
+            false
+        in        
+        let* tree = categorize
+            tree
+            [
+              Pattern.EnumCase (mkid "A2");
+              Pattern.EnumCase (mkid "B1");
+            ]
+            a2_b1_statement
+            false
+        in
+        let* tree = categorize
+            tree
+            [
+              Pattern.EnumCase (mkid "A2");
+              Pattern.EnumCase (mkid "B2");
+            ]
+            a2_b2_statement
+            false
+        in        
+        TC.return tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "a"; mkid "b"] tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchEnum {
+            matched = mkid "a";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  Ast.Statement.Match begin
+                    Ast.Statement.MatchEnum {
+                      matched = mkid "b";
+                      matched_type = mkid "B";
+                      cases = Ast.Identifier.Map.of_alist_exn [
+                          (
+                            mkid "B1",
+                            a1_b1_statement
+                          );
+                          (
+                            mkid "B2",
+                            a1_b2_statement
+                          );
+                        ]
+                    }
+                  end
+                );
+                (
+                  mkid "A2",
+                  Ast.Statement.Match begin
+                    Ast.Statement.MatchEnum {
+                      matched = mkid "b";
+                      matched_type = mkid "B";
+                      cases = Ast.Identifier.Map.of_alist_exn [
+                          (
+                            mkid "B1",
+                            a2_b1_statement
+                          );
+                          (
+                            mkid "B2",
+                            a2_b2_statement
+                          );
+                        ]
+                    }
+                  end
+                );
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        expected_match_statement
+        actual_match_statement;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      enum A = { A1, A2 }
+      enum B = { B1, B2 }
+  
+      match a, b {
+        A1, B1 => r1,
+        A1, B2 => r2,
+        A2, B1 => r3,
+        A2, B2 => r4
+      }
+  |} >:: test
+
+
 let test_suite =
   "match generation" >::: [
     test_build_match_for_enum_1;
@@ -788,4 +919,5 @@ let test_suite =
     test_build_match_for_enum_6;
     test_build_match_for_enum_7;
     test_build_match_for_enum_8;
+    test_build_match_for_enum_9;
   ]
