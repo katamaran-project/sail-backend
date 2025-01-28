@@ -1072,15 +1072,15 @@ let pp_base_module (definition_pairs : (Sail.sail_definition * Ast.Definition.t)
   let definitions =
     Ast.Definition.Select.drop_sail_definitions definition_pairs
   in
-  let enum_definitions =
+  let enum_definitions : Ast.Definition.Type.Enum.t list =
     Ast.Definition.Select.(select (type_definition @@ of_enum ()) definitions)
-  and variant_definitions =
+  and variant_definitions : Ast.Definition.Type.Variant.t list =
     Ast.Definition.Select.(select (type_definition @@ of_variant ()) definitions)
-  and record_definitions =
+  and record_definitions : Ast.Definition.Type.Record.t list =
     Ast.Definition.Select.(select (type_definition @@ of_record ()) definitions)
-  and alias_definitions =
+  and alias_definitions : (Sail.sail_definition * (Ast.Identifier.t * (Ast.TypeQuantifier.t * Ast.Type.t))) list =
     Ast.Definition.Select.(select (with_sail_definition (type_definition @@ of_abbreviation @@ of_alias)) definition_pairs)
-  and register_definitions =
+  and register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list =
     Ast.Definition.Select.(select (with_sail_definition @@ register_definition ()) definition_pairs)
   in
   begin
