@@ -53,7 +53,7 @@ let test_categorize_enum_1 =
 
   in
   {|
-    enum A { A1 }
+    enum A = { A1 }
 
     match a {
       A1 => read_register r1
@@ -101,7 +101,7 @@ let test_categorize_enum_2 =
 
   in
   {|
-    enum A { A1 }
+    enum A = { A1 }
 
     match a {
       _ => read_register r1
@@ -152,7 +152,7 @@ let test_categorize_enum_3 =
 
   in
   {|
-      enum A { A1 }
+      enum A = { A1 }
   
       match a {
         x => read_register r1
@@ -224,7 +224,7 @@ let test_categorize_enum_4 =
 
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match a {
         A1 => read_register r1,
@@ -298,7 +298,7 @@ let test_categorize_enum_5 =
 
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match a {
         A1 => read_register r1,
@@ -370,7 +370,7 @@ let test_categorize_enum_6 =
     ignore @@ run_tc tc
   in
   {|
-      enum A { A1, A2 }
+      enum A = { A1, A2 }
   
       match a {
         A1 => read_register r1,
