@@ -956,10 +956,10 @@ module TupleMatching = struct
               );
               (
                 "table",
-                let fexpr_of_table_entry (binder_identifier, tail) =
+                let fexpr_of_table_entry (binder_identifier, subtree) =
                   FExpr.mk_list [
                     FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr binder_identifier;
-                    to_fexpr tail;
+                    to_fexpr subtree;
                   ]
                 in
                 Ast.Identifier.Map.to_fexpr fexpr_of_table_entry table
