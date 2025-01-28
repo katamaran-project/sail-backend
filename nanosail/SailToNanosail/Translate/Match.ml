@@ -978,10 +978,10 @@ module TupleMatching = struct
               );
               (
                 "table",
-                let fexpr_of_table_entry (field_binder_identifiers, tail) =
+                let fexpr_of_table_entry (field_binder_identifiers, subtree) =
                   FExpr.mk_list [
                     FExpr.mk_option @@ Option.map field_binder_identifiers ~f:(Fn.compose FExpr.mk_list @@ List.map ~f:Ast.Identifier.to_fexpr);
-                    to_fexpr tail;
+                    to_fexpr subtree;
                   ]
                 in
                 Ast.Identifier.Map.to_fexpr fexpr_of_table_entry table
