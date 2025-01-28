@@ -663,7 +663,7 @@ module Select = struct
   let function_definition : (t, Function.t) selector =
     new Selectors.function_definition_selector None
 
-  let function_definition_named (name : Identifier.t option) () : (t, Function.t) selector =
+  let function_definition_named (name : Identifier.t option) : (t, Function.t) selector =
     new Selectors.function_definition_selector name
 
   (*
