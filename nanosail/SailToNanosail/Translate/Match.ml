@@ -1048,7 +1048,7 @@ module TupleMatching = struct
     =
     let build_enum_node
         (enum_identifier : Ast.Identifier.t)
-        (tail            : PatternNode.t   )  : PatternNode.t TC.t
+        (tail            : PatternNode.t   ) : PatternNode.t TC.t
       =
       let* enum_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
