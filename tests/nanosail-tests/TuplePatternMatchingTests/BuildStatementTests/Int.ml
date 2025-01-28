@@ -2,7 +2,7 @@ open Base
 open OUnit2
 open Nanosail
 
-module BuildChainTests = BuildChainTests
+module BuildTreeTests = BuildTreeTests
 
 
 module TC = SailToNanosail.TranslationContext
@@ -21,21 +21,21 @@ let test_build_match_for_int_1 =
       let statement =
         mkstm 1
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ Ast.Type.Int ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = true }
             ]
             statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Let {
@@ -67,21 +67,21 @@ let test_build_match_for_int_2 =
       let statement =
         mkstm 1
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ Ast.Type.Int ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = false }
             ]
             statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Let {
@@ -113,11 +113,11 @@ let test_build_match_for_int_int_1 =
       let statement =
         mkstm 1
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ Ast.Type.Int; Ast.Type.Int ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = true };
               Pattern.Binder { identifier = mkid "k"; wildcard = true };
@@ -125,10 +125,10 @@ let test_build_match_for_int_int_1 =
             statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Let {
@@ -165,11 +165,11 @@ let test_build_match_for_int_int_2 =
       let statement =
         mkstm 1
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ Ast.Type.Int; Ast.Type.Int ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = false };
               Pattern.Binder { identifier = mkid "k"; wildcard = false };
@@ -177,10 +177,10 @@ let test_build_match_for_int_int_2 =
             statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Let {

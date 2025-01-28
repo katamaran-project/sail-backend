@@ -80,6 +80,6 @@ let run_tc (tc : 'a TC.t) : 'a =
     end
 
 
-let build_tuple_pattern_chain = TM.build_tuple_pattern_tree dummy_location
-let categorize                = TM.categorize_case dummy_location
-let build_match               = TM.build_leveled_match_statements
+let build_tuple_pattern_tree = TM.build_tuple_pattern_tree dummy_location
+let categorize               = TM.categorize_case dummy_location
+let build_match              = TM.build_leveled_match_statements

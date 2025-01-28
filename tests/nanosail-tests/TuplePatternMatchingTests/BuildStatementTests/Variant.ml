@@ -2,7 +2,7 @@ open Base
 open OUnit2
 open Nanosail
 
-module BuildChainTests = BuildChainTests
+module BuildTreeTests = BuildTreeTests
 
 
 module TC = SailToNanosail.TranslationContext
@@ -25,7 +25,7 @@ let test_build_match_for_variant_1 =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_chain [ enum_type ]
+        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
         let* pattern_tree = categorize
             pattern_tree

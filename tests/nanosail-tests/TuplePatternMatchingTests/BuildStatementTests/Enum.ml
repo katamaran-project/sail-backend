@@ -24,21 +24,21 @@ let test_build_match_for_enum_1 =
       let a1_statement =        
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -83,29 +83,29 @@ let test_build_match_for_enum_2 =
       and a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A2")
             ]
             a2_statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -155,29 +155,29 @@ let test_build_match_for_enum_3 =
       and a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a2_statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -227,29 +227,29 @@ let test_build_match_for_enum_4 =
       and a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = false }
             ]
             a2_statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] chain
+        build_match [mkid "value1"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -308,11 +308,11 @@ let test_build_match_for_enum_5 =
       and a2_a2_statement =
         mkstm 4
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type; enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1");
               Pattern.EnumCase (mkid "A1");
@@ -320,8 +320,8 @@ let test_build_match_for_enum_5 =
             a1_a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1");
               Pattern.EnumCase (mkid "A2");
@@ -329,8 +329,8 @@ let test_build_match_for_enum_5 =
             a1_a2_statement
             false
         in        
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A2");
               Pattern.EnumCase (mkid "A1");
@@ -338,8 +338,8 @@ let test_build_match_for_enum_5 =
             a2_a1_statement
             false
         in        
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A2");
               Pattern.EnumCase (mkid "A2");
@@ -347,10 +347,10 @@ let test_build_match_for_enum_5 =
             a2_a2_statement
             false
         in        
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -436,11 +436,11 @@ let test_build_match_for_enum_6 =
       and a2_a2_statement =
         mkstm 4
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type; enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1");
               Pattern.EnumCase (mkid "A1");
@@ -448,8 +448,8 @@ let test_build_match_for_enum_6 =
             a1_a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1");
               Pattern.EnumCase (mkid "A2");
@@ -457,8 +457,8 @@ let test_build_match_for_enum_6 =
             a1_a2_statement
             false
         in        
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
               Pattern.EnumCase (mkid "A1");
@@ -466,8 +466,8 @@ let test_build_match_for_enum_6 =
             a2_a1_statement
             false
         in        
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
               Pattern.EnumCase (mkid "A2");
@@ -475,10 +475,10 @@ let test_build_match_for_enum_6 =
             a2_a2_statement
             false
         in        
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -564,11 +564,11 @@ let test_build_match_for_enum_7 =
       and a2_a2_statement =
         mkstm 2
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type; enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
               Pattern.EnumCase (mkid "A1");
@@ -576,8 +576,8 @@ let test_build_match_for_enum_7 =
             a1_a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
               Pattern.EnumCase (mkid "A2");
@@ -585,10 +585,10 @@ let test_build_match_for_enum_7 =
             a1_a2_statement
             false
         in        
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -677,11 +677,11 @@ let test_build_match_for_enum_8 =
       and a2_a2_statement =
         mkstm 2
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type; enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = false };
               Pattern.EnumCase (mkid "A1");
@@ -689,8 +689,8 @@ let test_build_match_for_enum_8 =
             a1_a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
               Pattern.EnumCase (mkid "A2");
@@ -698,10 +698,10 @@ let test_build_match_for_enum_8 =
             a1_a2_statement
             false
         in        
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] chain
+        build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin

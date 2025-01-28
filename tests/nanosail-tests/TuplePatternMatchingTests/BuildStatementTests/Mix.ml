@@ -2,7 +2,7 @@ open Base
 open OUnit2
 open Nanosail
 
-module BuildChainTests = BuildChainTests
+module BuildTreeTests = BuildTreeTests
 
 
 module TC = SailToNanosail.TranslationContext
@@ -24,11 +24,11 @@ let test_build_match_for_enum_int =
       let statement =
         mkstm 1
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type; Ast.Type.Int ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type; Ast.Type.Int ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1");
               Pattern.Binder { identifier = mkid "k"; wildcard = true };
@@ -36,10 +36,10 @@ let test_build_match_for_enum_int =
             statement
             false
         in
-        TC.return chain
+        TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "enum_value"; mkid "int_value"] chain
+        build_match [mkid "enum_value"; mkid "int_value"] tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin

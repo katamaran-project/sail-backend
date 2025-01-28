@@ -2,7 +2,7 @@ open Base
 open OUnit2
 open Nanosail
 
-module BuildChainTests = BuildChainTests
+module BuildTreeTests = BuildTreeTests
 
 
 module TC = SailToNanosail.TranslationContext
@@ -24,18 +24,18 @@ let test_categorize_enum_1 =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-          chain
+        let* tree = categorize
+          tree
           [ Pattern.EnumCase (mkid "A1") ]
           a1_statement
           false
         in
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -46,7 +46,7 @@ let test_categorize_enum_1 =
             ];
         }
       in
-      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
+      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_tree tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -70,20 +70,20 @@ let test_categorize_enum_2 =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-          chain
+        let* tree = categorize
+          tree
           [
             Pattern.Binder { identifier = mkid "x"; wildcard = true }
           ]
           a1_statement
           false
         in
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -94,7 +94,7 @@ let test_categorize_enum_2 =
             ];          
         }
       in
-      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_chain chain;
+      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_tree tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -118,20 +118,20 @@ let test_categorize_enum_3 =
       let a1_statement =        
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-          chain
+        let* tree = categorize
+          tree
           [
             Pattern.Binder { identifier = mkid "x"; wildcard = false }
           ]
           a1_statement
           false
         in
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -145,7 +145,7 @@ let test_categorize_enum_3 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain chain;
+        expected_tree tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -178,28 +178,28 @@ let test_categorize_enum_4 =
       let a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A2")
             ]
             a2_statement
             false
         in            
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -217,7 +217,7 @@ let test_categorize_enum_4 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain chain;
+        expected_tree tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -245,28 +245,28 @@ let test_categorize_enum_5 =
       let a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* actual_chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* actual_tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a2_statement
             false
         in            
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -290,8 +290,8 @@ let test_categorize_enum_5 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain
-        actual_chain;
+        expected_tree
+        actual_tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -319,28 +319,28 @@ let test_categorize_enum_6 =
       let a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* chain =
-        let* chain = build_tuple_pattern_chain [ enum_type ]
+      let* tree =
+        let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
             false
         in
-        let* chain = categorize
-            chain
+        let* tree = categorize
+            tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = false }
             ]
             a2_statement
             false
         in            
-        TC.return chain
+        TC.return tree
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -364,7 +364,7 @@ let test_categorize_enum_6 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain chain;
+        expected_tree tree;
       TC.return ()
     in
     ignore @@ run_tc tc

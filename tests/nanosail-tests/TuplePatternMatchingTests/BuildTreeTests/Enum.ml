@@ -11,16 +11,16 @@ module TM      = SailToNanosail.Translate.Match.TupleMatching
 open Shared
 
 
-let test_build_chain_enum_1 =
+let test_build_pattern_tree_enum_1 =
   let test _ =
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let* actual_chain =
-        build_tuple_pattern_chain [ enum_type ]
+      let* actual_tree =
+        build_tuple_pattern_tree [ enum_type ]
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -38,8 +38,8 @@ let test_build_chain_enum_1 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain
-        actual_chain;
+        expected_tree
+        actual_tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -51,16 +51,16 @@ let test_build_chain_enum_1 =
   |} >:: test
 
 
-let test_build_chain_enum_2 =
+let test_build_pattern_tree_enum_2 =
   let test _ =
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"; "A3"]
       in
-      let* actual_chain =
-        build_tuple_pattern_chain [ enum_type ]
+      let* actual_tree =
+        build_tuple_pattern_tree [ enum_type ]
       in
-      let expected_chain =
+      let expected_tree =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -82,8 +82,8 @@ let test_build_chain_enum_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_chain
-        actual_chain;
+        expected_tree
+        actual_tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -95,16 +95,16 @@ let test_build_chain_enum_2 =
   |} >:: test
 
 
-let test_build_chain_enum_3 =
+let test_build_pattern_tree_enum_3 =
   let test _ =
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let* actual_chain =
-        build_tuple_pattern_chain [ enum_type; enum_type ]
+      let* actual_tree =
+        build_tuple_pattern_tree [ enum_type; enum_type ]
       in
-      let expected_chain : TM.PatternNode.t =
+      let expected_tree : TM.PatternNode.t =
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -149,7 +149,7 @@ let test_build_chain_enum_3 =
             ];
         }
       in
-      assert_equal ~cmp:TM.PatternNode.equal expected_chain actual_chain;
+      assert_equal ~cmp:TM.PatternNode.equal expected_tree actual_tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -163,7 +163,7 @@ let test_build_chain_enum_3 =
 
 
 let test_suite = "enum" >::: [
-    test_build_chain_enum_1;
-    test_build_chain_enum_2;
-    test_build_chain_enum_3;    
+    test_build_pattern_tree_enum_1;
+    test_build_pattern_tree_enum_2;
+    test_build_pattern_tree_enum_3;    
 ]
