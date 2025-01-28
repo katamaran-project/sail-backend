@@ -991,7 +991,7 @@ module TupleMatching = struct
           FExpr.mk_application ~keyword @@ mk_head "Variant"
         end
         
-      | Atomic (typ, data, tail) -> begin
+      | Atomic (typ, data, subtree) -> begin
           let fexpr_of_atomic_data (data : atomic_data) =
             let keyword =
               [
@@ -1020,8 +1020,8 @@ module TupleMatching = struct
                 end
               );
               (
-                "tail",
-                to_fexpr tail
+                "subtree",
+                to_fexpr subtree
               )
             ]
           in
