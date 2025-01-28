@@ -1632,7 +1632,7 @@ let translate_tuple_match
     let* () = TC.return ()
     in
     let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
-      let* initial_chain =
+      let* initial_tree =
         TupleMatching.build_tuple_pattern_tree
           location
           element_types
@@ -1648,7 +1648,7 @@ let translate_tuple_match
       in
       let* final_chain =
         TC.fold_left
-          ~init:initial_chain
+          ~init:initial_tree
           ~f:(fun chain (pattern, statement) -> categorize chain pattern statement)
           cases
       in
