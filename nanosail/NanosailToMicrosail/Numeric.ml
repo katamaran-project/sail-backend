@@ -34,7 +34,7 @@ end = struct
         *)
         let lookup_substitution (identifier : Ast.Identifier.t) : (Ast.Identifier.t * Ast.Numeric.Expression.t) option GC.t =
           let* definition =
-            GC.lookup_definition_opt (Ast.Definition.Select.(without_sail @@ type_definition @@ of_abbreviation ~named:identifier @@ of_numeric_expression))
+            GC.lookup_definition_opt (Ast.Definition.Select.(without_sail_definition @@ type_definition @@ of_abbreviation ~named:identifier @@ of_numeric_expression))
           in
           let definition = Option.map ~f:snd definition
           in

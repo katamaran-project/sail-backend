@@ -652,7 +652,7 @@ module Select = struct
   let drop_sail_definitions (pairs : (Sail.sail_definition * 'a) list) : 'a list =
     List.map ~f:snd pairs
   
-  let without_sail (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, 'b) selector =
+  let without_sail_definition (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, 'b) selector =
     new Selectors.without_sail_selector subselector
 
   let with_sail_definition (subselector : ('a, 'b) selector) : (Sail.sail_definition * 'a, Sail.sail_definition * 'b) selector =
