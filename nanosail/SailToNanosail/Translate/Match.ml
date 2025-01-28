@@ -1151,7 +1151,7 @@ module TupleMatching = struct
 
   let rec categorize_case
       (location          : S.l            )
-      (pattern_chain     : PatternNode.t  )
+      (pattern_tree      : PatternNode.t  )
       (tuple_subpatterns : Pattern.t list )
       (body              : Ast.Statement.t)
       (gap_filling       : bool           ) : PatternNode.t TC.t
@@ -1161,7 +1161,7 @@ module TupleMatching = struct
     and invalid_pattern (location : Lexing.position) =
       TC.fail location "pattern is incompatible with type of value being matched"
     in
-    match pattern_chain with
+    match pattern_tree with
     | Enum { enum_identifier; table } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
@@ -1397,7 +1397,7 @@ module TupleMatching = struct
                   gap_filling
                 then
                   (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
-                  TC.return pattern_chain
+                  TC.return pattern_tree
                 else
                   (*
                      We're not in gap-filling mode, and we expect a gap.
