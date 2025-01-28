@@ -1078,7 +1078,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   and alias_definitions : (Sail.sail_definition * (Ast.Identifier.t * (Ast.TypeQuantifier.t * Ast.Type.t))) list =
     Ast.Definition.Select.(select (with_sail_definition (type_definition @@ of_abbreviation @@ of_alias)) definitions)
   and register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list =
-    Ast.Definition.Select.(select (with_sail_definition @@ register_definition ()) definitions)
+    Ast.Definition.Select.(select (with_sail_definition register_definition) definitions)
   in
   begin
     let base_module_name = Configuration.(get base_name)

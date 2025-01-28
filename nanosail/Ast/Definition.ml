@@ -714,9 +714,12 @@ module Select = struct
   let of_numeric_constraint : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Constraint.t) selector =
     new Selectors.numeric_constraint_abbreviation_subselector
 
-  let register_definition ?(named : Identifier.t option) () : (t, Register.t) selector =
-    new Selectors.register_definition_selector named
+  let register_definition : (t, Register.t) selector =
+    new Selectors.register_definition_selector None
 
+  let register_definition_named (name : Identifier.t) : (t, Register.t) selector =
+    new Selectors.register_definition_selector (Some name)
+  
   let untranslated_definition : (t, Untranslated.t) selector =
     new Selectors.untranslated_definition_selector
 
