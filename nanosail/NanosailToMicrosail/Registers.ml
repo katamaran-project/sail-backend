@@ -266,12 +266,12 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
   in
   let* section_contents =
     let* items = GC.sequence [
-      GC.pp_annotate [%here] @@ pp_reg_inductive_type @@ Ast.Definition.Select.drop_sail_definitions register_definitions;
-      GC.pp_annotate [%here] @@ pp_no_confusion_for_reg ();
-      GC.pp_annotate [%here] @@ pp_reg_definition ();
-      GC.pp_annotate [%here] @@ pp_instance_reg_eq_dec register_names;
-      GC.pp_annotate [%here] @@ pp_obligation_tactic ();
-      GC.pp_annotate [%here] @@ pp_reg_finite register_names
+      pp_reg_inductive_type @@ Ast.Definition.Select.drop_sail_definitions register_definitions;
+      pp_no_confusion_for_reg ();
+      pp_reg_definition ();
+      pp_instance_reg_eq_dec register_names;
+      pp_obligation_tactic ();
+      pp_reg_finite register_names
     ]
     in
     GC.return @@ PP.annotate [%here] @@ PP.paragraphs items
