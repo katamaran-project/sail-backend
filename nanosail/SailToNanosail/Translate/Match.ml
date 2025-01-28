@@ -884,16 +884,16 @@ module TupleMatching = struct
           match node_2 with
           | Variant { variant_identifier = variant_identifier_2; table = table_2 } -> begin
               let table_entry_equality
-                  ((field_binders_1, tail_1) : Ast.Identifier.t list option * t)
-                  ((field_binders_2, tail_2) : Ast.Identifier.t list option * t)
+                  ((field_binders_1, subtree_1) : Ast.Identifier.t list option * t)
+                  ((field_binders_2, subtree_2) : Ast.Identifier.t list option * t)
                 =
                 Option.equal (List.equal Ast.Identifier.equal)
                   field_binders_1
                   field_binders_2
                 &&
                 equal
-                  tail_1
-                  tail_2
+                  subtree_1
+                  subtree_2
               in
               Ast.Identifier.equal
                 variant_identifier_1
