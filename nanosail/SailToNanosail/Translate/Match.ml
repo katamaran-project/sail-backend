@@ -1627,7 +1627,7 @@ let translate_tuple_match
     (element_types      : Ast.Type.t list                   )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
-  let translate_using_chains : Ast.Statement.t TC.t =
+  let translate_using_pattern_tree : Ast.Statement.t TC.t =
     (* keeps things lazy *)
     let* () = TC.return ()
     in
@@ -1813,7 +1813,7 @@ let translate_tuple_match
 
   in
   TC.try_multiple [
-    translate_using_chains;
+    translate_using_pattern_tree;
     translate_tuple_of_binders;
     translate_pair_of_variants;
   ]
