@@ -1074,7 +1074,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   and variant_definitions : Ast.Definition.Type.Variant.t list =
     Ast.Definition.Select.(select (without_sail_definition @@ type_definition of_variant) definitions)
   and record_definitions : Ast.Definition.Type.Record.t list =
-    Ast.Definition.Select.(select (without_sail_definition @@ type_definition @@ of_record ()) definitions)
+    Ast.Definition.Select.(select (without_sail_definition @@ type_definition of_record) definitions)
   and alias_definitions : (Sail.sail_definition * (Ast.Identifier.t * (Ast.TypeQuantifier.t * Ast.Type.t))) list =
     Ast.Definition.Select.(select (with_sail_definition (type_definition @@ of_abbreviation @@ of_alias)) definitions)
   and register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list =

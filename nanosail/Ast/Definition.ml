@@ -693,9 +693,12 @@ module Select = struct
   let of_variant_named (name : Identifier.t) : (Type.t, Type.Variant.t) selector =
     new Selectors.variant_kind_selector (Some name)
   
-  let of_record ?(named : Identifier.t option) () : (Type.t, Type.Record.t) selector  =
-    new Selectors.record_kind_selector named
+  let of_record : (Type.t, Type.Record.t) selector  =
+    new Selectors.record_kind_selector None
 
+  let of_record_named (name : Identifier.t) : (Type.t, Type.Record.t) selector  =
+    new Selectors.record_kind_selector (Some name)
+  
   let of_abbreviation
       ?(named  : Identifier.t option                  )
       (of_type : 'a Selectors.abbreviation_subselector) : (Type.t, Identifier.t * 'a) selector

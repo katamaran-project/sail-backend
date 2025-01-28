@@ -303,7 +303,7 @@ let rec expression_of_aval
           Identifier.translate_identifier [%here] type_identifier
         in
         let* record_definition =
-          TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record ~named:type_identifier' ())
+          TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named type_identifier')
         in
         let record_field_names =
           List.map ~f:fst record_definition.fields
@@ -498,7 +498,7 @@ let with_destructured_record
             Identifier.translate_identifier [%here] record_type_identifier
           in
           let* record_type_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record ~named:record_type_identifier ())
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
           in
           let fields =
             record_type_definition.fields
