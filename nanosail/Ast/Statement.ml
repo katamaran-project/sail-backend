@@ -83,11 +83,39 @@ let rec equal
           end
         | _ -> false
       end
+    | MatchVariant { matched = matched_1; matched_type = matched_type_1; cases = cases_1 } -> begin
+        match pattern_2 with
+        | MatchVariant { matched = matched_2; matched_type = matched_type_2; cases = cases_2 } -> begin
+            let equal_cases
+                ((binder_identifiers_1, statement_1) : Identifier.t list * t)
+                ((binder_identifiers_2, statement_2) : Identifier.t list * t)
+              =
+              List.equal Identifier.equal
+                binder_identifiers_1
+                binder_identifiers_2
+              &&
+              equal
+                statement_1
+                statement_2
+            in
+            Identifier.equal
+              matched_1
+              matched_2
+            &&
+            Identifier.equal
+              matched_type_1
+              matched_type_2
+            &&
+            Identifier.Map.equal equal_cases
+              cases_1
+              cases_2
+          end
+        | _ -> false
+      end
     | MatchList _    -> raise UnimplementedStatementEquality
     | MatchProduct _ -> raise UnimplementedStatementEquality
     | MatchTuple _   -> raise UnimplementedStatementEquality
     | MatchBool _    -> raise UnimplementedStatementEquality
-    | MatchVariant _ -> raise UnimplementedStatementEquality
   in
   
   match statement_1 with
