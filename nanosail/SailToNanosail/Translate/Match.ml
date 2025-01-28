@@ -250,7 +250,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] head_sail_identifier
           in
           let* variant_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
           in
           match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with (* todo create separate function *)
           | Some (constructor_identifier, field_types) -> begin
@@ -642,7 +642,7 @@ let translate_variant_match
   =
   (* Look up variant definition, we need to know which constructors there are *)
   let* variant_definition =
-    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
   in
   (*
      Set up constructor table: it maps constructors to variables to which the fields need to be bound and the clause
@@ -1074,7 +1074,7 @@ module TupleMatching = struct
         (tail               : PatternNode.t   ) : PatternNode.t TC.t
       =
       let* variant_definition =
-        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
       in
       let table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t =
         let add_to_table
@@ -1261,7 +1261,7 @@ module TupleMatching = struct
             | VariantCase (constructor_identifier, field_pattern) -> begin
                 let* updated_table =
                   let* variant_definition =
-                    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+                    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                   in
                   let constructor =
                     List.find_exn variant_definition.constructors ~f:(fun (constructor_identifier, _) -> Ast.Identifier.equal constructor_identifier constructor_identifier)
@@ -1491,7 +1491,7 @@ module TupleMatching = struct
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
             let* variant_definition =
-              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
             in
             let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
               let table_pairs : (Ast.Identifier.t * (Ast.Identifier.t list option * PatternNode.t)) list =
@@ -1721,8 +1721,8 @@ let translate_tuple_match
     match element_types with
     | [ (Ast.Type.Variant fst_variant_identifier) as type_fst; (Ast.Type.Variant snd_variant_identifier) as type_snd ] -> begin
         (* todo use these definitions to check for exhaustivity *)
-        let* _fst_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:fst_variant_identifier ())
-        and* _snd_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant ~named:snd_variant_identifier ())
+        let* _fst_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named fst_variant_identifier)
+        and* _snd_variant_definition = TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named snd_variant_identifier)
         in
         let* table : (Pattern.t * (Pattern.t * Ast.Statement.t) list) Ast.Identifier.Map.t =
           let init = Ast.Identifier.Map.empty

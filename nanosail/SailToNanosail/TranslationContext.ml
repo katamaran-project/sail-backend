@@ -231,7 +231,7 @@ let lookup_variant_by_constructor (constructor_identifier : Ast.Identifier.t) : 
     List.exists variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
   in
   let* variant_definitions =
-    select_definitions Ast.Definition.Select.(type_definition @@ of_variant ()) 
+    select_definitions Ast.Definition.Select.(type_definition @@ of_variant)
   in
   return @@ List.find variant_definitions ~f:has_constructor
 
