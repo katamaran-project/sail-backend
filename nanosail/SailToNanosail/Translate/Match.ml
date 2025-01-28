@@ -1068,7 +1068,30 @@ module TupleMatching = struct
           table;
         }
       end
-    
+
+    and build_variant_node
+        (variant_identifier : Ast.Identifier.t)
+        (tail               : PatternNode.t   ) : PatternNode.t TC.t
+      =
+      let* variant_definition =
+        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+      in
+      let table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t =
+        let add_to_table
+            (table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t)
+            ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list) : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t
+          =
+          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data:(None, tail)
+        in
+        List.fold variant_definition.constructors ~init:Ast.Identifier.Map.empty ~f:add_to_table
+      in
+      TC.return begin
+        PatternNode.Variant {
+          variant_identifier;
+          table
+        }
+      end            
+  
     and build_singleton_node
         (element_type : Ast.Type.t   )
         (tail         : PatternNode.t) : PatternNode.t TC.t
@@ -1082,21 +1105,21 @@ module TupleMatching = struct
         let* tail = build_tuple_pattern_chain location tail
         in 
         match head with
-        | Enum enum_identifier -> build_enum_node enum_identifier tail
-        | Int                  -> build_singleton_node Ast.Type.Int tail
-        | Bool                 -> TC.not_yet_implemented [%here] location
-        | String               -> TC.not_yet_implemented [%here] location
-        | Bit                  -> TC.not_yet_implemented [%here] location
-        | List _               -> TC.not_yet_implemented [%here] location
-        | Sum (_, _)           -> TC.not_yet_implemented [%here] location
-        | Unit                 -> TC.not_yet_implemented [%here] location
-        | Bitvector _          -> TC.not_yet_implemented [%here] location
-        | Tuple _              -> TC.not_yet_implemented [%here] location
-        | Variant _            -> TC.not_yet_implemented [%here] location
-        | Record _             -> TC.not_yet_implemented [%here] location
-        | Application (_, _)   -> TC.not_yet_implemented [%here] location
-        | Alias (_, _)         -> TC.not_yet_implemented [%here] location
-        | Range (_, _)         -> TC.not_yet_implemented [%here] location
+        | Enum enum_identifier       -> build_enum_node enum_identifier tail
+        | Int                        -> build_singleton_node Ast.Type.Int tail
+        | Variant variant_identifier -> build_variant_node variant_identifier tail
+        | Bool                       -> TC.not_yet_implemented [%here] location
+        | String                     -> TC.not_yet_implemented [%here] location
+        | Bit                        -> TC.not_yet_implemented [%here] location
+        | List _                     -> TC.not_yet_implemented [%here] location
+        | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
+        | Unit                       -> TC.not_yet_implemented [%here] location
+        | Bitvector _                -> TC.not_yet_implemented [%here] location
+        | Tuple _                    -> TC.not_yet_implemented [%here] location
+        | Record _                   -> TC.not_yet_implemented [%here] location
+        | Application (_, _)         -> TC.not_yet_implemented [%here] location
+        | Alias (_, _)               -> TC.not_yet_implemented [%here] location
+        | Range (_, _)               -> TC.not_yet_implemented [%here] location
       end
 
 
