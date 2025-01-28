@@ -844,6 +844,7 @@ module TupleMatching = struct
     
     type t =
       | Enum       of { enum_identifier : Ast.Identifier.t; table : (Ast.Identifier.t option * t) Ast.Identifier.Map.t; }
+      | Variant    of { variant_identifier : Ast.Identifier.t; table : (Ast.Identifier.t list option * t) Ast.Identifier.Map.t }
       | Atomic     of Ast.Type.t * atomic_data option * t
       | Terminal   of Ast.Statement.t option
 
@@ -856,7 +857,7 @@ module TupleMatching = struct
       | Enum { enum_identifier = enum_identifier_1; table = table_1 } -> begin
           match node_2 with
           | Enum { enum_identifier = enum_identifier_2; table = table_2 } -> begin
-              let map_entry_equality
+              let table_entry_equality
                   (binder_identifier_1, tail_1)
                   (binder_identifier_2, tail_2)
                 =
@@ -872,7 +873,33 @@ module TupleMatching = struct
                 enum_identifier_1
                 enum_identifier_2
               &&
-              Ast.Identifier.Map.equal map_entry_equality
+              Ast.Identifier.Map.equal table_entry_equality
+                table_1
+                table_2
+            end
+          | _ -> false
+        end
+
+      | Variant { variant_identifier = variant_identifier_1; table = table_1 } -> begin
+          match node_2 with
+          | Variant { variant_identifier = variant_identifier_2; table = table_2 } -> begin
+              let table_entry_equality
+                  ((field_binders_1, tail_1) : Ast.Identifier.t list option * t)
+                  ((field_binders_2, tail_2) : Ast.Identifier.t list option * t)
+                =
+                Option.equal (List.equal Ast.Identifier.equal)
+                  field_binders_1
+                  field_binders_2
+                &&
+                equal
+                  tail_1
+                  tail_2
+              in
+              Ast.Identifier.equal
+                variant_identifier_1
+                variant_identifier_2
+              &&
+              Ast.Identifier.Map.equal table_entry_equality
                 table_1
                 table_2
             end
@@ -929,17 +956,39 @@ module TupleMatching = struct
               );
               (
                 "table",
-                let fexpr_of_map_entry (binder_identifier, tail) =
+                let fexpr_of_table_entry (binder_identifier, tail) =
                   FExpr.mk_list [
                     FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr binder_identifier;
                     to_fexpr tail;
                   ]
                 in
-                Ast.Identifier.Map.to_fexpr fexpr_of_map_entry table
+                Ast.Identifier.Map.to_fexpr fexpr_of_table_entry table
               );
             ]
           in
           FExpr.mk_application ~keyword @@ mk_head "Enum"
+        end
+
+      | Variant { variant_identifier; table } -> begin
+          let keyword =
+            [
+              (
+                "variant_identifier",
+                Ast.Identifier.to_fexpr variant_identifier
+              );
+              (
+                "table",
+                let fexpr_of_table_entry (field_binder_identifiers, tail) =
+                  FExpr.mk_list [
+                    FExpr.mk_option @@ Option.map field_binder_identifiers ~f:(Fn.compose FExpr.mk_list @@ List.map ~f:Ast.Identifier.to_fexpr);
+                    to_fexpr tail;
+                  ]
+                in
+                Ast.Identifier.Map.to_fexpr fexpr_of_table_entry table
+              )
+            ]
+          in
+          FExpr.mk_application ~keyword @@ mk_head "Variant"
         end
         
       | Atomic (typ, data, tail) -> begin
@@ -1062,6 +1111,17 @@ module TupleMatching = struct
         in
         List.exists tails ~f:contains_gap
       end
+      
+    | Variant { table; _ } -> begin
+        let values : (Ast.Identifier.t list option * PatternNode.t) list =
+          Ast.Identifier.Map.data table
+        in
+        let tails : PatternNode.t list =
+          List.map ~f:snd values
+        in
+        List.exists tails ~f:contains_gap
+      end
+      
     | Atomic (_, _, tail) -> contains_gap tail
     | Terminal statement  -> Option.is_none statement
     
@@ -1169,6 +1229,94 @@ module TupleMatching = struct
             | VariantCase (_, _) -> invalid_pattern [%here]
           end
         | [] -> invalid_number_of_subpatterns [%here]
+      end
+
+    | Variant { variant_identifier; table } -> begin
+        match tuple_subpatterns with
+        | first_subpattern :: remaining_subpatterns -> begin
+            match first_subpattern with
+            | VariantCase (constructor_identifier, field_pattern) -> begin
+                let* updated_table =
+                  let* variant_definition =
+                    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+                  in
+                  let constructor =
+                    List.find_exn variant_definition.constructors ~f:(fun (constructor_identifier, _) -> Ast.Identifier.equal constructor_identifier constructor_identifier)
+                  in
+                  let constructor_field_types =
+                    snd constructor
+                  in
+                  let* pattern_field_binder_identifiers : Ast.Identifier.t list =
+                    match List.length constructor_field_types with
+                    | 0 -> begin
+                        (* Matched variant case has zero fields, i.e., unit *)
+                        TC.not_yet_implemented [%here] location
+                      end
+                    | 1 -> begin
+                        (* Matched variant case has one field *)
+                        match field_pattern with
+                        | Binder { identifier = binder_identifier; wildcard = _binder_wildcard } -> begin
+                            TC.return [binder_identifier]
+                          end
+                        | ListCons (_, _)    -> invalid_pattern [%here] 
+                        | ListNil            -> invalid_pattern [%here] 
+                        | Tuple _            -> invalid_pattern [%here] 
+                        | EnumCase _         -> invalid_pattern [%here] 
+                        | VariantCase (_, _) -> invalid_pattern [%here] 
+                        | Unit               -> invalid_pattern [%here] 
+                      end
+                    | _ -> begin
+                        (* Matched variant case has two or more fields *)
+                        match field_pattern with
+                        | Tuple subpatterns  -> begin
+                            (* We expect all subpatterns to be binders *)
+                            let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                              match pattern with
+                              | Binder { identifier; _ } -> TC.return identifier
+                              | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                            in
+                            TC.map subpatterns ~f:extract_identifier_from_binder
+                          end
+                        | ListCons (_, _)    -> invalid_pattern [%here] 
+                        | ListNil            -> invalid_pattern [%here] 
+                        | EnumCase _         -> invalid_pattern [%here] 
+                        | VariantCase (_, _) -> invalid_pattern [%here] 
+                        | Binder _           -> invalid_pattern [%here] 
+                        | Unit               -> invalid_pattern [%here] 
+                      end
+                  in
+                  let _existing_field_binder_identifiers, tail =
+                    Ast.Identifier.Map.find_exn table constructor_identifier
+                  in
+                  (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
+                  let* updated_tail =
+                    categorize_case location tail remaining_subpatterns body gap_filling
+                  in
+                  TC.return begin
+                    Ast.Identifier.Map.overwrite
+                      table
+                      ~key:constructor_identifier
+                      ~data:(Some pattern_field_binder_identifiers, updated_tail)
+                  end                  
+                in
+                TC.return begin
+                  PatternNode.Variant {
+                    variant_identifier;
+                    table = updated_table
+                  }
+                end
+              end
+            | Binder { identifier = _pattern_binder_identifier; wildcard = _pattern_binder_wildcard } -> TC.not_yet_implemented [%here] location
+            | EnumCase _         -> invalid_pattern [%here]
+            | Unit               -> invalid_pattern [%here]
+            | ListCons (_, _)    -> invalid_pattern [%here]
+            | ListNil            -> invalid_pattern [%here]
+            | Tuple _            -> invalid_pattern [%here]
+
+                  
+          end
+        | [] -> invalid_number_of_subpatterns [%here]
+         
       end
 
     | Atomic (element_type, atomic_data, tail) -> begin
@@ -1309,6 +1457,57 @@ module TupleMatching = struct
                   matched      = first_tuple_element;
                   matched_type = enum_identifier;
                   cases;
+                }
+              end
+            end
+          end
+      end
+
+    | Variant { variant_identifier; table } -> begin
+        match tuple_elements with
+        | [] -> invalid_number_of_tuple_elements [%here]
+        | first_tuple_element :: remaining_tuple_elements -> begin
+            let* variant_definition =
+              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant ~named:variant_identifier ())
+            in
+            let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
+              let table_pairs : (Ast.Identifier.t * (Ast.Identifier.t list option * PatternNode.t)) list =
+                Ast.Identifier.Map.to_alist table
+              in
+              let* updated_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
+                let build_statement_pair
+                    (constructor_identifier   : Ast.Identifier.t            )
+                    (field_binder_identifiers : Ast.Identifier.t list option)
+                    (tail                     : PatternNode.t               ) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                  =
+                  let* field_binder_identifiers : Ast.Identifier.t list =
+                    match field_binder_identifiers with
+                    | Some x -> TC.return x
+                    | None   -> begin
+                        let constructor =
+                          List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
+                        in
+                        let field_count =
+                          List.length (snd constructor)
+                        in
+                        TC.generate_unique_identifiers field_count
+                      end
+                  in
+                  let* statement =
+                    build_leveled_match_statements remaining_tuple_elements tail
+                  in
+                  TC.return (constructor_identifier, (field_binder_identifiers, statement))
+                in
+                TC.map table_pairs ~f:(fun (id, (fids, pn)) -> build_statement_pair id fids pn)                      
+              in
+              TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
+            in
+            TC.return begin
+              Ast.Statement.Match begin
+                Ast.Statement.MatchVariant {
+                  matched      = first_tuple_element;
+                  matched_type = variant_identifier;
+                  cases
                 }
               end
             end
