@@ -2,8 +2,6 @@ open Base
 open OUnit2
 open Nanosail
 
-module BuildChainTests = BuildChainTests
-
 
 module TC = SailToNanosail.TranslationContext
 open Monads.Notations.Star(TC)
