@@ -914,9 +914,9 @@ module TupleMatching = struct
           | _ -> false
         end
 
-      | Atomic (type_1, data_1, tail_1) -> begin
+      | Atomic (type_1, data_1, subtree_1) -> begin
           match node_2 with
-          | Atomic (type_2, data_2, tail_2) -> begin
+          | Atomic (type_2, data_2, subtree_2) -> begin
               Ast.Type.equal
                 type_1
                 type_2
@@ -935,8 +935,8 @@ module TupleMatching = struct
                 data_2
               &&
               equal
-                tail_1
-                tail_2
+                subtree_1
+                subtree_2
             end
           | _ -> false
         end
