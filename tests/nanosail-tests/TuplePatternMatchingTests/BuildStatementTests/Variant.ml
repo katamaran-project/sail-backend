@@ -30,7 +30,7 @@ let test_build_match_for_variant_1 =
         let* pattern_tree = categorize
             pattern_tree
             [
-              Pattern.EnumCase (mkid "A1")
+              Pattern.(VariantCase (mkid "A1", Pattern.Unit))
             ]
             a1_statement
             false
