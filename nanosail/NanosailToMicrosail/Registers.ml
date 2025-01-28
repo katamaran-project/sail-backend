@@ -259,7 +259,7 @@ let pp_obligation_tactic () : PP.document GC.t =
 
 let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
   let register_names =
-    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.Register.t) =
+    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.Register.t) : PP.document =
       Identifier.pp (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
