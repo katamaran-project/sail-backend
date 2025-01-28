@@ -1070,7 +1070,7 @@ let pp_include_mixin () : PP.document GC.t =
 
 let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
   let enum_definitions : Ast.Definition.Type.Enum.t list =
-    Ast.Definition.Select.(select (without_sail_definition @@ type_definition @@ of_enum ()) definitions)
+    Ast.Definition.Select.(select (without_sail_definition @@ type_definition @@ of_enum) definitions)
   and variant_definitions : Ast.Definition.Type.Variant.t list =
     Ast.Definition.Select.(select (without_sail_definition @@ type_definition @@ of_variant ()) definitions)
   and record_definitions : Ast.Definition.Type.Record.t list =

@@ -681,8 +681,11 @@ module Select = struct
   let of_anything_named (name : Identifier.t) =
     new Selectors.any_kind_selector (Some name)
 
-  let of_enum ?(named : Identifier.t option) () : (Type.t, Type.Enum.t) selector =
-    new Selectors.enum_kind_selector named
+  let of_enum : (Type.t, Type.Enum.t) selector =
+    new Selectors.enum_kind_selector None
+
+  let of_enum_named (named : Identifier.t) : (Type.t, Type.Enum.t) selector =
+    new Selectors.enum_kind_selector (Some named)
 
   let of_variant ?(named : Identifier.t option) () : (Type.t, Type.Variant.t) selector =
     new Selectors.variant_kind_selector named

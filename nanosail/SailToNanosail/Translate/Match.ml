@@ -215,7 +215,7 @@ let rec translate_pattern
             Identifier.translate_identifier [%here] sail_identifier
           in
           let* enum_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
           in
           if
             List.mem enum_definition.cases identifier ~equal:Ast.Identifier.equal
@@ -532,7 +532,7 @@ let translate_enum_match
   =
   (* Look up enum definition, we need to know which values there are *)
   let* enum_definition =
-    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
   in
   (*
      Set up case table: it maps enum values to corresponding bodies
@@ -1051,7 +1051,7 @@ module TupleMatching = struct
         (tail            : PatternNode.t   ) : PatternNode.t TC.t
       =
       let* enum_definition =
-        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
       in
       let table : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t =
         let add_to_table
@@ -1187,7 +1187,7 @@ module TupleMatching = struct
               end
             | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
                 let* enum_definition =
-                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum ~named:enum_identifier ())
+                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
                 in
                 let enum_cases =
                   enum_definition.cases
