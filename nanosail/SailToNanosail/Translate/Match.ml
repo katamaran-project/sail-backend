@@ -1413,7 +1413,7 @@ module TupleMatching = struct
 
   let rec build_leveled_match_statements
       (tuple_elements : Ast.Identifier.t list)
-      (pattern_chain  : PatternNode.t        ) : Ast.Statement.t TC.t
+      (pattern_tree   : PatternNode.t        ) : Ast.Statement.t TC.t
     =
     let invalid_number_of_tuple_elements (location : Lexing.position) =
       TC.fail location "invalid number of tuple elements"
@@ -1421,7 +1421,7 @@ module TupleMatching = struct
     let fail_due_to_unhandled_cases =
       TC.return @@ Ast.Statement.Fail "incomplete matching"
     in
-    match pattern_chain with
+    match pattern_tree with
     | Enum { enum_identifier; table } -> begin
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
