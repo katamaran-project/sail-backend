@@ -914,6 +914,108 @@ let test_build_match_for_tuple_of_variants =
   |} >:: test
 
 
+let test_build_match_for_tuple_of_variants_wildcards =
+  let test _ =
+    let tc =
+      let* enum_type_a =
+        define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+      in
+      let statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* pattern_tree =
+        let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_a; enum_type_a ]
+        in
+        let* pattern_tree = categorize
+            pattern_tree
+            [
+              Pattern.Binder { identifier = mkid "x"; wildcard = true };
+              Pattern.Binder { identifier = mkid "y"; wildcard = true };
+              Pattern.Binder { identifier = mkid "z"; wildcard = true };
+            ]
+            statement
+            false
+        in
+        TC.return pattern_tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"; mkid "value2"] pattern_tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchVariant {
+            matched = mkid "value1";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  (
+                    [ mkid "x" ],
+                    Ast.Statement.Match begin
+                      Ast.Statement.MatchVariant {
+                        matched = mkid "value2";
+                        matched_type = mkid "A";
+                        cases = Ast.Identifier.Map.of_alist_exn [
+                            (
+                              mkid "A1",
+                              (
+                                [ mkid "y" ],
+                                Ast.Statement.Match begin
+                                  Ast.Statement.MatchVariant {
+                                    matched = mkid "value3";
+                                    matched_type = mkid "A";
+                                    cases = Ast.Identifier.Map.of_alist_exn [
+                                        (
+                                          mkid "A1",
+                                          (
+                                            [ mkid "z" ],
+                                            statement
+                                          )
+                                        )
+                                      ]
+                                  }
+                                end                                
+                              )
+                            );
+                          ]
+                      }
+                    end
+                  )
+                )
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        expected_match_statement
+        actual_match_statement;
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      union A = {
+        A1 : unit,
+      }
+
+      match (value1, value2, value3) {
+        (_, _, _) => read_register r1,
+      }
+
+    should become
+
+      match value1 {
+        A1(x) => match value2 {
+                   A1(y) => match value3 {
+                              A1(z) => read_register r1
+                            }
+                 }
+     }
+  |} >:: test
+
+
 let test_suite =
   "match generation" >::: [
     (* test_build_match_for_variant_single_nullary_constructor; *)
@@ -927,4 +1029,5 @@ let test_suite =
     (* test_build_match_for_variant_nary_constructor_field_wildcards; *)
     (* test_build_match_for_variant_nary_constructor_field_wildcards_unification; *)
     (* test_build_match_for_tuple_of_variants; *)
+    test_build_match_for_tuple_of_variants_wildcards;
   ]
