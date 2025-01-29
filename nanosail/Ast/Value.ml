@@ -38,3 +38,24 @@ let rec to_fexpr (value : t) : FExpr.t =
        in
        FExpr.mk_application ~positional "Bitvector"
      end
+
+
+let rec equal
+    (value_1 : t)
+    (value_2 : t) : bool
+  =
+  match value_1, value_2 with
+   | Unit                , Unit                 -> true
+   | Unit                , _                    -> false
+   | Bool b1             , Bool b2              -> Bool.equal b1 b2
+   | Bool _              , _                    -> false
+   | Int n1              , Int n2               -> Big_int.equal n1 n2
+   | Int _               , _                    -> false
+   | String s1           , String s2            -> String.equal s1 s2
+   | String _            , _                    -> false
+   | Prod (left1, right1), Prod (left2, right2) -> equal left1 left2 && equal right1 right2
+   | Prod (_, _)         , _                    -> false
+   | Bit b1              , Bit b2               -> Bool.equal b1 b2
+   | Bit _               , _                    -> false
+   | Bitvector bs1       , Bitvector bs2        -> List.equal Bool.equal bs1 bs2
+   | Bitvector _         , _                    -> false
