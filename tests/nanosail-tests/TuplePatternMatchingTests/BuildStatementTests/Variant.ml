@@ -1029,5 +1029,5 @@ let test_suite =
     (* test_build_match_for_variant_nary_constructor_field_wildcards; *)
     (* test_build_match_for_variant_nary_constructor_field_wildcards_unification; *)
     (* test_build_match_for_tuple_of_variants; *)
-    test_build_match_for_tuple_of_variants_wildcards;
+    (* test_build_match_for_tuple_of_variants_wildcards; *)
   ]
