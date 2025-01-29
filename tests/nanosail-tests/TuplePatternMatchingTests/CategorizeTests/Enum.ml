@@ -379,6 +379,55 @@ let test_categorize_enum_6 =
   |} >:: test
 
 
+let test_failure_due_to_clashing_binders =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let a2_statement =
+        Ast.Statement.ReadRegister (mkid "r2")
+      in
+      let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+      in
+      let* tree = categorize
+          tree
+          [
+            Pattern.Binder { identifier = mkid "x"; wildcard = false };
+            Pattern.EnumCase (mkid "A1")
+          ]
+          a1_statement
+          false
+      in
+      let* tree = categorize
+          tree
+          [
+            Pattern.Binder { identifier = mkid "x"; wildcard = false };
+            Pattern.EnumCase (mkid "A2")
+          ]
+          a2_statement
+          false
+      in
+      TC.return ()
+    in
+    run_failing_tc tc
+  in
+  {|
+      enum A = { A1, A2 }
+
+      match (value1, value2) {
+        (x, A1) => read_register r1,
+        (y, A2) => read_register r2,
+      }
+
+    should fail
+  |} >:: test
+
+
+
 let test_suite =
   "enum" >::: [
     test_categorize_enum_1;
@@ -387,4 +436,6 @@ let test_suite =
     test_categorize_enum_4;
     test_categorize_enum_5;
     test_categorize_enum_6;
+
+    test_failure_due_to_clashing_binders;
   ]
