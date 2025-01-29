@@ -497,11 +497,11 @@ let test_build_match_for_variant_two_constructors =
 
 let test_suite =
   "match generation" >::: [
-    (* test_build_match_for_variant_single_nullary_constructor; *)
-    (* test_build_match_for_variant_single_nullary_constructor_wildcard; *)
-    (* test_build_match_for_variant_single_nullary_constructor_binder; *)
+    test_build_match_for_variant_single_nullary_constructor;
+    test_build_match_for_variant_single_nullary_constructor_wildcard;
+    test_build_match_for_variant_single_nullary_constructor_binder;
     test_build_match_for_variant_single_unary_constructor;
-    (* test_build_match_for_variant_single_unary_constructor_wildcard; *)
-    (* test_build_match_for_variant_single_binary_constructor; *)
-    (* test_build_match_for_variant_two_constructors; *)
+    test_build_match_for_variant_single_unary_constructor_wildcard;
+    test_build_match_for_variant_single_binary_constructor;
+    test_build_match_for_variant_two_constructors;
   ]
