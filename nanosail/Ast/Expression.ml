@@ -38,14 +38,22 @@ let rec equal
         type_2
     end
   | List subexpressions_1, List subexpressions_2 -> begin
-      List.equal equal subexpressions_1 subexpressions_2
+      List.equal equal
+        subexpressions_1
+        subexpressions_2
     end
   | Tuple subexpressions_1, Tuple subexpressions_2 -> begin
-      List.equal equal subexpressions_1 subexpressions_2
+      List.equal equal
+        subexpressions_1
+        subexpressions_2
+    end
+  | Val value_1, Val value_2 -> begin
+      Value.equal
+        value_1
+        value_2
     end
   | UnaryOperation (_, _), UnaryOperation (_, _)         -> raise UnimplementedExpressionEquality
   | BinaryOperation (_, _, _), BinaryOperation (_, _, _) -> raise UnimplementedExpressionEquality
-  | Val _, Val _                                         -> raise UnimplementedExpressionEquality
   | Record _, Record _                                   -> raise UnimplementedExpressionEquality
   | Enum _, Enum _                                       -> raise UnimplementedExpressionEquality
   | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
