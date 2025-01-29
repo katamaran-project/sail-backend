@@ -848,7 +848,10 @@ module TupleMatching = struct
       | Atomic     of Ast.Type.t * atomic_data option * t
       | Terminal   of Ast.Statement.t option
 
-    and variant_table_data = Ast.Identifier.t list option * t
+    and variant_table_data =
+      | NullaryConstructor of Ast.Identifier.t option * t
+      | UnaryConstructor of Ast.Identifier.t option * t
+      | NAryConstructor of Ast.Identifier.t list option * t
 
     
     let rec equal
@@ -885,23 +888,49 @@ module TupleMatching = struct
       | Variant { variant_identifier = variant_identifier_1; table = table_1 } -> begin
           match node_2 with
           | Variant { variant_identifier = variant_identifier_2; table = table_2 } -> begin
-              let table_entry_equality
-                  ((field_binders_1, subtree_1) : Ast.Identifier.t list option * t)
-                  ((field_binders_2, subtree_2) : Ast.Identifier.t list option * t)
+              let variant_table_data_equality
+                  (data_1 : variant_table_data)
+                  (data_2 : variant_table_data) : bool
                 =
-                Option.equal (List.equal Ast.Identifier.equal)
-                  field_binders_1
-                  field_binders_2
-                &&
-                equal
-                  subtree_1
-                  subtree_2
+                match data_1, data_2 with
+                | NullaryConstructor (identifier_1, subtree_1),
+                  NullaryConstructor (identifier_2, subtree_2) -> Option.equal Ast.Identifier.equal
+                                                                    identifier_1
+                                                                    identifier_2
+                                                                  &&
+                                                                  equal
+                                                                    subtree_1
+                                                                    subtree_2
+                | NullaryConstructor _ ,
+                  _                                            -> false
+                  
+                | UnaryConstructor (identifier_1, subtree_1),
+                  UnaryConstructor (identifier_2, subtree_2)   -> Option.equal Ast.Identifier.equal
+                                                                    identifier_1
+                                                                    identifier_2
+                                                                  &&
+                                                                  equal
+                                                                    subtree_1
+                                                                    subtree_2
+                | UnaryConstructor _,
+                  _                                            -> false
+                  
+                | NAryConstructor (identifiers_1, subtree_1),
+                  NAryConstructor (identifiers_2, subtree_2)   -> Option.equal (List.equal Ast.Identifier.equal)
+                                                                    identifiers_1
+                                                                    identifiers_2
+                                                                  &&
+                                                                  equal
+                                                                    subtree_1
+                                                                    subtree_2
+                | NAryConstructor _,
+                  _                                            -> false
               in
               Ast.Identifier.equal
                 variant_identifier_1
                 variant_identifier_2
               &&
-              Ast.Identifier.Map.equal table_entry_equality
+              Ast.Identifier.Map.equal variant_table_data_equality
                 table_1
                 table_2
             end
@@ -980,11 +1009,35 @@ module TupleMatching = struct
               );
               (
                 "table",
-                let fexpr_of_table_entry (field_binder_identifiers, subtree) =
-                  FExpr.mk_list [
-                    FExpr.mk_option @@ Option.map field_binder_identifiers ~f:(Fn.compose FExpr.mk_list @@ List.map ~f:Ast.Identifier.to_fexpr);
-                    to_fexpr subtree;
-                  ]
+                let fexpr_of_table_entry (data : variant_table_data) : FExpr.t =
+                  match data with
+                  | NullaryConstructor (identifier, subtree) -> begin
+                      let positional =
+                        [
+                          FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr identifier;
+                          to_fexpr subtree
+                        ]
+                      in
+                      FExpr.mk_application ~positional "NullaryConstructor"
+                    end
+                  | UnaryConstructor (identifier, subtree) -> begin
+                      let positional =
+                        [
+                          FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr identifier;
+                          to_fexpr subtree
+                        ]
+                      in
+                      FExpr.mk_application ~positional "UnaryConstructor"
+                    end
+                  | NAryConstructor (identifiers, subtree) -> begin
+                      let positional =
+                        [
+                          FExpr.mk_option @@ Option.map ~f:(Fn.compose FExpr.mk_list @@ List.map ~f:Ast.Identifier.to_fexpr) identifiers;
+                          to_fexpr subtree
+                        ]
+                      in
+                      FExpr.mk_application ~positional "NAryConstructor"
+                    end
                 in
                 Ast.Identifier.Map.to_fexpr fexpr_of_table_entry table
               )
@@ -1078,14 +1131,23 @@ module TupleMatching = struct
       let* variant_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
       in
-      let table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t =
+      let table : PatternNode.variant_table_data Ast.Identifier.Map.t =
         let add_to_table
-            (table : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t)
-            ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list) : (Ast.Identifier.t list option * PatternNode.t) Ast.Identifier.Map.t
+            (table                                 : PatternNode.variant_table_data Ast.Identifier.Map.t)
+            ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t
           =
-          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data:(None, subtree)
+          let data =
+            match List.length field_types with
+            | 0 -> PatternNode.NullaryConstructor (None, subtree)
+            | 1 -> PatternNode.UnaryConstructor   (None, subtree)
+            | _ -> PatternNode.NAryConstructor    (None, subtree)
+          in
+          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data
         in
-        List.fold variant_definition.constructors ~init:Ast.Identifier.Map.empty ~f:add_to_table
+        List.fold
+          variant_definition.constructors
+          ~init:Ast.Identifier.Map.empty
+          ~f:add_to_table
       in
       TC.return begin
         PatternNode.Variant {
@@ -1142,11 +1204,17 @@ module TupleMatching = struct
       end
 
     | Variant { table; _ } -> begin
-        let values : (Ast.Identifier.t list option * PatternNode.t) list =
+        let values : PatternNode.variant_table_data list =
           Ast.Identifier.Map.data table
         in
         let subtrees : PatternNode.t list =
-          List.map ~f:snd values
+          let extract_subtree (data : PatternNode.variant_table_data) : PatternNode.t =
+            match data with
+             | NullaryConstructor (_, subtree) -> subtree
+             | UnaryConstructor (_, subtree)   -> subtree
+             | NAryConstructor (_, subtree)    -> subtree
+          in
+          List.map ~f:extract_subtree values
         in
         List.exists subtrees ~f:contains_gap
       end
@@ -1266,73 +1334,82 @@ module TupleMatching = struct
             match first_subpattern with
             | VariantCase (constructor_identifier, field_pattern) -> begin
                 let* updated_table =
-                  let* variant_definition =
-                    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-                  in
-                  let constructor : Ast.Identifier.t * Ast.Type.t list =
-                    List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                  in
-                  let constructor_field_types =
-                    snd constructor
-                  in
-                  let* pattern_field_binder_identifiers : Ast.Identifier.t list =
-                    match List.length constructor_field_types with
-                    | 0 -> begin
-                        match field_pattern with
-                        | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
-                        | Unit               -> TC.return []
-                        | ListCons (_, _)    -> invalid_pattern [%here]
-                        | ListNil            -> invalid_pattern [%here]
-                        | Tuple _            -> invalid_pattern [%here]
-                        | EnumCase _         -> invalid_pattern [%here]
-                        | VariantCase (_, _) -> invalid_pattern [%here]
-                      end
-                    | 1 -> begin
-                        (* Matched variant case has one field *)
-                        match field_pattern with
-                        | Binder { identifier = binder_identifier; wildcard = _binder_wildcard } -> begin
-                            TC.return [binder_identifier]
+                  match Ast.Identifier.Map.find_exn table constructor_identifier with
+                  | NullaryConstructor (_old_identifier, _subtree) -> begin
+                      TC.not_yet_implemented [%here] location
+                    end
+                  | UnaryConstructor (_old_identifier, _subtree) -> begin
+                      TC.not_yet_implemented [%here] location
+                    end
+                  | NAryConstructor (_old_identifiers, subtree) -> begin (* todo take into account old identifiers *)
+                      let* variant_definition =
+                        TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+                      in
+                      let constructor : Ast.Identifier.t * Ast.Type.t list =
+                        List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
+                      in
+                      let constructor_field_types : Ast.Type.t list =
+                        snd constructor
+                      in
+                      let* pattern_field_binder_identifiers : Ast.Identifier.t list =
+                        match List.length constructor_field_types with
+                        | 0 -> begin
+                            match field_pattern with
+                            | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
+                            | Unit               -> TC.return []
+                            | ListCons (_, _)    -> invalid_pattern [%here]
+                            | ListNil            -> invalid_pattern [%here]
+                            | Tuple _            -> invalid_pattern [%here]
+                            | EnumCase _         -> invalid_pattern [%here]
+                            | VariantCase (_, _) -> invalid_pattern [%here]
                           end
-                        | ListCons (_, _)    -> invalid_pattern [%here]
-                        | ListNil            -> invalid_pattern [%here]
-                        | Tuple _            -> invalid_pattern [%here]
-                        | EnumCase _         -> invalid_pattern [%here]
-                        | VariantCase (_, _) -> invalid_pattern [%here]
-                        | Unit               -> invalid_pattern [%here]
-                      end
-                    | _ -> begin
-                        (* Matched variant case has two or more fields *)
-                        match field_pattern with
-                        | Tuple subpatterns  -> begin
-                            (* We expect all subpatterns to be binders *)
-                            let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
-                              match pattern with
-                              | Binder { identifier; _ } -> TC.return identifier
-                              | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
-                            in
-                            TC.map subpatterns ~f:extract_identifier_from_binder
+                        | 1 -> begin
+                            (* Matched variant case has one field *)
+                            match field_pattern with
+                            | Binder { identifier = binder_identifier; wildcard = _binder_wildcard } -> begin
+                                TC.return [binder_identifier]
+                              end
+                            | ListCons (_, _)    -> invalid_pattern [%here]
+                            | ListNil            -> invalid_pattern [%here]
+                            | Tuple _            -> invalid_pattern [%here]
+                            | EnumCase _         -> invalid_pattern [%here]
+                            | VariantCase (_, _) -> invalid_pattern [%here]
+                            | Unit               -> invalid_pattern [%here]
                           end
-                        | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
-                        | ListCons (_, _)    -> invalid_pattern [%here]
-                        | ListNil            -> invalid_pattern [%here]
-                        | EnumCase _         -> invalid_pattern [%here]
-                        | VariantCase (_, _) -> invalid_pattern [%here]
-                        | Unit               -> invalid_pattern [%here]
+                        | _ -> begin
+                            (* Matched variant case has two or more fields *)
+                            match field_pattern with
+                            | Tuple subpatterns  -> begin
+                                (* We expect all subpatterns to be binders *)
+                                let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                                  match pattern with
+                                  | Binder { identifier; _ } -> TC.return identifier
+                                  | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                                in
+                                TC.map subpatterns ~f:extract_identifier_from_binder
+                              end
+                            | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
+                            | ListCons (_, _)    -> invalid_pattern [%here]
+                            | ListNil            -> invalid_pattern [%here]
+                            | EnumCase _         -> invalid_pattern [%here]
+                            | VariantCase (_, _) -> invalid_pattern [%here]
+                            | Unit               -> invalid_pattern [%here]
+                          end
+                      in
+                      (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
+                      let* updated_subtree =
+                        categorize_case location subtree remaining_subpatterns body gap_filling
+                      in
+                      let updated_data =
+                        PatternNode.NAryConstructor (Some pattern_field_binder_identifiers, updated_subtree)
+                      in
+                      TC.return begin
+                        Ast.Identifier.Map.overwrite
+                          table
+                          ~key:constructor_identifier
+                          ~data:updated_data
                       end
-                  in
-                  let _existing_field_binder_identifiers, subtree =
-                    Ast.Identifier.Map.find_exn table constructor_identifier
-                  in
-                  (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
-                  let* updated_subtree =
-                    categorize_case location subtree remaining_subpatterns body gap_filling
-                  in
-                  TC.return begin
-                    Ast.Identifier.Map.overwrite
-                      table
-                      ~key:constructor_identifier
-                      ~data:(Some pattern_field_binder_identifiers, updated_subtree)
-                  end
+                    end
                 in
                 TC.return begin
                   PatternNode.Variant {
@@ -1504,26 +1581,33 @@ module TupleMatching = struct
               TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
             in
             let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
-              let table_pairs : (Ast.Identifier.t * (Ast.Identifier.t list option * PatternNode.t)) list =
+              let table_pairs : (Ast.Identifier.t * PatternNode.variant_table_data) list =
                 Ast.Identifier.Map.to_alist table
               in
-              let* updated_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
+              let* statement_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
                 let build_statement_pair
-                    (constructor_identifier   : Ast.Identifier.t            )
-                    (field_binder_identifiers : Ast.Identifier.t list option)
-                    (subtree                  : PatternNode.t               ) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                    (constructor_identifier : Ast.Identifier.t              )
+                    (data                   : PatternNode.variant_table_data) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                   =
-                  let* field_binder_identifiers : Ast.Identifier.t list =
-                    match field_binder_identifiers with
-                    | Some x -> TC.return x
-                    | None   -> begin
-                        let constructor =
-                          List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                        in
-                        let field_count =
-                          List.length (snd constructor)
-                        in
-                        TC.generate_unique_identifiers field_count
+                  let* (field_binder_identifiers, subtree) : Ast.Identifier.t list * PatternNode.t =
+                    match data with
+                    | NullaryConstructor (_field_binder_identifier, _subtree) -> TC.fail [%here] "todo"
+                    | UnaryConstructor (_field_binder_identifier, _subtree) -> TC.fail [%here] "todo"
+                    | NAryConstructor (field_binder_identifiers, subtree) -> begin
+                        match field_binder_identifiers with
+                        | Some x -> TC.return (x, subtree)
+                        | None   -> begin
+                            let constructor =
+                              List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
+                            in
+                            let field_count =
+                              List.length (snd constructor)
+                            in
+                            let* ids =
+                              TC.generate_unique_identifiers field_count
+                            in
+                            TC.return (ids, subtree)
+                          end
                       end
                   in
                   let* statement =
@@ -1531,9 +1615,9 @@ module TupleMatching = struct
                   in
                   TC.return (constructor_identifier, (field_binder_identifiers, statement))
                 in
-                TC.map table_pairs ~f:(fun (id, (fids, pn)) -> build_statement_pair id fids pn)
+                TC.map table_pairs ~f:(Auxlib.uncurry build_statement_pair)
               in
-              TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
+              TC.return @@ Ast.Identifier.Map.of_alist_exn statement_pairs
             in
             TC.return begin
               Ast.Statement.Match begin
