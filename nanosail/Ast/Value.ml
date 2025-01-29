@@ -8,7 +8,7 @@ type t =
   | Bool      of bool
   | Int       of Big_int.num
   | String    of string
-  | Prod      of t * t
+  | Prod      of t * t         (* todo replace this by tuple *)
   | Bit       of bool
   | Bitvector of bool list
 
