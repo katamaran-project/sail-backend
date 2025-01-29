@@ -1520,7 +1520,6 @@ module TupleMatching = struct
             | Tuple _            -> invalid_pattern [%here]
           end
         | [] -> invalid_number_of_subpatterns [%here]
-
       end
 
     | Atomic (element_type, atomic_data, subtree) -> begin
