@@ -1423,7 +1423,7 @@ module TupleMatching = struct
                         categorize_case location subtree remaining_subpatterns body gap_filling
                       in
                       let new_data =
-                        PatternNode.NullaryConstructor (new_identifier, new_subtree)
+                        PatternNode.UnaryConstructor (new_identifier, new_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
