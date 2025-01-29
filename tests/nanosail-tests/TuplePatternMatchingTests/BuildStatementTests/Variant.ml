@@ -137,7 +137,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
   |} >:: test
 
 
-let test_build_match_for_variant_single_nullary_constructor_wildcard =
+let test_build_match_for_variant_single_nullary_constructor_binder =
   let test _ =
     let tc =
       let* enum_type =
@@ -199,7 +199,13 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
       }
 
       match value1 {
-        A1(_) => read_register r1,
+        x => read_register r1,
+      }
+
+    should become
+
+      match value {
+        A1 () => let x = value in read_register r1
       }
   |} >:: test
 
@@ -566,7 +572,7 @@ let test_suite =
   "match generation" >::: [
     test_build_match_for_variant_single_nullary_constructor;
     test_build_match_for_variant_single_nullary_constructor_field_wildcard;
-    test_build_match_for_variant_single_nullary_constructor_wildcard;
+    test_build_match_for_variant_single_nullary_constructor_binder;
     test_build_match_for_variant_single_nullary_constructor_field_binder;
     test_build_match_for_variant_single_unary_constructor;
     test_build_match_for_variant_single_unary_constructor_field_wildcard;
