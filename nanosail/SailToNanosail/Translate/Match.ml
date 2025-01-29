@@ -1123,6 +1123,10 @@ module TupleMatching = struct
       end
 
 
+  (*
+     Checks if there are "leaves" in the tree that have no associated statement yet,
+     i.e., answers the question "are there any unhandled cases left in the given tree?"
+  *)
   let rec contains_gap (pattern_tree : PatternNode.t) : bool =
     match pattern_tree with
     | Enum { table; _ } -> begin
