@@ -1277,13 +1277,13 @@ module TupleMatching = struct
                     match List.length constructor_field_types with
                     | 0 -> begin
                         match field_pattern with
+                        | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
+                        | Unit               -> TC.return []
                         | ListCons (_, _)    -> invalid_pattern [%here]
                         | ListNil            -> invalid_pattern [%here]
                         | Tuple _            -> invalid_pattern [%here]
                         | EnumCase _         -> invalid_pattern [%here]
                         | VariantCase (_, _) -> invalid_pattern [%here]
-                        | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
-                        | Unit               -> TC.return []
                       end
                     | 1 -> begin
                         (* Matched variant case has one field *)
