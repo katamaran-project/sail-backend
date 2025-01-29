@@ -844,10 +844,11 @@ module TupleMatching = struct
 
     type t =
       | Enum       of { enum_identifier : Ast.Identifier.t; table : (Ast.Identifier.t option * t) Ast.Identifier.Map.t; }
-      | Variant    of { variant_identifier : Ast.Identifier.t; table : (Ast.Identifier.t list option * t) Ast.Identifier.Map.t }
+      | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
       | Atomic     of Ast.Type.t * atomic_data option * t
       | Terminal   of Ast.Statement.t option
 
+    and variant_table_data = Ast.Identifier.t list option * t
 
     let rec equal
         (node_1 : t)
