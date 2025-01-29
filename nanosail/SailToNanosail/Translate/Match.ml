@@ -850,6 +850,7 @@ module TupleMatching = struct
 
     and variant_table_data = Ast.Identifier.t list option * t
 
+    
     let rec equal
         (node_1 : t)
         (node_2 : t) : bool
