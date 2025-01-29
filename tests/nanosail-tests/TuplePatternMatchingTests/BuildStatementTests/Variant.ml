@@ -13,7 +13,7 @@ module TM      = SailToNanosail.Translate.Match.TupleMatching
 open Shared
 
 
-let test_build_match_for_variant_1 =
+let test_build_match_for_variant_single_nullary_constructor =
   let test _ =
     let tc =
       let* enum_type =
@@ -75,7 +75,7 @@ let test_build_match_for_variant_1 =
   |} >:: test
 
 
-let test_build_match_for_variant_2 =
+let test_build_match_for_variant_single_unary_constructor =
   let test _ =
     let tc =
       let* enum_type =
@@ -137,7 +137,7 @@ let test_build_match_for_variant_2 =
   |} >:: test
 
 
-let test_build_match_for_variant_3 =
+let test_build_match_for_variant_single_binary_constructor =
   let test _ =
     let tc =
       let* enum_type =
@@ -207,7 +207,7 @@ let test_build_match_for_variant_3 =
   |} >:: test
 
 
-let test_build_match_for_variant_4 =
+let test_build_match_for_variant_two_constructors =
   let test _ =
     let tc =
       let* enum_type =
@@ -306,8 +306,8 @@ let test_build_match_for_variant_4 =
 
 let test_suite =
   "match generation" >::: [
-    test_build_match_for_variant_1;
-    test_build_match_for_variant_2;
-    test_build_match_for_variant_3;
-    test_build_match_for_variant_4;
+    test_build_match_for_variant_single_nullary_constructor;
+    test_build_match_for_variant_single_unary_constructor;
+    test_build_match_for_variant_single_binary_constructor;
+    test_build_match_for_variant_two_constructors;
   ]
