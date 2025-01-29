@@ -1510,7 +1510,9 @@ module TupleMatching = struct
                   }
                 end
               end
-            | Binder { identifier = _pattern_binder_identifier; wildcard = _pattern_binder_wildcard } -> TC.not_yet_implemented [%here] location
+            | Binder { identifier = _pattern_binder_identifier; wildcard = _pattern_binder_wildcard } -> begin
+                TC.not_yet_implemented [%here] location
+              end
             | EnumCase _         -> invalid_pattern [%here]
             | Unit               -> invalid_pattern [%here]
             | ListCons (_, _)    -> invalid_pattern [%here]
