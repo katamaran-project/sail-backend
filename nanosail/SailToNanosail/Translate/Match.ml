@@ -1389,7 +1389,8 @@ module TupleMatching = struct
                         match field_pattern with
                         | Binder { identifier = binder_identifier; wildcard } -> begin
                             match old_identifier, wildcard with
-                            | _                  , true  -> TC.return old_identifier
+                            | None               , true  -> TC.return @@ Some binder_identifier
+                            | Some _             , true  -> TC.return old_identifier
                             | None               , false -> TC.return @@ Some binder_identifier
                             | Some old_identifier, false -> begin
                                 if
