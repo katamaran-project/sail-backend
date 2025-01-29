@@ -402,10 +402,10 @@ let test_failure_due_to_clashing_binders =
           a1_statement
           false
       in
-      let* tree = categorize
+      let* _ = categorize
           tree
           [
-            Pattern.Binder { identifier = mkid "x"; wildcard = false };
+            Pattern.Binder { identifier = mkid "y"; wildcard = false };
             Pattern.EnumCase (mkid "A2")
           ]
           a2_statement
