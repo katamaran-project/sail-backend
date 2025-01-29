@@ -75,7 +75,7 @@ let test_build_match_for_variant_single_nullary_constructor =
   |} >:: test
 
 
-let test_build_match_for_variant_single_nullary_constructor_wildcard =
+let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -137,7 +137,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
   |} >:: test
 
 
-let test_build_match_for_variant_single_nullary_constructor_wildcard_2 =
+let test_build_match_for_variant_single_nullary_constructor_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -204,7 +204,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard_2 =
   |} >:: test
 
 
-let test_build_match_for_variant_single_nullary_constructor_binder =
+let test_build_match_for_variant_single_nullary_constructor_field_binder =
   let test _ =
     let tc =
       let* enum_type =
@@ -333,7 +333,7 @@ let test_build_match_for_variant_single_unary_constructor =
   |} >:: test
 
 
-let test_build_match_for_variant_single_unary_constructor_wildcard =
+let test_build_match_for_variant_single_unary_constructor_field_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -565,11 +565,11 @@ let test_build_match_for_variant_two_constructors =
 let test_suite =
   "match generation" >::: [
     test_build_match_for_variant_single_nullary_constructor;
+    test_build_match_for_variant_single_nullary_constructor_field_wildcard;
     test_build_match_for_variant_single_nullary_constructor_wildcard;
-    test_build_match_for_variant_single_nullary_constructor_wildcard_2;
-    test_build_match_for_variant_single_nullary_constructor_binder;
+    test_build_match_for_variant_single_nullary_constructor_field_binder;
     test_build_match_for_variant_single_unary_constructor;
-    test_build_match_for_variant_single_unary_constructor_wildcard;
+    test_build_match_for_variant_single_unary_constructor_field_wildcard;
     test_build_match_for_variant_single_binary_constructor;
     test_build_match_for_variant_two_constructors;
   ]
