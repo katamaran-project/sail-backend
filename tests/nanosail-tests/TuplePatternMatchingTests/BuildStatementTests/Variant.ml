@@ -633,7 +633,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
       }
 
       match value1 {
-        A1(x, y) => read_register r1,
+        A1(x, _) => read_register r1,
       }
   |} >:: test
 
@@ -899,16 +899,16 @@ let test_build_match_for_tuple_of_variants =
       }
 
       match (value1, value2) {
-        (A1(x, y), B1) => read_register r1,
-        (A1(x, y), B2) => read_register r2
+        (A1(x, y), B1 ()) => read_register r1,
+        (A1(x, y), B2 ()) => read_register r2
       }
 
     should become
 
       match value_1 {
         A1(x, y) => match value_2 {
-                      B1 => read_register r1,
-                      B2 => read_register r2
+                      B1 () => read_register r1,
+                      B2 () => read_register r2
                     }
       }
   |} >:: test
