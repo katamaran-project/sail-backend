@@ -69,7 +69,58 @@ let test_categorize_variant_single_unary_constructor =
   |} >:: test
 
 
+let test_failure_due_to_clashing_field_binders =
+  let test _ =
+    let tc =
+      let* enum_type =
+        define_variant "A" [
+          ("A1", [Ast.Type.Int]);
+          ("A2", [Ast.Type.Int]);
+        ]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* pattern_tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+      in
+      let* pattern_tree = categorize
+          pattern_tree
+          [
+            Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x1"; wildcard = false } ));
+            Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "y"; wildcard = false } ))
+          ]
+          a1_statement
+          false
+      in
+      let* _ = categorize
+          pattern_tree
+          [
+            Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x2"; wildcard = false } ));
+            Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "y"; wildcard = false } ))
+          ]
+          a1_statement
+          false
+      in
+        TC.return ()
+    in
+    run_failing_tc tc
+  in
+  {|
+      union A = {
+        A1 : int,
+        A2 : int
+      }
+
+      match (value1, value2) {
+        (A1(x1), A1(y)) => read_register r1,
+        (A1(x2), A2(y)) => read_register r1,
+      }
+  |} >:: test
+
+
 let test_suite =
   "enum" >::: [
     test_categorize_variant_single_unary_constructor;
+    
+    test_failure_due_to_clashing_field_binders;
   ]
