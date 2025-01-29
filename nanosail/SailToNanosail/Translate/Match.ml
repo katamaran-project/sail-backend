@@ -1510,8 +1510,31 @@ module TupleMatching = struct
                   }
                 end
               end
-            | Binder { identifier = _pattern_binder_identifier; wildcard = _pattern_binder_wildcard } -> begin
-                TC.not_yet_implemented [%here] location
+            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
+                let* variant_definition =
+                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+                in
+                let* updated_table =
+                  let update_table
+                      (table                                 : PatternNode.variant_table_data Ast.Identifier.Map.t)
+                      ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
+                    =
+                    let data : PatternNode.variant_table_data =
+                      Ast.Identifier.Map.find_exn table constructor_identifier
+                    in
+                    TC.not_yet_implemented [%here] location (* todo *)
+                  in
+                  TC.fold_left
+                    ~f:update_table
+                    ~init:table
+                    variant_definition.constructors
+                in
+                TC.return begin
+                  PatternNode.Variant {
+                    variant_identifier;
+                    table = updated_table
+                  }
+                end
               end
             | EnumCase _         -> invalid_pattern [%here]
             | Unit               -> invalid_pattern [%here]
