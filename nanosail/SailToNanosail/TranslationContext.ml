@@ -251,11 +251,15 @@ let generate_unique_identifier
   =
   let* index = generate_unique_int
   in
-  let result = Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Printf.sprintf "%s%d" prefix index
+  let result =
+    Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Printf.sprintf "%s%d" prefix index
   in
-  if underscore
-  then return @@ Ast.Identifier.add_prefix "_" result
-  else return result
+  if
+    underscore
+  then
+    return @@ Ast.Identifier.add_prefix "_" result
+  else
+    return result
 
 
 let rec generate_unique_identifiers
