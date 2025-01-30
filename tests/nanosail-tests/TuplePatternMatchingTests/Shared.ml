@@ -120,8 +120,8 @@ class generator = object(self)
     Ast.Identifier.mk_generated @@ Int.to_string self#next
 
   method binder : SailToNanosail.Translate.Match.Binder.t =
-    { identifier = self#id; wildcard = false }
-
+    mkbinder @@ Int.to_string self#next
+    
   method wildcard : SailToNanosail.Translate.Match.Binder.t =
-    { identifier = self#id; wildcard = true }
+    mkwild self#next
 end
