@@ -137,7 +137,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
   |} >:: test
 
 
-let test_build_match_for_variant_single_nullary_constructor_binder =
+let test_build_match_for_variant_single_nullary_constructor_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -152,7 +152,7 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
         let* pattern_tree = categorize
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false }
+              Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a1_statement
             false
@@ -172,12 +172,7 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
                   mkid "A1",
                   (
                     [],
-                    Ast.Statement.Let {
-                      variable_identifier    = mkid "x";
-                      binding_statement_type = Ast.Type.Variant (mkid "A");
-                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", Ast.Type.Variant (mkid "A")));
-                      body_statement         = a1_statement
-                    }
+                    a1_statement
                   )
                 )
               ]
@@ -1020,7 +1015,7 @@ let test_suite =
   "match generation" >::: [
     (* test_build_match_for_variant_single_nullary_constructor; *)
     (* test_build_match_for_variant_single_nullary_constructor_field_wildcard; *)
-    test_build_match_for_variant_single_nullary_constructor_binder;
+    test_build_match_for_variant_single_nullary_constructor_wildcard;
     (* test_build_match_for_variant_single_nullary_constructor_field_binder; *)
     (* test_build_match_for_variant_single_unary_constructor; *)
     (* test_build_match_for_variant_single_unary_constructor_field_wildcard; *)
