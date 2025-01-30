@@ -1444,7 +1444,7 @@ module TupleMatching = struct
                           ~data:new_data
                       end
                     end
-                  | NAryConstructor (_old_identifiers, subtree) -> begin (* todo take into account old identifiers *)
+                  | NAryConstructor (previous_field_identifiers, subtree) -> begin
                       let* variant_definition =
                         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                       in
@@ -1462,7 +1462,26 @@ module TupleMatching = struct
                             in
                             TC.map subpatterns ~f:extract_identifier_from_binder
                           end
-                        | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
+                        | Binder _ -> begin
+                            (*
+                               Example context
+
+                                 enum A = { A1 : (int, int) }
+
+                                 match A_value {
+                                   A(ns) => ...
+                                 }
+
+                               In other words, all fields are bound to a single binder, i.e., ns should be bound to a (int, int) pair.
+                               The current implementation does not support this.
+                               A possible rewrite would be
+
+                                 match A_value {
+                                   A(x, y) => let ns = (x, y) in ...
+                                 }
+                            *)
+                            TC.not_yet_implemented ~message:"unsupported binder at this location" [%here] location
+                          end
                         | ListCons (_, _)    -> invalid_pattern [%here]
                         | ListNil            -> invalid_pattern [%here]
                         | EnumCase _         -> invalid_pattern [%here]
