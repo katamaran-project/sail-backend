@@ -841,12 +841,12 @@ let translate_variant_match
 *)
 module TupleMatching = struct
   module PatternNode = struct
-    type atomic_data = { identifier : Ast.Identifier.t; wildcard : bool }
+    type binder = { identifier : Ast.Identifier.t; wildcard : bool }
 
     type t =
       | Enum       of { enum_identifier : Ast.Identifier.t; table : (Ast.Identifier.t option * t) Ast.Identifier.Map.t; }
       | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
-      | Atomic     of Ast.Type.t * atomic_data option * t
+      | Atomic     of Ast.Type.t * binder option * t
       | Terminal   of Ast.Statement.t option
 
     and variant_table_data =
@@ -975,7 +975,22 @@ module TupleMatching = struct
 
 
     let rec to_fexpr (node : t) : FExpr.t =
-      let mk_head (tag : string) =
+      let fexpr_of_binder (data : binder) =
+        let keyword =
+          [
+            (
+              "identifier",
+              Ast.Identifier.to_fexpr data.identifier
+            );
+            (
+              "wildcard",
+              FExpr.mk_bool data.wildcard
+            );
+          ]
+        in
+        FExpr.mk_application ~keyword "Binder"
+      in
+      let mk_head (tag : string) : string =
         Printf.sprintf "PatternNode:%s" tag
       in
       match node with
@@ -1048,21 +1063,6 @@ module TupleMatching = struct
         end
 
       | Atomic (typ, data, subtree) -> begin
-          let fexpr_of_atomic_data (data : atomic_data) =
-            let keyword =
-              [
-                (
-                  "identifier",
-                  Ast.Identifier.to_fexpr data.identifier
-                );
-                (
-                  "wildcard",
-                  FExpr.mk_bool data.wildcard
-                );
-              ]
-            in
-            FExpr.mk_application ~keyword "Data"
-          in
           let keyword =
             [
               (
@@ -1072,7 +1072,7 @@ module TupleMatching = struct
               (
                 "data",
                 FExpr.mk_option begin
-                  Option.map data ~f:fexpr_of_atomic_data
+                  Option.map data ~f:fexpr_of_binder
                 end
               );
               (
