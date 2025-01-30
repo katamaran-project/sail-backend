@@ -1516,6 +1516,21 @@ module TupleMatching = struct
                 end
               end
             | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
+                (*
+                   Example context:
+
+                     match ??? {
+                       x => ...      // if pattern_binder_wildcard == false
+                     }
+
+                   or
+
+                     match ??? {
+                       _ => ...      // if pattern_binder_wildcard == true
+                     }
+
+                   where x is not a constructor name.
+                *)
                 let* variant_definition =
                   TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                 in
