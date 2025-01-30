@@ -160,7 +160,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         TC.return pattern_tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value"] pattern_tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -193,14 +193,14 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         A1 : unit
       }
 
-      match value1 {
+      match value {
         x => read_register r1,
       }
 
     should become
 
       match value {
-        A1 () => let x = value in read_register r1
+        A1 () => read_register r1
       }
   |} >:: test
 
