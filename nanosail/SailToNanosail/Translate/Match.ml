@@ -1333,6 +1333,13 @@ module TupleMatching = struct
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
             | VariantCase (constructor_identifier, field_pattern) -> begin
+                (*
+                   Example context:
+
+                     match ??? {
+                       <constructor_identifier>(<field_pattern>) => ...
+                     }
+                *)
                 let* updated_table : PatternNode.variant_table_data Ast.Identifier.Map.t =
                   match Ast.Identifier.Map.find_exn table constructor_identifier with (* todo factor out updating table *)
                   | NullaryConstructor (old_identifier, subtree) -> begin
@@ -1347,13 +1354,11 @@ module TupleMatching = struct
                                   Ast.Identifier.equal old_identifier binder_identifier
                                 then
                                   (*
-                                     We're dealing with the following situation:
+                                     Example context:
 
-                                       enum A = { Foo : unit }
-
-                                       match (a, b) {
-                                         (Foo(x), whatever) -> ...,
-                                         (Foo(y), whatever) -> ...,
+                                       match (???, ???) {
+                                         (<constructor_identifier>(x), other_pattern) -> ...,
+                                         (<constructor_identifier>(y), other_pattern) -> ...,
                                        }
 
                                      In other words, the unit value which serves as fields for the Foo constructor
