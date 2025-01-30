@@ -911,6 +911,15 @@ let test_build_match_for_tuple_of_variants =
 
 let test_build_match_for_tuple_of_variants_wildcards =
   let test _ =
+    let genid = create_identifier_generator ()
+    in
+    let x1 = genid ()
+    and x2 = genid ()
+    and x3 = genid ()
+    and x4 = genid ()
+    and x5 = genid ()
+    and x6 = genid ()
+    in
     let tc =
       let* enum_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
@@ -945,7 +954,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
                 (
                   mkid "A1",
                   (
-                    [ mkid "x" ],
+                    [ x1; x2 ],
                     Ast.Statement.Match begin
                       Ast.Statement.MatchVariant {
                         matched = mkid "value2";
@@ -954,7 +963,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
                             (
                               mkid "A1",
                               (
-                                [ mkid "y" ],
+                                [ x3; x4 ],
                                 Ast.Statement.Match begin
                                   Ast.Statement.MatchVariant {
                                     matched = mkid "value3";
@@ -963,7 +972,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
                                         (
                                           mkid "A1",
                                           (
-                                            [ mkid "z" ],
+                                            [ x5; x6 ],
                                             statement
                                           )
                                         )
@@ -992,7 +1001,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
   in
   {|
       union A = {
-        A1 : unit,
+        A1 : (int, int),
       }
 
       match (value1, value2, value3) {
@@ -1002,11 +1011,11 @@ let test_build_match_for_tuple_of_variants_wildcards =
     should become
 
       match value1 {
-        A1(x) => match value2 {
-                   A1(y) => match value3 {
-                              A1(z) => read_register r1
-                            }
-                 }
+        A1(x1, x2) => match value2 {
+                        A1(x3, x4) => match value3 {
+                                        A1(x5, x6) => read_register r1
+                                      }
+                      }
      }
   |} >:: test
 
