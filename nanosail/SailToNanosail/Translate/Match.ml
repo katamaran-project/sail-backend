@@ -1307,7 +1307,12 @@ module TupleMatching = struct
                             TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
                         end
                     in
-                    TC.return @@ Ast.Identifier.Map.overwrite table ~key:enum_case ~data:(updated_binder_identifier, updated_subtree)
+                    TC.return begin
+                      Ast.Identifier.Map.overwrite
+                        table
+                        ~key:enum_case
+                        ~data:(updated_binder_identifier, updated_subtree)
+                    end
                   end
                   else
                     TC.return table
@@ -1515,7 +1520,7 @@ module TupleMatching = struct
                   }
                 end
               end
-            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
+            | Binder { identifier = _pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
                 (*
                    Example context:
 
@@ -1536,14 +1541,83 @@ module TupleMatching = struct
                 in
                 let* updated_table =
                   let update_table
-                      (table                                 : PatternNode.variant_table_data Ast.Identifier.Map.t)
-                      ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
+                      (table                                  : PatternNode.variant_table_data Ast.Identifier.Map.t)
+                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
                     =
-                    let data : PatternNode.variant_table_data =
-                      Ast.Identifier.Map.find_exn table constructor_identifier
-                    in
-                    TC.not_yet_implemented [%here] location (* todo *)
-                  in
+                    if
+                      not pattern_binder_wildcard
+                    then
+                      (*
+                         Example context:
+
+                           union A = {
+                             A1 : whatever
+                           }
+
+                           match A_value {
+                             x => ...
+                           }
+
+                         In other words, we're using 'x' to match with the variant's value.
+                         The current implementation does not support this case and
+                         we expect the original code to be manually adapted to
+
+                           match A_value {
+                             _ => let x = A_value in ...
+                           }
+                      *)
+                      TC.not_yet_implemented [%here] location
+                    else begin
+                      let data : PatternNode.variant_table_data =
+                        Ast.Identifier.Map.find_exn table constructor_identifier
+                      in
+                      let* updated_data =
+                        match data with
+                        | NullaryConstructor (previous_binder_identifier, subtree) -> begin
+                            if
+                              not @@ contains_gap subtree
+                            then
+                              TC.return data
+                            else begin
+                              let* updated_subtree =
+                                categorize_case location subtree remaining_subpatterns body true
+                              in
+                              TC.return @@ PatternNode.NullaryConstructor (previous_binder_identifier, updated_subtree)
+                            end                          
+                          end
+                        | UnaryConstructor (previous_binder_identifier, subtree) -> begin
+                            if
+                              not @@ contains_gap subtree
+                            then
+                              TC.return data
+                            else begin
+                              let* updated_subtree =
+                                categorize_case location subtree remaining_subpatterns body true
+                              in
+                              TC.return @@ PatternNode.UnaryConstructor (previous_binder_identifier, updated_subtree)
+                            end
+                          end
+                        | NAryConstructor (previous_binder_identifiers, subtree) -> begin
+                            if
+                              not @@ contains_gap subtree
+                            then
+                              TC.return data
+                            else begin
+                              let* updated_subtree =
+                                categorize_case location subtree remaining_subpatterns body true
+                              in
+                              TC.return @@ PatternNode.NAryConstructor (previous_binder_identifiers, updated_subtree)
+                            end
+                          end
+                      in
+                      TC.return begin
+                        Ast.Identifier.Map.overwrite
+                          table
+                          ~key:constructor_identifier
+                          ~data:updated_data
+                      end
+                    end
+                  in                 
                   TC.fold_left
                     ~f:update_table
                     ~init:table
