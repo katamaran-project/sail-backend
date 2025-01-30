@@ -1,5 +1,6 @@
 open! Base
 
+(* todo replace Ast.Identifier.t option by { identifier : Ast.Identifier.t; wildcard : bool } *)
 
 module S = struct
   include Libsail
