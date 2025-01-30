@@ -1444,11 +1444,11 @@ module TupleMatching = struct
                           ~data:new_data
                       end
                     end
-                  | NAryConstructor (previous_field_identifiers, subtree) -> begin
+                  | NAryConstructor (_previous_field_identifiers, subtree) -> begin
                       let* variant_definition =
                         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                       in
-                      let constructor : Ast.Identifier.t * Ast.Type.t list =
+                      let _constructor : Ast.Identifier.t * Ast.Type.t list =
                         List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
                       in
                       let* pattern_field_binder_identifiers : Ast.Identifier.t list =
@@ -1488,12 +1488,14 @@ module TupleMatching = struct
                         | VariantCase (_, _) -> invalid_pattern [%here]
                         | Unit               -> invalid_pattern [%here]
                       in
-                      (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
+                      let unified_field_binder_identifiers =
+                        pattern_field_binder_identifiers
+                      in
                       let* updated_subtree =
                         categorize_case location subtree remaining_subpatterns body gap_filling
                       in
                       let updated_data =
-                        PatternNode.NAryConstructor (Some pattern_field_binder_identifiers, updated_subtree)
+                        PatternNode.NAryConstructor (Some unified_field_binder_identifiers, updated_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
