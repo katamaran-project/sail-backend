@@ -103,3 +103,23 @@ let create_identifier_generator () =
     Ast.Identifier.mk_generated @@ Int.to_string number
   in
   next
+
+
+class gen = object(self)
+  val mutable counter = 0
+
+  method private next =
+    let result = counter
+    in
+    counter <- result + 1;
+    result
+
+  method id =
+    Ast.Identifier.mk_generated @@ Int.to_string self#next
+
+  method binder : SailToNanosail.Translate.Match.Binder.t =
+    { identifier = self#id; wildcard = false }
+
+  method wildcard : SailToNanosail.Translate.Match.Binder.t =
+    { identifier = self#id; wildcard = true }
+end
