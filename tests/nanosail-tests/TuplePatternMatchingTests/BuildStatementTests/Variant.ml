@@ -813,19 +813,19 @@ let test_build_match_for_tuple_of_variants =
             pattern_tree
             [
               Pattern.(
-                Tuple [
-                  VariantCase (
-                    mkid "A1",
-                    Tuple [
-                      Binder { identifier = mkid "x"; wildcard = false };
-                      Binder { identifier = mkid "y"; wildcard = false };
-                    ]
-                  );
-                  VariantCase (
-                    mkid "B2",
-                    Unit
-                  )
-                ]
+                VariantCase (
+                  mkid "A1",
+                  Tuple [
+                    Binder { identifier = mkid "x"; wildcard = false };
+                    Binder { identifier = mkid "y"; wildcard = false };
+                  ]
+                )
+              );
+              Pattern.(
+                VariantCase (
+                  mkid "B2",
+                  Unit
+                )
               )
             ]
             b2_statement
