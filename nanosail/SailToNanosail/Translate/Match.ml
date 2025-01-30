@@ -1270,7 +1270,7 @@ module TupleMatching = struct
                     (table     : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
                     (enum_case : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t TC.t
                   =
-                  let binder_identifier, subtree =
+                  let binder_identifier, subtree = (* todo move this into the then-branch of the if *)
                     Ast.Identifier.Map.find_exn table enum_case
                   in
                   if
