@@ -26,11 +26,11 @@ let test_build_pattern_tree_enum_1 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (None, TM.PatternNode.Terminal None)
+                (mkwild 0, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                (None, TM.PatternNode.Terminal None)
+                (mkwild 1, TM.PatternNode.Terminal None)
               );
             ];
         }
@@ -66,15 +66,15 @@ let test_build_pattern_tree_enum_2 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (None, TM.PatternNode.Terminal None)
+                (mkwild 0, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                (None, TM.PatternNode.Terminal None)
+                (mkwild 1, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A3",
-                (None, TM.PatternNode.Terminal None)
+                (mkwild 2, TM.PatternNode.Terminal None)
               );
             ];
         }
@@ -111,17 +111,17 @@ let test_build_pattern_tree_enum_3 =
               (
                 mkid "A1",
                 (
-                  None,
+                  mkwild 0,
                   TM.PatternNode.Enum {
                     enum_identifier = mkid "A";
                     table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (None, TM.PatternNode.Terminal None)
+                          (mkwild 1, TM.PatternNode.Terminal None)
                         );
                         (
                           mkid "A2",
-                          (None, TM.PatternNode.Terminal None)
+                          (mkwild 2, TM.PatternNode.Terminal None)
                         );
                       ];
                   }
@@ -130,17 +130,17 @@ let test_build_pattern_tree_enum_3 =
               (
                 mkid "A2",
                 (
-                  None,
+                  mkwild 3,
                   TM.PatternNode.Enum {
                     enum_identifier = mkid "A";
                     table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (None, TM.PatternNode.Terminal None)
+                          (mkwild 4, TM.PatternNode.Terminal None)
                         );
                         (
                           mkid "A2",
-                          (None, TM.PatternNode.Terminal None)
+                          (mkwild 5, TM.PatternNode.Terminal None)
                         );
                       ];
                   }
@@ -149,7 +149,11 @@ let test_build_pattern_tree_enum_3 =
             ];
         }
       in
-      assert_equal ~cmp:TM.PatternNode.equal expected_tree actual_tree;
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
+        ~cmp:TM.PatternNode.equal
+        expected_tree
+        actual_tree;
       TC.return ()
     in
     ignore @@ run_tc tc

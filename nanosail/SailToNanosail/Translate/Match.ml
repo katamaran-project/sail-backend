@@ -15,37 +15,62 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
+module Binder = struct
+  type t = { identifier : Ast.Identifier.t; wildcard : bool }
+
+  let equal
+      (binder_1 : t)
+      (binder_2 : t) : bool
+    =
+    Ast.Identifier.equal
+      binder_1.identifier
+      binder_2.identifier
+    &&
+    Bool.equal
+      binder_1.wildcard
+      binder_2.wildcard
+
+
+  let to_fexpr (binder : t) : FExpr.t =
+    let keyword =
+      [
+        (
+          "identifier",
+          Ast.Identifier.to_fexpr binder.identifier
+        );
+        (
+          "wildcard",
+          FExpr.mk_bool binder.wildcard
+        );
+      ]
+    in
+    FExpr.mk_application ~keyword "Binder"
+
+
+  let unify
+      (binder_1 : t)
+      (binder_2 : t) : t TC.t
+    =
+    if binder_2.wildcard
+    then TC.return binder_1
+    else if binder_1.wildcard
+    then TC.return binder_2
+    else begin
+      if Ast.Identifier.equal binder_1.identifier binder_2.identifier
+      then TC.return binder_1
+      else TC.fail [%here] "cannot unify binders"
+    end                
+end
+
+
 module Pattern = struct
-  (*
-     Wildcards in Sail code are translated into Binder { identifier = gensym; wildcard = true },
-     whereas regular binders are translated into Binder { identifier = sail_identifier; wildcard = false }.
-     We need to be able to make the distinction when checking for consistent binder names.
-     For example,
-
-       match lst {
-         [| _ |]   => A,
-         [| _, _|] => B,
-         _         => C
-       }
-
-     should be allowed, whereas
-
-       match lst {
-         [| x |]   => A,
-         [| y, _|] => B,
-         _         => C
-       }
-
-     gives different names to the first element of the matched list.
-     This is a situation which we do not support but want to detect so as to give an error message.
-  *)
   type t =
     | ListCons    of t * t
     | ListNil
     | Tuple       of t list
     | EnumCase    of Ast.Identifier.t
     | VariantCase of Ast.Identifier.t * t
-    | Binder      of { identifier : Ast.Identifier.t; wildcard : bool }
+    | Binder      of Binder.t
     | Unit
 
 
@@ -841,12 +866,10 @@ let translate_variant_match
 *)
 module TupleMatching = struct
   module PatternNode = struct
-    type binder = { identifier : Ast.Identifier.t; wildcard : bool }
-
     type t =
-      | Enum       of { enum_identifier : Ast.Identifier.t; table : (Ast.Identifier.t option * t) Ast.Identifier.Map.t; }
+      | Enum       of { enum_identifier : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t; }
       | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
-      | Atomic     of Ast.Type.t * binder option * t
+      | Atomic     of Ast.Type.t * Binder.t option * t
       | Terminal   of Ast.Statement.t option
 
     and variant_table_data =
@@ -864,12 +887,12 @@ module TupleMatching = struct
           match node_2 with
           | Enum { enum_identifier = enum_identifier_2; table = table_2 } -> begin
               let table_entry_equality
-                  (binder_identifier_1, subtree_1)
-                  (binder_identifier_2, subtree_2)
+                  (binder_1, subtree_1)
+                  (binder_2, subtree_2)
                 =
-                Option.equal Ast.Identifier.equal
-                  binder_identifier_1
-                  binder_identifier_2
+                Binder.equal
+                  binder_1
+                  binder_2
                 &&
                 equal
                   subtree_1
@@ -946,25 +969,16 @@ module TupleMatching = struct
           | _ -> false
         end
 
-      | Atomic (type_1, data_1, subtree_1) -> begin
+      | Atomic (type_1, binder_1, subtree_1) -> begin
           match node_2 with
-          | Atomic (type_2, data_2, subtree_2) -> begin
+          | Atomic (type_2, binder_2, subtree_2) -> begin
               Ast.Type.equal
                 type_1
                 type_2
               &&
-              Option.equal
-                (fun data_1 data_2 -> begin
-                     Ast.Identifier.equal
-                       data_1.identifier
-                       data_2.identifier
-                     &&
-                     Bool.equal
-                       data_1.wildcard
-                       data_2.wildcard
-                   end)
-                data_1
-                data_2
+              Option.equal Binder.equal
+                binder_1
+                binder_2
               &&
               equal
                 subtree_1
@@ -975,21 +989,6 @@ module TupleMatching = struct
 
 
     let rec to_fexpr (node : t) : FExpr.t =
-      let fexpr_of_binder (data : binder) =
-        let keyword =
-          [
-            (
-              "identifier",
-              Ast.Identifier.to_fexpr data.identifier
-            );
-            (
-              "wildcard",
-              FExpr.mk_bool data.wildcard
-            );
-          ]
-        in
-        FExpr.mk_application ~keyword "Binder"
-      in
       let mk_head (tag : string) : string =
         Printf.sprintf "PatternNode:%s" tag
       in
@@ -1003,9 +1002,9 @@ module TupleMatching = struct
               );
               (
                 "table",
-                let fexpr_of_table_entry (binder_identifier, subtree) =
+                let fexpr_of_table_entry (binder, subtree) =
                   FExpr.mk_list [
-                    FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr binder_identifier;
+                    Binder.to_fexpr binder;
                     to_fexpr subtree;
                   ]
                 in
@@ -1062,7 +1061,7 @@ module TupleMatching = struct
           FExpr.mk_application ~keyword @@ mk_head "Variant"
         end
 
-      | Atomic (typ, data, subtree) -> begin
+      | Atomic (typ, binder, subtree) -> begin
           let keyword =
             [
               (
@@ -1070,10 +1069,8 @@ module TupleMatching = struct
                 Ast.Type.to_fexpr typ
               );
               (
-                "data",
-                FExpr.mk_option begin
-                  Option.map data ~f:fexpr_of_binder
-                end
+                "binder",
+                FExpr.mk_option @@ Option.map ~f:Binder.to_fexpr binder
               );
               (
                 "subtree",
@@ -1109,14 +1106,34 @@ module TupleMatching = struct
       let* enum_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
       in
-      let table : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t =
+      let* table : (Binder.t * PatternNode.t) Ast.Identifier.Map.t =
         let add_to_table
-            (table                : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
-            (enum_case_identifier : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t
+            (table                : (Binder.t * PatternNode.t) Ast.Identifier.Map.t)
+            (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternNode.t) Ast.Identifier.Map.t TC.t
           =
-          Ast.Identifier.Map.add_exn table ~key:enum_case_identifier ~data:(None, subtree)
+          let* binder : Binder.t =
+            let* identifier =
+              TC.generate_unique_identifier ()
+            in
+            let wildcard =
+              true
+            in
+            let binder : Binder.t =
+              { identifier; wildcard }
+            in
+            TC.return binder
+          in
+          TC.return begin
+            Ast.Identifier.Map.add_exn
+              table
+              ~key:enum_case_identifier
+              ~data:(binder, subtree)
+          end
         in
-        List.fold enum_definition.cases ~init:Ast.Identifier.Map.empty ~f:add_to_table
+        TC.fold_left
+          enum_definition.cases
+          ~init:Ast.Identifier.Map.empty
+          ~f:add_to_table
       in
       TC.return begin
         PatternNode.Enum {
@@ -1195,7 +1212,7 @@ module TupleMatching = struct
   let rec contains_gap (pattern_tree : PatternNode.t) : bool =
     match pattern_tree with
     | Enum { table; _ } -> begin
-        let values : (Ast.Identifier.t option * PatternNode.t) list =
+        let values : (Binder.t * PatternNode.t) list =
           Ast.Identifier.Map.data table
         in
         let subtrees : PatternNode.t list =
@@ -1260,7 +1277,7 @@ module TupleMatching = struct
                   PatternNode.Enum { enum_identifier; table = updated_table }
                 end
               end
-            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
+            | Binder pattern_binder -> begin
                 let* enum_definition =
                   TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
                 in
@@ -1268,10 +1285,10 @@ module TupleMatching = struct
                   enum_definition.cases
                 in
                 let update_table
-                    (table     : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t)
-                    (enum_case : Ast.Identifier.t                                              ) : (Ast.Identifier.t option * PatternNode.t) Ast.Identifier.Map.t TC.t
+                    (table     : (Binder.t * PatternNode.t) Ast.Identifier.Map.t)
+                    (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternNode.t) Ast.Identifier.Map.t TC.t
                   =
-                  let binder_identifier, subtree =
+                  let binder, subtree =
                     Ast.Identifier.Map.find_exn table enum_case
                   in
                   if
@@ -1285,28 +1302,8 @@ module TupleMatching = struct
                         body
                         true
                     in
-                    let* updated_binder_identifier : Ast.Identifier.t option =
-                      match binder_identifier, pattern_binder_wildcard with
-                      | None                  , true  -> TC.return None
-                      | None                  , false -> TC.return @@ Some pattern_binder_identifier
-                      | Some binder_identifier, true  -> TC.return @@ Some binder_identifier
-                      | Some binder_identifier, false -> begin
-                          if
-                            Ast.Identifier.equal binder_identifier pattern_binder_identifier
-                          then
-                            TC.return @@ Some binder_identifier
-                          else
-                          (*
-                             The same value was bound to differently named binders.
-                             This is not supported.
-
-                             match value_1, value_2 {
-                               x, Foo => ...,
-                               y, Bar => ...
-                             }
-                          *)
-                            TC.not_yet_implemented ~message:"inconsistent binders" [%here] location
-                        end
+                    let* updated_binder_identifier : Binder.t =
+                      Binder.unify binder pattern_binder
                     in
                     TC.return begin
                       Ast.Identifier.Map.overwrite
@@ -1712,6 +1709,7 @@ module TupleMatching = struct
     in
     match pattern_tree with
     | Enum { enum_identifier; table } -> begin
+        (* todo introduce enum_type variable to use wherever Ast.Type.Enum enum_identifier is required *)
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
@@ -1732,36 +1730,41 @@ module TupleMatching = struct
 
             *)
             let decorate_statement
-                (binder_identifier : Ast.Identifier.t option)
-                (statement         : Ast.Statement.t        ) : Ast.Statement.t =
-              match binder_identifier with
-              | Some binder_identifier -> begin
-                  Ast.Statement.Let {
-                    variable_identifier    = binder_identifier;
-                    binding_statement_type = Ast.Type.Enum enum_identifier;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, Ast.Type.Enum enum_identifier));
-                    body_statement         = statement;
-                  }
-                end
-              | None -> statement
+                (binder    : Binder.t       )
+                (statement : Ast.Statement.t) : Ast.Statement.t
+              =
+              if
+                not binder.wildcard
+              then
+                Ast.Statement.Let {
+                  variable_identifier    = binder.identifier;
+                  binding_statement_type = Ast.Type.Enum enum_identifier;
+                  binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, Ast.Type.Enum enum_identifier));
+                  body_statement         = statement;
+                }
+              else
+                statement
             in
             let* cases : Ast.Statement.t Ast.Identifier.Map.t =
-              let table_pairs : (Ast.Identifier.t * (Ast.Identifier.t option * PatternNode.t)) list =
+              let table_pairs : (Ast.Identifier.t * (Binder.t * PatternNode.t)) list =
                 Ast.Identifier.Map.to_alist table
               in
-              let* updated_pairs : (Ast.Identifier.t * Ast.Statement.t) list =
-                let update_pair (enum_case, (binder_identifier, subtree)) =
+              let* statement_pairs : (Ast.Identifier.t * Ast.Statement.t) list =
+                let update_pair
+                    (enum_case         : Ast.Identifier.t        )
+                    ((binder, subtree) : Binder.t * PatternNode.t) : (Ast.Identifier.t * Ast.Statement.t) TC.t
+                  =
                   let* statement : Ast.Statement.t =
                     let* subtree_statement =
                       build_leveled_match_statements remaining_tuple_elements subtree
                     in
-                    TC.return @@ decorate_statement binder_identifier subtree_statement
+                    TC.return @@ decorate_statement binder subtree_statement
                   in
                   TC.return (enum_case, statement)
                 in
-                TC.map ~f:update_pair table_pairs
+                TC.map ~f:(Auxlib.uncurry update_pair) table_pairs
               in
-              TC.return @@ Ast.Identifier.Map.of_alist_exn updated_pairs
+              TC.return @@ Ast.Identifier.Map.of_alist_exn statement_pairs
             in
             TC.return begin
               Ast.Statement.Match begin

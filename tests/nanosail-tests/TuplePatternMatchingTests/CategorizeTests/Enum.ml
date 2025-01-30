@@ -41,7 +41,7 @@ let test_categorize_enum_1 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (None, TM.PatternNode.Terminal (Some a1_statement));
+                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement));
               );
             ];
         }
@@ -89,12 +89,16 @@ let test_categorize_enum_2 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (None, TM.PatternNode.Terminal (Some a1_statement))
+                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement))
               );
             ];
         }
       in
-      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_tree tree;
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
+        ~cmp:TM.PatternNode.equal
+        expected_tree
+        tree;
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -137,7 +141,7 @@ let test_categorize_enum_3 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (Some (mkid "x"), TM.PatternNode.Terminal (Some a1_statement))
+                (mkbinder "x", TM.PatternNode.Terminal (Some a1_statement))
               );
             ];
         }
@@ -205,11 +209,11 @@ let test_categorize_enum_4 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (None, TM.PatternNode.Terminal (Some a1_statement))
+                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement))
               );
               (
                 mkid "A2",
-                (None, TM.PatternNode.Terminal (Some a2_statement))
+                (mkwild 1, TM.PatternNode.Terminal (Some a2_statement))
               );
             ];
         }
@@ -273,14 +277,14 @@ let test_categorize_enum_5 =
               (
                 mkid "A1",
                 (
-                  None,  (* no binder since pattern mentions A1 explicitly *)
+                  mkwild 0,  (* no binder since pattern mentions A1 explicitly *)
                   TM.PatternNode.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
-                  None,  (* no binder since pattern is wildcard *)
+                  mkwild 1,  (* no binder since pattern is wildcard *)
                   TM.PatternNode.Terminal (Some a2_statement)
                 )
               );
@@ -347,14 +351,14 @@ let test_categorize_enum_6 =
               (
                 mkid "A1",
                 (
-                  None,  (* no binder since pattern mentions "A1" explicitly *)
+                  mkwild 0,  (* no binder since pattern mentions "A1" explicitly *)
                   TM.PatternNode.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
-                  Some (mkid "x"),  (* binder necessary because pattern requires the value to be bound to x *)
+                  mkbinder "x",  (* binder necessary because pattern requires the value to be bound to x *)
                   TM.PatternNode.Terminal (Some a2_statement)
                 )
               );
