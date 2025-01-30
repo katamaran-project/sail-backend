@@ -106,7 +106,7 @@ let create_identifier_generator () =
   next
 
 
-class gen = object(self)
+class generator = object(self)
   val mutable counter = 0
 
   method private next =
