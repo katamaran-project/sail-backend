@@ -934,7 +934,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
         TC.return pattern_tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -1024,6 +1024,6 @@ let test_suite =
     (* test_build_match_for_variant_nary_constructor_field_wildcards; *)
 
     (* test_build_match_for_variant_nary_constructor_field_wildcards_unification; *)
-    test_build_match_for_tuple_of_variants;
-    (* test_build_match_for_tuple_of_variants_wildcards; *)
+    (* test_build_match_for_tuple_of_variants; *)
+    test_build_match_for_tuple_of_variants_wildcards;
   ]
