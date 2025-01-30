@@ -20,8 +20,13 @@ module Impl = struct
 
   let mk x = Id x
 
+  let generated_prefix = "ж"
+  
   let mk_generated name =
-    mk @@ "ж" ^ name
+    mk @@ generated_prefix ^ name
+
+  let is_generated name =
+    String.is_prefix name ~prefix:generated_prefix
   
   let to_string (Id x) = x
 
