@@ -13,7 +13,7 @@ let dummy_location : Libsail.Ast.l =
   Libsail.Parse_ast.Unknown
 
 let mkid     = Ast.Identifier.mk
-let mkbinder identifier : SailToNanosail.Translate.Match.Binder.t = { identifier; wildcard = false }
+let mkbinder identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = false }
 let mkstm n  = Ast.Statement.ReadRegister (mkid @@ Printf.sprintf "r%d" n)
 
 
