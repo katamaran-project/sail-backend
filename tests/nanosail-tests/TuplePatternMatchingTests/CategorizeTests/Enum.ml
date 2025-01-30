@@ -431,7 +431,6 @@ let test_failure_due_to_clashing_binders =
   |} >:: test
 
 
-
 let test_suite =
   "enum" >::: [
     test_categorize_enum_1;
