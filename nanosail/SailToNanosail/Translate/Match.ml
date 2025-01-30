@@ -1451,53 +1451,23 @@ module TupleMatching = struct
                       let constructor : Ast.Identifier.t * Ast.Type.t list =
                         List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
                       in
-                      let constructor_field_types : Ast.Type.t list =
-                        snd constructor
-                      in
                       let* pattern_field_binder_identifiers : Ast.Identifier.t list =
-                        match List.length constructor_field_types with
-                        | 0 -> begin
-                            match field_pattern with
-                            | Binder _           -> invalid_pattern [%here] (* todo handle this case; binder needs to be bound to unit *)
-                            | Unit               -> TC.return []
-                            | ListCons (_, _)    -> invalid_pattern [%here]
-                            | ListNil            -> invalid_pattern [%here]
-                            | Tuple _            -> invalid_pattern [%here]
-                            | EnumCase _         -> invalid_pattern [%here]
-                            | VariantCase (_, _) -> invalid_pattern [%here]
+                        match field_pattern with
+                        | Tuple subpatterns  -> begin
+                            (* We expect all subpatterns to be binders *)
+                            let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                              match pattern with
+                              | Binder { identifier; _ } -> TC.return identifier
+                              | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                            in
+                            TC.map subpatterns ~f:extract_identifier_from_binder
                           end
-                        | 1 -> begin
-                            (* Matched variant case has one field *)
-                            match field_pattern with
-                            | Binder { identifier = binder_identifier; wildcard = _binder_wildcard } -> begin
-                                TC.return [binder_identifier]
-                              end
-                            | ListCons (_, _)    -> invalid_pattern [%here]
-                            | ListNil            -> invalid_pattern [%here]
-                            | Tuple _            -> invalid_pattern [%here]
-                            | EnumCase _         -> invalid_pattern [%here]
-                            | VariantCase (_, _) -> invalid_pattern [%here]
-                            | Unit               -> invalid_pattern [%here]
-                          end
-                        | _ -> begin
-                            (* Matched variant case has two or more fields *)
-                            match field_pattern with
-                            | Tuple subpatterns  -> begin
-                                (* We expect all subpatterns to be binders *)
-                                let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
-                                  match pattern with
-                                  | Binder { identifier; _ } -> TC.return identifier
-                                  | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
-                                in
-                                TC.map subpatterns ~f:extract_identifier_from_binder
-                              end
-                            | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
-                            | ListCons (_, _)    -> invalid_pattern [%here]
-                            | ListNil            -> invalid_pattern [%here]
-                            | EnumCase _         -> invalid_pattern [%here]
-                            | VariantCase (_, _) -> invalid_pattern [%here]
-                            | Unit               -> invalid_pattern [%here]
-                          end
+                        | Binder _           -> TC.fail [%here] @@ Printf.sprintf "Unsupported binder, constructor=%s" (Ast.Identifier.to_string (fst constructor))
+                        | ListCons (_, _)    -> invalid_pattern [%here]
+                        | ListNil            -> invalid_pattern [%here]
+                        | EnumCase _         -> invalid_pattern [%here]
+                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Unit               -> invalid_pattern [%here]
                       in
                       (* todo check if existing_field_binder_identifiers are compatible with patern_field_binder_identifiers *)
                       let* updated_subtree =
