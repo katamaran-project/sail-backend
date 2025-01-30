@@ -367,7 +367,7 @@ and pp_match_variant
      Reified union type
   *)
   let pp_matched_type =
-    PP.annotate [%here] @@ Identifier.pp @@ Configuration.reified_variant_name matched_type
+    PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name matched_type
    (*
      Statement whose value is being matched
 
@@ -390,7 +390,7 @@ and pp_match_variant
       =
       let pp_constructor =
         PP.annotate [%here] begin
-          Identifier.pp @@ Configuration.reified_variant_constructor_name constructor_id
+          Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_id
         end
       and pp_bindings =
         List.map ~f:Identifier.pp bindings
@@ -515,7 +515,7 @@ and pp_destructure_record
       ~(body                   : Ast.Statement.t      ) : PP.document GC.t
   =
   let pp_matched_type =
-    Identifier.pp @@ Configuration.reified_record_name record_type_identifier
+    Identifier.pp @@ Identifier.reified_record_name record_type_identifier
   in
   let* pp_matched_value =
     pp_statement destructured_record

@@ -186,31 +186,3 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_internal_mutrec _          -> false
   | DEF_constraint _               -> false
   | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
-
-
-let tag_as_generated (id : Ast.Identifier.t) =
-  Ast.Identifier.add_prefix "ж" id
-
-
-let reified_enum_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.update (fun x -> "E" ^ String.lowercase x) identifier
-
-
-let reified_record_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.update (fun x -> "R" ^ String.lowercase x) identifier
-
-
-let reified_variant_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.update (fun x -> "U" ^ String.lowercase x) identifier
-
-
-let reified_variant_constructors_collection_name (variant_identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.add_suffix "Constructor" variant_identifier
-
-
-let reified_variant_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.update (fun x -> "K" ^ String.lowercase x) identifier
-
-
-let record_constructor_name (identifier : Ast.Identifier.t) : Ast.Identifier.t =
-  Ast.Identifier.add_prefix "Mk" identifier

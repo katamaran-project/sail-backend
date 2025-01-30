@@ -20,6 +20,9 @@ module Impl = struct
 
   let mk x = Id x
 
+  let mk_generated name =
+    mk @@ "ж" ^ name
+  
   let to_string (Id x) = x
 
   let update f (Id x) = Id (f x)

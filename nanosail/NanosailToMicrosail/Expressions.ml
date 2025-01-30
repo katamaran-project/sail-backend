@@ -170,7 +170,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     =
     let pp_record_type =
       PP.annotate [%here] begin
-          Identifier.pp @@ Configuration.reified_record_name type_identifier;
+          Identifier.pp @@ Identifier.reified_record_name type_identifier;
         end
 
     and pp_record_fields =
@@ -204,7 +204,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       PP.annotate [%here] begin
           Coq.pp_application
             (PP.string "ty.enum")
-            [ Identifier.pp @@ Configuration.reified_enum_name type_identifier ]
+            [ Identifier.pp @@ Identifier.reified_enum_name type_identifier ]
         end
 
     and enum_constructor =
@@ -225,9 +225,9 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         (fields                 : Ast.Expression.t list) : PP.document GC.t
     =
     let reified_variant_identifier =
-      Configuration.reified_variant_name type_identifier
+      Identifier.reified_variant_name type_identifier
     and reified_constructor_identifier =
-      Configuration.reified_variant_constructor_name constructor_identifier
+      Identifier.reified_variant_constructor_name constructor_identifier
     in
     let pp_variant_identifier =
       Identifier.pp reified_variant_identifier

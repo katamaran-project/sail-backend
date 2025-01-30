@@ -186,8 +186,8 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
         then add wildcard_case;
       )
   in
-  let id1 = Configuration.tag_as_generated @@ Ast.Identifier.mk "x"
-  and id2 = Configuration.tag_as_generated @@ Ast.Identifier.mk "y"
+  let id1 = Ast.Identifier.mk_generated "x"
+  and id2 = Ast.Identifier.mk_generated "y"
   in
   let pp_id1 = PP.annotate [%here] @@ Identifier.pp id1
   and pp_id2 = PP.annotate [%here] @@ Identifier.pp id2

@@ -562,7 +562,7 @@ let pp_union_fold (variant_definitions : Ast.Definition.Type.Variant.t list) : P
           in
           let field_variables =
             let generate_identifier index =
-              PP.annotate [%here] @@ Identifier.pp @@ Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Int.to_string index
+              PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk_generated @@ Int.to_string index
             and indices =
               let n_fields = List.length constructor_field_types
               in
@@ -657,7 +657,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
         let constructor_case_handler (constructor_identifier, field_types) : (PP.document * PP.document) GC.t =
           let field_names =
             let generate_identifier index =
-              PP.annotate [%here] @@ Identifier.pp @@ Configuration.tag_as_generated @@ Ast.Identifier.mk @@ Int.to_string index
+              PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk_generated @@ Int.to_string index
             and indices =
               let n_fields = List.length field_types
               in
