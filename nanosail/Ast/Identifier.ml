@@ -25,9 +25,9 @@ module Impl = struct
   let mk_generated name =
     mk @@ generated_prefix ^ name
 
-  let is_generated name =
+  let is_generated (Id name) =
     String.is_prefix name ~prefix:generated_prefix
-  
+ 
   let to_string (Id x) = x
 
   let update f (Id x) = Id (f x)
