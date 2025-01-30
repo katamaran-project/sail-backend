@@ -91,3 +91,14 @@ let run_failing_tc (tc : 'a TC.t) : unit =
 let build_tuple_pattern_tree = TM.build_tuple_pattern_tree dummy_location
 let categorize               = TM.categorize_case dummy_location
 let build_match              = TM.build_leveled_match_statements
+
+let create_identifier_generator () =
+  let counter = ref 0
+  in
+  let next () =
+    let number = !counter
+    in
+    counter := !counter + 1;
+    Ast.Identifier.mk_generated @@ Int.to_string number
+  in
+  next
