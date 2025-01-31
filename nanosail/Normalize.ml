@@ -410,3 +410,12 @@ let normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t =
     Monad.run (normalize_expression expression) Context.empty
   in
   result
+
+
+let normalize_pattern_tree (pattern_tree : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t) : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t =
+  let open Implementation
+  in
+  let (result, _substitutions) =
+    Monad.run (normalize_pattern_tree pattern_tree) Context.empty
+  in
+  result
