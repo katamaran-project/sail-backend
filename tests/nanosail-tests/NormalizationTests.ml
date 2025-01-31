@@ -46,35 +46,74 @@ let test_normalize_expressions =
   in
   let open Ast.Expression
   in
+  let mkgenvar ?(t = Ast.Type.Int) n =
+    Variable (mkgid n, t)
+  in
   "expressions" >::: List.map ~f:test [
     (
       Variable (mkid "x", Ast.Type.Int),
       Variable (mkid "x", Ast.Type.Int)
     );
     (
-      Variable (mkgid 0, Ast.Type.Int),
-      Variable (mkgid 0, Ast.Type.Int)
+      mkgenvar 0,
+      mkgenvar 0
     );
     (
-      Variable (mkgid 1, Ast.Type.Int),
-      Variable (mkgid 0, Ast.Type.Int)
+      mkgenvar 1,
+      mkgenvar 0
     );
     (
-      Variable (mkgid 2, Ast.Type.Int),
-      Variable (mkgid 0, Ast.Type.Int)
+      mkgenvar 500,
+      mkgenvar 0
     );
     (
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool)),
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 0, mkgenvar ~t:Ast.Type.Bool 1),
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 0, mkgenvar ~t:Ast.Type.Bool 1)
     );
     (
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 1, Ast.Type.Bool), Variable (mkgid 2, Ast.Type.Bool)),
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 1, mkgenvar ~t:Ast.Type.Bool 2),
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 0, mkgenvar ~t:Ast.Type.Bool 1)
     );
     (
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 1, Ast.Type.Bool), Variable (mkgid 3, Ast.Type.Bool)),
-      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 5, mkgenvar ~t:Ast.Type.Bool 3),
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 0, mkgenvar ~t:Ast.Type.Bool 1)
     );
+    (
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 5, mkgenvar ~t:Ast.Type.Bool 5),
+      BinaryOperation (Ast.BinaryOperator.And, mkgenvar ~t:Ast.Type.Bool 0, mkgenvar ~t:Ast.Type.Bool 0)
+    );
+    (
+      Tuple [ mkgenvar 0 ],
+      Tuple [ mkgenvar 0 ]
+    );
+    (
+      Tuple [ mkgenvar 1 ],
+      Tuple [ mkgenvar 0 ]
+    );
+    (
+      Tuple [ mkgenvar 1; mkgenvar 0 ],
+      Tuple [ mkgenvar 0; mkgenvar 1 ]
+    );
+    (
+      Tuple [ mkgenvar 1; mkgenvar 1 ],
+      Tuple [ mkgenvar 0; mkgenvar 0 ]
+    );    
+    (
+      Tuple [ mkgenvar 5; mkgenvar 5 ],
+      Tuple [ mkgenvar 0; mkgenvar 0 ]
+    );    
+    (
+      Tuple [ mkgenvar 1; mkgenvar 2; mkgenvar 3; mkgenvar 4 ],
+      Tuple [ mkgenvar 0; mkgenvar 1; mkgenvar 2; mkgenvar 3 ]
+    );    
+    (
+      Tuple [ mkgenvar 1; mkgenvar 1; mkgenvar 3; mkgenvar 4 ],
+      Tuple [ mkgenvar 0; mkgenvar 0; mkgenvar 1; mkgenvar 2 ]
+    );    
+    (
+      Tuple [ mkgenvar 1; mkgenvar 1; mkgenvar 3; mkgenvar 1 ],
+      Tuple [ mkgenvar 0; mkgenvar 0; mkgenvar 1; mkgenvar 0 ]
+    );    
   ]
 
 
