@@ -332,36 +332,26 @@ module Implementation = struct
               =
               let* data : TupleMatching.PatternNode.variant_table_data =
                 match data with
-                 | NullaryConstructor (identifier, subtree) -> begin
-                     let* identifier =
-                       match identifier with
-                       | Some identifier -> let* identifier = substitute_identifier identifier in return @@ Some identifier
-                       | None            -> return @@ None
-                     and* subtree =
-                       normalize_pattern_tree subtree
+                | NullaryConstructor (binder, subtree) -> begin
+                    let* binder  = normalize_binder binder
+                    and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ TupleMatching.PatternNode.NullaryConstructor (identifier, subtree)
+                     return @@ TupleMatching.PatternNode.NullaryConstructor (binder, subtree)
                    end
-                 | UnaryConstructor (identifier, subtree) -> begin
-                     let* identifier =
-                       match identifier with
-                       | Some identifier -> let* identifier = substitute_identifier identifier in return @@ Some identifier
-                       | None            -> return @@ None
-                     and* subtree =
-                       normalize_pattern_tree subtree
+                | UnaryConstructor (binder, subtree) -> begin
+                    let* binder  = normalize_binder binder
+                    and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ TupleMatching.PatternNode.UnaryConstructor (identifier, subtree)
+                     return @@ TupleMatching.PatternNode.UnaryConstructor (binder, subtree)
                    end
-                 | NAryConstructor (field_binder_identifiers, subtree) -> begin
-                     let* field_binder_identifiers : Ast.Identifier.t list option =
-                       match field_binder_identifiers with
-                       | Some field_binder_identifiers -> let* field_binder_identifiers = map ~f:substitute_identifier field_binder_identifiers in return @@ Some field_binder_identifiers
-                       | None                          -> return None
-                     and* subtree =
-                       normalize_pattern_tree subtree
-                     in
-                     return @@ TupleMatching.PatternNode.NAryConstructor (field_binder_identifiers, subtree)
-                   end
+                | NAryConstructor (field_binders, subtree) -> begin
+                    let* field_binders =
+                      map ~f:normalize_binder field_binders
+                    and* subtree =
+                      normalize_pattern_tree subtree
+                    in
+                    return @@ TupleMatching.PatternNode.NAryConstructor (field_binders, subtree)
+                  end
               in
               return (constructor_identifier, data)
             in

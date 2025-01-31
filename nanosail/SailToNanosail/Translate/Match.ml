@@ -897,9 +897,9 @@ module TupleMatching = struct
       | Terminal   of Ast.Statement.t option
 
     and variant_table_data =
-      | NullaryConstructor of Ast.Identifier.t option * t
-      | UnaryConstructor of Ast.Identifier.t option * t
-      | NAryConstructor of Ast.Identifier.t list option * t
+      | NullaryConstructor of Binder.t * t
+      | UnaryConstructor of Binder.t * t
+      | NAryConstructor of Binder.t list * t
 
     
     let rec equal
@@ -941,36 +941,36 @@ module TupleMatching = struct
                   (data_2 : variant_table_data) : bool
                 =
                 match data_1, data_2 with
-                | NullaryConstructor (identifier_1, subtree_1),
-                  NullaryConstructor (identifier_2, subtree_2) -> Option.equal Ast.Identifier.equal
-                                                                    identifier_1
-                                                                    identifier_2
-                                                                  &&
-                                                                  equal
-                                                                    subtree_1
-                                                                    subtree_2
+                | NullaryConstructor (binder_1, subtree_1),
+                  NullaryConstructor (binder_2, subtree_2) -> Binder.equal
+                                                                binder_1
+                                                                binder_2
+                                                              &&
+                                                              equal
+                                                                subtree_1
+                                                                subtree_2
                 | NullaryConstructor _ ,
                   _                                            -> false
                   
-                | UnaryConstructor (identifier_1, subtree_1),
-                  UnaryConstructor (identifier_2, subtree_2)   -> Option.equal Ast.Identifier.equal
-                                                                    identifier_1
-                                                                    identifier_2
-                                                                  &&
-                                                                  equal
-                                                                    subtree_1
-                                                                    subtree_2
+                | UnaryConstructor (binder_1, subtree_1),
+                  UnaryConstructor (binder_2, subtree_2)   -> Binder.equal
+                                                                binder_1
+                                                                binder_2
+                                                              &&
+                                                              equal
+                                                                subtree_1
+                                                                subtree_2
                 | UnaryConstructor _,
                   _                                            -> false
                   
-                | NAryConstructor (identifiers_1, subtree_1),
-                  NAryConstructor (identifiers_2, subtree_2)   -> Option.equal (List.equal Ast.Identifier.equal)
-                                                                    identifiers_1
-                                                                    identifiers_2
-                                                                  &&
-                                                                  equal
-                                                                    subtree_1
-                                                                    subtree_2
+                | NAryConstructor (binders_1, subtree_1),
+                  NAryConstructor (binders_2, subtree_2)   -> List.equal Binder.equal
+                                                                binders_1
+                                                                binders_2
+                                                              &&
+                                                              equal
+                                                                subtree_1
+                                                                subtree_2
                 | NAryConstructor _,
                   _                                            -> false
               in
@@ -1050,28 +1050,28 @@ module TupleMatching = struct
                 "table",
                 let fexpr_of_table_entry (data : variant_table_data) : FExpr.t =
                   match data with
-                  | NullaryConstructor (identifier, subtree) -> begin
+                  | NullaryConstructor (binder, subtree) -> begin
                       let positional =
                         [
-                          FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr identifier;
+                          Binder.to_fexpr binder;
                           to_fexpr subtree
                         ]
                       in
                       FExpr.mk_application ~positional "NullaryConstructor"
                     end
-                  | UnaryConstructor (identifier, subtree) -> begin
+                  | UnaryConstructor (binder, subtree) -> begin
                       let positional =
                         [
-                          FExpr.mk_option @@ Option.map ~f:Ast.Identifier.to_fexpr identifier;
+                          Binder.to_fexpr binder;
                           to_fexpr subtree
                         ]
                       in
                       FExpr.mk_application ~positional "UnaryConstructor"
                     end
-                  | NAryConstructor (identifiers, subtree) -> begin
+                  | NAryConstructor (binders, subtree) -> begin
                       let positional =
                         [
-                          FExpr.mk_option @@ Option.map ~f:(Fn.compose FExpr.mk_list @@ List.map ~f:Ast.Identifier.to_fexpr) identifiers;
+                          FExpr.mk_list @@ List.map ~f:Binder.to_fexpr binders;
                           to_fexpr subtree
                         ]
                       in
@@ -1173,20 +1173,28 @@ module TupleMatching = struct
       let* variant_definition =
         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
       in
-      let table : PatternNode.variant_table_data Ast.Identifier.Map.t =
+      let* table : PatternNode.variant_table_data Ast.Identifier.Map.t =
         let add_to_table
             (table                                 : PatternNode.variant_table_data Ast.Identifier.Map.t)
-            ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t
+            ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
           =
-          let data =
+          let* data : PatternNode.variant_table_data =
             match List.length field_types with
-            | 0 -> PatternNode.NullaryConstructor (None, subtree)
-            | 1 -> PatternNode.UnaryConstructor   (None, subtree)
-            | _ -> PatternNode.NAryConstructor    (None, subtree)
+            | 0 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternNode.NullaryConstructor (binder, subtree)
+            | 1 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternNode.UnaryConstructor   (binder, subtree)
+            | _ -> begin
+                let field_count = List.length field_types
+                in
+                let* binders = TC.repeat field_count ~f:Binder.generate_wildcard
+                in
+                TC.return @@ PatternNode.NAryConstructor (binders, subtree)
+              end
           in
-          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data
+          TC.return begin
+            Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data
+          end
         in
-        List.fold
+        TC.fold_left
           variant_definition.constructors
           ~init:Ast.Identifier.Map.empty
           ~f:add_to_table
@@ -1372,45 +1380,22 @@ module TupleMatching = struct
                 *)
                 let* updated_table : PatternNode.variant_table_data Ast.Identifier.Map.t =
                   match Ast.Identifier.Map.find_exn table constructor_identifier with (* todo factor out updating table *)
-                  | NullaryConstructor (old_identifier, subtree) -> begin
-                      let* new_identifier : Ast.Identifier.t option =
+                  | NullaryConstructor (old_binder, subtree) -> begin
+                      let* new_binder : Binder.t =
                         match field_pattern with
-                        | Binder { identifier = binder_identifier; wildcard } -> begin
-                            match old_identifier, wildcard with
-                            | _                  , true  -> TC.return old_identifier
-                            | None               , false -> TC.return @@ Some binder_identifier
-                            | Some old_identifier, false -> begin
-                                if
-                                  Ast.Identifier.equal old_identifier binder_identifier
-                                then
-                                  (*
-                                     Example context:
-
-                                       match (???, ???) {
-                                         (<constructor_identifier>(x), other_pattern) -> ...,
-                                         (<constructor_identifier>(y), other_pattern) -> ...,
-                                       }
-
-                                     In other words, the unit value which serves as fields for the Foo constructor
-                                     is bound to two different identifiers x and y.
-                                  *)
-                                  TC.fail [%here] "inconsistent naming"
-                                else
-                                  TC.return @@ Some old_identifier
-                              end
-                          end
-                        | Unit               -> TC.return old_identifier
-                        | ListCons (_, _)    -> invalid_pattern [%here]
-                        | ListNil            -> invalid_pattern [%here]
-                        | Tuple _            -> invalid_pattern [%here]
-                        | EnumCase _         -> invalid_pattern [%here]
-                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Binder pattern_binder -> Binder.unify old_binder pattern_binder
+                        | Unit                  -> TC.return old_binder
+                        | ListCons (_, _)       -> invalid_pattern [%here]
+                        | ListNil               -> invalid_pattern [%here]
+                        | Tuple _               -> invalid_pattern [%here]
+                        | EnumCase _            -> invalid_pattern [%here]
+                        | VariantCase (_, _)    -> invalid_pattern [%here]
                       in
                       let* new_subtree =
                         categorize_case location subtree remaining_subpatterns body gap_filling
                       in
                       let new_data =
-                        PatternNode.NullaryConstructor (new_identifier, new_subtree)
+                        PatternNode.NullaryConstructor (new_binder, new_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -1419,47 +1404,22 @@ module TupleMatching = struct
                           ~data:new_data
                       end
                     end
-                  | UnaryConstructor (old_identifier, subtree) -> begin
-                      let* new_identifier : Ast.Identifier.t option =
+                  | UnaryConstructor (old_binder, subtree) -> begin
+                      let* new_binder : Binder.t =
                         match field_pattern with
-                        | Binder { identifier = binder_identifier; wildcard } -> begin
-                            match old_identifier, wildcard with
-                            | None               , true  -> TC.return @@ Some binder_identifier
-                            | Some _             , true  -> TC.return old_identifier
-                            | None               , false -> TC.return @@ Some binder_identifier
-                            | Some old_identifier, false -> begin
-                                if
-                                  Ast.Identifier.equal old_identifier binder_identifier
-                                then
-                                  (*
-                                     We're dealing with the following situation:
-
-                                       enum A = { Foo : int }
-
-                                       match (a, b) {
-                                         (Foo(x), whatever) -> ...,
-                                         (Foo(y), whatever) -> ...,
-                                       }
-
-                                     In other words, Foo's field is bound to two different identifiers x and y.
-                                  *)
-                                  TC.fail [%here] "inconsistent naming"
-                                else
-                                  TC.return @@ Some old_identifier
-                              end
-                          end
-                        | Unit               -> invalid_pattern [%here]
-                        | ListCons (_, _)    -> invalid_pattern [%here]
-                        | ListNil            -> invalid_pattern [%here]
-                        | Tuple _            -> invalid_pattern [%here]
-                        | EnumCase _         -> invalid_pattern [%here]
-                        | VariantCase (_, _) -> invalid_pattern [%here]
+                        | Binder pattern_binder -> Binder.unify old_binder pattern_binder
+                        | Unit                  -> invalid_pattern [%here]
+                        | ListCons (_, _)       -> invalid_pattern [%here]
+                        | ListNil               -> invalid_pattern [%here]
+                        | Tuple _               -> invalid_pattern [%here]
+                        | EnumCase _            -> invalid_pattern [%here]
+                        | VariantCase (_, _)    -> invalid_pattern [%here]
                       in
                       let* new_subtree =
                         categorize_case location subtree remaining_subpatterns body gap_filling
                       in
                       let new_data =
-                        PatternNode.UnaryConstructor (new_identifier, new_subtree)
+                        PatternNode.UnaryConstructor (new_binder, new_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -1468,21 +1428,21 @@ module TupleMatching = struct
                           ~data:new_data
                       end
                     end
-                  | NAryConstructor (_previous_field_identifiers, subtree) -> begin
+                  | NAryConstructor (old_field_binders, subtree) -> begin
                       let* variant_definition =
                         TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
                       in
                       let _constructor : Ast.Identifier.t * Ast.Type.t list =
                         List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
                       in
-                      let* pattern_field_binder_identifiers : Ast.Identifier.t list =
+                      let* pattern_field_binders : Binder.t list =
                         match field_pattern with
                         | Tuple subpatterns  -> begin
                             (* We expect all subpatterns to be binders *)
-                            let extract_identifier_from_binder (pattern : Pattern.t) : Ast.Identifier.t TC.t =
+                            let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
                               match pattern with
-                              | Binder { identifier; _ } -> TC.return identifier
-                              | _                        -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                              | Binder binder -> TC.return binder
+                              | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
                             in
                             TC.map subpatterns ~f:extract_identifier_from_binder
                           end
@@ -1512,14 +1472,14 @@ module TupleMatching = struct
                         | VariantCase (_, _) -> invalid_pattern [%here]
                         | Unit               -> invalid_pattern [%here]
                       in
-                      let unified_field_binder_identifiers =
-                        pattern_field_binder_identifiers
+                      let* unified_field_binders =
+                        TC.map ~f:(Auxlib.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
                       in
                       let* updated_subtree =
                         categorize_case location subtree remaining_subpatterns body gap_filling
                       in
                       let updated_data =
-                        PatternNode.NAryConstructor (Some unified_field_binder_identifiers, updated_subtree)
+                        PatternNode.NAryConstructor (unified_field_binders, updated_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -1786,9 +1746,6 @@ module TupleMatching = struct
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
-            let* variant_definition =
-              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-            in
             let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
               let table_pairs : (Ast.Identifier.t * PatternNode.variant_table_data) list =
                 Ast.Identifier.Map.to_alist table
@@ -1799,77 +1756,34 @@ module TupleMatching = struct
                     (data                   : PatternNode.variant_table_data) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                   =
                   match data with
-                  | NullaryConstructor (field_binder_identifier, subtree) -> begin
+                  | NullaryConstructor (field_binder, subtree) -> begin
                       let* statement =
                         build_leveled_match_statements remaining_tuple_elements subtree
                       in
                       let statement =
-                        match field_binder_identifier with
-                        | Some field_binder_identifier -> begin
-                            Ast.Statement.Let {
-                              variable_identifier    = field_binder_identifier;
-                              binding_statement_type = Ast.Type.Unit;
-                              binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-                              body_statement         = statement;
-                            }
-                          end
-                        | None -> statement
+                        if
+                          field_binder.wildcard
+                        then
+                          statement
+                        else
+                          Ast.Statement.Let {
+                            variable_identifier    = field_binder.identifier;
+                            binding_statement_type = Ast.Type.Unit;
+                            binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+                            body_statement         = statement;
+                          }
                       in
                       TC.return (constructor_identifier, ([], statement))
                     end
-                  | UnaryConstructor (field_binder_identifier, subtree) -> begin
+                  | UnaryConstructor (field_binder, subtree) -> begin
                       let* statement =
                         build_leveled_match_statements remaining_tuple_elements subtree
                       in
-                      match field_binder_identifier with
-                      | Some field_binder_identifier -> TC.return (constructor_identifier, ([field_binder_identifier], statement))
-                      | None -> begin
-                          let* generated_field_binder_identifier =
-                            TC.generate_unique_identifier ()
-                          in
-                          let* failure_statement =
-                            fail_due_to_unhandled_cases
-                          in
-                          (*
-                             We could probably return statement instead of failure_statement,
-                             but the fact no field_binder_identifier exists should
-                             mean that all the pattern tree's leaves should contains gaps (= have None as their statement)
-
-                             By returning failure_statement, we're returning
-
-                               match value {
-                                 A(generated) => fail_due_to_unhandled_cases
-                               }
-
-                             instead of
-
-                               match value {
-                                A(generated) => match next_value {
-                                                   Foo => fail_due_to_unhandled_cases
-                                                   Bar => fail_due_to_unhandled_cases
-                                                   Baz => fail_due_to_unhandled_cases
-                                                }
-                               }
-                          *)
-                          TC.return (constructor_identifier, ([generated_field_binder_identifier], failure_statement))
-                        end
+                      TC.return (constructor_identifier, ([field_binder.identifier], statement))
                     end
-                  | NAryConstructor (field_binder_identifiers, subtree) -> begin
-                      let* field_binder_identifiers : Ast.Identifier.t list =
-                        match field_binder_identifiers with
-                        | Some x -> TC.return x
-                        | None   -> begin
-                            let constructor =
-                              List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                            in
-                            let field_count =
-                              List.length (snd constructor)
-                            in
-                            let* ids =
-                              TC.generate_unique_identifiers field_count
-                            in
-                            TC.return ids
-                          end
+                  | NAryConstructor (field_binders, subtree) -> begin
+                      let field_binder_identifiers : Ast.Identifier.t list =
+                        List.map ~f:(fun (binder : Binder.t) -> binder.identifier) field_binders
                       in
                       let* statement =
                         build_leveled_match_statements remaining_tuple_elements subtree
