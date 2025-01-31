@@ -13,6 +13,8 @@ open Shared
 
 let test_build_pattern_tree_variant_single_unary_constructor =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
@@ -26,7 +28,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                PN.UnaryConstructor (None, PN.Terminal None)
+                PN.UnaryConstructor (gen#wildcard, PN.Terminal None)
               );
             ]
         }
@@ -34,8 +36,8 @@ let test_build_pattern_tree_variant_single_unary_constructor =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_pattern_tree
-        actual_pattern_tree;
+        (Normalize.normalize_pattern_tree expected_pattern_tree)
+        (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
     ignore @@ run_tc tc

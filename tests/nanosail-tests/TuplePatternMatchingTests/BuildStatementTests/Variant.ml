@@ -993,8 +993,8 @@ let test_build_match_for_tuple_of_variants_wildcards =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -1032,7 +1032,7 @@ let test_suite =
     test_build_match_for_variant_two_constructors;
     test_build_match_for_variant_nary_constructor_field_wildcards;
 
-    (* test_build_match_for_variant_nary_constructor_field_wildcards_unification; *)
+    test_build_match_for_variant_nary_constructor_field_wildcards_unification;
     test_build_match_for_tuple_of_variants;
     test_build_match_for_tuple_of_variants_wildcards;
   ]

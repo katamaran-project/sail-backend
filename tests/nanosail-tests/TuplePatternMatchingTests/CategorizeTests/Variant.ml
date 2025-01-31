@@ -44,7 +44,7 @@ let test_categorize_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                PN.UnaryConstructor (Some (mkid "x"), PN.Terminal (Some a1_statement))
+                PN.UnaryConstructor (mkbinder "x", PN.Terminal (Some a1_statement))
               );
             ]
         }
@@ -52,8 +52,8 @@ let test_categorize_variant_single_unary_constructor =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_pattern_tree
-        actual_pattern_tree;
+        (Normalize.normalize_pattern_tree expected_pattern_tree)
+        (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
     ignore @@ run_tc tc
