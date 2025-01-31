@@ -284,6 +284,113 @@ module Implementation = struct
       end
       
     | Bitvector _ -> return expression
+
+
+  let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t) : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t Monad.t =
+    let open SailToNanosail.Translate.Match
+    in
+    let normalize_binder (binder : Binder.t) : Binder.t Monad.t =
+      let* identifier = substitute_identifier binder.identifier
+      in
+      let wildcard = binder.wildcard
+      in
+      let binder : Binder.t = { identifier; wildcard }
+      in
+      return binder
+    in
+    match tree with
+    | Enum { enum_identifier; table } -> begin
+        let* table =
+          let pairs =
+            Ast.Identifier.Map.to_alist table
+          in
+          let* normalized_pairs =
+            let normalize_pair
+                (enum_case_identifier : Ast.Identifier.t                      )
+                ((binder, subtree)    : Binder.t * TupleMatching.PatternNode.t) : (Ast.Identifier.t * (Binder.t * TupleMatching.PatternNode.t)) Monad.t =
+              let* binder  = normalize_binder binder
+              and* subtree = normalize_pattern_tree subtree
+              in
+              return (enum_case_identifier, (binder, subtree))
+            in
+            map ~f:(Auxlib.uncurry normalize_pair) pairs
+          in
+          return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
+        in
+        return @@ TupleMatching.PatternNode.Enum { enum_identifier; table }
+      end
+      
+    | Variant { variant_identifier; table } -> begin
+        let* table =
+          let pairs =
+            Ast.Identifier.Map.to_alist table
+          in
+          let* normalized_pairs =
+            let normalize_pair
+                (constructor_identifier : Ast.Identifier.t                                                          )
+                (data                   : TupleMatching.PatternNode.variant_table_data) : (Ast.Identifier.t * TupleMatching.PatternNode.variant_table_data) Monad.t
+              =
+              let* data : TupleMatching.PatternNode.variant_table_data =
+                match data with
+                 | NullaryConstructor (identifier, subtree) -> begin
+                     let* identifier =
+                       match identifier with
+                       | Some identifier -> let* identifier = substitute_identifier identifier in return @@ Some identifier
+                       | None            -> return @@ None
+                     and* subtree =
+                       normalize_pattern_tree subtree
+                     in
+                     return @@ TupleMatching.PatternNode.NullaryConstructor (identifier, subtree)
+                   end
+                 | UnaryConstructor (identifier, subtree) -> begin
+                     let* identifier =
+                       match identifier with
+                       | Some identifier -> let* identifier = substitute_identifier identifier in return @@ Some identifier
+                       | None            -> return @@ None
+                     and* subtree =
+                       normalize_pattern_tree subtree
+                     in
+                     return @@ TupleMatching.PatternNode.UnaryConstructor (identifier, subtree)
+                   end
+                 | NAryConstructor (field_binder_identifiers, subtree) -> begin
+                     let* field_binder_identifiers : Ast.Identifier.t list option =
+                       match field_binder_identifiers with
+                       | Some field_binder_identifiers -> let* field_binder_identifiers = map ~f:substitute_identifier field_binder_identifiers in return @@ Some field_binder_identifiers
+                       | None                          -> return None
+                     and* subtree =
+                       normalize_pattern_tree subtree
+                     in
+                     return @@ TupleMatching.PatternNode.NAryConstructor (field_binder_identifiers, subtree)
+                   end
+              in
+              return (constructor_identifier, data)
+            in
+            map ~f:(Auxlib.uncurry normalize_pair) pairs
+          in
+          return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
+        in
+        return @@ TupleMatching.PatternNode.Variant { variant_identifier; table }
+      end
+              
+    | Atomic (typ, binder, subtree) -> begin
+        let* binder =
+          match binder with
+          | Some binder -> let* binder = normalize_binder binder in return @@ Some binder
+          | None        -> return None
+        and* subtree =
+          normalize_pattern_tree subtree
+        in
+        return @@ TupleMatching.PatternNode.Atomic (typ, binder, subtree)
+      end
+      
+    | Terminal statement -> begin
+        let* statement =
+          match statement with
+          | Some statement -> let* statement = normalize_statement statement in return @@ Some statement
+          | None           -> return None
+        in
+        return @@ TupleMatching.PatternNode.Terminal statement
+      end
 end
 
 
