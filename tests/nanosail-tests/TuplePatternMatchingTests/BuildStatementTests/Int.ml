@@ -46,8 +46,8 @@ let test_build_match_for_int_1 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -92,8 +92,8 @@ let test_build_match_for_int_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -144,8 +144,8 @@ let test_build_match_for_int_int_1 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -196,8 +196,8 @@ let test_build_match_for_int_int_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc

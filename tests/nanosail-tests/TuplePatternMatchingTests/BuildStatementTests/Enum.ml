@@ -55,8 +55,8 @@ let test_build_match_for_enum_1 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -126,8 +126,8 @@ let test_build_match_for_enum_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -198,8 +198,8 @@ let test_build_match_for_enum_3 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -275,8 +275,8 @@ let test_build_match_for_enum_4 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -401,8 +401,8 @@ let test_build_match_for_enum_5 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -529,8 +529,8 @@ let test_build_match_for_enum_6 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -639,8 +639,8 @@ let test_build_match_for_enum_7 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -762,8 +762,8 @@ let test_build_match_for_enum_8 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -890,8 +890,8 @@ let test_build_match_for_enum_9 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc

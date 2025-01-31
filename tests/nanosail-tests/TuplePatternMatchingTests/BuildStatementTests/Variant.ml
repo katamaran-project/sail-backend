@@ -58,8 +58,8 @@ let test_build_match_for_variant_single_nullary_constructor =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -120,8 +120,8 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -182,8 +182,8 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -255,8 +255,8 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -317,8 +317,8 @@ let test_build_match_for_variant_single_unary_constructor =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -379,8 +379,8 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -449,8 +449,8 @@ let test_build_match_for_variant_single_binary_constructor =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -544,8 +544,8 @@ let test_build_match_for_variant_two_constructors =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -616,8 +616,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -739,8 +739,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -877,8 +877,8 @@ let test_build_match_for_tuple_of_variants =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
         ~cmp:Ast.Statement.equal
-        expected_match_statement
-        actual_match_statement;
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
     ignore @@ run_tc tc
