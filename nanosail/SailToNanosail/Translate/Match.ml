@@ -148,6 +148,8 @@ exception InconsistentBinders of (Pattern.t * Pattern.t)
 
 (*
    Check that both patterns are binders and have the same name, taking into account wildcards.
+
+   todo: investigate if we can replace this with Binding.unify
 *)
 let consistent_binders
     (pattern_1 : Pattern.t)
