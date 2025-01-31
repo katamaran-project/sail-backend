@@ -160,6 +160,24 @@ let test_build_pattern_tree_enum_4 =
         build_tuple_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternNode.t =
+        let level_3 =
+          TM.PatternNode.Terminal None
+        in
+        let level_2 =
+          TM.PatternNode.Enum {
+            enum_identifier = mkid "A";
+            table = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  (gen#wildcard, level_3)
+                );
+                (
+                  mkid "A2",
+                  (gen#wildcard, level_3)
+                );
+              ];
+          }
+        in
         TM.PatternNode.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -167,38 +185,14 @@ let test_build_pattern_tree_enum_4 =
                 mkid "A1",
                 (
                   gen#wildcard,
-                  TM.PatternNode.Enum {
-                    enum_identifier = mkid "A";
-                    table = Ast.Identifier.Map.of_alist_exn [
-                        (
-                          mkid "A1",
-                          (gen#wildcard, TM.PatternNode.Terminal None)
-                        );
-                        (
-                          mkid "A2",
-                          (gen#wildcard, TM.PatternNode.Terminal None)
-                        );
-                      ];
-                  }
+                  level_2
                 )
               );
               (
                 mkid "A2",
                 (
                   gen#wildcard,
-                  TM.PatternNode.Enum {
-                    enum_identifier = mkid "A";
-                    table = Ast.Identifier.Map.of_alist_exn [
-                        (
-                          mkid "A1",
-                          (gen#wildcard, TM.PatternNode.Terminal None)
-                        );
-                        (
-                          mkid "A2",
-                          (gen#wildcard, TM.PatternNode.Terminal None)
-                        );
-                      ];
-                  }
+                  level_2
                 )
               );
             ];
