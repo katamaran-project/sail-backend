@@ -24,8 +24,8 @@ let test_is_generated =
     test_label >:: fun _ -> assert_bool message (not @@ Ast.Identifier.is_generated identifier)
   in
   "is normalized" >::: List.concat [
-    List.map ~f:test_is_generated [ mkgid 0 ];
-    List.map ~f:test_is_not_generated [ mkid "x" ];
+    List.map ~f:(Fn.compose test_is_generated mkgid) @@ List.range 0 100;
+    List.map ~f:(Fn.compose test_is_not_generated mkid) @@ [ "x"; "y"; "xyz" ];
   ]      
     
 
@@ -35,7 +35,7 @@ let test_normalize_expressions =
       Printf.sprintf "normalizing %s" (FExpr.to_string @@ Ast.Expression.to_fexpr expression)
     in
     label >:: fun _ -> begin
-        let actual = Ast.Normalize.normalize_expression expression
+        let actual = Normalize.normalize_expression expression
         in
         assert_equal
           ~cmp:Ast.Expression.equal
@@ -60,11 +60,19 @@ let test_normalize_expressions =
       Variable (mkgid 0, Ast.Type.Int)
     );
     (
+      Variable (mkgid 2, Ast.Type.Int),
+      Variable (mkgid 0, Ast.Type.Int)
+    );
+    (
       BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool)),
       BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
     );
     (
       BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 1, Ast.Type.Bool), Variable (mkgid 2, Ast.Type.Bool)),
+      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
+    );
+    (
+      BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 1, Ast.Type.Bool), Variable (mkgid 3, Ast.Type.Bool)),
       BinaryOperation (Ast.BinaryOperator.And, Variable (mkgid 0, Ast.Type.Bool), Variable (mkgid 1, Ast.Type.Bool))
     );
   ]

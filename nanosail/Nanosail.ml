@@ -18,3 +18,4 @@ module Util                = Util
 module Slang               = Slang
 module ConfigLib           = ConfigLib
 module Logging             = Logging
+module Normalize           = Normalize
