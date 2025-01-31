@@ -3,10 +3,8 @@ module type S = sig
 
   type state
 
-  type 'a accessor = (state -> 'a) * (state -> 'a -> state)
-  
-  val get : 'a accessor -> 'a t
-  val put : 'a accessor -> 'a -> unit t
+  val get : state t
+  val put : state -> unit t
   val act : (unit -> 'a) -> 'a t
   val run : 'a t -> state -> ('a * state)
 end
