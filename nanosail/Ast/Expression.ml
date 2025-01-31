@@ -52,8 +52,28 @@ let rec equal
         value_1
         value_2
     end
-  | UnaryOperation (_, _), UnaryOperation (_, _)         -> raise UnimplementedExpressionEquality
-  | BinaryOperation (_, _, _), BinaryOperation (_, _, _) -> raise UnimplementedExpressionEquality
+  | UnaryOperation (operator_1, operand_1), UnaryOperation (operator_2, operand_2) -> begin
+      UnaryOperator.equal
+        operator_1
+        operator_2
+      &&
+      equal
+        operand_1
+        operand_2
+    end
+  | BinaryOperation (operator_1, left_operand_1, right_operand_1), BinaryOperation (operator_2, left_operand_2, right_operand_2) -> begin
+      BinaryOperator.equal
+        operator_1
+        operator_2
+      &&
+      equal
+        left_operand_1
+        left_operand_2
+      &&
+      equal
+        right_operand_1
+        right_operand_2
+    end
   | Record _, Record _                                   -> raise UnimplementedExpressionEquality
   | Enum _, Enum _                                       -> raise UnimplementedExpressionEquality
   | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
