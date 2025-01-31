@@ -59,7 +59,19 @@ module Binder = struct
       if Ast.Identifier.equal binder_1.identifier binder_2.identifier
       then TC.return binder_1
       else TC.fail [%here] "cannot unify binders"
-    end                
+    end
+
+
+  let generate_binder : t TC.t =
+    let* identifier = TC.generate_unique_identifier ()
+    in
+    TC.return { identifier; wildcard = false }
+
+  
+  let generate_wildcard : t TC.t =
+    let* identifier = TC.generate_unique_identifier ()
+    in
+    TC.return { identifier; wildcard = true }
 end
 
 
@@ -871,7 +883,7 @@ module TupleMatching = struct
     type t =
       | Enum       of { enum_identifier : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t; }
       | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
-      | Atomic     of Ast.Type.t * Binder.t option * t
+      | Atomic     of Ast.Type.t * Binder.t * t
       | Terminal   of Ast.Statement.t option
 
     and variant_table_data =
@@ -978,7 +990,7 @@ module TupleMatching = struct
                 type_1
                 type_2
               &&
-              Option.equal Binder.equal
+              Binder.equal
                 binder_1
                 binder_2
               &&
@@ -1072,7 +1084,7 @@ module TupleMatching = struct
               );
               (
                 "binder",
-                FExpr.mk_option @@ Option.map ~f:Binder.to_fexpr binder
+                Binder.to_fexpr binder
               );
               (
                 "subtree",
@@ -1180,7 +1192,10 @@ module TupleMatching = struct
         (element_type : Ast.Type.t   )
         (subtree      : PatternNode.t) : PatternNode.t TC.t
       =
-      TC.return @@ PatternNode.Atomic (element_type, None, subtree)
+      let* binder =
+        Binder.generate_wildcard
+      in
+      TC.return @@ PatternNode.Atomic (element_type, binder, subtree)
 
     in
     match element_types with
@@ -1630,11 +1645,11 @@ module TupleMatching = struct
         | [] -> invalid_number_of_subpatterns [%here]
       end
 
-    | Atomic (element_type, atomic_data, subtree) -> begin
+    | Atomic (element_type, binder, subtree) -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
-            | Binder { identifier = pattern_identifier; wildcard = pattern_wildcard } -> begin
+            | Binder pattern_binder -> begin
                 let* updated_subtree =
                   categorize_case
                     location
@@ -1643,33 +1658,10 @@ module TupleMatching = struct
                     body
                     gap_filling
                 in
-                match atomic_data, pattern_wildcard with
-                | None,  _ -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = pattern_wildcard }, updated_subtree)
-                  end
-                | Some { identifier = _; wildcard = true }, _ -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier = pattern_identifier; wildcard = false }, updated_subtree)
-                  end
-                | Some { identifier; wildcard = false as wildcard }, true -> begin
-                    TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, updated_subtree)
-                  end
-                | Some { identifier; wildcard = false as wildcard }, false -> begin
-                    if
-                      Ast.Identifier.equal identifier pattern_identifier
-                    then
-                      TC.return @@ PatternNode.Atomic (element_type, Some { identifier; wildcard }, updated_subtree)
-                    else
-                      (*
-                         The same value was matched against binders with different names.
-                         This case is not supported.
-
-                           match (value1, value2) {
-                             x, Foo => ...,
-                             y, Bar => ...,
-                           }
-                      *)
-                      TC.not_yet_implemented ~message:"inconsistent binder identifiers" [%here] location
-                  end
+                let* updated_binder =
+                  Binder.unify binder pattern_binder
+                in
+                TC.return @@ PatternNode.Atomic (element_type, updated_binder, updated_subtree)
               end
             | _ -> TC.fail [%here] "invalid pattern"
           end
@@ -1891,25 +1883,20 @@ module TupleMatching = struct
           end
       end
 
-    | Atomic (element_type, atomic_data, subtree) -> begin
+    | Atomic (element_type, binder, subtree) -> begin
         match tuple_elements with
         | [] -> invalid_number_of_tuple_elements [%here]
         | first_tuple_element :: remaining_tuple_elements -> begin
-            match atomic_data with
-            | Some { identifier; wildcard = _ } -> begin
-                let* continuation =
-                  build_leveled_match_statements remaining_tuple_elements subtree
-                in
-                TC.return begin
-                  Ast.Statement.Let {
-                    variable_identifier    = identifier;
-                    binding_statement_type = element_type;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, element_type));
-                    body_statement         = continuation;
-                  }
-                end
-              end
-            | None -> fail_due_to_unhandled_cases
+            let* substatement = build_leveled_match_statements remaining_tuple_elements subtree
+            in
+            TC.return begin
+              Ast.Statement.Let {
+                variable_identifier    = binder.identifier;
+                binding_statement_type = element_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, element_type));
+                body_statement         = substatement;
+              }
+            end
           end
       end
 

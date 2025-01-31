@@ -373,12 +373,8 @@ module Implementation = struct
       end
               
     | Atomic (typ, binder, subtree) -> begin
-        let* binder =
-          match binder with
-          | Some binder -> let* binder = normalize_binder binder in return @@ Some binder
-          | None        -> return None
-        and* subtree =
-          normalize_pattern_tree subtree
+        let* binder  = normalize_binder binder
+        and* subtree = normalize_pattern_tree subtree
         in
         return @@ TupleMatching.PatternNode.Atomic (typ, binder, subtree)
       end
