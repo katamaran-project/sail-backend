@@ -209,9 +209,9 @@ let rec translate_pattern
     TC.return @@ Pattern.Binder { identifier; wildcard = false }
 
   and translate_wildcard_pattern () : Pattern.t TC.t =
-    let* identifier = TC.generate_unique_identifier ~underscore:true ()
+    let* binder = Binder.generate_wildcard
     in
-    TC.return @@ Pattern.Binder { identifier; wildcard = true }
+    TC.return @@ Pattern.Binder binder
 
   and unexpected_pattern (location : Lexing.position) =
     let error_message =
@@ -1136,16 +1136,7 @@ module TupleMatching = struct
             (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternNode.t) Ast.Identifier.Map.t TC.t
           =
           let* binder : Binder.t =
-            let* identifier =
-              TC.generate_unique_identifier ()
-            in
-            let wildcard =
-              true
-            in
-            let binder : Binder.t =
-              { identifier; wildcard }
-            in
-            TC.return binder
+            Binder.generate_wildcard
           in
           TC.return begin
             Ast.Identifier.Map.add_exn
