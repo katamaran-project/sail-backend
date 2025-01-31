@@ -1206,7 +1206,7 @@ module TupleMatching = struct
         }
       end
 
-    and build_singleton_node
+    and build_atomic_node
         (element_type : Ast.Type.t   )
         (subtree      : PatternNode.t) : PatternNode.t TC.t
       =
@@ -1223,7 +1223,7 @@ module TupleMatching = struct
         in
         match head with
         | Enum enum_identifier       -> build_enum_node enum_identifier tail
-        | Int                        -> build_singleton_node Ast.Type.Int tail
+        | Int                        -> build_atomic_node Ast.Type.Int tail
         | Variant variant_identifier -> build_variant_node variant_identifier tail
         | Bool                       -> TC.not_yet_implemented [%here] location
         | String                     -> TC.not_yet_implemented [%here] location
