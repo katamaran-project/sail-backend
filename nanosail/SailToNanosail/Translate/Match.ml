@@ -51,15 +51,25 @@ module Binder = struct
       (binder_1 : t)
       (binder_2 : t) : t TC.t
     =
-    if binder_2.wildcard
-    then TC.return binder_1
-    else if binder_1.wildcard
-    then TC.return binder_2
-    else begin
-      if Ast.Identifier.equal binder_1.identifier binder_2.identifier
-      then TC.return binder_1
-      else TC.fail [%here] "cannot unify binders"
-    end
+    match binder_1.wildcard, binder_2.wildcard with
+    | true, true -> begin
+        if
+          Ast.Identifier.is_generated binder_1.identifier
+        then
+          TC.return binder_2
+        else
+          TC.return binder_1
+      end
+    | true, false  -> TC.return binder_2
+    | false, true  -> TC.return binder_1
+    | false, false -> begin
+        if
+          Ast.Identifier.equal binder_1.identifier binder_2.identifier
+        then
+          TC.return binder_1
+        else
+          TC.fail [%here] "cannot unify binders"
+      end
 
 
   let generate_binder : t TC.t =
