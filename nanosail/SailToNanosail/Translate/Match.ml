@@ -60,7 +60,7 @@ module Binder = struct
         else
           TC.return binder_1
       end
-    | true, false  -> TC.return binder_2
+    | true , false -> TC.return binder_2
     | false, true  -> TC.return binder_1
     | false, false -> begin
         if
