@@ -13,6 +13,8 @@ open Shared
 
 let test_build_pattern_tree_enum_1 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
@@ -26,11 +28,11 @@ let test_build_pattern_tree_enum_1 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild 0, TM.PatternNode.Terminal None)
+                (gen#wildcard, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                (mkwild 1, TM.PatternNode.Terminal None)
+                (gen#wildcard, TM.PatternNode.Terminal None)
               );
             ];
         }
@@ -38,8 +40,8 @@ let test_build_pattern_tree_enum_1 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree
-        actual_tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -53,6 +55,8 @@ let test_build_pattern_tree_enum_1 =
 
 let test_build_pattern_tree_enum_2 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"; "A3"]
@@ -66,15 +70,15 @@ let test_build_pattern_tree_enum_2 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild 0, TM.PatternNode.Terminal None)
+                (gen#wildcard, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A2",
-                (mkwild 1, TM.PatternNode.Terminal None)
+                (gen#wildcard, TM.PatternNode.Terminal None)
               );
               (
                 mkid "A3",
-                (mkwild 2, TM.PatternNode.Terminal None)
+                (gen#wildcard, TM.PatternNode.Terminal None)
               );
             ];
         }
@@ -82,8 +86,8 @@ let test_build_pattern_tree_enum_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree
-        actual_tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -97,6 +101,8 @@ let test_build_pattern_tree_enum_2 =
 
 let test_build_pattern_tree_enum_3 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
@@ -111,17 +117,17 @@ let test_build_pattern_tree_enum_3 =
               (
                 mkid "A1",
                 (
-                  mkwild 0,
+                  gen#wildcard,
                   TM.PatternNode.Enum {
                     enum_identifier = mkid "A";
                     table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (mkwild 1, TM.PatternNode.Terminal None)
+                          (gen#wildcard, TM.PatternNode.Terminal None)
                         );
                         (
                           mkid "A2",
-                          (mkwild 2, TM.PatternNode.Terminal None)
+                          (gen#wildcard, TM.PatternNode.Terminal None)
                         );
                       ];
                   }
@@ -130,17 +136,17 @@ let test_build_pattern_tree_enum_3 =
               (
                 mkid "A2",
                 (
-                  mkwild 3,
+                  gen#wildcard,
                   TM.PatternNode.Enum {
                     enum_identifier = mkid "A";
                     table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (mkwild 4, TM.PatternNode.Terminal None)
+                          (gen#wildcard, TM.PatternNode.Terminal None)
                         );
                         (
                           mkid "A2",
-                          (mkwild 5, TM.PatternNode.Terminal None)
+                          (gen#wildcard, TM.PatternNode.Terminal None)
                         );
                       ];
                   }
@@ -152,12 +158,11 @@ let test_build_pattern_tree_enum_3 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree
-        actual_tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
     ignore @@ run_tc tc
-
   in
   {|
       enum A = { A1, A2 }
