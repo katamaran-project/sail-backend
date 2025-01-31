@@ -78,6 +78,6 @@ let test_build_match_for_enum_int =
 
 
 let test_suite =
-  "match generation" >::: [
+  "mix" >::: [
     test_build_match_for_enum_int;
   ]
