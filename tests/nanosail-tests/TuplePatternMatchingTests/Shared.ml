@@ -125,5 +125,3 @@ class generator = object(self)
   method wildcard : SailToNanosail.Translate.Match.Binder.t =
     mkwild self#next
 end
-
-module Normalize = Normalize

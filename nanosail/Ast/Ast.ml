@@ -15,6 +15,7 @@ module Statement            = Statement
 module Expression           = Expression
 module Definition           = Definition
 module TypeQuantifier       = TypeQuantifier
+module Normalize            = Normalize
 
 
 (*
