@@ -62,7 +62,7 @@ module Implementation = struct
           in
           let* () = Monad.put Context.substitutions substitutions'
           in
-          return identifier
+          return identifier'
         end
     end
 
