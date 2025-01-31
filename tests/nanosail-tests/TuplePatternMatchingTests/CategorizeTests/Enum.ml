@@ -17,6 +17,8 @@ open Shared
 
 let test_categorize_enum_1 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"]
@@ -41,12 +43,16 @@ let test_categorize_enum_1 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement));
+                (gen#wildcard, TM.PatternNode.Terminal (Some a1_statement));
               );
             ];
         }
       in
-      assert_equal ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr) ~cmp:TM.PatternNode.equal expected_tree tree;
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
+        ~cmp:TM.PatternNode.equal
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -89,7 +95,7 @@ let test_categorize_enum_2 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement))
+                (mkwild "x", TM.PatternNode.Terminal (Some a1_statement))
               );
             ];
         }
@@ -97,8 +103,8 @@ let test_categorize_enum_2 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree
-        tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -149,7 +155,8 @@ let test_categorize_enum_3 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -172,6 +179,8 @@ let test_categorize_enum_3 =
 
 let test_categorize_enum_4 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
@@ -209,11 +218,11 @@ let test_categorize_enum_4 =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild 0, TM.PatternNode.Terminal (Some a1_statement))
+                (gen#wildcard, TM.PatternNode.Terminal (Some a1_statement))
               );
               (
                 mkid "A2",
-                (mkwild 1, TM.PatternNode.Terminal (Some a2_statement))
+                (gen#wildcard, TM.PatternNode.Terminal (Some a2_statement))
               );
             ];
         }
@@ -221,7 +230,8 @@ let test_categorize_enum_4 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -239,6 +249,8 @@ let test_categorize_enum_4 =
 
 let test_categorize_enum_5 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
@@ -277,14 +289,14 @@ let test_categorize_enum_5 =
               (
                 mkid "A1",
                 (
-                  mkwild 0,  (* no binder since pattern mentions A1 explicitly *)
+                  gen#wildcard,  (* no binder since pattern mentions A1 explicitly *)
                   TM.PatternNode.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
-                  mkwild 1,  (* no binder since pattern is wildcard *)
+                  mkwild "x",  (* no binder since pattern is wildcard *)
                   TM.PatternNode.Terminal (Some a2_statement)
                 )
               );
@@ -294,8 +306,8 @@ let test_categorize_enum_5 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree
-        actual_tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
     ignore @@ run_tc tc
@@ -313,6 +325,8 @@ let test_categorize_enum_5 =
 
 let test_categorize_enum_6 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
@@ -351,7 +365,7 @@ let test_categorize_enum_6 =
               (
                 mkid "A1",
                 (
-                  mkwild 0,  (* no binder since pattern mentions "A1" explicitly *)
+                  gen#wildcard,  (* no binder since pattern mentions "A1" explicitly *)
                   TM.PatternNode.Terminal (Some a1_statement)
                 )
               );
@@ -368,7 +382,8 @@ let test_categorize_enum_6 =
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
         ~cmp:TM.PatternNode.equal
-        expected_tree tree;
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
     ignore @@ run_tc tc

@@ -14,7 +14,7 @@ let dummy_location : Libsail.Ast.l =
 
 let mkid                                                          = Ast.Identifier.mk
 let mkbinder identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = false }
-let mkwild   n          : SailToNanosail.Translate.Match.Binder.t = { identifier = Ast.Identifier.mk_generated @@ Int.to_string n; wildcard = true }
+let mkwild   identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = true }
 let mkstm    n                                                    = Ast.Statement.ReadRegister (mkid @@ Printf.sprintf "r%d" n)
 
 
@@ -123,7 +123,7 @@ class generator = object(self)
     mkbinder @@ Int.to_string self#next
     
   method wildcard : SailToNanosail.Translate.Match.Binder.t =
-    mkwild self#next
+    { identifier = Ast.Identifier.mk_generated @@ Int.to_string self#next; wildcard = true }
 end
 
 
