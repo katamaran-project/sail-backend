@@ -125,3 +125,7 @@ class generator = object(self)
   method wildcard : SailToNanosail.Translate.Match.Binder.t =
     mkwild self#next
 end
+
+
+let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
+  equal (normalize x) (normalize y)
