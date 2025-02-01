@@ -172,8 +172,8 @@ module PatternTree = struct
 
   and variant_table_data =
     | NullaryConstructor of Binder.t * t
-    | UnaryConstructor of Binder.t * t
-    | NAryConstructor of Binder.t list * t
+    | UnaryConstructor   of Binder.t * t
+    | NAryConstructor    of Binder.t list * t
 
 
   let rec equal
