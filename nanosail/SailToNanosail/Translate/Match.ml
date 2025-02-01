@@ -165,7 +165,7 @@ end
 
 module PatternTree = struct
   type t =
-    | Enum       of { enum_identifier : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t; }
+    | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t;    }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
     | Atomic     of Ast.Type.t * Binder.t * t
     | Terminal   of Ast.Statement.t option
