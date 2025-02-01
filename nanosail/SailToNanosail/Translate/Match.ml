@@ -941,7 +941,8 @@ let rec build_leveled_match_statements
   in
   match pattern_tree with
   | Enum { enum_identifier; table } -> begin
-      (* todo introduce enum_type variable to use wherever Ast.Type.Enum enum_identifier is required *)
+      let enum_type = Ast.Type.Enum enum_identifier
+      in
       match tuple_elements with
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_tuple_element :: remaining_tuple_elements -> begin
@@ -970,8 +971,8 @@ let rec build_leveled_match_statements
             then
               Ast.Statement.Let {
                 variable_identifier    = binder.identifier;
-                binding_statement_type = Ast.Type.Enum enum_identifier;
-                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, Ast.Type.Enum enum_identifier));
+                binding_statement_type = enum_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, enum_type));
                 body_statement         = statement;
               }
             else
