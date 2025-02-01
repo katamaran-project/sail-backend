@@ -25,7 +25,7 @@ let test_build_match_for_variant_single_nullary_constructor =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -88,7 +88,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -151,7 +151,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -220,7 +220,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -286,7 +286,7 @@ let test_build_match_for_variant_single_unary_constructor =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -347,7 +347,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -408,7 +408,7 @@ let test_build_match_for_variant_single_binary_constructor =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -482,7 +482,7 @@ let test_build_match_for_variant_two_constructors =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -572,7 +572,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -647,7 +647,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_b ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -785,7 +785,7 @@ let test_build_match_for_tuple_of_variants =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_b ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -926,7 +926,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_a; enum_type_a ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_a; enum_type_a ]
         in
         let* pattern_tree = adorn
             pattern_tree

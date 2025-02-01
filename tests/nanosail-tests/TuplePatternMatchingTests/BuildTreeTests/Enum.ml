@@ -20,7 +20,7 @@ let test_build_pattern_tree_enum_1 =
         define_enum_str "A" ["A1"; "A2"]
       in
       let* actual_tree =
-        build_tuple_pattern_tree [ enum_type ]
+        build_empty_pattern_tree [ enum_type ]
       in
       let expected_tree =
         TM.PatternNode.Enum {
@@ -62,7 +62,7 @@ let test_build_pattern_tree_enum_2 =
         define_enum_str "A" ["A1"; "A2"; "A3"]
       in
       let* actual_tree =
-        build_tuple_pattern_tree [ enum_type ]
+        build_empty_pattern_tree [ enum_type ]
       in
       let expected_tree =
         TM.PatternNode.Enum {
@@ -108,7 +108,7 @@ let test_build_pattern_tree_enum_3 =
         define_enum_str "A" ["A1"]
       in
       let* actual_tree =
-        build_tuple_pattern_tree [ enum_type; enum_type ]
+        build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternNode.t =
         TM.PatternNode.Enum {
@@ -157,7 +157,7 @@ let test_build_pattern_tree_enum_4 =
         define_enum_str "A" ["A1"; "A2"]
       in
       let* actual_tree =
-        build_tuple_pattern_tree [ enum_type; enum_type ]
+        build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternNode.t =
         let level_3 =

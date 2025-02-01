@@ -26,7 +26,7 @@ let test_adorn_variant_single_unary_constructor =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* actual_pattern_tree =
-        let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -80,7 +80,7 @@ let test_failure_due_to_clashing_field_binders =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* pattern_tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+      let* pattern_tree = build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let* pattern_tree = adorn
           pattern_tree

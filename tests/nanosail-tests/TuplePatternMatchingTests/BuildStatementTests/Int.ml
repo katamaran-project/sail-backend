@@ -20,7 +20,7 @@ let test_build_match_for_int_1 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int ]
         in
         let* tree = adorn
             tree
@@ -65,7 +65,7 @@ let test_build_match_for_int_2 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int ]
         in
         let* tree = adorn
             tree
@@ -110,7 +110,7 @@ let test_build_match_for_int_int_1 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
         let* tree = adorn
             tree
@@ -161,7 +161,7 @@ let test_build_match_for_int_int_2 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
         let* tree = adorn
             tree

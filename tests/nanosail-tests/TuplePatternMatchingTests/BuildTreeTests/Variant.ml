@@ -20,7 +20,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let* actual_pattern_tree : PN.t =
-        build_tuple_pattern_tree [ enum_type ]
+        build_empty_pattern_tree [ enum_type ]
       in
       let expected_pattern_tree : PN.t =
         PN.Variant {

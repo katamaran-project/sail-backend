@@ -23,7 +23,7 @@ let test_build_match_for_enum_1 =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -81,7 +81,7 @@ let test_build_match_for_enum_2 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -151,7 +151,7 @@ let test_build_match_for_enum_3 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -221,7 +221,7 @@ let test_build_match_for_enum_4 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -300,7 +300,7 @@ let test_build_match_for_enum_5 =
         mkstm 4
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
             tree
@@ -424,7 +424,7 @@ let test_build_match_for_enum_6 =
         mkstm 4
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
             tree
@@ -548,7 +548,7 @@ let test_build_match_for_enum_7 =
         mkstm 2
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
             tree
@@ -659,7 +659,7 @@ let test_build_match_for_enum_8 =
         mkstm 2
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
             tree
@@ -777,7 +777,7 @@ let test_build_match_for_enum_9 =
         mkstm 4
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
+        let* tree = build_empty_pattern_tree [ enum_type_a; enum_type_b ]
         in
         let* tree = adorn
             tree

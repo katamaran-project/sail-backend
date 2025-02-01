@@ -23,7 +23,7 @@ let test_build_match_for_enum_int =
         mkstm 1
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ enum_type; Ast.Type.Int ]
         in
         let* tree = adorn
             tree

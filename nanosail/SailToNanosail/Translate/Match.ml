@@ -397,7 +397,7 @@ module TupleMatching = struct
   end
 
 
-  let rec build_tuple_pattern_tree
+  let rec build_empty_pattern_tree
       (location      : S.l            )
       (element_types : Ast.Type.t list) : PatternNode.t TC.t
     =
@@ -488,7 +488,7 @@ module TupleMatching = struct
     match element_types with
     | []           -> TC.return @@ PatternNode.Terminal None
     | head :: tail -> begin
-        let* tail = build_tuple_pattern_tree location tail
+        let* tail = build_empty_pattern_tree location tail
         in
         match head with
         | Enum enum_identifier       -> build_enum_node enum_identifier tail
@@ -1541,7 +1541,7 @@ let translate_variant_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   let* empty_pattern_tree =
-    TupleMatching.build_tuple_pattern_tree
+    TupleMatching.build_empty_pattern_tree
       location
       [ Ast.Type.Variant variant_identifier ]
   in
@@ -1572,11 +1572,11 @@ let translate_tuple_match
     in
     let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
       let* initial_tree =
-        TupleMatching.build_tuple_pattern_tree
+        TupleMatching.build_empty_pattern_tree
           location
           element_types
       in
-      let adorn
+      let categorize
           (tree      : TupleMatching.PatternNode.t)
           (pattern   : Pattern.t                  )
           (statement : Ast.Statement.t            ) : TupleMatching.PatternNode.t TC.t
@@ -1588,7 +1588,7 @@ let translate_tuple_match
       let* final_tree =
         TC.fold_left
           ~init:initial_tree
-          ~f:(fun tree (pattern, statement) -> adorn tree pattern statement)
+          ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
           cases
       in
       TupleMatching.build_leveled_match_statements binder_identifiers final_tree
@@ -1767,7 +1767,7 @@ let translate_unit_match
   | [ (pattern, statement) ] -> begin
       let* pattern_tree =
         let* tree =
-          TupleMatching.build_tuple_pattern_tree
+          TupleMatching.build_empty_pattern_tree
             location
             [ Ast.Type.Unit ]
         in
@@ -1791,7 +1791,7 @@ let translate_enum_match
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
   let* empty_pattern_tree =
-    TupleMatching.build_tuple_pattern_tree
+    TupleMatching.build_empty_pattern_tree
       location
       [ Ast.Type.Enum enum_identifier ]
   in

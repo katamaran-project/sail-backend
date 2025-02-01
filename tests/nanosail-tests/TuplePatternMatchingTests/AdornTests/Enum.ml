@@ -27,7 +27,7 @@ let test_adorn_enum_1 =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
           tree
@@ -76,7 +76,7 @@ let test_adorn_enum_2 =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
           tree
@@ -127,7 +127,7 @@ let test_adorn_enum_3 =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
           tree
@@ -189,7 +189,7 @@ let test_adorn_enum_4 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -257,7 +257,7 @@ let test_adorn_enum_5 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* actual_tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -331,7 +331,7 @@ let test_adorn_enum_6 =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
-        let* tree = build_tuple_pattern_tree [ enum_type ]
+        let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
             tree
@@ -401,7 +401,7 @@ let test_failure_due_to_clashing_binders =
       let a2_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
+      let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let* tree = adorn
           tree
