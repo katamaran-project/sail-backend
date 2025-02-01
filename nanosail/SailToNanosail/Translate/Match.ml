@@ -1576,7 +1576,7 @@ let translate_tuple_match
           location
           element_types
       in
-      let categorize
+      let adorn
           (tree      : TupleMatching.PatternNode.t)
           (pattern   : Pattern.t                  )
           (statement : Ast.Statement.t            ) : TupleMatching.PatternNode.t TC.t
@@ -1588,7 +1588,7 @@ let translate_tuple_match
       let* final_tree =
         TC.fold_left
           ~init:initial_tree
-          ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
+          ~f:(fun tree (pattern, statement) -> adorn tree pattern statement)
           cases
       in
       TupleMatching.build_leveled_match_statements binder_identifiers final_tree
