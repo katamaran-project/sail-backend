@@ -543,7 +543,7 @@ let rec contains_gap (pattern_tree : PatternNode.t) : bool =
   | Terminal statement     -> Option.is_none statement
 
 
-let adorn_tree
+let adorn_pattern_tree
     (location          : S.l            )
     (pattern_tree      : PatternNode.t  )
     (tuple_subpatterns : Pattern.t list )
@@ -1545,7 +1545,7 @@ let translate_variant_match
   let* pattern_tree =
     TC.fold_left
       cases
-      ~f:(fun tree (pattern, statement) -> adorn_tree location tree [ pattern ] statement)
+      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
   let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree
@@ -1579,7 +1579,7 @@ let translate_tuple_match
           (statement : Ast.Statement.t) : PatternNode.t TC.t
         =
         match pattern with
-        | Tuple subpatterns -> adorn_tree location tree subpatterns statement
+        | Tuple subpatterns -> adorn_pattern_tree location tree subpatterns statement
         | _                 -> TC.fail [%here] "expected tuple pattern"
       in
       let* final_tree =
@@ -1768,7 +1768,7 @@ let translate_unit_match
             location
             [ Ast.Type.Unit ]
         in
-        adorn_tree
+        adorn_pattern_tree
           location
           tree
           [ pattern ]
@@ -1795,7 +1795,7 @@ let translate_enum_match
   let* pattern_tree =
     TC.fold_left
       cases
-      ~f:(fun tree (pattern, statement) -> adorn_tree location tree [ pattern ] statement)
+      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
   build_leveled_match_statements [ matched_identifier ] pattern_tree

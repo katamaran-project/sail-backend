@@ -91,7 +91,7 @@ let run_failing_tc (tc : 'a TC.t) : unit =
 
 
 let build_empty_pattern_tree = M.build_empty_pattern_tree dummy_location
-let adorn                    = M.adorn_tree dummy_location
+let adorn                    = M.adorn_pattern_tree dummy_location
 let build_match              = M.build_leveled_match_statements
 
 
