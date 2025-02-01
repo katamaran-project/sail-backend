@@ -33,7 +33,6 @@ let test_build_match_for_variant_single_nullary_constructor =
               Pattern.(VariantCase (mkid "A1", Pattern.Unit))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -97,7 +96,6 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
               Pattern.(VariantCase (mkid "A1", Pattern.Binder { identifier = mkid "x"; wildcard = true }))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -161,7 +159,6 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -231,7 +228,6 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
               Pattern.(VariantCase (mkid "A1", Pattern.Binder { identifier = mkid "x"; wildcard = false }))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -298,7 +294,6 @@ let test_build_match_for_variant_single_unary_constructor =
               Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } ))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -360,7 +355,6 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
               Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = true } ))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -430,7 +424,6 @@ let test_build_match_for_variant_single_binary_constructor =
               )
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -505,7 +498,6 @@ let test_build_match_for_variant_two_constructors =
               )
             ]
             a1_statement
-            false
         in
         let* pattern_tree = categorize
             pattern_tree
@@ -518,7 +510,6 @@ let test_build_match_for_variant_two_constructors =
               )
             ]
             a2_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -597,7 +588,6 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
               )
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -679,7 +669,6 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
               )
             ]
             b1_statement
-            false
         in
         let* pattern_tree = categorize
             pattern_tree
@@ -701,7 +690,6 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
               )
             ]
             b2_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -819,7 +807,6 @@ let test_build_match_for_tuple_of_variants =
               )
             ]
             b1_statement
-            false
         in
         let* pattern_tree = categorize
             pattern_tree
@@ -841,7 +828,6 @@ let test_build_match_for_tuple_of_variants =
               )
             ]
             b2_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -950,7 +936,6 @@ let test_build_match_for_tuple_of_variants_wildcards =
               Pattern.Binder { identifier = mkid "z"; wildcard = true };
             ]
             statement
-            false
         in
         TC.return pattern_tree
       in

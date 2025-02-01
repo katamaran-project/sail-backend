@@ -32,7 +32,6 @@ let test_build_match_for_enum_int =
               Pattern.Binder { identifier = mkid "k"; wildcard = true };
             ]
             statement
-            false
         in
         TC.return tree
       in

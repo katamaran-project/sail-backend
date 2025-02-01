@@ -28,7 +28,6 @@ let test_build_match_for_int_1 =
               Pattern.Binder { identifier = mkid "n"; wildcard = true }
             ]
             statement
-            false
         in
         TC.return tree
       in
@@ -74,7 +73,6 @@ let test_build_match_for_int_2 =
               Pattern.Binder { identifier = mkid "n"; wildcard = false }
             ]
             statement
-            false
         in
         TC.return tree
       in
@@ -121,7 +119,6 @@ let test_build_match_for_int_int_1 =
               Pattern.Binder { identifier = mkid "k"; wildcard = true };
             ]
             statement
-            false
         in
         TC.return tree
       in
@@ -173,7 +170,6 @@ let test_build_match_for_int_int_2 =
               Pattern.Binder { identifier = mkid "k"; wildcard = false };
             ]
             statement
-            false
         in
         TC.return tree
       in

@@ -33,7 +33,6 @@ let test_categorize_enum_1 =
           tree
           [ Pattern.EnumCase (mkid "A1") ]
           a1_statement
-          false
         in
         TC.return tree
       in
@@ -85,7 +84,6 @@ let test_categorize_enum_2 =
             Pattern.Binder { identifier = mkid "x"; wildcard = true }
           ]
           a1_statement
-          false
         in
         TC.return tree
       in
@@ -137,7 +135,6 @@ let test_categorize_enum_3 =
             Pattern.Binder { identifier = mkid "x"; wildcard = false }
           ]
           a1_statement
-          false
         in
         TC.return tree
       in
@@ -200,7 +197,6 @@ let test_categorize_enum_4 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -208,7 +204,6 @@ let test_categorize_enum_4 =
               Pattern.EnumCase (mkid "A2")
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -270,7 +265,6 @@ let test_categorize_enum_5 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -278,7 +272,6 @@ let test_categorize_enum_5 =
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -346,7 +339,6 @@ let test_categorize_enum_6 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -354,7 +346,6 @@ let test_categorize_enum_6 =
               Pattern.Binder { identifier = mkid "x"; wildcard = false }
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -419,7 +410,6 @@ let test_failure_due_to_clashing_binders =
             Pattern.EnumCase (mkid "A1")
           ]
           a1_statement
-          false
       in
       let* _ = categorize
           tree
@@ -428,7 +418,6 @@ let test_failure_due_to_clashing_binders =
             Pattern.EnumCase (mkid "A2")
           ]
           a2_statement
-          false
       in
       TC.return ()
     in

@@ -31,7 +31,6 @@ let test_build_match_for_enum_1 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         TC.return tree
       in
@@ -90,7 +89,6 @@ let test_build_match_for_enum_2 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -98,7 +96,6 @@ let test_build_match_for_enum_2 =
               Pattern.EnumCase (mkid "A2")
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -162,7 +159,6 @@ let test_build_match_for_enum_3 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -170,7 +166,6 @@ let test_build_match_for_enum_3 =
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -234,7 +229,6 @@ let test_build_match_for_enum_4 =
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -242,7 +236,6 @@ let test_build_match_for_enum_4 =
               Pattern.Binder { identifier = mkid "x"; wildcard = false }
             ]
             a2_statement
-            false
         in
         TC.return tree
       in
@@ -316,7 +309,6 @@ let test_build_match_for_enum_5 =
               Pattern.EnumCase (mkid "A1");
             ]
             a1_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -325,7 +317,6 @@ let test_build_match_for_enum_5 =
               Pattern.EnumCase (mkid "A2");
             ]
             a1_a2_statement
-            false
         in
         let* tree = categorize
             tree
@@ -334,7 +325,6 @@ let test_build_match_for_enum_5 =
               Pattern.EnumCase (mkid "A1");
             ]
             a2_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -343,7 +333,6 @@ let test_build_match_for_enum_5 =
               Pattern.EnumCase (mkid "A2");
             ]
             a2_a2_statement
-            false
         in
         TC.return tree
       in
@@ -444,7 +433,6 @@ let test_build_match_for_enum_6 =
               Pattern.EnumCase (mkid "A1");
             ]
             a1_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -453,7 +441,6 @@ let test_build_match_for_enum_6 =
               Pattern.EnumCase (mkid "A2");
             ]
             a1_a2_statement
-            false
         in
         let* tree = categorize
             tree
@@ -462,7 +449,6 @@ let test_build_match_for_enum_6 =
               Pattern.EnumCase (mkid "A1");
             ]
             a2_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -471,7 +457,6 @@ let test_build_match_for_enum_6 =
               Pattern.EnumCase (mkid "A2");
             ]
             a2_a2_statement
-            false
         in
         TC.return tree
       in
@@ -572,7 +557,6 @@ let test_build_match_for_enum_7 =
               Pattern.EnumCase (mkid "A1");
             ]
             a1_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -581,7 +565,6 @@ let test_build_match_for_enum_7 =
               Pattern.EnumCase (mkid "A2");
             ]
             a1_a2_statement
-            false
         in
         TC.return tree
       in
@@ -685,7 +668,6 @@ let test_build_match_for_enum_8 =
               Pattern.EnumCase (mkid "A1");
             ]
             a1_a1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -694,7 +676,6 @@ let test_build_match_for_enum_8 =
               Pattern.EnumCase (mkid "A2");
             ]
             a1_a2_statement
-            false
         in
         TC.return tree
       in
@@ -805,7 +786,6 @@ let test_build_match_for_enum_9 =
               Pattern.EnumCase (mkid "B1");
             ]
             a1_b1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -814,7 +794,6 @@ let test_build_match_for_enum_9 =
               Pattern.EnumCase (mkid "B2");
             ]
             a1_b2_statement
-            false
         in
         let* tree = categorize
             tree
@@ -823,7 +802,6 @@ let test_build_match_for_enum_9 =
               Pattern.EnumCase (mkid "B1");
             ]
             a2_b1_statement
-            false
         in
         let* tree = categorize
             tree
@@ -832,7 +810,6 @@ let test_build_match_for_enum_9 =
               Pattern.EnumCase (mkid "B2");
             ]
             a2_b2_statement
-            false
         in
         TC.return tree
       in

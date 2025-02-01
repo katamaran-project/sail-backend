@@ -34,7 +34,6 @@ let test_categorize_variant_single_unary_constructor =
               Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } ))
             ]
             a1_statement
-            false
         in
         TC.return pattern_tree
       in
@@ -90,7 +89,6 @@ let test_failure_due_to_clashing_field_binders =
             Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "y"; wildcard = false } ))
           ]
           a1_statement
-          false
       in
       let* _ = categorize
           pattern_tree
@@ -99,7 +97,6 @@ let test_failure_due_to_clashing_field_binders =
             Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "y"; wildcard = false } ))
           ]
           a1_statement
-          false
       in
         TC.return ()
     in
