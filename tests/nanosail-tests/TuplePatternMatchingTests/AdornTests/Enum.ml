@@ -37,19 +37,19 @@ let test_adorn_enum_1 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, TM.PatternNode.Terminal (Some a1_statement));
+                (gen#wildcard, TM.PatternTree.Terminal (Some a1_statement));
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -88,19 +88,19 @@ let test_adorn_enum_2 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkwild "x", TM.PatternNode.Terminal (Some a1_statement))
+                (mkwild "x", TM.PatternTree.Terminal (Some a1_statement))
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -139,19 +139,19 @@ let test_adorn_enum_3 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkbinder "x", TM.PatternNode.Terminal (Some a1_statement))
+                (mkbinder "x", TM.PatternTree.Terminal (Some a1_statement))
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -208,23 +208,23 @@ let test_adorn_enum_4 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, TM.PatternNode.Terminal (Some a1_statement))
+                (gen#wildcard, TM.PatternTree.Terminal (Some a1_statement))
               );
               (
                 mkid "A2",
-                (gen#wildcard, TM.PatternNode.Terminal (Some a2_statement))
+                (gen#wildcard, TM.PatternTree.Terminal (Some a2_statement))
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -276,29 +276,29 @@ let test_adorn_enum_5 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
                 (
                   gen#wildcard,  (* no binder since pattern mentions A1 explicitly *)
-                  TM.PatternNode.Terminal (Some a1_statement)
+                  TM.PatternTree.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
                   mkwild "x",  (* no binder since pattern is wildcard *)
-                  TM.PatternNode.Terminal (Some a2_statement)
+                  TM.PatternTree.Terminal (Some a2_statement)
                 )
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
@@ -350,29 +350,29 @@ let test_adorn_enum_6 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternNode.Enum {
+        TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
                 (
                   gen#wildcard,  (* no binder since pattern mentions "A1" explicitly *)
-                  TM.PatternNode.Terminal (Some a1_statement)
+                  TM.PatternTree.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
                   mkbinder "x",  (* binder necessary because pattern requires the value to be bound to x *)
-                  TM.PatternNode.Terminal (Some a2_statement)
+                  TM.PatternTree.Terminal (Some a2_statement)
                 )
               );
             ];
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternNode.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()

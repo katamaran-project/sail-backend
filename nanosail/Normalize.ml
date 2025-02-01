@@ -29,10 +29,10 @@ module Implementation = struct
 
   include Monads.Util.Make(Monad)
 
-  
+
   let return = Monad.return
 
-  
+
   let requires_substitution (identifier : Ast.Identifier.t) : bool =
     Ast.Identifier.is_generated identifier
 
@@ -66,7 +66,7 @@ module Implementation = struct
         end
     end
 
-  
+
   let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Monad.t =
     match statement with
     | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin
@@ -80,9 +80,9 @@ module Implementation = struct
           Ast.Statement.Match begin
             Ast.Statement.MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }
           end
-        end            
+        end
       end
-      
+
     | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
         let* matched = substitute_identifier matched
         and* id_fst  = substitute_identifier id_fst
@@ -95,7 +95,7 @@ module Implementation = struct
           end
         end
       end
-      
+
     | Match (MatchTuple { matched; binders; body }) -> begin
         let normalize_binders (identifier, typ) =
           let* identifier = substitute_identifier identifier
@@ -112,7 +112,7 @@ module Implementation = struct
           end
         end
       end
-      
+
     | Match (MatchBool { condition; when_true; when_false }) -> begin
         let* condition  = substitute_identifier condition
         and* when_true  = normalize_statement when_true
@@ -124,7 +124,7 @@ module Implementation = struct
           end
         end
       end
-      
+
     | Match (MatchEnum { matched; matched_type; cases }) -> begin
         let* matched = substitute_identifier matched
         and* cases   = begin
@@ -150,7 +150,7 @@ module Implementation = struct
           end
         end
       end
-      
+
     | Match (MatchVariant { matched; matched_type; cases }) -> begin
         let* matched = substitute_identifier matched
         and* cases   = begin
@@ -176,20 +176,20 @@ module Implementation = struct
           end
         end
       end
-      
+
     | Expression expression -> begin
         let* expression = normalize_expression expression
         in
         return @@ Ast.Statement.Expression expression
       end
-      
+
     | Call (function_identifier, arguments) -> begin
         let* function_identifier = substitute_identifier function_identifier (* todo probably not necessary; check if functions are first class citizens of sail *)
         and* arguments           = map ~f:normalize_expression arguments
         in
         return @@ Ast.Statement.Call (function_identifier, arguments)
       end
-      
+
     | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
         let* variable_identifier = substitute_identifier variable_identifier
         and* binding_statement   = normalize_statement binding_statement
@@ -197,7 +197,7 @@ module Implementation = struct
         in
         return @@ Ast.Statement.Let { variable_identifier; binding_statement_type; binding_statement; body_statement }
       end
-      
+
     | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
         let* variable_identifiers = map ~f:substitute_identifier variable_identifiers
         and* destructured_record  = normalize_statement destructured_record
@@ -205,32 +205,32 @@ module Implementation = struct
         in
         return @@ Ast.Statement.DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body }
       end
-      
+
     | Seq (first, second) -> begin
         let* first  = normalize_statement first
         and* second = normalize_statement second
         in
         return @@ Ast.Statement.Seq (first, second)
       end
-      
+
     | ReadRegister register_id -> begin
         (* todo check that registers are indeed not first class citizens; if so, we need to substitute register_id *)
         return @@ Ast.Statement.ReadRegister register_id
       end
-      
+
     | WriteRegister { register_identifier; written_value } -> begin
         (* todo check that registers are indeed not first class citizens; if so, we need to substitute register_id *)
         let* written_value = substitute_identifier written_value
         in
         return @@ Ast.Statement.WriteRegister { register_identifier; written_value }
       end
-      
+
     | Cast (statement, typ) -> begin
         let* statement = normalize_statement statement
         in
         return @@ Ast.Statement.Cast (statement, typ)
       end
-      
+
     | Fail _ -> return statement
 
 
@@ -241,52 +241,52 @@ module Implementation = struct
         in
         return @@ Ast.Expression.Variable (identifier, typ)
       end
-      
+
     | Val _ -> return expression
-      
+
     | List elements -> begin
         let* elements = map ~f:normalize_expression elements
         in
         return @@ Ast.Expression.List elements
       end
-      
+
     | UnaryOperation (operator, operand) -> begin
         let* operand = normalize_expression operand
         in
         return @@ Ast.Expression.UnaryOperation (operator, operand)
       end
-      
+
     | BinaryOperation (operator, left_operand, right_operand) -> begin
         let* left_operand  = normalize_expression left_operand
         and* right_operand = normalize_expression right_operand
         in
         return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
       end
-      
+
     | Record { type_identifier; variable_identifiers } -> begin
         let* variable_identifiers = map ~f:substitute_identifier variable_identifiers
         in
         return @@ Ast.Expression.Record { type_identifier; variable_identifiers }
       end
-      
+
     | Enum _ -> return @@ expression
-      
+
     | Variant { type_identifier; constructor_identifier; fields } -> begin
         let* fields = map ~f:normalize_expression fields
         in
         return @@ Ast.Expression.Variant { type_identifier; constructor_identifier; fields }
       end
-      
+
     | Tuple elements -> begin
         let* elements = map ~f:normalize_expression elements
         in
         return @@ Ast.Expression.Tuple elements
       end
-      
+
     | Bitvector _ -> return expression
 
 
-  let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternNode.t) : SailToNanosail.Translate.Match.PatternNode.t Monad.t =
+  let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t Monad.t =
     let open SailToNanosail.Translate.Match
     in
     let normalize_binder (binder : Binder.t) : Binder.t Monad.t =
@@ -307,7 +307,7 @@ module Implementation = struct
           let* normalized_pairs =
             let normalize_pair
                 (enum_case_identifier : Ast.Identifier.t                      )
-                ((binder, subtree)    : Binder.t * PatternNode.t) : (Ast.Identifier.t * (Binder.t * PatternNode.t)) Monad.t =
+                ((binder, subtree)    : Binder.t * PatternTree.t) : (Ast.Identifier.t * (Binder.t * PatternTree.t)) Monad.t =
               let* binder  = normalize_binder binder
               and* subtree = normalize_pattern_tree subtree
               in
@@ -317,9 +317,9 @@ module Implementation = struct
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in
-        return @@ PatternNode.Enum { enum_identifier; table }
+        return @@ PatternTree.Enum { enum_identifier; table }
       end
-      
+
     | Variant { variant_identifier; table } -> begin
         let* table =
           let pairs =
@@ -328,21 +328,21 @@ module Implementation = struct
           let* normalized_pairs =
             let normalize_pair
                 (constructor_identifier : Ast.Identifier.t                                                          )
-                (data                   : PatternNode.variant_table_data) : (Ast.Identifier.t * PatternNode.variant_table_data) Monad.t
+                (data                   : PatternTree.variant_table_data) : (Ast.Identifier.t * PatternTree.variant_table_data) Monad.t
               =
-              let* data : PatternNode.variant_table_data =
+              let* data : PatternTree.variant_table_data =
                 match data with
                 | NullaryConstructor (binder, subtree) -> begin
                     let* binder  = normalize_binder binder
                     and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ PatternNode.NullaryConstructor (binder, subtree)
+                     return @@ PatternTree.NullaryConstructor (binder, subtree)
                    end
                 | UnaryConstructor (binder, subtree) -> begin
                     let* binder  = normalize_binder binder
                     and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ PatternNode.UnaryConstructor (binder, subtree)
+                     return @@ PatternTree.UnaryConstructor (binder, subtree)
                    end
                 | NAryConstructor (field_binders, subtree) -> begin
                     let* field_binders =
@@ -350,7 +350,7 @@ module Implementation = struct
                     and* subtree =
                       normalize_pattern_tree subtree
                     in
-                    return @@ PatternNode.NAryConstructor (field_binders, subtree)
+                    return @@ PatternTree.NAryConstructor (field_binders, subtree)
                   end
               in
               return (constructor_identifier, data)
@@ -359,23 +359,23 @@ module Implementation = struct
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in
-        return @@ PatternNode.Variant { variant_identifier; table }
+        return @@ PatternTree.Variant { variant_identifier; table }
       end
-              
+
     | Atomic (typ, binder, subtree) -> begin
         let* binder  = normalize_binder binder
         and* subtree = normalize_pattern_tree subtree
         in
-        return @@ PatternNode.Atomic (typ, binder, subtree)
+        return @@ PatternTree.Atomic (typ, binder, subtree)
       end
-      
+
     | Terminal statement -> begin
         let* statement =
           match statement with
           | Some statement -> let* statement = normalize_statement statement in return @@ Some statement
           | None           -> return None
         in
-        return @@ PatternNode.Terminal statement
+        return @@ PatternTree.Terminal statement
       end
 end
 
@@ -398,7 +398,7 @@ let normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t =
   result
 
 
-let normalize_pattern_tree (pattern_tree : SailToNanosail.Translate.Match.PatternNode.t) : SailToNanosail.Translate.Match.PatternNode.t =
+let normalize_pattern_tree (pattern_tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t =
   let open Implementation
   in
   let (result, _substitutions) =

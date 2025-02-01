@@ -6,7 +6,7 @@ module TC = SailToNanosail.TranslationContext
 open Monads.Notations.Star(TC)
 
 module TM = SailToNanosail.Translate.Match
-module PN = TM.PatternNode
+module PN = TM.PatternTree
 
 open Shared
 
@@ -35,7 +35,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
-        ~cmp:TM.PatternNode.equal
+        ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_pattern_tree)
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()

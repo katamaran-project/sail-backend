@@ -163,7 +163,7 @@ module Pattern = struct
 end
 
 
-module PatternNode = struct
+module PatternTree = struct
   type t =
     | Enum       of { enum_identifier : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t; }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : variant_table_data Ast.Identifier.Map.t }
@@ -288,7 +288,7 @@ module PatternNode = struct
 
   let rec to_fexpr (node : t) : FExpr.t =
     let mk_head (tag : string) : string =
-      Printf.sprintf "PatternNode:%s" tag
+      Printf.sprintf "PatternTree:%s" tag
     in
     match node with
     | Enum { enum_identifier; table } -> begin
@@ -395,19 +395,19 @@ end
 
 let rec build_empty_pattern_tree
     (location      : S.l            )
-    (element_types : Ast.Type.t list) : PatternNode.t TC.t
+    (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
   let build_enum_node
       (enum_identifier : Ast.Identifier.t)
-      (subtree         : PatternNode.t   ) : PatternNode.t TC.t
+      (subtree         : PatternTree.t   ) : PatternTree.t TC.t
     =
     let* enum_definition =
       TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
     in
-    let* table : (Binder.t * PatternNode.t) Ast.Identifier.Map.t =
+    let* table : (Binder.t * PatternTree.t) Ast.Identifier.Map.t =
       let add_to_table
-          (table                : (Binder.t * PatternNode.t) Ast.Identifier.Map.t)
-          (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternNode.t) Ast.Identifier.Map.t TC.t
+          (table                : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+          (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
         =
         let* binder : Binder.t =
           Binder.generate_wildcard
@@ -425,7 +425,7 @@ let rec build_empty_pattern_tree
         ~f:add_to_table
     in
     TC.return begin
-      PatternNode.Enum {
+      PatternTree.Enum {
         enum_identifier;
         table;
       }
@@ -433,26 +433,26 @@ let rec build_empty_pattern_tree
 
   and build_variant_node
       (variant_identifier : Ast.Identifier.t)
-      (subtree            : PatternNode.t   ) : PatternNode.t TC.t
+      (subtree            : PatternTree.t   ) : PatternTree.t TC.t
     =
     let* variant_definition =
       TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
     in
-    let* table : PatternNode.variant_table_data Ast.Identifier.Map.t =
+    let* table : PatternTree.variant_table_data Ast.Identifier.Map.t =
       let add_to_table
-          (table                                 : PatternNode.variant_table_data Ast.Identifier.Map.t)
-          ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
+          (table                                 : PatternTree.variant_table_data Ast.Identifier.Map.t)
+          ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternTree.variant_table_data Ast.Identifier.Map.t TC.t
         =
-        let* data : PatternNode.variant_table_data =
+        let* data : PatternTree.variant_table_data =
           match List.length field_types with
-          | 0 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternNode.NullaryConstructor (binder, subtree)
-          | 1 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternNode.UnaryConstructor   (binder, subtree)
+          | 0 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternTree.NullaryConstructor (binder, subtree)
+          | 1 -> let* binder = Binder.generate_wildcard in TC.return @@ PatternTree.UnaryConstructor   (binder, subtree)
           | _ -> begin
               let field_count = List.length field_types
               in
               let* binders = TC.repeat field_count ~f:Binder.generate_wildcard
               in
-              TC.return @@ PatternNode.NAryConstructor (binders, subtree)
+              TC.return @@ PatternTree.NAryConstructor (binders, subtree)
             end
         in
         TC.return begin
@@ -465,7 +465,7 @@ let rec build_empty_pattern_tree
         ~f:add_to_table
     in
     TC.return begin
-      PatternNode.Variant {
+      PatternTree.Variant {
         variant_identifier;
         table
       }
@@ -473,16 +473,16 @@ let rec build_empty_pattern_tree
 
   and build_atomic_node
       (element_type : Ast.Type.t   )
-      (subtree      : PatternNode.t) : PatternNode.t TC.t
+      (subtree      : PatternTree.t) : PatternTree.t TC.t
     =
     let* binder =
       Binder.generate_wildcard
     in
-    TC.return @@ PatternNode.Atomic (element_type, binder, subtree)
+    TC.return @@ PatternTree.Atomic (element_type, binder, subtree)
 
   in
   match element_types with
-  | []           -> TC.return @@ PatternNode.Terminal None
+  | []           -> TC.return @@ PatternTree.Terminal None
   | head :: tail -> begin
       let* tail = build_empty_pattern_tree location tail
       in
@@ -509,24 +509,24 @@ let rec build_empty_pattern_tree
      Checks if there are "leaves" in the tree that have no associated statement yet,
      i.e., answers the question "are there any unhandled cases left in the given tree?"
   *)
-let rec contains_gap (pattern_tree : PatternNode.t) : bool =
+let rec contains_gap (pattern_tree : PatternTree.t) : bool =
   match pattern_tree with
   | Enum { table; _ } -> begin
-      let values : (Binder.t * PatternNode.t) list =
+      let values : (Binder.t * PatternTree.t) list =
         Ast.Identifier.Map.data table
       in
-      let subtrees : PatternNode.t list =
+      let subtrees : PatternTree.t list =
         List.map ~f:snd values
       in
       List.exists subtrees ~f:contains_gap
     end
 
   | Variant { table; _ } -> begin
-      let values : PatternNode.variant_table_data list =
+      let values : PatternTree.variant_table_data list =
         Ast.Identifier.Map.data table
       in
-      let subtrees : PatternNode.t list =
-        let extract_subtree (data : PatternNode.variant_table_data) : PatternNode.t =
+      let subtrees : PatternTree.t list =
+        let extract_subtree (data : PatternTree.variant_table_data) : PatternTree.t =
           match data with
           | NullaryConstructor (_, subtree) -> subtree
           | UnaryConstructor (_, subtree)   -> subtree
@@ -543,14 +543,14 @@ let rec contains_gap (pattern_tree : PatternNode.t) : bool =
 
 let adorn_pattern_tree
     (location          : S.l            )
-    (pattern_tree      : PatternNode.t  )
+    (pattern_tree      : PatternTree.t  )
     (tuple_subpatterns : Pattern.t list )
-    (body              : Ast.Statement.t) : PatternNode.t TC.t
+    (body              : Ast.Statement.t) : PatternTree.t TC.t
   =
   let rec adorn
-      (pattern_tree      : PatternNode.t )
+      (pattern_tree      : PatternTree.t )
       (tuple_subpatterns : Pattern.t list)
-      (gap_filling       : bool          ) : PatternNode.t TC.t
+      (gap_filling       : bool          ) : PatternTree.t TC.t
     =
 
     let invalid_number_of_subpatterns (location : Lexing.position) =
@@ -579,7 +579,7 @@ let adorn_pattern_tree
                   end
                 in
                 TC.return begin
-                  PatternNode.Enum { enum_identifier; table = updated_table }
+                  PatternTree.Enum { enum_identifier; table = updated_table }
                 end
               end
             | Binder pattern_binder -> begin
@@ -590,8 +590,8 @@ let adorn_pattern_tree
                   enum_definition.cases
                 in
                 let update_table
-                    (table     : (Binder.t * PatternNode.t) Ast.Identifier.Map.t)
-                    (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternNode.t) Ast.Identifier.Map.t TC.t
+                    (table     : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+                    (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
                   =
                   let binder, subtree =
                     Ast.Identifier.Map.find_exn table enum_case
@@ -599,7 +599,7 @@ let adorn_pattern_tree
                   if
                     contains_gap subtree
                   then begin
-                    let* updated_subtree : PatternNode.t =
+                    let* updated_subtree : PatternTree.t =
                       adorn
                         subtree
                         remaining_subpatterns
@@ -622,7 +622,7 @@ let adorn_pattern_tree
                   TC.fold_left ~f:update_table ~init:table enum_cases
                 in
                 TC.return begin
-                  PatternNode.Enum { enum_identifier; table = updated_table }
+                  PatternTree.Enum { enum_identifier; table = updated_table }
                 end
               end
             | Unit               -> invalid_pattern [%here]
@@ -646,7 +646,7 @@ let adorn_pattern_tree
                        <constructor_identifier>(<field_pattern>) => ...
                      }
                 *)
-                let* updated_table : PatternNode.variant_table_data Ast.Identifier.Map.t =
+                let* updated_table : PatternTree.variant_table_data Ast.Identifier.Map.t =
                   match Ast.Identifier.Map.find_exn table constructor_identifier with (* todo factor out updating table *)
                   | NullaryConstructor (old_binder, subtree) -> begin
                       let* new_binder : Binder.t =
@@ -663,7 +663,7 @@ let adorn_pattern_tree
                         adorn subtree remaining_subpatterns gap_filling
                       in
                       let new_data =
-                        PatternNode.NullaryConstructor (new_binder, new_subtree)
+                        PatternTree.NullaryConstructor (new_binder, new_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -687,7 +687,7 @@ let adorn_pattern_tree
                         adorn subtree remaining_subpatterns gap_filling
                       in
                       let new_data =
-                        PatternNode.UnaryConstructor (new_binder, new_subtree)
+                        PatternTree.UnaryConstructor (new_binder, new_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -747,7 +747,7 @@ let adorn_pattern_tree
                         adorn subtree remaining_subpatterns gap_filling
                       in
                       let updated_data =
-                        PatternNode.NAryConstructor (unified_field_binders, updated_subtree)
+                        PatternTree.NAryConstructor (unified_field_binders, updated_subtree)
                       in
                       TC.return begin
                         Ast.Identifier.Map.overwrite
@@ -758,7 +758,7 @@ let adorn_pattern_tree
                     end
                 in
                 TC.return begin
-                  PatternNode.Variant {
+                  PatternTree.Variant {
                     variant_identifier;
                     table = updated_table
                   }
@@ -785,8 +785,8 @@ let adorn_pattern_tree
                 in
                 let* updated_table =
                   let update_table
-                      (table                                  : PatternNode.variant_table_data Ast.Identifier.Map.t)
-                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternNode.variant_table_data Ast.Identifier.Map.t TC.t
+                      (table                                  : PatternTree.variant_table_data Ast.Identifier.Map.t)
+                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                 ) : PatternTree.variant_table_data Ast.Identifier.Map.t TC.t
                     =
                     if
                       not pattern_binder_wildcard
@@ -812,7 +812,7 @@ let adorn_pattern_tree
                       *)
                       TC.not_yet_implemented [%here] location
                     else begin
-                      let data : PatternNode.variant_table_data =
+                      let data : PatternTree.variant_table_data =
                         Ast.Identifier.Map.find_exn table constructor_identifier
                       in
                       let* updated_data =
@@ -826,7 +826,7 @@ let adorn_pattern_tree
                               let* updated_subtree =
                                 adorn subtree remaining_subpatterns true
                               in
-                              TC.return @@ PatternNode.NullaryConstructor (previous_binder_identifier, updated_subtree)
+                              TC.return @@ PatternTree.NullaryConstructor (previous_binder_identifier, updated_subtree)
                             end
                           end
                         | UnaryConstructor (previous_binder_identifier, subtree) -> begin
@@ -838,7 +838,7 @@ let adorn_pattern_tree
                               let* updated_subtree =
                                 adorn subtree remaining_subpatterns true
                               in
-                              TC.return @@ PatternNode.UnaryConstructor (previous_binder_identifier, updated_subtree)
+                              TC.return @@ PatternTree.UnaryConstructor (previous_binder_identifier, updated_subtree)
                             end
                           end
                         | NAryConstructor (previous_binder_identifiers, subtree) -> begin
@@ -850,7 +850,7 @@ let adorn_pattern_tree
                               let* updated_subtree =
                                 adorn subtree remaining_subpatterns true
                               in
-                              TC.return @@ PatternNode.NAryConstructor (previous_binder_identifiers, updated_subtree)
+                              TC.return @@ PatternTree.NAryConstructor (previous_binder_identifiers, updated_subtree)
                             end
                           end
                       in
@@ -868,7 +868,7 @@ let adorn_pattern_tree
                     variant_definition.constructors
                 in
                 TC.return begin
-                  PatternNode.Variant {
+                  PatternTree.Variant {
                     variant_identifier;
                     table = updated_table
                   }
@@ -897,7 +897,7 @@ let adorn_pattern_tree
                 let* updated_binder =
                   Binder.unify binder pattern_binder
                 in
-                TC.return @@ PatternNode.Atomic (element_type, updated_binder, updated_subtree)
+                TC.return @@ PatternTree.Atomic (element_type, updated_binder, updated_subtree)
               end
             | _ -> TC.fail [%here] "invalid pattern"
           end
@@ -921,7 +921,7 @@ let adorn_pattern_tree
                   *)
                   TC.fail [%here] "clashing patterns"
               end
-            | None -> TC.return @@ PatternNode.Terminal (Some body)
+            | None -> TC.return @@ PatternTree.Terminal (Some body)
           end
         | _::_ -> invalid_number_of_subpatterns [%here]
       end
@@ -931,7 +931,7 @@ let adorn_pattern_tree
 
 let rec build_leveled_match_statements
     (tuple_elements : Ast.Identifier.t list)
-    (pattern_tree   : PatternNode.t        ) : Ast.Statement.t TC.t
+    (pattern_tree   : PatternTree.t        ) : Ast.Statement.t TC.t
   =
   let invalid_number_of_tuple_elements (location : Lexing.position) =
     TC.fail location "invalid number of tuple elements"
@@ -979,13 +979,13 @@ let rec build_leveled_match_statements
               statement
           in
           let* cases : Ast.Statement.t Ast.Identifier.Map.t =
-            let table_pairs : (Ast.Identifier.t * (Binder.t * PatternNode.t)) list =
+            let table_pairs : (Ast.Identifier.t * (Binder.t * PatternTree.t)) list =
               Ast.Identifier.Map.to_alist table
             in
             let* statement_pairs : (Ast.Identifier.t * Ast.Statement.t) list =
               let update_pair
                   (enum_case         : Ast.Identifier.t        )
-                  ((binder, subtree) : Binder.t * PatternNode.t) : (Ast.Identifier.t * Ast.Statement.t) TC.t
+                  ((binder, subtree) : Binder.t * PatternTree.t) : (Ast.Identifier.t * Ast.Statement.t) TC.t
                 =
                 let* statement : Ast.Statement.t =
                   let* subtree_statement =
@@ -1016,13 +1016,13 @@ let rec build_leveled_match_statements
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_tuple_element :: remaining_tuple_elements -> begin
           let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
-            let table_pairs : (Ast.Identifier.t * PatternNode.variant_table_data) list =
+            let table_pairs : (Ast.Identifier.t * PatternTree.variant_table_data) list =
               Ast.Identifier.Map.to_alist table
             in
             let* statement_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
               let build_statement_pair
                   (constructor_identifier : Ast.Identifier.t              )
-                  (data                   : PatternNode.variant_table_data) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                  (data                   : PatternTree.variant_table_data) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                 =
                 match data with
                 | NullaryConstructor (field_binder, subtree) -> begin
@@ -1573,9 +1573,9 @@ let translate_tuple_match
           element_types
       in
       let categorize
-          (tree      : PatternNode.t  )
+          (tree      : PatternTree.t  )
           (pattern   : Pattern.t      )
-          (statement : Ast.Statement.t) : PatternNode.t TC.t
+          (statement : Ast.Statement.t) : PatternTree.t TC.t
         =
         match pattern with
         | Tuple subpatterns -> adorn_pattern_tree location tree subpatterns statement
