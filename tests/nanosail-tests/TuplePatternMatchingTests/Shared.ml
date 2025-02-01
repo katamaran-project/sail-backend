@@ -6,7 +6,7 @@ module TC = SailToNanosail.TranslationContext
 open Monads.Notations.Star(TC)
 
 module Pattern = SailToNanosail.Translate.Match.Pattern
-module TM      = SailToNanosail.Translate.Match.TupleMatching
+module M       = SailToNanosail.Translate.Match
 
 
 let dummy_location : Libsail.Ast.l =
@@ -90,9 +90,9 @@ let run_failing_tc (tc : 'a TC.t) : unit =
   | TC.Failure _ -> ()
 
 
-let build_empty_pattern_tree = TM.build_empty_pattern_tree dummy_location
-let adorn                    = TM.adorn_tree dummy_location
-let build_match              = TM.build_leveled_match_statements
+let build_empty_pattern_tree = M.build_empty_pattern_tree dummy_location
+let adorn                    = M.adorn_tree dummy_location
+let build_match              = M.build_leveled_match_statements
 
 
 let create_identifier_generator () =

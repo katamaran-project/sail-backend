@@ -286,7 +286,7 @@ module Implementation = struct
     | Bitvector _ -> return expression
 
 
-  let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t) : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t Monad.t =
+  let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternNode.t) : SailToNanosail.Translate.Match.PatternNode.t Monad.t =
     let open SailToNanosail.Translate.Match
     in
     let normalize_binder (binder : Binder.t) : Binder.t Monad.t =
@@ -307,7 +307,7 @@ module Implementation = struct
           let* normalized_pairs =
             let normalize_pair
                 (enum_case_identifier : Ast.Identifier.t                      )
-                ((binder, subtree)    : Binder.t * TupleMatching.PatternNode.t) : (Ast.Identifier.t * (Binder.t * TupleMatching.PatternNode.t)) Monad.t =
+                ((binder, subtree)    : Binder.t * PatternNode.t) : (Ast.Identifier.t * (Binder.t * PatternNode.t)) Monad.t =
               let* binder  = normalize_binder binder
               and* subtree = normalize_pattern_tree subtree
               in
@@ -317,7 +317,7 @@ module Implementation = struct
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in
-        return @@ TupleMatching.PatternNode.Enum { enum_identifier; table }
+        return @@ PatternNode.Enum { enum_identifier; table }
       end
       
     | Variant { variant_identifier; table } -> begin
@@ -328,21 +328,21 @@ module Implementation = struct
           let* normalized_pairs =
             let normalize_pair
                 (constructor_identifier : Ast.Identifier.t                                                          )
-                (data                   : TupleMatching.PatternNode.variant_table_data) : (Ast.Identifier.t * TupleMatching.PatternNode.variant_table_data) Monad.t
+                (data                   : PatternNode.variant_table_data) : (Ast.Identifier.t * PatternNode.variant_table_data) Monad.t
               =
-              let* data : TupleMatching.PatternNode.variant_table_data =
+              let* data : PatternNode.variant_table_data =
                 match data with
                 | NullaryConstructor (binder, subtree) -> begin
                     let* binder  = normalize_binder binder
                     and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ TupleMatching.PatternNode.NullaryConstructor (binder, subtree)
+                     return @@ PatternNode.NullaryConstructor (binder, subtree)
                    end
                 | UnaryConstructor (binder, subtree) -> begin
                     let* binder  = normalize_binder binder
                     and* subtree = normalize_pattern_tree subtree
                      in
-                     return @@ TupleMatching.PatternNode.UnaryConstructor (binder, subtree)
+                     return @@ PatternNode.UnaryConstructor (binder, subtree)
                    end
                 | NAryConstructor (field_binders, subtree) -> begin
                     let* field_binders =
@@ -350,7 +350,7 @@ module Implementation = struct
                     and* subtree =
                       normalize_pattern_tree subtree
                     in
-                    return @@ TupleMatching.PatternNode.NAryConstructor (field_binders, subtree)
+                    return @@ PatternNode.NAryConstructor (field_binders, subtree)
                   end
               in
               return (constructor_identifier, data)
@@ -359,14 +359,14 @@ module Implementation = struct
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in
-        return @@ TupleMatching.PatternNode.Variant { variant_identifier; table }
+        return @@ PatternNode.Variant { variant_identifier; table }
       end
               
     | Atomic (typ, binder, subtree) -> begin
         let* binder  = normalize_binder binder
         and* subtree = normalize_pattern_tree subtree
         in
-        return @@ TupleMatching.PatternNode.Atomic (typ, binder, subtree)
+        return @@ PatternNode.Atomic (typ, binder, subtree)
       end
       
     | Terminal statement -> begin
@@ -375,7 +375,7 @@ module Implementation = struct
           | Some statement -> let* statement = normalize_statement statement in return @@ Some statement
           | None           -> return None
         in
-        return @@ TupleMatching.PatternNode.Terminal statement
+        return @@ PatternNode.Terminal statement
       end
 end
 
@@ -398,7 +398,7 @@ let normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t =
   result
 
 
-let normalize_pattern_tree (pattern_tree : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t) : SailToNanosail.Translate.Match.TupleMatching.PatternNode.t =
+let normalize_pattern_tree (pattern_tree : SailToNanosail.Translate.Match.PatternNode.t) : SailToNanosail.Translate.Match.PatternNode.t =
   let open Implementation
   in
   let (result, _substitutions) =
