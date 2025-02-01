@@ -540,116 +540,6 @@ let translate_list_match
   | _ -> TC.not_yet_implemented [%here] location
 
 
-let translate_enum_match
-    (_location          : S.l                               )
-    (matched_identifier : Ast.Identifier.t                  )
-    (enum_identifier    : Ast.Identifier.t                  )
-    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
-  =
-  (* Look up enum definition, we need to know which values there are *)
-  let* enum_definition =
-    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
-  in
-  (*
-     Set up case table: it maps enum values to corresponding bodies
-     Note that enum values are represented using identifiers.
-  *)
-  let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
-    let process_case
-        (table : Ast.Statement.t Ast.Identifier.Map.t)
-        (case  : Pattern.t * Ast.Statement.t         ) : Ast.Statement.t Ast.Identifier.Map.t TC.t
-      =
-      let pattern, body = case
-      in
-      match pattern with
-      | EnumCase enum_value_identifier -> begin
-          (* A pattern matches a specific enum value *)
-          match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
-          | `Duplicate -> begin
-              (* This case shouldn't occur. It means that two patterns match the same enum value, making the second one redundant *)
-              TC.fail [%here] "same enum case matched against twice"
-            end
-          | `Ok updated_table -> begin
-              (* We add the (enum value, clause) association to the table *)
-              TC.return updated_table
-            end
-        end
-      | Binder { identifier = binder_identifier; _ } -> begin
-          (*
-             The pattern binds the enum value to a variable, meaning
-             it should match all enum values that have hitherto not been processed.
-          *)
-          let fill_in_missing_case
-              (table                 : Ast.Statement.t Ast.Identifier.Map.t)
-              (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
-            =
-            (*
-                 match enum_value {
-                   binder_identifier => X
-                 }
-
-               gets translated to
-
-                 match enum_value {
-                   EnumCaseA => let binder_identifier = enum_value in X,
-                   EnumCaseB => let binder_identifier = enum_value in X,
-                   ...
-                 }
-            *)
-            let extended_body =
-              let matched_type = Ast.Type.Enum enum_identifier
-              in
-              Ast.Statement.Let {
-                variable_identifier    = binder_identifier;
-                binding_statement_type = matched_type;
-                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
-                body_statement         = body;
-              }
-            in
-            match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
-            | `Duplicate -> begin
-                (*
-                   We tried to add an extra (enum value, clause) association to the table, but there
-                   already existed one, which is okay. We simply keep the table as is.
-                *)
-                table
-              end
-            | `Ok updated_table -> updated_table
-          in
-          (*
-             We go through all possible enum values and try to add associations for them to the table, i.e.,
-             we only add associations for enum values that are missing from the table.
-          *)
-          TC.return @@ List.fold enum_definition.cases ~init:table ~f:fill_in_missing_case
-        end
-      | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-    in
-    TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
-  in
-  (* Check that all enum cases have been handled *)
-  let all_enum_cases_handled =
-    List.for_all enum_definition.cases ~f:(Ast.Identifier.Map.mem case_table)
-  in
-  if
-    not all_enum_cases_handled
-  then
-    (*
-       Some enum values were not handled by the match.
-       For now, we simply fail, but we could instead fill up the gaps with failure statements.
-    *)
-    TC.fail [%here] "not all enum cases are handled"
-  else begin
-    let match_pattern =
-      Ast.Statement.MatchEnum {
-        matched = matched_identifier;
-        matched_type = enum_identifier;
-        cases = case_table
-      }
-    in
-    TC.return @@ Ast.Statement.Match match_pattern
-  end
-
-
 let translate_variant_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
@@ -2066,7 +1956,117 @@ let translate_unit_match
         pattern_tree
     end
   | _ -> TC.fail [%here] "invalid number of cases"
-           
+
+
+let translate_enum_match
+    (_location          : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (enum_identifier    : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  (* Look up enum definition, we need to know which values there are *)
+  let* enum_definition =
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
+  in
+  (*
+     Set up case table: it maps enum values to corresponding bodies
+     Note that enum values are represented using identifiers.
+  *)
+  let* case_table : Ast.Statement.t Ast.Identifier.Map.t =
+    let process_case
+        (table : Ast.Statement.t Ast.Identifier.Map.t)
+        (case  : Pattern.t * Ast.Statement.t         ) : Ast.Statement.t Ast.Identifier.Map.t TC.t
+      =
+      let pattern, body = case
+      in
+      match pattern with
+      | EnumCase enum_value_identifier -> begin
+          (* A pattern matches a specific enum value *)
+          match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:body with
+          | `Duplicate -> begin
+              (* This case shouldn't occur. It means that two patterns match the same enum value, making the second one redundant *)
+              TC.fail [%here] "same enum case matched against twice"
+            end
+          | `Ok updated_table -> begin
+              (* We add the (enum value, clause) association to the table *)
+              TC.return updated_table
+            end
+        end
+      | Binder { identifier = binder_identifier; _ } -> begin
+          (*
+             The pattern binds the enum value to a variable, meaning
+             it should match all enum values that have hitherto not been processed.
+          *)
+          let fill_in_missing_case
+              (table                 : Ast.Statement.t Ast.Identifier.Map.t)
+              (enum_value_identifier : Ast.Identifier.t                    ) : Ast.Statement.t Ast.Identifier.Map.t
+            =
+            (*
+                 match enum_value {
+                   binder_identifier => X
+                 }
+
+               gets translated to
+
+                 match enum_value {
+                   EnumCaseA => let binder_identifier = enum_value in X,
+                   EnumCaseB => let binder_identifier = enum_value in X,
+                   ...
+                 }
+            *)
+            let extended_body =
+              let matched_type = Ast.Type.Enum enum_identifier
+              in
+              Ast.Statement.Let {
+                variable_identifier    = binder_identifier;
+                binding_statement_type = matched_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+                body_statement         = body;
+              }
+            in
+            match Ast.Identifier.Map.add table ~key:enum_value_identifier ~data:extended_body with
+            | `Duplicate -> begin
+                (*
+                   We tried to add an extra (enum value, clause) association to the table, but there
+                   already existed one, which is okay. We simply keep the table as is.
+                *)
+                table
+              end
+            | `Ok updated_table -> updated_table
+          in
+          (*
+             We go through all possible enum values and try to add associations for them to the table, i.e.,
+             we only add associations for enum values that are missing from the table.
+          *)
+          TC.return @@ List.fold enum_definition.cases ~init:table ~f:fill_in_missing_case
+        end
+      | _ -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern while dealing with enum match: %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+    in
+    TC.fold_left cases ~init:Ast.Identifier.Map.empty ~f:process_case
+  in
+  (* Check that all enum cases have been handled *)
+  let all_enum_cases_handled =
+    List.for_all enum_definition.cases ~f:(Ast.Identifier.Map.mem case_table)
+  in
+  if
+    not all_enum_cases_handled
+  then
+    (*
+       Some enum values were not handled by the match.
+       For now, we simply fail, but we could instead fill up the gaps with failure statements.
+    *)
+    TC.fail [%here] "not all enum cases are handled"
+  else begin
+    let match_pattern =
+      Ast.Statement.MatchEnum {
+        matched = matched_identifier;
+        matched_type = enum_identifier;
+        cases = case_table
+      }
+    in
+    TC.return @@ Ast.Statement.Match match_pattern
+  end
+
 
 let translate
     (location           : S.l                                                 )
