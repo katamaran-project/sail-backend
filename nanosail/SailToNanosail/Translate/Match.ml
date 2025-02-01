@@ -1182,12 +1182,12 @@ module TupleMatching = struct
         | Enum enum_identifier       -> build_enum_node enum_identifier tail
         | Int                        -> build_atomic_node Ast.Type.Int tail
         | Variant variant_identifier -> build_variant_node variant_identifier tail
+        | Unit                       -> build_atomic_node Ast.Type.Unit tail
         | Bool                       -> TC.not_yet_implemented [%here] location
         | String                     -> TC.not_yet_implemented [%here] location
         | Bit                        -> TC.not_yet_implemented [%here] location
         | List _                     -> TC.not_yet_implemented [%here] location
         | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
-        | Unit                       -> TC.not_yet_implemented [%here] location
         | Bitvector _                -> TC.not_yet_implemented [%here] location
         | Tuple _                    -> TC.not_yet_implemented [%here] location
         | Record _                   -> TC.not_yet_implemented [%here] location
@@ -2042,38 +2042,31 @@ let translate_tuple_match
 
 
 let translate_unit_match
-    (_location           : S.l                               )
-    (_matched_identifier : Ast.Identifier.t                  )
-    (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
-  =
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =  
   match cases with
-  | [ (Pattern.Binder { identifier = binding_identifier; _ }, body) ] -> begin
-      (*
-         We're dealing with
-
-           match unit-value {
-             x => bla(x)
-           }
-
-        I.e., the pattern is a binder (x) and this binder is being used in the body (bla(x)).
-        We translate this to
-
-         let x = () in bla(x)
-      *)
-      TC.return begin
-        Ast.Statement.Let {
-          variable_identifier    = binding_identifier;
-          binding_statement_type = Ast.Type.Unit;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-          body_statement         = body
-        }
-      end
+  | [ (pattern, statement) ] -> begin      
+      let* pattern_tree =
+        let* tree =
+          TupleMatching.build_tuple_pattern_tree
+            location
+            [ Ast.Type.Unit ]
+        in
+        TupleMatching.categorize_case
+          location
+          tree
+          [ pattern ]
+          statement
+          false
+      in
+      TupleMatching.build_leveled_match_statements
+        [ matched_identifier ]
+        pattern_tree
     end
-  | [ (Pattern.Unit, body) ]     -> TC.return body
-  | [ (pattern, _) ]             -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-  | []                           -> TC.fail [%here] "expected exactly one pattern; got zero"
-  | _ :: _ :: _                  -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
-
+  | _ -> TC.fail [%here] "invalid number of cases"
+           
 
 let translate
     (location           : S.l                                                 )
