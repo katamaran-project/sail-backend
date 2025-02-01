@@ -171,8 +171,8 @@ module PatternTree = struct
     | Terminal   of Ast.Statement.t option
 
   and variant_table_data =
-    | NullaryConstructor of Binder.t * t
-    | UnaryConstructor   of Binder.t * t
+    | NullaryConstructor of Binder.t      * t
+    | UnaryConstructor   of Binder.t      * t
     | NAryConstructor    of Binder.t list * t
 
 
