@@ -170,10 +170,17 @@ module PatternTree = struct
     | Atomic     of Ast.Type.t * Binder.t * t
     | Terminal   of Ast.Statement.t option
 
+  (*
+     From Sail's standpoint, all constructors are unary:
+
+      * nullary constructors take a single unit value
+      * unary constructors take the one value as field
+      * n-ary constructors take a single tuple containing all fields
+  *)
   and variant_table_data =
-    | NullaryConstructor of Binder.t      * t
+    | NullaryConstructor of Binder.t      * t   (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t      * t
-    | NAryConstructor    of Binder.t list * t
+    | NAryConstructor    of Binder.t list * t   (* one binder per field *)
 
 
   let rec equal
