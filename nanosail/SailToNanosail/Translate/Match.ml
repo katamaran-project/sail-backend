@@ -77,7 +77,7 @@ module Binder = struct
     in
     TC.return { identifier; wildcard = false }
 
-  
+
   let generate_wildcard : t TC.t =
     let* identifier = TC.generate_unique_identifier ()
     in
@@ -179,7 +179,7 @@ module TupleMatching = struct
       | UnaryConstructor of Binder.t * t
       | NAryConstructor of Binder.t list * t
 
-    
+
     let rec equal
         (node_1 : t)
         (node_2 : t) : bool
@@ -229,7 +229,7 @@ module TupleMatching = struct
                                                                 subtree_2
                 | NullaryConstructor _ ,
                   _                                            -> false
-                  
+
                 | UnaryConstructor (binder_1, subtree_1),
                   UnaryConstructor (binder_2, subtree_2)   -> Binder.equal
                                                                 binder_1
@@ -240,7 +240,7 @@ module TupleMatching = struct
                                                                 subtree_2
                 | UnaryConstructor _,
                   _                                            -> false
-                  
+
                 | NAryConstructor (binders_1, subtree_1),
                   NAryConstructor (binders_2, subtree_2)   -> List.equal Binder.equal
                                                                 binders_1
@@ -545,7 +545,7 @@ module TupleMatching = struct
     | Terminal statement     -> Option.is_none statement
 
 
-  let categorize_case
+  let adorn_tree
       (location          : S.l            )
       (pattern_tree      : PatternNode.t  )
       (tuple_subpatterns : Pattern.t list )
@@ -831,7 +831,7 @@ module TupleMatching = struct
                                   adorn subtree remaining_subpatterns true
                                 in
                                 TC.return @@ PatternNode.NullaryConstructor (previous_binder_identifier, updated_subtree)
-                              end                          
+                              end
                             end
                           | UnaryConstructor (previous_binder_identifier, subtree) -> begin
                               if
@@ -865,7 +865,7 @@ module TupleMatching = struct
                             ~data:updated_data
                         end
                       end
-                    in                 
+                    in
                     TC.fold_left
                       ~f:update_table
                       ~init:table
@@ -931,7 +931,7 @@ module TupleMatching = struct
         end
     in
     adorn pattern_tree tuple_subpatterns false
-      
+
 
   let rec build_leveled_match_statements
       (tuple_elements : Ast.Identifier.t list)
@@ -1548,14 +1548,14 @@ let translate_variant_match
   let* pattern_tree =
     TC.fold_left
       cases
-      ~f:(fun tree (pattern, statement) -> TupleMatching.categorize_case location tree [ pattern ] statement)
+      ~f:(fun tree (pattern, statement) -> TupleMatching.adorn_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
   let* result = TupleMatching.build_leveled_match_statements [ matched_identifier ] pattern_tree
   in
   Stdio.print_endline @@ FExpr.to_string @@ Ast.Statement.to_fexpr result;
   TC.return result
-  
+
 
 (*
    We support a small number of specific matching structures.
@@ -1582,7 +1582,7 @@ let translate_tuple_match
           (statement : Ast.Statement.t            ) : TupleMatching.PatternNode.t TC.t
         =
         match pattern with
-        | Tuple subpatterns -> TupleMatching.categorize_case location tree subpatterns statement
+        | Tuple subpatterns -> TupleMatching.adorn_tree location tree subpatterns statement
         | _                 -> TC.fail [%here] "expected tuple pattern"
       in
       let* final_tree =
@@ -1762,16 +1762,16 @@ let translate_unit_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
-  =  
+  =
   match cases with
-  | [ (pattern, statement) ] -> begin      
+  | [ (pattern, statement) ] -> begin
       let* pattern_tree =
         let* tree =
           TupleMatching.build_tuple_pattern_tree
             location
             [ Ast.Type.Unit ]
         in
-        TupleMatching.categorize_case
+        TupleMatching.adorn_tree
           location
           tree
           [ pattern ]
@@ -1798,7 +1798,7 @@ let translate_enum_match
   let* pattern_tree =
     TC.fold_left
       cases
-      ~f:(fun tree (pattern, statement) -> TupleMatching.categorize_case location tree [ pattern ] statement)
+      ~f:(fun tree (pattern, statement) -> TupleMatching.adorn_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
   TupleMatching.build_leveled_match_statements [ matched_identifier ] pattern_tree

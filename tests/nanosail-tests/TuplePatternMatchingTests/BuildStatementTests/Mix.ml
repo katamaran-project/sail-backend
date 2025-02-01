@@ -25,7 +25,7 @@ let test_build_match_for_enum_int =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type; Ast.Type.Int ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");

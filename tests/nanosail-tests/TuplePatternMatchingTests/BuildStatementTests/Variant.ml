@@ -27,7 +27,7 @@ let test_build_match_for_variant_single_nullary_constructor =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(VariantCase (mkid "A1", Pattern.Unit))
@@ -90,7 +90,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(VariantCase (mkid "A1", Pattern.Binder { identifier = mkid "x"; wildcard = true }))
@@ -153,7 +153,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
@@ -222,7 +222,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(VariantCase (mkid "A1", Pattern.Binder { identifier = mkid "x"; wildcard = false }))
@@ -288,7 +288,7 @@ let test_build_match_for_variant_single_unary_constructor =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } ))
@@ -349,7 +349,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = true } ))
@@ -410,7 +410,7 @@ let test_build_match_for_variant_single_binary_constructor =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -484,7 +484,7 @@ let test_build_match_for_variant_two_constructors =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -499,7 +499,7 @@ let test_build_match_for_variant_two_constructors =
             ]
             a1_statement
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -574,7 +574,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -649,7 +649,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -670,7 +670,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
             ]
             b1_statement
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -787,7 +787,7 @@ let test_build_match_for_tuple_of_variants =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -808,7 +808,7 @@ let test_build_match_for_tuple_of_variants =
             ]
             b1_statement
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.(
@@ -928,7 +928,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
       let* pattern_tree =
         let* pattern_tree = build_tuple_pattern_tree [ enum_type_a; enum_type_a; enum_type_a ]
         in
-        let* pattern_tree = categorize
+        let* pattern_tree = adorn
             pattern_tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -975,7 +975,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
                                         )
                                       ]
                                   }
-                                end                                
+                                end
                               )
                             );
                           ]

@@ -25,7 +25,7 @@ let test_build_match_for_enum_1 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1")
@@ -83,14 +83,14 @@ let test_build_match_for_enum_2 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A2")
@@ -153,14 +153,14 @@ let test_build_match_for_enum_3 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true }
@@ -223,14 +223,14 @@ let test_build_match_for_enum_4 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1")
             ]
             a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = false }
@@ -302,7 +302,7 @@ let test_build_match_for_enum_5 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -310,7 +310,7 @@ let test_build_match_for_enum_5 =
             ]
             a1_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -318,7 +318,7 @@ let test_build_match_for_enum_5 =
             ]
             a1_a2_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A2");
@@ -326,7 +326,7 @@ let test_build_match_for_enum_5 =
             ]
             a2_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A2");
@@ -426,7 +426,7 @@ let test_build_match_for_enum_6 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -434,7 +434,7 @@ let test_build_match_for_enum_6 =
             ]
             a1_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -442,7 +442,7 @@ let test_build_match_for_enum_6 =
             ]
             a1_a2_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -450,7 +450,7 @@ let test_build_match_for_enum_6 =
             ]
             a2_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -550,7 +550,7 @@ let test_build_match_for_enum_7 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -558,7 +558,7 @@ let test_build_match_for_enum_7 =
             ]
             a1_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -661,7 +661,7 @@ let test_build_match_for_enum_8 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type; enum_type ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = false };
@@ -669,7 +669,7 @@ let test_build_match_for_enum_8 =
             ]
             a1_a1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "x"; wildcard = true };
@@ -779,7 +779,7 @@ let test_build_match_for_enum_9 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ enum_type_a; enum_type_b ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -787,7 +787,7 @@ let test_build_match_for_enum_9 =
             ]
             a1_b1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A1");
@@ -795,7 +795,7 @@ let test_build_match_for_enum_9 =
             ]
             a1_b2_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A2");
@@ -803,7 +803,7 @@ let test_build_match_for_enum_9 =
             ]
             a2_b1_statement
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.EnumCase (mkid "A2");

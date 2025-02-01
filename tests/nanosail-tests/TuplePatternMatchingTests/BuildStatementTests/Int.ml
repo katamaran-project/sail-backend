@@ -22,7 +22,7 @@ let test_build_match_for_int_1 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = true }
@@ -67,7 +67,7 @@ let test_build_match_for_int_2 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ Ast.Type.Int ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = false }
@@ -112,7 +112,7 @@ let test_build_match_for_int_int_1 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = true };
@@ -163,7 +163,7 @@ let test_build_match_for_int_int_2 =
       let* tree =
         let* tree = build_tuple_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
         in
-        let* tree = categorize
+        let* tree = adorn
             tree
             [
               Pattern.Binder { identifier = mkid "n"; wildcard = false };
