@@ -15,6 +15,8 @@ open Shared
 
 let test_build_match_for_variant_single_nullary_constructor =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [])]
@@ -47,7 +49,7 @@ let test_build_match_for_variant_single_nullary_constructor =
                 (
                   mkid "A1",
                   (
-                    [],
+                    [ gen#id ],
                     a1_statement
                   )
                 )
@@ -77,6 +79,8 @@ let test_build_match_for_variant_single_nullary_constructor =
 
 let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [])]
@@ -109,7 +113,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
                 (
                   mkid "A1",
                   (
-                    [],
+                    [gen#id],
                     a1_statement
                   )
                 )
@@ -139,6 +143,8 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
 
 let test_build_match_for_variant_single_nullary_constructor_wildcard =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [])]
@@ -171,7 +177,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
                 (
                   mkid "A1",
                   (
-                    [],
+                    [gen#id],
                     a1_statement
                   )
                 )
@@ -207,6 +213,8 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
 
 let test_build_match_for_variant_single_nullary_constructor_field_binder =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [])]
@@ -239,7 +247,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
                 (
                   mkid "A1",
                   (
-                    [],
+                    [gen#id],
                     Ast.Statement.Let {
                       variable_identifier    = mkid "x";
                       binding_statement_type = Ast.Type.Unit;
@@ -635,6 +643,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
 
 let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
@@ -716,14 +726,14 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
                             (
                               mkid "B1",
                               (
-                                [],
+                                [gen#id],
                                 b1_statement
                               )
                             );
                             (
                               mkid "B2",
                               (
-                                [],
+                                [gen#id],
                                 b2_statement
                               )
                             )
@@ -773,6 +783,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
 
 let test_build_match_for_tuple_of_variants =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
@@ -854,14 +866,14 @@ let test_build_match_for_tuple_of_variants =
                             (
                               mkid "B1",
                               (
-                                [],
+                                [gen#id],
                                 b1_statement
                               )
                             );
                             (
                               mkid "B2",
                               (
-                                [],
+                                [gen#id],
                                 b2_statement
                               )
                             )
