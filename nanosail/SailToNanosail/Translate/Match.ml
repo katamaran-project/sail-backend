@@ -540,40 +540,6 @@ let translate_list_match
   | _ -> TC.not_yet_implemented [%here] location
 
 
-let translate_unit_match
-    (_location           : S.l                               )
-    (_matched_identifier : Ast.Identifier.t                  )
-    (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
-  =
-  match cases with
-  | [ (Pattern.Binder { identifier = binding_identifier; _ }, body) ] -> begin
-      (*
-         We're dealing with
-
-           match unit-value {
-             x => bla(x)
-           }
-
-        I.e., the pattern is a binder (x) and this binder is being used in the body (bla(x)).
-        We translate this to
-
-         let x = () in bla(x)
-      *)
-      TC.return begin
-        Ast.Statement.Let {
-          variable_identifier    = binding_identifier;
-          binding_statement_type = Ast.Type.Unit;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-          body_statement         = body
-        }
-      end
-    end
-  | [ (Pattern.Unit, body) ]     -> TC.return body
-  | [ (pattern, _) ]             -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
-  | []                           -> TC.fail [%here] "expected exactly one pattern; got zero"
-  | _ :: _ :: _                  -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
-
-
 let translate_enum_match
     (_location          : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
@@ -2073,6 +2039,40 @@ let translate_tuple_match
     translate_tuple_of_binders;
     translate_pair_of_variants;
   ]
+
+
+let translate_unit_match
+    (_location           : S.l                               )
+    (_matched_identifier : Ast.Identifier.t                  )
+    (cases               : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+  =
+  match cases with
+  | [ (Pattern.Binder { identifier = binding_identifier; _ }, body) ] -> begin
+      (*
+         We're dealing with
+
+           match unit-value {
+             x => bla(x)
+           }
+
+        I.e., the pattern is a binder (x) and this binder is being used in the body (bla(x)).
+        We translate this to
+
+         let x = () in bla(x)
+      *)
+      TC.return begin
+        Ast.Statement.Let {
+          variable_identifier    = binding_identifier;
+          binding_statement_type = Ast.Type.Unit;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+          body_statement         = body
+        }
+      end
+    end
+  | [ (Pattern.Unit, body) ]     -> TC.return body
+  | [ (pattern, _) ]             -> TC.fail [%here] @@ Printf.sprintf "unexpected pattern %s" (FExpr.to_string @@ Pattern.to_fexpr pattern)
+  | []                           -> TC.fail [%here] "expected exactly one pattern; got zero"
+  | _ :: _ :: _                  -> TC.fail [%here] @@ Printf.sprintf "expected exactly one pattern; got %d" (List.length cases)
 
 
 let translate
