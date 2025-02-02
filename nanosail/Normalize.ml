@@ -328,9 +328,9 @@ module Implementation = struct
           let* normalized_pairs =
             let normalize_pair
                 (constructor_identifier : Ast.Identifier.t                              )
-                (data                   : PatternTree.variant_table_data * PatternTree.t) : (Ast.Identifier.t * (PatternTree.variant_table_data * PatternTree.t)) Monad.t
+                (data                   : PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (PatternTree.variant_binders * PatternTree.t)) Monad.t
               =
-              let* data : PatternTree.variant_table_data * PatternTree.t =
+              let* data : PatternTree.variant_binders * PatternTree.t =
                 match data with
                 | NullaryConstructor binder, subtree -> begin
                     let* binder  = normalize_binder binder

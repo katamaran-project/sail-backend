@@ -168,7 +168,7 @@ end
 module PatternTree = struct
   type t =
     | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t;    }
-    | Variant    of { variant_identifier : Ast.Identifier.t; table : (variant_table_data * t) Ast.Identifier.Map.t }
+    | Variant    of { variant_identifier : Ast.Identifier.t; table : (variant_binders * t) Ast.Identifier.Map.t }
     | Atomic     of Ast.Type.t * Binder.t * t
     | Terminal   of Ast.Statement.t option
 
@@ -179,7 +179,7 @@ module PatternTree = struct
       * unary constructors take the one value as field
       * n-ary constructors take a single tuple containing all fields
   *)
-  and variant_table_data =
+  and variant_binders =
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t      
     | NAryConstructor    of Binder.t list    (* one binder per field *)
@@ -220,15 +220,15 @@ module PatternTree = struct
         match node_2 with
         | Variant { variant_identifier = variant_identifier_2; table = table_2 } -> begin
             let variant_table_data_equality
-                ((data_1, subtree_1) : variant_table_data * t)
-                ((data_2, subtree_2) : variant_table_data * t) : bool
+                ((binders_1, subtree_1) : variant_binders * t)
+                ((binders_2, subtree_2) : variant_binders * t) : bool
               =
               equal
                 subtree_1
                 subtree_2
               &&
               begin
-                match data_1, data_2 with
+                match binders_1, binders_2 with
                 | NullaryConstructor binder_1, NullaryConstructor binder_2 -> begin
                     Binder.equal
                       binder_1
@@ -329,9 +329,9 @@ module PatternTree = struct
             );
             (
               "table",
-              let fexpr_of_table_entry ((data, subtree) : variant_table_data * t) : FExpr.t =
+              let fexpr_of_table_entry ((binders, subtree) : variant_binders * t) : FExpr.t =
                 let fexpr_of_data =
-                  match data with
+                  match binders with
                   | NullaryConstructor binder -> begin
                       let positional =
                         [
@@ -445,12 +445,12 @@ let rec build_empty_pattern_tree
     let* variant_definition =
       TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
     in
-    let* table : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t =
+    let* table : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
       let add_to_table
-          (table                                 : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t)
-          ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                                   ) : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t TC.t
+          (table                                 : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
+          ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                                   ) : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
         =
-        let* data : PatternTree.variant_table_data * PatternTree.t =
+        let* data : PatternTree.variant_binders * PatternTree.t =
           match List.length field_types with
           | 0 -> let* binder = Binder.generate_wildcard in TC.return (PatternTree.NullaryConstructor binder, subtree)
           | 1 -> let* binder = Binder.generate_wildcard in TC.return (PatternTree.UnaryConstructor   binder, subtree)
@@ -529,7 +529,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
     end
 
   | Variant { table; _ } -> begin
-      let values : (PatternTree.variant_table_data * PatternTree.t) list =
+      let values : (PatternTree.variant_binders * PatternTree.t) list =
         Ast.Identifier.Map.data table
       in
       let subtrees : PatternTree.t list =
@@ -647,7 +647,7 @@ let adorn_pattern_tree
                        <constructor_identifier>(<field_pattern>) => ...
                      }
                 *)
-                let* updated_table : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t =
+                let* updated_table : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
                   match Ast.Identifier.Map.find_exn table constructor_identifier with (* todo factor out updating table *)
                   | NullaryConstructor old_binder, subtree -> begin
                       let* new_binder : Binder.t =
@@ -786,8 +786,8 @@ let adorn_pattern_tree
                 in
                 let* updated_table =
                   let update_table
-                      (table                                  : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t)
-                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                   ) : (PatternTree.variant_table_data * PatternTree.t) Ast.Identifier.Map.t TC.t
+                      (table                                  : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
+                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                ) : (PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
                     =
                     if
                       not pattern_binder_wildcard
@@ -813,7 +813,7 @@ let adorn_pattern_tree
                       *)
                       TC.not_yet_implemented [%here] location
                     else begin
-                      let data : PatternTree.variant_table_data * PatternTree.t =
+                      let data : PatternTree.variant_binders * PatternTree.t =
                         Ast.Identifier.Map.find_exn table constructor_identifier
                       in
                       let* updated_data =
@@ -1017,13 +1017,13 @@ let rec build_leveled_match_statements
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_tuple_element :: remaining_tuple_elements -> begin
           let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
-            let table_pairs : (Ast.Identifier.t * (PatternTree.variant_table_data * PatternTree.t)) list =
+            let table_pairs : (Ast.Identifier.t * (PatternTree.variant_binders * PatternTree.t)) list =
               Ast.Identifier.Map.to_alist table
             in
             let* statement_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
               let build_statement_pair
                   (constructor_identifier : Ast.Identifier.t                              )
-                  (data                   : PatternTree.variant_table_data * PatternTree.t) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                  (data                   : PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                 =
                 match data with
                 | NullaryConstructor field_binder, subtree -> begin
