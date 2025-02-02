@@ -43,7 +43,7 @@ let test_adorn_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                PN.UnaryConstructor (mkbinder "x", PN.Terminal (Some a1_statement))
+                (PN.UnaryConstructor (mkbinder "x"), PN.Terminal (Some a1_statement))
               );
             ]
         }
