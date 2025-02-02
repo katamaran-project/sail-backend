@@ -327,11 +327,9 @@ module Implementation = struct
           in
           let* normalized_pairs =
             let normalize_pair
-                (constructor_identifier : Ast.Identifier.t                                      )
-                (data                   : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Binder.t * PatternTree.variant_binders * PatternTree.t)) Monad.t
+                (constructor_identifier           : Ast.Identifier.t                                      )
+                ((binder, field_binders, subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Binder.t * PatternTree.variant_binders * PatternTree.t)) Monad.t
               =
-              let binder, field_binders, subtree = data
-              in
               let* binder        = normalize_binder binder
               and* subtree       = normalize_pattern_tree subtree
               and* field_binders =
