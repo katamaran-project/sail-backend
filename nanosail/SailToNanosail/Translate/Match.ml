@@ -1040,6 +1040,20 @@ let rec build_leveled_match_statements
                       then
                         substatement
                       else
+                        (*
+                           Sail rewrites sometimes produce
+
+                             union A = {
+                               A : unit
+                             }
+                           
+                             match A_value {
+                               A(var) => func(var)
+                             }
+
+                           where var is bound to unit.
+                           In other words, Sail wants to "recycle" the same unit value found in the variant value.
+                        *)
                         Ast.Statement.Let {
                           variable_identifier    = field_binder.identifier;
                           binding_statement_type = Ast.Type.Unit;
