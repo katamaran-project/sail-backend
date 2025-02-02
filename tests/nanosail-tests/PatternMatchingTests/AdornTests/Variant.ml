@@ -33,7 +33,7 @@ let test_adorn_variant_single_unary_constructor =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } ))
+              Pattern.(VariantCase (mkid "A1", Binder (mkbinder "x") ))
             ]
             a1_statement
         in
