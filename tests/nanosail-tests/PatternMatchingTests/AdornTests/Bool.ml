@@ -41,11 +41,12 @@ let test_adorn_bool_1 =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Bool {
-          binder     = gen#wildcard;
-          when_true  = None;
-          when_false = None
-        }
+        TM.PatternTree.Bool begin
+          TM.PatternTree.SeparateBoolCases {
+            when_true = TM.PatternTree.Terminal (Some true_statement);
+            when_false = TM.PatternTree.Terminal (Some false_statement)
+          }
+        end
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
