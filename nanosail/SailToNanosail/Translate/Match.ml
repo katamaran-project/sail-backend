@@ -768,7 +768,7 @@ let adorn_pattern_tree
                   }
                 end
               end
-            | Binder { identifier = _pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin
+            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin (* todo don't destructure, instead use "binder" *)
                 (*
                    Example context:
 
@@ -792,9 +792,12 @@ let adorn_pattern_tree
                       (table                                  : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
                       ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
                     =
+                    let data : Binder.t * PatternTree.variant_binders * PatternTree.t =
+                      Ast.Identifier.Map.find_exn table constructor_identifier
+                    in
                     if
                       not pattern_binder_wildcard
-                    then
+                    then begin
                       (*
                          Example context:
 
@@ -807,19 +810,31 @@ let adorn_pattern_tree
                            }
 
                          In other words, we're using 'x' to match with the variant's value.
-                         The current implementation does not support this case and
-                         we expect the original code to be manually adapted to
-
-                           match A_value {
-                             _ => let x = A_value in ...
-                           }
                       *)
-                      TC.not_yet_implemented [%here] location
-                    else begin
-                      let data : Binder.t * PatternTree.variant_binders * PatternTree.t =
-                        Ast.Identifier.Map.find_exn table constructor_identifier
+                      let _old_binder, old_field_binders, old_subtree = data
                       in
+                      let* new_subtree =
+                        adorn old_subtree remaining_subpatterns true
+                      in
+                      let new_binder : Binder.t =
+                        (* todo use Binder.unify instead *)
+                        { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard }
+                      in
+                      let new_field_binders =
+                        old_field_binders
+                      in
+                      let new_data =
+                        (new_binder, new_field_binders, new_subtree)
+                      in
+                      TC.return begin
+                        Ast.Identifier.Map.overwrite
+                          table
+                          ~key:constructor_identifier
+                          ~data:new_data
+                      end
+                    end else begin
                       let* updated_data =
+                        (* todo refactor *)
                         match data with
                         | binder, NullaryConstructor previous_field_binder, subtree -> begin
                             if
