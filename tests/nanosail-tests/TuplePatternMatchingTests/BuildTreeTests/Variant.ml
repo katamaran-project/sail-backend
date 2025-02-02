@@ -28,7 +28,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (PN.UnaryConstructor gen#wildcard, PN.Terminal None)
+                (gen#wildcard, PN.UnaryConstructor gen#wildcard, PN.Terminal None)
               );
             ]
         }

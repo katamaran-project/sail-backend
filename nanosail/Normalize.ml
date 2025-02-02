@@ -327,30 +327,35 @@ module Implementation = struct
           in
           let* normalized_pairs =
             let normalize_pair
-                (constructor_identifier : Ast.Identifier.t                              )
-                (data                   : PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (PatternTree.variant_binders * PatternTree.t)) Monad.t
+                (constructor_identifier : Ast.Identifier.t                                      )
+                (data                   : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Binder.t * PatternTree.variant_binders * PatternTree.t)) Monad.t
               =
-              let* data : PatternTree.variant_binders * PatternTree.t =
+              let* data : Binder.t * PatternTree.variant_binders * PatternTree.t =
+                (* todo refactor *)
                 match data with
-                | NullaryConstructor binder, subtree -> begin
-                    let* binder  = normalize_binder binder
-                    and* subtree = normalize_pattern_tree subtree
-                     in
-                     return (PatternTree.NullaryConstructor binder, subtree)
+                | binder, NullaryConstructor field_binder, subtree -> begin
+                    let* binder       = normalize_binder binder
+                    and* field_binder = normalize_binder field_binder
+                    and* subtree      = normalize_pattern_tree subtree
+                    in
+                    return (binder, PatternTree.NullaryConstructor field_binder, subtree)
                    end
-                | UnaryConstructor binder, subtree -> begin
-                    let* binder  = normalize_binder binder
-                    and* subtree = normalize_pattern_tree subtree
-                     in
-                     return (PatternTree.UnaryConstructor binder, subtree)
+                | binder, UnaryConstructor field_binder, subtree -> begin
+                    let* binder       = normalize_binder binder
+                    and* field_binder = normalize_binder field_binder
+                    and* subtree      = normalize_pattern_tree subtree
+                    in
+                    return (binder, PatternTree.UnaryConstructor field_binder, subtree)
                    end
-                | NAryConstructor field_binders, subtree -> begin
-                    let* field_binders =
+                | binder, NAryConstructor field_binders, subtree -> begin
+                    let* binder =
+                      normalize_binder binder
+                    and* field_binders =
                       map ~f:normalize_binder field_binders
                     and* subtree =
                       normalize_pattern_tree subtree
                     in
-                    return (PatternTree.NAryConstructor field_binders, subtree)
+                    return (binder, PatternTree.NAryConstructor field_binders, subtree)
                   end
               in
               return (constructor_identifier, data)

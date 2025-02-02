@@ -18,6 +18,8 @@ open Shared
 
 let test_adorn_variant_single_unary_constructor =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
@@ -43,7 +45,7 @@ let test_adorn_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (PN.UnaryConstructor (mkbinder "x"), PN.Terminal (Some a1_statement))
+                (gen#wildcard, PN.UnaryConstructor (mkbinder "x"), PN.Terminal (Some a1_statement))
               );
             ]
         }
