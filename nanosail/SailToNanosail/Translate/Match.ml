@@ -151,11 +151,13 @@ module Pattern = struct
 
     | Unit -> FExpr.mk_symbol @@ head "Unit"
 
+
   let is_binder (pattern : t) : bool =
     match pattern with
      | Binder _ -> true
      | _        -> false
 
+  
   let identifier_of_binder (pattern : t) : Ast.Identifier.t =
     match pattern with
     | Binder { identifier; _ } -> identifier
