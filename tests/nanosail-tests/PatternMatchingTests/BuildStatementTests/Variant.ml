@@ -156,7 +156,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = true }
+              Pattern.Binder gen#wildcard
             ]
             a1_statement
         in
