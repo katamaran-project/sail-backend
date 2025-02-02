@@ -197,13 +197,13 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
       }
 
       match value {
-        x => read_register r1,
+        _ => read_register r1,
       }
 
     should become
 
       match value {
-        A1 () => read_register r1
+        A1(_) => read_register r1
       }
   |} >:: test
 
