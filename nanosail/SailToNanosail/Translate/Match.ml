@@ -1025,27 +1025,26 @@ let rec build_leveled_match_statements
             in
             let* statement_pairs : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) list =
               let build_statement_pair
-                  (constructor_identifier : Ast.Identifier.t                                      )
-                  (data                   : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
+                  (constructor_identifier           : Ast.Identifier.t                                      )
+                  ((binder, field_binders, subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                 =
-                (* todo refactor this *)
                 (* todo produce code involving binder *)
-                match data with
-                | _binder, NullaryConstructor field_binder, subtree -> begin
-                    let* statement =
-                      build_leveled_match_statements remaining_tuple_elements subtree
-                    in
+                let* substatement =
+                  build_leveled_match_statements remaining_tuple_elements subtree
+                in
+                match field_binders with
+                | NullaryConstructor field_binder -> begin
                     let statement =
                       if
                         field_binder.wildcard
                       then
-                        statement
+                        substatement
                       else
                         Ast.Statement.Let {
                           variable_identifier    = field_binder.identifier;
                           binding_statement_type = Ast.Type.Unit;
                           binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-                          body_statement         = statement;
+                          body_statement         = substatement;
                         }
                     in
                     let* binder_for_unit =
@@ -1053,20 +1052,14 @@ let rec build_leveled_match_statements
                     in
                     TC.return (constructor_identifier, ([binder_for_unit], statement))
                   end
-                | _binder, UnaryConstructor field_binder, subtree -> begin
-                    let* statement =
-                      build_leveled_match_statements remaining_tuple_elements subtree
-                    in
-                    TC.return (constructor_identifier, ([field_binder.identifier], statement))
+                | UnaryConstructor field_binder -> begin
+                    TC.return (constructor_identifier, ([field_binder.identifier], substatement))
                   end
-                | _binder, NAryConstructor field_binders, subtree -> begin
+                | NAryConstructor field_binders -> begin
                     let field_binder_identifiers : Ast.Identifier.t list =
                       List.map ~f:(fun (binder : Binder.t) -> binder.identifier) field_binders
                     in
-                    let* statement =
-                      build_leveled_match_statements remaining_tuple_elements subtree
-                    in
-                    TC.return (constructor_identifier, (field_binder_identifiers, statement))
+                    TC.return (constructor_identifier, (field_binder_identifiers, substatement))
                   end
               in
               TC.map table_pairs ~f:(Auxlib.uncurry build_statement_pair)
