@@ -1,7 +1,5 @@
 open OUnit2
 
-module TuplePatternMatchingTests = TuplePatternMatchingTests
-
 
 let tests =
   "all tests" >::: [
@@ -11,7 +9,7 @@ let tests =
     ExtendedIntegerTests.test_suite;
     ConvertBitsToZTests.test_suite;
     NumericExpressionPrettyPrintingTests.test_suite;
-    TuplePatternMatchingTests.test_suite;
+    PatternMatchingTests.test_suite;
     NormalizationTests.test_suite;
   ]
 
