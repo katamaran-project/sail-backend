@@ -90,6 +90,7 @@ module Pattern = struct
     | Tuple       of t list
     | EnumCase    of Ast.Identifier.t
     | VariantCase of Ast.Identifier.t * t
+    | BoolCase    of bool
     | Binder      of Binder.t
     | Unit
 
@@ -135,6 +136,14 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
+      
+    | BoolCase value -> begin
+        let positional = [
+          FExpr.mk_bool value
+        ]
+        in
+        FExpr.mk_application ~positional @@ head "BoolCase"
+      end
 
     | Binder { identifier; wildcard } -> begin
         let positional =
@@ -170,6 +179,7 @@ module PatternTree = struct
     | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t;    }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
     | Atomic     of Ast.Type.t * Binder.t * t
+    | Bool       of bool_binders
     | Terminal   of Ast.Statement.t option
 
   (*
@@ -184,6 +194,9 @@ module PatternTree = struct
     | UnaryConstructor   of Binder.t      
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
+  and bool_binders =
+    | SingleBoolCase    of Binder.t * t
+    | SeparateBoolCases of { when_true : t; when_false : t }
 
   let rec equal
       (node_1 : t)
@@ -212,6 +225,40 @@ module PatternTree = struct
             Ast.Identifier.Map.equal table_entry_equality
               table_1
               table_2
+          end
+        | _ -> false
+      end
+
+    | Bool binders_1 -> begin
+        match node_2 with
+        | Bool binders_2 -> begin
+            match binders_1 with
+            | SingleBoolCase (binder_1, subtree_1) -> begin
+                match binders_2 with
+                | SingleBoolCase (binder_2, subtree_2) -> begin
+                    Binder.equal
+                      binder_1
+                      binder_2
+                    &&
+                    equal
+                      subtree_1
+                      subtree_2
+                  end
+                | _ -> false
+              end
+            | SeparateBoolCases { when_true = when_true_1; when_false = when_false_1 } -> begin
+                match binders_2 with
+                | SeparateBoolCases { when_true = when_true_2; when_false = when_false_2 } -> begin
+                    equal
+                      when_true_1
+                      when_true_2
+                    &&
+                    equal
+                      when_false_1
+                      when_false_2
+                  end
+                | _ -> false
+              end
           end
         | _ -> false
       end
@@ -322,6 +369,32 @@ module PatternTree = struct
           ]
         in
         FExpr.mk_application ~keyword @@ mk_head "Enum"
+      end
+
+    | Bool binders -> begin
+        let positional = [
+          match binders with
+          | SingleBoolCase (binder, subtree) -> begin
+              let keyword =
+                [
+                  ("binder", Binder.to_fexpr binder);
+                  ("subtree", to_fexpr subtree);
+                ]
+              in
+              FExpr.mk_application ~keyword "Single"
+            end
+          | SeparateBoolCases { when_true; when_false } -> begin
+              let keyword =
+                [
+                  ("true", to_fexpr when_true);
+                  ("false", to_fexpr when_false);
+                ]
+              in
+              FExpr.mk_application ~keyword "Separate"
+            end
+        ]
+        in
+        FExpr.mk_application ~positional @@ mk_head "Bool"
       end
 
     | Variant { variant_identifier; table } -> begin
@@ -556,6 +629,14 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       List.exists subtrees ~f:contains_gap
     end
 
+  | Bool (SingleBoolCase (_, subtree)) -> begin
+      contains_gap subtree
+    end
+
+  | Bool (SeparateBoolCases { when_true; when_false }) -> begin
+      contains_gap when_true || contains_gap when_false
+    end
+
   | Atomic (_, _, subtree) -> contains_gap subtree
   | Terminal statement     -> Option.is_none statement
 
@@ -578,6 +659,66 @@ let adorn_pattern_tree
       TC.fail location "pattern is incompatible with type of value being matched"
     in
     match pattern_tree with
+    | Bool bindings -> begin
+        match tuple_subpatterns with
+        | first_subpattern :: remaining_subpatterns -> begin
+            match first_subpattern with
+            | BoolCase b -> begin
+                match bindings with
+                | SingleBoolCase (_binder, _subtree) -> begin
+                    (*
+                       Example context
+
+                         match boolean_value {
+                           _    => ...,
+                           true => ...
+                         }
+
+                       We do not support this case.
+                       This situation possibly occurs when it is combined with other patterns, such as
+
+                         match boolean_value_1, boolean_value_2 {
+                           _    , true  => ...,
+                           false, false => ...,
+                           true , false => ...
+                         }
+                    *)
+                    TC.not_yet_implemented [%here] location
+                  end
+                | SeparateBoolCases { when_true; when_false } -> begin
+                    if
+                      b
+                    then
+                      let* when_true =
+                        adorn when_true remaining_subpatterns gap_filling
+                      in
+                      TC.return begin
+                        PatternTree.Bool begin
+                          PatternTree.SeparateBoolCases { when_true; when_false }
+                        end
+                      end
+                    else
+                      let* when_false =
+                        adorn when_false remaining_subpatterns gap_filling
+                      in
+                      TC.return begin
+                        PatternTree.Bool begin
+                          PatternTree.SeparateBoolCases { when_true; when_false }
+                        end
+                      end
+                  end
+              end
+            | Binder _           -> TC.not_yet_implemented [%here] location
+            | ListCons (_, _)    -> invalid_pattern [%here]
+            | ListNil            -> invalid_pattern [%here]
+            | Tuple _            -> invalid_pattern [%here]
+            | EnumCase _         -> invalid_pattern [%here]
+            | VariantCase (_, _) -> invalid_pattern [%here]
+            | Unit               -> invalid_pattern [%here]
+          end
+        | _ -> invalid_number_of_subpatterns [%here]
+      end
+    
     | Enum { enum_identifier; table } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
@@ -649,6 +790,7 @@ let adorn_pattern_tree
             | ListNil            -> invalid_pattern [%here]
             | Tuple _            -> invalid_pattern [%here]
             | VariantCase (_, _) -> invalid_pattern [%here]
+            | BoolCase _         -> invalid_pattern [%here]
           end
         | [] -> invalid_number_of_subpatterns [%here]
       end
@@ -684,6 +826,7 @@ let adorn_pattern_tree
                           | Tuple _               -> invalid_pattern [%here]
                           | EnumCase _            -> invalid_pattern [%here]
                           | VariantCase (_, _)    -> invalid_pattern [%here]
+                          | BoolCase _            -> invalid_pattern [%here]
                         in
                         TC.return @@ PatternTree.NullaryConstructor new_field_binder
                       end
@@ -697,6 +840,7 @@ let adorn_pattern_tree
                           | Tuple _               -> invalid_pattern [%here]
                           | EnumCase _            -> invalid_pattern [%here]
                           | VariantCase (_, _)    -> invalid_pattern [%here]
+                          | BoolCase _            -> invalid_pattern [%here]
                         in
                         TC.return @@ PatternTree.UnaryConstructor new_field_binder
                       end
@@ -743,6 +887,7 @@ let adorn_pattern_tree
                           | EnumCase _         -> invalid_pattern [%here]
                           | VariantCase (_, _) -> invalid_pattern [%here]
                           | Unit               -> invalid_pattern [%here]
+                          | BoolCase _         -> invalid_pattern [%here]
                         in
                         let* unified_field_binders =
                           TC.map ~f:(Auxlib.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
@@ -826,6 +971,7 @@ let adorn_pattern_tree
                 end
               end
             | EnumCase _         -> invalid_pattern [%here]
+            | BoolCase _         -> invalid_pattern [%here]
             | Unit               -> invalid_pattern [%here]
             | ListCons (_, _)    -> invalid_pattern [%here]
             | ListNil            -> invalid_pattern [%here]
@@ -891,6 +1037,46 @@ let rec build_leveled_match_statements
     TC.return @@ Ast.Statement.Fail "incomplete matching"
   in
   match pattern_tree with
+  | Bool bindings -> begin
+      match matched_identifiers with
+      | [] -> invalid_number_of_tuple_elements [%here]
+      | first_matched_identifier :: remaining_matched_identifiers -> begin
+          match bindings with
+          | SingleBoolCase (binder, subtree) -> begin
+              let* substatement =
+                build_leveled_match_statements remaining_matched_identifiers subtree
+              in
+              if
+                not binder.wildcard
+              then
+                TC.return begin
+                  Ast.Statement.Let {
+                    variable_identifier    = binder.identifier;
+                    binding_statement_type = Ast.Type.Bool;
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, Ast.Type.Bool));
+                    body_statement         = substatement;
+                  }
+                end
+              else
+                TC.return substatement
+            end
+          | SeparateBoolCases { when_true; when_false } -> begin
+              let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true
+              and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false
+              in
+              TC.return begin
+                Ast.Statement.Match begin
+                  Ast.Statement.MatchBool {
+                    condition = first_matched_identifier;
+                    when_true;
+                    when_false;
+                  }
+                end
+              end
+            end
+        end
+    end
+    
   | Enum { enum_identifier; table } -> begin
       let enum_type = Ast.Type.Enum enum_identifier
       in
@@ -1149,6 +1335,7 @@ let consistent_binders
   | ListNil            -> false
   | Tuple _            -> false
   | EnumCase _         -> false
+  | BoolCase _         -> false
   | VariantCase (_, _) -> false
   | Unit               -> false (* todo might need more nuanced logic *)
   | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
@@ -1426,6 +1613,7 @@ let translate_list_match
       | Binder _           -> 0
       | Tuple _            -> fail ()
       | EnumCase _         -> fail ()
+      | BoolCase _         -> fail ()
       | VariantCase (_, _) -> fail ()
       | Unit               -> fail ()
 

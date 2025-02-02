@@ -299,6 +299,30 @@ module Implementation = struct
       return binder
     in
     match tree with
+    | Bool binders -> begin
+        match binders with
+        | SingleBoolCase (binder, subtree) -> begin
+            let* binder  = normalize_binder binder
+            and* subtree = normalize_pattern_tree subtree
+            in
+            return begin
+              PatternTree.Bool begin
+                PatternTree.SingleBoolCase (binder, subtree)
+              end
+            end
+          end
+        | SeparateBoolCases { when_true; when_false } -> begin
+            let* when_true  = normalize_pattern_tree when_true
+            and* when_false = normalize_pattern_tree when_false
+            in
+            return begin
+              PatternTree.Bool begin
+                PatternTree.SeparateBoolCases { when_true; when_false }
+              end
+            end
+          end
+      end
+      
     | Enum { enum_identifier; table } -> begin
         let* table =
           let pairs =
