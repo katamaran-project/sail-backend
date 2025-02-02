@@ -119,7 +119,7 @@ let test_adorn_variant_wildcard =
       }
 
       match value1 {
-        x => read_register r1,
+        _ => read_register r1,
       }
   |} >:: test
 
