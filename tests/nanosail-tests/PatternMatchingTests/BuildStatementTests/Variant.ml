@@ -214,6 +214,80 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
   |} >:: test
 
 
+let test_build_match_for_variant_single_nullary_constructor_binder =
+  let test _ =
+    let gen = new generator
+    in
+    let tc =
+      let* enum_type =
+        define_variant "A" [("A1", [])]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* pattern_tree =
+        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        in
+        let* pattern_tree = adorn
+            pattern_tree
+            [
+              Pattern.Binder (mkbinder "x")
+            ]
+            a1_statement
+        in
+        TC.return pattern_tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "value"] pattern_tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchVariant {
+            matched = mkid "value";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  (
+                    [gen#id],
+                    Ast.Statement.Let {
+                      variable_identifier    = mkid "x";
+                      binding_statement_type = enum_type;
+                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", enum_type));
+                      body_statement         = a1_statement;
+                    }
+                  )
+                )
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      union A = {
+        A1 : unit
+      }
+
+      match value {
+        x => read_register r1,
+      }
+
+    should become
+
+      match value {
+        A1(_) => let x = value in read_register r1
+      }
+  |} >:: test
+
+
 let test_build_match_for_variant_single_nullary_constructor_field_binder =
   let test _ =
     let gen = new generator
@@ -1028,6 +1102,7 @@ let test_suite =
     test_build_match_for_variant_single_nullary_constructor;
     test_build_match_for_variant_single_nullary_constructor_field_wildcard;
     test_build_match_for_variant_single_nullary_constructor_wildcard;
+    test_build_match_for_variant_single_nullary_constructor_binder;
     test_build_match_for_variant_single_nullary_constructor_field_binder;
     test_build_match_for_variant_single_unary_constructor;
     test_build_match_for_variant_single_unary_constructor_field_wildcard;
