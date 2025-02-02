@@ -768,7 +768,7 @@ let adorn_pattern_tree
                   }
                 end
               end
-            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin (* todo don't destructure, instead use "pattern_binder" *)
+            | Binder pattern_binder -> begin
                 (*
                    Example context:
 
@@ -794,9 +794,6 @@ let adorn_pattern_tree
                     =
                     let (old_binder, old_field_binders, old_subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t =
                       Ast.Identifier.Map.find_exn table constructor_identifier
-                    in
-                    let pattern_binder : Binder.t = (* todo should become useless once the line above is fixed *)
-                      { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard }
                     in
                     let* new_binder =
                       Binder.unify old_binder pattern_binder
