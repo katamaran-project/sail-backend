@@ -87,7 +87,7 @@ let test_adorn_variant_wildcard =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder (mkwild "x");
+              Pattern.Binder gen#wildcard;
             ]
             a1_statement
         in
