@@ -768,7 +768,7 @@ let adorn_pattern_tree
                   }
                 end
               end
-            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin (* todo don't destructure, instead use "binder" *)
+            | Binder { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard } -> begin (* todo don't destructure, instead use "pattern_binder" *)
                 (*
                    Example context:
 
@@ -794,89 +794,23 @@ let adorn_pattern_tree
                     =
                     let (old_binder, old_field_binders, old_subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t =
                       Ast.Identifier.Map.find_exn table constructor_identifier
-                    in                    
-                    if
-                      not pattern_binder_wildcard
-                    then begin
-                      (*
-                         Example context:
-
-                           union A = {
-                             A1 : whatever
-                           }
-
-                           match A_value {
-                             x => ...
-                           }
-
-                         In other words, we're using 'x' to match with the variant's value.
-                      *)
-                      let* new_subtree =
-                        adorn old_subtree remaining_subpatterns true
-                      in
-                      let new_binder : Binder.t =
-                        (* todo use Binder.unify instead *)
-                        { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard }
-                      in
-                      let new_field_binders =
-                        old_field_binders
-                      in
-                      let new_data =
-                        (new_binder, new_field_binders, new_subtree)
-                      in
-                      TC.return begin
-                        Ast.Identifier.Map.overwrite
-                          table
-                          ~key:constructor_identifier
-                          ~data:new_data
-                      end
-                    end else begin
-                      let* updated_data =
-                        (* todo refactor *)
-                        match old_field_binders with
-                        | NullaryConstructor old_field_binder -> begin
-                            if
-                              not @@ contains_gap old_subtree
-                            then
-                              TC.return (old_binder, old_field_binders, old_subtree)
-                            else begin
-                              let* new_subtree =
-                                adorn old_subtree remaining_subpatterns true
-                              in
-                              TC.return (old_binder, PatternTree.NullaryConstructor old_field_binder, new_subtree)
-                            end
-                          end
-                        | UnaryConstructor old_field_binder -> begin
-                            if
-                              not @@ contains_gap old_subtree
-                            then
-                              TC.return (old_binder, old_field_binders, old_subtree)
-                            else begin
-                              let* new_subtree =
-                                adorn old_subtree remaining_subpatterns true
-                              in
-                              TC.return (old_binder, PatternTree.UnaryConstructor old_field_binder, new_subtree)
-                            end
-                          end
-                        | NAryConstructor old_field_binders -> begin
-                            if
-                              not @@ contains_gap old_subtree
-                            then
-                              TC.return (old_binder, PatternTree.NAryConstructor old_field_binders, old_subtree)
-                            else begin
-                              let* new_subtree =
-                                adorn old_subtree remaining_subpatterns true
-                              in
-                              TC.return (old_binder, PatternTree.NAryConstructor old_field_binders, new_subtree)
-                            end
-                          end
-                      in
-                      TC.return begin
-                        Ast.Identifier.Map.overwrite
-                          table
-                          ~key:constructor_identifier
-                          ~data:updated_data
-                      end
+                    in
+                    let pattern_binder : Binder.t = (* todo should become useless once the line above is fixed *)
+                      { identifier = pattern_binder_identifier; wildcard = pattern_binder_wildcard }
+                    in
+                    let* new_binder =
+                      Binder.unify old_binder pattern_binder
+                    and* new_subtree =
+                      adorn old_subtree remaining_subpatterns true
+                    in
+                    let new_field_binders =
+                      old_field_binders
+                    in
+                    TC.return begin
+                      Ast.Identifier.Map.overwrite
+                        table
+                        ~key:constructor_identifier
+                        ~data:(new_binder, new_field_binders, new_subtree)
                     end
                   in
                   TC.fold_left
