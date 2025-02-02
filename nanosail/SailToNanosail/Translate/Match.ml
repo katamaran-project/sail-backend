@@ -1028,9 +1028,26 @@ let rec build_leveled_match_statements
                   (constructor_identifier           : Ast.Identifier.t                                      )
                   ((binder, field_binders, subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t) : (Ast.Identifier.t * (Ast.Identifier.t list * Ast.Statement.t)) TC.t
                 =
-                (* todo produce code involving binder *)
                 let* substatement =
-                  build_leveled_match_statements remaining_tuple_elements subtree
+                  let* substatement =
+                    build_leveled_match_statements remaining_tuple_elements subtree
+                  in
+                  if
+                    binder.wildcard
+                  then
+                    TC.return substatement
+                  else
+                    let variant_type =
+                      Ast.Type.Variant variant_identifier
+                    in
+                    TC.return begin
+                      Ast.Statement.Let {
+                        variable_identifier    = binder.identifier;
+                        binding_statement_type = variant_type;
+                        binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, variant_type));
+                        body_statement         = substatement
+                      }
+                    end
                 in
                 match field_binders with
                 | NullaryConstructor field_binder -> begin
