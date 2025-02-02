@@ -792,9 +792,9 @@ let adorn_pattern_tree
                       (table                                  : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
                       ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
                     =
-                    let data : Binder.t * PatternTree.variant_binders * PatternTree.t =
+                    let (old_binder, old_field_binders, old_subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t =
                       Ast.Identifier.Map.find_exn table constructor_identifier
-                    in
+                    in                    
                     if
                       not pattern_binder_wildcard
                     then begin
@@ -811,8 +811,6 @@ let adorn_pattern_tree
 
                          In other words, we're using 'x' to match with the variant's value.
                       *)
-                      let _old_binder, old_field_binders, old_subtree = data
-                      in
                       let* new_subtree =
                         adorn old_subtree remaining_subpatterns true
                       in
@@ -835,41 +833,41 @@ let adorn_pattern_tree
                     end else begin
                       let* updated_data =
                         (* todo refactor *)
-                        match data with
-                        | binder, NullaryConstructor previous_field_binder, subtree -> begin
+                        match old_field_binders with
+                        | NullaryConstructor old_field_binder -> begin
                             if
-                              not @@ contains_gap subtree
+                              not @@ contains_gap old_subtree
                             then
-                              TC.return data
+                              TC.return (old_binder, old_field_binders, old_subtree)
                             else begin
-                              let* updated_subtree =
-                                adorn subtree remaining_subpatterns true
+                              let* new_subtree =
+                                adorn old_subtree remaining_subpatterns true
                               in
-                              TC.return (binder, PatternTree.NullaryConstructor previous_field_binder, updated_subtree)
+                              TC.return (old_binder, PatternTree.NullaryConstructor old_field_binder, new_subtree)
                             end
                           end
-                        | binder, UnaryConstructor previous_field_binder, subtree -> begin
+                        | UnaryConstructor old_field_binder -> begin
                             if
-                              not @@ contains_gap subtree
+                              not @@ contains_gap old_subtree
                             then
-                              TC.return data
+                              TC.return (old_binder, old_field_binders, old_subtree)
                             else begin
-                              let* updated_subtree =
-                                adorn subtree remaining_subpatterns true
+                              let* new_subtree =
+                                adorn old_subtree remaining_subpatterns true
                               in
-                              TC.return (binder, PatternTree.UnaryConstructor previous_field_binder, updated_subtree)
+                              TC.return (old_binder, PatternTree.UnaryConstructor old_field_binder, new_subtree)
                             end
                           end
-                        | binder, NAryConstructor previous_field_binders, subtree -> begin
+                        | NAryConstructor old_field_binders -> begin
                             if
-                              not @@ contains_gap subtree
+                              not @@ contains_gap old_subtree
                             then
-                              TC.return data
+                              TC.return (old_binder, PatternTree.NAryConstructor old_field_binders, old_subtree)
                             else begin
-                              let* updated_subtree =
-                                adorn subtree remaining_subpatterns true
+                              let* new_subtree =
+                                adorn old_subtree remaining_subpatterns true
                               in
-                              TC.return (binder, PatternTree.NAryConstructor previous_field_binders, updated_subtree)
+                              TC.return (old_binder, PatternTree.NAryConstructor old_field_binders, new_subtree)
                             end
                           end
                       in
