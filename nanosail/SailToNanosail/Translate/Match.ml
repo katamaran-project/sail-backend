@@ -881,8 +881,8 @@ let adorn_pattern_tree
 
 
 let rec build_leveled_match_statements
-    (tuple_elements : Ast.Identifier.t list)
-    (pattern_tree   : PatternTree.t        ) : Ast.Statement.t TC.t
+    (matched_identifiers : Ast.Identifier.t list)
+    (pattern_tree        : PatternTree.t        ) : Ast.Statement.t TC.t
   =
   let invalid_number_of_tuple_elements (location : Lexing.position) =
     TC.fail location "invalid number of tuple elements"
@@ -894,9 +894,9 @@ let rec build_leveled_match_statements
   | Enum { enum_identifier; table } -> begin
       let enum_type = Ast.Type.Enum enum_identifier
       in
-      match tuple_elements with
+      match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
-      | first_tuple_element :: remaining_tuple_elements -> begin
+      | first_matched_identifier :: remaining_matched_identifiers -> begin
             (*
                The decorator adds an extra let if necessary.
 
@@ -923,7 +923,7 @@ let rec build_leveled_match_statements
               Ast.Statement.Let {
                 variable_identifier    = binder.identifier;
                 binding_statement_type = enum_type;
-                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, enum_type));
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, enum_type));
                 body_statement         = statement;
               }
             else
@@ -940,7 +940,7 @@ let rec build_leveled_match_statements
                 =
                 let* statement : Ast.Statement.t =
                   let* subtree_statement =
-                    build_leveled_match_statements remaining_tuple_elements subtree
+                    build_leveled_match_statements remaining_matched_identifiers subtree
                   in
                   TC.return @@ decorate_statement binder subtree_statement
                 in
@@ -953,7 +953,7 @@ let rec build_leveled_match_statements
           TC.return begin
             Ast.Statement.Match begin
               Ast.Statement.MatchEnum {
-                matched      = first_tuple_element;
+                matched      = first_matched_identifier;
                 matched_type = enum_identifier;
                 cases;
               }
@@ -963,9 +963,9 @@ let rec build_leveled_match_statements
     end
 
   | Variant { variant_identifier; table } -> begin
-      match tuple_elements with
+      match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
-      | first_tuple_element :: remaining_tuple_elements -> begin
+      | first_matched_identifier :: remaining_matched_identifiers -> begin
           let* cases : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t =
             let table_pairs : (Ast.Identifier.t * (Binder.t * PatternTree.variant_binders * PatternTree.t)) list =
               Ast.Identifier.Map.to_alist table
@@ -977,7 +977,7 @@ let rec build_leveled_match_statements
                 =
                 let* substatement =
                   let* substatement =
-                    build_leveled_match_statements remaining_tuple_elements subtree
+                    build_leveled_match_statements remaining_matched_identifiers subtree
                   in
                   if
                     binder.wildcard
@@ -991,7 +991,7 @@ let rec build_leveled_match_statements
                       Ast.Statement.Let {
                         variable_identifier    = binder.identifier;
                         binding_statement_type = variant_type;
-                        binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, variant_type));
+                        binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, variant_type));
                         body_statement         = substatement
                       }
                     end
@@ -1047,7 +1047,7 @@ let rec build_leveled_match_statements
           TC.return begin
             Ast.Statement.Match begin
               Ast.Statement.MatchVariant {
-                matched      = first_tuple_element;
+                matched      = first_matched_identifier;
                 matched_type = variant_identifier;
                 cases
               }
@@ -1057,16 +1057,16 @@ let rec build_leveled_match_statements
     end
 
   | Atomic (element_type, binder, subtree) -> begin
-      match tuple_elements with
+      match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
-      | first_tuple_element :: remaining_tuple_elements -> begin
-          let* substatement = build_leveled_match_statements remaining_tuple_elements subtree
+      | first_matched_identifier :: remaining_matched_identifiers -> begin
+          let* substatement = build_leveled_match_statements remaining_matched_identifiers subtree
           in
           TC.return begin
             Ast.Statement.Let {
               variable_identifier    = binder.identifier;
               binding_statement_type = element_type;
-              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_tuple_element, element_type));
+              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, element_type));
               body_statement         = substatement;
             }
           end
@@ -1074,7 +1074,7 @@ let rec build_leveled_match_statements
     end
 
   | Terminal statement -> begin
-      match tuple_elements with
+      match matched_identifiers with
       | [] -> begin
           match statement with
           | None           -> fail_due_to_unhandled_cases
