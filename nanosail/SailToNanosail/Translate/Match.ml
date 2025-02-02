@@ -530,6 +530,9 @@ let rec build_empty_pattern_tree
   (*
      Checks if there are "leaves" in the tree that have no associated statement yet,
      i.e., answers the question "are there any unhandled cases left in the given tree?"
+
+     todo: check if this function is still useful, it was necessary when pattern trees were represented differently,
+           but the new design might make checking for gaps redundant
   *)
 let rec contains_gap (pattern_tree : PatternTree.t) : bool =
   match pattern_tree with
