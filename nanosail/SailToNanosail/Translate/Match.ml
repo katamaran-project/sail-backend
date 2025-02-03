@@ -101,6 +101,31 @@ module Pattern = struct
     | Unit
 
 
+  let upgrade_unused_binders_to_wildcards
+      (pattern        : t                   )
+      (free_variables : Ast.Identifier.Set.t) : t
+    =
+    let rec upgrade (pattern : t) : t =
+      match pattern with
+      | Binder { identifier; wildcard = _ } -> begin
+          if
+            Ast.Identifier.Set.mem free_variables identifier
+          then
+            pattern
+          else
+            Binder { identifier; wildcard = true }
+        end
+      | ListCons (head_pattern, tail_pattern)   -> ListCons (upgrade head_pattern, upgrade tail_pattern)
+      | ListNil                                 -> pattern
+      | Tuple subpatterns                       -> Tuple (List.map ~f:upgrade subpatterns)
+      | EnumCase _                              -> pattern
+      | VariantCase (field_binders, subpattern) -> VariantCase (field_binders, upgrade subpattern)
+      | BoolCase _                              -> pattern
+      | Unit                                    -> pattern
+    in
+    upgrade pattern
+
+  
   let rec to_fexpr (pattern : t) : FExpr.t =
     let head id =
       Printf.sprintf "Pattern:%s" id
@@ -1642,7 +1667,14 @@ let translate_case
     (sail_condition : S.typ S.aexp   )
     (body           : Ast.Statement.t) : (Pattern.t * Ast.Statement.t) TC.t
   =
-  let* pattern = translate_pattern matched_type sail_pattern
+  let* pattern =
+    let* pattern =
+      translate_pattern matched_type sail_pattern
+    in
+    let free_variables =
+      Ast.Statement.free_variables body
+    in
+    TC.return @@ Pattern.upgrade_unused_binders_to_wildcards pattern free_variables
   in
   let S.AE_aux (unwrapped_sail_condition, _) = sail_condition
   in
