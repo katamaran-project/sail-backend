@@ -280,7 +280,9 @@ end = struct
       | Nexp_neg negated            -> translate_negation negated
       | Nexp_id identifier          -> translate_identifier identifier
       | Nexp_exp exponent           -> translate_exponentiation exponent
-      | Nexp_app (_, _)             -> TC.not_yet_implemented [%here] numexp_location
+      | Nexp_app (_id, _arguments ) -> begin          
+          TC.not_yet_implemented ~message:(StringOf.Sail.nexp numeric_expression) [%here] numexp_location
+        end
       | Nexp_if (_, _, _)           -> TC.not_yet_implemented [%here] numexp_location
     end
 
