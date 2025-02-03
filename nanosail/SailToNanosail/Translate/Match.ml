@@ -1829,7 +1829,6 @@ let translate_variant_match
   in
   let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree
   in
-  Stdio.print_endline @@ FExpr.to_string @@ Ast.Statement.to_fexpr result;
   TC.return result
 
 
