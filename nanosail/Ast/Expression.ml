@@ -193,3 +193,17 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Variant { type_identifier;
                constructor_identifier;
                fields    }                                   -> variant_to_fexpr type_identifier constructor_identifier fields
+
+
+let rec free_variables (expression : t) : Identifier.Set.t =
+  match expression with
+   | Variable (identifier, _)                                            -> Identifier.Set.singleton identifier
+   | Val _                                                               -> Identifier.Set.empty
+   | List elements                                                       -> Identifier.Set.unions @@ List.map ~f:free_variables elements
+   | UnaryOperation (_, operand)                                         -> free_variables operand
+   | BinaryOperation (_, left_operand, right_operand)                    -> Identifier.Set.union (free_variables left_operand) (free_variables right_operand)
+   | Record { type_identifier = _; variable_identifiers }                -> Identifier.Set.of_list variable_identifiers
+   | Enum _                                                              -> Identifier.Set.empty
+   | Variant { type_identifier = _; constructor_identifier = _; fields } -> Identifier.Set.unions @@ List.map ~f:free_variables fields
+   | Tuple elements                                                      -> Identifier.Set.unions @@ List.map ~f:free_variables elements
+   | Bitvector elements                                                  -> Identifier.Set.unions @@ List.map ~f:free_variables elements
