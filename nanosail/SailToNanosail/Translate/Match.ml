@@ -611,22 +611,34 @@ let rec build_empty_pattern_tree
   | head :: tail -> begin
       let* tail = build_empty_pattern_tree location tail
       in
-      match head with
-      | Enum enum_identifier       -> build_enum_node enum_identifier tail
-      | Int                        -> build_atomic_node Ast.Type.Int tail
-      | Variant variant_identifier -> build_variant_node variant_identifier tail
-      | Unit                       -> build_atomic_node Ast.Type.Unit tail
-      | Bool                       -> build_bool_node tail
-      | String                     -> TC.not_yet_implemented [%here] location
-      | Bit                        -> TC.not_yet_implemented [%here] location
-      | List _                     -> TC.not_yet_implemented [%here] location
-      | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
-      | Bitvector _                -> TC.not_yet_implemented [%here] location
-      | Tuple _                    -> TC.not_yet_implemented [%here] location
-      | Record _                   -> TC.not_yet_implemented [%here] location
-      | Application (_, _)         -> TC.not_yet_implemented [%here] location
-      | Alias (_, _)               -> TC.not_yet_implemented [%here] location
-      | Range (_, _)               -> TC.not_yet_implemented [%here] location
+      let* tree =
+        match head with
+        | Enum enum_identifier       -> build_enum_node enum_identifier tail
+        | Int                        -> build_atomic_node Ast.Type.Int tail
+        | Variant variant_identifier -> build_variant_node variant_identifier tail
+        | Unit                       -> build_atomic_node Ast.Type.Unit tail
+        | Bool                       -> build_bool_node tail
+        | String                     -> TC.not_yet_implemented [%here] location
+        | Bit                        -> TC.not_yet_implemented [%here] location
+        | List _                     -> TC.not_yet_implemented [%here] location
+        | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
+        | Bitvector _                -> TC.not_yet_implemented [%here] location
+        | Tuple _                    -> TC.not_yet_implemented [%here] location
+        | Record _                   -> TC.not_yet_implemented [%here] location
+        | Application (_, _)         -> TC.not_yet_implemented [%here] location
+        | Alias (_, _)               -> TC.not_yet_implemented [%here] location
+        | Range (_, _)               -> TC.not_yet_implemented [%here] location
+      in
+      let* () =
+        let message = lazy begin
+          let node_count = PatternTree.count_nodes tree
+          in
+          Printf.sprintf "Constructed pattern tree with %d nodes" node_count
+        end
+        in        
+        TC.log [%here] Logging.warning message
+      in
+      TC.return tree
     end
 
 
