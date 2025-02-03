@@ -1491,10 +1491,20 @@ let rec translate_pattern
   let S.AP_aux (unwrapped_sail_pattern, _type_environment, _location) = sail_pattern
   in
 
-  let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
-    let* identifier = Identifier.translate_identifier [%here] sail_identifier
-    in
-    TC.return @@ Pattern.Binder { identifier; wildcard = false }
+  let rec translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
+    if
+      Sail.is_named_wildcard sail_identifier
+    then
+      translate_wildcard_pattern ()
+    else begin
+      let* identifier = Identifier.translate_identifier [%here] sail_identifier
+      in
+      (*
+         Sail seems to _sometimes_ give names to wildcards, e.g., replacing _ by g__15.
+         We try to undo this here.
+      *)
+      TC.return @@ Pattern.Binder { identifier; wildcard = false }
+    end
 
   and translate_wildcard_pattern () : Pattern.t TC.t =
     let* binder = Binder.generate_wildcard
