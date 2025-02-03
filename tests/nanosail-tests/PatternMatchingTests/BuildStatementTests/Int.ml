@@ -207,7 +207,7 @@ let test_build_match_for_int_int_2 =
 
 
 let test_suite =
-  "match generation" >::: [
+  "int" >::: [
     test_build_match_for_int_1;
     test_build_match_for_int_2;
     test_build_match_for_int_int_1;

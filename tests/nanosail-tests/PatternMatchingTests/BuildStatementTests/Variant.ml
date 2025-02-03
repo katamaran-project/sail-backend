@@ -1098,7 +1098,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
 
 
 let test_suite =
-  "match generation" >::: [
+  "variant" >::: [
     test_build_match_for_variant_single_nullary_constructor;
     test_build_match_for_variant_single_nullary_constructor_field_wildcard;
     test_build_match_for_variant_single_nullary_constructor_wildcard;

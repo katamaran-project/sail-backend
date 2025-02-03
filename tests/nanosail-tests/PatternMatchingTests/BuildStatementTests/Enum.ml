@@ -887,7 +887,7 @@ let test_build_match_for_enum_9 =
 
 
 let test_suite =
-  "match generation" >::: [
+  "enum" >::: [
     test_build_match_for_enum_1;
     test_build_match_for_enum_2;
     test_build_match_for_enum_3;
