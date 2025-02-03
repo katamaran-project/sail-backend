@@ -13,7 +13,7 @@ module TM      = SailToNanosail.Translate.Match
 open Shared
 
 
-let test_build_match_for_enum_1 =
+let test_build_match_for_enum_with_single_constructor =
   let test _ =
     let tc =
       let* enum_type =
@@ -888,7 +888,7 @@ let test_build_match_for_enum_9 =
 
 let test_suite =
   "enum" >::: [
-    test_build_match_for_enum_1;
+    test_build_match_for_enum_with_single_constructor;
     test_build_match_for_enum_2;
     test_build_match_for_enum_3;
     test_build_match_for_enum_4;
