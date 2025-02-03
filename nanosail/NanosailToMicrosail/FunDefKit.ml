@@ -7,22 +7,21 @@ module GC = struct
 end
 
 
-let genblock loc label doc =
-  GC.generation_block loc label doc
-
-
 let pp_function_definition
     ((sail_function_definition : Sail.sail_definition), (function_definition : Ast.Definition.Function.t))
     (type_constraint           : (Sail.sail_definition * 'a) option                                      ) : PP.document GC.t
   =
-  genblock [%here] (Printf.sprintf "Function Definition %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
+  GC.generation_block [%here] (Printf.sprintf "Function Definition %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
     GC.block begin
       let* () =
         GC.log [%here] Logging.debug begin
           lazy begin
+            let string_of_function_name =
+              Ast.Identifier.to_string function_definition.function_name
+            in
             Printf.sprintf
               "Generating code for function %s"
-              (Ast.Identifier.to_string function_definition.function_name)
+              string_of_function_name              
           end
         end
       in
@@ -149,7 +148,7 @@ let pp_function_definition_kit
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
     (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document GC.t
   =
-  genblock [%here] "FunDefKit" begin
+  GC.generation_block [%here] "FunDefKit" begin
     let fundef =
       let identifier =
         PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
