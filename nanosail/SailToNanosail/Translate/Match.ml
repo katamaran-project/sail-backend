@@ -618,6 +618,10 @@ let rec build_empty_pattern_tree
       let* tail = build_empty_pattern_tree location tail
       in
       let* tree =
+        (*
+           Using atomic_node is the easy way out as it only provides support for binders.
+           When the need arises, it can be useful to implement specialized functions for specific types.
+        *)
         match head with
         | Enum enum_identifier         -> build_enum_node enum_identifier tail
         | Int                          -> build_atomic_node Ast.Type.Int tail
