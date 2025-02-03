@@ -619,21 +619,21 @@ let rec build_empty_pattern_tree
       in
       let* tree =
         match head with
-        | Enum enum_identifier       -> build_enum_node enum_identifier tail
-        | Int                        -> build_atomic_node Ast.Type.Int tail
-        | Variant variant_identifier -> build_variant_node variant_identifier tail
-        | Unit                       -> build_atomic_node Ast.Type.Unit tail
-        | Bool                       -> build_bool_node tail
-        | String                     -> TC.not_yet_implemented [%here] location
-        | Bit                        -> TC.not_yet_implemented [%here] location
-        | List _                     -> TC.not_yet_implemented [%here] location
-        | Sum (_, _)                 -> TC.not_yet_implemented [%here] location
-        | Bitvector _                -> TC.not_yet_implemented [%here] location
-        | Tuple _                    -> TC.not_yet_implemented [%here] location
-        | Record _                   -> TC.not_yet_implemented [%here] location
-        | Application (_, _)         -> TC.not_yet_implemented [%here] location
-        | Alias (_, _)               -> TC.not_yet_implemented [%here] location
-        | Range (_, _)               -> TC.not_yet_implemented [%here] location
+        | Enum enum_identifier         -> build_enum_node enum_identifier tail
+        | Int                          -> build_atomic_node Ast.Type.Int tail
+        | Variant variant_identifier   -> build_variant_node variant_identifier tail
+        | Unit                         -> build_atomic_node Ast.Type.Unit tail
+        | Bool                         -> build_bool_node tail
+        | String                       -> build_atomic_node Ast.Type.String tail
+        | Bit                          -> TC.not_yet_implemented [%here] location
+        | List _                       -> TC.not_yet_implemented [%here] location
+        | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
+        | Bitvector numeric_expression -> build_atomic_node (Ast.Type.Bitvector numeric_expression) tail
+        | Tuple _                      -> TC.not_yet_implemented [%here] location
+        | Record _                     -> TC.not_yet_implemented [%here] location
+        | Application (_, _)           -> TC.not_yet_implemented [%here] location
+        | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
+        | Range (_, _)                 -> TC.not_yet_implemented [%here] location
       in
       let* () =
         let node_count = PatternTree.count_nodes tree
