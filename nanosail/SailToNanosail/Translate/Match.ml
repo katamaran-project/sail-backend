@@ -1894,58 +1894,6 @@ let translate_tuple_match
         builder
     in
     TC.return result
-
-  (*
-     This function deals with the special case of having a single match pattern that contains nothing but binders, i.e.,
-
-       match tuple_value {
-         (X1, X2, ..., Xn) => ...
-       }
-  *)
-  and translate_tuple_of_binders : Ast.Statement.t TC.t =
-    (* Keeps things lazy *)
-    let* () = TC.return ()
-    in
-    match cases with
-    | [ (Pattern.Tuple subpatterns, body) ] when List.for_all subpatterns ~f:Pattern.is_binder -> begin
-        let binding_variables =
-          List.map subpatterns ~f:Pattern.identifier_of_binder
-        in
-        match List.zip binding_variables element_types with
-        | List.Or_unequal_lengths.Unequal_lengths -> begin
-            (* Should never occur *)
-            TC.fail [%here] "different number of tuple pattern elements and tuple pattern types"
-          end
-        | List.Or_unequal_lengths.Ok binder_type_pairs -> begin
-            match binder_type_pairs with
-            | []  -> TC.fail [%here] "unexpected empty tuple"
-            | [_] -> TC.fail [%here] "unexpected singleton tuple"
-            | [(id_fst, type_fst); (id_snd, type_snd)] -> begin
-                let match_pattern =
-                  Ast.Statement.MatchProduct {
-                    matched = matched_identifier;
-                    type_fst;
-                    type_snd;
-                    id_fst;
-                    id_snd;
-                    body
-                  }
-                in
-                TC.return @@ Ast.Statement.Match match_pattern
-              end
-            | _ -> begin
-                let match_pattern =
-                  Ast.Statement.MatchTuple {
-                    matched = matched_identifier;
-                    binders = binder_type_pairs;
-                    body
-                  }
-                in
-                TC.return @@ Ast.Statement.Match match_pattern
-              end
-          end
-      end
-    | _ -> TC.not_yet_implemented [%here] location
   in
   translate_using_pattern_tree
 
