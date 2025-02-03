@@ -95,4 +95,15 @@ module Map = struct
     FExpr.mk_application ~positional:formatted_pairs "Mapping"
 end
 
+module Set = struct
+  include Base.Set
+
+  type t = (Impl.t, Impl.comparator_witness) Base.Set.t
+
+  let empty     = Base.Set.empty      (module Impl)
+  let singleton = Base.Set.singleton  (module Impl)
+  let of_list   = Base.Set.of_list    (module Impl)
+  let unions    = Base.Set.union_list (module Impl)
+end
+
 include Impl
