@@ -1495,7 +1495,7 @@ let rec translate_pattern
   let S.AP_aux (unwrapped_sail_pattern, _type_environment, _location) = sail_pattern
   in
 
-  let rec translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
+  let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
     let* identifier = Identifier.translate_identifier [%here] sail_identifier
     in
     TC.return @@ Pattern.Binder { identifier; wildcard = false }
