@@ -688,50 +688,30 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | L_real _   -> TC.not_yet_implemented [%here] location
 
     in
-    TC.recover begin (* todo rewrite without need for recovering *)
-      let* matched_variable =
-        TC.generate_unique_identifier ()
-      and* cases_with_translated_bodies =
-        let translate_case_body (pattern, condition, body) =
-          let* translated_body = statement_of_aexp body
-          in
-          TC.return (pattern, condition, translated_body)
+    let* matched_variable =
+      TC.generate_unique_identifier ()
+    and* cases_with_translated_bodies =
+      let translate_case_body (pattern, condition, body) =
+        let* translated_body = statement_of_aexp body
         in
-        TC.map ~f:translate_case_body cases
-      and* matched, matched_variable_type =
-        let* expression, expression_type, named_statements = expression_of_aval location matched
-        in
-        TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
+        TC.return (pattern, condition, translated_body)
       in
-      let* match_statement =
-        Match.translate location matched_variable matched_variable_type cases_with_translated_bodies
+      TC.map ~f:translate_case_body cases
+    and* matched, matched_variable_type =
+      let* expression, expression_type, named_statements = expression_of_aval location matched
       in
-      TC.return begin
-        Ast.Statement.Let {
-          variable_identifier    = matched_variable;
-          binding_statement_type = matched_variable_type;
-          binding_statement      = matched;
-          body_statement         = match_statement
-        }
-      end
-    end begin fun error ->
-      let* () = TC.log [%here] Logging.error @@ lazy (Printf.sprintf "Match module failed: %s\n" @@ TranslationContext.Error.to_string error)
-      in
-      match matched with
-      | AV_id (_id, lvar) -> begin
-          match lvar with (* todo replace by type_from_lvar *)
-          | Local (_mut, typ) -> match_typed typ
-          | Register typ      -> match_typed typ
-          | Enum typ          -> match_typed typ
-          | Unbound _         -> TC.not_yet_implemented [%here] location
-        end
-      | AV_lit (literal, literal_type) -> match_literal literal literal_type
-      | AV_tuple _                     -> match_tuple ()
-      | AV_list (_, _)                 -> TC.fail [%here] "should be implemented in Match module"
-      | AV_ref (_, _)                  -> TC.not_yet_implemented [%here] location
-      | AV_vector (_, _)               -> TC.not_yet_implemented [%here] location
-      | AV_record (_, _)               -> TC.not_yet_implemented [%here] location
-      | AV_cval (_, _)                 -> TC.not_yet_implemented [%here] location
+      TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
+    in
+    let* match_statement =
+      Match.translate location matched_variable matched_variable_type cases_with_translated_bodies
+    in
+    TC.return begin
+      Ast.Statement.Let {
+        variable_identifier    = matched_variable;
+        binding_statement_type = matched_variable_type;
+        binding_statement      = matched;
+        body_statement         = match_statement
+      }
     end
 
   and statement_of_field_access
