@@ -582,7 +582,7 @@ let translate
         end
       in
       Printf.sprintf
-        "Translating function %s"
+        "Translating function call to %s"
         string_of_function_name
     end
     in
