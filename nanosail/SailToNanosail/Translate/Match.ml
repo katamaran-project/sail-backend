@@ -474,6 +474,28 @@ module PatternTree = struct
         in
         FExpr.mk_application ~keyword @@ mk_head "Terminal"
       end
+
+  
+  let rec count_nodes (tree : t) : int =
+    match tree with
+    | Enum { enum_identifier = _; table } -> begin
+        1 + List.sum
+          (module Int)
+          (Ast.Identifier.Map.data table)
+          ~f:(fun (_, subtree) -> count_nodes subtree)
+      end
+      
+    | Variant { variant_identifier = _; table } -> begin
+        1 + List.sum
+          (module Int)
+          (Ast.Identifier.Map.data table)
+          ~f:(fun (_, _, subtree) -> count_nodes subtree)        
+      end
+      
+    | Atomic (_, _, subtree)                             -> 1 + count_nodes subtree
+    | Bool (SingleBoolCase (_, subtree))                 -> 1 + count_nodes subtree
+    | Bool (SeparateBoolCases { when_true; when_false }) -> 1 + count_nodes when_true + count_nodes when_false
+    | Terminal _                                         -> 1
 end
 
 
