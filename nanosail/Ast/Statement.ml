@@ -112,10 +112,26 @@ let rec equal
           end
         | _ -> false
       end
+    | MatchBool { condition = condition_1; when_true = when_true_1; when_false = when_false_1 } -> begin
+        match pattern_2 with
+        | MatchBool { condition = condition_2; when_true = when_true_2; when_false = when_false_2 } -> begin
+            Identifier.equal
+              condition_1
+              condition_2
+            &&
+            equal
+              when_true_1
+              when_true_2
+            &&
+            equal
+              when_false_1
+              when_false_2
+          end
+        | _ -> false
+      end
     | MatchList _    -> raise UnimplementedStatementEquality
     | MatchProduct _ -> raise UnimplementedStatementEquality
     | MatchTuple _   -> raise UnimplementedStatementEquality
-    | MatchBool _    -> raise UnimplementedStatementEquality
   in
 
   match statement_1 with
