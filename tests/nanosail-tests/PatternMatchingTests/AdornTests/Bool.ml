@@ -36,14 +36,14 @@ let test_adorn_bool_1 =
         let* tree = adorn
           tree
           [ Pattern.BoolCase false ]
-          true_statement
+          false_statement
         in
         TC.return tree
       in
       let expected_tree =
         TM.PatternTree.Bool begin
           TM.PatternTree.SeparateBoolCases {
-            when_true = TM.PatternTree.Terminal (Some true_statement);
+            when_true  = TM.PatternTree.Terminal (Some true_statement);
             when_false = TM.PatternTree.Terminal (Some false_statement)
           }
         end
