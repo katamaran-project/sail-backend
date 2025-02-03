@@ -97,14 +97,14 @@ end = struct
             match type_argument with
             | NumericExpression numeric_expression -> begin
                 match numeric_expression with
-                | Constant _     -> TC.not_yet_implemented [%here] location
+                | Constant _     -> TC.return Ast.Type.Int
+                | Var _          -> TC.return Ast.Type.Int
                 | Add (_, _)     -> TC.not_yet_implemented [%here] location
                 | Sub (_, _)     -> TC.not_yet_implemented [%here] location
                 | Mul (_, _)     -> TC.not_yet_implemented [%here] location
                 | Neg _          -> TC.not_yet_implemented [%here] location
                 | PowerOf2 _     -> TC.not_yet_implemented [%here] location
                 | Id _           -> TC.not_yet_implemented [%here] location
-                | Var _          -> TC.return Ast.Type.Int
               end
             | Type _ -> TC.not_yet_implemented [%here] location
             | Bool _ -> TC.not_yet_implemented [%here] location
