@@ -78,34 +78,34 @@ overload ~ = {not_bool, not_vec, not_wordByte}
 
 
 val and_wordByte: (WordByte,WordByte) -> WordByte
-function clause and_wordByte(Word(w1),Word(w2)) = {
+function clause and_wordByte(Word(w1), Word(w2)) = {
   Word(and_vec(w1,w2))
 }
-function clause and_wordByte(Byte(b1),Byte(b2)) = {
+function clause and_wordByte(Byte(b1), Byte(b2)) = {
   Byte(and_vec(b1,b2))
 }
 
-function clause and_wordByte(Word(w1),Byte(b2)) = {
+function clause and_wordByte(Word(_), Byte(_)) = {
   throw(notImplemented("not implemented"))
 }
 
-function clause and_wordByte(Byte(b1),Word(w2)) = {
+function clause and_wordByte(Byte(_), Word(_)) = {
   throw(notImplemented("not implemented"))
 }
 
 val or_wordByte: (WordByte,WordByte) -> WordByte
-function clause or_wordByte(Word(w1),Word(w2)) = {
+function clause or_wordByte(Word(w1), Word(w2)) = {
   Word(or_vec(w1,w2))
 }
-function clause or_wordByte(Byte(b1),Byte(b2)) = {
+function clause or_wordByte(Byte(b1), Byte(b2)) = {
   Byte(or_vec(b1,b2))
 }
 
-function clause or_wordByte(Byte(b1),Word(w2)) = {
+function clause or_wordByte(Byte(_), Word(_)) = {
   throw(notImplemented("not implemented"))
 }
 
-function clause or_wordByte(Word(w1),Byte(b2)) = {
+function clause or_wordByte(Word(_), Byte(_)) = {
   throw(notImplemented("not implemented"))
 }
 
@@ -118,27 +118,27 @@ function clause xor_wordByte(Byte(b1),Byte(b2)) = {
   Byte(xor_vec(b1,b2))
 }
 
-function clause xor_wordByte(Word(w1),Byte(b2)) = {
+function clause xor_wordByte(Word(_), Byte(_)) = {
   throw(notImplemented("not implemented"))
 }
 
-function clause xor_wordByte(Byte(b1),Word(w2)) = {
+function clause xor_wordByte(Byte(_), Word(_)) = {
   throw(notImplemented("not implemented"))
 }
 
 val eq_wordByte: (WordByte,WordByte) -> bool
-function clause eq_wordByte(Byte(b1),Byte(b2)) = {
+function clause eq_wordByte(Byte(b1), Byte(b2)) = {
   b1 == b2
 }
-function clause eq_wordByte(Word(w1),Word(w2)) = {
+function clause eq_wordByte(Word(w1), Word(w2)) = {
   w1 == w2
 }
 
-function clause eq_wordByte(Byte(b1),Word(w2)) = {
+function clause eq_wordByte(Byte(_), Word(_)) = {
   false
 }
 
-function clause eq_wordByte(Word(w1),Byte(b2)) = {
+function clause eq_wordByte(Word(_), Byte(_)) = {
   false
 }
 
