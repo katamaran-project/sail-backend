@@ -481,3 +481,124 @@ let rec to_fexpr (statement : t) : FExpr.t =
       register_identifier;
       written_value
     }                            -> write_register_to_fexpr register_identifier written_value
+
+
+let rec free_variables (statement : t) : Identifier.Set.t =
+  match statement with
+  | Match (MatchList { matched; element_type = _; when_cons; when_nil }) -> begin
+      let head_identifier, tail_identifier, when_cons_statement = when_cons
+      in
+      Identifier.Set.diff
+        (
+          Identifier.Set.unions [
+            Identifier.Set.singleton matched;
+            free_variables when_cons_statement;
+            free_variables when_nil
+          ]
+        )
+        (
+          Identifier.Set.of_list [ head_identifier; tail_identifier ]
+        )
+    end
+    
+  | Match (MatchProduct { matched; type_fst = _; type_snd = _; id_fst; id_snd; body }) -> begin
+      Identifier.Set.diff
+        (
+          Identifier.Set.unions [
+            Identifier.Set.singleton matched;
+            free_variables body
+          ]
+        )
+        (
+          Identifier.Set.of_list [ id_fst; id_snd ]
+        )
+    end
+      
+  | Match (MatchTuple { matched; binders; body }) -> begin
+      let binder_free_variables =
+        Identifier.Set.of_list @@ List.map ~f:fst binders
+      in
+      Identifier.Set.diff
+        (
+          Identifier.Set.unions [
+            Identifier.Set.singleton matched;
+            binder_free_variables;
+            free_variables body;
+          ]
+        )
+        binder_free_variables
+    end
+      
+  | Match (MatchBool { condition; when_true; when_false }) -> begin
+      Identifier.Set.unions [
+        Identifier.Set.singleton condition;
+        free_variables when_true;
+        free_variables when_false;
+      ]
+    end
+      
+  | Match (MatchEnum { matched; matched_type; cases }) -> begin
+      let free_variables_in_cases =
+        Identifier.Set.unions begin
+          List.map ~f:free_variables @@ Identifier.Map.data cases
+        end
+      in        
+      Identifier.Set.unions [
+        Identifier.Set.singleton matched;
+        free_variables_in_cases;
+      ]
+    end
+      
+  | Match (MatchVariant { matched; matched_type = _; cases }) -> begin
+      let free_variables_in_cases =
+        let free_variables_in_case field_binders statement =
+          let field_binders =
+            Identifier.Set.of_list field_binders
+          and statement_free_variables =
+            free_variables statement
+          in
+          Identifier.Set.diff statement_free_variables field_binders
+        in
+        Identifier.Set.unions begin
+          List.map ~f:(Auxlib.uncurry free_variables_in_case) @@ Identifier.Map.data cases
+        end
+      in
+      Identifier.Set.unions [
+        Identifier.Set.singleton matched;
+        free_variables_in_cases
+      ]
+    end
+    
+  | Expression expression -> Expression.free_variables expression
+
+  | Call (function_identifier, expressions) -> begin
+      Identifier.Set.unions [
+        Identifier.Set.singleton function_identifier; (* todo probably should not be included, depends on whether functions are first class citizens *)
+        Identifier.Set.unions @@ List.map ~f:Expression.free_variables expressions;
+      ]
+    end
+    
+  | Let { variable_identifier; binding_statement_type = _; binding_statement; body_statement } -> begin
+      Identifier.Set.unions [
+        free_variables binding_statement;
+        Identifier.Set.diff
+          (free_variables body_statement)
+          (Identifier.Set.singleton variable_identifier)
+      ]
+    end
+    
+  | DestructureRecord { record_type_identifier = _; field_identifiers = _; variable_identifiers; destructured_record; body } -> begin
+      Identifier.Set.unions [
+        free_variables destructured_record;
+        Identifier.Set.diff
+          (free_variables body)
+          (Identifier.Set.of_list variable_identifiers)
+      ]
+    end
+    
+  | Seq (left, right)                                    -> Identifier.Set.union (free_variables left) (free_variables right)
+  | ReadRegister identifier                              -> Identifier.Set.singleton identifier
+  | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)
+  | Cast (statement, _)                                  -> free_variables statement
+  | Fail _                                               -> Identifier.Set.empty
+  
