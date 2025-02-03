@@ -92,6 +92,11 @@ end = struct
           end
 
       and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+        (*
+           todo probably needs to always return Ast.Type.Int
+           for now, it's left unimplemented so as to catch more occurrences in the wild
+           to give us confirmation
+        *)
         match args with
         | [ type_argument ] -> begin
             match type_argument with
