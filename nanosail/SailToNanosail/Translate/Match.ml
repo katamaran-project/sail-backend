@@ -630,13 +630,18 @@ let rec build_empty_pattern_tree
         | Range (_, _)               -> TC.not_yet_implemented [%here] location
       in
       let* () =
-        let message = lazy begin
-          let node_count = PatternTree.count_nodes tree
-          in
-          Printf.sprintf "Constructed pattern tree with %d nodes" node_count
-        end
-        in        
-        TC.log [%here] Logging.warning message
+        let node_count = PatternTree.count_nodes tree
+        in
+        if
+          node_count > 100
+        then
+          let message = lazy begin
+            Printf.sprintf "Constructed pattern tree with %d nodes" node_count
+          end
+          in        
+          TC.log [%here] Logging.warning message
+        else
+          TC.return ()
       in
       TC.return tree
     end
