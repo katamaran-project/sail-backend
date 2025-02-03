@@ -398,16 +398,16 @@ let add_original_definition (original : Sail.sail_definition) : unit t =
   Adds a PP-level annotation
 *)
 let pp_annotate
-      (location  : Lexing.position)
-      (annotated : PP.document t  ) : PP.document t
+    (location  : Lexing.position)
+    (annotated : PP.document t  ) : PP.document t
   =
   lift ~f:(PP.annotate location) annotated
 
 
 let pp_annotate'
-      (location  : Lexing.position)
-      (label     : string         )
-      (annotated : PP.document t  ) : PP.document t
+    (location  : Lexing.position)
+    (label     : string         )
+    (annotated : PP.document t  ) : PP.document t
   =
   lift ~f:(PP.annotate location ~label) annotated
 
