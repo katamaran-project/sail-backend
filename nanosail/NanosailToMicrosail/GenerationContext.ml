@@ -282,6 +282,7 @@ let generate
 include Monads.Util.Make(Monad)
 
 
+(* todo probably best moved elsewhere *)
 let pp_inductive_type
      (identifier : PP.document                          )
     ?(parameters : (PP.document * PP.document) list = [])
