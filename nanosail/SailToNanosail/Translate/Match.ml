@@ -1860,42 +1860,36 @@ let translate_tuple_match
     (element_types      : Ast.Type.t list                   )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
-  let translate_using_pattern_tree : Ast.Statement.t TC.t =
-    (* keeps things lazy *)
-    let* () = TC.return ()
-    in
-    let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
-      let* initial_tree =
-        build_empty_pattern_tree
-          location
-          element_types
-      in
-      let categorize
-          (tree      : PatternTree.t  )
-          (pattern   : Pattern.t      )
-          (statement : Ast.Statement.t) : PatternTree.t TC.t
-        =
-        match pattern with
-        | Tuple subpatterns -> adorn_pattern_tree location tree subpatterns statement
-        | _                 -> TC.fail [%here] "expected tuple pattern"
-      in
-      let* final_tree =
-        TC.fold_left
-          ~init:initial_tree
-          ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
-          cases
-      in
-      build_leveled_match_statements binder_identifiers final_tree
-    in
-    let* result =
-      create_tuple_match
-        matched_identifier
+  let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
+    let* initial_tree =
+      build_empty_pattern_tree
+        location
         element_types
-        builder
     in
-    TC.return result
+    let categorize
+        (tree      : PatternTree.t  )
+        (pattern   : Pattern.t      )
+        (statement : Ast.Statement.t) : PatternTree.t TC.t
+      =
+      match pattern with
+      | Tuple subpatterns -> adorn_pattern_tree location tree subpatterns statement
+      | _                 -> TC.fail [%here] "expected tuple pattern"
+    in
+    let* final_tree =
+      TC.fold_left
+        ~init:initial_tree
+        ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
+        cases
+    in
+    build_leveled_match_statements binder_identifiers final_tree
   in
-  translate_using_pattern_tree
+  let* result =
+    create_tuple_match
+      matched_identifier
+      element_types
+      builder
+  in
+  TC.return result
 
 
 let translate_unit_match
