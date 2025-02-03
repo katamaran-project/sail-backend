@@ -66,7 +66,7 @@ let test_adorn_bool_true_false =
   |} >:: test
 
 
-let test_adorn_bool_2 =
+let test_adorn_bool_false_true =
   let test _ =
     let _gen = new generator
     in
@@ -120,5 +120,5 @@ let test_adorn_bool_2 =
 let test_suite =
   "bool" >::: [
     test_adorn_bool_true_false;
-    test_adorn_bool_2;
+    test_adorn_bool_false_true;
   ]
