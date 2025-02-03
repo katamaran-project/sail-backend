@@ -1482,32 +1482,6 @@ exception InconsistentBinders of (Pattern.t * Pattern.t)
 
 
 (*
-   Check that both patterns are binders and have the same name, taking into account wildcards.
-
-   todo: investigate if we can replace this with Binding.unify
-*)
-let consistent_binders
-    (pattern_1 : Pattern.t)
-    (pattern_2 : Pattern.t) : bool
-  =
-  match pattern_1 with
-  | ListCons (_, _)    -> false
-  | ListNil            -> false
-  | Tuple _            -> false
-  | EnumCase _         -> false
-  | BoolCase _         -> false
-  | VariantCase (_, _) -> false
-  | Unit               -> false (* todo might need more nuanced logic *)
-  | Binder { identifier = identifier_1; wildcard = wildcard_1 } -> begin
-      match pattern_2 with
-      | Binder { identifier = identifier_2; wildcard = wildcard_2 } -> begin
-          wildcard_1 || wildcard_2 || Ast.Identifier.equal identifier_1 identifier_2
-        end
-      | _ -> false
-    end
-
-
-(*
    Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
 *)
 let rec translate_pattern
