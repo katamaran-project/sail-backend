@@ -660,19 +660,91 @@ let adorn_pattern_tree
       (tuple_subpatterns : Pattern.t list)
       (gap_filling       : bool          ) : PatternTree.t TC.t
     =
-
     let invalid_number_of_subpatterns (location : Lexing.position) =
       TC.fail location "the tree should be as deep as there are tuple subpatterns"
     and invalid_pattern (location : Lexing.position) =
       TC.fail location "pattern is incompatible with type of value being matched"
     in
     match pattern_tree with
-    | Bool bindings -> begin
+    | Bool binders -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
+            | Binder pattern_binder -> begin
+                (*
+                   Example context
+
+                     // if pattern_binder.wildcard = false
+                     match boolean_value {
+                       x = > ...
+                     }
+
+                   or
+
+                     // if pattern_binder.wildcard = true
+                     match boolean_value {
+                       _ => ...
+                     }
+                *)
+                match binders with
+                | SingleBoolCase (old_binder, old_subtree) -> begin
+                    let* new_binder =
+                      Binder.unify old_binder pattern_binder
+                    and* new_subtree =
+                      adorn old_subtree remaining_subpatterns true
+                    in
+                    TC.return begin
+                      PatternTree.Bool begin
+                        PatternTree.SingleBoolCase (new_binder, new_subtree)
+                      end
+                    end
+                  end
+                | SeparateBoolCases { when_true = old_when_true; when_false = old_when_false } -> begin
+                    let* () =
+                      if not pattern_binder.wildcard
+                      then begin
+                        (*
+                           We have
+
+                             match bool_value {
+                               x => ...
+                             }
+
+                           The current implementation translates this to
+
+                             match bool_value {
+                               true => ...,
+                               false => ...
+                             }
+
+                           whereas it should be
+
+                             match bool_value {
+                               true => let x = true in ...,
+                               false => let x = true in ...,
+                             }
+                        *)
+                        TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
+                      end
+                      else TC.return ()
+                    in
+                    let* new_when_true =
+                      adorn old_when_true remaining_subpatterns true
+                    and* new_when_false =
+                      adorn old_when_false remaining_subpatterns true
+                    in
+                    TC.return begin
+                      PatternTree.Bool begin
+                        PatternTree.SeparateBoolCases {
+                          when_true  = new_when_true;
+                          when_false = new_when_false
+                        }
+                      end
+                    end
+                  end
+              end
             | BoolCase b -> begin
-                match bindings with
+                match binders with
                 | SingleBoolCase (binder, old_subtree) -> begin
                     if
                       binder.wildcard
@@ -752,7 +824,6 @@ let adorn_pattern_tree
                       end
                   end
               end
-            | Binder _           -> TC.not_yet_implemented [%here] location
             | ListCons (_, _)    -> invalid_pattern [%here]
             | ListNil            -> invalid_pattern [%here]
             | Tuple _            -> invalid_pattern [%here]
