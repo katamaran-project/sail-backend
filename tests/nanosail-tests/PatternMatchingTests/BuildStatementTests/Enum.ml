@@ -408,7 +408,7 @@ let test_build_match_for_pair_of_enums =
   |} >:: test
 
 
-let test_build_match_for_enum_6 =
+let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
   let test _ =
     let tc =
       let* enum_type =
@@ -532,7 +532,7 @@ let test_build_match_for_enum_6 =
   |} >:: test
 
 
-let test_build_match_for_enum_7 =
+let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
   let test _ =
     let tc =
       let* enum_type =
@@ -893,8 +893,8 @@ let test_suite =
     test_build_match_for_enum_with_two_cases_use_wildcard;
     test_build_match_for_enum_with_two_cases_use_binder;
     test_build_match_for_pair_of_enums;
-    test_build_match_for_enum_6;
-    test_build_match_for_enum_7;
+    test_build_match_for_pair_of_enums_with_wildcards_for_first_value;
+    test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2;
     test_build_match_for_enum_8;
     test_build_match_for_enum_9;
   ]
