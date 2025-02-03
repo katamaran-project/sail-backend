@@ -13,7 +13,7 @@ module TM      = SailToNanosail.Translate.Match
 open Shared
 
 
-let test_build_match_for_enum_with_single_constructor =
+let test_build_match_for_enum_with_single_case =
   let test _ =
     let tc =
       let* enum_type =
@@ -69,7 +69,7 @@ let test_build_match_for_enum_with_single_constructor =
   |} >:: test
 
 
-let test_build_match_for_enum_with_two_constructors =
+let test_build_match_for_enum_with_two_cases =
   let test _ =
     let tc =
       let* enum_type =
@@ -139,7 +139,7 @@ let test_build_match_for_enum_with_two_constructors =
   |} >:: test
 
 
-let test_build_match_for_enum_with_two_constructors_use_wildcard =
+let test_build_match_for_enum_with_two_cases_use_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -209,7 +209,7 @@ let test_build_match_for_enum_with_two_constructors_use_wildcard =
   |} >:: test
 
 
-let test_build_match_for_enum_4 =
+let test_build_match_for_enum_with_two_cases_use_binder =
   let test _ =
     let tc =
       let* enum_type =
@@ -284,7 +284,7 @@ let test_build_match_for_enum_4 =
   |} >:: test
 
 
-let test_build_match_for_enum_5 =
+let test_build_match_for_pair_of_enums =
   let test _ =
     let tc =
       let* enum_type =
@@ -888,11 +888,11 @@ let test_build_match_for_enum_9 =
 
 let test_suite =
   "enum" >::: [
-    test_build_match_for_enum_with_single_constructor;
-    test_build_match_for_enum_with_two_constructors;
-    test_build_match_for_enum_with_two_constructors_use_wildcard;
-    test_build_match_for_enum_4;
-    test_build_match_for_enum_5;
+    test_build_match_for_enum_with_single_case;
+    test_build_match_for_enum_with_two_cases;
+    test_build_match_for_enum_with_two_cases_use_wildcard;
+    test_build_match_for_enum_with_two_cases_use_binder;
+    test_build_match_for_pair_of_enums;
     test_build_match_for_enum_6;
     test_build_match_for_enum_7;
     test_build_match_for_enum_8;
