@@ -58,7 +58,6 @@ let test_build_match_for_bool_true_false =
       TC.return ()      
     in
     ignore @@ run_tc tc
-
   in
   {|
     match b {
