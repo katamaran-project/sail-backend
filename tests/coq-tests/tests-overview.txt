@@ -167,9 +167,9 @@ PASS match-pair-of-enum-int
 PASS match-pair-of-enums-with-wildcards-and-enums
 PASS match-pair-of-int-enum
 PASS match-pair-of-ints
-FAIL match-pair-of-union-int
+PASS match-pair-of-union-int
 PASS match-pair-of-unions
-FAIL match-pair-of-unions-with-wildcard-on-the-left
+PASS match-pair-of-unions-with-wildcard-on-the-left
 PASS match-pair-of-unions-with-wildcard-on-the-right
 FAIL match-record
 PASS match-register
@@ -264,4 +264,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:242 FAIL:24
+PASS:244 FAIL:22
