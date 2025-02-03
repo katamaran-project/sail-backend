@@ -65,8 +65,14 @@ module Binder = struct
           Ast.Identifier.equal binder_1.identifier binder_2.identifier
         then
           TC.return binder_1
-        else
-          TC.fail [%here] "cannot unify binders"
+        else begin
+          let error_message =
+            Printf.sprintf "cannot unify binders %s and %s"
+              (Ast.Identifier.to_string binder_1.identifier)
+              (Ast.Identifier.to_string binder_2.identifier)
+          in
+          TC.fail [%here] error_message
+        end
       end
 
 
