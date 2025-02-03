@@ -165,9 +165,60 @@ let test_build_match_for_bool_wildcard =
   |} >:: test
 
 
+let test_build_match_for_bool_binder =
+  let test _ =
+    let _gen = new generator
+    in
+    let tc =
+      let statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* tree =
+        let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
+        in
+        let* tree = adorn
+          tree
+          [ Pattern.Binder (mkbinder "x") ]
+          statement
+        in
+        TC.return tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "b"] tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Let {
+          variable_identifier    = mkid "x";
+          binding_statement_type = Ast.Type.Bool;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "b", Ast.Type.Bool));
+          body_statement         = statement;
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      match b {
+        x => r1
+      }
+
+    should become
+
+      let x = b in r1
+  |} >:: test
+
+
+
 let test_suite =
   "bool" >::: [
     test_build_match_for_bool_true_false;
     test_build_match_for_bool_false_true;
     test_build_match_for_bool_wildcard;
+    test_build_match_for_bool_binder;    
   ]
