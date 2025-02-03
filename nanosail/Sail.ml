@@ -1,3 +1,4 @@
+open Base
 open Libsail.Ast
 
 type type_annotation = Libsail.Type_check.tannot
@@ -66,3 +67,11 @@ let rec identifier_of_pattern (pattern : 'a pat) : string =
   | P_cons (_, _)               -> not_supported [%here]
   | P_string_append _           -> not_supported [%here]
   | P_struct (_, _)             -> not_supported [%here]
+
+
+let is_named_wildcard (sail_identifier : id) : bool =
+  let Id_aux (unwrapped_sail_identifier, _location) = sail_identifier
+  in
+  match unwrapped_sail_identifier with
+  | Id name -> String.is_prefix name ~prefix:"g__"
+  | Operator _ -> false
