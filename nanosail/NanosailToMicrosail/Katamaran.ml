@@ -7,10 +7,6 @@ module GC = struct
 end
 
 
-let genblock loc label (contents : PP.document GC.t) : PP.document GC.t =
-  GC.generation_block loc label contents
-
-
 class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
   val all_definitions                          = intermediate_representation.definitions
   val type_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition of_anything         ) intermediate_representation.definitions)
@@ -37,28 +33,28 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
 
   method pp_base_prelude : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Prelude" @@ begin
+        GC.generation_block [%here] "Prelude" @@ begin
           BaseModule.generate_base_prelude ()
         end
       end
 
   method pp_program_prelude : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Prelude" @@ begin
+        GC.generation_block [%here] "Prelude" @@ begin
           ProgramModule.generate_program_prelude ()
         end
       end
 
   method pp_register_definitions : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Register Definitions" @@ begin
+        GC.generation_block [%here] "Register Definitions" @@ begin
           Registers.pp_regname_inductive_type register_definitions
         end
       end
 
   method pp_translated_type_definitions : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Translated Type Definitions" @@ begin
+        GC.generation_block [%here] "Translated Type Definitions" @@ begin
           let* type_definitions' =
             GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
           in
@@ -68,28 +64,28 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
 
   method pp_enum_tags : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Enum Tags" @@ begin
+        GC.generation_block [%here] "Enum Tags" @@ begin
           Types.Enums.generate_tags enum_definitions
         end
       end
 
   method pp_record_tags : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Record Tags" begin
+        GC.generation_block [%here] "Record Tags" begin
           Types.Records.generate_tags record_definitions
         end
       end
 
   method pp_variant_tags : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Variant Tags" begin
+        GC.generation_block [%here] "Variant Tags" begin
             Types.Variants.generate_tags variant_definitions;
           end
       end
 
   method pp_base_module : PP.document GC.t =
     GC.block begin
-        genblock [%here] "Base Module" begin
+        GC.generation_block [%here] "Base Module" begin
             BaseModule.pp_base_module all_definitions
           end
       end
@@ -131,7 +127,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
     in
     GC.block begin
-      genblock [%here] "Finite" begin
+      GC.generation_block [%here] "Finite" begin
         GC.return begin
           Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(paragraphs parts)
         end
@@ -176,7 +172,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       PP.annotate [%here] @@ PP.paragraphs [ transparent_obligations; no_confusion_lines ]
     in
     GC.block begin
-        genblock [%here] "No Confusion" begin
+        GC.generation_block [%here] "No Confusion" begin
           GC.return @@ Coq.pp_section section_identifier section_contents
         end
       end
@@ -212,7 +208,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
     in
     GC.block begin
-      genblock [%here] "EqDec" begin
+      GC.generation_block [%here] "EqDec" begin
         GC.return begin
           PP.annotate [%here] @@ PP.vertical coq_lines
         end
