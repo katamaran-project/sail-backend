@@ -104,17 +104,15 @@ end = struct
             match type_argument with
             | NumericExpression numeric_expression -> begin
                 match numeric_expression with
-                | Constant _     -> TC.return Ast.Type.Int
-                | Var _          -> TC.return Ast.Type.Int
-                | Add (_, _)     -> TC.not_yet_implemented [%here] location
-                | Sub (_, _)     -> TC.not_yet_implemented [%here] location
-                | Mul (_, _)     -> TC.not_yet_implemented [%here] location
-                | Neg _          -> TC.not_yet_implemented [%here] location
-                | PowerOf2 _     -> TC.not_yet_implemented [%here] location
-                | Id _           -> TC.not_yet_implemented [%here] location
+                | Constant _                -> TC.return Ast.Type.Int
+                | Var _                     -> TC.return Ast.Type.Int
+                | BinaryOperation (_, _, _) -> TC.not_yet_implemented [%here] location
+                | Neg _                     -> TC.not_yet_implemented [%here] location
+                | PowerOf2 _                -> TC.not_yet_implemented [%here] location
+                | Id _                      -> TC.not_yet_implemented [%here] location
               end
-            | Type _ -> TC.not_yet_implemented [%here] location
-            | Bool _ -> TC.not_yet_implemented [%here] location
+            | Type _                        -> TC.not_yet_implemented [%here] location
+            | Bool _                        -> TC.not_yet_implemented [%here] location
           end
         | _ -> TC.fail [%here] "type 'itself' expected to receive exactly one parameter"
 
@@ -227,21 +225,21 @@ and Numeric : sig
 end = struct
   let rec translate_numeric_expression (numeric_expression : Libsail.Ast.nexp) : Ast.Numeric.Expression.t TC.t =
     let translate_binary_operation
-        (factory : Ast.Numeric.Expression.t -> Ast.Numeric.Expression.t -> Ast.Numeric.Expression.t)
-        (left    : S.nexp                                                                          )
-        (right   : S.nexp                                                                          ) : Ast.Numeric.Expression.t TC.t
+        (operator : Ast.Numeric.Expression.binop)
+        (left    : S.nexp                       )
+        (right   : S.nexp                       ) : Ast.Numeric.Expression.t TC.t
       =
       TC.translation_block [%here] "Translating binary operation" begin
         let* left'  = translate_numeric_expression left
         and* right' = translate_numeric_expression right
         in
-        TC.return @@ factory left' right'
+        TC.return @@ Ast.Numeric.Expression.BinaryOperation (operator, left', right')
       end
     in
 
-    let translate_sum   = translate_binary_operation @@ fun l r -> Add (l, r)
-    and translate_minus = translate_binary_operation @@ fun l r -> Sub (l, r)
-    and translate_times = translate_binary_operation @@ fun l r -> Mul (l, r)
+    let translate_sum   = translate_binary_operation Add
+    and translate_minus = translate_binary_operation Sub
+    and translate_times = translate_binary_operation Mul
 
     and translate_constant (constant : Z.t) : Ast.Numeric.Expression.t TC.t =
       TC.return @@ Ast.Numeric.Expression.Constant constant

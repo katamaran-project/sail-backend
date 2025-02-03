@@ -5,14 +5,12 @@ module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
     let rec aux (nexp : Ast.Numeric.Expression.t) =
       match nexp with
-      | Constant _        -> nexp
-      | Add (left, right) -> Add (aux left, aux right)
-      | Sub (left, right) -> Sub (aux left, aux right)
-      | Mul (left, right) -> Mul (aux left, aux right)
-      | Neg operand       -> Neg (aux operand)
-      | Id identifier     -> Id (subst identifier)
-      | Var identifier    -> Var (subst identifier)
-      | PowerOf2 x        -> PowerOf2 (aux x)
+      | Constant _                        -> nexp
+      | BinaryOperation (op, left, right) -> BinaryOperation (op, aux left, aux right)
+      | Neg operand                       -> Neg (aux operand)
+      | Id identifier                     -> Id (subst identifier)
+      | Var identifier                    -> Var (subst identifier)
+      | PowerOf2 x                        -> PowerOf2 (aux x)
     in
     aux
 

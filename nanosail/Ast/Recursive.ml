@@ -8,15 +8,17 @@ open Base
 
 module NumericExpression = struct
   type t =
-    | Constant of Z.t
-    | Add      of t * t
-    | Sub      of t * t
-    | Mul      of t * t
-    | Neg      of t
-    | PowerOf2 of t
-    | Id       of Identifier.t
-    | Var      of Identifier.t
+    | Constant        of Z.t
+    | BinaryOperation of binop * t * t
+    | Neg             of t
+    | PowerOf2        of t
+    | Id              of Identifier.t
+    | Var             of Identifier.t
 
+  and binop =
+    | Add
+    | Sub
+    | Mul
 
   (*
      Returns identifiers id appearing as (Id id) inside the numeric expression.
@@ -25,14 +27,12 @@ module NumericExpression = struct
   let identifiers (numeric_expression : t) : Identifier.t list =
     let rec aux (numeric_expression : t) : Identifier.t list =
       match numeric_expression with
-       | Constant _        -> []
-       | Add (left, right) -> List.append (aux left) (aux right)
-       | Sub (left, right) -> List.append (aux left) (aux right)
-       | Mul (left, right) -> List.append (aux left) (aux right)
-       | Neg operand       -> aux operand
-       | PowerOf2 operand  -> aux operand
-       | Id id             -> [id]
-       | Var _             -> []
+      | Constant _                       -> []
+      | BinaryOperation (_, left, right) -> List.append (aux left) (aux right)
+      | Neg operand                      -> aux operand
+      | PowerOf2 operand                 -> aux operand
+      | Id id                            -> [id]
+      | Var _                            -> []
     in
     List.dedup_and_sort (aux numeric_expression) ~compare:Identifier.compare
 
@@ -48,14 +48,12 @@ module NumericExpression = struct
     let rec aux (numeric_expression : t) : t
       =
       match numeric_expression with
-      | Constant _        -> numeric_expression
-      | Add (left, right) -> Add (aux left, aux right)
-      | Sub (left, right) -> Sub (aux left, aux right)
-      | Mul (left, right) -> Mul (aux left, aux right)
-      | Neg operand       -> Neg (aux operand)
-      | PowerOf2 operand  -> PowerOf2 (aux operand)
-      | Var _             -> numeric_expression
-      | Id id             -> begin
+      | Constant _                        -> numeric_expression
+      | BinaryOperation (op, left, right) -> BinaryOperation (op, aux left, aux right)
+      | Neg operand                       -> Neg (aux operand)
+      | PowerOf2 operand                  -> PowerOf2 (aux operand)
+      | Var _                             -> numeric_expression
+      | Id id                             -> begin
           if
             Identifier.equal id identifier
           then
@@ -68,15 +66,22 @@ module NumericExpression = struct
 
 
   let rec to_string (numeric_expression : t) =
+    let string_of_binop op e1 e2 =
+      let op_string =
+        match op with
+        | Add -> "+"
+        | Sub -> "-"
+        | Mul -> "*"
+      in
+      Printf.sprintf "(%s %s %s)" (to_string e1) op_string (to_string e2)
+    in    
     match numeric_expression with
-    | Constant n   -> Z.to_string n
-    | Add (e1, e2) -> Printf.sprintf "(%s + %s)" (to_string e1) (to_string e2)
-    | Sub (e1, e2) -> Printf.sprintf "(%s - %s)" (to_string e1) (to_string e2)
-    | Mul (e1, e2) -> Printf.sprintf "(%s * %s)" (to_string e1) (to_string e2)
-    | Neg e        -> Printf.sprintf "-%s" (to_string e)
-    | PowerOf2 e   -> Printf.sprintf "2^(%s)" (to_string e)
-    | Id id        -> Identifier.to_string id
-    | Var id       -> Identifier.to_string id
+    | Constant n                   -> Z.to_string n
+    | BinaryOperation (op, e1, e2) -> string_of_binop op e1 e2
+    | Neg e                        -> Printf.sprintf "-%s" (to_string e)
+    | PowerOf2 e                   -> Printf.sprintf "2^(%s)" (to_string e)
+    | Id id                        -> Identifier.to_string id
+    | Var id                       -> Identifier.to_string id
 
 
   let rec equal (t1 : t) (t2 : t) : bool =
@@ -86,20 +91,31 @@ module NumericExpression = struct
         | Constant n2 -> Z.equal n1 n2
         | _           -> false
       end
-    | Add (x, y) -> begin
+    | BinaryOperation (operator_1, x_1, y_1) -> begin
         match t2 with
-        | Add (x', y') -> equal x x' && equal y y'
-        | _            -> false
-      end
-    | Sub (x, y) -> begin
-        match t2 with
-        | Sub (x', y') -> equal x x' && equal y y'
-        | _              -> false
-      end
-    | Mul (x, y) -> begin
-        match t2 with
-        | Mul (x', y') -> equal x x' && equal y y'
-        | _              -> false
+        | BinaryOperation (operator_2, x_2, y_2) -> begin
+            let equal_binary_operator operator_1 operator_2 =
+              match operator_1, operator_2 with
+              | Add, Add -> true
+              | Add, _   -> false
+              | Sub, Sub -> true
+              | Sub, _   -> false
+              | Mul, Mul -> true
+              | Mul, _   -> false
+            in
+            equal_binary_operator
+              operator_1
+              operator_2
+            &&
+            equal
+              x_1
+              x_2
+            &&
+            equal
+              y_1
+              y_2
+          end
+        | _ -> false
       end
     | Neg x -> begin
         match t2 with
@@ -128,14 +144,26 @@ module NumericExpression = struct
       String.append "NumExpr:" head
     in
     match numeric_expression with
-     | Constant n     -> FExpr.mk_int @@ Z.to_int n
-     | Add (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Add"
-     | Sub (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Sub"
-     | Mul (e1, e2)   -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]       @@ prefix "Mul"
-     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
-     | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"
-     | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Id"
-     | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Var"
+    | Constant n     -> FExpr.mk_int @@ Z.to_int n
+    | BinaryOperation (operator, e1, e2) -> begin
+        let positional =
+          [
+            (
+              match operator with
+              | Add -> FExpr.mk_string "Add"
+              | Sub -> FExpr.mk_string "Sub"
+              | Mul -> FExpr.mk_string "Mul"
+            );
+            to_fexpr e1;
+            to_fexpr e2;
+          ]
+        in
+        FExpr.mk_application ~positional @@ prefix "BinOp"              
+      end
+    | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
+    | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"
+    | Id identifier  -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Id"
+    | Var identifier -> FExpr.mk_application ~positional:[Identifier.to_fexpr identifier] @@ prefix "Var"
 end
 
 
