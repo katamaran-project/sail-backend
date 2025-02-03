@@ -1967,10 +1967,7 @@ let translate_tuple_match
       end
     | _ -> TC.not_yet_implemented [%here] location
   in
-  TC.try_multiple [
-    translate_using_pattern_tree;
-    translate_tuple_of_binders;
-  ]
+  translate_using_pattern_tree
 
 
 let translate_unit_match
