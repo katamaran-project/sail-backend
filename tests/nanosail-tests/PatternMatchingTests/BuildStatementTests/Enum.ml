@@ -69,7 +69,7 @@ let test_build_match_for_enum_with_single_constructor =
   |} >:: test
 
 
-let test_build_match_for_enum_2 =
+let test_build_match_for_enum_with_two_constructors =
   let test _ =
     let tc =
       let* enum_type =
@@ -139,7 +139,7 @@ let test_build_match_for_enum_2 =
   |} >:: test
 
 
-let test_build_match_for_enum_3 =
+let test_build_match_for_enum_with_two_constructors_use_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -889,8 +889,8 @@ let test_build_match_for_enum_9 =
 let test_suite =
   "enum" >::: [
     test_build_match_for_enum_with_single_constructor;
-    test_build_match_for_enum_2;
-    test_build_match_for_enum_3;
+    test_build_match_for_enum_with_two_constructors;
+    test_build_match_for_enum_with_two_constructors_use_wildcard;
     test_build_match_for_enum_4;
     test_build_match_for_enum_5;
     test_build_match_for_enum_6;
