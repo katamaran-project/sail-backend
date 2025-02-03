@@ -69,6 +69,10 @@ let rec identifier_of_pattern (pattern : 'a pat) : string =
   | P_struct (_, _)             -> not_supported [%here]
 
 
+(*
+   Some wildcards are rewritten as named binders, e.g., _ becomes g__41.
+   This function attempts to recognize these.
+*)
 let is_named_wildcard (sail_identifier : id) : bool =
   let Id_aux (unwrapped_sail_identifier, _location) = sail_identifier
   in
