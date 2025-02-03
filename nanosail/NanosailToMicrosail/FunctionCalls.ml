@@ -586,7 +586,7 @@ let translate
         string_of_function_name
     end
     in
-    GC.log [%here] Logging.debug log_message
+    GC.log [%here] Logging.info log_message
   in
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
