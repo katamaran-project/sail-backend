@@ -26,8 +26,8 @@ let test_is_generated =
   "is normalized" >::: List.concat [
     List.map ~f:(Fn.compose test_is_generated mkgid) @@ List.range 0 100;
     List.map ~f:(Fn.compose test_is_not_generated mkid) @@ [ "x"; "y"; "xyz" ];
-  ]      
-    
+  ]
+
 
 let test_normalize_expressions =
   let test (expression, expected) =
@@ -97,23 +97,23 @@ let test_normalize_expressions =
     (
       Tuple [ mkgenvar 1; mkgenvar 1 ],
       Tuple [ mkgenvar 0; mkgenvar 0 ]
-    );    
+    );
     (
       Tuple [ mkgenvar 5; mkgenvar 5 ],
       Tuple [ mkgenvar 0; mkgenvar 0 ]
-    );    
+    );
     (
       Tuple [ mkgenvar 1; mkgenvar 2; mkgenvar 3; mkgenvar 4 ],
       Tuple [ mkgenvar 0; mkgenvar 1; mkgenvar 2; mkgenvar 3 ]
-    );    
+    );
     (
       Tuple [ mkgenvar 1; mkgenvar 1; mkgenvar 3; mkgenvar 4 ],
       Tuple [ mkgenvar 0; mkgenvar 0; mkgenvar 1; mkgenvar 2 ]
-    );    
+    );
     (
       Tuple [ mkgenvar 1; mkgenvar 1; mkgenvar 3; mkgenvar 1 ],
       Tuple [ mkgenvar 0; mkgenvar 0; mkgenvar 1; mkgenvar 0 ]
-    );    
+    );
   ]
 
 

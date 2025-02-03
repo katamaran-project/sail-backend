@@ -21,7 +21,7 @@ let pp_function_definition
             in
             Printf.sprintf
               "Generating code for function %s"
-              string_of_function_name              
+              string_of_function_name
           end
         end
       in

@@ -322,7 +322,7 @@ module Implementation = struct
             end
           end
       end
-      
+
     | Enum { enum_identifier; table } -> begin
         let* table =
           let pairs =
@@ -374,7 +374,7 @@ module Implementation = struct
                     in
                     return @@ PatternTree.NAryConstructor field_binders
                   end
-              in                
+              in
               return (constructor_identifier, (binder, field_binders, subtree))
             in
             map ~f:(Auxlib.uncurry normalize_pair) pairs

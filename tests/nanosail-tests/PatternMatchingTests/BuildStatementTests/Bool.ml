@@ -55,7 +55,7 @@ let test_build_match_for_bool_true_false =
         ~cmp:Ast.Statement.equal
         (Normalize.normalize_statement expected_match_statement)
         (Normalize.normalize_statement actual_match_statement);
-      TC.return ()      
+      TC.return ()
     in
     ignore @@ run_tc tc
   in

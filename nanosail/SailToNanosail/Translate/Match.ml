@@ -136,7 +136,7 @@ module Pattern = struct
         in
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
-      
+
     | BoolCase value -> begin
         let positional = [
           FExpr.mk_bool value
@@ -166,7 +166,7 @@ module Pattern = struct
      | Binder _ -> true
      | _        -> false
 
-  
+
   let identifier_of_binder (pattern : t) : Ast.Identifier.t =
     match pattern with
     | Binder { identifier; _ } -> identifier
@@ -191,7 +191,7 @@ module PatternTree = struct
   *)
   and variant_binders =
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
-    | UnaryConstructor   of Binder.t      
+    | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
   and bool_binders =
@@ -488,7 +488,7 @@ let rec build_empty_pattern_tree
     TC.return begin
       PatternTree.Bool (PatternTree.SingleBoolCase (binder, subtree))
     end
-    
+
   and build_enum_node
       (enum_identifier : Ast.Identifier.t)
       (subtree         : PatternTree.t   ) : PatternTree.t TC.t
@@ -751,7 +751,7 @@ let adorn_pattern_tree
                     then
                       (*
                          Example context
-  
+
                            match boolean_value {
                              _    => A,
                              true => B
@@ -783,15 +783,15 @@ let adorn_pattern_tree
                     else begin
                       (*
                          Example context
-  
+
                            match boolean_value {
                              x    => ...,
                              true => ...
                            }
-  
+
                          We do not support this case.
                          This situation possibly occurs when it is combined with other patterns, such as
-  
+
                            match boolean_value_1, boolean_value_2 {
                              x    , true  => ...,
                              false, false => ...,
@@ -833,7 +833,7 @@ let adorn_pattern_tree
           end
         | _ -> invalid_number_of_subpatterns [%here]
       end
-    
+
     | Enum { enum_identifier; table } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
@@ -1191,7 +1191,7 @@ let rec build_leveled_match_statements
             end
         end
     end
-    
+
   | Enum { enum_identifier; table } -> begin
       let enum_type = Ast.Type.Enum enum_identifier
       in
@@ -1311,7 +1311,7 @@ let rec build_leveled_match_statements
                              union A = {
                                A : unit
                              }
-                           
+
                              match A_value {
                                A(var) => func(var)
                              }
