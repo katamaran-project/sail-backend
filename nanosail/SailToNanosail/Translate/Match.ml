@@ -481,7 +481,15 @@ let rec build_empty_pattern_tree
     (location      : S.l            )
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
-  let build_enum_node
+  let build_bool_node (subtree : PatternTree.t) : PatternTree.t TC.t =
+    let* binder =
+      Binder.generate_wildcard
+    in
+    TC.return begin
+      PatternTree.Bool (PatternTree.SingleBoolCase (binder, subtree))
+    end
+    
+  and build_enum_node
       (enum_identifier : Ast.Identifier.t)
       (subtree         : PatternTree.t   ) : PatternTree.t TC.t
     =
@@ -586,7 +594,7 @@ let rec build_empty_pattern_tree
       | Int                        -> build_atomic_node Ast.Type.Int tail
       | Variant variant_identifier -> build_variant_node variant_identifier tail
       | Unit                       -> build_atomic_node Ast.Type.Unit tail
-      | Bool                       -> TC.not_yet_implemented [%here] location
+      | Bool                       -> build_bool_node tail
       | String                     -> TC.not_yet_implemented [%here] location
       | Bit                        -> TC.not_yet_implemented [%here] location
       | List _                     -> TC.not_yet_implemented [%here] location
@@ -665,25 +673,61 @@ let adorn_pattern_tree
             match first_subpattern with
             | BoolCase b -> begin
                 match bindings with
-                | SingleBoolCase (_binder, _subtree) -> begin
-                    (*
-                       Example context
+                | SingleBoolCase (binder, old_subtree) -> begin
+                    if
+                      binder.wildcard
+                    then
+                      (*
+                         Example context
+  
+                           match boolean_value {
+                             _    => A,
+                             true => B
+                           }
 
-                         match boolean_value {
-                           _    => ...,
-                           true => ...
-                         }
+                         We interpret this as
 
-                       We do not support this case.
-                       This situation possibly occurs when it is combined with other patterns, such as
-
-                         match boolean_value_1, boolean_value_2 {
-                           _    , true  => ...,
-                           false, false => ...,
-                           true , false => ...
-                         }
-                    *)
-                    TC.not_yet_implemented [%here] location
+                           match boolean_value {
+                             false => A,
+                             true  => B
+                           }
+                      *)
+                      let* new_subtree =
+                        adorn old_subtree remaining_subpatterns gap_filling
+                      in
+                      let when_true, when_false =
+                        if
+                          b
+                        then
+                          (new_subtree, old_subtree)
+                        else
+                          (old_subtree, new_subtree)
+                      in
+                      TC.return begin
+                        PatternTree.Bool begin
+                          PatternTree.SeparateBoolCases { when_true; when_false }
+                        end
+                      end
+                    else begin
+                      (*
+                         Example context
+  
+                           match boolean_value {
+                             x    => ...,
+                             true => ...
+                           }
+  
+                         We do not support this case.
+                         This situation possibly occurs when it is combined with other patterns, such as
+  
+                           match boolean_value_1, boolean_value_2 {
+                             x    , true  => ...,
+                             false, false => ...,
+                             true , false => ...
+                           }
+                      *)
+                      TC.not_yet_implemented [%here] location
+                    end
                   end
                 | SeparateBoolCases { when_true; when_false } -> begin
                     if
