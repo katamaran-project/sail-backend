@@ -537,7 +537,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
       ]
     end
       
-  | Match (MatchEnum { matched; matched_type; cases }) -> begin
+  | Match (MatchEnum { matched; matched_type = _; cases }) -> begin
       let free_variables_in_cases =
         Identifier.Set.unions begin
           List.map ~f:free_variables @@ Identifier.Map.data cases
