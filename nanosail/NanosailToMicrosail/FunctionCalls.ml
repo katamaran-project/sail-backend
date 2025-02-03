@@ -572,9 +572,9 @@ let translate
   =
   let* () =
     let log_message = lazy begin
-      let fexpr_of_function =
+      let string_of_function_name =
         Ast.Identifier.to_string function_identifier
-      and fexpr_of_arguments =
+      and _string_of_arguments =
         FExpr.to_string begin
           FExpr.mk_list begin
             List.map ~f:Ast.Expression.to_fexpr arguments
@@ -582,9 +582,8 @@ let translate
         end
       in
       Printf.sprintf
-        "Translating function %s with arguments %s"
-        fexpr_of_function
-        fexpr_of_arguments
+        "Translating function %s"
+        string_of_function_name
     end
     in
     GC.log [%here] Logging.debug log_message
