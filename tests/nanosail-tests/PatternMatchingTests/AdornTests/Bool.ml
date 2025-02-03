@@ -15,7 +15,7 @@ module TM      = SailToNanosail.Translate.Match
 open Shared
 
 
-let test_adorn_bool_1 =
+let test_adorn_bool_true_false =
   let test _ =
     let _gen = new generator
     in
@@ -119,6 +119,6 @@ let test_adorn_bool_2 =
 
 let test_suite =
   "bool" >::: [
-    test_adorn_bool_1;
+    test_adorn_bool_true_false;
     test_adorn_bool_2;
   ]
