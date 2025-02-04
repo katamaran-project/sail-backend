@@ -627,7 +627,7 @@ let rec build_empty_pattern_tree
       }
     end
 
-  and build_atomic_node
+  and build_binder_node
       (element_type : Ast.Type.t   )
       (subtree      : PatternTree.t) : PatternTree.t TC.t
     =
@@ -649,15 +649,15 @@ let rec build_empty_pattern_tree
         *)
         match head with
         | Enum enum_identifier         -> build_enum_node enum_identifier tail
-        | Int                          -> build_atomic_node Ast.Type.Int tail
+        | Int                          -> build_binder_node Ast.Type.Int tail
         | Variant variant_identifier   -> build_variant_node variant_identifier tail
-        | Unit                         -> build_atomic_node Ast.Type.Unit tail
+        | Unit                         -> build_binder_node Ast.Type.Unit tail
         | Bool                         -> build_bool_node tail
-        | String                       -> build_atomic_node Ast.Type.String tail
+        | String                       -> build_binder_node Ast.Type.String tail
         | Bit                          -> TC.not_yet_implemented [%here] location
         | List _                       -> TC.not_yet_implemented [%here] location
         | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
-        | Bitvector numeric_expression -> build_atomic_node (Ast.Type.Bitvector numeric_expression) tail
+        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) tail
         | Tuple _                      -> TC.not_yet_implemented [%here] location
         | Record _                     -> TC.not_yet_implemented [%here] location
         | Application (_, _)           -> TC.not_yet_implemented [%here] location
