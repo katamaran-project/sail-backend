@@ -276,14 +276,14 @@ let test_adorn_enum_two_cases_wildcard =
               (
                 mkid "A1",
                 (
-                  gen#wildcard,  (* no binder since pattern mentions A1 explicitly *)
+                  gen#wildcard,
                   TM.PatternTree.Terminal (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
-                  mkwild "x",  (* no binder since pattern is wildcard *)
+                  mkwild "x",
                   TM.PatternTree.Terminal (Some a2_statement)
                 )
               );
