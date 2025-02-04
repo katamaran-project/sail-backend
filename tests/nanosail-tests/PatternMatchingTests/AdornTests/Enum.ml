@@ -15,7 +15,7 @@ module TM      = SailToNanosail.Translate.Match
 open Shared
 
 
-let test_adorn_enum_1 =
+let test_adorn_enum_single_case =
   let test _ =
     let gen = new generator
     in
@@ -437,7 +437,7 @@ let test_failure_due_to_clashing_binders =
 
 let test_suite =
   "enum" >::: [
-    test_adorn_enum_1;
+    test_adorn_enum_single_case;
     test_adorn_enum_2;
     test_adorn_enum_3;
     test_adorn_enum_4;
