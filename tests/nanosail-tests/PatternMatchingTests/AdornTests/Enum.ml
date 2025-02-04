@@ -263,7 +263,7 @@ let test_adorn_enum_two_cases_wildcard =
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = true }
+              Pattern.Binder gen#wildcard
             ]
             a2_statement
         in
@@ -283,7 +283,7 @@ let test_adorn_enum_two_cases_wildcard =
               (
                 mkid "A2",
                 (
-                  mkwild "x",
+                  gen#wildcard,
                   TM.PatternTree.Terminal (Some a2_statement)
                 )
               );
