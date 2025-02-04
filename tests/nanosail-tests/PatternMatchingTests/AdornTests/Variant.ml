@@ -94,14 +94,10 @@ let test_adorn_variant_wildcard =
         TC.return pattern_tree
       in
       let expected_pattern_tree =
-        PT.Variant {
-          variant_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (gen#wildcard, PT.UnaryConstructor gen#wildcard, PT.Terminal (Some a1_statement))
-              );
-            ]
+        PT.Binder {
+          matched_type = variant_type;
+          binder       = gen#wildcard;
+          subtree      = PT.Terminal (Some a1_statement)
         }
       in
       assert_equal
