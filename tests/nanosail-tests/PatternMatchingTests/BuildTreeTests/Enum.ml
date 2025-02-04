@@ -145,7 +145,7 @@ let test_build_pattern_tree_enum_3 =
     ignore @@ run_tc tc
   in
   {|
-      enum A = { A1, A2 }
+      enum A = { A1 }
 
       tuple (A, A)
   |} >:: test
