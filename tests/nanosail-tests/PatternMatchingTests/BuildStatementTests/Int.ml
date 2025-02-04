@@ -105,6 +105,8 @@ let test_build_match_for_int_2 =
 
 let test_build_match_for_int_int_1 =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let statement =
         mkstm 1
@@ -115,8 +117,8 @@ let test_build_match_for_int_int_1 =
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = mkid "n"; wildcard = true };
-              Pattern.Binder { identifier = mkid "k"; wildcard = true };
+              Pattern.Binder gen#wildcard;
+              Pattern.Binder gen#wildcard;
             ]
             statement
         in
@@ -126,17 +128,7 @@ let test_build_match_for_int_int_1 =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
-        Ast.Statement.Let {
-          variable_identifier        = mkid "n";
-          binding_statement_type     = Ast.Type.Int;
-          binding_statement          = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
-          body_statement             = Ast.Statement.Let {
-              variable_identifier    = mkid "k";
-              binding_statement_type = Ast.Type.Int;
-              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", Ast.Type.Int));
-              body_statement         = statement;
-            };
-        }
+        statement
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
