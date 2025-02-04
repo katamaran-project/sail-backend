@@ -79,6 +79,8 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
       union A = {
         A1 : int
       }
+
+      tuple (A, A)
   |} >:: test
 
 
