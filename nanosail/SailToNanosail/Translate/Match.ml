@@ -1486,13 +1486,18 @@ let rec build_leveled_match_statements
       | first_matched_identifier :: remaining_matched_identifiers -> begin
           let* substatement = build_leveled_match_statements remaining_matched_identifiers subtree
           in
-          TC.return begin
-            Ast.Statement.Let {
-              variable_identifier    = binder.identifier;
-              binding_statement_type = element_type;
-              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, element_type));
-              body_statement         = substatement;
-            }
+          if
+            binder.wildcard
+          then
+            TC.return substatement
+          else
+            TC.return begin
+              Ast.Statement.Let {
+                variable_identifier    = binder.identifier;
+                binding_statement_type = element_type;
+                binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, element_type));
+                body_statement         = substatement;
+              }
           end
         end
     end
