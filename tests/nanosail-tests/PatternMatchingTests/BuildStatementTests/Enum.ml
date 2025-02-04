@@ -568,27 +568,22 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement =
-        Ast.Statement.Let {
-          variable_identifier    = mkid "x";
-          binding_statement_type = enum_type;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", enum_type));
-          body_statement         = Ast.Statement.Match begin
-              Ast.Statement.MatchEnum {
-                matched      = mkid "value2";
-                matched_type = mkid "A";
-                cases        = Ast.Identifier.Map.of_alist_exn [
-                    (
-                      mkid "A1",
-                      a1_statement
-                    );
-                    (
-                      mkid "A2",
-                      a2_statement
-                    );
-                  ]
-              }
-            end
-        }
+        Ast.Statement.Match begin
+          Ast.Statement.MatchEnum {
+            matched      = mkid "value2";
+            matched_type = mkid "A";
+            cases        = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  a1_statement
+                );
+                (
+                  mkid "A2",
+                  a2_statement
+                );
+              ]
+          }
+        end
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
