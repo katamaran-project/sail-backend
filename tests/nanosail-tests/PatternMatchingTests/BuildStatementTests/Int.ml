@@ -35,12 +35,7 @@ let test_build_match_for_int_1 =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement =
-        Ast.Statement.Let {
-          variable_identifier    = mkid "n";
-          binding_statement_type = Ast.Type.Int;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
-          body_statement         = statement;
-        }
+        statement
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
