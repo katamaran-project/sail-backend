@@ -651,9 +651,9 @@ let rec build_empty_pattern_tree
            When the need arises, it can be useful to implement specialized functions for specific types.
         *)
         match head with
-        | Enum enum_identifier         -> build_enum_node enum_identifier tail
+        | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) tail
         | Int                          -> build_binder_node Ast.Type.Int tail
-        | Variant variant_identifier   -> build_variant_node variant_identifier tail
+        | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) tail
         | Unit                         -> build_binder_node Ast.Type.Unit tail
         | Bool                         -> build_bool_node tail
         | String                       -> build_binder_node Ast.Type.String tail
@@ -1176,6 +1176,12 @@ let adorn_pattern_tree
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
+            | ListCons (_, _) -> TC.not_yet_implemented [%here] location
+            | ListNil -> TC.not_yet_implemented [%here] location
+            | Tuple _ -> TC.not_yet_implemented [%here] location
+            | EnumCase _ -> TC.not_yet_implemented [%here] location
+            | VariantCase (_, _) -> TC.not_yet_implemented [%here] location
+            | BoolCase _ -> TC.not_yet_implemented [%here] location
             | Binder pattern_binder -> begin
                 let* updated_subtree =
                   adorn
@@ -1188,7 +1194,7 @@ let adorn_pattern_tree
                 in
                 TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
               end
-            | _ -> TC.fail [%here] "invalid pattern"
+            | Unit -> TC.not_yet_implemented [%here] location
           end
         | [] -> invalid_number_of_subpatterns [%here]
       end
