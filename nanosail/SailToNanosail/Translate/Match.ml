@@ -626,20 +626,20 @@ let build_variant_node
   end
 
 
+let build_binder_node
+    (element_type : Ast.Type.t   )
+    (subtree      : PatternTree.t) : PatternTree.t TC.t
+  =
+  let* binder =
+    Binder.generate_wildcard
+  in
+  TC.return @@ PatternTree.Binder { matched_type = element_type; binder; subtree }
+
+
 let rec build_empty_pattern_tree
     (location      : S.l            )
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
-  let build_binder_node
-      (element_type : Ast.Type.t   )
-      (subtree      : PatternTree.t) : PatternTree.t TC.t
-    =
-    let* binder =
-      Binder.generate_wildcard
-    in
-    TC.return @@ PatternTree.Binder { matched_type = element_type; binder; subtree }
-
-  in
   match element_types with
   | []           -> TC.return @@ PatternTree.Terminal None
   | head :: tail -> begin
