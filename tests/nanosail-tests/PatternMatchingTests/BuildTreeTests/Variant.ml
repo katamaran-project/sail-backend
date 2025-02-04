@@ -15,15 +15,15 @@ let test_build_pattern_tree_variant_single_unary_constructor =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let* actual_pattern_tree : TM.PatternTree.t =
-        build_empty_pattern_tree [ enum_type ]
+        build_empty_pattern_tree [ variant_type ]
       in
       let expected_pattern_tree : TM.PatternTree.t =
         TM.PatternTree.Binder {
-          matched_type = enum_type;
+          matched_type = variant_type;
           binder       = gen#wildcard;
           subtree      = TM.PatternTree.Terminal None
         }
@@ -49,18 +49,18 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let* actual_pattern_tree : TM.PatternTree.t =
-        build_empty_pattern_tree [ enum_type; enum_type ]
+        build_empty_pattern_tree [ variant_type; variant_type ]
       in
       let expected_pattern_tree : TM.PatternTree.t =
         TM.PatternTree.Binder {
-          matched_type = enum_type;
+          matched_type = variant_type;
           binder       = gen#wildcard;
           subtree      = TM.PatternTree.Binder {
-              matched_type = enum_type;
+              matched_type = variant_type;
               binder       = gen#wildcard;
               subtree      = TM.PatternTree.Terminal None
             }
