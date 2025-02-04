@@ -18,14 +18,14 @@ let test_build_match_for_variant_single_nullary_constructor =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -81,14 +81,14 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -150,14 +150,14 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -219,14 +219,14 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -293,14 +293,14 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -359,14 +359,14 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
 let test_build_match_for_variant_single_unary_constructor =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -420,14 +420,14 @@ let test_build_match_for_variant_single_unary_constructor =
 let test_build_match_for_variant_single_unary_constructor_field_wildcard =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -481,14 +481,14 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
 let test_build_match_for_variant_single_binary_constructor =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -550,7 +550,7 @@ let test_build_match_for_variant_single_binary_constructor =
 let test_build_match_for_variant_two_constructors =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [
           ("A1", [Ast.Type.Int; Ast.Type.Int]);
           ("A2", [Ast.Type.Int]);
@@ -562,7 +562,7 @@ let test_build_match_for_variant_two_constructors =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -645,14 +645,14 @@ let test_build_match_for_variant_two_constructors =
 let test_build_match_for_variant_nary_constructor_field_wildcards =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -716,9 +716,9 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
     let gen = new generator
     in
     let tc =
-      let* enum_type_a =
+      let* variant_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
-      and* enum_type_b =
+      and* variant_type_b =
         define_variant "B" [("B1", []); ("B2", [])]
       in
       let b1_statement =
@@ -727,7 +727,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_b ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -854,9 +854,9 @@ let test_build_match_for_tuple_of_variants =
     let gen = new generator
     in
     let tc =
-      let* enum_type_a =
+      let* variant_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
-      and* enum_type_b =
+      and* variant_type_b =
         define_variant "B" [("B1", []); ("B2", [])]
       in
       let b1_statement =
@@ -865,7 +865,7 @@ let test_build_match_for_tuple_of_variants =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_b ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -999,14 +999,14 @@ let test_build_match_for_tuple_of_variants_wildcards =
     and x6 = genid ()
     in
     let tc =
-      let* enum_type_a =
+      let* variant_type_a =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type_a; enum_type_a; enum_type_a ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_a; variant_type_a ]
         in
         let* pattern_tree = adorn
             pattern_tree
