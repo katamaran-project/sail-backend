@@ -384,11 +384,11 @@ module Implementation = struct
         return @@ PatternTree.Variant { variant_identifier; table }
       end
 
-    | Binder (typ, binder, subtree) -> begin
+    | Binder { matched_type; binder; subtree } -> begin
         let* binder  = normalize_binder binder
         and* subtree = normalize_pattern_tree subtree
         in
-        return @@ PatternTree.Binder (typ, binder, subtree)
+        return @@ PatternTree.Binder { matched_type; binder; subtree }
       end
 
     | Terminal statement -> begin

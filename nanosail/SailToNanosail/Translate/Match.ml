@@ -207,10 +207,10 @@ end
 
 module PatternTree = struct
   type t =
-    | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t;    }
+    | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
     | Bool       of bool_node
-    | Binder     of Ast.Type.t * Binder.t * t
+    | Binder     of { matched_type : Ast.Type.t; binder : Binder.t; subtree : t }
     | Terminal   of Ast.Statement.t option
 
   (*
@@ -356,9 +356,9 @@ module PatternTree = struct
         | _ -> false
       end
 
-    | Binder (type_1, binder_1, subtree_1) -> begin
+    | Binder { matched_type = type_1; binder = binder_1; subtree = subtree_1 } -> begin
         match node_2 with
-        | Binder (type_2, binder_2, subtree_2) -> begin
+        | Binder { matched_type = type_2; binder = binder_2; subtree = subtree_2 } -> begin
             Ast.Type.equal
               type_1
               type_2
@@ -474,12 +474,12 @@ module PatternTree = struct
         FExpr.mk_application ~keyword @@ mk_head "Variant"
       end
 
-    | Binder (typ, binder, subtree) -> begin
+    | Binder { matched_type; binder; subtree } -> begin
         let keyword =
           [
             (
               "type",
-              Ast.Type.to_fexpr typ
+              Ast.Type.to_fexpr matched_type
             );
             (
               "binder",
@@ -523,9 +523,9 @@ module PatternTree = struct
           ~f:(fun (_, _, subtree) -> count_nodes subtree)        
       end
       
-    | Binder (_, _, subtree)                             -> 1 + count_nodes subtree
+    | Binder { subtree; _ }                              -> 1 + count_nodes subtree
     | Bool (CollapsedBoolNode (_, subtree))              -> 1 + count_nodes subtree
-    | Bool (ExpandedBoolNode { when_true; when_false }) -> 1 + count_nodes when_true + count_nodes when_false
+    | Bool (ExpandedBoolNode { when_true; when_false })  -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                                         -> 1
 end
 
@@ -634,7 +634,7 @@ let rec build_empty_pattern_tree
     let* binder =
       Binder.generate_wildcard
     in
-    TC.return @@ PatternTree.Binder (element_type, binder, subtree)
+    TC.return @@ PatternTree.Binder { matched_type = element_type; binder; subtree }
 
   in
   match element_types with
@@ -719,7 +719,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       contains_gap when_true || contains_gap when_false
     end
 
-  | Binder (_, _, subtree) -> contains_gap subtree
+  | Binder { subtree; _ }  -> contains_gap subtree
   | Terminal statement     -> Option.is_none statement
 
 
@@ -1169,7 +1169,7 @@ let adorn_pattern_tree
         | [] -> invalid_number_of_subpatterns [%here]
       end
 
-    | Binder (element_type, binder, subtree) -> begin
+    | Binder { matched_type; binder; subtree } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
@@ -1183,7 +1183,7 @@ let adorn_pattern_tree
                 let* updated_binder =
                   Binder.unify binder pattern_binder
                 in
-                TC.return @@ PatternTree.Binder (element_type, updated_binder, updated_subtree)
+                TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
               end
             | _ -> TC.fail [%here] "invalid pattern"
           end
@@ -1431,7 +1431,7 @@ let rec build_leveled_match_statements
         end
     end
 
-  | Binder (element_type, binder, subtree) -> begin
+  | Binder { matched_type = element_type; binder; subtree } -> begin
       match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_matched_identifier :: remaining_matched_identifiers -> begin
