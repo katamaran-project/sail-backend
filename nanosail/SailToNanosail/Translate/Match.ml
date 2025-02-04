@@ -530,6 +530,41 @@ module PatternTree = struct
 end
 
 
+let build_enum_node
+    (enum_identifier : Ast.Identifier.t)
+    (subtree         : PatternTree.t   ) : PatternTree.t TC.t
+  =
+  let* enum_definition =
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
+  in
+  let* table : (Binder.t * PatternTree.t) Ast.Identifier.Map.t =
+    let add_to_table
+        (table                : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+        (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
+      =
+      let* binder : Binder.t =
+        Binder.generate_wildcard
+      in
+      TC.return begin
+        Ast.Identifier.Map.add_exn
+          table
+          ~key:enum_case_identifier
+          ~data:(binder, subtree)
+      end
+    in
+    TC.fold_left
+      enum_definition.cases
+      ~init:Ast.Identifier.Map.empty
+      ~f:add_to_table
+  in
+  TC.return begin
+    PatternTree.Enum {
+      enum_identifier;
+      table;
+    }
+  end
+
+
 let rec build_empty_pattern_tree
     (location      : S.l            )
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
@@ -540,40 +575,6 @@ let rec build_empty_pattern_tree
     in
     TC.return begin
       PatternTree.Bool (PatternTree.CollapsedBoolNode (binder, subtree))
-    end
-
-  and build_enum_node
-      (enum_identifier : Ast.Identifier.t)
-      (subtree         : PatternTree.t   ) : PatternTree.t TC.t
-    =
-    let* enum_definition =
-      TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
-    in
-    let* table : (Binder.t * PatternTree.t) Ast.Identifier.Map.t =
-      let add_to_table
-          (table                : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
-          (enum_case_identifier : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
-        =
-        let* binder : Binder.t =
-          Binder.generate_wildcard
-        in
-        TC.return begin
-          Ast.Identifier.Map.add_exn
-            table
-            ~key:enum_case_identifier
-            ~data:(binder, subtree)
-        end
-      in
-      TC.fold_left
-        enum_definition.cases
-        ~init:Ast.Identifier.Map.empty
-        ~f:add_to_table
-    in
-    TC.return begin
-      PatternTree.Enum {
-        enum_identifier;
-        table;
-      }
     end
 
   and build_variant_node
