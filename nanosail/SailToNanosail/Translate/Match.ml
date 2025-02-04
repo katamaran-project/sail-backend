@@ -1180,7 +1180,7 @@ let adorn_pattern_tree
                 if
                   not binder.wildcard
                 then
-                  TC.fail [%here] "should not occur"
+                  TC.not_yet_implemented [%here] location
                 else begin
                   match matched_type with
                   | Enum enum_identifier -> begin
@@ -1197,10 +1197,30 @@ let adorn_pattern_tree
                   | _ -> TC.fail [%here] "expected enum type"
                 end
               end
+            | VariantCase (_, _) -> begin
+                if
+                  not binder.wildcard
+                then
+                  TC.not_yet_implemented [%here] location
+                else begin
+                  match matched_type with
+                  | Variant variant_identifier -> begin
+                      let* expanded_node =
+                        build_variant_node
+                          variant_identifier
+                          subtree
+                      in
+                      adorn
+                        expanded_node
+                        tuple_subpatterns
+                        gap_filling
+                    end
+                  | _ -> TC.fail [%here] "expected enum type"
+                end
+              end
             | ListCons (_, _) -> TC.not_yet_implemented [%here] location
             | ListNil -> TC.not_yet_implemented [%here] location
             | Tuple _ -> TC.not_yet_implemented [%here] location
-            | VariantCase (_, _) -> TC.not_yet_implemented [%here] location
             | BoolCase _ -> TC.not_yet_implemented [%here] location
             | Binder pattern_binder -> begin
                 let* updated_subtree =
