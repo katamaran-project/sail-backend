@@ -226,7 +226,7 @@ module PatternTree = struct
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
   and bool_node =
-    | SingleBoolCase    of Binder.t * t
+    | CollapsedBoolNode    of Binder.t * t
     | SeparateBoolCases of { when_true : t; when_false : t }
 
   let rec equal
@@ -264,9 +264,9 @@ module PatternTree = struct
         match node_2 with
         | Bool binders_2 -> begin
             match binders_1 with
-            | SingleBoolCase (binder_1, subtree_1) -> begin
+            | CollapsedBoolNode (binder_1, subtree_1) -> begin
                 match binders_2 with
-                | SingleBoolCase (binder_2, subtree_2) -> begin
+                | CollapsedBoolNode (binder_2, subtree_2) -> begin
                     Binder.equal
                       binder_1
                       binder_2
@@ -405,7 +405,7 @@ module PatternTree = struct
     | Bool binders -> begin
         let positional = [
           match binders with
-          | SingleBoolCase (binder, subtree) -> begin
+          | CollapsedBoolNode (binder, subtree) -> begin
               let keyword =
                 [
                   ("binder", Binder.to_fexpr binder);
@@ -524,7 +524,7 @@ module PatternTree = struct
       end
       
     | Atomic (_, _, subtree)                             -> 1 + count_nodes subtree
-    | Bool (SingleBoolCase (_, subtree))                 -> 1 + count_nodes subtree
+    | Bool (CollapsedBoolNode (_, subtree))              -> 1 + count_nodes subtree
     | Bool (SeparateBoolCases { when_true; when_false }) -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                                         -> 1
 end
@@ -539,7 +539,7 @@ let rec build_empty_pattern_tree
       Binder.generate_wildcard
     in
     TC.return begin
-      PatternTree.Bool (PatternTree.SingleBoolCase (binder, subtree))
+      PatternTree.Bool (PatternTree.CollapsedBoolNode (binder, subtree))
     end
 
   and build_enum_node
@@ -711,7 +711,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       List.exists subtrees ~f:contains_gap
     end
 
-  | Bool (SingleBoolCase (_, subtree)) -> begin
+  | Bool (CollapsedBoolNode (_, subtree)) -> begin
       contains_gap subtree
     end
 
@@ -761,7 +761,7 @@ let adorn_pattern_tree
                      }
                 *)
                 match binders with
-                | SingleBoolCase (old_binder, old_subtree) -> begin
+                | CollapsedBoolNode (old_binder, old_subtree) -> begin
                     let* new_binder =
                       Binder.unify old_binder pattern_binder
                     and* new_subtree =
@@ -769,7 +769,7 @@ let adorn_pattern_tree
                     in
                     TC.return begin
                       PatternTree.Bool begin
-                        PatternTree.SingleBoolCase (new_binder, new_subtree)
+                        PatternTree.CollapsedBoolNode (new_binder, new_subtree)
                       end
                     end
                   end
@@ -819,7 +819,7 @@ let adorn_pattern_tree
               end
             | BoolCase b -> begin
                 match binders with
-                | SingleBoolCase (binder, old_subtree) -> begin
+                | CollapsedBoolNode (binder, old_subtree) -> begin
                     if
                       binder.wildcard
                     then
@@ -1231,7 +1231,7 @@ let rec build_leveled_match_statements
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_matched_identifier :: remaining_matched_identifiers -> begin
           match bindings with
-          | SingleBoolCase (binder, subtree) -> begin
+          | CollapsedBoolNode (binder, subtree) -> begin
               let* substatement =
                 build_leveled_match_statements remaining_matched_identifiers subtree
               in

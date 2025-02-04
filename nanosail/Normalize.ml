@@ -301,13 +301,13 @@ module Implementation = struct
     match tree with
     | Bool binders -> begin
         match binders with
-        | SingleBoolCase (binder, subtree) -> begin
+        | CollapsedBoolNode (binder, subtree) -> begin
             let* binder  = normalize_binder binder
             and* subtree = normalize_pattern_tree subtree
             in
             return begin
               PatternTree.Bool begin
-                PatternTree.SingleBoolCase (binder, subtree)
+                PatternTree.CollapsedBoolNode (binder, subtree)
               end
             end
           end

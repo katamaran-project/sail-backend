@@ -137,7 +137,7 @@ let test_adorn_bool_wildcard =
       in
       let expected_tree =
         TM.PatternTree.Bool begin
-          TM.PatternTree.SingleBoolCase (gen#wildcard, TM.PatternTree.Terminal (Some statement))
+          TM.PatternTree.CollapsedBoolNode (gen#wildcard, TM.PatternTree.Terminal (Some statement))
         end
       in
       assert_equal
