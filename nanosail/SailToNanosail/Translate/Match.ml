@@ -565,19 +565,20 @@ let build_enum_node
   end
 
 
+let build_bool_node (subtree : PatternTree.t) : PatternTree.t TC.t =
+  let* binder =
+    Binder.generate_wildcard
+  in
+  TC.return begin
+    PatternTree.Bool (PatternTree.CollapsedBoolNode (binder, subtree))
+  end
+
+
 let rec build_empty_pattern_tree
     (location      : S.l            )
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
-  let build_bool_node (subtree : PatternTree.t) : PatternTree.t TC.t =
-    let* binder =
-      Binder.generate_wildcard
-    in
-    TC.return begin
-      PatternTree.Bool (PatternTree.CollapsedBoolNode (binder, subtree))
-    end
-
-  and build_variant_node
+  let build_variant_node
       (variant_identifier : Ast.Identifier.t)
       (subtree            : PatternTree.t   ) : PatternTree.t TC.t
     =
