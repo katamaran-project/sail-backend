@@ -574,62 +574,63 @@ let build_bool_node (subtree : PatternTree.t) : PatternTree.t TC.t =
   end
 
 
+let build_variant_node
+    (variant_identifier : Ast.Identifier.t)
+    (subtree            : PatternTree.t   ) : PatternTree.t TC.t
+  =
+  let* variant_definition =
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+  in
+  let* table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
+    let add_to_table
+        (table                                 : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
+        ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
+      =
+      let* data : Binder.t * PatternTree.variant_binders * PatternTree.t =
+        match List.length field_types with
+        | 0 -> begin
+            let* binder       = Binder.generate_wildcard
+            and* field_binder = Binder.generate_wildcard
+            in
+            TC.return (binder, PatternTree.NullaryConstructor field_binder, subtree)
+          end
+        | 1 -> begin
+            let* binder       = Binder.generate_wildcard
+            and* field_binder = Binder.generate_wildcard
+            in
+            TC.return (binder, PatternTree.UnaryConstructor field_binder, subtree)
+          end
+        | _ -> begin
+            let field_count = List.length field_types
+            in
+            let* binder        = Binder.generate_wildcard
+            and* field_binders = TC.repeat field_count ~f:Binder.generate_wildcard
+            in
+            TC.return (binder, PatternTree.NAryConstructor field_binders, subtree)
+          end
+      in
+      TC.return begin
+        Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data
+      end
+    in
+    TC.fold_left
+      variant_definition.constructors
+      ~init:Ast.Identifier.Map.empty
+      ~f:add_to_table
+  in
+  TC.return begin
+    PatternTree.Variant {
+      variant_identifier;
+      table
+    }
+  end
+
+
 let rec build_empty_pattern_tree
     (location      : S.l            )
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
-  let build_variant_node
-      (variant_identifier : Ast.Identifier.t)
-      (subtree            : PatternTree.t   ) : PatternTree.t TC.t
-    =
-    let* variant_definition =
-      TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-    in
-    let* table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
-      let add_to_table
-          (table                                 : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
-          ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
-        =
-        let* data : Binder.t * PatternTree.variant_binders * PatternTree.t =
-          match List.length field_types with
-          | 0 -> begin
-              let* binder       = Binder.generate_wildcard
-              and* field_binder = Binder.generate_wildcard
-              in
-              TC.return (binder, PatternTree.NullaryConstructor field_binder, subtree)
-            end
-          | 1 -> begin
-              let* binder       = Binder.generate_wildcard
-              and* field_binder = Binder.generate_wildcard
-              in
-              TC.return (binder, PatternTree.UnaryConstructor field_binder, subtree)
-            end
-          | _ -> begin
-              let field_count = List.length field_types
-              in
-              let* binder        = Binder.generate_wildcard
-              and* field_binders = TC.repeat field_count ~f:Binder.generate_wildcard
-              in
-              TC.return (binder, PatternTree.NAryConstructor field_binders, subtree)
-            end
-        in
-        TC.return begin
-          Ast.Identifier.Map.add_exn table ~key:constructor_identifier ~data
-        end
-      in
-      TC.fold_left
-        variant_definition.constructors
-        ~init:Ast.Identifier.Map.empty
-        ~f:add_to_table
-    in
-    TC.return begin
-      PatternTree.Variant {
-        variant_identifier;
-        table
-      }
-    end
-
-  and build_binder_node
+  let build_binder_node
       (element_type : Ast.Type.t   )
       (subtree      : PatternTree.t) : PatternTree.t TC.t
     =
