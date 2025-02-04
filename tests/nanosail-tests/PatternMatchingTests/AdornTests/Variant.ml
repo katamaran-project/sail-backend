@@ -11,7 +11,7 @@ open Monads.Notations.Star(TC)
 
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
-module PN      = TM.PatternTree
+module PT      = TM.PatternTree
 
 open Shared
 
@@ -40,18 +40,18 @@ let test_adorn_variant_single_unary_constructor =
         TC.return pattern_tree
       in
       let expected_pattern_tree =
-        PN.Variant {
+        PT.Variant {
           variant_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, PN.UnaryConstructor (mkbinder "x"), PN.Terminal (Some a1_statement))
+                (gen#wildcard, PT.UnaryConstructor (mkbinder "x"), PT.Terminal (Some a1_statement))
               );
             ]
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
+        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
         ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_pattern_tree)
         (Normalize.normalize_pattern_tree actual_pattern_tree);
@@ -94,18 +94,18 @@ let test_adorn_variant_wildcard =
         TC.return pattern_tree
       in
       let expected_pattern_tree =
-        PN.Variant {
+        PT.Variant {
           variant_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, PN.UnaryConstructor gen#wildcard, PN.Terminal (Some a1_statement))
+                (gen#wildcard, PT.UnaryConstructor gen#wildcard, PT.Terminal (Some a1_statement))
               );
             ]
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
+        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
         ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_pattern_tree)
         (Normalize.normalize_pattern_tree actual_pattern_tree);
@@ -149,18 +149,18 @@ let test_adorn_variant_binder =
         TC.return pattern_tree
       in
       let expected_pattern_tree =
-        PN.Variant {
+        PT.Variant {
           variant_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (mkbinder "x", PN.UnaryConstructor (gen#wildcard), PN.Terminal (Some a1_statement))
+                (mkbinder "x", PT.UnaryConstructor (gen#wildcard), PT.Terminal (Some a1_statement))
               );
             ]
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
+        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
         ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_pattern_tree)
         (Normalize.normalize_pattern_tree actual_pattern_tree);
