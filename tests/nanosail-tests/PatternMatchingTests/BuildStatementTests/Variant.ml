@@ -252,8 +252,8 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
                     [gen#id],
                     Ast.Statement.Let {
                       variable_identifier    = mkid "x";
-                      binding_statement_type = enum_type;
-                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", enum_type));
+                      binding_statement_type = variant_type;
+                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", variant_type));
                       body_statement         = a1_statement;
                     }
                   )
