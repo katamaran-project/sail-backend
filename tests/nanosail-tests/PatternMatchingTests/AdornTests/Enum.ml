@@ -174,7 +174,7 @@ let test_adorn_enum_single_case_binder =
   |} >:: test
 
 
-let test_adorn_enum_4 =
+let test_adorn_enum_two_cases =
   let test _ =
     let gen = new generator
     in
@@ -242,7 +242,7 @@ let test_adorn_enum_4 =
   |} >:: test
 
 
-let test_adorn_enum_5 =
+let test_adorn_enum_two_cases_wildcard =
   let test _ =
     let gen = new generator
     in
@@ -316,7 +316,7 @@ let test_adorn_enum_5 =
   |} >:: test
 
 
-let test_adorn_enum_6 =
+let test_adorn_enum_two_cases_binder =
   let test _ =
     let gen = new generator
     in
@@ -440,9 +440,9 @@ let test_suite =
     test_adorn_enum_single_case;
     test_adorn_enum_single_case_wildcard;
     test_adorn_enum_single_case_binder;
-    test_adorn_enum_4;
-    test_adorn_enum_5;
-    test_adorn_enum_6;
+    test_adorn_enum_two_cases;
+    test_adorn_enum_two_cases_wildcard;
+    test_adorn_enum_two_cases_binder;
 
     test_failure_due_to_clashing_binders;
   ]
