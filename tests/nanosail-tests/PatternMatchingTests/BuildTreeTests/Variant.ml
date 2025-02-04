@@ -6,7 +6,6 @@ module TC = SailToNanosail.TranslationContext
 open Monads.Notations.Star(TC)
 
 module TM = SailToNanosail.Translate.Match
-module PN = TM.PatternTree
 
 open Shared
 
@@ -19,22 +18,18 @@ let test_build_pattern_tree_variant_single_unary_constructor =
       let* enum_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
-      let* actual_pattern_tree : PN.t =
+      let* actual_pattern_tree : TM.PatternTree.t =
         build_empty_pattern_tree [ enum_type ]
       in
-      let expected_pattern_tree : PN.t =
-        PN.Variant {
-          variant_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (gen#wildcard, PN.UnaryConstructor gen#wildcard, PN.Terminal None)
-              );
-            ]
+      let expected_pattern_tree : TM.PatternTree.t =
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = gen#wildcard;
+          subtree      = TM.PatternTree.Terminal None
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string PN.to_fexpr)
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
         (Normalize.normalize_pattern_tree expected_pattern_tree)
         (Normalize.normalize_pattern_tree actual_pattern_tree);
