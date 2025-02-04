@@ -66,7 +66,7 @@ let test_adorn_enum_single_case =
   |} >:: test
 
 
-let test_adorn_enum_2 =
+let test_adorn_enum_single_case_wildcard =
   let test _ =
     let tc =
       let* enum_type =
@@ -438,7 +438,7 @@ let test_failure_due_to_clashing_binders =
 let test_suite =
   "enum" >::: [
     test_adorn_enum_single_case;
-    test_adorn_enum_2;
+    test_adorn_enum_single_case_wildcard;
     test_adorn_enum_3;
     test_adorn_enum_4;
     test_adorn_enum_5;
