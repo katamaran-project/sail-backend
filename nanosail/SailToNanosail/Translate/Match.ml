@@ -226,8 +226,8 @@ module PatternTree = struct
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
   and bool_node =
-    | CollapsedBoolNode    of Binder.t * t
-    | SeparateBoolCases of { when_true : t; when_false : t }
+    | CollapsedBoolNode of Binder.t * t
+    | ExpandedBoolNode  of { when_true : t; when_false : t }
 
   let rec equal
       (node_1 : t)
@@ -277,9 +277,9 @@ module PatternTree = struct
                   end
                 | _ -> false
               end
-            | SeparateBoolCases { when_true = when_true_1; when_false = when_false_1 } -> begin
+            | ExpandedBoolNode { when_true = when_true_1; when_false = when_false_1 } -> begin
                 match binders_2 with
-                | SeparateBoolCases { when_true = when_true_2; when_false = when_false_2 } -> begin
+                | ExpandedBoolNode { when_true = when_true_2; when_false = when_false_2 } -> begin
                     equal
                       when_true_1
                       when_true_2
@@ -414,7 +414,7 @@ module PatternTree = struct
               in
               FExpr.mk_application ~keyword "Single"
             end
-          | SeparateBoolCases { when_true; when_false } -> begin
+          | ExpandedBoolNode { when_true; when_false } -> begin
               let keyword =
                 [
                   ("true", to_fexpr when_true);
@@ -525,7 +525,7 @@ module PatternTree = struct
       
     | Atomic (_, _, subtree)                             -> 1 + count_nodes subtree
     | Bool (CollapsedBoolNode (_, subtree))              -> 1 + count_nodes subtree
-    | Bool (SeparateBoolCases { when_true; when_false }) -> 1 + count_nodes when_true + count_nodes when_false
+    | Bool (ExpandedBoolNode { when_true; when_false }) -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                                         -> 1
 end
 
@@ -715,7 +715,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       contains_gap subtree
     end
 
-  | Bool (SeparateBoolCases { when_true; when_false }) -> begin
+  | Bool (ExpandedBoolNode { when_true; when_false }) -> begin
       contains_gap when_true || contains_gap when_false
     end
 
@@ -773,7 +773,7 @@ let adorn_pattern_tree
                       end
                     end
                   end
-                | SeparateBoolCases { when_true = old_when_true; when_false = old_when_false } -> begin
+                | ExpandedBoolNode { when_true = old_when_true; when_false = old_when_false } -> begin
                     let* () =
                       if not pattern_binder.wildcard
                       then begin
@@ -809,7 +809,7 @@ let adorn_pattern_tree
                     in
                     TC.return begin
                       PatternTree.Bool begin
-                        PatternTree.SeparateBoolCases {
+                        PatternTree.ExpandedBoolNode {
                           when_true  = new_when_true;
                           when_false = new_when_false
                         }
@@ -851,7 +851,7 @@ let adorn_pattern_tree
                       in
                       TC.return begin
                         PatternTree.Bool begin
-                          PatternTree.SeparateBoolCases { when_true; when_false }
+                          PatternTree.ExpandedBoolNode { when_true; when_false }
                         end
                       end
                     else begin
@@ -875,7 +875,7 @@ let adorn_pattern_tree
                       TC.not_yet_implemented [%here] location
                     end
                   end
-                | SeparateBoolCases { when_true; when_false } -> begin
+                | ExpandedBoolNode { when_true; when_false } -> begin
                     if
                       b
                     then
@@ -884,7 +884,7 @@ let adorn_pattern_tree
                       in
                       TC.return begin
                         PatternTree.Bool begin
-                          PatternTree.SeparateBoolCases { when_true; when_false }
+                          PatternTree.ExpandedBoolNode { when_true; when_false }
                         end
                       end
                     else
@@ -893,7 +893,7 @@ let adorn_pattern_tree
                       in
                       TC.return begin
                         PatternTree.Bool begin
-                          PatternTree.SeparateBoolCases { when_true; when_false }
+                          PatternTree.ExpandedBoolNode { when_true; when_false }
                         end
                       end
                   end
@@ -1249,7 +1249,7 @@ let rec build_leveled_match_statements
               else
                 TC.return substatement
             end
-          | SeparateBoolCases { when_true; when_false } -> begin
+          | ExpandedBoolNode { when_true; when_false } -> begin
               let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true
               and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false
               in

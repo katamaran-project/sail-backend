@@ -42,7 +42,7 @@ let test_adorn_bool_true_false =
       in
       let expected_tree =
         TM.PatternTree.Bool begin
-          TM.PatternTree.SeparateBoolCases {
+          TM.PatternTree.ExpandedBoolNode {
             when_true  = TM.PatternTree.Terminal (Some true_statement);
             when_false = TM.PatternTree.Terminal (Some false_statement)
           }
@@ -93,7 +93,7 @@ let test_adorn_bool_false_true =
       in
       let expected_tree =
         TM.PatternTree.Bool begin
-          TM.PatternTree.SeparateBoolCases {
+          TM.PatternTree.ExpandedBoolNode {
             when_true  = TM.PatternTree.Terminal (Some true_statement);
             when_false = TM.PatternTree.Terminal (Some false_statement)
           }

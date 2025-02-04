@@ -311,13 +311,13 @@ module Implementation = struct
               end
             end
           end
-        | SeparateBoolCases { when_true; when_false } -> begin
+        | ExpandedBoolNode { when_true; when_false } -> begin
             let* when_true  = normalize_pattern_tree when_true
             and* when_false = normalize_pattern_tree when_false
             in
             return begin
               PatternTree.Bool begin
-                PatternTree.SeparateBoolCases { when_true; when_false }
+                PatternTree.ExpandedBoolNode { when_true; when_false }
               end
             end
           end
