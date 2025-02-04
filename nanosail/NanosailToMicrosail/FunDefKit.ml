@@ -85,12 +85,18 @@ let pp_function_definition
               PP.indent pp_extended_function_type
             ]
           end
-        and* () = GC.add_comment begin
-            PP.vertical [
-              PP.string "AST";
-              PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
-            ]
-          end
+        and* () =
+          if
+            Configuration.(get annotate_functions_with_ast)
+          then
+            GC.add_comment begin
+              PP.vertical [
+                PP.string "AST";
+                PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
+              ]
+            end
+          else
+            GC.return ()
         in
         GC.return begin
           PP.annotate [%here] begin
