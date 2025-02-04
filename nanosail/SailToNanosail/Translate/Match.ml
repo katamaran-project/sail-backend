@@ -210,7 +210,7 @@ module PatternTree = struct
     | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t;    }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
     | Atomic     of Ast.Type.t * Binder.t * t
-    | Bool       of bool_binders
+    | Bool       of bool_node
     | Terminal   of Ast.Statement.t option
 
   (*
@@ -225,7 +225,7 @@ module PatternTree = struct
     | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
-  and bool_binders =
+  and bool_node =
     | SingleBoolCase    of Binder.t * t
     | SeparateBoolCases of { when_true : t; when_false : t }
 
