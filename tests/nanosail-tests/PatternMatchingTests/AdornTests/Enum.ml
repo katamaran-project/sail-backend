@@ -383,6 +383,86 @@ let test_adorn_enum_two_cases_binder =
   |} >:: test
 
 
+let test_adorn_enum_two_cases_pair_wildcard =
+  let test _ =
+    let gen = new generator
+    in
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"]
+      in
+      let a1_statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let a2_statement =
+        Ast.Statement.ReadRegister (mkid "r2")
+      in
+      let* tree =
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder gen#wildcard;
+              Pattern.EnumCase (mkid "A1");
+            ]
+            a1_statement
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder gen#wildcard;
+              Pattern.EnumCase (mkid "A2");
+            ]
+            a2_statement
+        in
+        TC.return tree
+      in
+      let expected_tree =
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = gen#wildcard;
+          subtree      = TM.PatternTree.Enum {
+              enum_identifier = mkid "A";
+              table = Ast.Identifier.Map.of_alist_exn [
+                  (
+                    mkid "A1",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some a1_statement)
+                    )
+                  );
+                  (
+                    mkid "A2",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some a2_statement)
+                    )
+                  );
+                ];
+            }
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      enum A = { A1, A2 }
+
+      match (a1, a2) {
+        x, A1 => read_register r1,
+        x, A2 => read_register r2,
+      }
+  |} >:: test
+
+
+
 let test_failure_due_to_clashing_binders =
   let test _ =
     let tc =
@@ -437,6 +517,7 @@ let test_suite =
     test_adorn_enum_two_cases;
     test_adorn_enum_two_cases_wildcard;
     test_adorn_enum_two_cases_binder;
+    test_adorn_enum_two_cases_pair_wildcard;
 
     test_failure_due_to_clashing_binders;
   ]
