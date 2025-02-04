@@ -2,6 +2,12 @@
 
 * TODO
 
+** Create Issue on GitHub about Pattern Tree
+
+Explain blow up, give examples (encode/decode functions for mappings, C backend), possible solutions
+Case tree data structure (Agda)
+Ulf Norell Phd
+
 ** NoConfuseHom
 
 Steven:
