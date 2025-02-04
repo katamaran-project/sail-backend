@@ -137,14 +137,10 @@ let test_adorn_enum_single_case_binder =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Enum {
-          enum_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (mkbinder "x", TM.PatternTree.Terminal (Some a1_statement))
-              );
-            ];
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = mkbinder "x";
+          subtree      = TM.PatternTree.Terminal (Some a1_statement)
         }
       in
       assert_equal
