@@ -21,14 +21,14 @@ let test_adorn_variant_single_unary_constructor =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* actual_pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -75,14 +75,14 @@ let test_adorn_variant_wildcard =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* actual_pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -130,14 +130,14 @@ let test_adorn_variant_binder =
     let gen = new generator
     in
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* actual_pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ enum_type ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
@@ -182,7 +182,7 @@ let test_adorn_variant_binder =
 let test_failure_due_to_clashing_field_binders =
   let test _ =
     let tc =
-      let* enum_type =
+      let* variant_type =
         define_variant "A" [
           ("A1", [Ast.Type.Int]);
           ("A2", [Ast.Type.Int]);
@@ -191,7 +191,7 @@ let test_failure_due_to_clashing_field_binders =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* pattern_tree = build_empty_pattern_tree [ enum_type; enum_type ]
+      let* pattern_tree = build_empty_pattern_tree [ variant_type; variant_type ]
       in
       let* pattern_tree = adorn
           pattern_tree
