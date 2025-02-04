@@ -117,7 +117,7 @@ let test_adorn_enum_single_case_wildcard =
   |} >:: test
 
 
-let test_adorn_enum_3 =
+let test_adorn_enum_single_case_binder =
   let test _ =
     let tc =
       let* enum_type =
@@ -439,7 +439,7 @@ let test_suite =
   "enum" >::: [
     test_adorn_enum_single_case;
     test_adorn_enum_single_case_wildcard;
-    test_adorn_enum_3;
+    test_adorn_enum_single_case_binder;
     test_adorn_enum_4;
     test_adorn_enum_5;
     test_adorn_enum_6;
