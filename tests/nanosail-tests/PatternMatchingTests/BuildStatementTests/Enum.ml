@@ -574,9 +574,9 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", enum_type));
           body_statement         = Ast.Statement.Match begin
               Ast.Statement.MatchEnum {
-                matched = mkid "value2";
+                matched      = mkid "value2";
                 matched_type = mkid "A";
-                cases = Ast.Identifier.Map.of_alist_exn [
+                cases        = Ast.Identifier.Map.of_alist_exn [
                     (
                       mkid "A1",
                       a1_statement
