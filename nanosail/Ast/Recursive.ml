@@ -19,6 +19,8 @@ module NumericExpression = struct
     | Add
     | Sub
     | Mul
+    | Div
+    | Mod
 
   (*
      Returns identifiers id appearing as (Id id) inside the numeric expression.
@@ -72,6 +74,8 @@ module NumericExpression = struct
         | Add -> "+"
         | Sub -> "-"
         | Mul -> "*"
+        | Div -> "/"
+        | Mod -> "%"
       in
       Printf.sprintf "(%s %s %s)" (to_string e1) op_string (to_string e2)
     in    
@@ -102,6 +106,10 @@ module NumericExpression = struct
               | Sub, _   -> false
               | Mul, Mul -> true
               | Mul, _   -> false
+              | Div, Div -> true
+              | Div, _   -> false
+              | Mod, Mod -> true
+              | Mod, _   -> false
             in
             equal_binary_operator
               operator_1
@@ -153,6 +161,8 @@ module NumericExpression = struct
               | Add -> FExpr.mk_string "Add"
               | Sub -> FExpr.mk_string "Sub"
               | Mul -> FExpr.mk_string "Mul"
+              | Div -> FExpr.mk_string "Div"
+              | Mod -> FExpr.mk_string "Mod"
             );
             to_fexpr e1;
             to_fexpr e2;

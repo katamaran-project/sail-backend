@@ -22,6 +22,8 @@ end = struct
           | Add    -> parens_if 0 @@ PP.binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
           | Sub    -> parens_if 0 @@ PP.binary_operation Coq.Operator.subtraction    [pp 0 x; pp 1 y]
           | Mul    -> parens_if 1 @@ PP.binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
+          | Div    -> parens_if 1 @@ PP.binary_operation Coq.Operator.division       [pp 1 x; pp 1 y]
+          | Mod    -> parens_if 1 @@ PP.binary_operation Coq.Operator.modulo         [pp 1 x; pp 1 y]
         end
       | Neg x      -> parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
       | PowerOf2 x -> parens_if 3 @@ PP.(horizontal [ PP.string "2^"; pp 4 x]) (* todo this notation probably needs fixing *)
