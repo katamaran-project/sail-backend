@@ -1176,10 +1176,30 @@ let adorn_pattern_tree
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
+            | EnumCase _ -> begin
+                if
+                  not binder.wildcard
+                then
+                  TC.fail [%here] "should not occur"
+                else begin
+                  match matched_type with
+                  | Enum enum_identifier -> begin
+                      let* expanded_node =
+                        build_enum_node
+                          enum_identifier
+                          subtree
+                      in
+                      adorn
+                        expanded_node
+                        tuple_subpatterns
+                        gap_filling
+                    end
+                  | _ -> TC.fail [%here] "expected enum type"
+                end
+              end
             | ListCons (_, _) -> TC.not_yet_implemented [%here] location
             | ListNil -> TC.not_yet_implemented [%here] location
             | Tuple _ -> TC.not_yet_implemented [%here] location
-            | EnumCase _ -> TC.not_yet_implemented [%here] location
             | VariantCase (_, _) -> TC.not_yet_implemented [%here] location
             | BoolCase _ -> TC.not_yet_implemented [%here] location
             | Binder pattern_binder -> begin
