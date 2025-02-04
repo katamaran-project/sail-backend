@@ -29,7 +29,7 @@ let test_build_match_for_enum_int =
             tree
             [
               Pattern.EnumCase (mkid "A1");
-              Pattern.Binder { identifier = mkid "k"; wildcard = true };
+              Pattern.Binder { identifier = mkid "k"; wildcard = false };
             ]
             statement
         in
