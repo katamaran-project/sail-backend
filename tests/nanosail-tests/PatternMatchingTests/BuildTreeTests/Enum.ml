@@ -125,25 +125,14 @@ let test_build_pattern_tree_enum_3 =
         build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternTree.t =
-        TM.PatternTree.Enum {
-          enum_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (
-                  gen#wildcard,
-                  TM.PatternTree.Enum {
-                    enum_identifier = mkid "A";
-                    table = Ast.Identifier.Map.of_alist_exn [
-                        (
-                          mkid "A1",
-                          (gen#wildcard, TM.PatternTree.Terminal None)
-                        );
-                      ];
-                  }
-                )
-              );
-            ];
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = gen#wildcard;
+          subtree      = TM.PatternTree.Binder {
+              matched_type = enum_type;
+              binder       = gen#wildcard;
+              subtree      = TM.PatternTree.Terminal None
+            }
         }
       in
       assert_equal
