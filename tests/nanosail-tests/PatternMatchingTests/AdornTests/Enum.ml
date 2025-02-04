@@ -68,6 +68,8 @@ let test_adorn_enum_single_case =
 
 let test_adorn_enum_single_case_wildcard =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"]
@@ -81,21 +83,17 @@ let test_adorn_enum_single_case_wildcard =
         let* tree = adorn
           tree
           [
-            Pattern.Binder { identifier = mkid "x"; wildcard = true }
+            Pattern.Binder gen#wildcard
           ]
           a1_statement
         in
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Enum {
-          enum_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (mkwild "x", TM.PatternTree.Terminal (Some a1_statement))
-              );
-            ];
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = gen#wildcard;
+          subtree      = TM.PatternTree.Terminal (Some a1_statement)
         }
       in
       assert_equal
