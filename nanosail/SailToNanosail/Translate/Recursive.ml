@@ -237,9 +237,11 @@ end = struct
       end
     in
 
-    let translate_sum   = translate_binary_operation Add
-    and translate_minus = translate_binary_operation Sub
-    and translate_times = translate_binary_operation Mul
+    let translate_sum      = translate_binary_operation Add
+    and translate_minus    = translate_binary_operation Sub
+    and translate_times    = translate_binary_operation Mul
+    and translate_division = translate_binary_operation Div
+    and translate_modulo   = translate_binary_operation Mod
 
     and translate_constant (constant : Z.t) : Ast.Numeric.Expression.t TC.t =
       TC.return @@ Ast.Numeric.Expression.Constant constant
@@ -278,8 +280,13 @@ end = struct
       | Nexp_neg negated            -> translate_negation negated
       | Nexp_id identifier          -> translate_identifier identifier
       | Nexp_exp exponent           -> translate_exponentiation exponent
-      | Nexp_app (_id, _arguments ) -> begin
-          TC.not_yet_implemented ~message:(StringOf.Sail.nexp numeric_expression) [%here] numexp_location
+      | Nexp_app (identifier, arguments) -> begin
+          let S.Id_aux (unwrapped_identifier, location) = identifier
+          in
+          match unwrapped_identifier, arguments with
+          | Id "div", [x; y] -> translate_division x y
+          | Id "mod", [x; y] -> translate_modulo x y
+          | _             -> TC.not_yet_implemented ~message:(StringOf.Sail.nexp numeric_expression) [%here] location
         end
       | Nexp_if (_, _, _)           -> TC.not_yet_implemented [%here] numexp_location
     end
