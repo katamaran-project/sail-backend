@@ -1,5 +1,7 @@
 (use-list-notations)
 
+;(annotate-functions-with-ast)
+
 (ignore-all-overloads)
 (ignore-pragmas "include_start"
                 "include_end"
@@ -51,6 +53,6 @@
               identifier)))
 
 (template "base.template.v")
-;(template "machine.template.v")
+(template "machine.template.v")
 ;(template "base.template.html")
 ;(template "machine.template.html")
