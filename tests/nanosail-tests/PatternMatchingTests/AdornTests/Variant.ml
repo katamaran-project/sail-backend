@@ -123,7 +123,7 @@ let test_adorn_variant_wildcard =
 
 let test_adorn_variant_binder =
   let test _ =
-    let gen = new generator
+    let _gen = new generator
     in
     let tc =
       let* variant_type =
@@ -145,14 +145,10 @@ let test_adorn_variant_binder =
         TC.return pattern_tree
       in
       let expected_pattern_tree =
-        PT.Variant {
-          variant_identifier = mkid "A";
-          table = Ast.Identifier.Map.of_alist_exn [
-              (
-                mkid "A1",
-                (mkbinder "x", PT.UnaryConstructor (gen#wildcard), PT.Terminal (Some a1_statement))
-              );
-            ]
+        PT.Binder {
+          matched_type = variant_type;
+          binder       = mkbinder "x";
+          subtree      = PT.Terminal (Some a1_statement)
         }
       in
       assert_equal
