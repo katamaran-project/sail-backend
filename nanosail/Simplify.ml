@@ -68,13 +68,13 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
     end
     
   | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
-      let simplified_body_statement =
+      let body_statement =
         simplify_statement body_statement
       in
       match binding_statement_type with
       | Unit -> begin
           let free_variables_in_body =
-            Ast.Statement.free_variables simplified_body_statement
+            Ast.Statement.free_variables body_statement
           in
           if
             Ast.Identifier.Set.mem free_variables_in_body variable_identifier
@@ -83,17 +83,17 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
               variable_identifier;
               binding_statement_type;
               binding_statement;
-              body_statement = simplified_body_statement;
+              body_statement;
             }
           else
-            simplify_statement @@ Seq (binding_statement, simplified_body_statement)
+            simplify_statement @@ Seq (binding_statement, body_statement)
         end
       | _ -> begin
           Let {
             variable_identifier;
             binding_statement_type;
             binding_statement;
-            body_statement = simplified_body_statement;
+            body_statement;
           }
         end
     end
