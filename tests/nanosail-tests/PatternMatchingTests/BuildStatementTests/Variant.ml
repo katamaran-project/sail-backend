@@ -1264,6 +1264,135 @@ let test_build_match_for_tuple_of_variants_binders_3 =
   |} >:: test
 
 
+let test_build_match_for_tuple_of_variants_binders_4 =
+  let test _ =
+    let gen = new generator
+    in
+    let tc =
+      let* variant_type_a =
+        define_variant "A" [
+          ("A1", [Ast.Type.Int; Ast.Type.Int])
+        ]
+      and* variant_type_b =
+        define_variant "B" [
+          ("B1", []);
+          ("B2", [Ast.Type.Int; Ast.Type.Int; Ast.Type.Int])
+        ]
+      and* variant_type_c =
+        define_variant "C" [
+          ("C1", [Ast.Type.Int]);
+          ("C2", [Ast.Type.Int]);
+          ("C3", [Ast.Type.Int]);
+        ]
+      in
+      let statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* pattern_tree =
+        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b; variant_type_c ]
+        in
+        let* pattern_tree = adorn
+            pattern_tree
+            [
+              Pattern.Binder { identifier = mkid "x"; wildcard = false };
+              Pattern.VariantCase ( mkid "B1", Pattern.Unit );
+              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+            ]
+            statement
+        in
+        let* pattern_tree = adorn
+            pattern_tree
+            [
+              Pattern.Binder { identifier = mkid "x"; wildcard = false };
+              Pattern.Binder { identifier = mkid "y"; wildcard = true };
+              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+            ]
+            statement
+        in
+        TC.return pattern_tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Let {
+          variable_identifier    = mkid "x";
+          binding_statement_type = variant_type_a;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type_a));
+          body_statement         = Ast.Statement.Match begin
+              Ast.Statement.MatchVariant {
+                matched = mkid "value2";
+                matched_type = mkid "B";
+                cases = Ast.Identifier.Map.of_alist_exn [
+                    (
+                      mkid "B1",
+                      (
+                        [],
+                        Ast.Statement.Let {
+                          variable_identifier    = mkid "z";
+                          binding_statement_type = variant_type_c;
+                          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
+                          body_statement         = statement
+                        }
+                      )
+                    );
+                    (
+                      mkid "B2",
+                      (
+                        [gen#id; gen#id; gen#id],
+                        Ast.Statement.Let {
+                          variable_identifier    = mkid "z";
+                          binding_statement_type = variant_type_c;
+                          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
+                          body_statement         = statement
+                        }
+                      )
+                    );                    
+                  ]
+              }
+            end
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      union A = {
+        A1 : (int, int),
+      }
+
+      union B = {
+        B1 : unit,
+        B2 : (int, int, int)
+      }
+
+      union C = {
+        C1 : int,
+        C2 : int,
+        C3 : int
+      }
+
+      match (A_value, B_value, C_value) {
+        (x, B1 (), z) => read_register r1,
+        (x, _, z)     => read_register r2,
+      }
+
+    should become
+
+      let x = A_value in
+        match B_value {
+          B1 ()      => let z = C_value in read_register r1
+          B2 (_;_;_) => let z = C_value in read_register r2
+        }
+  |} >:: test
+
+
 let test_suite =
   "variant" >::: [
     test_build_match_for_variant_single_nullary_constructor;
@@ -1282,4 +1411,5 @@ let test_suite =
     test_build_match_for_tuple_of_variants_binders;
     test_build_match_for_tuple_of_variants_binders_2;
     test_build_match_for_tuple_of_variants_binders_3;
+    test_build_match_for_tuple_of_variants_binders_4;
   ]
