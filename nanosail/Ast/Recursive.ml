@@ -183,7 +183,7 @@ module NumericExpression = struct
       String.append "NumExpr:" head
     in
     match numeric_expression with
-    | Constant n     -> FExpr.mk_int @@ Z.to_int n
+    | Constant n -> FExpr.mk_int @@ Z.to_int n
     | BinaryOperation (operator, e1, e2) -> begin
         let positional =
           [
