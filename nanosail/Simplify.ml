@@ -68,12 +68,31 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
     end
     
   | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
-      Let {
-        variable_identifier;
-        binding_statement_type;
-        binding_statement;
-        body_statement;
-      }
+      match binding_statement_type with
+      | Unit -> begin
+          let free_variables_in_body =
+            Ast.Statement.free_variables body_statement
+          in
+          if
+            Ast.Identifier.Set.mem free_variables_in_body variable_identifier
+          then
+            Let {
+              variable_identifier;
+              binding_statement_type;
+              binding_statement;
+              body_statement = simplify_statement body_statement;
+            }
+          else
+            simplify_statement @@ Seq (binding_statement, body_statement)
+        end
+      | _ -> begin
+          Let {
+            variable_identifier;
+            binding_statement_type;
+            binding_statement;
+            body_statement = simplify_statement body_statement;
+          }
+        end
     end
 
   | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
@@ -86,13 +105,21 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       }
     end
 
+  | Seq (left, right) -> begin
+      let simplified_left  = simplify_statement left
+      and simplified_right = simplify_statement right
+      in      
+      match simplified_left with
+      | Expression (Val Unit) -> simplified_right
+      | _                     -> Seq (simplified_left, simplified_right)
+    end
+
   | Call (identifier, arguments) -> Call (identifier, List.map ~f:simplify_expression arguments)
-  | Expression expression -> Expression (simplify_expression expression)
-  | Seq (left, right) -> Seq (simplify_statement left, simplify_statement right)
-  | Cast (statement, typ) -> Cast (simplify_statement statement, typ)
-  | ReadRegister _ -> statement
-  | WriteRegister _ -> statement
-  | Fail _ -> statement
+  | Expression expression        -> Expression (simplify_expression expression)
+  | Cast (statement, typ)        -> Cast (simplify_statement statement, typ)
+  | ReadRegister _               -> statement
+  | WriteRegister _              -> statement
+  | Fail _                       -> statement
 
 
 and simplify_expression (expression : Ast.Expression.t) : Ast.Expression.t =
