@@ -958,14 +958,7 @@ let test_build_match_for_tuple_of_variants =
 
 let test_build_match_for_tuple_of_variants_wildcards =
   let test _ =
-    let genid = create_identifier_generator ()
-    in
-    let x1 = genid ()
-    and x2 = genid ()
-    and x3 = genid ()
-    and x4 = genid ()
-    and x5 = genid ()
-    and x6 = genid ()
+    let _gen = new generator
     in
     let tc =
       let* variant_type_a =
@@ -992,49 +985,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
       let expected_match_statement =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
-            matched = mkid "value1";
-            matched_type = mkid "A";
-            cases = Ast.Identifier.Map.of_alist_exn [
-                (
-                  mkid "A1",
-                  (
-                    [ x1; x2 ],
-                    Ast.Statement.Match begin
-                      Ast.Statement.MatchVariant {
-                        matched = mkid "value2";
-                        matched_type = mkid "A";
-                        cases = Ast.Identifier.Map.of_alist_exn [
-                            (
-                              mkid "A1",
-                              (
-                                [ x3; x4 ],
-                                Ast.Statement.Match begin
-                                  Ast.Statement.MatchVariant {
-                                    matched = mkid "value3";
-                                    matched_type = mkid "A";
-                                    cases = Ast.Identifier.Map.of_alist_exn [
-                                        (
-                                          mkid "A1",
-                                          (
-                                            [ x5; x6 ],
-                                            statement
-                                          )
-                                        )
-                                      ]
-                                  }
-                                end
-                              )
-                            );
-                          ]
-                      }
-                    end
-                  )
-                )
-              ]
-          }
-        end
+        statement
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
@@ -1056,13 +1007,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
 
     should become
 
-      match value1 {
-        A1(x1, x2) => match value2 {
-                        A1(x3, x4) => match value3 {
-                                        A1(x5, x6) => read_register r1
-                                      }
-                      }
-     }
+      read_register r1
   |} >:: test
 
 
