@@ -88,17 +88,28 @@ module NumericExpression = struct
     | Var id                       -> Identifier.to_string id
 
 
-  let rec equal (t1 : t) (t2 : t) : bool =
-    match t1 with
-    | Constant n1 -> begin
-        match t2 with
-        | Constant n2 -> Z.equal n1 n2
-        | _           -> false
+  let rec equal
+      (left  : t)
+      (right : t) : bool
+    =
+    match left with
+    | Constant value_1 -> begin
+        match right with
+        | Constant value_2 -> begin
+            Z.equal
+              value_1
+              value_2
+          end
+        | _ -> false
       end
+      
     | BinaryOperation (operator_1, x_1, y_1) -> begin
-        match t2 with
+        match right with
         | BinaryOperation (operator_2, x_2, y_2) -> begin
-            let equal_binary_operator operator_1 operator_2 =
+            let equal_binary_operator
+                (operator_1 : binop)
+                (operator_2 : binop) : bool
+              =
               match operator_1, operator_2 with
               | Add, Add -> true
               | Add, _   -> false
@@ -125,25 +136,45 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-    | Neg x -> begin
-        match t2 with
-        | Neg x' -> equal x x'
-        | _      -> false
+      
+    | Neg operand_1 -> begin
+        match right with
+        | Neg operand_2 -> begin
+            equal
+              operand_1
+              operand_2
+          end
+        | _ -> false
       end
-    | PowerOf2 x -> begin
-        match t2 with
-        | PowerOf2 x' -> equal x x'
-        | _           -> false
+      
+    | PowerOf2 operand_1 -> begin
+        match right with
+        | PowerOf2 operand_2 -> begin
+            equal
+              operand_1
+              operand_2
+          end
+        | _ -> false
       end
-    | Id x -> begin
-        match t2 with
-        | Id x' -> Identifier.equal x x'
-        | _     -> false
+      
+    | Id identifier_1 -> begin
+        match right with
+        | Id identifier_2 -> begin
+            Identifier.equal
+              identifier_1
+              identifier_2
+          end
+        | _ -> false
       end
-    | Var x -> begin
-        match t2 with
-        | Var x' -> Identifier.equal x x'
-        | _      -> false
+      
+    | Var identifier_1 -> begin
+        match right with
+        | Var identifier_2 -> begin
+            Identifier.equal
+              identifier_1
+              identifier_2
+          end
+        | _ -> false
       end
 
 
