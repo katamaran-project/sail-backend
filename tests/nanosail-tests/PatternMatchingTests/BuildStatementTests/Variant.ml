@@ -1327,7 +1327,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
                     (
                       mkid "B1",
                       (
-                        [],
+                        [gen#id],
                         Ast.Statement.Let {
                           variable_identifier    = mkid "z";
                           binding_statement_type = variant_type_c;
