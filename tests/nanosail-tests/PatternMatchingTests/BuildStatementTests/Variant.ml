@@ -200,8 +200,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
 
 let test_build_match_for_variant_single_nullary_constructor_binder =
   let test _ =
-    skip_if true "needs fixing";
-    let gen = new generator
+    let _gen = new generator
     in
     let tc =
       let* variant_type =
@@ -226,26 +225,12 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
         build_match [mkid "value"] pattern_tree
       in
       let expected_match_statement =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
-            matched = mkid "value";
-            matched_type = mkid "A";
-            cases = Ast.Identifier.Map.of_alist_exn [
-                (
-                  mkid "A1",
-                  (
-                    [gen#id],
-                    Ast.Statement.Let {
-                      variable_identifier    = mkid "x";
-                      binding_statement_type = variant_type;
-                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", variant_type));
-                      body_statement         = a1_statement;
-                    }
-                  )
-                )
-              ]
-          }
-        end
+        Ast.Statement.Let {
+          variable_identifier    = mkid "x";
+          binding_statement_type = variant_type;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", variant_type));
+          body_statement         = a1_statement;
+        }
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
@@ -267,9 +252,8 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
 
     should become
 
-      match value {
-        A1(_) => let x = value in read_register r1
-      }
+        let x = value in read_register r1
+
   |} >:: test
 
 
