@@ -601,4 +601,3 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)
   | Cast (statement, _)                                  -> free_variables statement
   | Fail _                                               -> Identifier.Set.empty
-  
