@@ -68,7 +68,9 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
     end
     
   | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
-      let body_statement =
+      let binding_statement =
+        simplify_statement binding_statement
+      and body_statement =
         simplify_statement body_statement
       in
       match binding_statement_type with
@@ -89,12 +91,17 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
             simplify_statement @@ Seq (binding_statement, body_statement)
         end
       | _ -> begin
-          Let {
-            variable_identifier;
-            binding_statement_type;
-            binding_statement;
-            body_statement;
-          }
+          match body_statement with
+          | Expression (Val Unit) -> binding_statement
+          | Expression (Variable (_, Unit)) -> binding_statement
+          | _ -> begin          
+              Let {
+                variable_identifier;
+                binding_statement_type;
+                binding_statement;
+                body_statement;
+              }
+            end
         end
     end
 
