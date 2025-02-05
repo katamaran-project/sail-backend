@@ -1041,18 +1041,18 @@ let test_build_match_for_tuple_of_variants_binders =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier = mkid "x";
+          variable_identifier    = mkid "x";
           binding_statement_type = variant_type;
-          binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type));
-          body_statement = Ast.Statement.Let {
-              variable_identifier = mkid "y";
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type));
+          body_statement         = Ast.Statement.Let {
+              variable_identifier    = mkid "y";
               binding_statement_type = variant_type;
-              binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", variant_type));
-              body_statement = Ast.Statement.Let {
-                  variable_identifier = mkid "z";
+              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", variant_type));
+              body_statement         = Ast.Statement.Let {
+                  variable_identifier    = mkid "z";
                   binding_statement_type = variant_type;
-                  binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type));
-                  body_statement = statement
+                  binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type));
+                  body_statement         = statement
                 }
             }
         }
