@@ -1040,6 +1040,9 @@ let translate_function_definition
         in
         let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated function %s" (Ast.Identifier.to_string function_name))
         in
+        let function_body =
+          Simplify.simplify_statement function_body
+        in
         TC.return @@ Ast.Definition.FunctionDefinition {
           function_name;
           function_type = {
