@@ -209,7 +209,7 @@ module PatternTree = struct
   type t =
     | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
-    | Bool       of bool_node
+    | Bool       of { when_true : t; when_false : t }
     | Binder     of { matched_type : Ast.Type.t; binder : Binder.t; subtree : t }
     | Terminal   of Ast.Statement.t option
 
@@ -224,10 +224,6 @@ module PatternTree = struct
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
-
-  and bool_node =
-    | CollapsedBoolNode of Binder.t * t
-    | ExpandedBoolNode  of { when_true : t; when_false : t }
 
   let rec equal
       (node_1 : t)
@@ -260,36 +256,16 @@ module PatternTree = struct
         | _ -> false
       end
 
-    | Bool binders_1 -> begin
+    | Bool { when_true = when_true_1; when_false = when_false_1 } -> begin
         match node_2 with
-        | Bool binders_2 -> begin
-            match binders_1 with
-            | CollapsedBoolNode (binder_1, subtree_1) -> begin
-                match binders_2 with
-                | CollapsedBoolNode (binder_2, subtree_2) -> begin
-                    Binder.equal
-                      binder_1
-                      binder_2
-                    &&
-                    equal
-                      subtree_1
-                      subtree_2
-                  end
-                | _ -> false
-              end
-            | ExpandedBoolNode { when_true = when_true_1; when_false = when_false_1 } -> begin
-                match binders_2 with
-                | ExpandedBoolNode { when_true = when_true_2; when_false = when_false_2 } -> begin
-                    equal
-                      when_true_1
-                      when_true_2
-                    &&
-                    equal
-                      when_false_1
-                      when_false_2
-                  end
-                | _ -> false
-              end
+        | Bool { when_true = when_true_2; when_false = when_false_2 } -> begin
+            equal
+              when_true_1
+              when_true_2
+            &&
+            equal
+              when_false_1
+              when_false_2
           end
         | _ -> false
       end
@@ -402,30 +378,14 @@ module PatternTree = struct
         FExpr.mk_application ~keyword @@ mk_head "Enum"
       end
 
-    | Bool binders -> begin
-        let positional = [
-          match binders with
-          | CollapsedBoolNode (binder, subtree) -> begin
-              let keyword =
-                [
-                  ("binder", Binder.to_fexpr binder);
-                  ("subtree", to_fexpr subtree);
-                ]
-              in
-              FExpr.mk_application ~keyword "Single"
-            end
-          | ExpandedBoolNode { when_true; when_false } -> begin
-              let keyword =
-                [
-                  ("true", to_fexpr when_true);
-                  ("false", to_fexpr when_false);
-                ]
-              in
-              FExpr.mk_application ~keyword "Separate"
-            end
-        ]
+    | Bool { when_true; when_false } -> begin
+        let keyword =
+          [
+            ("true", to_fexpr when_true);
+            ("false", to_fexpr when_false);
+          ]
         in
-        FExpr.mk_application ~positional @@ mk_head "Bool"
+        FExpr.mk_application ~keyword @@ mk_head "Bool"
       end
 
     | Variant { variant_identifier; table } -> begin
@@ -523,10 +483,9 @@ module PatternTree = struct
           ~f:(fun (_, _, subtree) -> count_nodes subtree)        
       end
       
-    | Binder { subtree; _ }                              -> 1 + count_nodes subtree
-    | Bool (CollapsedBoolNode (_, subtree))              -> 1 + count_nodes subtree
-    | Bool (ExpandedBoolNode { when_true; when_false })  -> 1 + count_nodes when_true + count_nodes when_false
-    | Terminal _                                         -> 1
+    | Binder { subtree; _ }          -> 1 + count_nodes subtree
+    | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
+    | Terminal _                     -> 1
 end
 
 
@@ -566,11 +525,8 @@ let build_enum_node
 
 
 let build_bool_node (subtree : PatternTree.t) : PatternTree.t TC.t =
-  let* binder =
-    Binder.generate_wildcard
-  in
   TC.return begin
-    PatternTree.Bool (PatternTree.CollapsedBoolNode (binder, subtree))
+    PatternTree.Bool { when_true = subtree; when_false = subtree }
   end
 
 
@@ -655,7 +611,7 @@ let rec build_empty_pattern_tree
         | Int                          -> build_binder_node Ast.Type.Int tail
         | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) tail
         | Unit                         -> build_binder_node Ast.Type.Unit tail
-        | Bool                         -> build_bool_node tail
+        | Bool                         -> build_binder_node Ast.Type.Bool tail
         | String                       -> build_binder_node Ast.Type.String tail
         | Bit                          -> TC.not_yet_implemented [%here] location
         | List _                       -> TC.not_yet_implemented [%here] location
@@ -714,11 +670,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       List.exists subtrees ~f:contains_gap
     end
 
-  | Bool (CollapsedBoolNode (_, subtree)) -> begin
-      contains_gap subtree
-    end
-
-  | Bool (ExpandedBoolNode { when_true; when_false }) -> begin
+  | Bool { when_true; when_false } -> begin
       contains_gap when_true || contains_gap when_false
     end
 
@@ -743,7 +695,7 @@ let adorn_pattern_tree
       TC.fail location "pattern is incompatible with type of value being matched"
     in
     match pattern_tree with
-    | Bool binders -> begin
+    | Bool { when_true = old_when_true; when_false = old_when_false } -> begin
         match tuple_subpatterns with
         | first_subpattern :: remaining_subpatterns -> begin
             match first_subpattern with
@@ -753,6 +705,7 @@ let adorn_pattern_tree
 
                      // if pattern_binder.wildcard = false
                      match boolean_value {
+                       false => ...,
                        x = > ...
                      }
 
@@ -760,145 +713,73 @@ let adorn_pattern_tree
 
                      // if pattern_binder.wildcard = true
                      match boolean_value {
+                       false => ...,
                        _ => ...
                      }
+
+                   In other words, the Bool pattern tree node has been expanded by a first clause,
+                   and a second clause uses a binder/wildcard to match the boolean value.
                 *)
-                match binders with
-                | CollapsedBoolNode (old_binder, old_subtree) -> begin
-                    let* new_binder =
-                      Binder.unify old_binder pattern_binder
-                    and* new_subtree =
-                      adorn old_subtree remaining_subpatterns true
-                    in
-                    TC.return begin
-                      PatternTree.Bool begin
-                        PatternTree.CollapsedBoolNode (new_binder, new_subtree)
-                      end
-                    end
+                let* () =
+                  if
+                    not pattern_binder.wildcard
+                  then begin
+                    (*
+                       We have
+
+                         match bool_value {
+                           false => ...,
+                           x => ...
+                         }
+
+                       The current implementation translates this to
+
+                         match bool_value {
+                           false => ...,
+                           true => ...
+                         }
+
+                       whereas it should be
+
+                         match bool_value {
+                           false => ...,
+                           true => let x = true in ...,
+                         }
+
+                       todo fix this
+                    *)
+                    TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
                   end
-                | ExpandedBoolNode { when_true = old_when_true; when_false = old_when_false } -> begin
-                    let* () =
-                      if not pattern_binder.wildcard
-                      then begin
-                        (*
-                           We have
-
-                             match bool_value {
-                               x => ...
-                             }
-
-                           The current implementation translates this to
-
-                             match bool_value {
-                               true => ...,
-                               false => ...
-                             }
-
-                           whereas it should be
-
-                             match bool_value {
-                               true => let x = true in ...,
-                               false => let x = true in ...,
-                             }
-                        *)
-                        TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
-                      end
-                      else TC.return ()
-                    in
-                    let* new_when_true =
-                      adorn old_when_true remaining_subpatterns true
-                    and* new_when_false =
-                      adorn old_when_false remaining_subpatterns true
-                    in
-                    TC.return begin
-                      PatternTree.Bool begin
-                        PatternTree.ExpandedBoolNode {
-                          when_true  = new_when_true;
-                          when_false = new_when_false
-                        }
-                      end
-                    end
-                  end
+                  else TC.return ()
+                in
+                let* new_when_true =
+                  adorn old_when_true remaining_subpatterns true
+                and* new_when_false =
+                  adorn old_when_false remaining_subpatterns true
+                in
+                TC.return begin
+                  PatternTree.Bool {
+                    when_true  = new_when_true;
+                    when_false = new_when_false
+                  }
+                end
               end
             | BoolCase b -> begin
-                match binders with
-                | CollapsedBoolNode (binder, old_subtree) -> begin
-                    if
-                      binder.wildcard
-                    then
-                      (*
-                         Example context
-
-                           match boolean_value {
-                             _    => A,
-                             true => B
-                           }
-
-                         We interpret this as
-
-                           match boolean_value {
-                             false => A,
-                             true  => B
-                           }
-                      *)
-                      let* new_subtree =
-                        adorn old_subtree remaining_subpatterns gap_filling
-                      in
-                      let when_true, when_false =
-                        if
-                          b
-                        then
-                          (new_subtree, old_subtree)
-                        else
-                          (old_subtree, new_subtree)
-                      in
-                      TC.return begin
-                        PatternTree.Bool begin
-                          PatternTree.ExpandedBoolNode { when_true; when_false }
-                        end
-                      end
-                    else begin
-                      (*
-                         Example context
-
-                           match boolean_value {
-                             x    => ...,
-                             true => ...
-                           }
-
-                         We do not support this case.
-                         This situation possibly occurs when it is combined with other patterns, such as
-
-                           match boolean_value_1, boolean_value_2 {
-                             x    , true  => ...,
-                             false, false => ...,
-                             true , false => ...
-                           }
-                      *)
-                      TC.not_yet_implemented [%here] location
-                    end
+                if
+                  b
+                then
+                  let* new_when_true =
+                    adorn old_when_true remaining_subpatterns gap_filling
+                  in
+                  TC.return begin
+                    PatternTree.Bool { when_true = new_when_true; when_false = old_when_false }
                   end
-                | ExpandedBoolNode { when_true; when_false } -> begin
-                    if
-                      b
-                    then
-                      let* when_true =
-                        adorn when_true remaining_subpatterns gap_filling
-                      in
-                      TC.return begin
-                        PatternTree.Bool begin
-                          PatternTree.ExpandedBoolNode { when_true; when_false }
-                        end
-                      end
-                    else
-                      let* when_false =
-                        adorn when_false remaining_subpatterns gap_filling
-                      in
-                      TC.return begin
-                        PatternTree.Bool begin
-                          PatternTree.ExpandedBoolNode { when_true; when_false }
-                        end
-                      end
+                else
+                  let* new_when_false =
+                    adorn old_when_false remaining_subpatterns gap_filling
+                  in
+                  TC.return begin
+                    PatternTree.Bool { when_true = old_when_true; when_false = new_when_false }
                   end
               end
             | ListCons (_, _)    -> invalid_pattern [%here]
@@ -1218,10 +1099,24 @@ let adorn_pattern_tree
                   | _ -> TC.fail [%here] "expected enum type"
                 end
               end
+            | BoolCase _ -> begin
+                if
+                  not binder.wildcard
+                then
+                  TC.not_yet_implemented [%here] location
+                else begin
+                  let* expanded_node =
+                    build_bool_node subtree
+                  in
+                  adorn
+                    expanded_node
+                    tuple_subpatterns
+                    gap_filling
+                end
+              end
             | ListCons (_, _) -> TC.not_yet_implemented [%here] location
             | ListNil -> TC.not_yet_implemented [%here] location
             | Tuple _ -> TC.not_yet_implemented [%here] location
-            | BoolCase _ -> TC.not_yet_implemented [%here] location
             | Binder pattern_binder -> begin
                 let* updated_subtree =
                   adorn
@@ -1275,43 +1170,22 @@ let rec build_leveled_match_statements
     TC.return @@ Ast.Statement.Fail "incomplete matching"
   in
   match pattern_tree with
-  | Bool bindings -> begin
+  | Bool { when_true; when_false } -> begin
       match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_matched_identifier :: remaining_matched_identifiers -> begin
-          match bindings with
-          | CollapsedBoolNode (binder, subtree) -> begin
-              let* substatement =
-                build_leveled_match_statements remaining_matched_identifiers subtree
-              in
-              if
-                not binder.wildcard
-              then
-                TC.return begin
-                  Ast.Statement.Let {
-                    variable_identifier    = binder.identifier;
-                    binding_statement_type = Ast.Type.Bool;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, Ast.Type.Bool));
-                    body_statement         = substatement;
-                  }
-                end
-              else
-                TC.return substatement
+          let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true
+          and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false
+          in
+          TC.return begin
+            Ast.Statement.Match begin
+              Ast.Statement.MatchBool {
+                condition = first_matched_identifier;
+                when_true;
+                when_false;
+              }
             end
-          | ExpandedBoolNode { when_true; when_false } -> begin
-              let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true
-              and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false
-              in
-              TC.return begin
-                Ast.Statement.Match begin
-                  Ast.Statement.MatchBool {
-                    condition = first_matched_identifier;
-                    when_true;
-                    when_false;
-                  }
-                end
-              end
-            end
+          end
         end
     end
 

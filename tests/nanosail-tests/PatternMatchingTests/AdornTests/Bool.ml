@@ -41,12 +41,10 @@ let test_adorn_bool_true_false =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Bool begin
-          TM.PatternTree.ExpandedBoolNode {
-            when_true  = TM.PatternTree.Terminal (Some true_statement);
-            when_false = TM.PatternTree.Terminal (Some false_statement)
-          }
-        end
+        TM.PatternTree.Bool {
+          when_true  = TM.PatternTree.Terminal (Some true_statement);
+          when_false = TM.PatternTree.Terminal (Some false_statement)
+        }
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
@@ -92,12 +90,10 @@ let test_adorn_bool_false_true =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Bool begin
-          TM.PatternTree.ExpandedBoolNode {
+        TM.PatternTree.Bool {
             when_true  = TM.PatternTree.Terminal (Some true_statement);
             when_false = TM.PatternTree.Terminal (Some false_statement)
           }
-        end
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
@@ -136,9 +132,11 @@ let test_adorn_bool_wildcard =
         TC.return tree
       in
       let expected_tree =
-        TM.PatternTree.Bool begin
-          TM.PatternTree.CollapsedBoolNode (gen#wildcard, TM.PatternTree.Terminal (Some statement))
-        end
+        TM.PatternTree.Binder {
+          matched_type = Ast.Type.Bool;
+          binder       = gen#wildcard;
+          subtree      = TM.PatternTree.Terminal (Some statement)
+        }
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)

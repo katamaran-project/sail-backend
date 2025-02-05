@@ -299,27 +299,12 @@ module Implementation = struct
       return binder
     in
     match tree with
-    | Bool binders -> begin
-        match binders with
-        | CollapsedBoolNode (binder, subtree) -> begin
-            let* binder  = normalize_binder binder
-            and* subtree = normalize_pattern_tree subtree
-            in
-            return begin
-              PatternTree.Bool begin
-                PatternTree.CollapsedBoolNode (binder, subtree)
-              end
-            end
-          end
-        | ExpandedBoolNode { when_true; when_false } -> begin
-            let* when_true  = normalize_pattern_tree when_true
-            and* when_false = normalize_pattern_tree when_false
-            in
-            return begin
-              PatternTree.Bool begin
-                PatternTree.ExpandedBoolNode { when_true; when_false }
-              end
-            end
+    | Bool { when_true; when_false } -> begin
+        let* when_true  = normalize_pattern_tree when_true
+        and* when_false = normalize_pattern_tree when_false
+        in
+        return begin
+          PatternTree.Bool { when_true; when_false }
           end
       end
 
