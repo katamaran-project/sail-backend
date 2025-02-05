@@ -958,7 +958,116 @@ let test_build_match_for_tuple_of_variants =
 
 let test_build_match_for_tuple_of_variants_wildcards =
   let test _ =
-    skip_if true "needs fixing";
+    let genid = create_identifier_generator ()
+    in
+    let x1 = genid ()
+    and x2 = genid ()
+    and x3 = genid ()
+    and x4 = genid ()
+    and x5 = genid ()
+    and x6 = genid ()
+    in
+    let tc =
+      let* variant_type_a =
+        define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+      in
+      let statement =
+        Ast.Statement.ReadRegister (mkid "r1")
+      in
+      let* pattern_tree =
+        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_a; variant_type_a ]
+        in
+        let* pattern_tree = adorn
+            pattern_tree
+            [
+              Pattern.Binder { identifier = mkid "x"; wildcard = true };
+              Pattern.Binder { identifier = mkid "y"; wildcard = true };
+              Pattern.Binder { identifier = mkid "z"; wildcard = true };
+            ]
+            statement
+        in
+        TC.return pattern_tree
+      in
+      let* actual_match_statement =
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+      in
+      let expected_match_statement =
+        Ast.Statement.Match begin
+          Ast.Statement.MatchVariant {
+            matched = mkid "value1";
+            matched_type = mkid "A";
+            cases = Ast.Identifier.Map.of_alist_exn [
+                (
+                  mkid "A1",
+                  (
+                    [ x1; x2 ],
+                    Ast.Statement.Match begin
+                      Ast.Statement.MatchVariant {
+                        matched = mkid "value2";
+                        matched_type = mkid "A";
+                        cases = Ast.Identifier.Map.of_alist_exn [
+                            (
+                              mkid "A1",
+                              (
+                                [ x3; x4 ],
+                                Ast.Statement.Match begin
+                                  Ast.Statement.MatchVariant {
+                                    matched = mkid "value3";
+                                    matched_type = mkid "A";
+                                    cases = Ast.Identifier.Map.of_alist_exn [
+                                        (
+                                          mkid "A1",
+                                          (
+                                            [ x5; x6 ],
+                                            statement
+                                          )
+                                        )
+                                      ]
+                                  }
+                                end
+                              )
+                            );
+                          ]
+                      }
+                    end
+                  )
+                )
+              ]
+          }
+        end
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+        ~cmp:Ast.Statement.equal
+        (Normalize.normalize_statement expected_match_statement)
+        (Normalize.normalize_statement actual_match_statement);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      union A = {
+        A1 : (int, int),
+      }
+
+      match (value1, value2, value3) {
+        (_, _, _) => read_register r1,
+      }
+
+    should become
+
+      match value1 {
+        A1(x1, x2) => match value2 {
+                        A1(x3, x4) => match value3 {
+                                        A1(x5, x6) => read_register r1
+                                      }
+                      }
+     }
+  |} >:: test
+
+
+let test_build_match_for_tuple_of_variants_binders =
+  let test _ =
     let genid = create_identifier_generator ()
     in
     let x1 = genid ()
@@ -1082,4 +1191,5 @@ let test_suite =
     test_build_match_for_variant_nary_constructor_field_wildcards_unification;
     test_build_match_for_tuple_of_variants;
     test_build_match_for_tuple_of_variants_wildcards;
+    test_build_match_for_tuple_of_variants_binders;
   ]
