@@ -1013,31 +1013,24 @@ let test_build_match_for_tuple_of_variants_wildcards =
 
 let test_build_match_for_tuple_of_variants_binders =
   let test _ =
-    let genid = create_identifier_generator ()
-    in
-    let x1 = genid ()
-    and x2 = genid ()
-    and x3 = genid ()
-    and x4 = genid ()
-    and x5 = genid ()
-    and x6 = genid ()
+    let _gen = new generator
     in
     let tc =
-      let* variant_type_a =
+      let* variant_type =
         define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* pattern_tree =
-        let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_a; variant_type_a ]
+        let* pattern_tree = build_empty_pattern_tree [ variant_type; variant_type; variant_type ]
         in
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = true };
-              Pattern.Binder { identifier = mkid "y"; wildcard = true };
-              Pattern.Binder { identifier = mkid "z"; wildcard = true };
+              Pattern.Binder { identifier = mkid "x"; wildcard = false };
+              Pattern.Binder { identifier = mkid "y"; wildcard = false };
+              Pattern.Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
@@ -1047,49 +1040,22 @@ let test_build_match_for_tuple_of_variants_binders =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
       let expected_match_statement =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
-            matched = mkid "value1";
-            matched_type = mkid "A";
-            cases = Ast.Identifier.Map.of_alist_exn [
-                (
-                  mkid "A1",
-                  (
-                    [ x1; x2 ],
-                    Ast.Statement.Match begin
-                      Ast.Statement.MatchVariant {
-                        matched = mkid "value2";
-                        matched_type = mkid "A";
-                        cases = Ast.Identifier.Map.of_alist_exn [
-                            (
-                              mkid "A1",
-                              (
-                                [ x3; x4 ],
-                                Ast.Statement.Match begin
-                                  Ast.Statement.MatchVariant {
-                                    matched = mkid "value3";
-                                    matched_type = mkid "A";
-                                    cases = Ast.Identifier.Map.of_alist_exn [
-                                        (
-                                          mkid "A1",
-                                          (
-                                            [ x5; x6 ],
-                                            statement
-                                          )
-                                        )
-                                      ]
-                                  }
-                                end
-                              )
-                            );
-                          ]
-                      }
-                    end
-                  )
-                )
-              ]
-          }
-        end
+        Ast.Statement.Let {
+          variable_identifier = mkid "x";
+          binding_statement_type = variant_type;
+          binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type));
+          body_statement = Ast.Statement.Let {
+              variable_identifier = mkid "y";
+              binding_statement_type = variant_type;
+              binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", variant_type));
+              body_statement = Ast.Statement.Let {
+                  variable_identifier = mkid "z";
+                  binding_statement_type = variant_type;
+                  binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type));
+                  body_statement = statement
+                }
+            }
+        }
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
@@ -1106,18 +1072,12 @@ let test_build_match_for_tuple_of_variants_binders =
       }
 
       match (value1, value2, value3) {
-        (_, _, _) => read_register r1,
+        (x, y, z) => read_register r1,
       }
 
     should become
 
-      match value1 {
-        A1(x1, x2) => match value2 {
-                        A1(x3, x4) => match value3 {
-                                        A1(x5, x6) => read_register r1
-                                      }
-                      }
-     }
+      let x = value1 in let y = value2 in let z = value3 in read_register r1
   |} >:: test
 
 
