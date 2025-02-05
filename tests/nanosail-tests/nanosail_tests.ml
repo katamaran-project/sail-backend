@@ -11,6 +11,7 @@ let tests =
     NumericExpressionPrettyPrintingTests.test_suite;
     PatternMatchingTests.test_suite;
     NormalizationTests.test_suite;
+    SimplificationTests.test_suite;
   ]
 
 
