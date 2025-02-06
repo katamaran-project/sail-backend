@@ -1842,18 +1842,18 @@ let translate_tuple_match
     in
     TC.map ~f:process_case cases
   in
+  let* initial_tree =
+    build_empty_pattern_tree
+      location
+      element_types
+  in
+  let* final_tree : PatternTree.t =
+    TC.fold_left
+      ~init:initial_tree
+      ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
+      cases
+  in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
-    let* initial_tree =
-      build_empty_pattern_tree
-        location
-        element_types
-    in
-    let* final_tree : PatternTree.t =
-      TC.fold_left
-        ~init:initial_tree
-        ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
-        cases
-    in
     build_leveled_match_statements binder_identifiers final_tree
   in
   let* result =
