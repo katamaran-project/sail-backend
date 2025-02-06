@@ -61,7 +61,10 @@ let rec consecutive_overlapping_pairs xs =
   | _        -> []
 
 
-let rec repeat n x =
+let rec repeat
+    (n : int)
+    (x : 'a ) : 'a list
+  =
   if n > 0
   then x :: repeat (n-1) x
   else []
