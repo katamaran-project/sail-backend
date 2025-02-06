@@ -1387,6 +1387,18 @@ let rec build_leveled_match_statements
     end
 
 
+(*
+   Creates a match-statement of the form
+
+     match matched {
+       (x1, x2, ..., xn) => body
+     }
+
+   where
+   - matched is a variable containing a tuple with elements of types element_types
+   - x1, x2, ..., xn are generated binders
+   - body is produced by calling body_builder with x1, x2, ..., xn
+*)
 let create_tuple_match
     (matched       : Ast.Identifier.t                             )
     (element_types : Ast.Type.t list                              )
