@@ -570,24 +570,6 @@ let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
   =
-  let* () =
-    let log_message = lazy begin
-      let string_of_function_name =
-        Ast.Identifier.to_string function_identifier
-      and _string_of_arguments =
-        FExpr.to_string begin
-          FExpr.mk_list begin
-            List.map ~f:Ast.Expression.to_fexpr arguments
-          end
-        end
-      in
-      Printf.sprintf
-        "Translating function call to %s"
-        string_of_function_name
-    end
-    in
-    GC.log [%here] Logging.debug log_message
-  in
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
