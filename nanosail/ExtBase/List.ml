@@ -81,3 +81,8 @@ let zip_indices (xs : 'a list) : (int * 'a) list =
     | x::xs -> aux ((index, x) :: acc) xs (index + 1)
   in
   aux [] xs 0
+
+
+let indices (xs : 'a list) : int list =
+  range ~stop:`exclusive 0 (length xs)
+
