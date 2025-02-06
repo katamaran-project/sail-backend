@@ -46,3 +46,10 @@ let split_last xs =
   match rev xs with
   | []    -> None
   | x::xs -> Some (rev xs, x)
+
+
+(* performs a left fold using first element as init *)
+let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
+  match list with
+  | []    -> failwith "cannot reduce empty list"
+  | x::xs -> fold_left xs ~init:x ~f

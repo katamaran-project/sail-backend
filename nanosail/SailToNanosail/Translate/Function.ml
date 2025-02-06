@@ -209,7 +209,7 @@ let rec expression_of_aval
         and translation_statements  = List.map ~f:(fun (_, _, x) -> x) translation_triples
         and make_pair x y           = Ast.Expression.BinaryOperation (Pair, x, y)
         in
-        let resulting_expression    = Auxlib.reduce ~f:make_pair translation_expressions
+        let resulting_expression    = List.reduce ~f:make_pair translation_expressions
         in
         let* expression_type =
           match translation_types with
