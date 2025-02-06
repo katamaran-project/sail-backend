@@ -18,7 +18,7 @@ type t =
                            body_statement         : t                 }
   | DestructureRecord of { record_type_identifier : Identifier.t      ;
                            field_identifiers      : Identifier.t list ;
-                           variable_identifiers   : Identifier.t list ;
+                           binders                : Identifier.t list ;
                            destructured_record    : t                 ;
                            body                   : t                 }
   | Seq               of t * t
@@ -187,8 +187,8 @@ let rec equal
             data_2.field_identifiers
           &&
           List.equal Identifier.equal
-            data_1.variable_identifiers
-            data_2.variable_identifiers
+            data_1.binders
+            data_2.binders
           &&
           equal
             data_1.destructured_record
@@ -404,7 +404,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
   and destructure_record_to_fexpr
       (record_type_identifier : Identifier.t     )
       (field_identifiers      : Identifier.t list)
-      (variable_identifiers   : Identifier.t list)
+      (binders                : Identifier.t list)
       (destructured_record    : t                )
       (body                   : t                ) : FExpr.t
     =
@@ -412,7 +412,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
       [
         ("record_type", Identifier.to_fexpr record_type_identifier);
         ("fields", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr field_identifiers);
-        ("variables", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr variable_identifiers);
+        ("binders", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr binders);
         ("record", to_fexpr destructured_record);
         ("body", to_fexpr body);
       ]
@@ -473,10 +473,10 @@ let rec to_fexpr (statement : t) : FExpr.t =
   | DestructureRecord {
       record_type_identifier;
       field_identifiers;
-      variable_identifiers;
+      binders;
       destructured_record;
       body
-    }                            -> destructure_record_to_fexpr record_type_identifier field_identifiers variable_identifiers destructured_record body
+    }                            -> destructure_record_to_fexpr record_type_identifier field_identifiers binders destructured_record body
   | WriteRegister {
       register_identifier;
       written_value
@@ -587,12 +587,12 @@ let rec free_variables (statement : t) : Identifier.Set.t =
       ]
     end
 
-  | DestructureRecord { record_type_identifier = _; field_identifiers = _; variable_identifiers; destructured_record; body } -> begin
+  | DestructureRecord { record_type_identifier = _; field_identifiers = _; binders; destructured_record; body } -> begin
       Identifier.Set.unions [
         free_variables destructured_record;
         Identifier.Set.diff
           (free_variables body)
-          (Identifier.Set.of_list variable_identifiers)
+          (Identifier.Set.of_list binders)
       ]
     end
 

@@ -198,12 +198,12 @@ module Implementation = struct
         return @@ Ast.Statement.Let { variable_identifier; binding_statement_type; binding_statement; body_statement }
       end
 
-    | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
-        let* variable_identifiers = map ~f:substitute_identifier variable_identifiers
+    | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
+        let* binders              = map ~f:substitute_identifier binders
         and* destructured_record  = normalize_statement destructured_record
         and* body                 = normalize_statement body
         in
-        return @@ Ast.Statement.DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body }
+        return @@ Ast.Statement.DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body }
       end
 
     | Seq (first, second) -> begin

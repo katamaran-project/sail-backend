@@ -90,11 +90,11 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         simplify_statement @@ Seq (binding_statement, body_statement)
     end
 
-  | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
+  | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
       DestructureRecord {
         record_type_identifier;
         field_identifiers;
-        variable_identifiers;
+        binders;
         destructured_record = simplify_statement destructured_record;
         body = simplify_statement body;
       }

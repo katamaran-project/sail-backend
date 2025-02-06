@@ -477,7 +477,7 @@ type with_destructured_record_data = {
     record_identifier      : Ast.Identifier.t;
     record_type_identifier : Ast.Identifier.t;
     fields                 : (Ast.Identifier.t * Ast.Type.t) list;
-    variable_identifiers   : Ast.Identifier.t list;
+    binders                : Ast.Identifier.t list;
   }
 
 let with_destructured_record
@@ -506,7 +506,7 @@ let with_destructured_record
           let field_identifiers =
             List.map ~f:fst fields
           in
-          let* variable_identifiers =
+          let* binders =
             TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
           in
           let* body =
@@ -514,7 +514,7 @@ let with_destructured_record
               record_identifier;
               record_type_identifier;
               fields;
-              variable_identifiers
+              binders
             }
           in
           let* destructured_record =
@@ -523,7 +523,7 @@ let with_destructured_record
           TC.return @@ Ast.Statement.DestructureRecord {
                            record_type_identifier;
                            field_identifiers;
-                           variable_identifiers;
+                           binders;
                            destructured_record;
                            body
                          }
@@ -600,11 +600,11 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; fields; variable_identifiers; _ } -> (
+      fun { record_type_identifier; fields; binders; _ } -> (
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
-              let variable_identifier = List.nth_exn variable_identifiers selected_field_index
+              let variable_identifier = List.nth_exn binders selected_field_index
               and variable_type       = snd @@ List.nth_exn fields selected_field_index
               in
               Ast.Expression.Variable (variable_identifier, variable_type)
@@ -818,12 +818,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return @@ (field_map', named_statements')
     in
-    with_destructured_record location aval @@ fun { record_type_identifier; fields; variable_identifiers; _ } -> begin
+    with_destructured_record location aval @@ fun { record_type_identifier; fields; binders; _ } -> begin
       let field_identifiers = List.map ~f:fst fields
       in
       let* field_map, named_statements =
         let initial_field_map : Ast.Identifier.t Ast.Identifier.Map.t =
-          Ast.Identifier.Map.of_alist_exn @@ List.zip_exn field_identifiers variable_identifiers
+          Ast.Identifier.Map.of_alist_exn @@ List.zip_exn field_identifiers binders
         in
         TC.fold_left ~f:process_binding ~init:(initial_field_map, []) (Bindings.bindings bindings)
       in

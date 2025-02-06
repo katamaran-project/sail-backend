@@ -510,7 +510,7 @@ and pp_write_register_statement
 and pp_destructure_record
       ~(record_type_identifier : Ast.Identifier.t     )
       ~(field_identifiers      : Ast.Identifier.t list)
-      ~(variable_identifiers   : Ast.Identifier.t list)
+      ~(binders                : Ast.Identifier.t list)
       ~(destructured_record    : Ast.Statement.t      )
       ~(body                   : Ast.Statement.t      ) : PP.document GC.t
   =
@@ -522,7 +522,7 @@ and pp_destructure_record
   in
   let pp_bindings =
     let pairs =
-      List.zip_exn field_identifiers variable_identifiers
+      List.zip_exn field_identifiers binders
     in
     List.map
       ~f:(fun (field, var) -> (Identifier.pp field, Identifier.pp var))
@@ -578,12 +578,12 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   | DestructureRecord
       { record_type_identifier;
         field_identifiers;
-        variable_identifiers;
+        binders;
         destructured_record;
         body }                                -> GC.pp_annotate [%here] @@ pp_destructure_record
                                                                              ~record_type_identifier
                                                                              ~field_identifiers
-                                                                             ~variable_identifiers
+                                                                             ~binders
                                                                              ~destructured_record
                                                                              ~body
   | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast statement_to_be_cast target_type
