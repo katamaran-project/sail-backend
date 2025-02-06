@@ -1815,9 +1815,6 @@ let translate_variant_match
   TC.return result
 
 
-(*
-   We support a small number of specific matching structures.
-*)
 let translate_tuple_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
