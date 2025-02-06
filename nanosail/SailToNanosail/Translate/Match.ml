@@ -1842,19 +1842,41 @@ let translate_tuple_match
     in
     TC.map ~f:process_case cases
   in
-  let* initial_tree =
-    build_empty_pattern_tree
-      location
-      element_types
+  let build_pattern_tree (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
+    =
+    let* initial_tree =
+      build_empty_pattern_tree
+        location
+        (permuter#permute element_types)
+    in
+    let* adorned_tree =
+      TC.fold_left
+        ~init:initial_tree
+        ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree (permuter#permute subpatterns) statement)
+        cases
+    in
+    let* () = TC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
+    in
+    TC.return adorned_tree
   in
-  let* final_tree : PatternTree.t =
-    TC.fold_left
-      ~init:initial_tree
-      ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
-      cases
+  let* optimal_tree =
+    let permuters =
+      List.permuters (List.length element_types)
+    in
+    let* trees =
+      TC.map ~f:build_pattern_tree permuters
+    in
+    let smallest_tree =
+      List.min_elt
+        ~compare:(fun t1 t2 -> Int.compare (PatternTree.count_nodes t1) (PatternTree.count_nodes t2))
+        trees
+    in
+    match smallest_tree with
+    | Some smallest_tree -> TC.return smallest_tree
+    | None               -> failwith "should never occur"
   in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
-    build_leveled_match_statements binder_identifiers final_tree
+    build_leveled_match_statements binder_identifiers optimal_tree
   in
   let* result =
     create_tuple_match
