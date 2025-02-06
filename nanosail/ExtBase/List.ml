@@ -87,6 +87,22 @@ let indices (xs : 'a list) : int list =
   range ~stop:`exclusive 0 (length xs)
 
 
+let rec drop_nth
+    (xs    : 'a list)
+    (index : int    ) : 'a list
+  =
+  match xs with
+  | []    -> failwith "invalid index"
+  | x::xs -> begin
+      if
+        Int.equal index 0
+      then
+        xs
+      else
+        x :: drop_nth xs (index - 1)
+    end        
+
+
 let rec permutations (xs : 'a list) : 'a list list =
   match xs with
   | [] -> [[]]
