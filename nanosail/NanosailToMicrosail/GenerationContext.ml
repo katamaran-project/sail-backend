@@ -344,7 +344,7 @@ let pp_inductive_type
     let longest_left_part =
       Option.value
         ~default:0
-        (List.max_elt ~compare:Int.compare @@ List.map ~f:(fun (left, _) -> PP.measure_width left) pairs)
+        (List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose PP.measure_width fst) pairs)
     in
     let make_line (left, right) =
       PP.(
