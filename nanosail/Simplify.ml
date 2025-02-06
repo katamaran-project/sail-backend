@@ -107,8 +107,6 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       match simplified_left, simplified_right with
       | Expression (Val Unit)                   , _                                        -> simplified_right
       | Expression (Variable (_, Ast.Type.Unit)), _                                        -> simplified_right
-      | _                                       , Expression (Val Unit)                    -> simplified_left
-      | _                                       , Expression (Variable (_, Ast.Type.Unit)) -> simplified_left
       | _                                                                                  -> Seq (simplified_left, simplified_right)
     end
 
