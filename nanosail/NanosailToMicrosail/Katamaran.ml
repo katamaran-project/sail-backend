@@ -265,4 +265,6 @@ let pretty_print (ir : Ast.program) : PP.document GC.t =
 
 
 let full_translation (program : Ast.program) : PP.document =
-  PP.annotate [%here] @@ GC.generate program @@ pretty_print program
+  PP.annotate [%here] begin
+    GC.generate program @@ pretty_print program
+  end
