@@ -55,7 +55,7 @@ let reduce ~(f: 'a -> 'a -> 'a) (list : 'a list) : 'a =
   | x::xs -> fold_left xs ~init:x ~f
 
 
-let rec consecutive_overlapping_pairs xs =
+let rec consecutive_overlapping_pairs (xs : 'a list) : ('a * 'a) list =
   match xs with
   | x::y::xs -> (x, y) :: consecutive_overlapping_pairs (y :: xs)
   | _        -> []
