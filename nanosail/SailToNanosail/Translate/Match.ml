@@ -1829,25 +1829,37 @@ let translate_tuple_match
     (element_types      : Ast.Type.t list                   )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
+  (* Retrieve subpatterns for each case *)
+  let* cases : (Pattern.t list * Ast.Statement.t) list =
+    let retrieve_tuple_subpatterns (pattern : Pattern.t) : Pattern.t list TC.t =
+      match pattern with
+      | Tuple subpatterns -> TC.return subpatterns
+      | _                 -> TC.fail [%here] "expected a tuple pattern"
+    in
+    let process_case ((pattern, statement) : Pattern.t * Ast.Statement.t) : (Pattern.t list * Ast.Statement.t) TC.t =
+      let* subpatterns = retrieve_tuple_subpatterns pattern
+      in
+      TC.return (subpatterns, statement)
+    in
+    TC.map ~f:process_case cases
+  in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
     let* initial_tree =
       build_empty_pattern_tree
         location
         element_types
     in
-    let categorize
-        (tree      : PatternTree.t  )
-        (pattern   : Pattern.t      )
-        (statement : Ast.Statement.t) : PatternTree.t TC.t
+    let adorn
+        (tree          : PatternTree.t  )
+        (subpatterns   : Pattern.t list )
+        (statement     : Ast.Statement.t) : PatternTree.t TC.t
       =
-      match pattern with
-      | Tuple subpatterns -> adorn_pattern_tree location tree subpatterns statement
-      | _                 -> TC.fail [%here] "expected tuple pattern"
+      adorn_pattern_tree location tree subpatterns statement
     in
-    let* final_tree =
+    let* final_tree : PatternTree.t =
       TC.fold_left
         ~init:initial_tree
-        ~f:(fun tree (pattern, statement) -> categorize tree pattern statement)
+        ~f:(fun tree (subpatterns, statement) -> adorn tree subpatterns statement)
         cases
     in
     build_leveled_match_statements binder_identifiers final_tree
