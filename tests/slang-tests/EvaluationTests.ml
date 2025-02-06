@@ -179,7 +179,7 @@ let inequality_tests =
     "()";
   ]
   in
-  let pairs = Auxlib.unordered_pairs expressions
+  let pairs = List.unordered_pairs expressions
   in
   "inequality" >::: List.map ~f:(fun (lhs, rhs) -> test_run (Printf.sprintf "(= %s %s)" lhs rhs) (Bool false)) pairs
 

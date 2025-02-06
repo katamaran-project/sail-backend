@@ -34,3 +34,9 @@ let build_list f =
   in
   f context;
   rev !list_under_construction
+
+
+let rec unordered_pairs xs =
+  match xs with
+  | []    -> []
+  | x::xs -> (map ~f:(fun y -> (x, y)) xs) @ (unordered_pairs xs)
