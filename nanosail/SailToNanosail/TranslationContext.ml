@@ -103,11 +103,11 @@ let translation_block
     (label          : string         )
     (result         : 'a t           ) : 'a t
   =
-  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Entering %s" @@ label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Entering %s" @@ label)
   in
   let* result = with_excursion result
   in
-  let* () = act @@ fun () -> Logging.debug ocaml_position @@ lazy (Printf.sprintf "Exiting %s" label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Exiting %s" label)
   in
   return result
 
