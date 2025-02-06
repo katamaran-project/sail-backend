@@ -1842,7 +1842,7 @@ let translate_tuple_match
     in
     TC.map ~f:process_case cases
   in
-  let build_pattern_tree (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
+  let build_pattern_tree (permuter : <permute : 'a. 'a list -> 'a list>) : (PatternTree.t * int) TC.t
     =
     let* initial_tree =
       build_empty_pattern_tree
@@ -1857,23 +1857,35 @@ let translate_tuple_match
     in
     let* () = TC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
     in
-    TC.return adorned_tree
+    TC.return (adorned_tree, PatternTree.count_nodes adorned_tree)
   in
   let* optimal_tree =
     let permuters =
       List.permuters (List.length element_types)
     in
-    let* trees =
+    let* tree_size_pairs =
       TC.map ~f:build_pattern_tree permuters
     in
     let smallest_tree =
       List.min_elt
-        ~compare:(fun t1 t2 -> Int.compare (PatternTree.count_nodes t1) (PatternTree.count_nodes t2))
-        trees
+        ~compare:(fun (_, size1) (_, size2) -> Int.compare size1 size2)
+        tree_size_pairs
     in
     match smallest_tree with
-    | Some smallest_tree -> TC.return smallest_tree
-    | None               -> failwith "should never occur"
+    | Some (smallest_tree, smallest_size) -> begin
+        let* () =
+          let message = lazy begin
+            let tree_sizes =
+              String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string snd) tree_size_pairs
+            in
+            Printf.sprintf "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
+          end
+          in
+          TC.log [%here] Logging.info message
+        in
+        TC.return smallest_tree
+      end
+    | None -> failwith "should never occur"
   in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
     build_leveled_match_statements binder_identifiers optimal_tree
