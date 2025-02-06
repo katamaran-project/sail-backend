@@ -231,7 +231,7 @@ let pp_match
       let widths =
         List.map ~f:PP.measure_width (List.map ~f:fst cases)
       in
-      Auxlib.maximum (0 :: widths)
+      Option.value ~default:0 @@ List.max_elt ~compare:Int.compare widths
     in
     let generate_case (pattern, expression) =
       PP.annotate [%here] @@ PP.(
@@ -265,9 +265,9 @@ let pp_match_pair matched_expressions cases =
     List.map ~f:(Fn.compose fst fst) cases
   in
   let left_patterns_max_width =
-    if List.is_empty left_patterns
-    then 0
-    else Auxlib.maximum (List.map ~f:PP.measure_width left_patterns)
+    Option.value
+      ~default:0
+      (List.max_elt ~compare:Int.compare @@ List.map ~f:PP.measure_width left_patterns)
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
@@ -452,7 +452,9 @@ let pp_record
   in
   let pp_fields =
     let longest_field_length =
-      Auxlib.maximum @@ List.map ~f:(Fn.compose PP.measure_width fst) fields
+      Option.value
+        ~default:0
+        (List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose PP.measure_width fst) fields)
     in
     List.map fields ~f:(
         fun (id, t) -> begin

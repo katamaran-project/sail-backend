@@ -342,12 +342,9 @@ let pp_inductive_type
         )
     in
     let longest_left_part =
-      if List.is_empty pairs
-      then 0
-      else
-        Auxlib.maximum (
-            List.map ~f:(fun (left, _) -> PP.measure_width left) pairs
-          )
+      Option.value
+        ~default:0
+        (List.max_elt ~compare:Int.compare @@ List.map ~f:(fun (left, _) -> PP.measure_width left) pairs)
     in
     let make_line (left, right) =
       PP.(

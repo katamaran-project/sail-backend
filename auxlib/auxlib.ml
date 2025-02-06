@@ -15,18 +15,6 @@ let (|.|) p1 p2 x =
   p1 x || p2 x
 
 
-let minimum ns =
-  match ns with
-  | []    -> raise (Invalid_argument "Cannot determine minimum of empty list")
-  | n::ns -> List.fold_left ~f:min ~init:n ns
-
-
-let maximum ns =
-  match ns with
-  | []    -> raise (Invalid_argument "Cannot determine maximum of empty list")
-  | n::ns -> List.fold_left ~f:max ~init:n ns
-
-
 type 'a list_builder = {
     add    : 'a        -> unit;
     addall : 'a list   -> unit;
