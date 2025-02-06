@@ -342,7 +342,7 @@ module Make(Annotation : ANNOTATION) = struct
         (n        : int        )
         (document : t          ) : t
     =
-    layout @@ Auxlib.repeat n document
+    layout @@ List.repeat n document
 
 
   let pad_right

@@ -20,12 +20,6 @@ let using ~resource:(x : 'a) ~close ~body =
   close x
 
 
-let rec repeat n x =
-  if n > 0
-  then x :: repeat (n-1) x
-  else []
-
-
 let zip_indices (xs : 'a list) : (int * 'a) list =
   let rec aux (acc : (int * 'a) list) (xs : 'a list) (index : int) : (int * 'a) list =
     match xs with
