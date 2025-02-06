@@ -112,6 +112,6 @@ let rec permutations (xs : 'a list) : 'a list list =
           in
           map
             ~f:(fun ys -> x :: ys)
-            (permutations @@ drop xs index)
+            (permutations @@ drop_nth xs index)
         )
     end
