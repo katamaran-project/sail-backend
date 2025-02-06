@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(Slang.EvaluationContext)
 open Slang.Prelude.Shared
 
@@ -140,7 +141,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
         translation#untranslated_definitions
       in
       let formatted_untranslated_definitions =
-        PP.(paragraphs @@ List.map ~f:(Auxlib.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
+        PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
       in
       EC.return @@ string_of_document formatted_untranslated_definitions
     in

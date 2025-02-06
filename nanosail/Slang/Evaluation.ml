@@ -1,5 +1,6 @@
 module P = Parser
 open Base
+open ExtBase
 open Auxlib
 open Exception
 
@@ -12,7 +13,7 @@ end
 
 let bind_parameters parameters arguments =
   match List.zip parameters arguments with
-  | List.Or_unequal_lengths.Ok pairs        -> EC.iter ~f:(uncurry EC.add_binding) pairs
+  | List.Or_unequal_lengths.Ok pairs        -> EC.iter ~f:(Fn.uncurry EC.add_binding) pairs
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ SlangError "wrong number of parameters"
 
 

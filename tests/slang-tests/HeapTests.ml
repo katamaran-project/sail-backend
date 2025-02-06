@@ -1,5 +1,4 @@
-open Base
-open Auxlib
+open Nanosail.ExtBase
 open OUnit2
 open Shared
 
@@ -19,7 +18,7 @@ let heap_access_tests =
       )
     ]
   in
-  "accessing" >::: List.map ~f:(uncurry test_run) test_cases
+  "accessing" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let heap_update_tests =
@@ -36,7 +35,7 @@ let heap_update_tests =
       )
     ]
   in
-  "updating" >::: List.map ~f:(uncurry test_run) test_cases
+  "updating" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let tests =

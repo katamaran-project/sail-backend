@@ -231,7 +231,7 @@ and pp_match_enum
                 end
             end
         in
-        GC.map ~f:(Auxlib.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
+        GC.map ~f:(Fn.uncurry pp_case) (Ast.Identifier.Map.to_alist cases)
       in
       (*
          Generates final translation of match
@@ -313,7 +313,7 @@ and pp_match_enum
         *)
         let* pp_lambda_body =
           let* pp_match_cases =
-            GC.map ~f:(Auxlib.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
+            GC.map ~f:(Fn.uncurry pp_case) @@ Ast.Identifier.Map.to_alist cases
           in
           (* Generate Coq match expression *)
           GC.return @@ PP.annotate [%here] @@ Coq.pp_match pp_lambda_parameter pp_match_cases

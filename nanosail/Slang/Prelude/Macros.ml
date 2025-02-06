@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(EvaluationContext)
 
 module EC = EvaluationContext
@@ -37,4 +38,4 @@ let initialize =
   let pairs =
     List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
   in
-  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs
+  EC.iter ~f:(Fn.uncurry EC.add_binding) pairs

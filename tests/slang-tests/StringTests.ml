@@ -1,5 +1,4 @@
-open Base
-open Auxlib
+open Nanosail.ExtBase
 open OUnit2
 open Shared
 
@@ -61,7 +60,7 @@ let string_literal_tests =
       );
     ]
   in
-  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+  "arithmetic" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let string_join_tests =
@@ -113,7 +112,7 @@ let string_join_tests =
       );
     ]
   in
-  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+  "arithmetic" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 

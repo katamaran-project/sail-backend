@@ -1,4 +1,4 @@
-open Base
+open Nanosail.ExtBase
 open OUnit2
 
 
@@ -70,7 +70,7 @@ let test_formatting =
       (PowerOf2 (PowerOf2 (c 10)), "2^(2^10)");
     ]
   in
-  "formatting" >::: List.map ~f:(Auxlib.uncurry test) test_cases
+  "formatting" >::: List.map ~f:(Fn.uncurry test) test_cases
 
 let test_suite =
   "numeric expression pretty printing tests" >::: [

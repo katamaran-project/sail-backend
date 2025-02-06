@@ -1,6 +1,5 @@
 open Base
 open Nanosail.ExtBase
-open Auxlib
 open OUnit2
 
 open Shared
@@ -31,7 +30,7 @@ let modulo_tests =
       end;
     end
   in
-  "modulo tests" >::: List.map ~f:(uncurry test_run) test_cases
+  "modulo tests" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let filter_tests =
@@ -59,7 +58,7 @@ let filter_tests =
       end;
     end
   in
-  "filter" >::: List.map ~f:(uncurry test_run) test_cases
+  "filter" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let mapping_tests =
@@ -104,7 +103,7 @@ let mapping_tests =
       end;
     end
   in
-  "mapping" >::: List.map ~f:(uncurry test_run) test_cases
+  "mapping" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let nth_tests =
@@ -156,7 +155,7 @@ let nth_tests =
       end;
     end
   in
-  "mapping" >::: List.map ~f:(uncurry test_run) test_cases
+  "mapping" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let last_tests =
@@ -198,7 +197,7 @@ let last_tests =
       end;
     end
   in
-  "mapping" >::: List.map ~f:(uncurry test_run) test_cases
+  "mapping" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let tests =

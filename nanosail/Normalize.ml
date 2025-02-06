@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 
 module Implementation = struct
@@ -137,7 +138,7 @@ module Implementation = struct
             Ast.Identifier.Map.to_alist cases
           in
           let* normalized_pairs =
-            map ~f:(Auxlib.uncurry normalize_pair) pairs
+            map ~f:(Fn.uncurry normalize_pair) pairs
           in
           return begin
             Ast.Identifier.Map.of_alist_exn normalized_pairs
@@ -163,7 +164,7 @@ module Implementation = struct
           let pairs = Ast.Identifier.Map.to_alist cases
           in
           let* normalized_pairs =
-            map ~f:(Auxlib.uncurry normalize_pair) pairs
+            map ~f:(Fn.uncurry normalize_pair) pairs
           in
           return begin
             Ast.Identifier.Map.of_alist_exn normalized_pairs
@@ -322,7 +323,7 @@ module Implementation = struct
               in
               return (enum_case_identifier, (binder, subtree))
             in
-            map ~f:(Auxlib.uncurry normalize_pair) pairs
+            map ~f:(Fn.uncurry normalize_pair) pairs
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in
@@ -362,7 +363,7 @@ module Implementation = struct
               in
               return (constructor_identifier, (binder, field_binders, subtree))
             in
-            map ~f:(Auxlib.uncurry normalize_pair) pairs
+            map ~f:(Fn.uncurry normalize_pair) pairs
           in
           return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
         in

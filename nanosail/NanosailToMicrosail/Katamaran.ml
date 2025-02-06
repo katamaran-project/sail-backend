@@ -57,7 +57,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.block begin
         GC.generation_block [%here] "Translated Type Definitions" @@ begin
           let* type_definitions' =
-            GC.map ~f:(Auxlib.uncurry Types.pp_type_definition) type_definitions
+            GC.map ~f:(Fn.uncurry Types.pp_type_definition) type_definitions
           in
           GC.return @@ PP.paragraphs type_definitions'
         end
@@ -155,7 +155,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
           | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
         in
         let no_confusions_from_definitions =
-          List.concat_map ~f:(Auxlib.uncurry no_confusion_identifier_from_definition) type_definitions
+          List.concat_map ~f:(Fn.uncurry no_confusion_identifier_from_definition) type_definitions
         in
         List.concat [
           no_confusions_from_definitions;
@@ -195,7 +195,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         | Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
       in
       let eqdecs_from_definitions =
-        List.concat_map ~f:(Auxlib.uncurry eqdec_identifier_from_definition) type_definitions
+        List.concat_map ~f:(Fn.uncurry eqdec_identifier_from_definition) type_definitions
       in
       List.concat [
         eqdecs_from_definitions;

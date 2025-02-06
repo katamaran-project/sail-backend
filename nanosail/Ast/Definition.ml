@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 include Recursive
 
 
@@ -17,7 +18,7 @@ module FunctionType = struct
         =
         FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Parameter"
       in
-      FExpr.mk_list @@ List.map ~f:(Auxlib.uncurry parameter_to_fexpr) function_type_definition.parameters
+      FExpr.mk_list @@ List.map ~f:(Fn.uncurry parameter_to_fexpr) function_type_definition.parameters
 
     and return_type' =
       Type.to_fexpr function_type_definition.return_type

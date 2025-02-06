@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 
@@ -30,10 +31,10 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
               in
               GC.return (pp_id, pp_typ)
             in
-            GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+            GC.map ~f:(Fn.uncurry pp) function_definition.function_type.parameters
           in
           let ps =
-            List.map ~f:(Auxlib.uncurry MuSail.pp_bind) pp_parameter_bindings
+            List.map ~f:(Fn.uncurry MuSail.pp_bind) pp_parameter_bindings
           in
           GC.return @@ PP.annotate [%here] @@ Coq.pp_list ps
         in

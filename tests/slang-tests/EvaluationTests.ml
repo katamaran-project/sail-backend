@@ -1,6 +1,4 @@
-open Base
 open Nanosail.ExtBase
-open Auxlib
 open OUnit2
 open Shared
 
@@ -37,7 +35,7 @@ let arithmetic_tests =
       ( {|(* 3 "ab")|}, String "ababab" );
     ]
   in
-  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+  "arithmetic" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let boolean_tests =
@@ -79,7 +77,7 @@ let boolean_tests =
       ("(and #t #t #f)", Bool false);
     ]
   in
-  "booleans" >::: List.map ~f:(uncurry test_run) test_cases
+  "booleans" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let quote_tests =
@@ -95,7 +93,7 @@ let quote_tests =
       ({|'(("xyz"))|}, list_to_cons [ list_to_cons [ String "xyz" ] ]);
     ]
   in
-  "quoting" >::: List.map ~f:(uncurry test_run) test_cases
+  "quoting" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let list_tests =
@@ -133,7 +131,7 @@ let list_tests =
       ("(contains? '(#t 2) #t)", Bool true);
     ]
   in
-  "lists" >::: List.map ~f:(uncurry test_run) test_cases
+  "lists" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let atom_equality_tests =
@@ -197,7 +195,7 @@ let lambda_tests =
       ("((lambda (x) (* 2 x)) 3)", Integer 6 );
     ]
   in
-  "lambda" >::: List.map ~f:(uncurry test_run) test_cases
+  "lambda" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let define_function_tests =
@@ -256,7 +254,7 @@ let define_function_tests =
       end;
     end
   in
-  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+  "define function" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let define_variable_tests =
@@ -288,7 +286,7 @@ let define_variable_tests =
       );
     ]
   in
-  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+  "define function" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let predicate_tests =
@@ -407,7 +405,7 @@ let predicate_tests =
       end;
     end
   in
-  "predicate" >::: List.map ~f:(uncurry test_run) test_cases
+  "predicate" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let if_then_else_tests =
@@ -477,7 +475,7 @@ let if_then_else_tests =
       );
     ]
   in
-  "conditionals" >::: List.map ~f:(uncurry test_run) test_cases
+  "conditionals" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let comparison_tests =
@@ -632,7 +630,7 @@ let comparison_tests =
       end;
     end
   in
-  "comparisons" >::: List.map ~f:(uncurry test_run) test_cases
+  "comparisons" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let cond_tests =
@@ -692,7 +690,7 @@ let cond_tests =
       );
     ]
   in
-  "cond" >::: List.map ~f:(uncurry test_run) test_cases
+  "cond" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let define_macro_tests =
@@ -716,7 +714,7 @@ let define_macro_tests =
       end;
     end
   in
-  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+  "define function" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let keyword_tests =
@@ -728,7 +726,7 @@ let keyword_tests =
       ( ":abc", Symbol ":abc" );
     ]
   in
-  "arithmetic" >::: List.map ~f:(uncurry test_run) test_cases
+  "arithmetic" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let destructuring_tests =
@@ -1222,7 +1220,7 @@ let destructuring_tests =
       end;
     end
   in
-  "define function" >::: List.map ~f:(uncurry test_run) test_cases
+  "define function" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let tests =

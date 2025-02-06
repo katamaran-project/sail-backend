@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 
 type t = TypeQuantifier of (Identifier.t * Kind.t) list
@@ -14,6 +15,6 @@ let to_fexpr (type_quantifier : t) : FExpr.t =
   let TypeQuantifier items = type_quantifier
   in
   let positional =
-    List.map ~f:(Auxlib.uncurry item_to_fexpr) items
+    List.map ~f:(Fn.uncurry item_to_fexpr) items
   in
   FExpr.mk_application ~positional "TypeQuantifier"

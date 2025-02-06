@@ -1,4 +1,5 @@
-open! Base
+open Base
+open ExtBase
 
 module S = struct
   include Libsail
@@ -963,7 +964,7 @@ let adorn_pattern_tree
                           | BoolCase _         -> invalid_pattern [%here]
                         in
                         let* unified_field_binders =
-                          TC.map ~f:(Auxlib.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
+                          TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
                         in
                         TC.return @@ PatternTree.NAryConstructor unified_field_binders
                       end
@@ -1244,7 +1245,7 @@ let rec build_leveled_match_statements
                 in
                 TC.return (enum_case, statement)
               in
-              TC.map ~f:(Auxlib.uncurry update_pair) table_pairs
+              TC.map ~f:(Fn.uncurry update_pair) table_pairs
             in
             TC.return @@ Ast.Identifier.Map.of_alist_exn statement_pairs
           in
@@ -1338,7 +1339,7 @@ let rec build_leveled_match_statements
                     TC.return (constructor_identifier, (field_binder_identifiers, substatement))
                   end
               in
-              TC.map table_pairs ~f:(Auxlib.uncurry build_statement_pair)
+              TC.map table_pairs ~f:(Fn.uncurry build_statement_pair)
             in
             TC.return @@ Ast.Identifier.Map.of_alist_exn statement_pairs
           in
@@ -1474,7 +1475,7 @@ let rec translate_pattern
     match List.zip subtypes subpatterns with
     | Ok pairs -> begin
         let* translated_subpatterns =
-          TC.map ~f:(Auxlib.uncurry translate_pattern) pairs
+          TC.map ~f:(Fn.uncurry translate_pattern) pairs
         in
         TC.return @@ Pattern.Tuple translated_subpatterns
       end

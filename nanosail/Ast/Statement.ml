@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 module Type = Recursive.Type
 
@@ -560,7 +561,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
           Identifier.Set.diff statement_free_variables field_binders
         in
         Identifier.Set.unions begin
-          List.map ~f:(Auxlib.uncurry free_variables_in_case) @@ Identifier.Map.data cases
+          List.map ~f:(Fn.uncurry free_variables_in_case) @@ Identifier.Map.data cases
         end
       in
       Identifier.Set.unions [

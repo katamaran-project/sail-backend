@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 module Big_int = Nat_big_num
 
@@ -29,7 +30,7 @@ let translate_record
     in
     let* identifier      = Identifier.translate_identifier [%here] identifier
     and* type_quantifier = TypeQuantifier.translate_type_quantifier type_quantifier
-    and* fields          = TC.map ~f:(Auxlib.uncurry translate_field) fields
+    and* fields          = TC.map ~f:(Fn.uncurry translate_field) fields
     in
     TC.return @@ Ast.Definition.Type.Record {
       identifier;

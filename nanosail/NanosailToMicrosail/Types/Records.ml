@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -25,7 +26,7 @@ let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP
     and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
     and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
     in
-    let* fields     = GC.map ~f:(Auxlib.uncurry generate_field) record_definition.fields
+    let* fields     = GC.map ~f:(Fn.uncurry generate_field) record_definition.fields
     in
     GC.return @@ Coq.pp_record ~identifier ~type_name ~constructor ~fields
   end

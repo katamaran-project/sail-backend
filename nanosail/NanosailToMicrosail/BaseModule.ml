@@ -122,7 +122,7 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast
         end
       end
     in
-    let* notations = GC.map ~f:(Auxlib.uncurry pp_alias_notation) pairs
+    let* notations = GC.map ~f:(Fn.uncurry pp_alias_notation) pairs
     in
     GC.return @@ PP.vertical notations
   end

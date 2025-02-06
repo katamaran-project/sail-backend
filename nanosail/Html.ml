@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 
 (*
@@ -46,7 +47,7 @@ let element
     let format_attribute name value =
       Printf.sprintf {| %s="%s"|} name value
     in
-    String.concat @@ List.map ~f:(Auxlib.uncurry format_attribute) attributes
+    String.concat @@ List.map ~f:(Fn.uncurry format_attribute) attributes
   in
   Html (
       Printf.sprintf

@@ -1,4 +1,4 @@
-open Base
+open Nanosail.ExtBase
 open OUnit2
 
 
@@ -36,7 +36,7 @@ let test_convert_bits_to_z =
     ([1;1;1;0;0;0;0;1;0;1;1;0;1;0;0;0;0;0;1;0;0], Z.of_int 1846532);
   ]
   in
-  "convert bits to z tests" >::: List.map ~f:(Auxlib.uncurry check) test_cases
+  "convert bits to z tests" >::: List.map ~f:(Fn.uncurry check) test_cases
 
 
 let test_suite =

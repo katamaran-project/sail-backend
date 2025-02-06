@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 
 module Impl = struct
@@ -90,7 +91,7 @@ module Map = struct
         in
         FExpr.mk_application ~positional "Entry"
       in
-      List.map ~f:(Auxlib.uncurry format_pair) pairs
+      List.map ~f:(Fn.uncurry format_pair) pairs
     in
     FExpr.mk_application ~positional:formatted_pairs "Mapping"
 end

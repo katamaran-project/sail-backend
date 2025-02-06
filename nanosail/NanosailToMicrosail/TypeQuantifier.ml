@@ -1,3 +1,4 @@
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -21,4 +22,4 @@ let pp_type_quantifier (quantifier : Ast.TypeQuantifier.t) : (PP.document * PP.d
   in
   let Ast.TypeQuantifier.TypeQuantifier items =  quantifier
   in
-  GC.map ~f:(Auxlib.uncurry pp_type_quantifier_item) items
+  GC.map ~f:(Fn.uncurry pp_type_quantifier_item) items

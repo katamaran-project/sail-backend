@@ -45,10 +45,10 @@ let pp_function_definition
                 in
                 GC.return (pp_id, pp_typ)
               in
-              GC.map ~f:(Auxlib.uncurry pp) function_definition.function_type.parameters
+              GC.map ~f:(Fn.uncurry pp) function_definition.function_type.parameters
             in
             let docs =
-              List.map ~f:(Auxlib.uncurry MuSail.pp_bind) parameters
+              List.map ~f:(Fn.uncurry MuSail.pp_bind) parameters
             in
             GC.return @@ PP.annotate [%here] @@ Coq.pp_list docs
           in
@@ -148,7 +148,7 @@ let pp_function_definitions
       ~f:(fun ((_sail_definition, function_definition) as fdef) ->
           (fdef, find_type_constraint function_definition.function_name))
   in
-  GC.map ~f:(Auxlib.uncurry pp_function_definition) type_and_function_pairs
+  GC.map ~f:(Fn.uncurry pp_function_definition) type_and_function_pairs
 
 
 let pp_function_definition_kit

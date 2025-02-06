@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Evaluation
 open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
@@ -33,7 +34,7 @@ let comparison converter comparator =
   let impl args =
     let=?? ns = List.map ~f:converter args
     in
-    let result = Value.Bool (List.for_all ~f:(Auxlib.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
+    let result = Value.Bool (List.for_all ~f:(Fn.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
     in
     EC.return @@ Some result
   in
@@ -68,4 +69,4 @@ let initialize =
   let pairs =
     List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
   in
-  EC.iter ~f:(Auxlib.uncurry EC.add_binding) pairs
+  EC.iter ~f:(Fn.uncurry EC.add_binding) pairs
