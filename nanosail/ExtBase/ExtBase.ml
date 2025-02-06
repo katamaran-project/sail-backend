@@ -8,3 +8,4 @@ module Sequence   = Base.Sequence
 module Char       = Base.Char
 module Map        = Base.Map
 module Comparator = Base.Comparator
+module Printf     = Base.Printf
