@@ -327,7 +327,7 @@ let rec expression_of_aval
         let record =
           Ast.Expression.Record {
             type_identifier = type_identifier';
-            variable_identifiers = field_value_identifiers;
+            fields          = field_value_identifiers;
           }
         in
         TC.return (record, Ast.Type.Record type_identifier', named_statements)
@@ -829,10 +829,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       let record_expression =
         let type_identifier = record_type_identifier
-        and variable_identifiers =
+        and fields =
           List.map field_identifiers ~f:(StringMap.find_exn field_map)
         in
-        Ast.Expression.Record { type_identifier; variable_identifiers }
+        Ast.Expression.Record { type_identifier; fields }
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Expression record_expression)
     end

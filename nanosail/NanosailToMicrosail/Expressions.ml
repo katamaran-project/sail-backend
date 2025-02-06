@@ -165,8 +165,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       end
 
   and pp_record
-      (type_identifier      : Ast.Identifier.t     )
-      (variable_identifiers : Ast.Identifier.t list) : PP.document GC.t
+      (type_identifier : Ast.Identifier.t     )
+      (fields          : Ast.Identifier.t list) : PP.document GC.t
     =
     let pp_record_type =
       PP.annotate [%here] begin
@@ -177,7 +177,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       PP.annotate [%here] begin
         Coq.pp_list_using_notation begin
           List.map
-            variable_identifiers
+            fields
             ~f:(fun id -> begin
                   PP.annotate [%here] begin
                     MuSail.Expression.pp_variable (Identifier.pp id)
@@ -302,7 +302,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   | UnaryOperation (operator, operand)                -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
   | BinaryOperation (op, e1, e2)                      -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2
   | List elements                                     -> GC.pp_annotate [%here] @@ pp_list elements
-  | Record { type_identifier; variable_identifiers }  -> GC.pp_annotate [%here] @@ pp_record type_identifier variable_identifiers
+  | Record { type_identifier; fields }                -> GC.pp_annotate [%here] @@ pp_record type_identifier fields
   | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
   | Variant { type_identifier;
               constructor_identifier;

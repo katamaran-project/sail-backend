@@ -263,10 +263,10 @@ module Implementation = struct
         return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
       end
 
-    | Record { type_identifier; variable_identifiers } -> begin
-        let* variable_identifiers = map ~f:substitute_identifier variable_identifiers
+    | Record { type_identifier; fields } -> begin
+        let* fields = map ~f:substitute_identifier fields
         in
-        return @@ Ast.Expression.Record { type_identifier; variable_identifiers }
+        return @@ Ast.Expression.Record { type_identifier; fields }
       end
 
     | Enum _ -> return @@ expression

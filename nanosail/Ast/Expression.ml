@@ -8,7 +8,7 @@ type t =
   | UnaryOperation  of UnaryOperator.t * t
   | BinaryOperation of BinaryOperator.t * t * t
   | Record          of { type_identifier        : Identifier.t;
-                         variable_identifiers   : Identifier.t list }
+                         fields                 : Identifier.t list }
   | Enum            of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t }
   | Variant         of { type_identifier        : Identifier.t;
@@ -187,7 +187,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Tuple elements                                          -> tuple_to_fexpr elements
    | Bitvector elements                                      -> bitvector_to_fexpr elements
    | Record { type_identifier;
-              variable_identifiers }                         -> record_to_fexpr type_identifier variable_identifiers
+              fields }                                       -> record_to_fexpr type_identifier fields
    | Enum { type_identifier;
             constructor_identifier }                         -> enum_to_fexpr type_identifier constructor_identifier
    | Variant { type_identifier;
@@ -202,7 +202,7 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | List elements                                                       -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | UnaryOperation (_, operand)                                         -> free_variables operand
    | BinaryOperation (_, left_operand, right_operand)                    -> Identifier.Set.union (free_variables left_operand) (free_variables right_operand)
-   | Record { type_identifier = _; variable_identifiers }                -> Identifier.Set.of_list variable_identifiers
+   | Record { type_identifier = _; fields }                              -> Identifier.Set.of_list fields
    | Enum _                                                              -> Identifier.Set.empty
    | Variant { type_identifier = _; constructor_identifier = _; fields } -> Identifier.Set.unions @@ List.map ~f:free_variables fields
    | Tuple elements                                                      -> Identifier.Set.unions @@ List.map ~f:free_variables elements
