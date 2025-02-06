@@ -9,7 +9,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
           matched;
           element_type;
           when_cons = (head, tail, simplify_statement body);
-          when_nil = simplify_statement when_nil;
+          when_nil  = simplify_statement when_nil;
         }
       end
     end
@@ -41,7 +41,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       Match begin
         MatchBool {
           condition;
-          when_true = simplify_statement when_true;
+          when_true  = simplify_statement when_true;
           when_false = simplify_statement when_false;
         }
       end
@@ -52,7 +52,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         MatchEnum {
           matched;
           matched_type;
-          cases = Ast.Identifier.Map.map_values ~f:simplify_statement cases
+          cases = Ast.Identifier.Map.map_values ~f:simplify_statement cases;
         }
       end
     end
