@@ -33,7 +33,7 @@ let comparison converter comparator =
   let impl args =
     let=?? ns = List.map ~f:converter args
     in
-    let result = Value.Bool (List.for_all ~f:(Fn.uncurry comparator) @@ Auxlib.consecutive_overlapping_pairs ns)
+    let result = Value.Bool (List.for_all ~f:(Fn.uncurry comparator) @@ List.consecutive_overlapping_pairs ns)
     in
     EC.return @@ Some result
   in

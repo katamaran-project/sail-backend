@@ -20,12 +20,6 @@ let using ~resource:(x : 'a) ~close ~body =
   close x
 
 
-let rec consecutive_overlapping_pairs xs =
-  match xs with
-  | x::y::xs -> (x, y) :: consecutive_overlapping_pairs (y :: xs)
-  | _        -> []
-
-
 let rec repeat n x =
   if n > 0
   then x :: repeat (n-1) x
