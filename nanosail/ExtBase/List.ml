@@ -68,7 +68,11 @@ let rec repeat n x =
 
 
 let zip_indices (xs : 'a list) : (int * 'a) list =
-  let rec aux (acc : (int * 'a) list) (xs : 'a list) (index : int) : (int * 'a) list =
+  let rec aux
+      (acc   : (int * 'a) list)
+      (xs    : 'a list        )
+      (index : int            ) : (int * 'a) list
+    =
     match xs with
     | []    -> rev acc
     | x::xs -> aux ((index, x) :: acc) xs (index + 1)
