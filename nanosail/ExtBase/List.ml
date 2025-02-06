@@ -115,3 +115,20 @@ let rec permutations (xs : 'a list) : 'a list list =
             (permutations @@ drop_nth xs index)
         )
     end
+
+
+let rec permutation_functions (size : int) : ('a list -> 'a list) list =
+  let permutations : int list list =
+    permutations (List.range ~stop:`exclusive 0 size)
+  in
+  let create_permutation_function (permutation : int list) : 'a list -> 'a list =
+    fun (xs : 'a list) -> begin
+        if
+          not @@ Int.equal size @@ List.length xs
+        then
+          failwith "permutation function accepts only lists of a specific length"
+        else
+          List.map ~f:(fun index -> nth_exn xs index) permutation
+      end
+  in
+  List.map ~f:create_permutation_function permutations
