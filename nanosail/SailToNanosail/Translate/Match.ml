@@ -1829,7 +1829,6 @@ let translate_tuple_match
     (element_types      : Ast.Type.t list                   )
     (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
   =
-  (* Retrieve subpatterns for each case *)
   let* cases : (Pattern.t list * Ast.Statement.t) list =
     let retrieve_tuple_subpatterns (pattern : Pattern.t) : Pattern.t list TC.t =
       match pattern with
