@@ -1434,10 +1434,6 @@ let create_tuple_match
     end
 
 
-
-exception InconsistentBinders of (Pattern.t * Pattern.t)
-
-
 (*
    Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
 *)
