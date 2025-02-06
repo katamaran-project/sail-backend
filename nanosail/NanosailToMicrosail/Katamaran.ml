@@ -249,22 +249,3 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     in
     GC.return @@ PP.annotate [%here] @@ PP.(paragraphs sections)
 end
-
-
-let pretty_print (ir : Ast.program) : PP.document GC.t =
-  let* () = GC.log [%here] Logging.debug @@ lazy "Generating muSail code"
-  in
-  let katamaran = new katamaran ir
-  in
-  let* sections = GC.sequence
-    [
-      katamaran#pp_program;
-    ]
-  in
-  GC.return @@ PP.(paragraphs sections)
-
-
-let full_translation (program : Ast.program) : PP.document =
-  PP.annotate [%here] begin
-    GC.generate program @@ pretty_print program
-  end
