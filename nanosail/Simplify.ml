@@ -108,9 +108,9 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       and simplified_right = simplify_statement right
       in
       match simplified_left, simplified_right with
-      | Expression (Val Unit)                   , _                                        -> simplified_right
-      | Expression (Variable (_, Ast.Type.Unit)), _                                        -> simplified_right
-      | _                                                                                  -> Seq (simplified_left, simplified_right)
+      | Expression (Val Unit)                   , _ -> simplified_right
+      | Expression (Variable (_, Ast.Type.Unit)), _ -> simplified_right
+      | _                                           -> Seq (simplified_left, simplified_right)
     end
 
   | Call (identifier, arguments) -> Call (identifier, List.map ~f:simplify_expression arguments)
