@@ -117,18 +117,24 @@ let rec permutations (xs : 'a list) : 'a list list =
     end
 
 
-let rec permutation_functions (size : int) : ('a list -> 'a list) list =
+let create_permuter (permutation : int list) : <permute : 'a. 'a t -> 'a t> =
+  let size = length permutation
+  in
+  let permuter xs =
+    if
+      not @@ Int.equal size @@ length xs
+    then
+      failwith "permutation function accepts only lists of a specific length"
+    else
+      map ~f:(fun index -> nth_exn xs index) permutation
+  in
+  object
+    method permute : 'a. 'a list -> 'a list = permuter
+  end
+
+
+let rec permuters (size : int) : <permute : 'a. 'a t -> 'a t> list =
   let permutations : int list list =
-    permutations (List.range ~stop:`exclusive 0 size)
+    permutations (range ~stop:`exclusive 0 size)
   in
-  let create_permutation_function (permutation : int list) : 'a list -> 'a list =
-    fun (xs : 'a list) -> begin
-        if
-          not @@ Int.equal size @@ List.length xs
-        then
-          failwith "permutation function accepts only lists of a specific length"
-        else
-          List.map ~f:(fun index -> nth_exn xs index) permutation
-      end
-  in
-  List.map ~f:create_permutation_function permutations
+  map ~f:create_permuter permutations
