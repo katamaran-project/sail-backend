@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -180,7 +181,7 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
         PP.annotate [%here] @@ string "right _"
       )
     in
-    Auxlib.build_list (fun { add; addall; _ } ->
+    List.build_list (fun { add; addall; _ } ->
         addall cs;
         if List.length cs > 1
         then add wildcard_case;

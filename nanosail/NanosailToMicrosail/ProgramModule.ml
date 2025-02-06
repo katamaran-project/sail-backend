@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = GenerationContext
@@ -10,7 +11,7 @@ let genblock loc label doc =
 
 let pp_require_imports () : PP.document =
   let coq_imports =
-    Auxlib.build_list (fun { add; _ } ->
+    List.build_list (fun { add; _ } ->
         if Configuration.(get use_list_notations) then add "Lists.List";
         add "Classes.EquivDec";
         add "Strings.String";
@@ -27,7 +28,7 @@ let pp_require_imports () : PP.document =
 
 let pp_imports () : PP.document =
   let imports =
-    Auxlib.build_list (fun { add; _ } ->
+    List.build_list (fun { add; _ } ->
         add "ctx.notations";
         add "ctx.resolution";
         add "env.notations";
@@ -40,7 +41,7 @@ let pp_imports () : PP.document =
 
 let pp_open_scopes () : PP.document =
   let scopes =
-    Auxlib.build_list (fun { add; _ } ->
+    List.build_list (fun { add; _ } ->
         add "string_scope";
         add "list_scope";
       )

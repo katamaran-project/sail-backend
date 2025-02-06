@@ -1,4 +1,5 @@
 open Base
+open Nanosail.ExtBase
 open Auxlib
 open OUnit2
 open Shared
@@ -204,7 +205,7 @@ let define_function_tests =
   let open ListMonadNotations
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* k = List.range (-10) 10
         in
@@ -295,7 +296,7 @@ let predicate_tests =
   let open ListMonadNotations
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* car = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
         and* cdr = [ "1"; {|"abc"|}; "#t"; "#f"; "()"; "'xyz"; "(cons 1 2)" ]
@@ -484,7 +485,7 @@ let comparison_tests =
   let open ListMonadNotations
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* args = [
           "";
@@ -699,7 +700,7 @@ let define_macro_tests =
   let open ListMonadNotations
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* k = List.range (-10) 10
         in
@@ -735,7 +736,7 @@ let destructuring_tests =
   let open ListMonadNotations
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* k = List.range (-10) 10
         in

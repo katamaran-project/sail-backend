@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -665,7 +666,7 @@ let pp_union_unfold (variant_definitions : Ast.Definition.Type.Variant.t list) :
             in
             List.map ~f:generate_identifier indices
           in
-          let pattern = PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list @@ fun { add; addall; _ } -> begin
+          let pattern = PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space @@ List.build_list @@ fun { add; addall; _ } -> begin
               add    @@ Identifier.pp constructor_identifier;
               addall @@ field_names
             end

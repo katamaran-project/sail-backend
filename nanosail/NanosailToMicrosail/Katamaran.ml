@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -111,7 +112,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
         GC.pp_annotate [%here] @@ Registers.pp_register_finiteness register_definitions
       in
       GC.return begin
-        Auxlib.build_list @@ fun { addall; add; _ } -> begin
+        List.build_list @@ fun { addall; add; _ } -> begin
           addall finite_enums;
           add    finite_registers;
           addall finite_variants;
@@ -119,7 +120,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
     in
     let parts =
-      Auxlib.build_list @@
+      List.build_list @@
       fun { add; addall; _ } -> begin
         add    @@ PP.annotate [%here] @@ Coq.pp_imports [ "stdpp.finite" ];
         add    @@ PP.annotate [%here] @@ Coq.pp_local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");

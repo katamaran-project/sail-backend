@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -108,7 +109,7 @@ let pp_function_definition
         end
       in
       let original_sail_code =
-        Auxlib.build_list (fun { add; _ } ->
+        List.build_list (fun { add; _ } ->
             (
               match type_constraint with
               | Some (sail_type_constraint, _) -> add sail_type_constraint
@@ -198,7 +199,7 @@ let pp_function_definition_kit
       GC.return begin
         PP.annotate [%here] begin
           PP.paragraphs begin
-            Auxlib.build_list (fun { add; addall; _ } ->
+            List.build_list (fun { add; addall; _ } ->
                 addall function_definitions;
                 add    fundef
               )

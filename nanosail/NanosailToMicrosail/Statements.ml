@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct
@@ -243,7 +244,7 @@ and pp_match_enum
       GC.return begin
           PP.annotate [%here] begin
               PP.vertical begin
-                  Auxlib.build_list begin fun { add; addall; _ } -> begin
+                  List.build_list begin fun { add; addall; _ } -> begin
                         add @@ PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space
                                      [
                                        string "match:";

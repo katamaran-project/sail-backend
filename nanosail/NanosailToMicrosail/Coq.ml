@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 module Big_int = Nat_big_num
 
@@ -140,7 +141,7 @@ type module_flag =
 let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
   let first_line =
     PP.annotate [%here] @@ PP.(
-      pp_sentence @@ separate_horizontally ~separator:space @@ Auxlib.build_list (fun { add; addall; _ } ->
+      pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
             match flag with
@@ -201,7 +202,7 @@ let pp_definition
     | Some rt -> Some PP.(annotate [%here] @@ separate_horizontally ~separator:PP.space [ PP.colon; rt ])
   in
   let definition_line =
-    PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list begin fun { add; addopt; _ } ->
+    PP.separate_horizontally ~separator:PP.space @@ List.build_list begin fun { add; addopt; _ } ->
       add    @@ PP.(annotate [%here] @@ string "Definition");
       add    @@ PP.annotate [%here] @@ identifier;
       addopt @@ Option.(pp_parameters >>| PP.annotate [%here]);
@@ -251,7 +252,7 @@ let pp_match
     | None       -> PP.annotate [%here] @@ PP.string "end"
   in
   let result_lines =
-    Auxlib.build_list (fun { add; addall; _ } ->
+    List.build_list (fun { add; addall; _ } ->
         add    match_line;
         addall case_lines;
         add    final_line
@@ -536,7 +537,7 @@ let pp_explicit_application f args =
 
 
 let pp_function_type parameter_types result_type =
-  PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space @@ Auxlib.build_list @@ fun { addall; add; _ } -> begin
+  PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space @@ List.build_list @@ fun { addall; add; _ } -> begin
     addall parameter_types;
     add arrow;
     add result_type

@@ -15,29 +15,6 @@ let (|.|) p1 p2 x =
   p1 x || p2 x
 
 
-type 'a list_builder = {
-    add    : 'a        -> unit;
-    addall : 'a list   -> unit;
-    addopt : 'a option -> unit;
-  }
-
-let build_list f =
-  let list_under_construction = ref []
-  in
-  let add item = list_under_construction := item :: !list_under_construction
-  in
-  let addall items = List.iter ~f:add items
-  and addopt item =
-    match item with
-    | Some item -> add item
-    | None      -> ()
-  in
-  let context = { add; addall; addopt }
-  in
-  f context;
-  List.rev !list_under_construction
-
-
 let split_last xs =
   match List.rev xs with
   | []    -> None

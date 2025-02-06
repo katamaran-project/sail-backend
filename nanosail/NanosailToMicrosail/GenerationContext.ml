@@ -1,5 +1,5 @@
 open Base
-
+open ExtBase
 
 module Error = struct
   type t = string
@@ -311,7 +311,7 @@ let pp_inductive_type
     in
     PP.(
       separate_horizontally ~separator:space (
-        Auxlib.build_list (fun { add; addall; _ } ->
+        List.build_list (fun { add; addall; _ } ->
             add @@ string "Inductive";
             add identifier;
             addall pp_parameters;
@@ -331,7 +331,7 @@ let pp_inductive_type
       List.map constructors ~f:(fun (id, params, typ) ->
           PP.(
             separate_horizontally ~separator:space (
-              Auxlib.build_list (fun { add; _ } ->
+              List.build_list (fun { add; _ } ->
                   add id;
                   if not @@ is_empty params
                   then add params
@@ -349,7 +349,7 @@ let pp_inductive_type
     let make_line (left, right) =
       PP.(
         indent @@ separate_horizontally ~separator:space (
-          Auxlib.build_list (fun { add; _ } ->
+          List.build_list (fun { add; _ } ->
               add @@ string "|";
               add @@ pad_right longest_left_part left;
               if not @@ is_empty right
@@ -364,7 +364,7 @@ let pp_inductive_type
     List.map ~f:make_line pairs
   in
   let result_lines =
-    Auxlib.build_list (fun { add; addall; _ } ->
+    List.build_list (fun { add; addall; _ } ->
         add first_line;
         addall constructor_lines
       )

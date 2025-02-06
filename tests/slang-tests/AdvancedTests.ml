@@ -1,4 +1,5 @@
 open Base
+open Nanosail.ExtBase
 open Auxlib
 open OUnit2
 
@@ -11,7 +12,7 @@ let modulo_tests =
   let open Slang.Value
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* x = List.range 0 10
         and* y = List.range 1 10
@@ -37,7 +38,7 @@ let filter_tests =
   let open Slang.Value
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* xs, expected = [
           ("()", []);
@@ -65,7 +66,7 @@ let mapping_tests =
   let open Slang.Value
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* alist, value, expected = [
           (
@@ -110,7 +111,7 @@ let nth_tests =
   let open Slang.Value
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* index, list, expected = [
           (
@@ -162,7 +163,7 @@ let last_tests =
   let open Slang.Value
   in
   let test_cases =
-    build_list begin fun { addall; _ } ->
+    List.build_list begin fun { addall; _ } ->
       addall begin
         let* list, expected = [
           (
