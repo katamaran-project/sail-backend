@@ -1,3 +1,18 @@
+(*
+
+   This module contains all logic related to pattern matching.
+
+   As of yet, the following pattern matching functionality is implemented:
+
+   - TODO Matching against booleans
+
+       match bool_value {
+          true  => ...,
+          false => ...
+       }
+   
+*)
+
 open! ExtBase
 
 module S = struct
