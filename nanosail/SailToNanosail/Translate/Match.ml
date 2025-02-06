@@ -1849,17 +1849,10 @@ let translate_tuple_match
         location
         element_types
     in
-    let adorn
-        (tree          : PatternTree.t  )
-        (subpatterns   : Pattern.t list )
-        (statement     : Ast.Statement.t) : PatternTree.t TC.t
-      =
-      adorn_pattern_tree location tree subpatterns statement
-    in
     let* final_tree : PatternTree.t =
       TC.fold_left
         ~init:initial_tree
-        ~f:(fun tree (subpatterns, statement) -> adorn tree subpatterns statement)
+        ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
         cases
     in
     build_leveled_match_statements binder_identifiers final_tree
