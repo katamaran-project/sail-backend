@@ -105,7 +105,11 @@ let translation_block
   =
   let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Entering %s" @@ label)
   in
-  let* result = with_excursion result
+  let* result = with_excursion begin
+      let* () = act Logging.increase_indentation
+      in
+      result
+    end
   in
   let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Exiting %s" label)
   in
