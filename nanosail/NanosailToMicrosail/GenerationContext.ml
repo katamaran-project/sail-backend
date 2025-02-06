@@ -210,7 +210,7 @@ let generation_block
     (contents : PP.document t  ) : PP.document t
   =
   let* contents =
-    let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" label)
+    let* () = log position Logging.debug @@ lazy (Printf.sprintf "Entering %s" label)
     and* restore_indentation = act Logging.create_indentation_restorer
     in
     let* () = act @@ fun () -> Logging.increase_indentation ()
@@ -218,7 +218,7 @@ let generation_block
     let* contents
     in
     let* () = act restore_indentation (* fix indentation restoration to handle failures correctly *)
-    and* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Exiting %s" label)
+    and* () = log position Logging.debug @@ lazy (Printf.sprintf "Exiting %s" label)
     in
     return contents
   in
