@@ -109,6 +109,9 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
     end
 
   | Seq (left, right) -> begin
+      (*
+         a; () should not be simplified to a, since it changes the return type.
+      *)
       let simplified_left  = simplify_statement left
       and simplified_right = simplify_statement right
       in
