@@ -86,3 +86,16 @@ let zip_indices (xs : 'a list) : (int * 'a) list =
 let indices (xs : 'a list) : int list =
   range ~stop:`exclusive 0 (length xs)
 
+
+let rec permutations (xs : 'a list) : 'a list list =
+  match xs with
+  | [] -> [[]]
+  | _  -> begin
+      concat_map (indices xs) ~f:(fun index ->
+          let x = nth_exn xs index
+          in
+          map
+            ~f:(fun ys -> x :: ys)
+            (permutations @@ drop xs index)
+        )
+    end
