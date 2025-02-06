@@ -13,6 +13,7 @@ module Bindings  = Libsail.Ast_util.Bindings
 module StringMap = Map.String
 
 open Base
+open ExtBase
 open Monads.Notations.Star(TC)
 
 
@@ -601,7 +602,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     with_destructured_record location value @@
       fun { record_type_identifier; fields; variable_identifiers; _ } -> (
-        match Auxlib.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
+        match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
               let variable_identifier = List.nth_exn variable_identifiers selected_field_index

@@ -20,4 +20,5 @@ module ConfigLib           = ConfigLib
 module Logging             = Logging
 module Normalize           = Normalize
 module Simplify            = Simplify
+module ExtBase             = ExtBase
 
