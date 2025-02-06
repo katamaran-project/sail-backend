@@ -20,15 +20,6 @@ let using ~resource:(x : 'a) ~close ~body =
   close x
 
 
-let zip_indices (xs : 'a list) : (int * 'a) list =
-  let rec aux (acc : (int * 'a) list) (xs : 'a list) (index : int) : (int * 'a) list =
-    match xs with
-    | []    -> List.rev acc
-    | x::xs -> aux ((index, x) :: acc) xs (index + 1)
-  in
-  aux [] xs 0
-
-
 module Pair = struct
   let first = fst
   let second = snd

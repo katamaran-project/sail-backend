@@ -128,7 +128,7 @@ let tokenize (seq : (char * location) Sequence.t) : (location * location * Token
 
 
 let sequence_of_string (string : string) : (char * string_location) Sequence.t =
-  Sequence.of_list @@ List.map ~f:(fun (index, char) -> (char, new string_location index)) @@ Auxlib.zip_indices @@ String.to_list string
+  Sequence.of_list @@ List.map ~f:(fun (index, char) -> (char, new string_location index)) @@ List.zip_indices @@ String.to_list string
 
 
 let tokenize_string (string : string) =
