@@ -71,6 +71,9 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       let body_statement =
         simplify_statement body_statement
       in
+      let binding_statement =
+        simplify_statement binding_statement
+      in
       let free_variables_in_body =
         Ast.Statement.free_variables body_statement
       in
