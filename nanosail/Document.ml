@@ -2,9 +2,6 @@ open Base
 open ExtBase
 
 
-let uncurry f (x, y) = f x y
-
-
 let rec repeat_string (string : string) (n : int) : string =
   if n = 0
   then ""
@@ -280,7 +277,7 @@ module Make(Annotation : ANNOTATION) = struct
         indent description;
       ]
     in
-    vertical @@ List.map ~f:(uncurry render_item) items
+    vertical @@ List.map ~f:(Fn.uncurry render_item) items
 
 
   let enclose
