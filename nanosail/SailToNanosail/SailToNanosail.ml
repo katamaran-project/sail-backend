@@ -5,4 +5,3 @@ module StringOf               = StringOf
 module Translate              = Translate
 
 let translate                 = Translation.translate
-
