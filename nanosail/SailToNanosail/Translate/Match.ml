@@ -1388,65 +1388,6 @@ let rec build_leveled_match_statements
 
 
 (*
-   Creates a match-statement of the form
-
-     match matched {
-       (x1, x2, ..., xn) => body
-     }
-
-   where
-   - matched is a variable containing a tuple with elements of types element_types
-   - x1, x2, ..., xn are generated binders
-   - body is produced by calling body_builder with x1, x2, ..., xn
-*)
-let create_tuple_match
-    (matched       : Ast.Identifier.t                             )
-    (element_types : Ast.Type.t list                              )
-    (body_builder  : Ast.Identifier.t list -> Ast.Statement.t TC.t) : Ast.Statement.t TC.t
-  =
-  let tuple_size =
-    List.length element_types
-  in
-  let* binder_identifiers =
-    TC.generate_unique_identifiers tuple_size
-  in
-  let* body =
-    body_builder binder_identifiers
-  in
-  let binders =
-    List.zip_exn binder_identifiers element_types
-  in
-  match binders with
-  | []  -> TC.fail [%here] "empty tuple should not occur"
-  | [_] -> TC.fail [%here] "singleton tuple should not occur"
-  | [ (id_fst, type_fst); (id_snd, type_snd) ] -> begin
-      TC.return begin
-        Ast.Statement.Match begin
-          Ast.Statement.MatchProduct {
-            matched;
-            type_fst;
-            type_snd;
-            id_fst;
-            id_snd;
-            body;
-          }
-        end
-      end
-    end
-  | _ -> begin
-      TC.return begin
-        Ast.Statement.Match begin
-          Ast.Statement.MatchTuple {
-            matched;
-            binders;
-            body;
-          }
-        end
-      end
-    end
-
-
-(*
    Translates a Sail pattern (type S.typ S.apat) into our own pattern (type Pattern.t).
 *)
 let rec translate_pattern
@@ -1821,6 +1762,65 @@ let translate_variant_match
   let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree
   in
   TC.return result
+
+
+(*
+   Creates a match-statement of the form
+
+     match matched {
+       (x1, x2, ..., xn) => body
+     }
+
+   where
+   - matched is a variable containing a tuple with elements of types element_types
+   - x1, x2, ..., xn are generated binders
+   - body is produced by calling body_builder with x1, x2, ..., xn
+*)
+let create_tuple_match
+    (matched       : Ast.Identifier.t                             )
+    (element_types : Ast.Type.t list                              )
+    (body_builder  : Ast.Identifier.t list -> Ast.Statement.t TC.t) : Ast.Statement.t TC.t
+  =
+  let tuple_size =
+    List.length element_types
+  in
+  let* binder_identifiers =
+    TC.generate_unique_identifiers tuple_size
+  in
+  let* body =
+    body_builder binder_identifiers
+  in
+  let binders =
+    List.zip_exn binder_identifiers element_types
+  in
+  match binders with
+  | []  -> TC.fail [%here] "empty tuple should not occur"
+  | [_] -> TC.fail [%here] "singleton tuple should not occur"
+  | [ (id_fst, type_fst); (id_snd, type_snd) ] -> begin
+      TC.return begin
+        Ast.Statement.Match begin
+          Ast.Statement.MatchProduct {
+            matched;
+            type_fst;
+            type_snd;
+            id_fst;
+            id_snd;
+            body;
+          }
+        end
+      end
+    end
+  | _ -> begin
+      TC.return begin
+        Ast.Statement.Match begin
+          Ast.Statement.MatchTuple {
+            matched;
+            binders;
+            body;
+          }
+        end
+      end
+    end
 
 
 let translate_tuple_match
