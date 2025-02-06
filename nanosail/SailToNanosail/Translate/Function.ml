@@ -861,8 +861,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                ()
 
              This is necessary for the following reasons:
-             - Sail does not make the distinction between expressions and statements, whereas muSail does
-             - In Sail, the type of assignment if unit, but not in muSail
+             - Sail does not make the distinction between expressions and statements, whereas muSail does.
+               We first need to evaluate expr, store it in a variable, and then assign its value to the register.
+             - In Sail, the type of assignment is unit, but not in muSail.
+               Adding an explicit unit keeps the types the same.
            *)
           let* rhs_identifier = TC.generate_unique_identifier ()
           and* translated_rhs = statement_of_aexp rhs
