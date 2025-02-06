@@ -209,8 +209,6 @@ let generation_block
     (label    : string         )
     (contents : PP.document t  ) : PP.document t
   =
-  let* () = return () (* forces the logging to happen inside the constructor state monad, instead of before *)
-  in
   let* contents =
     let* () = act @@ fun () -> Logging.debug position @@ lazy (Printf.sprintf "Entering %s" label)
     and* restore_indentation = act Logging.create_indentation_restorer
