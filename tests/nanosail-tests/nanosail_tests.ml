@@ -12,6 +12,7 @@ let tests =
     PatternMatchingTests.test_suite;
     NormalizationTests.test_suite;
     SimplificationTests.test_suite;
+    ListTests.test_suite;
   ]
 
 
