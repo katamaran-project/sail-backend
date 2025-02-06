@@ -40,3 +40,9 @@ let rec unordered_pairs xs =
   match xs with
   | []    -> []
   | x::xs -> (map ~f:(fun y -> (x, y)) xs) @ (unordered_pairs xs)
+
+
+let split_last xs =
+  match rev xs with
+  | []    -> None
+  | x::xs -> Some (rev xs, x)

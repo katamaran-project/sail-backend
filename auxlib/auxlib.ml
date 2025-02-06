@@ -15,12 +15,6 @@ let (|.|) p1 p2 x =
   p1 x || p2 x
 
 
-let split_last xs =
-  match List.rev xs with
-  | []    -> None
-  | x::xs -> Some (List.rev xs, x)
-
-
 let using ~resource:(x : 'a) ~close ~body =
   begin
     try

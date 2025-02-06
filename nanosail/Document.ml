@@ -1,4 +1,5 @@
 open Base
+open ExtBase
 
 
 let uncurry f (x, y) = f x y
@@ -78,7 +79,7 @@ module Make(Annotation : ANNOTATION) = struct
           let left'  = to_annotated_strings accumulated_annotation left
           and right' = to_annotated_strings accumulated_annotation right
           in
-          match Auxlib.split_last left' with
+          match List.split_last left' with
           | Some (upper_left', last_left') -> begin
               match right' with
               | [] -> failwith "error"
