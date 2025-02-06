@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 type sail_definition = Sail.sail_definition
 

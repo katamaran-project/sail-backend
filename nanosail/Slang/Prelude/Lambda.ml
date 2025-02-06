@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 open Exception
 open Monads.Notations.Star(EvaluationContext)
 

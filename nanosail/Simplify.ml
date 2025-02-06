@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 
 let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
@@ -13,7 +13,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
       Match begin
         MatchProduct {
@@ -26,7 +26,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Match (MatchTuple { matched; binders; body }) -> begin
       Match begin
         MatchTuple {
@@ -36,7 +36,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Match (MatchBool { condition; when_true; when_false }) -> begin
       Match begin
         MatchBool {
@@ -46,7 +46,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Match (MatchEnum { matched; matched_type; cases }) -> begin
       Match begin
         MatchEnum {
@@ -56,7 +56,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Match (MatchVariant { matched; matched_type; cases }) -> begin
       Match begin
         MatchVariant {
@@ -66,7 +66,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         }
       end
     end
-    
+
   | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
       let binding_statement =
         simplify_statement binding_statement
@@ -94,7 +94,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
           match body_statement with
           | Expression (Val Unit) -> binding_statement
           | Expression (Variable (_, Unit)) -> binding_statement
-          | _ -> begin          
+          | _ -> begin
               Let {
                 variable_identifier;
                 binding_statement_type;
@@ -118,7 +118,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
   | Seq (left, right) -> begin
       let simplified_left  = simplify_statement left
       and simplified_right = simplify_statement right
-      in      
+      in
       match simplified_left, simplified_right with
       | Expression (Val Unit)                   , _                                        -> simplified_right
       | Expression (Variable (_, Ast.Type.Unit)), _                                        -> simplified_right

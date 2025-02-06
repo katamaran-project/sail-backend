@@ -9,7 +9,7 @@ module Big_int = Nat_big_num
 module TC = TranslationContext
 
 open Monads.Notations.Star(TC)
-open Base
+open! ExtBase
 
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =

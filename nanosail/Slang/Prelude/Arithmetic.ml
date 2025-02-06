@@ -1,5 +1,5 @@
 open Base
-open ExtBase
+open! ExtBase
 open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 open Functions

@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 (* Polymorphic so as to prevent cyclic dependencies *)
 type 'a t = (string, 'a, String.comparator_witness) Map.t

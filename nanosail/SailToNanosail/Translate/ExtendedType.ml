@@ -11,7 +11,7 @@ end
 module TC = TranslationContext
 module StringMap = Map.String
 
-open Base (* Must come after module StringMap = Map.String because of conflicting module names *)
+open! ExtBase (* Must come after module StringMap = Map.String because of conflicting module names *)
 open Monads.Notations.Star(TC)
 
 

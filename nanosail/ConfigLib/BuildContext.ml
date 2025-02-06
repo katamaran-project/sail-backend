@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 open Slang.Evaluation
 open Monads.Notations.Star(Slang.EvaluationContext)
 

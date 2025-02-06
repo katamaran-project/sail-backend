@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 module S = struct
   include Libsail

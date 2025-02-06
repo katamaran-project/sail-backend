@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 open Sequence.Generator
 open Location
 

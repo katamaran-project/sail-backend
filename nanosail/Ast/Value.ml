@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 module Big_int       = Nat_big_num
 

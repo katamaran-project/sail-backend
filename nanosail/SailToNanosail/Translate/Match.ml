@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 
 module S = struct
   include Libsail
@@ -126,7 +125,7 @@ module Pattern = struct
     in
     upgrade pattern
 
-  
+
   let rec to_fexpr (pattern : t) : FExpr.t =
     let head id =
       Printf.sprintf "Pattern:%s" id
@@ -467,7 +466,7 @@ module PatternTree = struct
         FExpr.mk_application ~keyword @@ mk_head "Terminal"
       end
 
-  
+
   let rec count_nodes (tree : t) : int =
     match tree with
     | Enum { enum_identifier = _; table } -> begin
@@ -476,14 +475,14 @@ module PatternTree = struct
           (Ast.Identifier.Map.data table)
           ~f:(fun (_, subtree) -> count_nodes subtree)
       end
-      
+
     | Variant { variant_identifier = _; table } -> begin
         1 + List.sum
           (module Int)
           (Ast.Identifier.Map.data table)
-          ~f:(fun (_, _, subtree) -> count_nodes subtree)        
+          ~f:(fun (_, _, subtree) -> count_nodes subtree)
       end
-      
+
     | Binder { subtree; _ }          -> 1 + count_nodes subtree
     | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                     -> 1
@@ -633,7 +632,7 @@ let rec build_empty_pattern_tree
           let message = lazy begin
             Printf.sprintf "Constructed pattern tree with %d nodes" node_count
           end
-          in        
+          in
           TC.log [%here] Logging.warning message
         else
           TC.return ()

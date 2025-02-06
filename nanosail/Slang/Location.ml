@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 
 class virtual location =

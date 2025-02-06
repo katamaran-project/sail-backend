@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 
 let position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =

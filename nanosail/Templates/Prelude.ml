@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 open Monads.Notations.Star(Slang.EvaluationContext)
 open Slang.Prelude.Shared
 

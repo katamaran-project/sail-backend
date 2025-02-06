@@ -3,7 +3,7 @@
   Modules defined in here are aliased and should only be referred to by their alias.
 *)
 
-open Base
+open! ExtBase
 
 
 module NumericExpression = struct
@@ -78,7 +78,7 @@ module NumericExpression = struct
         | Mod -> "%"
       in
       Printf.sprintf "(%s %s %s)" (to_string e1) op_string (to_string e2)
-    in    
+    in
     match numeric_expression with
     | Constant n                   -> Z.to_string n
     | BinaryOperation (op, e1, e2) -> string_of_binop op e1 e2
@@ -102,7 +102,7 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-      
+
     | BinaryOperation (operator_1, x_1, y_1) -> begin
         match right with
         | BinaryOperation (operator_2, x_2, y_2) -> begin
@@ -136,7 +136,7 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-      
+
     | Neg operand_1 -> begin
         match right with
         | Neg operand_2 -> begin
@@ -146,7 +146,7 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-      
+
     | PowerOf2 operand_1 -> begin
         match right with
         | PowerOf2 operand_2 -> begin
@@ -156,7 +156,7 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-      
+
     | Id identifier_1 -> begin
         match right with
         | Id identifier_2 -> begin
@@ -166,7 +166,7 @@ module NumericExpression = struct
           end
         | _ -> false
       end
-      
+
     | Var identifier_1 -> begin
         match right with
         | Var identifier_2 -> begin
@@ -199,7 +199,7 @@ module NumericExpression = struct
             to_fexpr e2;
           ]
         in
-        FExpr.mk_application ~positional @@ prefix "BinOp"              
+        FExpr.mk_application ~positional @@ prefix "BinOp"
       end
     | Neg e          -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "Neg"
     | PowerOf2 e     -> FExpr.mk_application ~positional:[to_fexpr e]                     @@ prefix "PowerOf2"

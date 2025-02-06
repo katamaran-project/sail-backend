@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 open Libsail.Ast
 
 type type_annotation = Libsail.Type_check.tannot

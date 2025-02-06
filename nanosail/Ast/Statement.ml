@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 
 module Type = Recursive.Type
 
@@ -501,7 +500,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
           Identifier.Set.of_list [ head_identifier; tail_identifier ]
         )
     end
-    
+
   | Match (MatchProduct { matched; type_fst = _; type_snd = _; id_fst; id_snd; body }) -> begin
       Identifier.Set.diff
         (
@@ -514,7 +513,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
           Identifier.Set.of_list [ id_fst; id_snd ]
         )
     end
-      
+
   | Match (MatchTuple { matched; binders; body }) -> begin
       let binder_free_variables =
         Identifier.Set.of_list @@ List.map ~f:fst binders
@@ -529,7 +528,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
         )
         binder_free_variables
     end
-      
+
   | Match (MatchBool { condition; when_true; when_false }) -> begin
       Identifier.Set.unions [
         Identifier.Set.singleton condition;
@@ -537,19 +536,19 @@ let rec free_variables (statement : t) : Identifier.Set.t =
         free_variables when_false;
       ]
     end
-      
+
   | Match (MatchEnum { matched; matched_type = _; cases }) -> begin
       let free_variables_in_cases =
         Identifier.Set.unions begin
           List.map ~f:free_variables @@ Identifier.Map.data cases
         end
-      in        
+      in
       Identifier.Set.unions [
         Identifier.Set.singleton matched;
         free_variables_in_cases;
       ]
     end
-      
+
   | Match (MatchVariant { matched; matched_type = _; cases }) -> begin
       let free_variables_in_cases =
         let free_variables_in_case field_binders statement =
@@ -569,7 +568,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
         free_variables_in_cases
       ]
     end
-    
+
   | Expression expression -> Expression.free_variables expression
 
   | Call (function_identifier, expressions) -> begin
@@ -578,7 +577,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
         Identifier.Set.unions @@ List.map ~f:Expression.free_variables expressions;
       ]
     end
-    
+
   | Let { variable_identifier; binding_statement_type = _; binding_statement; body_statement } -> begin
       Identifier.Set.unions [
         free_variables binding_statement;
@@ -587,7 +586,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
           (Identifier.Set.singleton variable_identifier)
       ]
     end
-    
+
   | DestructureRecord { record_type_identifier = _; field_identifiers = _; variable_identifiers; destructured_record; body } -> begin
       Identifier.Set.unions [
         free_variables destructured_record;
@@ -596,7 +595,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
           (Identifier.Set.of_list variable_identifiers)
       ]
     end
-    
+
   | Seq (left, right)                                    -> Identifier.Set.union (free_variables left) (free_variables right)
   | ReadRegister identifier                              -> Identifier.Set.singleton identifier
   | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)

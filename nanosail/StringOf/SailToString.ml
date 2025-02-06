@@ -2,7 +2,7 @@
    Convenience module. Groups all sail_value_to_string functionality in one place.
 *)
 
-open Base
+open! ExtBase
 
 
 let id           = Libsail.Ast_util.string_of_id

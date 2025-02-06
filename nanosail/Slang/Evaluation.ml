@@ -1,7 +1,5 @@
 module P = Parser
-open Base
-open ExtBase
-open Auxlib
+open! ExtBase
 open Exception
 
 

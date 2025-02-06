@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 
 
 let rec repeat_string (string : string) (n : int) : string =

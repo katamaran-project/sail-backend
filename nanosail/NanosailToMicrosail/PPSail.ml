@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 
 let string_of_pprint_document (document : PPrint.document) : string =

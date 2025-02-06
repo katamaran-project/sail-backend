@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 module Big_int = Nat_big_num
 
@@ -94,7 +94,7 @@ end = struct
       and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         (*
            itself(x) seems to be a singleton type, e.g., itself(50) has as sole value 50.
-           
+
            todo probably needs to always return Ast.Type.Int
            for now, it's left unimplemented so as to catch more occurrences in the wild
            to give us confirmation

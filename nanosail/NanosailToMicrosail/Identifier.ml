@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 let pp (identifier : Ast.Identifier.t) : PP.document =
   PP.annotate [%here] @@ PP.string @@ Ast.Identifier.to_string identifier

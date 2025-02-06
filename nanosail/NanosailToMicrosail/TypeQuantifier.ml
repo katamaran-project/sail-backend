@@ -1,4 +1,4 @@
-open ExtBase
+open! ExtBase
 open Monads.Notations.Star(GenerationContext)
 
 module GC = struct

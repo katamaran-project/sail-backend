@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 include Recursive
 
 

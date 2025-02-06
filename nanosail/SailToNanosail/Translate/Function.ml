@@ -12,8 +12,7 @@ module TC        = TranslationContext
 module Bindings  = Libsail.Ast_util.Bindings
 module StringMap = Map.String
 
-open Base
-open ExtBase
+open! ExtBase
 open Monads.Notations.Star(TC)
 
 

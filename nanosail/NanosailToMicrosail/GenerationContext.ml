@@ -1,5 +1,4 @@
-open Base
-open ExtBase
+open! ExtBase
 
 module Error = struct
   type t = string

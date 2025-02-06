@@ -1,4 +1,4 @@
-open Base
+open! ExtBase
 
 include Base.Map
 

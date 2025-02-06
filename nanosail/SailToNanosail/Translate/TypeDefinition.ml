@@ -3,7 +3,7 @@
    We want Variant to refer to our own module
 *)
 module V = Variant
-open Base
+open! ExtBase
 module Variant = V
 
 module Big_int = Nat_big_num
