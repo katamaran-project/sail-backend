@@ -71,31 +71,20 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       let body_statement =
         simplify_statement body_statement
       in
-      match binding_statement_type with
-      | Unit -> begin
-          let free_variables_in_body =
-            Ast.Statement.free_variables body_statement
-          in
-          if
-            Ast.Identifier.Set.mem free_variables_in_body variable_identifier
-          then
-            Let {
-              variable_identifier;
-              binding_statement_type;
-              binding_statement;
-              body_statement;
-            }
-          else
-            simplify_statement @@ Seq (binding_statement, body_statement)
-        end
-      | _ -> begin
-          Let {
-            variable_identifier;
-            binding_statement_type;
-            binding_statement;
-            body_statement;
-          }
-        end
+      let free_variables_in_body =
+        Ast.Statement.free_variables body_statement
+      in
+      if
+        Ast.Identifier.Set.mem free_variables_in_body variable_identifier
+      then
+        Let {
+          variable_identifier;
+          binding_statement_type;
+          binding_statement;
+          body_statement;
+        }
+      else
+        simplify_statement @@ Seq (binding_statement, body_statement)
     end
 
   | DestructureRecord { record_type_identifier; field_identifiers; variable_identifiers; destructured_record; body } -> begin
