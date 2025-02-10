@@ -67,6 +67,62 @@ module Implementation = struct
     end
 
 
+  let rec normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t Monad.t =
+    match expression with
+    | Variable (identifier, typ) -> begin
+        let* identifier = substitute_identifier identifier
+        in
+        return @@ Ast.Expression.Variable (identifier, typ)
+      end
+
+    | Val _ -> return expression
+
+    | List elements -> begin
+        let* elements = map ~f:normalize_expression elements
+        in
+        return @@ Ast.Expression.List elements
+      end
+
+    | UnaryOperation (operator, operand) -> begin
+        let* operand = normalize_expression operand
+        in
+        return @@ Ast.Expression.UnaryOperation (operator, operand)
+      end
+
+    | BinaryOperation (operator, left_operand, right_operand) -> begin
+        let* left_operand  = normalize_expression left_operand
+        and* right_operand = normalize_expression right_operand
+        in
+        return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
+      end
+
+    | Record { type_identifier; fields } -> begin
+        let* fields = map ~f:substitute_identifier fields
+        in
+        return @@ Ast.Expression.Record { type_identifier; fields }
+      end
+
+    | Enum _ -> return @@ expression
+
+    | Variant { type_identifier; constructor_identifier; fields } -> begin
+        let* fields = map ~f:normalize_expression fields
+        in
+        return @@ Ast.Expression.Variant { type_identifier; constructor_identifier; fields }
+      end
+
+    | Tuple elements -> begin
+        let* elements = map ~f:normalize_expression elements
+        in
+        return @@ Ast.Expression.Tuple elements
+      end
+
+    | Bitvector elements -> begin
+        let* elements = map ~f:normalize_expression elements
+        in
+        return @@ Ast.Expression.List elements
+      end
+
+  
   let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Monad.t =
     match statement with
     | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin
@@ -230,58 +286,6 @@ module Implementation = struct
       end
 
     | Fail _ -> return statement
-
-
-  and normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t Monad.t =
-    match expression with
-    | Variable (identifier, typ) -> begin
-        let* identifier = substitute_identifier identifier
-        in
-        return @@ Ast.Expression.Variable (identifier, typ)
-      end
-
-    | Val _ -> return expression
-
-    | List elements -> begin
-        let* elements = map ~f:normalize_expression elements
-        in
-        return @@ Ast.Expression.List elements
-      end
-
-    | UnaryOperation (operator, operand) -> begin
-        let* operand = normalize_expression operand
-        in
-        return @@ Ast.Expression.UnaryOperation (operator, operand)
-      end
-
-    | BinaryOperation (operator, left_operand, right_operand) -> begin
-        let* left_operand  = normalize_expression left_operand
-        and* right_operand = normalize_expression right_operand
-        in
-        return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
-      end
-
-    | Record { type_identifier; fields } -> begin
-        let* fields = map ~f:substitute_identifier fields
-        in
-        return @@ Ast.Expression.Record { type_identifier; fields }
-      end
-
-    | Enum _ -> return @@ expression
-
-    | Variant { type_identifier; constructor_identifier; fields } -> begin
-        let* fields = map ~f:normalize_expression fields
-        in
-        return @@ Ast.Expression.Variant { type_identifier; constructor_identifier; fields }
-      end
-
-    | Tuple elements -> begin
-        let* elements = map ~f:normalize_expression elements
-        in
-        return @@ Ast.Expression.Tuple elements
-      end
-
-    | Bitvector _ -> return expression
 
 
   let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t Monad.t =
