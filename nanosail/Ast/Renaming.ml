@@ -39,6 +39,13 @@ include Monads.Util.Make(Monad)
 let return = Monad.return
 
 
+let create_context (renamer : Identifier.t -> Identifier.t) : Context.t =
+  {
+    renamer;
+    binders = []
+  }
+
+
 let with_binders
     (additional_binders : Identifier.t list)
     (f                  : 'a Monad.t       ) : 'a Monad.t
@@ -351,3 +358,25 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
 
   | ReadRegister _ -> return statement
   | Fail _         -> return statement
+
+
+let rename_in_statement
+    (renamer   : Identifier.t -> Identifier.t)
+    (statement : Statement.t                 ) : Statement.t
+  =
+  let context = create_context renamer
+  in
+  let result, _ = Monad.run (rename_in_statement statement) context
+  in
+  result
+
+
+let rename_in_expression
+    (renamer    : Identifier.t -> Identifier.t)
+    (expression : Expression.t                ) : Expression.t
+  =
+  let context = create_context renamer
+  in
+  let result, _ = Monad.run (rename_in_expression expression) context
+  in
+  result
