@@ -15,7 +15,7 @@ module Statement            = Statement
 module Expression           = Expression
 module Definition           = Definition
 module TypeQuantifier       = TypeQuantifier
-
+module Simplify             = Simplify
 
 (*
   If given type is a tuple, collects all types inside of it in a list.

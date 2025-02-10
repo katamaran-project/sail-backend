@@ -1,7 +1,7 @@
 open! ExtBase
 
 
-let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
+let rec simplify_statement (statement : Statement.t) : Statement.t =
   match statement with
   | Match (MatchList { matched; element_type; when_cons = (head, tail, body); when_nil }) -> begin
       Match begin
@@ -52,7 +52,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         MatchEnum {
           matched;
           matched_type;
-          cases = Ast.Identifier.Map.map_values ~f:simplify_statement cases;
+          cases = Identifier.Map.map_values ~f:simplify_statement cases;
         }
       end
     end
@@ -62,7 +62,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         MatchVariant {
           matched;
           matched_type;
-          cases = Ast.Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, simplify_statement stm)) cases;
+          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, simplify_statement stm)) cases;
         }
       end
     end
@@ -75,10 +75,10 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
         simplify_statement binding_statement
       in
       let free_variables_in_body =
-        Ast.Statement.free_variables body_statement
+        Statement.free_variables body_statement
       in
       if
-        Ast.Identifier.Set.mem free_variables_in_body variable_identifier
+        Identifier.Set.mem free_variables_in_body variable_identifier
       then
         Let {
           variable_identifier;
@@ -109,7 +109,7 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
       in
       match simplified_left, simplified_right with
       | Expression (Val Unit)                   , _ -> simplified_right
-      | Expression (Variable (_, Ast.Type.Unit)), _ -> simplified_right
+      | Expression (Variable (_, Nanotype.Unit)), _ -> simplified_right
       | _                                           -> Seq (simplified_left, simplified_right)
     end
 
@@ -121,5 +121,5 @@ let rec simplify_statement (statement : Ast.Statement.t) : Ast.Statement.t =
   | Fail _                       -> statement
 
 
-and simplify_expression (expression : Ast.Expression.t) : Ast.Expression.t =
+and simplify_expression (expression : Expression.t) : Expression.t =
   expression
