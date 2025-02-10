@@ -19,8 +19,8 @@ module Simplify             = Simplify
 
 
 type program = {
-    definitions  : (Sail.sail_definition * Definition.t) list   (* All translated definitions; original order preserved *)
-  }
+  definitions  : (Sail.sail_definition * Definition.t) list   (* List of all translated definitions; original order preserved *)
+}
 
 
 let empty_program = { definitions = [] }
