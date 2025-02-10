@@ -214,12 +214,10 @@ module Implementation = struct
       end
 
     | ReadRegister register_id -> begin
-        (* todo check that registers are indeed not first class citizens; if so, we need to substitute register_id *)
         return @@ Ast.Statement.ReadRegister register_id
       end
 
     | WriteRegister { register_identifier; written_value } -> begin
-        (* todo check that registers are indeed not first class citizens; if so, we need to substitute register_id *)
         let* written_value = substitute_identifier written_value
         in
         return @@ Ast.Statement.WriteRegister { register_identifier; written_value }
