@@ -380,3 +380,16 @@ let rename_in_expression
   let result, _ = Monad.run (rename_in_expression expression) context
   in
   result
+
+
+let create_renamer
+    (old_identifier : Identifier.t)
+    (new_identifier : Identifier.t)
+    (identifier     : Identifier.t) : Identifier.t
+  =
+  if
+    Identifier.equal identifier old_identifier
+  then
+    new_identifier
+  else
+    identifier
