@@ -480,27 +480,60 @@ let test_clashing_binders =
       let a2_statement =
         Ast.Statement.Expression (Ast.Expression.Variable (genid, Ast.Type.Int))
       in
-      let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
+      let* tree =
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder { identifier = genid; wildcard = false };
+              Pattern.EnumCase (mkid "A1")
+            ]
+            a1_statement
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder { identifier = genid; wildcard = false };
+              Pattern.EnumCase (mkid "A2")
+            ]
+            a2_statement
+        in
+        TC.return tree
       in
-      let* tree = adorn
-          tree
-          [
-            Pattern.Binder { identifier = genid; wildcard = false };
-            Pattern.EnumCase (mkid "A1")
-          ]
-          a1_statement
+      let expected_tree =
+        TM.PatternTree.Binder {
+          matched_type = enum_type;
+          binder       = { identifier = genid; wildcard = false };
+          subtree      = TM.PatternTree.Enum {
+              enum_identifier = mkid "A";
+              table = Ast.Identifier.Map.of_alist_exn [
+                  (
+                    mkid "A1",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some a1_statement)
+                    )
+                  );
+                  (
+                    mkid "A2",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some a2_statement)
+                    )
+                  );
+                ];
+            }
+        }
       in
-      let* _ = adorn
-          tree
-          [
-            Pattern.Binder { identifier = genid; wildcard = false };
-            Pattern.EnumCase (mkid "A2")
-          ]
-          a2_statement
-      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    run_failing_tc tc
+    ignore @@ run_tc tc
   in
   {|
       enum A = { A1, A2 }
