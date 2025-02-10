@@ -133,7 +133,7 @@ let create_permuter (permutation : int list) : <permute : 'a. 'a t -> 'a t> =
   end
 
 
-let rec permuters (size : int) : <permute : 'a. 'a t -> 'a t> list =
+let permuters (size : int) : <permute : 'a. 'a t -> 'a t> list =
   let permutations : int list list =
     permutations (range ~stop:`exclusive 0 size)
   in
