@@ -470,10 +470,10 @@ let test_failure_due_to_clashing_binders =
         define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+        Ast.Statement.Expression (Ast.Expression.Variable (mkid "x", Ast.Type.Int))
       in
       let a2_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+        Ast.Statement.Expression (Ast.Expression.Variable (mkid "y", Ast.Type.Int))
       in
       let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
       in
@@ -501,8 +501,8 @@ let test_failure_due_to_clashing_binders =
       enum A = { A1, A2 }
 
       match (value1, value2) {
-        (x, A1) => read_register r1,
-        (y, A2) => read_register r2,
+        (x, A1) => x,
+        (y, A2) => y,
       }
 
     should fail
