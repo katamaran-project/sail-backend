@@ -90,7 +90,32 @@ module Binder = struct
         end
       end
 
+  
+  let unify'
+      (binder_1 : t)
+      (binder_2 : t) : t option TC.t
+    =
+    match binder_1.wildcard, binder_2.wildcard with
+    | true, true -> begin
+        if
+          Ast.Identifier.is_generated binder_1.identifier
+        then
+          TC.return @@ Some binder_2
+        else
+          TC.return @@ Some binder_1
+      end
+    | true , false -> TC.return @@ Some binder_2
+    | false, true  -> TC.return @@ Some binder_1
+    | false, false -> begin
+        if
+          Ast.Identifier.equal binder_1.identifier binder_2.identifier
+        then
+          TC.return @@ Some binder_1
+        else
+          TC.return None
+      end
 
+  
   let generate_binder : t TC.t =
     let* identifier = TC.generate_unique_identifier ()
     in
@@ -1148,9 +1173,11 @@ let adorn_pattern_tree
                 gap_filling
             in
             let* updated_binder =
-              Binder.unify binder pattern_binder
+              Binder.unify' binder pattern_binder
             in
-            TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
+            match updated_binder with
+            | Some updated_binder -> TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
+            | None -> TC.not_yet_implemented [%here] location
           end
         | Unit -> TC.not_yet_implemented [%here] location
       end
