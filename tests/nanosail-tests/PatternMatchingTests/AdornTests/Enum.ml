@@ -465,22 +465,27 @@ let test_adorn_enum_two_cases_pair_wildcard =
 
 let test_clashing_binders =
   let test _ =
+    let gen = new generator
+    in
     let tc =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
+      let genid =
+        gen#id
+      in
       let a1_statement =
-        Ast.Statement.Expression (Ast.Expression.Variable (mkid "x", Ast.Type.Int))
+        Ast.Statement.Expression (Ast.Expression.Variable (genid, Ast.Type.Int))
       in
       let a2_statement =
-        Ast.Statement.Expression (Ast.Expression.Variable (mkid "y", Ast.Type.Int))
+        Ast.Statement.Expression (Ast.Expression.Variable (genid, Ast.Type.Int))
       in
       let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let* tree = adorn
           tree
           [
-            Pattern.Binder { identifier = mkid "x"; wildcard = false };
+            Pattern.Binder { identifier = genid; wildcard = false };
             Pattern.EnumCase (mkid "A1")
           ]
           a1_statement
@@ -488,7 +493,7 @@ let test_clashing_binders =
       let* _ = adorn
           tree
           [
-            Pattern.Binder { identifier = mkid "y"; wildcard = false };
+            Pattern.Binder { identifier = genid; wildcard = false };
             Pattern.EnumCase (mkid "A2")
           ]
           a2_statement
@@ -505,7 +510,12 @@ let test_clashing_binders =
         (y, A2) => y,
       }
 
-    should fail
+    should become
+
+      match (value1, value2) {
+        (genid, A1) => genid,
+        (genid, A2) => genid,
+      }
   |} >:: test
 
 
