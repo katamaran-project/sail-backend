@@ -759,30 +759,30 @@ let adorn_pattern_tree
               if
                 not pattern_binder.wildcard
               then begin
-                    (*
-                       We have
+                (*
+                   We have
 
-                         match bool_value {
-                           false => ...,
-                           x => ...
-                         }
+                     match bool_value {
+                       false => ...,
+                       x => ...
+                     }
 
-                       The current implementation translates this to
+                   The current implementation translates this to
 
-                         match bool_value {
-                           false => ...,
-                           true => ...
-                         }
+                     match bool_value {
+                       false => ...,
+                       true => ...
+                     }
 
-                       whereas it should be
+                   whereas it should be
 
-                         match bool_value {
-                           false => ...,
-                           true => let x = true in ...,
-                         }
+                     match bool_value {
+                       false => ...,
+                       true => let x = true in ...,
+                     }
 
-                       todo fix this
-                    *)
+                   todo fix this
+                *)
                 TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
               end
               else TC.return ()
