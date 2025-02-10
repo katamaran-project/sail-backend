@@ -1176,8 +1176,18 @@ let adorn_pattern_tree
               Binder.unify' binder pattern_binder
             in
             match updated_binder with
-            | Some updated_binder -> TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
-            | None -> TC.not_yet_implemented [%here] location
+            | Some updated_binder -> begin
+                TC.return begin
+                  PatternTree.Binder {
+                    matched_type;
+                    binder = updated_binder;
+                    subtree = updated_subtree
+                  }
+                end
+              end
+            | None -> begin
+                TC.not_yet_implemented [%here] location
+              end
           end
         | Unit -> TC.not_yet_implemented [%here] location
       end
