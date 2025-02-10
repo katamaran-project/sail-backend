@@ -463,7 +463,7 @@ let test_adorn_enum_two_cases_pair_wildcard =
 
 
 
-let test_failure_due_to_clashing_binders =
+let test_clashing_binders =
   let test _ =
     let tc =
       let* enum_type =
@@ -519,5 +519,5 @@ let test_suite =
     test_adorn_enum_two_cases_binder;
     test_adorn_enum_two_cases_pair_wildcard;
 
-    test_failure_due_to_clashing_binders;
+    test_clashing_binders;
   ]
