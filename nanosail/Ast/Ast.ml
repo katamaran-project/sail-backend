@@ -16,6 +16,7 @@ module Expression           = Expression
 module Definition           = Definition
 module TypeQuantifier       = TypeQuantifier
 module Simplify             = Simplify
+module Renaming             = Renaming
 
 
 type program = {
