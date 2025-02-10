@@ -17,15 +17,6 @@ module Definition           = Definition
 module TypeQuantifier       = TypeQuantifier
 module Simplify             = Simplify
 
-(*
-  If given type is a tuple, collects all types inside of it in a list.
-  If given type is not a tuple, simply return that type in a singleton list.
- *)
-let tuple_to_list (t : Type.t) : Type.t list =
-  match t with
-  | Tuple ts -> ts
-  | _        -> [ t ]
-
 
 type program = {
     definitions  : (Sail.sail_definition * Definition.t) list   (* All translated definitions; original order preserved *)
