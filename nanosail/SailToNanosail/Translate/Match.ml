@@ -709,36 +709,56 @@ let adorn_pattern_tree
     and invalid_pattern (location : Lexing.position) =
       TC.fail location "pattern is incompatible with type of value being matched"
     in
-    match pattern_tree with
-    | Bool { when_true = old_when_true; when_false = old_when_false } -> begin
-        match tuple_subpatterns with
-        | first_subpattern :: remaining_subpatterns -> begin
-            match first_subpattern with
-            | Binder pattern_binder -> begin
-                (*
-                   Example context
+    match pattern_tree, tuple_subpatterns with
+    | Terminal statement, [] -> begin
+        match statement with
+        | Some _ -> begin
+            if
+              gap_filling
+            then
+              (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
+              TC.return pattern_tree
+            else
+                  (*
+                     We're not in gap-filling mode, and we expect a gap.
+                     However, there is none, which means we're dealing with the same case twice, which should never occur.
+                  *)
+              TC.fail [%here] "clashing patterns"
+          end
+        | None -> TC.return @@ PatternTree.Terminal (Some body)
+      end
+      
+    | Terminal _, _ -> invalid_number_of_subpatterns [%here]
+                         
+    | _, [] -> invalid_number_of_subpatterns [%here]
 
-                     // if pattern_binder.wildcard = false
-                     match boolean_value {
-                       false => ...,
-                       x = > ...
-                     }
+    | Bool { when_true = old_when_true; when_false = old_when_false }, first_subpattern :: remaining_subpatterns -> begin
+        match first_subpattern with
+        | Binder pattern_binder -> begin
+            (*
+               Example context
 
-                   or
+                 // if pattern_binder.wildcard = false
+                 match boolean_value {
+                   false => ...,
+                   x = > ...
+                 }
 
-                     // if pattern_binder.wildcard = true
-                     match boolean_value {
-                       false => ...,
-                       _ => ...
-                     }
+               or
 
-                   In other words, the Bool pattern tree node has been expanded by a first clause,
-                   and a second clause uses a binder/wildcard to match the boolean value.
-                *)
-                let* () =
-                  if
-                    not pattern_binder.wildcard
-                  then begin
+                 // if pattern_binder.wildcard = true
+                 match boolean_value {
+                   false => ...,
+                   _ => ...
+                 }
+
+               In other words, the Bool pattern tree node has been expanded by a first clause,
+               and a second clause uses a binder/wildcard to match the boolean value.
+            *)
+            let* () =
+              if
+                not pattern_binder.wildcard
+              then begin
                     (*
                        We have
 
@@ -763,412 +783,376 @@ let adorn_pattern_tree
 
                        todo fix this
                     *)
-                    TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
-                  end
-                  else TC.return ()
-                in
-                let* new_when_true =
-                  adorn old_when_true remaining_subpatterns true
-                and* new_when_false =
-                  adorn old_when_false remaining_subpatterns true
-                in
-                TC.return begin
-                  PatternTree.Bool {
-                    when_true  = new_when_true;
-                    when_false = new_when_false
-                  }
-                end
+                TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
               end
-            | BoolCase b -> begin
-                if
-                  b
-                then
-                  let* new_when_true =
-                    adorn old_when_true remaining_subpatterns gap_filling
-                  in
-                  TC.return begin
-                    PatternTree.Bool { when_true = new_when_true; when_false = old_when_false }
-                  end
-                else
-                  let* new_when_false =
-                    adorn old_when_false remaining_subpatterns gap_filling
-                  in
-                  TC.return begin
-                    PatternTree.Bool { when_true = old_when_true; when_false = new_when_false }
-                  end
-              end
-            | ListCons (_, _)    -> invalid_pattern [%here]
-            | ListNil            -> invalid_pattern [%here]
-            | Tuple _            -> invalid_pattern [%here]
-            | EnumCase _         -> invalid_pattern [%here]
-            | VariantCase (_, _) -> invalid_pattern [%here]
-            | Unit               -> invalid_pattern [%here]
+              else TC.return ()
+            in
+            let* new_when_true =
+              adorn old_when_true remaining_subpatterns true
+            and* new_when_false =
+              adorn old_when_false remaining_subpatterns true
+            in
+            TC.return begin
+              PatternTree.Bool {
+                when_true  = new_when_true;
+                when_false = new_when_false
+              }
+            end
           end
-        | _ -> invalid_number_of_subpatterns [%here]
+        | BoolCase b -> begin
+            if
+              b
+            then
+              let* new_when_true =
+                adorn old_when_true remaining_subpatterns gap_filling
+              in
+              TC.return begin
+                PatternTree.Bool { when_true = new_when_true; when_false = old_when_false }
+              end
+            else
+              let* new_when_false =
+                adorn old_when_false remaining_subpatterns gap_filling
+              in
+              TC.return begin
+                PatternTree.Bool { when_true = old_when_true; when_false = new_when_false }
+              end
+          end
+        | ListCons (_, _)    -> invalid_pattern [%here]
+        | ListNil            -> invalid_pattern [%here]
+        | Tuple _            -> invalid_pattern [%here]
+        | EnumCase _         -> invalid_pattern [%here]
+        | VariantCase (_, _) -> invalid_pattern [%here]
+        | Unit               -> invalid_pattern [%here]
       end
 
-    | Enum { enum_identifier; table } -> begin
-        match tuple_subpatterns with
-        | first_subpattern :: remaining_subpatterns -> begin
-            match first_subpattern with
-            | EnumCase case_identifier -> begin
-                let* updated_table =
-                  let binder_identifier, subtree =
-                    Ast.Identifier.Map.find_exn table case_identifier
-                  in
-                  let* updated_subtree =
-                    adorn subtree remaining_subpatterns gap_filling
-                  in
-                  TC.return begin
-                    Ast.Identifier.Map.overwrite
-                      table
-                      ~key:case_identifier
-                      ~data:(binder_identifier, updated_subtree)
-                  end
-                in
-                TC.return begin
-                  PatternTree.Enum { enum_identifier; table = updated_table }
-                end
+    | Enum { enum_identifier; table }, first_subpattern :: remaining_subpatterns -> begin
+        match first_subpattern with
+        | EnumCase case_identifier -> begin
+            let* updated_table =
+              let binder_identifier, subtree =
+                Ast.Identifier.Map.find_exn table case_identifier
+              in
+              let* updated_subtree =
+                adorn subtree remaining_subpatterns gap_filling
+              in
+              TC.return begin
+                Ast.Identifier.Map.overwrite
+                  table
+                  ~key:case_identifier
+                  ~data:(binder_identifier, updated_subtree)
               end
-            | Binder pattern_binder -> begin
-                let* enum_definition =
-                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
-                in
-                let enum_cases =
-                  enum_definition.cases
-                in
-                let update_table
-                    (table     : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
-                    (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
-                  =
-                  let binder, subtree =
-                    Ast.Identifier.Map.find_exn table enum_case
-                  in
-                  if
-                    contains_gap subtree
-                  then begin
-                    let* updated_subtree : PatternTree.t =
-                      adorn
-                        subtree
-                        remaining_subpatterns
-                        true
-                    in
-                    let* updated_binder_identifier : Binder.t =
-                      Binder.unify binder pattern_binder
-                    in
-                    TC.return begin
-                      Ast.Identifier.Map.overwrite
-                        table
-                        ~key:enum_case
-                        ~data:(updated_binder_identifier, updated_subtree)
-                    end
-                  end
-                  else
-                    TC.return table
-                in
-                let* updated_table =
-                  TC.fold_left ~f:update_table ~init:table enum_cases
-                in
-                TC.return begin
-                  PatternTree.Enum { enum_identifier; table = updated_table }
-                end
-              end
-            | Unit               -> invalid_pattern [%here]
-            | ListCons (_, _)    -> invalid_pattern [%here]
-            | ListNil            -> invalid_pattern [%here]
-            | Tuple _            -> invalid_pattern [%here]
-            | VariantCase (_, _) -> invalid_pattern [%here]
-            | BoolCase _         -> invalid_pattern [%here]
+            in
+            TC.return begin
+              PatternTree.Enum { enum_identifier; table = updated_table }
+            end
           end
-        | [] -> invalid_number_of_subpatterns [%here]
+        | Binder pattern_binder -> begin
+            let* enum_definition =
+              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
+            in
+            let enum_cases =
+              enum_definition.cases
+            in
+            let update_table
+                (table     : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+                (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
+              =
+              let binder, subtree =
+                Ast.Identifier.Map.find_exn table enum_case
+              in
+              if
+                contains_gap subtree
+              then begin
+                let* updated_subtree : PatternTree.t =
+                  adorn
+                    subtree
+                    remaining_subpatterns
+                    true
+                in
+                let* updated_binder_identifier : Binder.t =
+                  Binder.unify binder pattern_binder
+                in
+                TC.return begin
+                  Ast.Identifier.Map.overwrite
+                    table
+                    ~key:enum_case
+                    ~data:(updated_binder_identifier, updated_subtree)
+                end
+              end
+              else
+                TC.return table
+            in
+            let* updated_table =
+              TC.fold_left ~f:update_table ~init:table enum_cases
+            in
+            TC.return begin
+              PatternTree.Enum { enum_identifier; table = updated_table }
+            end
+          end
+        | Unit               -> invalid_pattern [%here]
+        | ListCons (_, _)    -> invalid_pattern [%here]
+        | ListNil            -> invalid_pattern [%here]
+        | Tuple _            -> invalid_pattern [%here]
+        | VariantCase (_, _) -> invalid_pattern [%here]
+        | BoolCase _         -> invalid_pattern [%here]
       end
 
-    | Variant { variant_identifier; table } -> begin
-        match tuple_subpatterns with
-        | first_subpattern :: remaining_subpatterns -> begin
-            match first_subpattern with
-            | VariantCase (constructor_identifier, field_pattern) -> begin
-                (*
-                   Example context:
+    | Variant { variant_identifier; table }, first_subpattern :: remaining_subpatterns -> begin
+        match first_subpattern with
+        | VariantCase (constructor_identifier, field_pattern) -> begin
+            (*
+               Example context:
 
-                     match ??? {
-                       <constructor_identifier>(<field_pattern>) => ...
-                     }
-                *)
-                let* updated_table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
-                  let old_binder, old_field_binders, old_subtree = Ast.Identifier.Map.find_exn table constructor_identifier
-                  in
-                  let* new_binder =
-                    TC.return old_binder
-                  and* new_subtree =
-                    adorn old_subtree remaining_subpatterns gap_filling
-                  and* new_field_binders =
-                    match old_field_binders with
-                    | NullaryConstructor old_field_binder -> begin
-                        let* new_field_binder =
-                          match field_pattern with
-                          | Binder pattern_binder -> Binder.unify old_field_binder pattern_binder
-                          | Unit                  -> TC.return old_field_binder
-                          | ListCons (_, _)       -> invalid_pattern [%here]
-                          | ListNil               -> invalid_pattern [%here]
-                          | Tuple _               -> invalid_pattern [%here]
-                          | EnumCase _            -> invalid_pattern [%here]
-                          | VariantCase (_, _)    -> invalid_pattern [%here]
-                          | BoolCase _            -> invalid_pattern [%here]
-                        in
-                        TC.return @@ PatternTree.NullaryConstructor new_field_binder
-                      end
-                    | UnaryConstructor old_field_binder -> begin
-                        let* new_field_binder : Binder.t =
-                          match field_pattern with
-                          | Binder pattern_binder -> Binder.unify old_field_binder pattern_binder
-                          | Unit                  -> invalid_pattern [%here]
-                          | ListCons (_, _)       -> invalid_pattern [%here]
-                          | ListNil               -> invalid_pattern [%here]
-                          | Tuple _               -> invalid_pattern [%here]
-                          | EnumCase _            -> invalid_pattern [%here]
-                          | VariantCase (_, _)    -> invalid_pattern [%here]
-                          | BoolCase _            -> invalid_pattern [%here]
-                        in
-                        TC.return @@ PatternTree.UnaryConstructor new_field_binder
-                      end
-                    | NAryConstructor old_field_binders -> begin
-                        let* variant_definition =
-                          TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-                        in
-                        let _constructor : Ast.Identifier.t * Ast.Type.t list =
-                          List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                        in
-                        let* pattern_field_binders : Binder.t list =
-                          match field_pattern with
-                          | Tuple subpatterns  -> begin
-                              (* We expect all subpatterns to be binders *)
-                              let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
-                                match pattern with
-                                | Binder binder -> TC.return binder
-                                | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
-                              in
-                              TC.map subpatterns ~f:extract_identifier_from_binder
-                            end
-                          | Binder _ -> begin
-                            (*
-                               Example context
-
-                                 enum A = { A1 : (int, int) }
-
-                                 match A_value {
-                                   A(ns) => ...
-                                 }
-
-                               In other words, all fields are bound to a single binder, i.e., ns should be bound to a (int, int) pair.
-                               The current implementation does not support this.
-                               A possible rewrite would be
-
-                                 match A_value {
-                                   A(x, y) => let ns = (x, y) in ...
-                                 }
-                            *)
-                              TC.not_yet_implemented ~message:"unsupported binder at this location" [%here] location
-                            end
-                          | ListCons (_, _)    -> invalid_pattern [%here]
-                          | ListNil            -> invalid_pattern [%here]
-                          | EnumCase _         -> invalid_pattern [%here]
-                          | VariantCase (_, _) -> invalid_pattern [%here]
-                          | Unit               -> invalid_pattern [%here]
-                          | BoolCase _         -> invalid_pattern [%here]
-                        in
-                        let* unified_field_binders =
-                          TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
-                        in
-                        TC.return @@ PatternTree.NAryConstructor unified_field_binders
-                      end
-                  in
-                  let data =
-                    (
-                      new_binder,
-                      new_field_binders,
-                      new_subtree
-                    )
-                  in
-                  TC.return begin
-                    Ast.Identifier.Map.overwrite
-                      table
-                      ~key:constructor_identifier
-                      ~data
+                 match ??? {
+                   <constructor_identifier>(<field_pattern>) => ...
+                 }
+            *)
+            let* updated_table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
+              let old_binder, old_field_binders, old_subtree = Ast.Identifier.Map.find_exn table constructor_identifier
+              in
+              let* new_binder =
+                TC.return old_binder
+              and* new_subtree =
+                adorn old_subtree remaining_subpatterns gap_filling
+              and* new_field_binders =
+                match old_field_binders with
+                | NullaryConstructor old_field_binder -> begin
+                    let* new_field_binder =
+                      match field_pattern with
+                      | Binder pattern_binder -> Binder.unify old_field_binder pattern_binder
+                      | Unit                  -> TC.return old_field_binder
+                      | ListCons (_, _)       -> invalid_pattern [%here]
+                      | ListNil               -> invalid_pattern [%here]
+                      | Tuple _               -> invalid_pattern [%here]
+                      | EnumCase _            -> invalid_pattern [%here]
+                      | VariantCase (_, _)    -> invalid_pattern [%here]
+                      | BoolCase _            -> invalid_pattern [%here]
+                    in
+                    TC.return @@ PatternTree.NullaryConstructor new_field_binder
                   end
-                in
-                TC.return begin
-                  PatternTree.Variant {
-                    variant_identifier;
-                    table = updated_table
-                  }
-                end
+                | UnaryConstructor old_field_binder -> begin
+                    let* new_field_binder : Binder.t =
+                      match field_pattern with
+                      | Binder pattern_binder -> Binder.unify old_field_binder pattern_binder
+                      | Unit                  -> invalid_pattern [%here]
+                      | ListCons (_, _)       -> invalid_pattern [%here]
+                      | ListNil               -> invalid_pattern [%here]
+                      | Tuple _               -> invalid_pattern [%here]
+                      | EnumCase _            -> invalid_pattern [%here]
+                      | VariantCase (_, _)    -> invalid_pattern [%here]
+                      | BoolCase _            -> invalid_pattern [%here]
+                    in
+                    TC.return @@ PatternTree.UnaryConstructor new_field_binder
+                  end
+                | NAryConstructor old_field_binders -> begin
+                    let* variant_definition =
+                      TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+                    in
+                    let _constructor : Ast.Identifier.t * Ast.Type.t list =
+                      List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
+                    in
+                    let* pattern_field_binders : Binder.t list =
+                      match field_pattern with
+                      | Tuple subpatterns  -> begin
+                          (* We expect all subpatterns to be binders *)
+                          let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
+                            match pattern with
+                            | Binder binder -> TC.return binder
+                            | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                          in
+                          TC.map subpatterns ~f:extract_identifier_from_binder
+                        end
+                      | Binder _ -> begin
+                          (*
+                             Example context
+
+                               enum A = { A1 : (int, int) }
+
+                               match A_value {
+                                 A(ns) => ...
+                               }
+
+                             In other words, all fields are bound to a single binder, i.e., ns should be bound to a (int, int) pair.
+                             The current implementation does not support this.
+                             A possible rewrite would be
+
+                               match A_value {
+                                 A(x, y) => let ns = (x, y) in ...
+                               }
+                          *)
+                          TC.not_yet_implemented ~message:"unsupported binder at this location" [%here] location
+                        end
+                      | ListCons (_, _)    -> invalid_pattern [%here]
+                      | ListNil            -> invalid_pattern [%here]
+                      | EnumCase _         -> invalid_pattern [%here]
+                      | VariantCase (_, _) -> invalid_pattern [%here]
+                      | Unit               -> invalid_pattern [%here]
+                      | BoolCase _         -> invalid_pattern [%here]
+                    in
+                    let* unified_field_binders =
+                      TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
+                    in
+                    TC.return @@ PatternTree.NAryConstructor unified_field_binders
+                  end
+              in
+              let data =
+                (
+                  new_binder,
+                  new_field_binders,
+                  new_subtree
+                )
+              in
+              TC.return begin
+                Ast.Identifier.Map.overwrite
+                  table
+                  ~key:constructor_identifier
+                  ~data
               end
-            | Binder pattern_binder -> begin
-                (*
-                   Example context:
-
-                     match ??? {
-                       x => ...      // if pattern_binder_wildcard == false
-                     }
-
-                   or
-
-                     match ??? {
-                       _ => ...      // if pattern_binder_wildcard == true
-                     }
-
-                   where x is not a constructor name.
-                *)
-                let* variant_definition =
-                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-                in
-                let* updated_table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
-                  let update_table
-                      (table                                  : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
-                      ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
-                    =
-                    let (old_binder, old_field_binders, old_subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t =
-                      Ast.Identifier.Map.find_exn table constructor_identifier
-                    in
-                    let* new_binder =
-                      Binder.unify old_binder pattern_binder
-                    and* new_subtree =
-                      adorn old_subtree remaining_subpatterns true
-                    in
-                    let new_field_binders =
-                      old_field_binders
-                    in
-                    TC.return begin
-                      Ast.Identifier.Map.overwrite
-                        table
-                        ~key:constructor_identifier
-                        ~data:(new_binder, new_field_binders, new_subtree)
-                    end
-                  in
-                  TC.fold_left
-                    ~f:update_table
-                    ~init:table
-                    variant_definition.constructors
-                in
-                TC.return begin
-                  PatternTree.Variant {
-                    variant_identifier;
-                    table = updated_table
-                  }
-                end
-              end
-            | EnumCase _         -> invalid_pattern [%here]
-            | BoolCase _         -> invalid_pattern [%here]
-            | Unit               -> invalid_pattern [%here]
-            | ListCons (_, _)    -> invalid_pattern [%here]
-            | ListNil            -> invalid_pattern [%here]
-            | Tuple _            -> invalid_pattern [%here]
+            in
+            TC.return begin
+              PatternTree.Variant {
+                variant_identifier;
+                table = updated_table
+              }
+            end
           end
-        | [] -> invalid_number_of_subpatterns [%here]
+        | Binder pattern_binder -> begin
+            (*
+               Example context:
+
+                 match ??? {
+                   x => ...      // if pattern_binder_wildcard == false
+                 }
+
+               or
+
+                 match ??? {
+                   _ => ...      // if pattern_binder_wildcard == true
+                 }
+
+               where x is not a constructor name.
+            *)
+            let* variant_definition =
+              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+            in
+            let* updated_table : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t =
+              let update_table
+                  (table                                  : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
+                  ((constructor_identifier, _field_types) : Ast.Identifier.t * Ast.Type.t list                                           ) : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t TC.t
+                =
+                let (old_binder, old_field_binders, old_subtree) : Binder.t * PatternTree.variant_binders * PatternTree.t =
+                  Ast.Identifier.Map.find_exn table constructor_identifier
+                in
+                let* new_binder =
+                  Binder.unify old_binder pattern_binder
+                and* new_subtree =
+                  adorn old_subtree remaining_subpatterns true
+                in
+                let new_field_binders =
+                  old_field_binders
+                in
+                TC.return begin
+                  Ast.Identifier.Map.overwrite
+                    table
+                    ~key:constructor_identifier
+                    ~data:(new_binder, new_field_binders, new_subtree)
+                end
+              in
+              TC.fold_left
+                ~f:update_table
+                ~init:table
+                variant_definition.constructors
+            in
+            TC.return begin
+              PatternTree.Variant {
+                variant_identifier;
+                table = updated_table
+              }
+            end
+          end
+        | EnumCase _         -> invalid_pattern [%here]
+        | BoolCase _         -> invalid_pattern [%here]
+        | Unit               -> invalid_pattern [%here]
+        | ListCons (_, _)    -> invalid_pattern [%here]
+        | ListNil            -> invalid_pattern [%here]
+        | Tuple _            -> invalid_pattern [%here]
       end
 
-    | Binder { matched_type; binder; subtree } -> begin
-        match tuple_subpatterns with
-        | first_subpattern :: remaining_subpatterns -> begin
-            match first_subpattern with
-            | EnumCase _ -> begin
-                if
-                  not binder.wildcard
-                then
-                  TC.not_yet_implemented [%here] location
-                else begin
-                  match matched_type with
-                  | Enum enum_identifier -> begin
-                      let* expanded_node =
-                        build_enum_node
-                          enum_identifier
-                          subtree
-                      in
-                      adorn
-                        expanded_node
-                        tuple_subpatterns
-                        gap_filling
-                    end
-                  | _ -> TC.fail [%here] "expected enum type"
-                end
-              end
-            | VariantCase (_, _) -> begin
-                if
-                  not binder.wildcard
-                then
-                  TC.not_yet_implemented [%here] location
-                else begin
-                  match matched_type with
-                  | Variant variant_identifier -> begin
-                      let* expanded_node =
-                        build_variant_node
-                          variant_identifier
-                          subtree
-                      in
-                      adorn
-                        expanded_node
-                        tuple_subpatterns
-                        gap_filling
-                    end
-                  | _ -> TC.fail [%here] "expected enum type"
-                end
-              end
-            | BoolCase _ -> begin
-                if
-                  not binder.wildcard
-                then
-                  TC.not_yet_implemented [%here] location
-                else begin
+    | Binder { matched_type; binder; subtree }, first_subpattern :: remaining_subpatterns -> begin
+        match first_subpattern with
+        | EnumCase _ -> begin
+            if
+              not binder.wildcard
+            then
+              TC.not_yet_implemented [%here] location
+            else begin
+              match matched_type with
+              | Enum enum_identifier -> begin
                   let* expanded_node =
-                    build_bool_node subtree
+                    build_enum_node
+                      enum_identifier
+                      subtree
                   in
                   adorn
                     expanded_node
                     tuple_subpatterns
                     gap_filling
                 end
-              end
-            | ListCons (_, _) -> TC.not_yet_implemented [%here] location
-            | ListNil -> TC.not_yet_implemented [%here] location
-            | Tuple _ -> TC.not_yet_implemented [%here] location
-            | Binder pattern_binder -> begin
-                let* updated_subtree =
+              | _ -> TC.fail [%here] "expected enum type"
+            end
+          end
+        | VariantCase (_, _) -> begin
+            if
+              not binder.wildcard
+            then
+              TC.not_yet_implemented [%here] location
+            else begin
+              match matched_type with
+              | Variant variant_identifier -> begin
+                  let* expanded_node =
+                    build_variant_node
+                      variant_identifier
+                      subtree
+                  in
                   adorn
-                    subtree
-                    remaining_subpatterns
+                    expanded_node
+                    tuple_subpatterns
                     gap_filling
-                in
-                let* updated_binder =
-                  Binder.unify binder pattern_binder
-                in
-                TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
-              end
-            | Unit -> TC.not_yet_implemented [%here] location
+                end
+              | _ -> TC.fail [%here] "expected enum type"
+            end
           end
-        | [] -> invalid_number_of_subpatterns [%here]
-      end
-
-    | Terminal statement -> begin
-        match tuple_subpatterns with
-        | [] -> begin
-            match statement with
-            | Some _ -> begin
-                if
-                  gap_filling
-                then
-                  (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
-                  TC.return pattern_tree
-                else
-                  (*
-                     We're not in gap-filling mode, and we expect a gap.
-                     However, there is none, which means we're dealing with the same case twice, which should never occur.
-                  *)
-                  TC.fail [%here] "clashing patterns"
-              end
-            | None -> TC.return @@ PatternTree.Terminal (Some body)
+        | BoolCase _ -> begin
+            if
+              not binder.wildcard
+            then
+              TC.not_yet_implemented [%here] location
+            else begin
+              let* expanded_node =
+                build_bool_node subtree
+              in
+              adorn
+                expanded_node
+                tuple_subpatterns
+                gap_filling
+            end
           end
-        | _::_ -> invalid_number_of_subpatterns [%here]
+        | ListCons (_, _) -> TC.not_yet_implemented [%here] location
+        | ListNil -> TC.not_yet_implemented [%here] location
+        | Tuple _ -> TC.not_yet_implemented [%here] location
+        | Binder pattern_binder -> begin
+            let* updated_subtree =
+              adorn
+                subtree
+                remaining_subpatterns
+                gap_filling
+            in
+            let* updated_binder =
+              Binder.unify binder pattern_binder
+            in
+            TC.return @@ PatternTree.Binder { matched_type; binder = updated_binder; subtree = updated_subtree }
+          end
+        | Unit -> TC.not_yet_implemented [%here] location
       end
   in
   adorn pattern_tree tuple_subpatterns false
