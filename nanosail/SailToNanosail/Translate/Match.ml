@@ -526,6 +526,50 @@ module PatternTree = struct
     | Binder { subtree; _ }          -> 1 + count_nodes subtree
     | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                     -> 1
+
+  
+  let rename
+      (renamer : Ast.Identifier.t -> Ast.Identifier.t)
+      (tree    : t                                   ) : t
+    =
+    let rec rename (tree : t) : t =
+      match (tree : t) with
+      | Enum { enum_identifier; table } -> begin
+          Enum {
+            enum_identifier;
+            table = Ast.Identifier.Map.map_values ~f:(fun (id, subtree) -> (id, rename subtree)) table
+          }
+        end
+
+      | Variant { variant_identifier; table } -> begin
+          Variant {
+            variant_identifier;
+            table = Ast.Identifier.Map.map_values ~f:(fun (binder, binders, subtree) -> (binder, binders, rename subtree)) table
+          }
+        end
+
+      | Bool { when_true; when_false } -> begin
+          Bool {
+            when_true  = rename when_true;
+            when_false = rename when_false
+          }
+        end
+
+      | Binder { matched_type; binder; subtree } -> begin
+          Binder {
+            matched_type;
+            binder;
+            subtree = rename subtree
+          }
+        end
+
+      | Terminal None -> tree
+        
+      | Terminal (Some statement) -> begin
+          Terminal (Some (Ast.Renaming.rename_in_statement renamer statement))
+        end
+    in
+    rename tree
 end
 
 
@@ -718,11 +762,12 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
   | Terminal statement     -> Option.is_none statement
 
 
-let adorn_pattern_tree
-    (location          : S.l            )
-    (pattern_tree      : PatternTree.t  )
-    (tuple_subpatterns : Pattern.t list )
-    (body              : Ast.Statement.t) : PatternTree.t TC.t
+let rec adorn_pattern_tree
+    (location          : S.l                    )
+    (pattern_tree      : PatternTree.t          )
+    (tuple_subpatterns : Pattern.t list         )
+    ?(gap_filling      : bool           = false )
+    (body              : Ast.Statement.t        ) : PatternTree.t TC.t
   =
   let rec adorn
       (pattern_tree      : PatternTree.t )
@@ -1166,17 +1211,17 @@ let adorn_pattern_tree
         | ListNil -> TC.not_yet_implemented [%here] location
         | Tuple _ -> TC.not_yet_implemented [%here] location
         | Binder pattern_binder -> begin
-            let* updated_subtree =
-              adorn
-                subtree
-                remaining_subpatterns
-                gap_filling
-            in
             let* updated_binder =
               Binder.unify' binder pattern_binder
             in
             match updated_binder with
             | Some updated_binder -> begin
+                let* updated_subtree =
+                  adorn
+                    subtree
+                    remaining_subpatterns
+                    gap_filling (* todo check if this should be true *)
+                in                
                 TC.return begin
                   PatternTree.Binder {
                     matched_type;
@@ -1186,13 +1231,41 @@ let adorn_pattern_tree
                 end
               end
             | None -> begin
-                TC.not_yet_implemented [%here] location
+                let* generated_identifier =
+                  TC.generate_unique_identifier ()
+                in
+                let renamer =
+                  Ast.Renaming.create_renamer
+                    pattern_binder.identifier
+                    generated_identifier
+                in
+                let renamed_subtree =
+                  PatternTree.rename renamer subtree
+                in
+                let renamed_body =
+                  Ast.Renaming.rename_in_statement renamer body
+                in
+                let* updated_renamed_subtree =
+                  adorn_pattern_tree
+                    location
+                    renamed_subtree
+                    remaining_subpatterns
+                    ~gap_filling (* todo check if this should be true *)
+                    renamed_body
+                in                    
+                TC.return begin
+                  PatternTree.Binder {
+                    matched_type;
+                    binder  = { identifier = generated_identifier; wildcard = false };
+                    subtree = updated_renamed_subtree
+                  }
+                end
               end
           end
         | Unit -> TC.not_yet_implemented [%here] location
       end
   in
-  adorn pattern_tree tuple_subpatterns false
+  adorn pattern_tree tuple_subpatterns gap_filling
 
 
 let rec build_leveled_match_statements
