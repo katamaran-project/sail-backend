@@ -1180,8 +1180,8 @@ let adorn_pattern_tree
                 TC.return begin
                   PatternTree.Binder {
                     matched_type;
-                    binder = updated_binder;
-                    subtree = updated_subtree
+                    binder  = updated_binder;
+                    subtree = updated_subtree;
                   }
                 end
               end
