@@ -1431,15 +1431,16 @@ let rec adorn_pattern_tree
                 let* generated_identifier =
                   TC.generate_unique_identifier ()
                 in
-                let renamer =
-                  Ast.Renaming.create_renamer
-                    pattern_binder.identifier
-                    generated_identifier
-                in
                 let renamed_subtree =
+                  let renamer =
+                    Ast.Renaming.create_renamer pattern_binder.identifier generated_identifier
+                  in
                   PatternTree.rename renamer subtree
                 in
                 let renamed_body =
+                  let renamer =
+                    Ast.Renaming.create_renamer binder.identifier generated_identifier
+                  in
                   Ast.Renaming.rename_in_statement renamer body
                 in
                 let* updated_renamed_subtree =
