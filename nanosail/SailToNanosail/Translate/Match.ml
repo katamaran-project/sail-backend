@@ -287,7 +287,7 @@ module Binder = struct
         end
       end
 
-  
+
   let unify'
       (binder_1 : t)
       (binder_2 : t) : t option TC.t
@@ -312,7 +312,7 @@ module Binder = struct
           TC.return None
       end
 
-  
+
   let generate_binder : t TC.t =
     let* identifier = TC.generate_unique_identifier ()
     in
@@ -724,7 +724,7 @@ module PatternTree = struct
     | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
     | Terminal _                     -> 1
 
-  
+
   let rename
       (renamer : Ast.Identifier.t -> Ast.Identifier.t)
       (tree    : t                                   ) : t
@@ -761,7 +761,7 @@ module PatternTree = struct
         end
 
       | Terminal None -> tree
-        
+
       | Terminal (Some statement) -> begin
           Terminal (Some (Ast.Renaming.rename_in_statement renamer statement))
         end
@@ -994,9 +994,9 @@ let rec adorn_pattern_tree
           end
         | None -> TC.return @@ PatternTree.Terminal (Some body)
       end
-      
+
     | Terminal _, _ -> invalid_number_of_subpatterns [%here]
-                         
+
     | _, [] -> invalid_number_of_subpatterns [%here]
 
     | Bool { when_true = old_when_true; when_false = old_when_false }, first_subpattern :: remaining_subpatterns -> begin
@@ -1418,7 +1418,7 @@ let rec adorn_pattern_tree
                     subtree
                     remaining_subpatterns
                     gap_filling (* todo check if this should be true *)
-                in                
+                in
                 TC.return begin
                   PatternTree.Binder {
                     matched_type;
@@ -1449,7 +1449,7 @@ let rec adorn_pattern_tree
                     remaining_subpatterns
                     ~gap_filling (* todo check if this should be true *)
                     renamed_body
-                in                    
+                in
                 TC.return begin
                   PatternTree.Binder {
                     matched_type;

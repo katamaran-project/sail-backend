@@ -122,7 +122,7 @@ module Implementation = struct
         return @@ Ast.Expression.List elements
       end
 
-  
+
   let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Monad.t =
     match statement with
     | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin

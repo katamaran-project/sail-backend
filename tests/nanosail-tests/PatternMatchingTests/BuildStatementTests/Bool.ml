@@ -220,5 +220,5 @@ let test_suite =
     test_build_match_for_bool_true_false;
     test_build_match_for_bool_false_true;
     test_build_match_for_bool_wildcard;
-    test_build_match_for_bool_binder;    
+    test_build_match_for_bool_binder;
   ]

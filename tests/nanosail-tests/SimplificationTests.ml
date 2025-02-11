@@ -34,7 +34,7 @@ let test_simplify_statement_1 =
 
       x
   |} >:: test
-  
+
 
 let test_simplify_statement_2 =
   let test _ =
@@ -68,7 +68,7 @@ let test_simplify_statement_2 =
 
       x
   |} >:: test
-  
+
 
 let test_suite =
   "simplification" >::: [

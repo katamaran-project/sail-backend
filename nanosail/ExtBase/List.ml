@@ -100,7 +100,7 @@ let rec drop_nth
         xs
       else
         x :: drop_nth xs (index - 1)
-    end        
+    end
 
 
 let rec permutations (xs : 'a list) : 'a list list =

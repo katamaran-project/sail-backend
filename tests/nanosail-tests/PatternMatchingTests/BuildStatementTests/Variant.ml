@@ -1347,7 +1347,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
                           body_statement         = statement
                         }
                       )
-                    );                    
+                    );
                   ]
               }
             end

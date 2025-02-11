@@ -81,7 +81,7 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
       in
       return @@ Expression.Variable (identifier, typ)
     end
-    
+
   | List elements -> begin
       let* elements =
         map ~f:rename_in_expression elements
@@ -90,20 +90,20 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
         Expression.List elements
       end
     end
-    
+
   | UnaryOperation (operator, operand) -> begin
       let* operand = rename_in_expression operand
       in
       return @@ Expression.UnaryOperation (operator, operand)
     end
-    
+
   | BinaryOperation (operator, left_operand, right_operand) -> begin
       let* left_operand  = rename_in_expression left_operand
       and* right_operand = rename_in_expression right_operand
       in
       return @@ Expression.BinaryOperation (operator, left_operand, right_operand)
     end
-    
+
   | Record { type_identifier; fields } -> begin
       let* fields = map ~f:rename fields
       in
@@ -114,7 +114,7 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
         }
       end
     end
-    
+
   | Variant { type_identifier; constructor_identifier; fields } -> begin
       let* fields = map ~f:rename_in_expression fields
       in
@@ -126,13 +126,13 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
         }
       end
     end
-    
+
   | Tuple elements -> begin
       let* elements = map ~f:rename_in_expression elements
       in
       return @@ Expression.Tuple elements
     end
-    
+
   | Bitvector elements -> begin
       let* elements = map ~f:rename_in_expression elements
       in
@@ -238,7 +238,7 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
         let* converted_case_pairs =
           map ~f:convert_case case_pairs
         in
-        return begin          
+        return begin
           Identifier.Map.of_alist_exn converted_case_pairs
         end
       in
