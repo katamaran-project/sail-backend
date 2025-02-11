@@ -1429,7 +1429,25 @@ let rec adorn_pattern_tree
               end
             | None -> begin
                 let* generated_identifier =
-                  TC.generate_unique_identifier ()
+                  let suffix =
+                    Printf.sprintf
+                      "%s-%s"
+                      (Ast.Identifier.to_string binder.identifier)
+                      (Ast.Identifier.to_string pattern_binder.identifier)
+                  in
+                  TC.generate_unique_identifier ~suffix ()
+                in
+                let* () =
+                  let message = lazy begin
+                    Printf.sprintf
+                      "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
+                      (StringOf.Sail.location location)
+                      (Ast.Identifier.to_string binder.identifier)
+                      (Ast.Identifier.to_string pattern_binder.identifier)
+                      (Ast.Identifier.to_string generated_identifier)
+                  end
+                  in
+                  TC.log [%here] Logging.warning message
                 in
                 let renamed_subtree =
                   let renamer =
