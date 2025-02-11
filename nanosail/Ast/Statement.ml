@@ -147,8 +147,36 @@ let rec equal
           end
         | _ -> false
       end
+    | MatchProduct data_1 -> begin
+        match pattern_2 with
+        | MatchProduct data_2 -> begin
+            Identifier.equal
+              data_1.matched
+              data_2.matched
+            &&
+            Type.equal
+              data_1.type_fst
+              data_2.type_fst
+            &&
+            Type.equal
+              data_1.type_snd
+              data_2.type_snd
+            &&
+            Identifier.equal
+              data_1.id_fst
+              data_2.id_fst
+            &&
+            Identifier.equal
+              data_1.id_snd
+              data_2.id_snd
+            &&
+            equal
+              data_1.body
+              data_2.body
+          end
+        | _ -> false
+      end
     | MatchList _    -> raise UnimplementedStatementEquality
-    | MatchProduct _ -> raise UnimplementedStatementEquality
   in
 
   match statement_1 with
