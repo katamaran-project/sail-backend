@@ -137,7 +137,7 @@ let rec equal
               matched_2
             &&
             List.equal
-              (Tuple.Pair.equal Ast.Identifier.equal Ast.Type.equal)
+              (Tuple.Pair.equal Identifier.equal Type.equal)
               binders_1
               binders_2
             &&
