@@ -464,7 +464,6 @@ let test_adorn_enum_two_cases_pair_wildcard =
 
 let test_clashing_binders =
   let test _ =
-    skip_if true "needs fixing";
     let gen = new generator
     in
     let tc =
