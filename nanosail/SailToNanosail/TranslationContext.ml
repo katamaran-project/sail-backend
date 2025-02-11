@@ -250,13 +250,14 @@ let generate_unique_int : int t =
 
 let generate_unique_identifier
     ?(prefix     : string = ""   )
+    ?(suffix     : string = ""   )
     ?(underscore : bool   = false)
     (_           : unit          ) : Ast.Identifier.t t
   =
   let* index = generate_unique_int
   in
   let result =
-    Ast.Identifier.mk_generated @@ Printf.sprintf "%s%d" prefix index
+    Ast.Identifier.mk_generated @@ Printf.sprintf "%s%d%s" prefix index suffix
   in
   if
     underscore
