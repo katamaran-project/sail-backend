@@ -1,5 +1,6 @@
 module List       = List
 module Fn         = Fn
+module Tuple      = Tuple
 module String     = Base.String
 module Option     = Base.Option
 module Int        = Base.Int
