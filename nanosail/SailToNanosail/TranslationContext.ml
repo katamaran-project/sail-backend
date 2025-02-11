@@ -269,6 +269,7 @@ let generate_unique_identifier
 
 let rec generate_unique_identifiers
     ?(prefix     : string = "" )
+    ?(suffix     : string = "" )
     ?(underscore : bool = false)
     (count       : int         ) : Ast.Identifier.t list t
   =
@@ -277,8 +278,8 @@ let rec generate_unique_identifiers
   then
     return []
   else
-    let* id  = generate_unique_identifier ~prefix ~underscore ()
-    and* ids = generate_unique_identifiers ~prefix ~underscore (count - 1)
+    let* id  = generate_unique_identifier ~prefix ~suffix ~underscore ()
+    and* ids = generate_unique_identifiers ~prefix ~suffix ~underscore (count - 1)
     in
     return @@ id :: ids
 
