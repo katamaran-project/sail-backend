@@ -7,7 +7,7 @@ let mkid = Ast.Identifier.mk
 let evar id = Ast.Expression.Variable (mkid id, Ast.Type.Int)
 
 
-let test_rename_match_product =
+let test_rename_match_product_1 =
   let test _ =
     let statement : Ast.Statement.t =
       Match begin
@@ -61,5 +61,5 @@ let test_rename_match_product =
 
 let test_suite =
   "renaming" >::: [
-    test_rename_match_product;
+    test_rename_match_product_1;
   ]
