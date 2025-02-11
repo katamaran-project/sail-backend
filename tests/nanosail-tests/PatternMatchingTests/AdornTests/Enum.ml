@@ -473,11 +473,11 @@ let test_clashing_binders =
       let genid =
         gen#id
       in
-      let a1_statement =
-        Ast.Statement.Expression (Ast.Expression.Variable (genid, Ast.Type.Int))
+      let a1_statement id =
+        Ast.Statement.Expression (Ast.Expression.Variable (id, Ast.Type.Int))
       in
-      let a2_statement =
-        Ast.Statement.Expression (Ast.Expression.Variable (genid, Ast.Type.Int))
+      let a2_statement id =
+        Ast.Statement.Expression (Ast.Expression.Variable (id, Ast.Type.Int))
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
@@ -488,7 +488,7 @@ let test_clashing_binders =
               Pattern.Binder { identifier = genid; wildcard = false };
               Pattern.EnumCase (mkid "A1")
             ]
-            a1_statement
+            (a1_statement (mkid "x"))
         in
         let* tree = adorn
             tree
@@ -496,7 +496,7 @@ let test_clashing_binders =
               Pattern.Binder { identifier = genid; wildcard = false };
               Pattern.EnumCase (mkid "A2")
             ]
-            a2_statement
+            (a2_statement (mkid "y"))
         in
         TC.return tree
       in
@@ -511,14 +511,14 @@ let test_clashing_binders =
                     mkid "A1",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some a1_statement)
+                      TM.PatternTree.Terminal (Some (a1_statement genid))
                     )
                   );
                   (
                     mkid "A2",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some a2_statement)
+                      TM.PatternTree.Terminal (Some (a2_statement genid))
                     )
                   );
                 ];
