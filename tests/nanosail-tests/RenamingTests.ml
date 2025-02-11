@@ -111,7 +111,6 @@ let test_rename_match_product_2 =
   |} >:: test
 
 
-
 let test_suite =
   "renaming" >::: [
     test_rename_match_product_1;
