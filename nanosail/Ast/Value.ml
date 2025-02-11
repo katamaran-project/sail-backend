@@ -13,6 +13,16 @@ type t =
   | Bitvector of bool list
 
 
+let mk_bool (value : bool) =
+  Bool value
+
+let mk_int (value : int) =
+  Int (Big_int.of_int value)
+
+let mk_string (value : string) =
+  String value
+
+
 let rec type_of_value (value : t) : Nanotype.t =
   match value with
   | Unit          -> Nanotype.Unit
