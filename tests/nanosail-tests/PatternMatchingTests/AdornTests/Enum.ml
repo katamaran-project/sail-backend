@@ -462,7 +462,6 @@ let test_adorn_enum_two_cases_pair_wildcard =
   |} >:: test
 
 
-
 let test_clashing_binders =
   let test _ =
     let gen = new generator
