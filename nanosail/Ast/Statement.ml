@@ -129,9 +129,26 @@ let rec equal
           end
         | _ -> false
       end
+    | MatchTuple { matched = matched_1; binders = binders_1; body = body_1 } -> begin
+        match pattern_2 with
+        | MatchTuple { matched = matched_2; binders = binders_2; body = body_2 } -> begin
+            Identifier.equal
+              matched_1
+              matched_2
+            &&
+            List.equal
+              (Tuple.Pair.equal Ast.Identifier.equal Ast.Type.equal)
+              binders_1
+              binders_2
+            &&
+            equal
+              body_1
+              body_2
+          end
+        | _ -> false
+      end
     | MatchList _    -> raise UnimplementedStatementEquality
     | MatchProduct _ -> raise UnimplementedStatementEquality
-    | MatchTuple _   -> raise UnimplementedStatementEquality
   in
 
   match statement_1 with
