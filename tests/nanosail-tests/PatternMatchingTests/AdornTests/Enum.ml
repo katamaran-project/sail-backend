@@ -652,6 +652,109 @@ let test_clashing_binders_2 =
   |} >:: test
 
 
+let test_clashing_binders_3 =
+  let test _ =
+    skip_if true "needs updating";
+    let gen = new generator
+    in
+    let tc =
+      let* enum_type =
+        define_enum_str "A" ["A1"; "A2"; "A3"]
+      in
+      let genid =
+        gen#id
+      in
+      let a1_statement id : Ast.Statement.t =
+        Expression begin
+          BinaryOperation (
+            Plus,
+            Variable (id, Ast.Type.Int),
+            Val (Ast.Value.mk_int 1)
+          )
+        end
+      in
+      let a2_statement id : Ast.Statement.t =
+        Expression begin
+          BinaryOperation (
+            Plus,
+            Variable (id, Ast.Type.Int),
+            Val (Ast.Value.mk_int 2)
+          )
+        end
+      in
+      let* tree =
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int; enum_type ]
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder (mkbinder "x");
+              Pattern.EnumCase (mkid "A1")
+            ]
+            (a1_statement (mkid "x"))
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder (mkbinder "y");
+              Pattern.Binder gen#wildcard;
+            ]
+            (a2_statement (mkid "y"))
+        in
+        TC.return tree
+      in
+      let expected_tree : TM.PatternTree.t =
+        Binder {
+          matched_type = enum_type;
+          binder       = { identifier = genid; wildcard = false };
+          subtree      = Enum {
+              enum_identifier = mkid "A";
+              table = Ast.Identifier.Map.of_alist_exn [
+                  (
+                    mkid "A1",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some (a1_statement genid))
+                    )
+                  );
+                  (
+                    mkid "A2",
+                    (
+                      gen#wildcard,
+                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                    )
+                  );
+                ];
+            }
+        }
+      in
+      assert_equal
+        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        ~cmp:TM.PatternTree.equal
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
+      TC.return ()
+    in
+    ignore @@ run_tc tc
+  in
+  {|
+      enum A = { A1, A2, A3 }
+
+      match (value1, value2) {
+        (x, A1) => x + 1,
+        (y, _ ) => y + 2
+      }
+
+    should become
+
+      match (value1, value2) {
+        (genid, A1) => genid + 1,
+        (genid, A2) => genid + 2,
+        (genid, A3) => genid + 2,
+      }
+  |} >:: test
+
+
 let test_suite =
   "enum" >::: [
     test_adorn_enum_single_case;
@@ -664,4 +767,5 @@ let test_suite =
 
     test_clashing_binders;
     test_clashing_binders_2;
+    test_clashing_binders_3;
   ]
