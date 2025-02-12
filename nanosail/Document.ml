@@ -180,8 +180,8 @@ module Make(Annotation : ANNOTATION) = struct
   let string s =
     String s
 
-  let format =
-    Fn.compose string Printf.sprintf
+  let format fmt =
+    Printf.ksprintf string fmt
 
   let empty      = Empty
 
