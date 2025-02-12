@@ -103,7 +103,7 @@ let translation_block
     (label          : string         )
     (result         : 'a t           ) : 'a t
   =
-  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "Entering %s" @@ label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.format "Entering %s" @@ label)
   in
   let* result = with_excursion begin
       let* () = act Logging.increase_indentation
@@ -111,7 +111,7 @@ let translation_block
       result
     end
   in
-  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "Exiting %s" label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.format "Exiting %s" label)
   in
   return result
 

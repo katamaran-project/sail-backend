@@ -107,7 +107,7 @@ let log
     in
     let output_message =
       let tag =
-        Message.string @@ Printf.sprintf "[%s] (%s:%d)" level_name filename line_number
+        Message.format "[%s] (%s:%d)" level_name filename line_number
       in
       Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
     in
@@ -131,11 +131,11 @@ let surround
     (f              : unit -> 'a                                 ) : 'a
   =
   let enter_block () =
-    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Entering %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.format "Entering %s" (Lazy.force caption))
   and exited_block_successfully () =
-    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Exiting %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.format "Exiting %s" (Lazy.force caption))
   and exited_block_with_exception () =
-    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Escaping %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.format "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
   try

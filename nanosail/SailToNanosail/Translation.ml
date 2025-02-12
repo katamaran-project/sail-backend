@@ -70,7 +70,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             in
             let* () =
               let message = lazy begin
-                Logging.Message.string @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
+                Logging.Message.format "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
               end
               in
               TC.log [%here] Logging.error message

@@ -72,7 +72,7 @@ let process_template
     (input_file  : string   )
     (output_file : string   ) : unit
   =
-  Logging.info [%here] @@ lazy (Logging.Message.string @@ Printf.sprintf "Processing template %s -> %s" input_file output_file);
+  Logging.info [%here] @@ lazy (Logging.Message.format "Processing template %s -> %s" input_file output_file);
   Stdio.In_channel.with_file ~binary:false input_file ~f:begin fun input_stream ->
     Stdio.Out_channel.with_file output_file ~f:begin fun output_stream ->
       process_template_streams translation input_stream output_stream

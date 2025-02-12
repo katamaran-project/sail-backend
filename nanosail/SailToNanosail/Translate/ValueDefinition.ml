@@ -149,7 +149,7 @@ let translate_value_definition
       | S.P_string_append _            -> TC.not_yet_implemented [%here] pattern_location
       | S.P_struct (_, _)              -> TC.not_yet_implemented [%here] pattern_location
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.string @@ Printf.sprintf "Translated value definition %s" @@ Ast.Identifier.to_string identifier)
+    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.format "Translated value definition %s" @@ Ast.Identifier.to_string identifier)
     in
     TC.return translation
   end
