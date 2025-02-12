@@ -423,3 +423,17 @@ module Make(Annotation : ANNOTATION) = struct
   let integer (n : int) =
     string @@ Int.to_string n
 end
+
+
+module EmptyAnnotation : ANNOTATION = struct
+  (* empty type *)
+  type t = |
+
+  let empty       = failwith "does not exist"
+  let is_empty _  = true
+  let combine x _ = x
+  let to_html _   = Html.string ""
+end
+
+
+module WithoutAnnotations = Make(EmptyAnnotation)
