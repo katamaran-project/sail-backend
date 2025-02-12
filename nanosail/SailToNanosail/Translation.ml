@@ -13,7 +13,15 @@ open! ExtBase
 
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
-  TC.translation_block [%here] ("Processing definition " ^ String.strip @@ StringOf.Sail.definition sail_definition) begin
+  let label =
+    let open Logging.Message
+    in
+    vertical [
+      string "Processing definition";
+      indent @@ from_multiline_string @@ StringOf.Sail.definition sail_definition
+    ]
+  in
+  TC.translation_block [%here] label begin
     let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
     in
     if
@@ -99,7 +107,7 @@ let translate (ast : Sail.ast) : Ast.program =
   let translate =
     let* () = Prelude.register_types ()
     in
-    TC.translation_block [%here] "Translating Sail to Nanosail" begin
+    TC.translation_block [%here] (Logging.Message.string "Translating Sail to Nanosail") begin
       TC.map ~f:translate_definition ast.defs
     end
   in

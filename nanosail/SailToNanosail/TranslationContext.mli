@@ -50,4 +50,4 @@ val lift_option                    : 'a t option -> 'a option t
 val repeat                         : int -> f:('a t) -> 'a list t
 
 val log                            : Lexing.position -> (Lexing.position -> Logging.Message.t lazy_t -> unit) -> Logging.Message.t lazy_t -> unit t
-val translation_block              : Lexing.position -> string -> 'a t -> 'a t
+val translation_block              : Lexing.position -> Logging.Message.t -> 'a t -> 'a t

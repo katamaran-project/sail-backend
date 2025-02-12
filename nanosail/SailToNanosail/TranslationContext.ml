@@ -99,11 +99,20 @@ let with_excursion (block : 'a t) : 'a t =
 
 
 let translation_block
-    (ocaml_position : Lexing.position)
-    (label          : string         )
-    (result         : 'a t           ) : 'a t
+    (ocaml_position : Lexing.position  )
+    (label          : Logging.Message.t)
+    (result         : 'a t             ) : 'a t
   =
-  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.format "Entering %s" @@ label)
+  let* () =
+    let message =
+      lazy begin
+        Logging.Message.horizontal [
+          Logging.Message.string "Entering ";
+          label
+        ]
+      end
+    in
+    log ocaml_position Logging.debug message
   in
   let* result = with_excursion begin
       let* () = act Logging.increase_indentation
@@ -111,7 +120,16 @@ let translation_block
       result
     end
   in
-  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.format "Exiting %s" label)
+  let* () =
+    let message =
+      lazy begin
+        Logging.Message.horizontal [
+          Logging.Message.string "Exiting ";
+          label
+        ]
+      end
+    in
+    log ocaml_position Logging.debug message
   in
   return result
 

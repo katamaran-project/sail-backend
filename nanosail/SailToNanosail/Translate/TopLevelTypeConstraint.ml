@@ -19,7 +19,7 @@ let translate_top_level_type_constraint
       (_definition_annotation : Sail.definition_annotation)
       (S.VS_aux (value_specification, _vspec_annotation)) : Ast.Definition.t TC.t
   =
-  TC.translation_block [%here] "Translating top level type constraint" begin
+  TC.translation_block [%here] (Logging.Message.string "Translating top level type constraint") begin
     let VS_val_spec (
         TypSchm_aux (
           TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),

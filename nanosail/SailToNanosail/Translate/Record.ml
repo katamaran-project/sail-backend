@@ -20,7 +20,7 @@ let translate_record
       (type_quantifier        : S.typquant                  )
       (fields                 : (S.typ * S.id) list         ) : Ast.Definition.Type.t TC.t
   =
-  TC.translation_block [%here] "Translating record definition" begin
+  TC.translation_block [%here] (Logging.Message.string "Translating record definition") begin
     let translate_field (field_type : S.typ) (field_identifier : S.id) =
       let* field_type'       = Nanotype.nanotype_of_sail_type field_type
       and* field_identifier' = Identifier.translate_identifier [%here] field_identifier

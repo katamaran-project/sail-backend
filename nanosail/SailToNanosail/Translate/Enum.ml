@@ -19,7 +19,7 @@ let translate_enum
       (identifier             : S.id                      )
       (cases                  : S.id list                 ) : Ast.Definition.Type.t TC.t
   =
-  TC.translation_block [%here] ("translating enum " ^ StringOf.Sail.id identifier) begin
+  TC.translation_block [%here] (Logging.Message.string @@ "translating enum " ^ StringOf.Sail.id identifier) begin
     let* identifier' = Identifier.translate_identifier [%here] identifier
     and* cases'      = TC.map ~f:(Identifier.translate_identifier [%here]) cases
     in

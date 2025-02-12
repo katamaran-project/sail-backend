@@ -23,7 +23,7 @@ let translate_type_definition
       (definition_annotation     : Sail.definition_annotation     )
       (annotated_type_definition : Sail.type_annotation S.type_def) : Ast.Definition.t TC.t
   =
-  TC.translation_block [%here] "Translating type definition" begin
+  TC.translation_block [%here] (Logging.Message.string "Translating type definition") begin
     let S.TD_aux (type_definition, type_annotation) = annotated_type_definition
     in
     let location = definition_annotation.loc

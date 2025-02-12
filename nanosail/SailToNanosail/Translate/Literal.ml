@@ -17,7 +17,13 @@ open Monads.Notations.Star(TC)
 
 
 let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
-  TC.translation_block [%here] ("Translating literal " ^ StringOf.Sail.lit literal) begin
+  let label =
+    Logging.Message.horizontal [
+      Logging.Message.string "Translating literal ";
+      Logging.Message.from_multiline_string @@ StringOf.Sail.lit literal
+    ]
+  in
+  TC.translation_block [%here] label begin
     let S.L_aux (unwrapped_literal, literal_location) = literal
     in
     match unwrapped_literal with

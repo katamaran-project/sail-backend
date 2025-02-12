@@ -1024,7 +1024,7 @@ let translate_function_definition
       (definition_annotation : Sail.definition_annotation   )
       (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
-  TC.translation_block [%here] "Translating function" begin
+  TC.translation_block [%here] (Logging.Message.string "Translating function") begin
     let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
     in
     match funcls with
