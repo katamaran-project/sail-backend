@@ -485,7 +485,7 @@ let test_clashing_binders =
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = genid; wildcard = false };
+              Pattern.Binder { identifier = mkid "x"; wildcard = false };
               Pattern.EnumCase (mkid "A1")
             ]
             (a1_statement (mkid "x"))
@@ -493,7 +493,7 @@ let test_clashing_binders =
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = genid; wildcard = false };
+              Pattern.Binder { identifier = mkid "y"; wildcard = false };
               Pattern.EnumCase (mkid "A2")
             ]
             (a2_statement (mkid "y"))
