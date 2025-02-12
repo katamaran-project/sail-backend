@@ -107,7 +107,7 @@ let log
     in
     let output_message =
       let tag =
-        Message.format "[%s] (%s:%d)" level_name filename line_number
+        Message.format "[%s] (%s:%d) " level_name filename line_number
       in
       Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
     in
@@ -115,7 +115,7 @@ let log
       Message.to_string output_message
     in
     (* %! forces a flush *)
-    Stdio.printf "%s%!" output_string
+    Stdio.printf "%s\n%!" output_string
 
 
 let error   = log VerbosityLevel.error
