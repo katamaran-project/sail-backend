@@ -180,6 +180,9 @@ module Make(Annotation : ANNOTATION) = struct
   let string s =
     String s
 
+  let format =
+    Fn.compose string Printf.sprintf
+
   let empty      = Empty
 
   let plus       = string "+"
