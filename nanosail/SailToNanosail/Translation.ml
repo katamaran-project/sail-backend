@@ -66,11 +66,17 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             let location_string =
               Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
             and pretty_printed_sail_code =
-              StringOf.Sail.definition sail_definition
+              Logging.Message.from_multiline_string @@ StringOf.Sail.definition sail_definition
             in
             let* () =
               let message = lazy begin
-                Logging.Message.format "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
+                let open Logging.Message
+                in
+                vertical [
+                  format "Assertion error at %s" location_string;
+                  horizontal [ string "Message: "; string message ];
+                  horizontal [ string "Sail code: "; pretty_printed_sail_code ];
+                ]
               end
               in
               TC.log [%here] Logging.error message
