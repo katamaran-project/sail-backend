@@ -1446,14 +1446,12 @@ let rec adorn_pattern_tree
                 in
                 let* () =
                   let message = lazy begin
-                    Logging.Message.string begin
-                      Printf.sprintf
-                        "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
-                        (StringOf.Sail.location location)
-                        (Ast.Identifier.to_string binder.identifier)
-                        (Ast.Identifier.to_string pattern_binder.identifier)
-                        (Ast.Identifier.to_string generated_identifier)
-                    end
+                    Logging.Message.format
+                      "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
+                      (StringOf.Sail.location location)
+                      (Ast.Identifier.to_string binder.identifier)
+                      (Ast.Identifier.to_string pattern_binder.identifier)
+                      (Ast.Identifier.to_string generated_identifier)
                   end
                   in
                   TC.log [%here] Logging.warning message
