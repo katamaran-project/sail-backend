@@ -553,7 +553,6 @@ let test_clashing_binders =
 
 let test_clashing_binders_2 =
   let test _ =
-    skip_if true "needs fixing";
     let gen = new generator
     in
     let tc =
