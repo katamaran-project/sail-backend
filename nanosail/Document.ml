@@ -425,6 +425,12 @@ module Make(Annotation : ANNOTATION) = struct
 
   let integer (n : int) =
     string @@ Int.to_string n
+
+
+  let from_multiline_string (str : string) =
+    let lines = String.split_lines str
+    in
+    vertical @@ List.map ~f:string lines
 end
 
 
