@@ -1,3 +1,4 @@
+open Nanosail
 open OUnit2
 
 
@@ -16,5 +17,7 @@ let tests =
     RenamingTests.test_suite;
   ]
 
+
+let _ = Configuration.set Logging.verbosity_level Logging.VerbosityLevel.quiet
 
 let _ = run_test_tt_main tests
