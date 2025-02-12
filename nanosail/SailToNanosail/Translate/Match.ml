@@ -910,8 +910,8 @@ let rec build_empty_pattern_tree
         if
           node_count > 100
         then
-          let message = lazy begin
-            Printf.sprintf "Constructed pattern tree with %d nodes" node_count
+          let message : Logging.Message.t Lazy.t = lazy begin
+            Logging.Message.string @@ Printf.sprintf "Constructed pattern tree with %d nodes" node_count
           end
           in
           TC.log [%here] Logging.warning message
@@ -1050,7 +1050,7 @@ let rec adorn_pattern_tree
 
                    todo fix this
                 *)
-                TC.log [%here] Logging.warning @@ lazy "ignoring binder while matching bool"
+                TC.log [%here] Logging.warning @@ lazy (Logging.Message.string "ignoring binder while matching bool")
               end
               else TC.return ()
             in
@@ -1413,7 +1413,7 @@ let rec adorn_pattern_tree
             in
             let* () =
               let message = lazy begin
-                Printf.sprintf "Unifying %s %s" (FExpr.to_string @@ Binder.to_fexpr binder) (FExpr.to_string @@ Binder.to_fexpr pattern_binder)
+                Logging.Message.string @@ Printf.sprintf "Unifying %s %s" (FExpr.to_string @@ Binder.to_fexpr binder) (FExpr.to_string @@ Binder.to_fexpr pattern_binder)
               end
               in
               TC.log [%here] Logging.debug message
@@ -1446,12 +1446,14 @@ let rec adorn_pattern_tree
                 in
                 let* () =
                   let message = lazy begin
-                    Printf.sprintf
-                      "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
-                      (StringOf.Sail.location location)
-                      (Ast.Identifier.to_string binder.identifier)
-                      (Ast.Identifier.to_string pattern_binder.identifier)
-                      (Ast.Identifier.to_string generated_identifier)
+                    Logging.Message.string begin
+                      Printf.sprintf
+                        "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
+                        (StringOf.Sail.location location)
+                        (Ast.Identifier.to_string binder.identifier)
+                        (Ast.Identifier.to_string pattern_binder.identifier)
+                        (Ast.Identifier.to_string generated_identifier)
+                    end
                   end
                   in
                   TC.log [%here] Logging.warning message
@@ -2190,7 +2192,7 @@ let translate_tuple_match
         ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree (permuter#permute subpatterns) statement)
         cases
     in
-    let* () = TC.log [%here] Logging.debug @@ lazy (Printf.sprintf "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
+    let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
     in
     TC.return adorned_tree
   in
@@ -2213,7 +2215,7 @@ let translate_tuple_match
             let tree_sizes =
               String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string Auxlib.Triple.second) triples_of_tree_size_permuter
             in
-            Printf.sprintf "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
+            Logging.Message.string @@ Printf.sprintf "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
           end
           in
           TC.log [%here] Logging.info message

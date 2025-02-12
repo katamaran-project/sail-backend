@@ -119,7 +119,7 @@ end = struct
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
         | [ _ ] -> begin
-            let* () = TC.log [%here] Logging.debug @@ lazy (Printf.sprintf "simplifying %s to int" @@ StringOf.Sail.typ typ)
+            let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "simplifying %s to int" @@ StringOf.Sail.typ typ)
             in
             TC.return Ast.Type.Int
           end

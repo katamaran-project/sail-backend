@@ -1037,7 +1037,7 @@ let translate_function_definition
         and* function_body          = translate_body parts.body
         and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
-        let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated function %s" (Ast.Identifier.to_string function_name))
+        let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.string @@ Printf.sprintf "Translated function %s" (Ast.Identifier.to_string function_name))
         in
         let function_body =
           Ast.Simplify.simplify_statement function_body

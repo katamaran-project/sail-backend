@@ -82,22 +82,40 @@ end
 
 let verbosity_level = ConfigLib.Setting.mk VerbosityLevel.default
 
+module LogAnnotation : Document.ANNOTATION = struct
+  type t = unit
+
+  let empty       = ()
+  let is_empty _  = true
+  let combine _ _ = ()
+  let to_html _   = Html.string ""
+end
+
+module Message = Document.Make(LogAnnotation)
 
 let log
     (level          : VerbosityLevel.t)
     (ocaml_position : Lexing.position )
-    (message        : string lazy_t   ) : unit
+    (message        : Message.t lazy_t) : unit
   =
   if
     VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level: level
   then
     let filename    = ocaml_position.pos_fname
     and line_number = ocaml_position.pos_lnum
-    and indentation = String.make !indentation_level ' '
     and level_name  = VerbosityLevel.to_string level
     in
+    let output_message =
+      let tag =
+        Message.string @@ Printf.sprintf "[%s] (%s:%d)" level_name filename line_number
+      in
+      Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
+    in
+    let output_string =
+      Message.to_string output_message
+    in
     (* %! forces a flush *)
-    ignore @@ Stdio.printf "%s[%s] (%s:%d) %s\n%!" indentation level_name filename line_number (Lazy.force message)
+    Stdio.printf "%s%!" output_string
 
 
 let error   = log VerbosityLevel.error
@@ -107,17 +125,17 @@ let debug   = log VerbosityLevel.debug
 
 
 let surround
-    (ocaml_position : Lexing.position                         )
-    (logger         : Lexing.position -> string lazy_t -> unit)
-    (caption        : string lazy_t                           )
-    (f              : unit -> 'a                              ) : 'a
+    (ocaml_position : Lexing.position                            )
+    (logger         : Lexing.position -> Message.t lazy_t -> unit)
+    (caption        : string lazy_t                              )
+    (f              : unit -> 'a                                 ) : 'a
   =
   let enter_block () =
-    logger ocaml_position @@ lazy (Printf.sprintf "Entering %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Entering %s" (Lazy.force caption))
   and exited_block_successfully () =
-    logger ocaml_position @@ lazy (Printf.sprintf "Exiting %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Exiting %s" (Lazy.force caption))
   and exited_block_with_exception () =
-    logger ocaml_position @@ lazy (Printf.sprintf "Escaping %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (Message.string @@ Printf.sprintf "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
   try

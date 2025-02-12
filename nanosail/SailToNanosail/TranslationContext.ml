@@ -79,9 +79,9 @@ let run f      = Monad.run f Context.empty
 
 
 let log
-    (ocaml_position : Lexing.position                         )
-    (logger         : Lexing.position -> string lazy_t -> unit)
-    (message        : string lazy_t                           ) : unit t
+    (ocaml_position : Lexing.position                                    )
+    (logger         : Lexing.position -> Logging.Message.t lazy_t -> unit)
+    (message        : Logging.Message.t lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
 
@@ -103,7 +103,7 @@ let translation_block
     (label          : string         )
     (result         : 'a t           ) : 'a t
   =
-  let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Entering %s" @@ label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "Entering %s" @@ label)
   in
   let* result = with_excursion begin
       let* () = act Logging.increase_indentation
@@ -111,7 +111,7 @@ let translation_block
       result
     end
   in
-  let* () = log ocaml_position Logging.debug @@ lazy (Printf.sprintf "Exiting %s" label)
+  let* () = log ocaml_position Logging.debug @@ lazy (Logging.Message.string @@ Printf.sprintf "Exiting %s" label)
   in
   return result
 
@@ -146,7 +146,7 @@ let debug_error f =
 
 
 let not_yet_implemented ?(message : string option) ocaml_position sail_position =
-  let* () = log [%here] Logging.debug @@ lazy "Not yet implemented"
+  let* () = log [%here] Logging.debug @@ lazy (Logging.Message.string "Not yet implemented")
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
 
@@ -286,5 +286,5 @@ let rec generate_unique_identifiers
 
 let rec try_multiple (fs : 'a t list) : 'a t =
   match fs with
-  | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (Error.to_string error) in try_multiple fs)
+  | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (Logging.Message.string @@ Error.to_string error) in try_multiple fs)
   | []    -> fail [%here] "ran out of alternatives"

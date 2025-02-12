@@ -19,7 +19,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     if
       Configuration.should_ignore_definition sail_definition
     then
-      let* () = TC.log [%here] Logging.debug @@ lazy "Skipping this definition"
+      let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.string "Skipping this definition")
       in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
@@ -68,7 +68,12 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             and pretty_printed_sail_code =
               StringOf.Sail.definition sail_definition
             in
-            let* () = TC.log [%here] Logging.error @@ lazy (Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code)
+            let* () =
+              let message = lazy begin
+                Logging.Message.string @@ Printf.sprintf "Assertion error at %s\nMessage: %s\nSail code:\n%s" location_string message pretty_printed_sail_code
+              end
+              in
+              TC.log [%here] Logging.error message
             in
             let untranslated_definition = Ast.Definition.UntranslatedDefinition
                 {

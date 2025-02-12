@@ -19,9 +19,11 @@ let pp_function_definition
             let string_of_function_name =
               Ast.Identifier.to_string function_definition.function_name
             in
-            Printf.sprintf
-              "Generating code for function %s"
-              string_of_function_name
+            Logging.Message.string begin
+              Printf.sprintf
+                "Generating code for function %s"
+                string_of_function_name
+            end
           end
         end
       in
@@ -129,7 +131,7 @@ let pp_function_definitions
     (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document list GC.t
   =
   let* () =
-    GC.log [%here] Logging.debug @@ lazy "Generating translations for all functions"
+    GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "Generating translations for all functions")
   in
   let type_and_function_pairs =
     let find_type_constraint function_name =

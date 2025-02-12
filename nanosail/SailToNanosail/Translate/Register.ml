@@ -33,10 +33,12 @@ let translate_register
             let* () =
               let warning_message =
                 lazy begin
-                  Printf.sprintf
-                    "Failed to translate initial value for register %s:\n  %s"
-                    (Ast.Identifier.to_string identifier')
-                    (TC.Error.to_string error)
+                  Logging.Message.string begin
+                    Printf.sprintf
+                      "Failed to translate initial value for register %s:\n  %s"
+                      (Ast.Identifier.to_string identifier')
+                      (TC.Error.to_string error)
+                  end
                 end
               in
               TC.log [%here] Logging.warning warning_message
@@ -49,7 +51,7 @@ let translate_register
         end
       | None -> TC.return Ast.Definition.Register.NoneSpecified
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated register %s" @@ Ast.Identifier.to_string identifier')
+    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.string @@ Printf.sprintf "Translated register %s" @@ Ast.Identifier.to_string identifier')
     in
     TC.return @@ Ast.Definition.RegisterDefinition {
       identifier    = identifier'   ;

@@ -28,7 +28,7 @@ let translate_top_level_type_constraint
     in
     let* identifier' = translate_identifier [%here] identifier
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Printf.sprintf "Translated top level type constraint %s" @@ Ast.Identifier.to_string identifier')
+    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.string @@ Printf.sprintf "Translated top level type constraint %s" @@ Ast.Identifier.to_string identifier')
     in
     TC.return @@ Ast.Definition.TopLevelTypeConstraintDefinition { identifier = identifier' }
   end

@@ -426,12 +426,11 @@ end
 
 
 module EmptyAnnotation : ANNOTATION = struct
-  (* empty type *)
-  type t = |
+  type t = unit
 
-  let empty       = failwith "does not exist"
+  let empty       = ()
   let is_empty _  = true
-  let combine x _ = x
+  let combine _ _ = ()
   let to_html _   = Html.string ""
 end
 
