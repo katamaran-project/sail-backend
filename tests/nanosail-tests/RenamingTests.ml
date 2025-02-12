@@ -267,6 +267,37 @@ let test_rename_match_product_5 =
   |} >:: test
 
 
+let test_rename_expression_var =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Expression (evar "x")
+    in
+    let renamer =
+      Ast.Renaming.create_renamer
+        (mkid "x")
+        (mkid "renamed")
+    in
+    let actual =
+      Ast.Renaming.rename_in_statement renamer statement
+    and expected : Ast.Statement.t =
+      Expression (evar "renamed")
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      x
+    
+    Renaming x -> renamed gives
+
+      y
+    
+  |} >:: test
+  
+
 let test_suite =
   "renaming" >::: [
     test_rename_match_product_1;
@@ -274,4 +305,6 @@ let test_suite =
     test_rename_match_product_3;
     test_rename_match_product_4;
     test_rename_match_product_5;
+
+    test_rename_expression_var;
   ]
