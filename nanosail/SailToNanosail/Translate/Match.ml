@@ -1411,6 +1411,13 @@ let rec adorn_pattern_tree
             let* updated_binder =
               Binder.unify' binder pattern_binder
             in
+            let* () =
+              let message = lazy begin
+                Printf.sprintf "Unifying %s %s" (FExpr.to_string @@ Binder.to_fexpr binder) (FExpr.to_string @@ Binder.to_fexpr pattern_binder)
+              end
+              in
+              TC.log [%here] Logging.debug message
+            in
             match updated_binder with
             | Some updated_binder -> begin
                 let* updated_subtree =
@@ -1431,7 +1438,7 @@ let rec adorn_pattern_tree
                 let* generated_identifier =
                   let suffix =
                     Printf.sprintf
-                      "%s-%s"
+                      "-%s-%s"
                       (Ast.Identifier.to_string binder.identifier)
                       (Ast.Identifier.to_string pattern_binder.identifier)
                   in
