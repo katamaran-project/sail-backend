@@ -23,21 +23,21 @@ let test_adorn_enum_single_case =
       let* enum_type =
         define_enum_str "A" ["A1"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
           tree
-          [ Pattern.EnumCase (mkid "A1") ]
+          [ EnumCase (mkid "A1") ]
           a1_statement
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Enum {
+      let expected_tree : TM.PatternTree.t =
+        Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
@@ -74,8 +74,8 @@ let test_adorn_enum_single_case_wildcard =
       let* enum_type =
         define_enum_str "A" ["A1"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -89,11 +89,11 @@ let test_adorn_enum_single_case_wildcard =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal (Some a1_statement)
+          subtree      = Terminal (Some a1_statement)
         }
       in
       assert_equal
@@ -121,8 +121,8 @@ let test_adorn_enum_single_case_binder =
       let* enum_type =
         define_enum_str "A" ["A1"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -136,11 +136,11 @@ let test_adorn_enum_single_case_binder =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = mkbinder "x";
-          subtree      = TM.PatternTree.Terminal (Some a1_statement)
+          subtree      = Terminal (Some a1_statement)
         }
       in
       assert_equal
@@ -176,11 +176,11 @@ let test_adorn_enum_two_cases =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
-      let a2_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+      let a2_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -188,20 +188,20 @@ let test_adorn_enum_two_cases =
         let* tree = adorn
             tree
             [
-              Pattern.EnumCase (mkid "A1")
+              EnumCase (mkid "A1")
             ]
             a1_statement
         in
         let* tree = adorn
             tree
             [
-              Pattern.EnumCase (mkid "A2")
+              EnumCase (mkid "A2")
             ]
             a2_statement
         in
         TC.return tree
       in
-      let expected_tree =
+      let expected_tree : TM.PatternTree.t =
         TM.PatternTree.Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -244,11 +244,11 @@ let test_adorn_enum_two_cases_wildcard =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
-      let a2_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+      let a2_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
       in
       let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -269,8 +269,8 @@ let test_adorn_enum_two_cases_wildcard =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Enum {
+      let expected_tree : TM.PatternTree.t =
+        Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
@@ -318,11 +318,11 @@ let test_adorn_enum_two_cases_binder =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
-      let a2_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+      let a2_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -343,8 +343,8 @@ let test_adorn_enum_two_cases_binder =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Enum {
+      let expected_tree : TM.PatternTree.t =
+        Enum {
           enum_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
               (
@@ -391,11 +391,11 @@ let test_adorn_enum_two_cases_pair_wildcard =
       let* enum_type =
         define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let a1_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
-      let a2_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+      let a2_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
@@ -418,11 +418,11 @@ let test_adorn_enum_two_cases_pair_wildcard =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Enum {
+          subtree      = Enum {
               enum_identifier = mkid "A";
               table = Ast.Identifier.Map.of_alist_exn [
                   (
@@ -473,11 +473,11 @@ let test_clashing_binders =
       let genid =
         gen#id
       in
-      let a1_statement id =
-        Ast.Statement.Expression (Ast.Expression.Variable (id, Ast.Type.Int))
+      let a1_statement id : Ast.Statement.t =
+        Expression (Variable (id, Int))
       in
-      let a2_statement id =
-        Ast.Statement.Expression (Ast.Expression.Variable (id, Ast.Type.Int))
+      let a2_statement id : Ast.Statement.t =
+        Expression (Variable (id, Int))
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
@@ -500,11 +500,11 @@ let test_clashing_binders =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = { identifier = genid; wildcard = false };
-          subtree      = TM.PatternTree.Enum {
+          subtree      = Enum {
               enum_identifier = mkid "A";
               table = Ast.Identifier.Map.of_alist_exn [
                   (
@@ -562,21 +562,21 @@ let test_clashing_binders_2 =
       let genid =
         gen#id
       in
-      let a1_statement id =
-        Ast.Statement.Expression begin
-          Ast.Expression.BinaryOperation (
-            Ast.BinaryOperator.Plus,
-            Ast.Expression.Variable (id, Ast.Type.Int),
-            Ast.Expression.Val (Ast.Value.mk_int 1)
+      let a1_statement id : Ast.Statement.t =
+        Expression begin
+          BinaryOperation (
+            Plus,
+            Variable (id, Ast.Type.Int),
+            Val (Ast.Value.mk_int 1)
           )
         end
       in
-      let a2_statement id =
-        Ast.Statement.Expression begin
-          Ast.Expression.BinaryOperation (
-            Ast.BinaryOperator.Plus,
-            Ast.Expression.Variable (id, Ast.Type.Int),
-            Ast.Expression.Val (Ast.Value.mk_int 2)
+      let a2_statement id : Ast.Statement.t =
+        Expression begin
+          BinaryOperation (
+            Plus,
+            Variable (id, Ast.Type.Int),
+            Val (Ast.Value.mk_int 2)
           )
         end
       in
@@ -601,11 +601,11 @@ let test_clashing_binders_2 =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = { identifier = genid; wildcard = false };
-          subtree      = TM.PatternTree.Enum {
+          subtree      = Enum {
               enum_identifier = mkid "A";
               table = Ast.Identifier.Map.of_alist_exn [
                   (
