@@ -581,7 +581,7 @@ let test_clashing_binders_2 =
         end
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
+        let* tree = build_empty_pattern_tree [ Ast.Type.Int; enum_type ]
         in
         let* tree = adorn
             tree
@@ -603,7 +603,7 @@ let test_clashing_binders_2 =
       in
       let expected_tree : TM.PatternTree.t =
         Binder {
-          matched_type = enum_type;
+          matched_type = Ast.Type.Int;
           binder       = { identifier = genid; wildcard = false };
           subtree      = Enum {
               enum_identifier = mkid "A";
