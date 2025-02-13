@@ -13,8 +13,8 @@ let test_rename_match_product_1 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -32,8 +32,8 @@ let test_rename_match_product_1 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -61,8 +61,8 @@ let test_rename_match_product_2 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -80,8 +80,8 @@ let test_rename_match_product_2 =
       Match begin
         MatchProduct {
           matched  = mkid "renamed";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "renamed"; evar "y"; evar "left"; evar "right" ])
@@ -109,8 +109,8 @@ let test_rename_match_product_3 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -128,8 +128,8 @@ let test_rename_match_product_3 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -157,8 +157,8 @@ let test_rename_match_product_4 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -176,8 +176,8 @@ let test_rename_match_product_4 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -205,8 +205,8 @@ let test_rename_match_product_5 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -224,8 +224,8 @@ let test_rename_match_product_5 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Ast.Type.Int;
-          type_snd = Ast.Type.Int;
+          type_fst = Int;
+          type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "renamed"; evar "left"; evar "right" ])
