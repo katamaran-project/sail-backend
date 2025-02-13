@@ -482,7 +482,7 @@ let test_rename_let_1 =
     let statement : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -497,7 +497,7 @@ let test_rename_let_1 =
     and expected : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -522,7 +522,7 @@ let test_rename_let_2 =
     let statement : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -537,7 +537,7 @@ let test_rename_let_2 =
     and expected : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -562,7 +562,7 @@ let test_rename_let_3 =
     let statement : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -577,7 +577,7 @@ let test_rename_let_3 =
     and expected : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "renamed" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -602,7 +602,7 @@ let test_rename_let_4 =
     let statement : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -617,7 +617,7 @@ let test_rename_let_4 =
     and expected : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "renamed" ]);
       }
@@ -642,7 +642,7 @@ let test_rename_let_5 =
     let statement : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "x" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
       }
@@ -657,7 +657,7 @@ let test_rename_let_5 =
     and expected : Ast.Statement.t =
       Ast.Statement.Let {
         variable_identifier    = mkid "x";
-        binding_statement_type = Int;
+        binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "renamed" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
       }
