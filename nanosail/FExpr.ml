@@ -196,14 +196,7 @@ let rec pp_diff
                 | []   , _     -> [ highlight @@ PP.string "<missing>" ]
                 | x::xs, y::ys -> begin
                     let head =
-                      let doc = pp x
-                      in
-                      if
-                        equal x y
-                      then
-                        doc
-                      else
-                        highlight doc
+                      pp_diff y x
                     and tail =
                       pp_positional xs ys
                     in
@@ -232,14 +225,7 @@ let rec pp_diff
                       else
                         highlight doc
                     and value =
-                      let doc = pp v1
-                      in
-                      if
-                        equal v1 v2
-                      then
-                        doc
-                      else
-                        highlight doc
+                      pp_diff v2 v1
                     in
                     (keyword, value) :: pp_keyword xs ys                      
                   end
