@@ -21,11 +21,11 @@
       Ast.Statement.Match begin
         Ast.Statement.MatchEnum {
           matched      = Id "e";
-          matched_type = Ast.Type.Enum (Id "MyEnum");
+          matched_type = Enum (Id "MyEnum");
           cases        = Ast.Identifier.Map.of_alist [
-                           (Id "x", Ast.Statement.Expression (Ast.Expression.Val (Ast.Value.Int 1)));
-                           (Id "y", Ast.Statement.Expression (Ast.Expression.Val (Ast.Value.Int 2)));
-                           (Id "z", Ast.Statement.Expression (Ast.Expression.Val (Ast.Value.Int 3)));
+                           (Id "x", Expression (Val (Ast.Value.Int 1)));
+                           (Id "y", Expression (Val (Ast.Value.Int 2)));
+                           (Id "z", Expression (Val (Ast.Value.Int 3)));
                          ]
         }
       end
@@ -63,12 +63,12 @@
 
       Ast.Statement.Let {
         variable_identifier    = Id "generated";
-        binding_statement_type = Ast.Type.Enum (Id "MyEnum");
-        binding_statement      = Ast.Statement.Expression e;
-        body_statement         = Ast.Statement.Match begin
-                                   Ast.Statement.MatchEnum {
+        binding_statement_type = Enum (Id "MyEnum");
+        binding_statement      = Expression e;
+        body_statement         = Match begin
+                                   MatchEnum {
                                      matched      = Id "generated";
-                                     matched_type = Ast.Type.Enum (Id "MyEnum");
+                                     matched_type = Enum (Id "MyEnum");
                                      ...
                                    }
                                  end
