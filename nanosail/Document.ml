@@ -67,8 +67,8 @@ module Make(Annotation : ANNOTATION) = struct
     | Concatenation of annotated_string * annotated_string
 
 
-  let rec length (s : annotated_string) =
-    match s with
+  let rec length (annotated_string : annotated_string) : int =
+    match annotated_string with
     | AnnotatedString { string; _ } -> String.length string
     | Concatenation (s1, s2)        -> length s1 + length s2
 
