@@ -1,17 +1,10 @@
 open Base
 open OUnit2
 open Nanosail
-open Shared
+include Shared
 
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module M       = SailToNanosail.Translate.Match
-
-
-let mkid                                                          = Ast.Identifier.mk
-let mkbinder identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = false }
-let mkwild   identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = true }
-let mkstm    n                                                    = Ast.Statement.ReadRegister (mkid @@ Printf.sprintf "r%d" n)
-
 
 
 let build_empty_pattern_tree = M.build_empty_pattern_tree dummy_location
@@ -51,38 +44,6 @@ class generator = object(self)
 end
 
 
-let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
-  equal (normalize x) (normalize y)
-
-
-let pp_diff
-    (to_fexpr           : 'a -> FExpr.t          )
-    (formatter          : Stdlib.Format.formatter)
-    ((expected, actual) : 'a * 'a                ) : unit
-  =
-  let expected_fexpr = to_fexpr expected
-  and actual_fexpr   = to_fexpr actual
-  in
-  let document =
-    PP.vertical [
-      PP.string "";
-      PP.horizontal [
-        PP.string "Expected: ";
-        FExpr.pp expected_fexpr
-      ];
-      PP.horizontal [
-        PP.string "Actual: ";
-        FExpr.pp actual_fexpr
-      ];
-      PP.horizontal [
-        PP.string "Difference: ";
-        FExpr.pp_diff actual_fexpr expected_fexpr
-      ]
-    ]
-  in  
-  Stdlib.Format.pp_print_string formatter @@ PP.string_of_document document
-
-
 let assert_equal_pattern_trees
     (expected : M.PatternTree.t)
     (actual   : M.PatternTree.t) : unit
@@ -92,17 +53,6 @@ let assert_equal_pattern_trees
     ~pp_diff:(pp_diff M.PatternTree.to_fexpr)
     (Normalize.normalize_pattern_tree expected)
     (Normalize.normalize_pattern_tree actual)
-
-
-let assert_equal_statements
-    (expected : Ast.Statement.t)
-    (actual   : Ast.Statement.t) : unit
-  =
-  assert_equal
-    ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-    ~cmp:Ast.Statement.equal
-    (Normalize.normalize_statement expected)
-    (Normalize.normalize_statement actual)
 
 
 module TC = struct
