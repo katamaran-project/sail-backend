@@ -104,7 +104,7 @@ let assert_equal_statements
     ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
     ~cmp:Ast.Statement.equal
     (Normalize.normalize_statement expected)
-    (Normalize.normalize_statement actual);
+    (Normalize.normalize_statement actual)
 
 
 module TC = struct
@@ -122,8 +122,7 @@ module TC = struct
       (expected : Ast.Statement.t)
       (actual   : Ast.Statement.t) : unit t
     =
-    assert_equal_statements expected actual;
-    return ()
+    return @@ assert_equal_statements expected actual
 
 
   let define_enum
