@@ -26,6 +26,7 @@ let empty      = Doc.empty
 let string     = Doc.string
 let horizontal = Doc.horizontal
 let vertical   = Doc.vertical
+let decorate   = Doc.decorate
 
 let plus       = Doc.plus
 let star       = Doc.star
