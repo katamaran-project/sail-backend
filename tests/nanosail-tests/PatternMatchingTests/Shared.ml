@@ -115,12 +115,7 @@ module TC = struct
       (expected : M.PatternTree.t)
       (actual   : M.PatternTree.t) : unit t
     =
-    assert_equal
-      ~cmp:M.PatternTree.equal
-      ~pp_diff:(pp_diff M.PatternTree.to_fexpr)
-      (Normalize.normalize_pattern_tree expected)
-      (Normalize.normalize_pattern_tree actual);
-    return ()
+    return @@ assert_equal_pattern_trees expected actual
 
 
   let assert_equal_statements
