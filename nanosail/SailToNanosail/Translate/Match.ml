@@ -880,7 +880,8 @@ let rec build_empty_pattern_tree
   match element_types with
   | []           -> TC.return @@ PatternTree.Terminal None
   | head :: tail -> begin
-      let* subtree = build_empty_pattern_tree location tail        (* todo check if we want to share subtrees *)
+      let* subtree =
+        build_empty_pattern_tree location tail
       in
       let* tree =
         (*
