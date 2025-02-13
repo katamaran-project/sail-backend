@@ -96,6 +96,17 @@ let assert_equal_pattern_trees
     (Normalize.normalize_pattern_tree actual)
 
 
+let assert_equal_statements
+    (expected : Ast.Statement.t)
+    (actual   : Ast.Statement.t) : unit
+  =
+  assert_equal
+    ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+    ~cmp:Ast.Statement.equal
+    (Normalize.normalize_statement expected)
+    (Normalize.normalize_statement actual);
+
+
 module TC = struct
   include SailToNanosail.TranslationContext
   open Monads.Notations.Star(SailToNanosail.TranslationContext)
@@ -110,6 +121,15 @@ module TC = struct
       (Normalize.normalize_pattern_tree expected)
       (Normalize.normalize_pattern_tree actual);
     return ()
+
+
+  let assert_equal_statements
+      (expected : Ast.Statement.t)
+      (actual   : Ast.Statement.t) : unit t
+    =
+    assert_equal_statements expected actual;
+    return ()
+
 
   let define_enum
       (identifier : Ast.Identifier.t     )
