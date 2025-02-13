@@ -32,7 +32,10 @@ module Make(Annotation : ANNOTATION) = struct
     | Vertical   of t * t
     | Annotated  of t * Annotation.t
 
-
+  (*
+     Note: documents should be built using factory functions, which automatically remove empty subdocuments.
+     E.g., Horizontal (Empty, Empty) should never occur.
+  *)
   let rec is_empty (document : t) : bool =
     match document with
      | Empty              -> true
