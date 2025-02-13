@@ -20,3 +20,4 @@ module ConfigLib           = ConfigLib
 module Logging             = Logging
 module Normalize           = Normalize
 module ExtBase             = ExtBase
+module AnsiColor           = AnsiColor
