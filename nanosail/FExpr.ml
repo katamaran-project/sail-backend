@@ -29,6 +29,77 @@ type t =
   | Nil
 
 
+let rec equal
+    (fexpr_1 : t)
+    (fexpr_2 : t) : bool
+  =
+  match fexpr_1 with
+  | Integer n_1 -> begin
+      match fexpr_2 with
+      | Integer n_2 -> begin
+          Int.equal
+            n_1
+            n_2
+        end
+      | _ -> false
+    end
+    
+  | Bool bool_1 -> begin
+      match fexpr_2 with
+      | Bool bool_2 -> begin
+          Bool.equal
+            bool_1
+            bool_2
+        end
+      | _ -> false
+    end
+    
+  | String string_1 -> begin
+      match fexpr_2 with
+      | String string_2 -> begin
+          String.equal
+            string_1
+            string_2
+        end
+      | _ -> false
+    end
+    
+  | Application { head = head_1; positional = positional_1; keyword = keyword_1 } -> begin
+      match fexpr_2 with
+      | Application { head = head_2; positional = positional_2; keyword = keyword_2 } -> begin
+          String.equal
+            head_1
+            head_2
+          &&
+          List.equal equal
+            positional_1
+            positional_2
+          &&
+          List.equal (Tuple.Pair.equal String.equal equal)
+            keyword_1
+            keyword_2
+        end
+      | _ -> false
+    end
+    
+  | List elements_1 -> begin
+      match fexpr_2 with
+      | List elements_2 -> begin
+          List.equal
+            equal
+            elements_1
+            elements_2
+        end
+      | _ -> false
+    end
+    
+  | Nil -> begin
+      match fexpr_2 with
+      | Nil -> true
+      | _   -> false
+    end
+
+
 let rec pp (fexpr : t) : PP.document =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
