@@ -293,7 +293,7 @@ let test_rename_expression_var_1 =
     
     Renaming a -> renamed gives
 
-      X
+      x
     
   |} >:: test
 
