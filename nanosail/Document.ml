@@ -25,7 +25,6 @@ end
 
 
 module Make(Annotation : ANNOTATION) = struct
-
   type t =
     | Empty
     | String     of string
