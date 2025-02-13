@@ -100,37 +100,158 @@ let rec equal
     end
 
 
-let rec pp (fexpr : t) : PP.document =
+(* Helper function for pp/pp_diff *)
+let pp_list (items : PP.document list) : PP.document =
+  let delimiters =
+    (PP.lbracket, PP.rbracket)
+  and separator =
+    PP.string ","
+  in
+  PP.(delimited_list ~delimiters ~items ~separator)
+
+
+let pp_application
+    (head       : PP.document                     )
+    (positional : PP.document list                )
+    (keyword    : (PP.document * PP.document) list) : PP.document
+  =
+  let delimiters = (PP.lbracket, PP.rbracket)
+  and arguments  =
+    let keyword =
+      List.map ~f:(fun (k, v) -> PP.(horizontal [ k; equals; v ])) keyword
+    in
+    List.concat [positional; keyword]
+  and separator = PP.string ","
+  in
+  PP.application ~head ~delimiters ~arguments ~separator
+
+
+let rec pp (fexpr : t) : PP.document
+  =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
   | Bool b           -> PP.string @@ if b then "True" else "False"
   | String s         -> PP.(surround dquotes @@ string s)
   | Nil              -> PP.string "Nil"
+  | List items       -> pp_list @@ List.map ~f:pp items
   | Application { head; positional; keyword } -> begin
-      let head = PP.string head
-      and delimiters = (PP.lbracket, PP.rbracket)
-      and arguments  =
-        let pp_positional =
-          List.map ~f:pp positional
-        and pp_keyword =
-          List.map ~f:(fun (k, v) -> PP.(horizontal [ string k; equals; pp v ])) keyword
-        in
-        List.concat [pp_positional; pp_keyword]
-      and separator = PP.string ","
+      let head =
+        PP.string head
+      and positional =
+        List.map ~f:pp positional
+      and keyword =
+        List.map ~f:(fun (k, v) -> (PP.string k, pp v)) keyword
       in
-      PP.application ~head ~delimiters ~arguments ~separator
-    end
-  | List items -> begin
-      let delimiters =
-        (PP.lbracket, PP.rbracket)
-      and items =
-        List.map ~f:pp items
-      and separator =
-        PP.string ","
-      in
-      PP.(delimited_list ~delimiters ~items ~separator)
+      pp_application head positional keyword
     end
 
+
+let rec pp_diff
+    (compared_with : t)
+    (printed       : t) : PP.document
+  =
+  let highlight (document : PP.document) : PP.document =
+    PP.decorate [ BackgroundColor Red ] document
+  in
+  if
+    equal printed compared_with
+  then
+    pp printed
+  else begin
+    match printed with
+    | Integer _ -> highlight @@ pp printed
+    | Bool _    -> highlight @@ pp printed
+    | String _  -> highlight @@ pp printed
+    | Nil       -> highlight @@ pp printed
+    | List printed_elements -> begin
+        match compared_with with
+        | List compared_with_elements -> begin
+            match List.zip compared_with_elements printed_elements with
+            | Ok pairs        -> pp_list @@ List.map ~f:(Fn.uncurry pp_diff) pairs
+            | Unequal_lengths -> highlight @@ pp printed
+          end
+        | _ -> highlight @@ pp printed
+      end
+    | Application { head = printed_head; positional = printed_positional; keyword = printed_keyword } -> begin
+        match compared_with with
+        | Application { head = compared_with_head; positional = compared_with_positional; keyword = compared_with_keyword } -> begin
+            let head =
+              let doc = PP.string printed_head
+              in
+              if
+                String.equal printed_head compared_with_head
+              then
+                doc
+              else
+                highlight doc
+            in
+            let positional =
+              let rec pp_positional
+                  (printed_positional       : t list)
+                  (compared_with_positional : t list) : PP.document list
+                =
+                match printed_positional, compared_with_positional with
+                | []   , []    -> []
+                | x::xs, []    -> highlight (pp x) :: pp_positional xs []
+                | []   , _     -> [ highlight @@ PP.string "<missing>" ]
+                | x::xs, y::ys -> begin
+                    let head =
+                      let doc = pp x
+                      in
+                      if
+                        equal x y
+                      then
+                        doc
+                      else
+                        highlight doc
+                    and tail =
+                      pp_positional xs ys
+                    in
+                    head :: tail
+                  end
+              in
+              pp_positional printed_positional compared_with_positional
+            in
+            let keyword =
+              let rec pp_keyword
+                  (printed_keyword       : (string * t) list)
+                  (compared_with_keyword : (string * t) list) : (PP.document * PP.document) list
+                =
+                match printed_keyword, compared_with_keyword with
+                | []            , []             -> []
+                | (k, v) :: xs  , []             -> (highlight @@ PP.string k, highlight @@ pp v) :: pp_keyword xs []
+                | []            , _              -> [ (highlight @@ PP.string "<missing>", highlight @@ PP.string "<missing>") ]
+                | (k1, v1) :: xs, (k2, v2) :: ys -> begin
+                    let keyword =
+                      let doc = PP.string k1
+                      in
+                      if
+                        String.equal k1 k2
+                      then
+                        doc
+                      else
+                        highlight doc
+                    and value =
+                      let doc = pp v1
+                      in
+                      if
+                        equal v1 v2
+                      then
+                        doc
+                      else
+                        highlight doc
+                    in
+                    (keyword, value) :: pp_keyword xs ys                      
+                  end
+              in
+              pp_keyword printed_keyword compared_with_keyword
+            in
+            pp_application head positional keyword
+          end
+        | _ -> highlight @@ pp printed
+      end
+  end    
+  
 
 let to_string (fexpr : t) : string =
   PP.string_of_document @@ pp fexpr
