@@ -363,11 +363,20 @@ let test_rename_match_bool_1 =
       actual
   in
   {|
-      x
+      match cond {
+        true  => x,
+        false => y
+      }
     
-    Renaming a -> renamed gives
+    Renaming cond -> renamed gives
 
-      X
+      match renamed {
+        true  => x,
+        false => y
+      }
+  |} >:: test
+
+
     
   |} >:: test
 
