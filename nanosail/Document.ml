@@ -25,6 +25,10 @@ end
 
 
 module Make(Annotation : ANNOTATION) = struct
+  (*
+     Should never be created directly by client.
+     Factory functions are to be used instead.
+  *)
   type t =
     | Empty
     | String     of string
