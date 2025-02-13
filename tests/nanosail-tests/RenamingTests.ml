@@ -637,6 +637,46 @@ let test_rename_let_4 =
   |} >:: test
 
 
+let test_rename_let_5 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Ast.Statement.Let {
+        variable_identifier    = mkid "x";
+        binding_statement_type = Int;
+        binding_statement      = Expression (Tuple [ evar "x"; evar "x" ]);
+        body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
+      }
+    in
+    let renamer =
+      Ast.Renaming.create_renamer
+        (mkid "x")
+        (mkid "renamed")
+    in
+    let actual =
+      Ast.Renaming.rename_in_statement renamer statement
+    and expected : Ast.Statement.t =
+      Ast.Statement.Let {
+        variable_identifier    = mkid "x";
+        binding_statement_type = Int;
+        binding_statement      = Expression (Tuple [ evar "renamed"; evar "renamed" ]);
+        body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
+      }
+    in
+    assert_equal_statements expected actual
+  in
+  {|
+      let x = (x, x)
+      in
+      (x, x)
+    
+    Renaming x -> renamed gives
+
+      let x = (renamed, renamed)
+      in
+      (x, x)
+  |} >:: test
+
+
 let test_suite =
   "renaming" >::: [
     test_rename_match_product_1;
@@ -657,4 +697,5 @@ let test_suite =
     test_rename_let_2;
     test_rename_let_3;
     test_rename_let_4;
+    test_rename_let_5;
   ]
