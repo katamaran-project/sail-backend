@@ -17,7 +17,7 @@ let test_build_match_for_enum_int =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let statement =
         mkstm 1
@@ -64,7 +64,7 @@ let test_build_match_for_enum_int =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1 }

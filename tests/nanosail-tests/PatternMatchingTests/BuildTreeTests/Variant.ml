@@ -16,7 +16,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
     in
     let tc =
       let* variant_type =
-        define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let* actual_pattern_tree : TM.PatternTree.t =
         build_empty_pattern_tree [ variant_type ]
@@ -35,7 +35,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       union A = {
@@ -50,7 +50,7 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
     in
     let tc =
       let* variant_type =
-        define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let* actual_pattern_tree : TM.PatternTree.t =
         build_empty_pattern_tree [ variant_type; variant_type ]
@@ -73,7 +73,7 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       union A = {

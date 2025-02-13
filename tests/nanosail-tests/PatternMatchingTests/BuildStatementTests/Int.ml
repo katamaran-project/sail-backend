@@ -44,7 +44,7 @@ let test_build_match_for_int_1 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match intval {
@@ -89,7 +89,7 @@ let test_build_match_for_int_2 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match intval {
@@ -132,7 +132,7 @@ let test_build_match_for_int_int_1 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match (intval, intval) {
@@ -183,7 +183,7 @@ let test_build_match_for_int_int_2 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match (intval, intval) {

@@ -57,7 +57,7 @@ let test_build_match_for_bool_true_false =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
     match b {
@@ -111,7 +111,7 @@ let test_build_match_for_bool_false_true =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
     match b {
@@ -152,7 +152,7 @@ let test_build_match_for_bool_wildcard =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match b {
@@ -201,7 +201,7 @@ let test_build_match_for_bool_binder =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       match b {

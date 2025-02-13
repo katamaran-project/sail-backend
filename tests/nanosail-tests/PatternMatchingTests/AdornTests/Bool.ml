@@ -3,16 +3,11 @@ open OUnit2
 open Nanosail
 
 module BuildTreeTests = BuildTreeTests
-
-
-module TC = SailToNanosail.TranslationContext
-open Monads.Notations.Star(TC)
-
-
-module Pattern = SailToNanosail.Translate.Match.Pattern
-module TM      = SailToNanosail.Translate.Match
+module Pattern        = SailToNanosail.Translate.Match.Pattern
+module TM             = SailToNanosail.Translate.Match
 
 open Shared
+open Monads.Notations.Star(TC)
 
 
 let test_adorn_bool_true_false =
@@ -53,8 +48,7 @@ let test_adorn_bool_true_false =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
     match b {
@@ -102,8 +96,7 @@ let test_adorn_bool_false_true =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
     match b {
@@ -145,7 +138,7 @@ let test_adorn_bool_wildcard =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
 
   in
   {|

@@ -17,7 +17,7 @@ let test_build_match_for_enum_with_single_case =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -58,7 +58,7 @@ let test_build_match_for_enum_with_single_case =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1 }
@@ -73,7 +73,7 @@ let test_build_match_for_enum_with_two_cases =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -127,7 +127,7 @@ let test_build_match_for_enum_with_two_cases =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -143,7 +143,7 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -197,7 +197,7 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -213,7 +213,7 @@ let test_build_match_for_enum_with_two_cases_use_binder =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -272,7 +272,7 @@ let test_build_match_for_enum_with_two_cases_use_binder =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -288,7 +288,7 @@ let test_build_match_for_pair_of_enums =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_a1_statement =
         mkstm 1
@@ -394,7 +394,7 @@ let test_build_match_for_pair_of_enums =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -412,7 +412,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_a1_statement =
         mkstm 1
@@ -518,7 +518,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -536,7 +536,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
         mkstm 1
@@ -592,7 +592,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -613,7 +613,7 @@ let test_build_match_for_enum_8 =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement =
         mkstm 1
@@ -674,7 +674,7 @@ let test_build_match_for_enum_8 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -690,9 +690,9 @@ let test_build_match_for_enum_9 =
   let test _ =
     let tc =
       let* enum_type_a =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       and* enum_type_b =
-        define_enum_str "B" ["B1"; "B2"]
+        TC.define_enum_str "B" ["B1"; "B2"]
       in
       let a1_b1_statement =
         mkstm 1
@@ -798,7 +798,7 @@ let test_build_match_for_enum_9 =
         (Normalize.normalize_statement actual_match_statement);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }

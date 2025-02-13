@@ -5,14 +5,11 @@ open Nanosail
 module BuildTreeTests = BuildTreeTests
 
 
-module TC = SailToNanosail.TranslationContext
-open Monads.Notations.Star(TC)
-
-
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
 
 open Shared
+open Monads.Notations.Star(TC)
 
 
 let test_adorn_enum_single_case =
@@ -21,7 +18,7 @@ let test_adorn_enum_single_case =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -54,8 +51,7 @@ let test_adorn_enum_single_case =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
     enum A = { A1 }
@@ -72,7 +68,7 @@ let test_adorn_enum_single_case_wildcard =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -103,8 +99,7 @@ let test_adorn_enum_single_case_wildcard =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
     enum A = { A1 }
@@ -119,7 +114,7 @@ let test_adorn_enum_single_case_binder =
   let test _ =
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -150,8 +145,7 @@ let test_adorn_enum_single_case_binder =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1 }
@@ -174,7 +168,7 @@ let test_adorn_enum_two_cases =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -223,8 +217,7 @@ let test_adorn_enum_two_cases =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -242,7 +235,7 @@ let test_adorn_enum_two_cases_wildcard =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -297,8 +290,7 @@ let test_adorn_enum_two_cases_wildcard =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
-
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -316,7 +308,7 @@ let test_adorn_enum_two_cases_binder =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -371,7 +363,7 @@ let test_adorn_enum_two_cases_binder =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -389,7 +381,7 @@ let test_adorn_enum_two_cases_pair_wildcard =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -450,7 +442,7 @@ let test_adorn_enum_two_cases_pair_wildcard =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -468,7 +460,7 @@ let test_clashing_binders =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let genid =
         gen#id
@@ -532,7 +524,7 @@ let test_clashing_binders =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -557,7 +549,7 @@ let test_clashing_binders_2 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let genid =
         gen#id
@@ -633,7 +625,7 @@ let test_clashing_binders_2 =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }
@@ -658,7 +650,7 @@ let test_clashing_binders_3 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"; "A3"]
+        TC.define_enum_str "A" ["A1"; "A2"; "A3"]
       in
       let genid =
         gen#id
@@ -743,7 +735,7 @@ let test_clashing_binders_3 =
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2, A3 }

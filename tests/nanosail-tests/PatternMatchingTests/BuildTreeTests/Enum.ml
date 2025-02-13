@@ -2,13 +2,12 @@ open Base
 open OUnit2
 open Nanosail
 
-module TC = SailToNanosail.TranslationContext
-open Monads.Notations.Star(TC)
 
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
 
 open Shared
+open Monads.Notations.Star(TC)
 
 
 let test_build_pattern_tree_enum_single_case =
@@ -17,7 +16,7 @@ let test_build_pattern_tree_enum_single_case =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
@@ -36,7 +35,7 @@ let test_build_pattern_tree_enum_single_case =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
     enum A = { A1, A2 }
@@ -51,7 +50,7 @@ let test_build_pattern_tree_enum_1 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
@@ -70,7 +69,7 @@ let test_build_pattern_tree_enum_1 =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
     enum A = { A1, A2 }
@@ -85,7 +84,7 @@ let test_build_pattern_tree_enum_2 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"; "A3"]
+        TC.define_enum_str "A" ["A1"; "A2"; "A3"]
       in
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
@@ -104,7 +103,7 @@ let test_build_pattern_tree_enum_2 =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
     enum A = { A1, A2, A3 }
@@ -119,7 +118,7 @@ let test_build_pattern_tree_enum_3 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"]
+        TC.define_enum_str "A" ["A1"]
       in
       let* actual_tree =
         build_empty_pattern_tree [ enum_type; enum_type ]
@@ -142,7 +141,7 @@ let test_build_pattern_tree_enum_3 =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1 }
@@ -157,7 +156,7 @@ let test_build_pattern_tree_enum_4 =
     in
     let tc =
       let* enum_type =
-        define_enum_str "A" ["A1"; "A2"]
+        TC.define_enum_str "A" ["A1"; "A2"]
       in
       let* actual_tree =
         build_empty_pattern_tree [ enum_type; enum_type ]
@@ -180,7 +179,7 @@ let test_build_pattern_tree_enum_4 =
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       enum A = { A1, A2 }

@@ -22,7 +22,7 @@ let test_adorn_variant_single_unary_constructor =
     in
     let tc =
       let* variant_type =
-        define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -57,7 +57,7 @@ let test_adorn_variant_single_unary_constructor =
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       union A = {
@@ -76,7 +76,7 @@ let test_adorn_variant_wildcard =
     in
     let tc =
       let* variant_type =
-        define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -107,7 +107,7 @@ let test_adorn_variant_wildcard =
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       union A = {
@@ -127,7 +127,7 @@ let test_adorn_variant_binder =
     in
     let tc =
       let* variant_type =
-        define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -158,7 +158,7 @@ let test_adorn_variant_binder =
         (Normalize.normalize_pattern_tree actual_pattern_tree);
       TC.return ()
     in
-    ignore @@ run_tc tc
+    TC.run_expecting_success tc
   in
   {|
       union A = {
@@ -175,7 +175,7 @@ let test_failure_due_to_clashing_field_binders =
   let test _ =
     let tc =
       let* variant_type =
-        define_variant "A" [
+        TC.define_variant "A" [
           ("A1", [Ast.Type.Int]);
           ("A2", [Ast.Type.Int]);
         ]
@@ -203,7 +203,7 @@ let test_failure_due_to_clashing_field_binders =
       in
         TC.return ()
     in
-    run_failing_tc tc
+    TC.run_expecting_failure tc
   in
   {|
       union A = {
