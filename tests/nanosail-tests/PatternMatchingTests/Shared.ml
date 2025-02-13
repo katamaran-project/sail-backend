@@ -131,12 +131,13 @@ let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
   equal (normalize x) (normalize y)
 
 
-let pp_diff_pattern_tree
-    (formatter        : Stdlib.Format.formatter          )
-    ((expected, actual) : M.PatternTree.t * M.PatternTree.t) : unit
+let pp_diff
+    (to_fexpr : 'a -> FExpr.t)
+    (formatter : Stdlib.Format.formatter)
+    ((expected, actual) : 'a * 'a) : unit
   =
-  let expected_fexpr = M.PatternTree.to_fexpr expected
-  and actual_fexpr   = M.PatternTree.to_fexpr actual
+  let expected_fexpr = to_fexpr expected
+  and actual_fexpr   = to_fexpr actual
   in
   let document =
     PP.vertical [
@@ -156,4 +157,3 @@ let pp_diff_pattern_tree
     ]
   in  
   Stdlib.Format.pp_print_string formatter @@ PP.string_of_document document
-
