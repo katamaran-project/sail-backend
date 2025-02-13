@@ -329,6 +329,49 @@ let test_rename_expression_var_2 =
   |} >:: test
 
 
+let test_rename_match_bool_1 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Match begin
+        MatchBool {
+          condition = mkid "cond";
+          when_true = Expression (evar "x");
+          when_false = Expression (evar "y");
+        }
+      end
+    in
+    let renamer =
+      Ast.Renaming.create_renamer
+        (mkid "cond")
+        (mkid "renamed")
+    in
+    let actual =
+      Ast.Renaming.rename_in_statement renamer statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchBool {
+          condition = mkid "renamed";
+          when_true = Expression (evar "x");
+          when_false = Expression (evar "y");
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      x
+    
+    Renaming a -> renamed gives
+
+      X
+    
+  |} >:: test
+
+
 let test_suite =
   "renaming" >::: [
     test_rename_match_product_1;
@@ -336,6 +379,8 @@ let test_suite =
     test_rename_match_product_3;
     test_rename_match_product_4;
     test_rename_match_product_5;
+
+    test_rename_match_bool_1;
 
     test_rename_expression_var_1;
     test_rename_expression_var_2;
