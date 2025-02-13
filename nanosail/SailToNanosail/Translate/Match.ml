@@ -838,7 +838,7 @@ let build_variant_node
             TC.return (binder, PatternTree.UnaryConstructor field_binder, subtree)
           end
         | _ -> begin
-            let field_count = List.length field_types
+            let field_count    = List.length field_types
             in
             let* binder        = Binder.generate_wildcard
             and* field_binders = TC.repeat field_count ~f:Binder.generate_wildcard
