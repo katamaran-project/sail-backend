@@ -654,7 +654,6 @@ let test_clashing_binders_2 =
 
 let test_clashing_binders_3 =
   let test _ =
-    skip_if true "needs updating";
     let gen = new generator
     in
     let tc =
@@ -704,8 +703,10 @@ let test_clashing_binders_3 =
         TC.return tree
       in
       let expected_tree : TM.PatternTree.t =
+        let wildcard_a2_a3 = gen#wildcard
+        in
         Binder {
-          matched_type = enum_type;
+          matched_type = Ast.Type.Int;
           binder       = { identifier = genid; wildcard = false };
           subtree      = Enum {
               enum_identifier = mkid "A";
@@ -720,7 +721,14 @@ let test_clashing_binders_3 =
                   (
                     mkid "A2",
                     (
-                      gen#wildcard,
+                      wildcard_a2_a3,
+                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                    )
+                  );
+                  (
+                    mkid "A3",
+                    (
+                      wildcard_a2_a3,
                       TM.PatternTree.Terminal (Some (a2_statement genid))
                     )
                   );
@@ -729,8 +737,9 @@ let test_clashing_binders_3 =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
+        (* ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr) *)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:pp_diff_pattern_tree
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
