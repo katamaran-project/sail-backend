@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -28,12 +27,7 @@ let test_build_pattern_tree_enum_single_case =
           subtree      = TM.PatternTree.Terminal None
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -62,12 +56,7 @@ let test_build_pattern_tree_enum_1 =
           subtree      = TM.PatternTree.Terminal None
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -96,12 +85,7 @@ let test_build_pattern_tree_enum_2 =
           subtree      = TM.PatternTree.Terminal None
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -134,12 +118,7 @@ let test_build_pattern_tree_enum_3 =
             }
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -172,12 +151,7 @@ let test_build_pattern_tree_enum_4 =
             }
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in

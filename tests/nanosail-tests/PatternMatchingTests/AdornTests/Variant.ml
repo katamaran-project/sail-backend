@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -27,7 +26,7 @@ let test_adorn_variant_single_unary_constructor =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* actual_pattern_tree =
+      let* actual_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
@@ -39,7 +38,7 @@ let test_adorn_variant_single_unary_constructor =
         in
         TC.return pattern_tree
       in
-      let expected_pattern_tree =
+      let expected_tree =
         PT.Variant {
           variant_identifier = mkid "A";
           table = Ast.Identifier.Map.of_alist_exn [
@@ -50,12 +49,7 @@ let test_adorn_variant_single_unary_constructor =
             ]
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_pattern_tree)
-        (Normalize.normalize_pattern_tree actual_pattern_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -81,7 +75,7 @@ let test_adorn_variant_wildcard =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* actual_pattern_tree =
+      let* actual_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
@@ -93,19 +87,14 @@ let test_adorn_variant_wildcard =
         in
         TC.return pattern_tree
       in
-      let expected_pattern_tree =
+      let expected_tree =
         PT.Binder {
           matched_type = variant_type;
           binder       = gen#wildcard;
           subtree      = PT.Terminal (Some a1_statement)
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_pattern_tree)
-        (Normalize.normalize_pattern_tree actual_pattern_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -132,7 +121,7 @@ let test_adorn_variant_binder =
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* actual_pattern_tree =
+      let* actual_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
         in
         let* pattern_tree = adorn
@@ -144,19 +133,14 @@ let test_adorn_variant_binder =
         in
         TC.return pattern_tree
       in
-      let expected_pattern_tree =
+      let expected_tree =
         PT.Binder {
           matched_type = variant_type;
           binder       = mkbinder "x";
           subtree      = PT.Terminal (Some a1_statement)
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string PT.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_pattern_tree)
-        (Normalize.normalize_pattern_tree actual_pattern_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in

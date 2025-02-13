@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -20,7 +19,7 @@ let test_adorn_bool_true_false =
       and false_statement =
         Ast.Statement.ReadRegister (mkid "r2")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
         in
         let* tree = adorn
@@ -41,12 +40,7 @@ let test_adorn_bool_true_false =
           when_false = TM.PatternTree.Terminal (Some false_statement)
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -68,7 +62,7 @@ let test_adorn_bool_false_true =
       and false_statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
         in
         let* tree = adorn
@@ -89,12 +83,7 @@ let test_adorn_bool_false_true =
             when_false = TM.PatternTree.Terminal (Some false_statement)
           }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -114,7 +103,7 @@ let test_adorn_bool_wildcard =
       let statement =
         Ast.Statement.ReadRegister (mkid "r1")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
         in
         let* tree = adorn
@@ -131,12 +120,7 @@ let test_adorn_bool_wildcard =
           subtree      = TM.PatternTree.Terminal (Some statement)
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
 

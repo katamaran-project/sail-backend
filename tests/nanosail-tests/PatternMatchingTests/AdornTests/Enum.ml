@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -23,7 +22,7 @@ let test_adorn_enum_single_case =
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
@@ -44,12 +43,7 @@ let test_adorn_enum_single_case =
             ];
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -73,7 +67,7 @@ let test_adorn_enum_single_case_wildcard =
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
@@ -92,12 +86,7 @@ let test_adorn_enum_single_case_wildcard =
           subtree      = Terminal (Some a1_statement)
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -119,7 +108,7 @@ let test_adorn_enum_single_case_binder =
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
@@ -138,12 +127,7 @@ let test_adorn_enum_single_case_binder =
           subtree      = Terminal (Some a1_statement)
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -176,7 +160,7 @@ let test_adorn_enum_two_cases =
       let a2_statement : Ast.Statement.t =
         ReadRegister (mkid "r2")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
@@ -210,12 +194,7 @@ let test_adorn_enum_two_cases =
             ];
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -283,12 +262,7 @@ let test_adorn_enum_two_cases_wildcard =
             ];
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree actual_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -316,7 +290,7 @@ let test_adorn_enum_two_cases_binder =
       let a2_statement : Ast.Statement.t =
         ReadRegister (mkid "r2")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
         in
         let* tree = adorn
@@ -356,12 +330,7 @@ let test_adorn_enum_two_cases_binder =
             ];
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -389,7 +358,7 @@ let test_adorn_enum_two_cases_pair_wildcard =
       let a2_statement : Ast.Statement.t =
         ReadRegister (mkid "r2")
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
@@ -435,12 +404,7 @@ let test_adorn_enum_two_cases_pair_wildcard =
             }
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -471,7 +435,7 @@ let test_clashing_binders =
       let a2_statement id : Ast.Statement.t =
         Expression (Variable (id, Int))
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
         in
         let* tree = adorn
@@ -517,12 +481,7 @@ let test_clashing_binders =
             }
         }
       in
-      assert_equal
-        ~cmp:TM.PatternTree.equal
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -572,7 +531,7 @@ let test_clashing_binders_2 =
           )
         end
       in
-      let* tree =
+      let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Int; enum_type ]
         in
         let* tree = adorn
@@ -618,12 +577,7 @@ let test_clashing_binders_2 =
             }
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
-        (Normalize.normalize_pattern_tree expected_tree)
-        (Normalize.normalize_pattern_tree tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in

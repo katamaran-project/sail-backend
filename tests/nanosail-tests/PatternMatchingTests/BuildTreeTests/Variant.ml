@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -18,22 +17,17 @@ let test_build_pattern_tree_variant_single_unary_constructor =
       let* variant_type =
         TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
-      let* actual_pattern_tree : TM.PatternTree.t =
+      let* actual_tree : TM.PatternTree.t =
         build_empty_pattern_tree [ variant_type ]
       in
-      let expected_pattern_tree : TM.PatternTree.t =
+      let expected_tree : TM.PatternTree.t =
         TM.PatternTree.Binder {
           matched_type = variant_type;
           binder       = gen#wildcard;
           subtree      = TM.PatternTree.Terminal None
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_pattern_tree)
-        (Normalize.normalize_pattern_tree actual_pattern_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
@@ -52,10 +46,10 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
       let* variant_type =
         TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
-      let* actual_pattern_tree : TM.PatternTree.t =
+      let* actual_tree : TM.PatternTree.t =
         build_empty_pattern_tree [ variant_type; variant_type ]
       in
-      let expected_pattern_tree : TM.PatternTree.t =
+      let expected_tree : TM.PatternTree.t =
         TM.PatternTree.Binder {
           matched_type = variant_type;
           binder       = gen#wildcard;
@@ -66,12 +60,7 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
             }
         }
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
-        (Normalize.normalize_pattern_tree expected_pattern_tree)
-        (Normalize.normalize_pattern_tree actual_pattern_tree);
-      TC.return ()
+      TC.assert_equal_pattern_trees expected_tree actual_tree
     in
     TC.run_expecting_success tc
   in
