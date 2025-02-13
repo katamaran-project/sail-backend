@@ -433,6 +433,50 @@ let test_rename_match_bool_3 =
   |} >:: test
 
 
+let test_rename_match_bool_4 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Match begin
+        MatchBool {
+          condition = mkid "cond";
+          when_true = Expression (evar "x");
+          when_false = Expression (evar "y");
+        }
+      end
+    in
+    let renamer =
+      Ast.Renaming.create_renamer
+        (mkid "y")
+        (mkid "renamed")
+    in
+    let actual =
+      Ast.Renaming.rename_in_statement renamer statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchBool {
+          condition = mkid "cond";
+          when_true = Expression (evar "x");
+          when_false = Expression (evar "renamed");
+        }
+      end
+    in
+    assert_equal_statements expected actual
+  in
+  {|
+      match cond {
+        true  => x,
+        false => y
+      }
+    
+    Renaming a -> renamed gives
+
+      match cond {
+        true  => x,
+        false => renamed
+      }
+  |} >:: test
+
+
 let test_suite =
   "renaming" >::: [
     test_rename_match_product_1;
@@ -444,6 +488,7 @@ let test_suite =
     test_rename_match_bool_1;
     test_rename_match_bool_2;
     test_rename_match_bool_3;
+    test_rename_match_bool_4;
 
     test_rename_expression_var_1;
     test_rename_expression_var_2;
