@@ -1,4 +1,3 @@
-open Base
 open OUnit2
 open Nanosail
 
@@ -57,12 +56,7 @@ let test_build_match_for_enum_int =
           }
         end
       in
-      assert_equal
-        ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-        ~cmp:Ast.Statement.equal
-        (Normalize.normalize_statement expected_match_statement)
-        (Normalize.normalize_statement actual_match_statement);
-      TC.return ()
+      TC.assert_equal_statements expected_match_statement actual_match_statement
     in
     TC.run_expecting_success tc
   in
