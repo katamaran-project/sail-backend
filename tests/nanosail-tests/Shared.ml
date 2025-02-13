@@ -13,21 +13,6 @@ let mkwild   identifier : SailToNanosail.Translate.Match.Binder.t = { identifier
 let mkstm    n                                                    = Ast.Statement.ReadRegister (mkid @@ Printf.sprintf "r%d" n)
 
 
-let assert_equal_statements
-    (expected : Ast.Statement.t)
-    (actual   : Ast.Statement.t) : unit
-  =
-  assert_equal
-    ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-    ~cmp:Ast.Statement.equal
-    (Normalize.normalize_statement expected)
-    (Normalize.normalize_statement actual)
-
-
-let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
-  equal (normalize x) (normalize y)
-
-
 let pp_diff
     (to_fexpr           : 'a -> FExpr.t          )
     (formatter          : Stdlib.Format.formatter)
@@ -54,3 +39,18 @@ let pp_diff
     ]
   in  
   Stdlib.Format.pp_print_string formatter @@ PP.string_of_document document
+
+
+let assert_equal_statements
+    (expected : Ast.Statement.t)
+    (actual   : Ast.Statement.t) : unit
+  =
+  assert_equal
+    ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+    ~cmp:Ast.Statement.equal
+    (Normalize.normalize_statement expected)
+    (Normalize.normalize_statement actual)
+
+
+let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
+  equal (normalize x) (normalize y)

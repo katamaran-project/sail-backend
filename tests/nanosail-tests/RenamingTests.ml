@@ -1,6 +1,6 @@
-open Base
 open OUnit2
 open Nanosail
+open Shared
 
 
 let mkid = Ast.Identifier.mk
@@ -40,11 +40,7 @@ let test_rename_match_product_1 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match x {
@@ -92,11 +88,7 @@ let test_rename_match_product_2 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match x {
@@ -144,11 +136,7 @@ let test_rename_match_product_3 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match x {
@@ -196,11 +184,7 @@ let test_rename_match_product_4 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match x {
@@ -248,11 +232,7 @@ let test_rename_match_product_5 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match x {
@@ -282,11 +262,7 @@ let test_rename_expression_var_1 =
     and expected : Ast.Statement.t =
       Expression (evar "x")
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       x
@@ -313,11 +289,7 @@ let test_rename_expression_var_2 =
     and expected : Ast.Statement.t =
       Expression (evar "renamed")
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       x
@@ -356,11 +328,7 @@ let test_rename_match_bool_1 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match cond {
@@ -404,11 +372,7 @@ let test_rename_match_bool_2 =
         }
       end
     in
-    assert_equal
-      ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
-      expected
-      actual
+    assert_equal_statements expected actual
   in
   {|
       match cond {
