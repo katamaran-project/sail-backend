@@ -728,7 +728,7 @@ let test_clashing_binders_3 =
                   (
                     mkid "A3",
                     (
-                      wildcard_a2_a3,
+                      wildcard_a2_a3, (* must be same wildcard as in A2 case, since when a pattern tree node is expanded, subtrees are copied *)
                       TM.PatternTree.Terminal (Some (a2_statement genid))
                     )
                   );
