@@ -1,13 +1,11 @@
 open Base
 open OUnit2
 open Nanosail
+open Shared
 
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module M       = SailToNanosail.Translate.Match
 
-
-let dummy_location : Libsail.Ast.l =
-  Libsail.Parse_ast.Unknown
 
 let mkid                                                          = Ast.Identifier.mk
 let mkbinder identifier : SailToNanosail.Translate.Match.Binder.t = { identifier = mkid identifier; wildcard = false }

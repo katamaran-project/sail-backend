@@ -12,7 +12,7 @@ module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
 module PT      = TM.PatternTree
 
-open Shared
+open PatternMatchingShared
 
 
 let test_adorn_variant_single_unary_constructor =

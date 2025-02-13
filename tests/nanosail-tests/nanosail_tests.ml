@@ -1,6 +1,7 @@
 open Nanosail
 open OUnit2
 
+module Shared = Shared
 
 let tests =
   "all tests" >::: [

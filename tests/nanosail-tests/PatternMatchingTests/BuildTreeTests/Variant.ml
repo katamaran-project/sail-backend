@@ -6,7 +6,7 @@ open Monads.Notations.Star(TC)
 
 module TM = SailToNanosail.Translate.Match
 
-open Shared
+open PatternMatchingShared
 
 
 let test_build_pattern_tree_variant_single_unary_constructor =

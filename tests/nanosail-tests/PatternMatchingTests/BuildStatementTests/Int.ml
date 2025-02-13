@@ -9,7 +9,7 @@ open Monads.Notations.Star(TC)
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
 
-open Shared
+open PatternMatchingShared
 
 
 let test_build_match_for_int_1 =

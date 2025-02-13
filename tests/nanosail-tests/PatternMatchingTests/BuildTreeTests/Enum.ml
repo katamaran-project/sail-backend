@@ -5,7 +5,7 @@ open Nanosail
 module Pattern = SailToNanosail.Translate.Match.Pattern
 module TM      = SailToNanosail.Translate.Match
 
-open Shared
+open PatternMatchingShared
 open Monads.Notations.Star(TC)
 
 
