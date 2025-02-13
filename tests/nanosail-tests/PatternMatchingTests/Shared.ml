@@ -132,9 +132,9 @@ let eqmod (normalize : 'a -> 'a) (equal : 'a -> 'a -> bool) (x : 'a) (y : 'a) =
 
 
 let pp_diff
-    (to_fexpr : 'a -> FExpr.t)
-    (formatter : Stdlib.Format.formatter)
-    ((expected, actual) : 'a * 'a) : unit
+    (to_fexpr           : 'a -> FExpr.t          )
+    (formatter          : Stdlib.Format.formatter)
+    ((expected, actual) : 'a * 'a                ) : unit
   =
   let expected_fexpr = to_fexpr expected
   and actual_fexpr   = to_fexpr actual
