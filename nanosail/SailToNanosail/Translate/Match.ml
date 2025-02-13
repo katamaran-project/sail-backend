@@ -880,7 +880,7 @@ let rec build_empty_pattern_tree
   match element_types with
   | []           -> TC.return @@ PatternTree.Terminal None
   | head :: tail -> begin
-      let* tail = build_empty_pattern_tree location tail
+      let* subtree = build_empty_pattern_tree location tail        (* todo check if we want to share subtrees *)
       in
       let* tree =
         (*
@@ -888,16 +888,16 @@ let rec build_empty_pattern_tree
            When the need arises, it can be useful to implement specialized functions for specific types.
         *)
         match head with
-        | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) tail
-        | Int                          -> build_binder_node Ast.Type.Int tail
-        | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) tail
-        | Unit                         -> build_binder_node Ast.Type.Unit tail
-        | Bool                         -> build_binder_node Ast.Type.Bool tail
-        | String                       -> build_binder_node Ast.Type.String tail
+        | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) subtree
+        | Int                          -> build_binder_node Ast.Type.Int subtree
+        | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) subtree
+        | Unit                         -> build_binder_node Ast.Type.Unit subtree
+        | Bool                         -> build_binder_node Ast.Type.Bool subtree
+        | String                       -> build_binder_node Ast.Type.String subtree
         | Bit                          -> TC.not_yet_implemented [%here] location
         | List _                       -> TC.not_yet_implemented [%here] location
         | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
-        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) tail
+        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) subtree
         | Tuple _                      -> TC.not_yet_implemented [%here] location
         | Record _                     -> TC.not_yet_implemented [%here] location
         | Application (_, _)           -> TC.not_yet_implemented [%here] location
