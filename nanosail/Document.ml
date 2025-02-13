@@ -35,6 +35,8 @@ module Make(Annotation : ANNOTATION) = struct
     | Horizontal of t * t
     | Vertical   of t * t
     | Annotated  of t * Annotation.t
+    | Decorated  of t * AnsiColor.Decoration.t list
+  
 
   (*
      Note: documents should be built using factory functions, which automatically remove empty subdocuments.
@@ -44,9 +46,10 @@ module Make(Annotation : ANNOTATION) = struct
     match document with
      | Empty              -> true
      | String _           -> false
-     | Horizontal (_, _)  -> false
+     | Horizontal (_, _)  -> false 
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
+     | Decorated (doc, _) -> is_empty doc
 
 
   let rec is_single_line (document : t) : bool =
@@ -55,7 +58,8 @@ module Make(Annotation : ANNOTATION) = struct
     | String _            -> true
     | Horizontal (d1, d2) -> is_single_line d1 && is_single_line d2
     | Vertical (_, _)     -> false
-    | Annotated (d, _)    -> is_single_line d
+    | Annotated (doc, _)  -> is_single_line doc
+    | Decorated (doc, _)  -> is_single_line doc
 
 
   type annotated_string =
@@ -71,15 +75,18 @@ module Make(Annotation : ANNOTATION) = struct
 
   let to_annotated_strings (document : t) : annotated_string list =
     let rec to_annotated_strings
-        (accumulated_annotation : Annotation.t)
-        (document               : t           ) : annotated_string list
+        (accumulated_annotation : Annotation.t               )
+        (current_decoration     : AnsiColor.Decoration.t list)
+        (document               : t                          ) : annotated_string list
       =
       match document with
       | Empty -> []
+                 
       | String string -> [ AnnotatedString { string; annotation=accumulated_annotation } ]
+                         
       | Horizontal (left, right) -> begin
-          let left'  = to_annotated_strings accumulated_annotation left
-          and right' = to_annotated_strings accumulated_annotation right
+          let left'  = to_annotated_strings accumulated_annotation current_decoration left
+          and right' = to_annotated_strings accumulated_annotation current_decoration right
           in
           match List.split_last left' with
           | Some (upper_left', last_left') -> begin
@@ -101,15 +108,47 @@ module Make(Annotation : ANNOTATION) = struct
             end
           | None -> failwith "TODO"
         end
+        
       | Vertical (top, bottom) -> begin
           List.concat [
-            to_annotated_strings accumulated_annotation top;
-            to_annotated_strings accumulated_annotation bottom
+            to_annotated_strings accumulated_annotation current_decoration top;
+            to_annotated_strings accumulated_annotation current_decoration bottom
           ]
         end
-      | Annotated (doc, annotation) -> to_annotated_strings (Annotation.combine accumulated_annotation annotation) doc
+        
+      | Decorated (subdocument, decorations) -> begin
+          let subresults =
+            to_annotated_strings accumulated_annotation decorations subdocument
+          in
+          let activate_decoration =
+            AnsiColor.to_escape_sequence decorations
+          and deactivate_decoration =
+            AnsiColor.to_escape_sequence current_decoration
+          in
+          let decorate_string (string : string) : string
+            =
+            String.concat [
+              activate_decoration;
+              string;
+              deactivate_decoration
+            ]
+          in
+          let rec decorate_annotated_string (annotated_string : annotated_string) : annotated_string =
+            match annotated_string with
+             | AnnotatedString { string; annotation } -> AnnotatedString { string = decorate_string string; annotation }
+             | Concatenation (child_1, child_2)       -> Concatenation (decorate_annotated_string child_1, decorate_annotated_string child_2)
+          in
+          List.map ~f:decorate_annotated_string subresults
+        end
+        
+      | Annotated (doc, annotation) -> begin
+          to_annotated_strings
+            (Annotation.combine accumulated_annotation annotation)
+            current_decoration
+            doc
+        end
     in
-    to_annotated_strings Annotation.empty document
+    to_annotated_strings Annotation.empty [] document
 
 
   let rec strip_annotation (s : annotated_string) : string =
@@ -263,6 +302,18 @@ module Make(Annotation : ANNOTATION) = struct
     =
     Annotated (document, annotation)
 
+
+  let decorate
+      (decorations : AnsiColor.Decoration.t list)
+      (document    : t                          ) : t
+    =
+    if
+      is_empty document
+    then
+      Empty
+    else
+      Decorated (document, decorations)
+  
 
   let hanging (documents : t list) : t =
     match documents with
