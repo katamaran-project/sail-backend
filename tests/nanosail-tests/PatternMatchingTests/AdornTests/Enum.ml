@@ -48,8 +48,8 @@ let test_adorn_enum_single_case =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -97,8 +97,8 @@ let test_adorn_enum_single_case_wildcard =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -144,8 +144,8 @@ let test_adorn_enum_single_case_binder =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -217,8 +217,8 @@ let test_adorn_enum_two_cases =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -291,8 +291,8 @@ let test_adorn_enum_two_cases_wildcard =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree actual_tree);
       TC.return ()
@@ -365,8 +365,8 @@ let test_adorn_enum_two_cases_binder =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -444,8 +444,8 @@ let test_adorn_enum_two_cases_pair_wildcard =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -526,8 +526,8 @@ let test_clashing_binders =
         }
       in
       assert_equal
-        ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
         ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
@@ -628,7 +628,7 @@ let test_clashing_binders_2 =
       in
       assert_equal
         ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr)
-        ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
         (Normalize.normalize_pattern_tree expected_tree)
         (Normalize.normalize_pattern_tree tree);
       TC.return ()
