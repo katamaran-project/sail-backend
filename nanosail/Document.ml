@@ -63,14 +63,14 @@ module Make(Annotation : ANNOTATION) = struct
 
 
   type annotated_string =
-    | AnnotatedString of { string : string; annotation : Annotation.t }
+    | AnnotatedString of { string : string; annotation : Annotation.t; undecorated_length : int }
     | Concatenation of annotated_string * annotated_string
 
 
   let rec length (annotated_string : annotated_string) : int =
     match annotated_string with
-    | AnnotatedString { string; _ } -> String.length string
-    | Concatenation (s1, s2)        -> length s1 + length s2
+    | AnnotatedString { undecorated_length; _ } -> undecorated_length
+    | Concatenation (s1, s2)                    -> length s1 + length s2
 
 
   let to_annotated_strings (document : t) : annotated_string list =
@@ -82,7 +82,15 @@ module Make(Annotation : ANNOTATION) = struct
       match document with
       | Empty -> []
                  
-      | String string -> [ AnnotatedString { string; annotation=accumulated_annotation } ]
+      | String string -> begin
+          [
+            AnnotatedString {
+              string;
+              annotation=accumulated_annotation;
+              undecorated_length = String.length string
+            }
+          ]
+        end
                          
       | Horizontal (left, right) -> begin
           let left'  = to_annotated_strings accumulated_annotation current_decoration left
@@ -95,8 +103,9 @@ module Make(Annotation : ANNOTATION) = struct
               | first_right' :: bottom_right' -> begin
                   let indentation =
                     AnnotatedString {
-                      string     = repeat_string " " (length last_left');
-                      annotation = Annotation.empty
+                      string             = repeat_string " " (length last_left');
+                      annotation         = Annotation.empty;
+                      undecorated_length = length last_left';
                     }
                   in
                   List.concat [
@@ -135,8 +144,8 @@ module Make(Annotation : ANNOTATION) = struct
           in
           let rec decorate_annotated_string (annotated_string : annotated_string) : annotated_string =
             match annotated_string with
-             | AnnotatedString { string; annotation } -> AnnotatedString { string = decorate_string string; annotation }
-             | Concatenation (child_1, child_2)       -> Concatenation (decorate_annotated_string child_1, decorate_annotated_string child_2)
+             | AnnotatedString { string; annotation; undecorated_length } -> AnnotatedString { string = decorate_string string; annotation; undecorated_length }
+             | Concatenation (child_1, child_2)                           -> Concatenation (decorate_annotated_string child_1, decorate_annotated_string child_2)
           in
           List.map ~f:decorate_annotated_string subresults
         end
@@ -187,7 +196,7 @@ module Make(Annotation : ANNOTATION) = struct
   let to_html (document : t) : Html.t =
     let rec html_of_annotated_string (s : annotated_string) : Html.t =
       match s with
-      | AnnotatedString {string; annotation} -> begin
+      | AnnotatedString {string; annotation; undecorated_length = _} -> begin
           if
             Annotation.is_empty annotation
           then
