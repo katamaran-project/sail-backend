@@ -737,7 +737,6 @@ let test_clashing_binders_3 =
         }
       in
       assert_equal
-        (* ~printer:(Fn.compose FExpr.to_string TM.PatternTree.to_fexpr) *)
         ~cmp:TM.PatternTree.equal
         ~pp_diff:pp_diff_pattern_tree
         (Normalize.normalize_pattern_tree expected_tree)
