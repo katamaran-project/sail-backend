@@ -2233,7 +2233,7 @@ let translate_tuple_match
       List.permuters (List.length element_types)
     in
     let* triples_of_tree_size_permuter =
-      let build permuter =        
+      let build permuter =
         let* tree =
           build_pattern_tree_using_permuter permuter
         in
