@@ -32,7 +32,7 @@ let plus       = Doc.plus
 let star       = Doc.star
 let minus      = Doc.minus
 let equals     = Doc.equals
-let slash      = Doc.string "/"
+let slash      = Doc.slash
 
 let lparen     = Doc.lparen
 let rparen     = Doc.rparen

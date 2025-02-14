@@ -243,7 +243,8 @@ module Make(Annotation : ANNOTATION) = struct
   let star       = string "*"
   let minus      = string "-"
   let equals     = string "="
-
+  let slash      = string "/"
+      
   let lparen     = string "("
   let rparen     = string ")"
   let langle     = string "<"
