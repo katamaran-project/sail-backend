@@ -8,4 +8,4 @@
 (test
  (preprocess (pps ppx_here))
  (libraries base ounit2 nanosail)
- (name nanosail_tests))
+ (name NanosailTests))
