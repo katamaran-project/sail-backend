@@ -2234,12 +2234,18 @@ let translate_tuple_match
     in
     let* triples_of_tree_size_permuter =
       let build permuter =
+        let format_error (error : TC.Error.t) =
+          Logging.Message.vertical [
+            Logging.Message.string "Error occurred while optimizing tree; ignoring it";
+            Logging.Message.string @@ TC.Error.to_string error
+          ]
+        in
         TC.recover begin
           let* tree =
             build_pattern_tree_using_permuter permuter
           in
           TC.return @@ Some (tree, PatternTree.count_nodes tree, permuter)
-        end (fun _ -> TC.return None)
+        end (fun error -> let* () = TC.log [%here] Logging.warning (lazy (format_error error))  in TC.return None)
       in
       TC.filter_map ~f:build permuters
     in
@@ -2262,7 +2268,7 @@ let translate_tuple_match
         in
         TC.return (smallest_tree, optimal_permuter)
       end
-    | None -> failwith "should never occur"
+    | None -> TC.fail [%here] "Failed to produce single pattern tree"
   in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
     build_leveled_match_statements (optimal_permuter#permute binder_identifiers) optimal_tree
