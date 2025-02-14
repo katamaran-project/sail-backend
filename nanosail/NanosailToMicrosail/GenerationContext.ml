@@ -272,8 +272,8 @@ let generate
     Monad.run wrapped_f @@ mk_initial_state program
   in
   match result with
-  | Monad.Success result -> result
-  | Monad.Failure error  -> failwith @@ "Error occurred during generation: " ^ error
+  | Success result -> result
+  | Failure error  -> failwith @@ "Error occurred during generation: " ^ error
 
 
 include Monads.Util.Make(Monad)
