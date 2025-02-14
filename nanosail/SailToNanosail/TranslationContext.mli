@@ -43,6 +43,7 @@ val is_register                    : Ast.Identifier.t -> bool t
 
 
 val map                            : f:('a -> 'b t) -> 'a list -> 'b list t
+val filter_map                     : f:('a -> 'b option t) -> 'a list -> 'b list t
 val fold_left                      : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
 val iter                           : f:('a -> unit t) -> 'a list -> unit t
 val lift                           : f:('a -> 'b) -> 'a t -> 'b t
