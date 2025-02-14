@@ -1425,7 +1425,7 @@ let rec adorn_pattern_tree
                   adorn
                     subtree
                     remaining_subpatterns
-                    gap_filling (* todo check if this should be true *)
+                    true
                 in
                 TC.return begin
                   PatternTree.Binder {
@@ -1474,7 +1474,7 @@ let rec adorn_pattern_tree
                     location
                     renamed_subtree
                     remaining_subpatterns
-                    ~gap_filling (* todo check if this should be true *)
+                    ~gap_filling:true
                     renamed_body
                 in
                 TC.return begin
