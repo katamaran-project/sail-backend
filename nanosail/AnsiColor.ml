@@ -1,3 +1,7 @@
+(*
+   Library (very incomplete but sufficient for our purposes) to
+   output colored text.
+*)
 open ExtBase
 
 
@@ -32,6 +36,21 @@ module Decoration = struct
 end
 
 
+(*
+   Translates the decorations into an escape sequence.
+   Printing out these sequence will lead the following text
+   to be printed out with the specified decorations.
+   Typically you will want to reset it back
+   to the default output style,
+   which is represented by the empty list.
+
+   Example:
+
+     let red_underlined = to_escape_sequence [ Decoration.Foreground Red; Decoration.Underlined ]
+     and plain          = to_escape_sequence []
+     in
+     Printf.sprintf "This is in a %sred underlined%s font." red_underlined plain
+*)
 let to_escape_sequence (decorations : Decoration.t list) : string =
   let build_escape_sequence (commands : string list) : string =
     Printf.sprintf "\027[%sm" @@ String.concat ~sep:";" commands
