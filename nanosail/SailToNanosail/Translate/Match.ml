@@ -2233,7 +2233,10 @@ let translate_tuple_match
       List.permuters (List.length element_types)
     in
     let* triples_of_tree_size_permuter =
-      TC.map ~f:(fun permuter -> let* tree = build_pattern_tree permuter in TC.return (tree, PatternTree.count_nodes tree, permuter)) permuters
+      let build_tree_using_permuter permuter =
+        let* tree = build_pattern_tree permuter in TC.return (tree, PatternTree.count_nodes tree, permuter)
+      in      
+      TC.map ~f:build_tree_using_permuter permuters
     in
     let optimal_result =
       List.min_elt
