@@ -2234,10 +2234,12 @@ let translate_tuple_match
     in
     let* triples_of_tree_size_permuter =
       let build permuter =
-        let* tree =
-          build_pattern_tree_using_permuter permuter
-        in
-        TC.return @@ Some (tree, PatternTree.count_nodes tree, permuter)
+        TC.recover begin
+          let* tree =
+            build_pattern_tree_using_permuter permuter
+          in
+          TC.return @@ Some (tree, PatternTree.count_nodes tree, permuter)
+        end (fun _ -> TC.return None)
       in
       TC.filter_map ~f:build permuters
     in
