@@ -497,6 +497,16 @@ module Make(Annotation : ANNOTATION) = struct
     let lines = String.split_lines str
     in
     vertical @@ List.map ~f:string lines
+
+
+  let rec undecorate (document : t) : t =
+    match (document : t) with
+    | Empty -> document
+    | String _ -> document
+    | Horizontal (document_1, document_2) -> Horizontal (undecorate document_1, undecorate document_2)
+    | Vertical (document_1, document_2) -> Vertical (undecorate document_1, undecorate document_2)
+    | Annotated (document, annotation) -> Annotated (undecorate document, annotation)
+    | Decorated (document, _) -> document
 end
 
 
