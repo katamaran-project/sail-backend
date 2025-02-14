@@ -709,6 +709,121 @@ let test_clashing_binders_3 =
   |} >:: test
 
 
+let test_clashing_binders_4 =
+  let test _ =
+    skip_if true "clashing binder failure";
+    let gen = new generator
+    in
+    let tc =
+      let* enum_type =
+        TC.define_enum_str "A" ["A1"; "A2"]
+      in
+      let statement n : Ast.Statement.t =
+        Expression (Val (Ast.Value.mk_int n))
+      in
+      let* tree =
+        let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.EnumCase (mkid "A1");
+              Pattern.EnumCase (mkid "A1");
+            ]
+            (statement 1)
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder (mkbinder "x");
+              Pattern.EnumCase (mkid "A1");
+            ]
+            (statement 2)
+        in
+        let* tree = adorn
+            tree
+            [
+              Pattern.Binder (mkbinder "y");
+              Pattern.Binder (mkwild "z");
+            ]
+            (statement 3)
+        in
+        TC.return tree
+      in
+      let expected_tree : TM.PatternTree.t =
+        TM.PatternTree.Enum {
+          enum_identifier = mkid "A";
+          table = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "A1",
+                (
+                  gen#wildcard,
+                  TM.PatternTree.Enum {
+                    enum_identifier = mkid "A";
+                    table           = Ast.Identifier.Map.of_alist_exn [
+                        (
+                          mkid "A1",
+                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 1)))
+                        );
+                        (
+                          mkid "A2",
+                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 3)))
+                        );
+                      ]
+                  }
+                )
+              );
+              (
+                mkid "A2",
+                (
+                  gen#wildcard,
+                  TM.PatternTree.Enum {
+                    enum_identifier = mkid "A";
+                    table = Ast.Identifier.Map.of_alist_exn [
+                        (
+                          mkid "A1",
+                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 2)))
+                        );
+                        (
+                          mkid "A2",
+                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 3)))
+                        );
+                      ]
+                  }
+                )
+              )
+            ]
+        }
+      in
+      assert_equal
+        ~cmp:TM.PatternTree.equal
+        ~pp_diff:(pp_diff TM.PatternTree.to_fexpr)
+        (Normalize.normalize_pattern_tree expected_tree)
+        (Normalize.normalize_pattern_tree tree);
+      TC.return ()
+    in
+    TC.run_expecting_success tc
+  in
+  {|
+      enum A = { A1, A2 }
+
+      match pair {
+        (A1, A1) => 1,
+        (x , A1) => 2,
+        (y , _ ) => 3
+      }
+
+    should become
+
+      match pair {
+        (A1, A1) => 1,
+        (A2, A1) => 2,
+        (A1, A2) => 3,
+        (A2, A2) => 3
+      }
+  |} >:: test
+
+
 let test_suite =
   "enum" >::: [
     test_adorn_enum_single_case;
@@ -722,4 +837,5 @@ let test_suite =
     test_clashing_binders;
     test_clashing_binders_2;
     test_clashing_binders_3;
+    test_clashing_binders_4;
   ]
