@@ -94,7 +94,7 @@ let pp_function_definition
             GC.add_comment begin
               PP.vertical [
                 PP.string "AST";
-                PP.indent @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
+                PP.indent @@ PP.undecorate @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
               ]
             end
           else
