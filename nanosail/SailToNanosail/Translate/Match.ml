@@ -161,7 +161,7 @@
 
     ISSUE 4 : Clashing Binders
     --------------------------
-    It is possible that a same value can be bound to different identifiers in
+    It is possible that the same value is bound to different identifiers in
     different match clauses.
 
       enum A { A1, A2 }
@@ -171,10 +171,15 @@
       }
 
     In the above example, int_value is bound to x and y by different clauses.
-    Our current implementation expects the same value to be bound to the same
+    In general, the current implementation expects the same value to be bound to the same
     identifier in all clauses.
-    There are some specific cases where the current implementation allows
-    clashing binders: a binder X is upgraded to a wildcard if no reference to X
+    (It just so happens that in this example, although clear, the implementation is actually
+    able to handle the clashing binders, as explained below. An example
+    of an unsupported case is also given.)
+   
+   
+    There are some specific cases where the current implementation can
+    deal with clashing binders: a binder X is upgraded to a wildcard if no reference to X
     appears in the right hand side of the clause.
 
       match (int_value, A_value) {
@@ -187,8 +192,33 @@
         _, A1 => stm1
       }
 
-    !! Partially implemented !! (todo update this section)
+    Another case where clashing binders are allowed is when
+    the same value has been matched exclusively against binders/wildcards:
 
+      enum A = { A1, A2 }
+      match pair {
+        (x, A1) => x,
+        (y, A2) => y
+      }
+
+    This will be transformed into
+
+      match pair {
+        (gen, A1) => gen,
+        (gen, A2) => gen
+      }
+
+    An example that will be rejected by the current implementation is
+
+      enum A = { A1, A2 }
+      match pair {
+        (A1, A1) => 1,
+        (x,  A1) => 2,
+        (y,   _) => 3,
+      }
+
+    This fails because the pattern node is expanded by the first clause,
+    while the implementation can only resolve unexpanded nodes.
 
 
     Optimization
@@ -196,6 +226,9 @@
     Given a tuple (x, y, z), the order in which the values are matched against
     impact the size of the generated code.
 
+    The current implementation relies on brute force to find the smallest tree:
+    it tries all possible orderings. This approach should be acceptable
+    for most cases, i.e., where tuples don't grow larger than 8 elements.
 
 
     Pattern Trees
