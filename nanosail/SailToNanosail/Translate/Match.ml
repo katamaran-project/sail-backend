@@ -2211,7 +2211,7 @@ let translate_tuple_match
     in
     TC.map ~f:process_case cases
   in
-  let build_pattern_tree (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
+  let build_pattern_tree_using_permuter (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
     =
     let* initial_tree =
       build_empty_pattern_tree
@@ -2233,13 +2233,13 @@ let translate_tuple_match
       List.permuters (List.length element_types)
     in
     let* triples_of_tree_size_permuter =
-      let build_tree_using_permuter permuter =        
+      let build permuter =        
         let* tree =
-          build_pattern_tree permuter
+          build_pattern_tree_using_permuter permuter
         in
         TC.return @@ Some (tree, PatternTree.count_nodes tree, permuter)
       in
-      TC.filter_map ~f:build_tree_using_permuter permuters
+      TC.filter_map ~f:build permuters
     in
     let optimal_result =
       List.min_elt
