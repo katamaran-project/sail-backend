@@ -136,4 +136,3 @@ let definition
   in
   PPrint.ToBuffer.pretty ribbon_width line_width buffer document;
   Buffer.contents buffer
- 
