@@ -41,6 +41,6 @@ let annotate
   let annotation =
     match label with
     | Some label -> Printf.sprintf "%s:%d %s" pos_fname pos_lnum label
-    | None       -> Printf.sprintf "%s:%d" pos_fname pos_lnum
+    | None       -> Printf.sprintf "%s:%d"    pos_fname pos_lnum
   in
   annotate [annotation] document
