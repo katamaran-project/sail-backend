@@ -1028,7 +1028,22 @@ let translate_function_definition
       (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
   TC.translation_block [%here] (Logging.Message.string "Translating function") begin
-    let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
+    let S.FD_aux ((FD_function (_rec_opt, _tannot_opt, funcls)), _) = function_definition
+    in
+    let* () =
+      let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
+      in
+      let* message =
+        match unwrapped_tannot_opt with
+        | Typ_annot_opt_none -> TC.return @@ Logging.Message.string "Type annotation: None"
+        | Typ_annot_opt_some (type_quantifier, typ) -> begin
+            let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
+            and* _typ'             = Nanotype.nanotype_of_sail_type typ
+            in
+            TC.return @@ Logging.Message.string "Type annotation: Some"
+          end
+      in
+      TC.log [%here] Logging.debug @@ lazy message
     in
     match funcls with
     | [function_clause] -> begin
