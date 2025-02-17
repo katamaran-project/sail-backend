@@ -361,6 +361,12 @@ module Make(Annotation : ANNOTATION) = struct
       vertical @@ List.map ~f:(Fn.uncurry render_item) items
 
 
+    (*
+       Encloses a document within delimiters.
+       Layout determines how delimiters and document are placed with respect to one another.
+
+       E.g., enclose horizontal brackets (string foo) produces [foo]
+    *)
     let enclose
         (layout     : t list -> t)
         (delimiters : t * t      )
