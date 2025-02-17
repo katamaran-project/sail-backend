@@ -15,26 +15,27 @@ module Sail = struct
 end
 
 
-let id           = Sail.string_of_id
-let kid          = Sail.string_of_kid
-let kind_aux     = Sail.string_of_kind_aux
-let kind         = Sail.string_of_kind
-let nexp         = Sail.string_of_nexp
-let typ          = Sail.string_of_typ
-let typ_arg      = Sail.string_of_typ_arg
-let typ_pat      = Sail.string_of_typ_pat
-let n_constraint = Sail.string_of_n_constraint
-let kinded_id    = Sail.string_of_kinded_id
-let quant_item   = Sail.string_of_quant_item
-let typquant     = Sail.string_of_typquant
-let typschm      = Sail.string_of_typschm
-let lit          = Sail.string_of_lit
-let exp          = Sail.string_of_exp
-let pexp         = Sail.string_of_pexp
-let lexp         = Sail.string_of_lexp
-let mpat         = Sail.string_of_mpat
-let letbind      = Sail.string_of_letbind
-let index_range  = Sail.string_of_index_range
+let id              = Sail.string_of_id
+let kid             = Sail.string_of_kid
+let kind_aux        = Sail.string_of_kind_aux
+let kind            = Sail.string_of_kind
+let nexp            = Sail.string_of_nexp
+let typ             = Sail.string_of_typ
+let typ_arg         = Sail.string_of_typ_arg
+let typ_pat         = Sail.string_of_typ_pat
+let n_constraint    = Sail.string_of_n_constraint
+let kinded_id       = Sail.string_of_kinded_id
+let quant_item      = Sail.string_of_quant_item
+let typquant        = Sail.string_of_typquant
+let typschm         = Sail.string_of_typschm
+let lit             = Sail.string_of_lit
+let exp             = Sail.string_of_exp
+let pexp            = Sail.string_of_pexp
+let lexp            = Sail.string_of_lexp
+let mpat            = Sail.string_of_mpat
+let letbind         = Sail.string_of_letbind
+let index_range     = Sail.string_of_index_range
+let type_annotation = Sail.string_of_tannot
 
 
 let aval (aval : 'a Sail.aval) =
@@ -135,3 +136,4 @@ let definition
   in
   PPrint.ToBuffer.pretty ribbon_width line_width buffer document;
   Buffer.contents buffer
+ 
