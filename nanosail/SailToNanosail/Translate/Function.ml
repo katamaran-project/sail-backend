@@ -1060,20 +1060,22 @@ let translate_function_definition
           let* type_annotation_message =
             TC.return @@ Logging.Message.string @@ StringOf.Sail.type_annotation type_annotation
           in
-          let message =
-            Logging.Message.description_list [
-              (Logging.Message.string "Function name", Logging.Message.string @@ Ast.Identifier.to_string function_name);
-              (Logging.Message.string "Original", Logging.Message.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
-              (Logging.Message.string "type_annotation", type_annotation_message);
-              (Logging.Message.string "tannot_opt", tannot_opt_message);
+          let message = lazy begin
+            let properties =
+              Logging.Message.description_list [
+                (Logging.Message.string "Function name", Logging.Message.string @@ Ast.Identifier.to_string function_name);
+                (Logging.Message.string "Original", Logging.Message.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
+                (Logging.Message.string "type_annotation", type_annotation_message);
+                (Logging.Message.string "tannot_opt", tannot_opt_message);
+              ]
+            in
+            Logging.Message.vertical [
+              Logging.Message.format "Translated function %s" (Ast.Identifier.to_string function_name);
+              Logging.Message.indent properties;
             ]
-          in
-          TC.log [%here] Logging.info @@ lazy message
-        in
-        let* () =
-          TC.log [%here] Logging.info @@ lazy begin
-            Logging.Message.format "Translated function %s" (Ast.Identifier.to_string function_name)
           end
+          in
+          TC.log [%here] Logging.info message
         in
         let function_body =
           Ast.Simplify.simplify_statement function_body
