@@ -70,7 +70,7 @@ end = struct
 
   let to_decoration (verbosity_level : t) : AnsiColor.Decoration.t list =
     match verbosity_level with
-    | 1 -> [ AnsiColor.Decoration.BackgroundColor Red; AnsiColor.Decoration.ForegroundColor White ]
+    | 1 -> [ AnsiColor.Decoration.BackgroundColor Red; AnsiColor.Decoration.ForegroundColor BrightWhite ]
     | 2 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Red ]
     | 3 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Green ]
     | _ -> [ ]
