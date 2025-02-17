@@ -110,6 +110,11 @@ let rec pp_extended_parameter_type (extended_type : Ast.ExtendedType.Parameter.t
       in
       GC.return @@ PP.(separate_horizontally ~separator:(string " * ") ts')
     end
+  | Bitvector nexp -> begin
+      let* nexp' = Numeric.Expression.pp nexp
+      in
+      GC.return @@ PP.(horizontal [ string "bitvector("; nexp'; string ")" ])
+    end
   | Unknown ud   -> begin
       let* annotation_index =
         let annotation_document =
