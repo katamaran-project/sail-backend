@@ -663,7 +663,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       match variant_definition with
       | Some variant_definition -> begin
-          (* Function call needs to be translated to variant value construction *)
+          (*
+             We identified receiver_identifier as a constructor for a variant.
+             Function call needs to be translated to variant value construction.
+          *)
           match argument_expressions with
           | [argument] -> begin
               (*
