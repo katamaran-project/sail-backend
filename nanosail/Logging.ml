@@ -54,6 +54,8 @@ module VerbosityLevel : sig
   val info        : t
   val debug       : t
   val default     : t
+
+  val to_message  : t -> Message.t
 end = struct
   type t = int
 
@@ -104,14 +106,17 @@ let log
   if
     VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level: level
   then
-    let filename    = ocaml_position.pos_fname
-    and line_number = ocaml_position.pos_lnum
-    and level_name  = VerbosityLevel.to_string level
-    in
     let output_message =
       let tag =
-        Message.(enclose horizontal brackets (decorate (AnsiColor.Decoration.ForegroundColor level_color)
-        Message.format "[%s] (%s:%d) " level_name filename line_number
+        let level_message =
+          Message.(enclose horizontal brackets (VerbosityLevel.to_message level))
+        and location_message =
+          let filename    = ocaml_position.pos_fname
+          and line_number = ocaml_position.pos_lnum
+          in
+          Message.format " (%s:%d) " filename line_number
+        in
+        Message.horizontal [ level_message; location_message ]
       in
       Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
     in
