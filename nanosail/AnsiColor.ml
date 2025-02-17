@@ -14,6 +14,7 @@ module Color = struct
     | Magenta
     | Cyan
     | White
+    | BrightWhite
 end
 
 
@@ -26,22 +27,24 @@ module Decoration = struct
 
   let code_of (decoration : t) : string =
     match decoration with
-    | ForegroundColor Red     -> "31"
-    | ForegroundColor Green   -> "32"
-    | ForegroundColor Yellow  -> "33"
-    | ForegroundColor Blue    -> "34"
-    | ForegroundColor Magenta -> "35"
-    | ForegroundColor Cyan    -> "36"
-    | ForegroundColor White   -> "37"
-    | BackgroundColor Red     -> "41"
-    | BackgroundColor Green   -> "42"
-    | BackgroundColor Yellow  -> "43"
-    | BackgroundColor Blue    -> "44"
-    | BackgroundColor Magenta -> "45"
-    | BackgroundColor Cyan    -> "46"
-    | BackgroundColor White   -> "47"
-    | Underlined              -> "4"
-    | Bold                    -> "1"
+    | ForegroundColor Red         -> "31"
+    | ForegroundColor Green       -> "32"
+    | ForegroundColor Yellow      -> "33"
+    | ForegroundColor Blue        -> "34"
+    | ForegroundColor Magenta     -> "35"
+    | ForegroundColor Cyan        -> "36"
+    | ForegroundColor White       -> "37"
+    | ForegroundColor BrightWhite -> "97"
+    | BackgroundColor Red         -> "41"
+    | BackgroundColor Green       -> "42"
+    | BackgroundColor Yellow      -> "43"
+    | BackgroundColor Blue        -> "44"
+    | BackgroundColor Magenta     -> "45"
+    | BackgroundColor Cyan        -> "46"
+    | BackgroundColor White       -> "47"
+    | BackgroundColor BrightWhite -> "107"
+    | Underlined                  -> "4"
+    | Bold                        -> "1"
 end
 
 
