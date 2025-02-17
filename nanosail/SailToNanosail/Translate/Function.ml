@@ -1042,8 +1042,8 @@ let translate_function_definition
         and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
         let* () =
-          let* top_level_type_constraint =
-            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition) (* todo *)
+          let* _top_level_type_constraint = (* todo use to determine whether function is polymorphic *)
+            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named function_name)
           in
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
           in
