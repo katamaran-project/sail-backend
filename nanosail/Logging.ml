@@ -1,6 +1,9 @@
 open! ExtBase
 
 
+module Message = Document.WithoutAnnotations
+
+
 let indentation_level = ref 0
 
 
@@ -63,6 +66,16 @@ end = struct
     | 4 -> "DEBUG"
     | _ -> failwith "unknown verbosity level"
 
+  let to_decoration (verbosity_level : t) : AnsiColor.Decoration.t list =
+    match verbosity_level with
+    | 1 -> [ AnsiColor.Decoration.BackgroundColor Red; AnsiColor.Decoration.ForegroundColor White ]
+    | 2 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Red ]
+    | 3 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Green ]
+    | _ -> [ ]
+
+  let to_message (verbose_level : t) : Message.t =
+    Message.decorate (to_decoration verbose_level) (Message.string @@ to_string verbose_level)
+  
   let from_int (n : int) : t = n
 
   let should_show
@@ -82,16 +95,6 @@ end
 
 let verbosity_level = ConfigLib.Setting.mk VerbosityLevel.default
 
-module LogAnnotation : Document.ANNOTATION = struct
-  type t = unit
-
-  let empty       = ()
-  let is_empty _  = true
-  let combine _ _ = ()
-  let to_html _   = Html.string ""
-end
-
-module Message = Document.Make(LogAnnotation)
 
 let log
     (level          : VerbosityLevel.t)
@@ -107,6 +110,7 @@ let log
     in
     let output_message =
       let tag =
+        Message.(enclose horizontal brackets (decorate (AnsiColor.Decoration.ForegroundColor level_color)
         Message.format "[%s] (%s:%d) " level_name filename line_number
       in
       Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
