@@ -9,6 +9,7 @@ let string_of_pprint_document (document : PPrint.document) : string =
   Stdlib.Buffer.contents buffer
 
 
+(* todo remove duplication (see StringOf.Sail.definition) *)
 let pp_sail_definition (sail_definition : Libsail.Type_check.typed_def) : PP.document =
   let document =
     Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
