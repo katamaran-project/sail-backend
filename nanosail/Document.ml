@@ -378,7 +378,7 @@ module Make(Annotation : ANNOTATION) = struct
   *)
     let separate_horizontally
         ~(separator : t     )
-        (items     : t list) : t
+         (items     : t list) : t
       =
       let rec separate documents =
         match documents with
