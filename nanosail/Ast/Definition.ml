@@ -546,12 +546,12 @@ module Select = struct
     end
 
 
-    class top_level_type_constraint_definition_selector = object
-      inherit [t, TopLevelTypeConstraint.t] selector
+    class top_level_type_constraint_definition_selector (name : Identifier.t option) = object(self)
+      inherit [t, TopLevelTypeConstraint.t] named_definition_selector name
 
       method select (definition : t) : TopLevelTypeConstraint.t option =
         match definition with
-        | TopLevelTypeConstraintDefinition top_level_type_constraint_definition -> Some top_level_type_constraint_definition
+        | TopLevelTypeConstraintDefinition top_level_type_constraint_definition when self#matching_name top_level_type_constraint_definition.identifier -> Some top_level_type_constraint_definition
         | _                                                                     -> None
 
       method to_fexpr : FExpr.t =
@@ -728,7 +728,10 @@ module Select = struct
       new Selectors.ignored_definition_selector
 
   let top_level_type_constraint_definition =
-    new Selectors.top_level_type_constraint_definition_selector
+    new Selectors.top_level_type_constraint_definition_selector None
+
+  let top_level_type_constraint_definition_named (name : Identifier.t) : (t, TopLevelTypeConstraint.t) selector =
+    new Selectors.top_level_type_constraint_definition_selector (Some name)
 
   let value_definition : (t, Value.t) selector =
     new Selectors.value_definition_selector None
