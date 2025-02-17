@@ -641,7 +641,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
       | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
-    let statement_of_generic_function_call () =
+    let statement_of_function_call () =
       (*
         Sail translates the construction of a variant type to a function call.
 
@@ -714,7 +714,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | "gteq_int"  -> statement_of_binary_operation @@ StandardComparison GreaterThanOrEqualTo
     | "eq_int"    -> statement_of_binary_operation EqualTo
     | "neq_int"   -> statement_of_binary_operation NotEqualTo
-    | _           -> statement_of_generic_function_call ()
+    | _           -> statement_of_function_call ()
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
