@@ -354,7 +354,7 @@ module Make(Annotation : ANNOTATION) = struct
     let description_list (items : (t * t) list) : t =
       let render_item entry description =
         vertical [
-          entry;
+          decorate [Underlined] entry;
           indent description;
         ]
       in
