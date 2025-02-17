@@ -38,7 +38,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
           | DEF_let value_definition                 -> Translate.ValueDefinition.translate_value_definition annotation value_definition
           | DEF_val value_specification              -> Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
           | DEF_register specification               -> Translate.Register.translate_register annotation specification
-          | DEF_fundef function_definition           -> Translate.Function.translate_function_definition annotation function_definition
+          | DEF_fundef function_definition           -> Translate.Function.translate_function_definition sail_definition annotation function_definition
           | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
           | DEF_fixity (_, _, _)                     -> TC.return Ast.Definition.IgnoredDefinition
           | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc

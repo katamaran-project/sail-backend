@@ -1024,8 +1024,9 @@ let translate_body body =
 
 
 let translate_function_definition
-      (definition_annotation : Sail.definition_annotation   )
-      (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
+    (full_sail_definition  : Sail.sail_definition         )
+    (definition_annotation : Sail.definition_annotation   )
+    (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
   TC.translation_block [%here] (Logging.Message.string "Translating function") begin
     let S.FD_aux ((FD_function (_rec_opt, _tannot_opt, funcls)), (_location, type_annotation)) = function_definition
@@ -1043,17 +1044,28 @@ let translate_function_definition
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
           in
-          let* message =
+          let* tannot_opt_message =
             match unwrapped_tannot_opt with
-            | Typ_annot_opt_none -> TC.return @@ Logging.Message.string "Type annotation: None"
+            | Typ_annot_opt_none -> TC.return @@ Logging.Message.string "None"
             | Typ_annot_opt_some (type_quantifier, typ) -> begin
                 let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
                 and* _typ'             = Nanotype.nanotype_of_sail_type typ
                 in
-                TC.return @@ Logging.Message.string "Type annotation: Some"
+                TC.return @@ Logging.Message.string "Some"
               end
           in
-          TC.log [%here] Logging.debug @@ lazy message
+          let* type_annotation_message =
+            TC.return @@ Logging.Message.string @@ StringOf.Sail.type_annotation type_annotation
+          in
+          let message =
+            Logging.Message.description_list [
+              (Logging.Message.string "Function name", Logging.Message.string @@ Ast.Identifier.to_string function_name);
+              (Logging.Message.string "Original", Logging.Message.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
+              (Logging.Message.string "type_annotation", type_annotation_message);
+              (Logging.Message.string "tannot_opt", tannot_opt_message);
+            ]
+          in
+          TC.log [%here] Logging.info @@ lazy message
         in
         let* () =
           TC.log [%here] Logging.info @@ lazy begin
