@@ -20,7 +20,7 @@ let translate_type_abbreviation
       (quantifier             : S.typquant                  )
       (type_argument          : S.typ_arg                   ) : Ast.Definition.Type.t TC.t
   =
-  TC.translation_block [%here] (Logging.Message.string "Translating type abbreviation") begin
+  TC.translation_block [%here] (PP.string "Translating type abbreviation") begin
     let S.A_aux (unwrapped_type_argument, _type_argument_location) = type_argument
     in
     let* quantifier' = TypeQuantifier.translate_type_quantifier quantifier

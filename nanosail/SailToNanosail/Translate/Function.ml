@@ -1028,7 +1028,7 @@ let translate_function_definition
     (definition_annotation : Sail.definition_annotation   )
     (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
-  TC.translation_block [%here] (Logging.Message.string "Translating function") begin
+  TC.translation_block [%here] (PP.string "Translating function") begin
     let S.FD_aux ((FD_function (_rec_opt, _tannot_opt, funcls)), (_location, type_annotation)) = function_definition
     in
     match funcls with
@@ -1049,29 +1049,29 @@ let translate_function_definition
           in
           let* tannot_opt_message =
             match unwrapped_tannot_opt with
-            | Typ_annot_opt_none -> TC.return @@ Logging.Message.string "None"
+            | Typ_annot_opt_none -> TC.return @@ PP.string "None"
             | Typ_annot_opt_some (type_quantifier, typ) -> begin
                 let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
                 and* _typ'             = Nanotype.nanotype_of_sail_type typ
                 in
-                TC.return @@ Logging.Message.string "Some"
+                TC.return @@ PP.string "Some"
               end
           in
           let* type_annotation_message =
-            TC.return @@ Logging.Message.string @@ StringOf.Sail.type_annotation type_annotation
+            TC.return @@ PP.string @@ StringOf.Sail.type_annotation type_annotation
           in
           let message = lazy begin
             let properties =
-              Logging.Message.description_list [
-                (Logging.Message.string "Function name", Logging.Message.string @@ Ast.Identifier.to_string function_name);
-                (Logging.Message.string "Original", Logging.Message.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
-                (Logging.Message.string "type_annotation", type_annotation_message);
-                (Logging.Message.string "tannot_opt", tannot_opt_message);
+              PP.description_list [
+                (PP.string "Function name", PP.string @@ Ast.Identifier.to_string function_name);
+                (PP.string "Original", PP.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
+                (PP.string "type_annotation", type_annotation_message);
+                (PP.string "tannot_opt", tannot_opt_message);
               ]
             in
-            Logging.Message.vertical [
-              Logging.Message.format "Translated function %s" (Ast.Identifier.to_string function_name);
-              Logging.Message.indent properties;
+            PP.vertical [
+              PP.format "Translated function %s" (Ast.Identifier.to_string function_name);
+              PP.indent properties;
             ]
           end
           in

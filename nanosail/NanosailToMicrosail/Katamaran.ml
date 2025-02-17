@@ -99,7 +99,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ program_module
 
   method pp_finite : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_finite")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_finite")
     in
     let* finite_definitions =
       let finite_enums =
@@ -135,7 +135,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_no_confusion : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_no_confusion")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_no_confusion")
     in
     let section_identifier =
       Ast.Identifier.mk "TransparentObligations"
@@ -178,7 +178,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       end
 
   method pp_eqdecs : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_eqdecs")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_eqdecs")
     in
     (*
       Collect identifiers for which to declare EqDec
@@ -216,12 +216,12 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     end
 
   method pp_value_definitions : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_value_definitions")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_value_definitions")
     in
     ValueDefinitions.generate all_definitions
 
   method pp_base : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_base")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_base")
     in
     let* sections = GC.sequence [
       self#pp_base_prelude;
@@ -240,7 +240,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
     GC.return @@ PP.(paragraphs sections)
 
   method pp_program : PP.document GC.t =
-    let* () = GC.log [%here] Logging.debug @@ lazy (Logging.Message.string "pp_program")
+    let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_program")
     in
     let* sections = GC.sequence [
         self#pp_program_prelude;

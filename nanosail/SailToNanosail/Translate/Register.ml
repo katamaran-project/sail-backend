@@ -20,7 +20,7 @@ let translate_register
       (_definition_annotation        : Sail.definition_annotation     )
       (annotated_register_definition : Sail.type_annotation S.dec_spec) : Ast.Definition.t TC.t
   =
-  TC.translation_block [%here] (Logging.Message.string "Translating register definition") begin
+  TC.translation_block [%here] (PP.string "Translating register definition") begin
     let (S.DEC_aux (DEC_reg (sail_type, identifier, initial_value), (_spec_location, _spec_annotation))) = annotated_register_definition
     in
     let* identifier'    = translate_identifier [%here] identifier
@@ -33,7 +33,7 @@ let translate_register
             let* () =
               let warning_message =
                 lazy begin
-                  Logging.Message.string begin
+                  PP.string begin
                     Printf.sprintf
                       "Failed to translate initial value for register %s:\n  %s"
                       (Ast.Identifier.to_string identifier')
@@ -51,7 +51,7 @@ let translate_register
         end
       | None -> TC.return Ast.Definition.Register.NoneSpecified
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.format "Translated register %s" @@ Ast.Identifier.to_string identifier')
+    let* () = TC.log [%here] Logging.info @@ lazy (PP.format "Translated register %s" @@ Ast.Identifier.to_string identifier')
     in
     TC.return @@ Ast.Definition.RegisterDefinition {
       identifier    = identifier'   ;

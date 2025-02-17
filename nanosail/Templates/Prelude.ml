@@ -12,8 +12,8 @@ module GC = struct
 end
 
 
-let string_of_document document =
-  PP.string_of_document document
+let string_of_document =
+  Fn.compose PP.string_of_document PP.undecorate
 
 
 let html_of_document =

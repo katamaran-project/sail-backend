@@ -1,9 +1,6 @@
 open! ExtBase
 
 
-module Message = Document.WithoutAnnotations
-
-
 let indentation_level = ref 0
 
 
@@ -55,7 +52,7 @@ module VerbosityLevel : sig
   val debug       : t
   val default     : t
 
-  val to_message  : t -> Message.t
+  val to_message  : t -> PP.document
 end = struct
   type t = int
 
@@ -75,8 +72,8 @@ end = struct
     | 3 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Green ]
     | _ -> [ ]
 
-  let to_message (verbose_level : t) : Message.t =
-    Message.decorate (to_decoration verbose_level) (Message.string @@ to_string verbose_level)
+  let to_message (verbose_level : t) : PP.document =
+    PP.decorate (to_decoration verbose_level) (PP.string @@ to_string verbose_level)
   
   let from_int (n : int) : t = n
 
@@ -99,9 +96,9 @@ let verbosity_level = ConfigLib.Setting.mk VerbosityLevel.default
 
 
 let log
-    (level          : VerbosityLevel.t)
-    (ocaml_position : Lexing.position )
-    (message        : Message.t lazy_t) : unit
+    (level          : VerbosityLevel.t  )
+    (ocaml_position : Lexing.position   )
+    (message        : PP.document lazy_t) : unit
   =
   if
     VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level: level
@@ -109,19 +106,19 @@ let log
     let output_message =
       let tag =
         let level_message =
-          Message.(enclose horizontal brackets (VerbosityLevel.to_message level))
+          PP.(enclose horizontal brackets (VerbosityLevel.to_message level))
         and location_message =
           let filename    = ocaml_position.pos_fname
           and line_number = ocaml_position.pos_lnum
           in
-          Message.format " (%s:%d) " filename line_number
+          PP.format " (%s:%d) " filename line_number
         in
-        Message.horizontal [ level_message; location_message ]
+        PP.horizontal [ level_message; location_message ]
       in
-      Message.indent ~level:!indentation_level @@ Message.horizontal [tag; Lazy.force message]
+      PP.indent ~level:!indentation_level @@ PP.horizontal [tag; Lazy.force message]
     in
     let output_string =
-      Message.to_string output_message
+      PP.string_of_document output_message
     in
     (* %! forces a flush *)
     Stdio.printf "%s\n%!" output_string
@@ -134,17 +131,17 @@ let debug   = log VerbosityLevel.debug
 
 
 let surround
-    (ocaml_position : Lexing.position                            )
-    (logger         : Lexing.position -> Message.t lazy_t -> unit)
-    (caption        : string lazy_t                              )
-    (f              : unit -> 'a                                 ) : 'a
+    (ocaml_position : Lexing.position                              )
+    (logger         : Lexing.position -> PP.document lazy_t -> unit)
+    (caption        : string lazy_t                                )
+    (f              : unit -> 'a                                   ) : 'a
   =
   let enter_block () =
-    logger ocaml_position @@ lazy (Message.format "Entering %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (PP.format "Entering %s" (Lazy.force caption))
   and exited_block_successfully () =
-    logger ocaml_position @@ lazy (Message.format "Exiting %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (PP.format "Exiting %s" (Lazy.force caption))
   and exited_block_with_exception () =
-    logger ocaml_position @@ lazy (Message.format "Escaping %s" (Lazy.force caption))
+    logger ocaml_position @@ lazy (PP.format "Escaping %s" (Lazy.force caption))
   in
   enter_block ();
   try

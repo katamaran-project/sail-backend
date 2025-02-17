@@ -49,9 +49,9 @@ let mk_initial_state (program : Ast.program) : state = ([], 0, program)
 
 
 let log
-    (ocaml_position : Lexing.position                                    )
-    (logger         : Lexing.position -> Logging.Message.t lazy_t -> unit)
-    (message        : Logging.Message.t lazy_t                           ) : unit t
+    (ocaml_position : Lexing.position                                  )
+    (logger         : Lexing.position -> PP.document lazy_t -> unit)
+    (message        : PP.document lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
 
@@ -210,7 +210,7 @@ let generation_block
     (contents : PP.document t  ) : PP.document t
   =
   let* contents =
-    let* () = log position Logging.debug @@ lazy (Logging.Message.format "Entering %s" label)
+    let* () = log position Logging.debug @@ lazy (PP.format "Entering %s" label)
     and* restore_indentation = act Logging.create_indentation_restorer
     in
     let* () = act @@ fun () -> Logging.increase_indentation ()
@@ -218,7 +218,7 @@ let generation_block
     let* contents
     in
     let* () = act restore_indentation (* fix indentation restoration to handle failures correctly *)
-    and* () = log position Logging.debug @@ lazy (Logging.Message.format "Exiting %s" label)
+    and* () = log position Logging.debug @@ lazy (PP.format "Exiting %s" label)
     in
     return contents
   in

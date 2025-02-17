@@ -520,16 +520,3 @@ module Make(Annotation : ANNOTATION) = struct
 
   include Aux
 end
-
-
-module EmptyAnnotation : ANNOTATION = struct
-  type t = unit
-
-  let empty       = ()
-  let is_empty _  = true
-  let combine _ _ = ()
-  let to_html _   = Html.string ""
-end
-
-
-module WithoutAnnotations = Make(EmptyAnnotation)

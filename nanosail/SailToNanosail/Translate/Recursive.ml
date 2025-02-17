@@ -18,7 +18,7 @@ module rec Nanotype : sig
   val translate_type_argument : S.typ_arg -> Ast.TypeArgument.t TC.t
 end = struct
   let rec nanotype_of_sail_type (typ : S.typ) : Ast.Type.t TC.t =
-    TC.translation_block [%here] (Logging.Message.string @@ "Translating type " ^ StringOf.Sail.typ typ) begin
+    TC.translation_block [%here] (PP.string @@ "Translating type " ^ StringOf.Sail.typ typ) begin
       let (S.Typ_aux (unwrapped_type, location)) = typ
       in
       (*
@@ -119,7 +119,7 @@ end = struct
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
         | [ _ ] -> begin
-            let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.format "simplifying %s to int" @@ StringOf.Sail.typ typ)
+            let* () = TC.log [%here] Logging.debug @@ lazy (PP.format "simplifying %s to int" @@ StringOf.Sail.typ typ)
             in
             TC.return Ast.Type.Int
           end
@@ -229,7 +229,7 @@ end = struct
         (left    : S.nexp                       )
         (right   : S.nexp                       ) : Ast.Numeric.Expression.t TC.t
       =
-      TC.translation_block [%here] (Logging.Message.string "Translating binary operation") begin
+      TC.translation_block [%here] (PP.string "Translating binary operation") begin
         let* left'  = translate_numeric_expression left
         and* right' = translate_numeric_expression right
         in
@@ -267,7 +267,7 @@ end = struct
       TC.return @@ Ast.Numeric.Expression.PowerOf2 exponent'
 
     in
-    TC.translation_block [%here] (Logging.Message.string "Translating numeric expression") begin
+    TC.translation_block [%here] (PP.string "Translating numeric expression") begin
       let S.Nexp_aux (unwrapped_numeric_expression, numexp_location) =
         numeric_expression
       in
@@ -346,7 +346,7 @@ end = struct
     and translate_and           = translate_binary_operation @@ fun l r -> And                  (l, r)
 
     in
-    TC.translation_block [%here] (Logging.Message.string "Translating numeric constraint") begin
+    TC.translation_block [%here] (PP.string "Translating numeric constraint") begin
       match unwrapped_numeric_constraint with
       | S.NC_equal (x, y)                          -> translate_equal     x y
       | S.NC_not_equal (x, y)                      -> translate_not_equal x y

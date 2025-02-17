@@ -176,8 +176,8 @@
     (It just so happens that in this example, although clear, the implementation is actually
     able to handle the clashing binders, as explained below. An example
     of an unsupported case is also given.)
-   
-   
+
+
     There are some specific cases where the current implementation can
     deal with clashing binders: a binder X is upgraded to a wildcard if no reference to X
     appears in the right hand side of the clause.
@@ -944,8 +944,8 @@ let rec build_empty_pattern_tree
         if
           node_count > 100
         then
-          let message : Logging.Message.t Lazy.t = lazy begin
-            Logging.Message.format "Constructed pattern tree with %d nodes" node_count
+          let message : PP.document Lazy.t = lazy begin
+            PP.format "Constructed pattern tree with %d nodes" node_count
           end
           in
           TC.log [%here] Logging.warning message
@@ -1084,7 +1084,7 @@ let rec adorn_pattern_tree
 
                    todo fix this
                 *)
-                TC.log [%here] Logging.warning @@ lazy (Logging.Message.string "ignoring binder while matching bool")
+                TC.log [%here] Logging.warning @@ lazy (PP.string "ignoring binder while matching bool")
               end
               else TC.return ()
             in
@@ -1447,7 +1447,7 @@ let rec adorn_pattern_tree
             in
             let* () =
               let message = lazy begin
-                Logging.Message.format "Unifying %s %s" (FExpr.to_string @@ Binder.to_fexpr binder) (FExpr.to_string @@ Binder.to_fexpr pattern_binder)
+                PP.format "Unifying %s %s" (FExpr.to_string @@ Binder.to_fexpr binder) (FExpr.to_string @@ Binder.to_fexpr pattern_binder)
               end
               in
               TC.log [%here] Logging.debug message
@@ -1480,7 +1480,7 @@ let rec adorn_pattern_tree
                 in
                 let* () =
                   let message = lazy begin
-                    Logging.Message.format
+                    PP.format
                       "Clashing identifiers at Sail location %s! Renaming %s and %s to %s"
                       (StringOf.Sail.location location)
                       (Ast.Identifier.to_string binder.identifier)
@@ -2224,7 +2224,7 @@ let translate_tuple_match
         ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree (permuter#permute subpatterns) statement)
         cases
     in
-    let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.format "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
+    let* () = TC.log [%here] Logging.debug @@ lazy (PP.format "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
     in
     TC.return adorned_tree
   in
@@ -2235,9 +2235,9 @@ let translate_tuple_match
     let* triples_of_tree_size_permuter =
       let build permuter =
         let format_error (error : TC.Error.t) =
-          Logging.Message.vertical [
-            Logging.Message.string "Error occurred while optimizing tree; ignoring it";
-            Logging.Message.string @@ TC.Error.to_string error
+          PP.vertical [
+            PP.string "Error occurred while optimizing tree; ignoring it";
+            PP.string @@ TC.Error.to_string error
           ]
         in
         TC.recover begin
@@ -2261,7 +2261,7 @@ let translate_tuple_match
             let tree_sizes =
               String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string Auxlib.Triple.second) triples_of_tree_size_permuter
             in
-            Logging.Message.format "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
+            PP.format "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
           end
           in
           TC.log [%here] Logging.info message

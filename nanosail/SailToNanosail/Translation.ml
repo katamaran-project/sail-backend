@@ -14,7 +14,7 @@ open! ExtBase
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let label =
-    let open Logging.Message
+    let open PP
     in
     vertical [
       string "Processing definition";
@@ -27,7 +27,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     if
       Configuration.should_ignore_definition sail_definition
     then
-      let* () = TC.log [%here] Logging.debug @@ lazy (Logging.Message.string "Skipping this definition")
+      let* () = TC.log [%here] Logging.debug @@ lazy (PP.string "Skipping this definition")
       in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
@@ -74,11 +74,11 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             let location_string =
               Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
             and pretty_printed_sail_code =
-              Logging.Message.from_multiline_string @@ StringOf.Sail.definition sail_definition
+              PP.from_multiline_string @@ StringOf.Sail.definition sail_definition
             in
             let* () =
               let message = lazy begin
-                let open Logging.Message
+                let open PP
                 in
                 vertical [
                   format "Assertion error at %s" location_string;
@@ -107,7 +107,7 @@ let translate (ast : Sail.ast) : Ast.program =
   let translate =
     let* () = Prelude.register_types ()
     in
-    TC.translation_block [%here] (Logging.Message.string "Translating Sail to Nanosail") begin
+    TC.translation_block [%here] (PP.string "Translating Sail to Nanosail") begin
       TC.map ~f:translate_definition ast.defs
     end
   in

@@ -79,9 +79,9 @@ let run f      = Monad.run f Context.empty
 
 
 let log
-    (ocaml_position : Lexing.position                                    )
-    (logger         : Lexing.position -> Logging.Message.t lazy_t -> unit)
-    (message        : Logging.Message.t lazy_t                           ) : unit t
+    (ocaml_position : Lexing.position                                  )
+    (logger         : Lexing.position -> PP.document lazy_t -> unit)
+    (message        : PP.document lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
 
@@ -99,15 +99,15 @@ let with_excursion (block : 'a t) : 'a t =
 
 
 let translation_block
-    (ocaml_position : Lexing.position  )
-    (label          : Logging.Message.t)
-    (result         : 'a t             ) : 'a t
+    (ocaml_position : Lexing.position)
+    (label          : PP.document    )
+    (result         : 'a t           ) : 'a t
   =
   let* () =
     let message =
       lazy begin
-        Logging.Message.horizontal [
-          Logging.Message.string "Entering ";
+        PP.horizontal [
+          PP.string "Entering ";
           label
         ]
       end
@@ -123,8 +123,8 @@ let translation_block
   let* () =
     let message =
       lazy begin
-        Logging.Message.horizontal [
-          Logging.Message.string "Exiting ";
+        PP.horizontal [
+          PP.string "Exiting ";
           label
         ]
       end
@@ -164,7 +164,7 @@ let debug_error f =
 
 
 let not_yet_implemented ?(message : string option) ocaml_position sail_position =
-  let* () = log [%here] Logging.debug @@ lazy (Logging.Message.string "Not yet implemented")
+  let* () = log [%here] Logging.debug @@ lazy (PP.string "Not yet implemented")
   in
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
 
@@ -304,5 +304,5 @@ let rec generate_unique_identifiers
 
 let rec try_multiple (fs : 'a t list) : 'a t =
   match fs with
-  | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (Logging.Message.string @@ Error.to_string error) in try_multiple fs)
+  | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (PP.string @@ Error.to_string error) in try_multiple fs)
   | []    -> fail [%here] "ran out of alternatives"

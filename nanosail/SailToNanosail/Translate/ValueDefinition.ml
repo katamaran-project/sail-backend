@@ -85,7 +85,7 @@ let translate_value_definition
       (_definition_annotation : Sail.definition_annotation    )
       (let_definition         : Sail.type_annotation S.letbind)
   =
-  TC.translation_block [%here] (Logging.Message.string "Translating value definition") begin
+  TC.translation_block [%here] (PP.string "Translating value definition") begin
     let S.LB_aux (S.LB_val (S.P_aux (pattern, (pattern_location, _)), expression), (_location, _type_annotation)) = let_definition
     in
     let* identifier, translation =
@@ -149,7 +149,7 @@ let translate_value_definition
       | S.P_string_append _            -> TC.not_yet_implemented [%here] pattern_location
       | S.P_struct (_, _)              -> TC.not_yet_implemented [%here] pattern_location
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.format "Translated value definition %s" @@ Ast.Identifier.to_string identifier)
+    let* () = TC.log [%here] Logging.info @@ lazy (PP.format "Translated value definition %s" @@ Ast.Identifier.to_string identifier)
     in
     TC.return translation
   end
