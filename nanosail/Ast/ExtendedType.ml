@@ -7,7 +7,7 @@ module Parameter = struct
     | Int        of int
     | Bool       of int
     | Identifier of string
-    | Bitvector  of Numeric.Expression.t
+    | Bitvector  of Numeric.Expression.t   (* todo not used anywhere yet; update translation functionality *)
     | Unknown    of { ocaml_location : Lexing.position;
                       sail_location  : Libsail.Ast.l  ;
                       sail_type      : string         }
