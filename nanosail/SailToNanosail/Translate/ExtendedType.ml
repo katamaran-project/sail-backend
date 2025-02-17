@@ -232,7 +232,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
           sail_type = StringOf.Sail.typ_arg type_argument
         }
       end
-    | _ -> fail [%here] "list should have only one type argument"
+    | _ -> fail [%here] "type argument list expected to have only one item"
   in
 
   let unknown ocaml_location =
