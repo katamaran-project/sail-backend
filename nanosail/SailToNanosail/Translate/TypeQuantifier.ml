@@ -28,16 +28,27 @@ let translate_kind_id (kid : S.kid) : Ast.Identifier.t TC.t =
   TC.return @@ Ast.Identifier.mk unwappred_kid
 
 
-let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(Ast.Identifier.t * Ast.Kind.t) TC.t =
-  let S.QI_aux (unwrapped_quantifier_item, location) = quantifier_item
+let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(Ast.Identifier.t * Ast.Kind.t) option TC.t =
+  let S.QI_aux (unwrapped_quantifier_item, _location) = quantifier_item
   in
   match unwrapped_quantifier_item with
-  | S.QI_constraint _                                    -> TC.not_yet_implemented [%here] location
+  | S.QI_constraint numeric_constraint -> begin
+      let* numeric_constraint = Numeric.translate_numeric_constraint numeric_constraint
+      in
+      let* () =
+        let message = lazy begin
+          PP.format "Ignoring constraint %s" (Ast.Numeric.Constraint.to_string numeric_constraint)
+        end
+        in
+        TC.log [%here] Logging.warning message
+      in
+      TC.return None
+    end
   | S.QI_id (KOpt_aux (KOpt_kind (kind, kind_id), _loc)) -> begin
       let* kind'    = translate_kind kind
       and* kind_id' = translate_kind_id kind_id
       in
-      TC.return @@ (kind_id', kind')
+      TC.return @@ Some (kind_id', kind')
     end
 
 
@@ -46,7 +57,7 @@ let translate_type_quantifier (type_quantifier : Libsail.Ast.typquant) : Ast.Typ
   in
   match unwrapped_type_quantifier with
   | S.TypQ_tq items  -> begin
-      let* items = TC.map ~f:translate_type_quantifier_item items
+      let* items = TC.filter_map ~f:translate_type_quantifier_item items
       in
       TC.return @@ Ast.TypeQuantifier.TypeQuantifier items
     end
