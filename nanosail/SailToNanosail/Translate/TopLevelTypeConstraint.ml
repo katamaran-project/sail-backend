@@ -22,13 +22,36 @@ let translate_top_level_type_constraint
   TC.translation_block [%here] (Logging.Message.string "Translating top level type constraint") begin
     let VS_val_spec (
         TypSchm_aux (
-          TypSchm_ts (_quantifiers, Typ_aux (_typ, _type_location)),
+          TypSchm_ts (type_quantifier, Typ_aux (_typ, _type_location)),
           _type_scheme_location),
         identifier, _extern) = value_specification
     in
     let* identifier' = translate_identifier [%here] identifier
     in
-    let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.format "Translated top level type constraint %s" @@ Ast.Identifier.to_string identifier')
+    let* () =
+      let* type_quantifier' =
+        TypeQuantifier.translate_type_quantifier type_quantifier
+      in
+      let message = lazy begin
+        let properties =
+          Logging.Message.description_list [
+            (
+              Logging.Message.string "Target",
+              Logging.Message.string @@ Ast.Identifier.to_string identifier'
+            );
+            (
+              Logging.Message.string "Type quantifier",
+              Logging.Message.string @@ FExpr.to_string @@ Ast.TypeQuantifier.to_fexpr type_quantifier'
+            );
+          ]
+        in
+        Logging.Message.vertical [
+          Logging.Message.format "Translated top level type constraint %s" @@ Ast.Identifier.to_string identifier';
+          Logging.Message.indent properties;
+        ]
+      end
+      in
+      TC.log [%here] Logging.info message
     in
     TC.return @@ Ast.Definition.TopLevelTypeConstraintDefinition { identifier = identifier' }
   end
