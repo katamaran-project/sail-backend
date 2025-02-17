@@ -1005,7 +1005,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
   match unwrapped_clause with
    | Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
    | Pat_exp (parameter_bindings, raw_body) -> begin
-       let body = S.anf raw_body in
+       let body        = S.anf raw_body in
        let return_type = Libsail.Type_check.typ_of raw_body
        in
        TC.return @@ {
