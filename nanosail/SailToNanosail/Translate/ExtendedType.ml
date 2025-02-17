@@ -232,7 +232,7 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
           sail_type = StringOf.Sail.typ_arg type_argument
         }
       end
-    | _ -> fail [%here] "list should have only one type argument"
+    | _ -> fail [%here] "type argument list expected to have only one item"
   in
 
   let unknown ocaml_location =
@@ -250,32 +250,32 @@ let extended_parameter_type_of_sail_type (sail_type : S.typ) : Ast.ExtendedType.
   | Typ_bidir (_, _)     -> unknown [%here]
   | Typ_exist (_, _, _)  -> unknown [%here]
   | Typ_tuple _          -> unknown [%here]
-   | Typ_id id            -> begin
-       Monad.return @@ Ast.ExtendedType.Parameter.Identifier (StringOf.Sail.id id)
-     end
-   | Typ_app (identifier, type_arguments) -> begin
-       let Id_aux (unwrapped_identifier, location) = identifier
-       in
-       let unknown ocaml_location =
-         Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
-                             ocaml_location = ocaml_location;
-                             sail_location  = sail_location;
-                             sail_type      = StringOf.Sail.typ sail_type;
-                           }
-       in
-       match unwrapped_identifier with
-       | Id "atom"      -> extended_parameter_type_of_atom type_arguments
-       | Id "atom_bool" -> extended_parameter_type_of_atom_bool type_arguments
-       | Id "bitvector" -> extended_parameter_type_of_bitvector location type_arguments
-       | Id _           -> begin
-           Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
-             ocaml_location = [%here];
-             sail_location  = location;
-             sail_type      = StringOf.Sail.typ sail_type
-           }
-         end
-       | Operator _ -> unknown [%here]
-     end
+  | Typ_id id            -> begin
+      Monad.return @@ Ast.ExtendedType.Parameter.Identifier (StringOf.Sail.id id)
+    end
+  | Typ_app (identifier, type_arguments) -> begin
+      let Id_aux (unwrapped_identifier, location) = identifier
+      in
+      let unknown ocaml_location =
+        Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+          ocaml_location = ocaml_location;
+          sail_location  = sail_location;
+          sail_type      = StringOf.Sail.typ sail_type;
+        }
+      in
+      match unwrapped_identifier with
+      | Id "atom"      -> extended_parameter_type_of_atom type_arguments
+      | Id "atom_bool" -> extended_parameter_type_of_atom_bool type_arguments
+      | Id "bitvector" -> extended_parameter_type_of_bitvector location type_arguments
+      | Id _           -> begin
+          Monad.return @@ Ast.ExtendedType.Parameter.Unknown {
+            ocaml_location = [%here];
+            sail_location  = location;
+            sail_type      = StringOf.Sail.typ sail_type
+          }
+        end
+      | Operator _ -> unknown [%here]
+    end
 
 
 let rec int_expression_of_sail_numeric_expression (numeric_expression : S.nexp) : Ast.ExtendedType.IntExpression.t Monad.t =

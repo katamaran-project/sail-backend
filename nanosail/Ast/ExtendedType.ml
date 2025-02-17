@@ -7,17 +7,19 @@ module Parameter = struct
     | Int        of int
     | Bool       of int
     | Identifier of string
+    | Bitvector  of Numeric.Expression.t   (* todo not used anywhere yet; update translation functionality *)
     | Unknown    of { ocaml_location : Lexing.position;
                       sail_location  : Libsail.Ast.l  ;
                       sail_type      : string         }
 
   let rec string_of (extended_type : t) : string =
     match extended_type with
-    | Tuple ts     -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
-    | Int k        -> Printf.sprintf "int(#%d)" k
-    | Bool k       -> Printf.sprintf "bool(#%d)" k
-    | Identifier s -> s
-    | Unknown _    -> Printf.sprintf "unknown"
+    | Tuple ts       -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
+    | Int k          -> Printf.sprintf "int(#%d)" k
+    | Bool k         -> Printf.sprintf "bool(#%d)" k
+    | Identifier s   -> s
+    | Bitvector nexp -> Printf.sprintf "bitvector(%s)" (Numeric.Expression.to_string nexp)
+    | Unknown _      -> Printf.sprintf "unknown"
 
   let rec to_fexpr (extended_parameter_type : t) : FExpr.t =
     let prefix str =
@@ -73,6 +75,7 @@ module Parameter = struct
      | Int n                                                -> int_to_fexpr n
      | Bool n                                               -> bool_to_fexpr n
      | Identifier s                                         -> FExpr.mk_application ~positional:[FExpr.String s] "ExtType:Param:Id"
+     | Bitvector nexp                                       -> FExpr.mk_application ~positional:[Numeric.Expression.to_fexpr nexp] "ExtType:Param:Bitvector"
      | Unknown { ocaml_location; sail_location; sail_type } -> unknown_to_fexpr ocaml_location sail_location sail_type
 end
 

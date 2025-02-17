@@ -7,6 +7,8 @@
                 "file_end"
                 "sail_internal")
 
+(annotate-functions-with-ast)
+
 (ignore-function-definition-predicate (lambda (identifier)
                                         (or
                                          (string-ends-with? "_of_num" identifier)

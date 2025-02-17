@@ -5,29 +5,40 @@
 open! ExtBase
 
 
-let id           = Libsail.Ast_util.string_of_id
-let kid          = Libsail.Ast_util.string_of_kid
-let kind_aux     = Libsail.Ast_util.string_of_kind_aux
-let kind         = Libsail.Ast_util.string_of_kind
-let nexp         = Libsail.Ast_util.string_of_nexp
-let typ          = Libsail.Ast_util.string_of_typ
-let typ_arg      = Libsail.Ast_util.string_of_typ_arg
-let typ_pat      = Libsail.Ast_util.string_of_typ_pat
-let n_constraint = Libsail.Ast_util.string_of_n_constraint
-let kinded_id    = Libsail.Ast_util.string_of_kinded_id
-let quant_item   = Libsail.Ast_util.string_of_quant_item
-let typquant     = Libsail.Ast_util.string_of_typquant
-let typschm      = Libsail.Ast_util.string_of_typschm
-let lit          = Libsail.Ast_util.string_of_lit
-let exp          = Libsail.Ast_util.string_of_exp
-let pexp         = Libsail.Ast_util.string_of_pexp
-let lexp         = Libsail.Ast_util.string_of_lexp
-let mpat         = Libsail.Ast_util.string_of_mpat
-let letbind      = Libsail.Ast_util.string_of_letbind
-let index_range  = Libsail.Ast_util.string_of_index_range
+module Sail = struct
+  include Libsail
+  include Libsail.Ast
+  include Libsail.Ast_defs
+  include Libsail.Ast_util
+  include Libsail.Anf
+  include Libsail.Type_check
+end
 
 
-let aval (aval : 'a Libsail.Anf.aval) =
+let id              = Sail.string_of_id
+let kid             = Sail.string_of_kid
+let kind_aux        = Sail.string_of_kind_aux
+let kind            = Sail.string_of_kind
+let nexp            = Sail.string_of_nexp
+let typ             = Sail.string_of_typ
+let typ_arg         = Sail.string_of_typ_arg
+let typ_pat         = Sail.string_of_typ_pat
+let n_constraint    = Sail.string_of_n_constraint
+let kinded_id       = Sail.string_of_kinded_id
+let quant_item      = Sail.string_of_quant_item
+let typquant        = Sail.string_of_typquant
+let typschm         = Sail.string_of_typschm
+let lit             = Sail.string_of_lit
+let exp             = Sail.string_of_exp
+let pexp            = Sail.string_of_pexp
+let lexp            = Sail.string_of_lexp
+let mpat            = Sail.string_of_mpat
+let letbind         = Sail.string_of_letbind
+let index_range     = Sail.string_of_index_range
+let type_annotation = Sail.string_of_tannot
+
+
+let aval (aval : 'a Sail.aval) =
   match aval with
   | AV_lit (x, _)      -> Printf.sprintf "AV_lit(%s)" (lit x)
   | AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (id x)
@@ -43,14 +54,14 @@ let list ~(f:'a -> string) (xs : 'a list) =
   "[" ^ String.concat ~sep:"; " (List.map ~f xs) ^ "]"
 
 
-let alexp (location_expression : 'a Libsail.Anf.alexp) =
+let alexp (location_expression : 'a Sail.alexp) =
   match location_expression with
   | AL_id (_, _)    -> Printf.sprintf "AL_id (_, _)"
   | AL_addr (_, _)  -> Printf.sprintf "AL_addr (_, _)"
   | AL_field (_, _) -> Printf.sprintf "AL_field (_, _)"
 
 
-let rec apat (pattern : 'a Libsail.Anf.apat) =
+let rec apat (pattern : 'a Sail.apat) =
   let AP_aux (pattern, _env, _location) = pattern
   in
   match pattern with
@@ -67,7 +78,7 @@ let rec apat (pattern : 'a Libsail.Anf.apat) =
   | AP_wild _        -> Printf.sprintf "AP_wild _"
 
 
-let rec aexp (expression : 'a Libsail.Anf.aexp) =
+let rec aexp (expression : 'a Sail.aexp) =
   let AE_aux (expression, _annotation) = expression
   in
   match expression with
@@ -90,7 +101,7 @@ let rec aexp (expression : 'a Libsail.Anf.aexp) =
   | AE_short_circuit (_, _, _)     -> Printf.sprintf "AE_short_circuit (_, _, _)"
 
 
-let pat (pattern : Libsail.Type_check.tannot Libsail.Ast.pat) : string =
+let pat (pattern : Sail.tannot Libsail.Ast.pat) : string =
   let Libsail.Ast.P_aux (_raw_pattern, annotation) = pattern
   in
   let typ = Libsail.Type_check.typ_of_annot annotation
@@ -114,10 +125,10 @@ let location (location : Libsail.Parse_ast.l) =
 
 
 let definition
-    ?(buffer_initial_size : int   = 1000                )
-    ?(line_width          : int   = 160                 )
-    ?(ribbon_width        : float = 1.0                 )
-    (sail_definition      : Libsail.Type_check.typed_def) : string
+    ?(buffer_initial_size : int            = 1000                )
+    ?(line_width          : int            = 160                 )
+    ?(ribbon_width        : float          = 1.0                 )
+    (sail_definition      : Sail.typed_def                       ) : string
   =
   let buffer = Buffer.create buffer_initial_size
   in

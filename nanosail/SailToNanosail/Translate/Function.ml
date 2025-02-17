@@ -641,7 +641,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
       | _      -> TC.fail [%here] "binary operation should have 2 arguments"
     in
-    let statement_of_generic_function_call () =
+    let statement_of_function_call () =
       (*
         Sail translates the construction of a variant type to a function call.
 
@@ -663,7 +663,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       match variant_definition with
       | Some variant_definition -> begin
-          (* Function call needs to be translated to variant value construction *)
+          (*
+             We identified receiver_identifier as a constructor for a variant.
+             Function call needs to be translated to variant value construction.
+          *)
           match argument_expressions with
           | [argument] -> begin
               (*
@@ -679,9 +682,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               *)
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
-                | Ast.Expression.Val Ast.Value.Unit                              -> []
-                | Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
-                | _                                                              -> [expression]
+                | Val Unit                     -> []
+                | BinaryOperation (Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
+                | _                            -> [expression]
               in
               let fields =
                 flatten_fields argument
@@ -714,7 +717,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | "gteq_int"  -> statement_of_binary_operation @@ StandardComparison GreaterThanOrEqualTo
     | "eq_int"    -> statement_of_binary_operation EqualTo
     | "neq_int"   -> statement_of_binary_operation NotEqualTo
-    | _           -> statement_of_generic_function_call ()
+    | _           -> statement_of_function_call ()
 
   and statement_of_let
         (_mutability : Libsail.Ast_util.mut)
@@ -1002,8 +1005,8 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
   match unwrapped_clause with
    | Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
    | Pat_exp (parameter_bindings, raw_body) -> begin
-       let body = S.anf raw_body in
-       let return_type = Libsail.Type_check.typ_of raw_body
+       let body        = S.anf raw_body
+       and return_type = Libsail.Type_check.typ_of raw_body
        in
        TC.return @@ {
          identifier;
@@ -1021,11 +1024,12 @@ let translate_body body =
 
 
 let translate_function_definition
-      (definition_annotation : Sail.definition_annotation   )
-      (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
+    (full_sail_definition  : Sail.sail_definition         )
+    (definition_annotation : Sail.definition_annotation   )
+    (function_definition   : Sail.type_annotation S.fundef) : Ast.Definition.t TC.t
   =
   TC.translation_block [%here] (Logging.Message.string "Translating function") begin
-    let S.FD_aux ((FD_function (_, _, funcls)), _) = function_definition
+    let S.FD_aux ((FD_function (_rec_opt, _tannot_opt, funcls)), (_location, type_annotation)) = function_definition
     in
     match funcls with
     | [function_clause] -> begin
@@ -1037,7 +1041,39 @@ let translate_function_definition
         and* function_body          = translate_body parts.body
         and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
-        let* () = TC.log [%here] Logging.info @@ lazy (Logging.Message.format "Translated function %s" (Ast.Identifier.to_string function_name))
+        let* () =
+          let* top_level_type_constraint =
+            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition) (* todo *)
+          in
+          let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
+          in
+          let* tannot_opt_message =
+            match unwrapped_tannot_opt with
+            | Typ_annot_opt_none -> TC.return @@ Logging.Message.string "None"
+            | Typ_annot_opt_some (type_quantifier, typ) -> begin
+                let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
+                and* _typ'             = Nanotype.nanotype_of_sail_type typ
+                in
+                TC.return @@ Logging.Message.string "Some"
+              end
+          in
+          let* type_annotation_message =
+            TC.return @@ Logging.Message.string @@ StringOf.Sail.type_annotation type_annotation
+          in
+          let message =
+            Logging.Message.description_list [
+              (Logging.Message.string "Function name", Logging.Message.string @@ Ast.Identifier.to_string function_name);
+              (Logging.Message.string "Original", Logging.Message.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
+              (Logging.Message.string "type_annotation", type_annotation_message);
+              (Logging.Message.string "tannot_opt", tannot_opt_message);
+            ]
+          in
+          TC.log [%here] Logging.info @@ lazy message
+        in
+        let* () =
+          TC.log [%here] Logging.info @@ lazy begin
+            Logging.Message.format "Translated function %s" (Ast.Identifier.to_string function_name)
+          end
         in
         let function_body =
           Ast.Simplify.simplify_statement function_body
