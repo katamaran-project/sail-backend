@@ -32,12 +32,10 @@ let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(
   let S.QI_aux (unwrapped_quantifier_item, _location) = quantifier_item
   in
   match unwrapped_quantifier_item with
-  | S.QI_constraint numeric_constraint -> begin
-      let* numeric_constraint = Numeric.translate_numeric_constraint numeric_constraint
-      in
+  | S.QI_constraint _numeric_constraint -> begin
       let* () =
         let message = lazy begin
-          PP.format "Ignoring constraint %s" (Ast.Numeric.Constraint.to_string numeric_constraint)
+          PP.format "Ignoring constraint %s" (StringOf.Sail.quant_item quantifier_item)
         end
         in
         TC.log [%here] Logging.warning message
