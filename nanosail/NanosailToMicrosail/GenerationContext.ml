@@ -255,7 +255,6 @@ let generation_block
     return contents
 
 
-
 (* Computes the document described by f *)
 let generate
     (program : Ast.program  )
