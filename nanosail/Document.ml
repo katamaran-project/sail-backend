@@ -395,7 +395,8 @@ module Make(Annotation : ANNOTATION) = struct
     let enclose
         (layout     : t list -> t)
         (delimiters : t * t      )
-        (enclosed   : t          ) : t =
+        (enclosed   : t          ) : t
+      =
       let left_delimiter, right_delimiter = delimiters
       in
       layout [ left_delimiter; enclosed; right_delimiter ]
