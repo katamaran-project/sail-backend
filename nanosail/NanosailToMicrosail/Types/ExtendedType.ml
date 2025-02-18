@@ -261,8 +261,8 @@ let pp_extended_function_type
             in
             Printf.sprintf
               "number of parameters (%s) is different from number of number of extended types (%s)"
-              (PP.string_of_document pp_parameters)
-              (PP.string_of_document pp_extended_types)
+              (PP.to_string pp_parameters)
+              (PP.to_string pp_extended_types)
           in
           GC.fail [%here] message
         end

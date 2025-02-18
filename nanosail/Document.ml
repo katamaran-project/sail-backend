@@ -241,128 +241,126 @@ module Make(Annotation : ANNOTATION) = struct
     Html.concat html_lines
 
 
-  (* Put in module so as to easily include it in others *)
-  module Aux = struct
-    let string s =
-      String s
+  let string s =
+    String s
 
-    let format fmt =
-      Printf.ksprintf string fmt
+  let format fmt =
+    Printf.ksprintf string fmt
 
-    let empty      = Empty
+  let empty      = Empty
 
-    let plus       = string "+"
-    let star       = string "*"
-    let minus      = string "-"
-    let equals     = string "="
-    let slash      = string "/"
+  let plus       = string "+"
+  let star       = string "*"
+  let minus      = string "-"
+  let equals     = string "="
+  let slash      = string "/"
 
-    let lparen     = string "("
-    let rparen     = string ")"
-    let langle     = string "<"
-    let rangle     = string ">"
-    let lbracket   = string "["
-    let rbracket   = string "]"
-    let lbrace     = string "{"
-    let rbrace     = string "}"
+  let lparen     = string "("
+  let rparen     = string ")"
+  let langle     = string "<"
+  let rangle     = string ">"
+  let lbracket   = string "["
+  let rbracket   = string "]"
+  let lbrace     = string "{"
+  let rbrace     = string "}"
 
-    let squote     = string "'"
-    let dquote     = string "\""
+  let squote     = string "'"
+  let dquote     = string "\""
 
-    let braces     = (lbrace  , rbrace  )
-    let parens     = (lparen  , rparen  )
-    let squotes    = (squote  , squote  )
-    let dquotes    = (dquote  , dquote  )
-    let brackets   = (lbracket, rbracket)
+  let braces     = (lbrace  , rbrace  )
+  let parens     = (lparen  , rparen  )
+  let squotes    = (squote  , squote  )
+  let dquotes    = (dquote  , dquote  )
+  let brackets   = (lbracket, rbracket)
 
-    let dot        = string "."
-    let bang       = string "!"
-    let semi       = string ";"
-    let comma      = string ","
-    let colon      = string ":"
-    let space      = string " "
+  let dot        = string "."
+  let bang       = string "!"
+  let semi       = string ";"
+  let comma      = string ","
+  let colon      = string ":"
+  let space      = string " "
 
-    let ampersand  = string "&"
-    let percent    = string "%"
-    let bar        = string "|"
-    let underscore = string "_"
+  let ampersand  = string "&"
+  let percent    = string "%"
+  let bar        = string "|"
+  let underscore = string "_"
 
-    let at         = string "@"
+  let at         = string "@"
 
 
-    let rec horizontal (documents : t list) : t =
-      let group d1 d2 =
-        match d1, d2 with
-        | Empty, _ -> d2
-        | _, Empty -> d1
-        | _, _     -> Horizontal (d1, d2)
-      in
-      match documents with
-      | []       -> empty
-      | [d]      -> d
-      | [d1; d2] -> group d1 d2
-      | d::ds    -> group d @@ horizontal ds
+  let rec horizontal (documents : t list) : t =
+    let group d1 d2 =
+      match d1, d2 with
+      | Empty, _ -> d2
+      | _, Empty -> d1
+      | _, _     -> Horizontal (d1, d2)
+    in
+    match documents with
+    | []       -> empty
+    | [d]      -> d
+    | [d1; d2] -> group d1 d2
+    | d::ds    -> group d @@ horizontal ds
 
 
-    let rec vertical (documents : t list) : t =
-      let group d1 d2 =
-        match d1, d2 with
-        | Empty, _ -> d2
-        | _, Empty -> d1
-        | _, _     -> Vertical (d1, d2)
-      in
-      match documents with
-      | []       -> String ""
-      | [d]      -> d
-      | [d1; d2] -> group d1 d2
-      | d::ds    -> group d @@ vertical ds
+  let rec vertical (documents : t list) : t =
+    let group d1 d2 =
+      match d1, d2 with
+      | Empty, _ -> d2
+      | _, Empty -> d1
+      | _, _     -> Vertical (d1, d2)
+    in
+    match documents with
+    | []       -> String ""
+    | [d]      -> d
+    | [d1; d2] -> group d1 d2
+    | d::ds    -> group d @@ vertical ds
 
 
-    let annotate
-        (annotation : Annotation.t)
-        (document   : t           ) : t
-      =
-      Annotated (document, annotation)
+  let annotate
+      (annotation : Annotation.t)
+      (document   : t           ) : t
+    =
+    Annotated (document, annotation)
 
 
-    let decorate
-        (decorations : AnsiColor.Decoration.t list)
-        (document    : t                          ) : t
-      =
-      if
-        is_empty document
-      then
-        Empty
-      else
-        Decorated (document, decorations)
+  let decorate
+      (decorations : AnsiColor.Decoration.t list)
+      (document    : t                          ) : t
+    =
+    if
+      is_empty document
+    then
+      Empty
+    else
+      Decorated (document, decorations)
 
 
-    let hanging (documents : t list) : t =
-      match documents with
-      | []            -> empty
-      | [d]           -> d
-      | first :: rest -> horizontal [first; vertical rest]
+  let hanging (documents : t list) : t =
+    match documents with
+    | []            -> empty
+    | [d]           -> d
+    | first :: rest -> horizontal [first; vertical rest]
 
 
-    let indent ?(level = 2) (document : t) : t =
-      horizontal [
-        string @@ repeat_string " " level;
-        document
+  let indent ?(level = 2) (document : t) : t =
+    horizontal [
+      string @@ repeat_string " " level;
+      document
+    ]
+
+
+  let description_list (items : (t * t) list) : t =
+    let render_item entry description =
+      vertical [
+        decorate [Underlined] entry;
+        indent description;
       ]
+    in
+    vertical @@ List.map ~f:(Fn.uncurry render_item) items
 
 
-    let description_list (items : (t * t) list) : t =
-      let render_item entry description =
-        vertical [
-          decorate [Underlined] entry;
-          indent description;
-        ]
-      in
-      vertical @@ List.map ~f:(Fn.uncurry render_item) items
-
-
-    let integer (n : int) =
-      string @@ Int.to_string n
+  let integer (n : int) =
+    string @@ Int.to_string n
 
 
     (*
@@ -372,26 +370,26 @@ module Make(Annotation : ANNOTATION) = struct
          2: item2
          3: item3
     *)
-    let numbered_list
-        ?(start_index : int    = 1)
-        (items        : t list    ) : t
-      =
-      let max_index_width : int =
-        Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> measure_width @@ integer @@ start_index + offset) (List.indices items)
+  let numbered_list
+      ?(start_index : int    = 1)
+      (items        : t list    ) : t
+    =
+    let max_index_width : int =
+      Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> measure_width @@ integer @@ start_index + offset) (List.indices items)
+    in
+    let rows =
+      let build_row index item =
+        horizontal [
+          string @@ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
+          colon;
+          space;
+          item
+        ]
       in
-      let rows =
-        let build_row index item =
-          horizontal [
-            string @@ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
-            colon;
-            space;
-            item
-          ]
-        in
-        List.mapi items ~f:build_row
-      in
-      vertical rows
-    
+      List.mapi items ~f:build_row
+    in
+    vertical rows
+
 
     (*
        Encloses a document within delimiters.
@@ -399,14 +397,14 @@ module Make(Annotation : ANNOTATION) = struct
 
        E.g., enclose horizontal brackets (string foo) produces [foo]
     *)
-    let enclose
-        (layout     : t list -> t)
-        (delimiters : t * t      )
-        (enclosed   : t          ) : t
-      =
-      let left_delimiter, right_delimiter = delimiters
-      in
-      layout [ left_delimiter; enclosed; right_delimiter ]
+  let enclose
+      (layout     : t list -> t)
+      (delimiters : t * t      )
+      (enclosed   : t          ) : t
+    =
+    let left_delimiter, right_delimiter = delimiters
+    in
+    layout [ left_delimiter; enclosed; right_delimiter ]
 
 
   (*
@@ -415,17 +413,17 @@ module Make(Annotation : ANNOTATION) = struct
 
       item1 separator item2 separator ... itemN
   *)
-    let separate_horizontally
-        ~(separator : t     )
-         (items     : t list) : t
-      =
-      let rec separate documents =
-        match documents with
-        | []    -> []
-        | [x]   -> [x]
-        | x::xs -> x :: separator :: separate xs
-      in
-      horizontal @@ separate items
+  let separate_horizontally
+      ~(separator : t     )
+      (items     : t list) : t
+    =
+    let rec separate documents =
+      match documents with
+      | []    -> []
+      | [x]   -> [x]
+      | x::xs -> x :: separator :: separate xs
+    in
+    horizontal @@ separate items
 
 
   (*
@@ -437,71 +435,71 @@ module Make(Annotation : ANNOTATION) = struct
       ...
       itemN
   *)
-    let separate_vertically
-        ~(separator : t     )
-        (items     : t list) : t
-      =
-      let rec build (items : t list) : t list =
-        match items with
-        | []    -> []
-        | [x]   -> [x]
-        | x::xs -> horizontal [ x; separator ] :: build xs
+  let separate_vertically
+      ~(separator : t     )
+      (items     : t list) : t
+    =
+    let rec build (items : t list) : t list =
+      match items with
+      | []    -> []
+      | [x]   -> [x]
+      | x::xs -> horizontal [ x; separator ] :: build xs
+    in
+    vertical @@ build items
+
+
+  let surround
+      ?(layout                           : t list -> t = horizontal)
+      ((left_delimiter, right_delimiter) : (t * t)                 )
+      (document                          : t                       ) : t
+    =
+    layout [left_delimiter; document; right_delimiter]
+
+
+  let repeat
+      (layout   : t list -> t)
+      (n        : int        )
+      (document : t          ) : t
+    =
+    layout @@ List.repeat n document
+
+
+  let pad_right
+      (target_width : int)
+      (document     : t  ) : t
+    =
+    let width = measure_width document
+    in
+    if
+      width < target_width
+    then
+      let padding =
+        repeat horizontal (target_width - width) space
       in
-      vertical @@ build items
-
-
-    let surround
-        ?(layout                           : t list -> t = horizontal)
-        ((left_delimiter, right_delimiter) : (t * t)                 )
-        (document                          : t                       ) : t
-      =
-      layout [left_delimiter; document; right_delimiter]
-
-
-    let repeat
-        (layout   : t list -> t)
-        (n        : int        )
-        (document : t          ) : t
-      =
-      layout @@ List.repeat n document
-
-
-    let pad_right
-        (target_width : int)
-        (document     : t  ) : t
-      =
-      let width = measure_width document
-      in
-      if
-        width < target_width
-      then
-        let padding =
-          repeat horizontal (target_width - width) space
-        in
-        horizontal [ document; padding ]
-      else
-        document
+      horizontal [ document; padding ]
+    else
+      document
 
 
   (*
     Arranges items vertically with an empty line in between each
   *)
-    let paragraphs (documents : t list) : t =
-      vertical @@ List.intersperse ~sep:(string "") documents
+  let paragraphs (documents : t list) : t =
+    vertical @@ List.intersperse ~sep:(string "") documents
 
   (*
 
     a + b + c + d
 
   *)
-    let binary_operation (* todo rename to binary_operation *)
-        (operator : t     )
-        (operands : t list) : t
-      =
-      let separator =
-        horizontal [space; operator; space]
-      in
-      separate_horizontally ~separator operands
+  let binary_operation (* todo rename to binary_operation *)
+      (operator : t     )
+      (operands : t list) : t
+    =
+    let separator =
+      horizontal [space; operator; space]
+    in
+    separate_horizontally ~separator operands
 
   (*
 
@@ -513,14 +511,14 @@ module Make(Annotation : ANNOTATION) = struct
      ]
 
   *)
-    let delimited_list ~delimiters ~items ~separator =
-      let left_delimiter, right_delimiter = delimiters
-      in
-      vertical [
-        left_delimiter;
-        indent @@ separate_vertically ~separator items;
-        right_delimiter;
-      ]
+  let delimited_list ~delimiters ~items ~separator =
+    let left_delimiter, right_delimiter = delimiters
+    in
+    vertical [
+      left_delimiter;
+      indent @@ separate_vertically ~separator items;
+      right_delimiter;
+    ]
 
   (*
 
@@ -530,22 +528,20 @@ module Make(Annotation : ANNOTATION) = struct
           ...]
 
   *)
-    let application ~head ~delimiters ~arguments ~separator =
-      let left_delimiter, right_delimiter = delimiters
-      in
-      horizontal [
-        head;
-        left_delimiter;
-        separate_vertically ~separator arguments;
-        right_delimiter
-      ]
+  let application ~head ~delimiters ~arguments ~separator =
+    let left_delimiter, right_delimiter = delimiters
+    in
+    horizontal [
+      head;
+      left_delimiter;
+      separate_vertically ~separator arguments;
+      right_delimiter
+    ]
 
 
-    let from_multiline_string (str : string) =
-      let lines = String.split_lines str
-      in
-      vertical @@ List.map ~f:string lines
-  end
-
-  include Aux
+  let from_multiline_string (str : string) =
+    let lines = String.split_lines str
+    in
+    vertical @@ List.map ~f:string lines
 end
+

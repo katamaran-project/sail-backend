@@ -17,19 +17,9 @@ end
 
 
 module Doc = Document.Make(Annotation)
-
+include Doc
 
 type document  = Doc.t
-
-let undecorate            = Doc.undecorate
-let string_of_document    = Doc.to_string
-let html_of_document      = Doc.to_html
-let is_empty              = Doc.is_empty
-let is_single_line        = Doc.is_single_line                              
-let measure_width         = Doc.measure_width
-
-include Doc.Aux
-
 
 let annotate
     (ocaml_location : Lexing.position)

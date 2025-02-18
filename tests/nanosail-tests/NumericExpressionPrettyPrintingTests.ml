@@ -18,7 +18,7 @@ let test_formatting =
           Nanosail.NanosailToMicrosail.GenerationContext.generate Nanosail.Ast.empty_program document
         in
         let actual =
-          Nanosail.PP.string_of_document document
+          Nanosail.PP.to_string document
         in
         let msg =
           Printf.sprintf "expected %s; got %s" expected actual

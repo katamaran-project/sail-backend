@@ -118,7 +118,7 @@ let log
       PP.indent ~level:!indentation_level @@ PP.horizontal [tag; Lazy.force message]
     in
     let output_string =
-      PP.string_of_document output_message
+      PP.to_string output_message
     in
     (* %! forces a flush *)
     Stdio.printf "%s\n%!" output_string

@@ -38,7 +38,7 @@ let pp_diff
       ]
     ]
   in  
-  Stdlib.Format.pp_print_string formatter @@ PP.string_of_document document
+  Stdlib.Format.pp_print_string formatter @@ PP.to_string document
 
 
 let assert_equal_statements

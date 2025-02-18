@@ -240,7 +240,7 @@ let rec pp_diff
   
 
 let to_string (fexpr : t) : string =
-  PP.string_of_document @@ pp fexpr
+  PP.to_string @@ pp fexpr
 
 
 let mk_int (n : int) : t =

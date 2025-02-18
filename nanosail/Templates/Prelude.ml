@@ -13,11 +13,11 @@ end
 
 
 let string_of_document =
-  Fn.compose PP.string_of_document PP.undecorate
+  Fn.compose PP.to_string PP.undecorate
 
 
 let html_of_document =
-  PP.html_of_document
+  PP.to_html
 
 
 let nullary_string_function id func =
