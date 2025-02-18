@@ -689,8 +689,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               let fields =
                 flatten_fields argument
               in
-              let variant =
-                Ast.Expression.Variant {
+              let variant : Ast.Expression.t =
+                Variant {
                   type_identifier        = variant_definition.identifier;
                   constructor_identifier = receiver_identifier';
                   fields                 = fields;
