@@ -365,6 +365,13 @@ module Make(Annotation : ANNOTATION) = struct
       string @@ Int.to_string n
 
 
+    (*
+       Arranges items vertically in a table of two columns, where the first column contains indices.
+
+         1: item1
+         2: item2
+         3: item3
+    *)
     let numbered_list
         ?(start_index : int    = 1)
         (items        : t list    ) : t
