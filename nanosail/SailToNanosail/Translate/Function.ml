@@ -1080,14 +1080,7 @@ let translate_function_definition
           in
           match top_level_type_constraint with
           | Some top_level_type_constraint -> begin
-              let* () =
-                let message = lazy begin
-                  PP.format "IMPLEMENT THIS"
-                end
-                in
-                TC.log [%here] Logging.error message
-              in
-              TC.return false
+              TC.return top_level_type_constraint.polymorphic
             end
           | None -> begin
               let* () =
@@ -1102,6 +1095,17 @@ let translate_function_definition
         in
         let function_body =
           Ast.Simplify.simplify_statement function_body
+        in
+        let* () =
+          if polymorphic
+          then begin
+            let message = lazy begin
+              PP.format "Encountered polymorphic function %s" (Ast.Identifier.to_string function_name)
+            end
+            in
+            TC.log [%here] Logging.warning message
+          end
+          else TC.return ()
         in
         TC.return @@ Ast.Definition.FunctionDefinition {
           function_name;
