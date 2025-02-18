@@ -40,20 +40,20 @@ module Function = struct
       function_type          : FunctionType.t;
       extended_function_type : ExtendedFunctionType.t;
       function_body          : Statement.t;
+      polymorphic            : bool;
     }
 
   let to_fexpr (function_definition : t) : FExpr.t =
     let function_name' =
       Identifier.to_fexpr function_definition.function_name
-
     and function_type' =
       FunctionType.to_fexpr function_definition.function_type
-
     and extended_function_type' =
       FExpr.mk_string "TODO"
-
     and function_body' =
       Statement.to_fexpr function_definition.function_body
+    and polymorphic' =
+      FExpr.mk_bool function_definition.polymorphic
 
     in
     let keyword =
@@ -62,6 +62,7 @@ module Function = struct
         ("type"         , function_type'         );
         ("extended_type", extended_function_type');
         ("body"         , function_body'         );
+        ("polymorphic"  , polymorphic'           );
       ]
     in
     FExpr.mk_application ~keyword "Def:Function"
