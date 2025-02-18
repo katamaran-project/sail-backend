@@ -879,7 +879,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (rhs : Libsail.Ast.typ Libsail.Anf.aexp ) : Ast.Statement.t TC.t
     =
     match lhs with
-    | Libsail.Anf.AL_id (id, lhs_type) -> begin
+    | AL_id (id, lhs_type) -> begin
         let* id_in_lhs = Identifier.translate_identifier [%here] id
         in
         let* is_register = TC.is_register id_in_lhs
@@ -930,8 +930,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             TC.not_yet_implemented ~message [%here] location
         end
       end
-    | Libsail.Anf.AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
-    | Libsail.Anf.AL_field (_, _) -> TC.not_yet_implemented [%here] location
+    | AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
+    | AL_field (_, _) -> TC.not_yet_implemented [%here] location
 
   and statement_of_short_circuit
         (logical_operator : S.sc_op     )
