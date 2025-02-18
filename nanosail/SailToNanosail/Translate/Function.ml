@@ -627,7 +627,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
     in
-    let argument_expressions, _argument_expression_types, unflattened_named_statements =
+    let argument_expressions, argument_expression_types, unflattened_named_statements =
       List.unzip3 translated_arguments
     in
     let named_statements =
@@ -715,7 +715,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             then begin
               let message = lazy begin
                 PP.vertical [
-                  PP.format "Call to polymorphic function %s detected" (Ast.Identifier.to_string receiver_identifier')
+                  PP.format "Call to polymorphic function %s detected" (Ast.Identifier.to_string receiver_identifier');
+                  PP.format "Argument types:";
+                  PP.indent begin
+                    PP.vertical begin
+                      List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
+                    end
+                  end
                 ]
               end
               in
