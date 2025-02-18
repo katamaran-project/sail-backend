@@ -16,8 +16,6 @@ open! ExtBase
 open Monads.Notations.Star(TC)
 
 
-(* todo helper function that reads out identifier and takes into account the provenance (local vs register) *)
-
 let sail_type_of_lvar
       (lvar : S.typ S.lvar)
       (loc  : S.l         ) : S.typ TC.t
