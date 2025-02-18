@@ -705,13 +705,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           in
           (* Warn user when polymorphic function was called *)
           let* () =
-            let* called_function_definition =
-              TC.lookup_definition_opt (Ast.Definition.Select.function_definition_named receiver_identifier')
+            let* called_function_type_constraint =
+              TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
             in
-            match called_function_definition with
-            | Some called_function_definition -> begin
+            match called_function_type_constraint with
+            | Some called_function_type_constraint -> begin
                 if
-                  called_function_definition.polymorphic
+                  called_function_type_constraint.polymorphic
                 then begin
                   let message = lazy begin
                     PP.vertical [
