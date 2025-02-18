@@ -561,7 +561,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     }
    *)
   let statement_of_match
-      (location : S.l                                              )
       (matched  : S.typ S.aval                                     )
       (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t
     =
@@ -1009,7 +1008,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
   | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
-  | AE_match (aval, cases, _)                                     -> statement_of_match location aval cases
+  | AE_match (aval, cases, _)                                     -> statement_of_match aval cases
   | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
   | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
