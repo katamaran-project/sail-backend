@@ -292,7 +292,8 @@ end
 module TopLevelTypeConstraint = struct
   type t =
     {
-      identifier : Identifier.t;
+      identifier  : Identifier.t;
+      polymorphic : bool;
     }
 
   let to_fexpr (top_level_type_constraint : t) : FExpr.t =
@@ -300,8 +301,15 @@ module TopLevelTypeConstraint = struct
       [
         Identifier.to_fexpr top_level_type_constraint.identifier
       ]
+    and keyword =
+      [
+        (
+          "polymorphic",
+          FExpr.mk_bool top_level_type_constraint.polymorphic
+        )
+      ]
     in
-    FExpr.mk_application ~positional "Def:TopLevelTypeConstraint"
+    FExpr.mk_application ~positional ~keyword "Def:TopLevelTypeConstraint"
 end
 
 

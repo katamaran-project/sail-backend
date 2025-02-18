@@ -28,10 +28,15 @@ let translate_top_level_type_constraint
     in
     let* identifier' = translate_identifier [%here] identifier
     in
+    let* type_quantifier' =
+      TypeQuantifier.translate_type_quantifier type_quantifier
+    in
+    let polymorphic =
+      match type_quantifier' with
+      | TypeQuantifier [] -> false
+      | TypeQuantifier _  -> true   (* we assume this straightforward check is sufficient to determine whether we're dealing with polymorphism *)
+    in
     let* () =
-      let* type_quantifier' =
-        TypeQuantifier.translate_type_quantifier type_quantifier
-      in
       let message = lazy begin
         let properties =
           PP.description_list [
@@ -53,5 +58,10 @@ let translate_top_level_type_constraint
       in
       TC.log [%here] Logging.info message
     in
-    TC.return @@ Ast.Definition.TopLevelTypeConstraintDefinition { identifier = identifier' }
+    TC.return begin
+      Ast.Definition.TopLevelTypeConstraintDefinition {
+        identifier = identifier';
+        polymorphic
+      }
+    end
   end
