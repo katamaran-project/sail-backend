@@ -822,7 +822,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   and statement_of_struct_update
         (aval     : S.typ S.aval           )
         (bindings : S.typ S.aval Bindings.t)
-        (_typ     : S.typ                  )
+        (_typ     : S.typ                  ) : Ast.Statement.t TC.t
     =
     (*
       Processes single assignment to field
