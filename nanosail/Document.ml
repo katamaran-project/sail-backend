@@ -361,6 +361,30 @@ module Make(Annotation : ANNOTATION) = struct
       vertical @@ List.map ~f:(Fn.uncurry render_item) items
 
 
+    let integer (n : int) =
+      string @@ Int.to_string n
+
+
+    let numbered_list
+        ?(start_index : int    = 1)
+        (items        : t list    ) : t
+      =
+      let max_index_width : int =
+        Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> measure_width @@ integer @@ start_index + offset) (List.indices items)
+      in
+      let rows =
+        let build_row index item =
+          horizontal [
+            string @@ String.pad_left ~char:' ' (Int.to_string index) ~len:max_index_width;
+            colon;
+            item
+          ]
+        in
+        List.mapi items ~f:build_row
+      in
+      vertical rows
+    
+
     (*
        Encloses a document within delimiters.
        Layout determines how delimiters and document are placed with respect to one another.
@@ -506,10 +530,6 @@ module Make(Annotation : ANNOTATION) = struct
         separate_vertically ~separator arguments;
         right_delimiter
       ]
-
-
-    let integer (n : int) =
-      string @@ Int.to_string n
 
 
     let from_multiline_string (str : string) =
