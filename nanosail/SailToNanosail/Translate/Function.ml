@@ -706,35 +706,49 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           (* Warn user when polymorphic function was called *)
           let* () =
             let* called_function_definition =
-              TC.lookup_definition (Ast.Definition.Select.function_definition_named receiver_identifier')
+              TC.lookup_definition_opt (Ast.Definition.Select.function_definition_named receiver_identifier')
             in
-            if
-              called_function_definition.polymorphic
-            then begin
-              let message = lazy begin
-                PP.vertical [
-                  PP.format "Call to polymorphic function detected";
-                  PP.description_list [
-                    (
-                      PP.string "Function name",
-                      PP.string @@ Ast.Identifier.to_string receiver_identifier'
-                    );
-                    (
-                      PP.string "Argument types",
-                      PP.indent begin
-                        PP.numbered_list begin
-                          List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
-                        end
-                      end
-                    );
-                  ]
-                ]
+            match called_function_definition with
+            | Some called_function_definition -> begin
+                if
+                  called_function_definition.polymorphic
+                then begin
+                  let message = lazy begin
+                    PP.vertical [
+                      PP.format "Call to polymorphic function detected";
+                      PP.description_list [
+                        (
+                          PP.string "Function name",
+                          PP.string @@ Ast.Identifier.to_string receiver_identifier'
+                        );
+                        (
+                          PP.string "Location",
+                          PP.string @@ StringOf.Sail.location location
+                        );
+                        (
+                          PP.string "Argument types",
+                          PP.indent begin
+                            PP.numbered_list begin
+                              List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
+                            end
+                          end
+                        );
+                      ]
+                    ]
+                  end
+                  in
+                  TC.log [%here] Logging.warning message
+                end
+                else
+                  TC.return ()
               end
-              in
-              TC.log [%here] Logging.warning message
-            end
-            else
-              TC.return ()
+            | None -> begin
+                let message = lazy begin
+                  PP.format "Could not determine whether function %s is polymorphic: no corresponding function definition found" (Ast.Identifier.to_string receiver_identifier')
+                end
+                in
+                TC.log [%here] Logging.warning message
+              end
           in
           TC.return @@ wrap call_statement
         end
