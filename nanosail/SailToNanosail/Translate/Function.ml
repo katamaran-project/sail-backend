@@ -761,7 +761,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (body        : S.typ S.aexp        )
         (_typ2       : S.typ               )
     =
-    let* id'   = Identifier.translate_identifier [%here] identifier  (* todo rename to record fields *)
+    let* id'   = Identifier.translate_identifier [%here] identifier
     and* typ1' = Nanotype.nanotype_of_sail_type typ1
     and* s1    = statement_of_aexp expression
     and* s2    = statement_of_aexp body
