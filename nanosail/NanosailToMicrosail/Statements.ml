@@ -434,12 +434,12 @@ and pp_call
 
 
 and pp_let
-      ~(variable_identifier    : Ast.Identifier.t)
+      ~(binder                 : Ast.Identifier.t)
       ~(binding_statement_type : Ast.Type.t      )
       ~(binding_statement      : Ast.Statement.t )
       ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
   =
-  let  pp_variable_identifier    = PP.annotate [%here] @@ Identifier.pp variable_identifier
+  let  pp_binder                 = PP.annotate [%here] @@ Identifier.pp binder
   in
   let* pp_binding_statement      = GC.pp_annotate [%here] @@ pp_statement binding_statement
   and* pp_binding_statement_type = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype binding_statement_type
@@ -451,7 +451,7 @@ and pp_let
     GC.return begin
         PP.annotate [%here] begin
             MuSail.Statement.pp_let_use_notation
-              ~bound_identifier:pp_variable_identifier
+              ~bound_identifier:pp_binder
               ~bound_value_type:pp_binding_statement_type
               ~bound_value:pp_binding_statement
               ~body:pp_body_statement
@@ -461,7 +461,7 @@ and pp_let
     GC.return begin
         PP.annotate [%here] begin
             MuSail.Statement.pp_let
-              ~bound_identifier:pp_variable_identifier
+              ~bound_identifier:pp_binder
               ~bound_value_type:pp_binding_statement_type
               ~bound_value:pp_binding_statement
               ~body:pp_body_statement
@@ -561,11 +561,11 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match match_pattern
   | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call ~function_identifier ~arguments
   | Let
-      { variable_identifier;
+      { binder;
         binding_statement_type;
         binding_statement;
         body_statement }                      -> GC.pp_annotate [%here] @@ pp_let
-                                                                             ~variable_identifier
+                                                                             ~binder
                                                                              ~binding_statement_type
                                                                              ~binding_statement
                                                                              ~body_statement

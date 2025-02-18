@@ -172,7 +172,7 @@ let test_build_match_for_bool_binder =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder                 = mkid "x";
           binding_statement_type = Ast.Type.Bool;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "b", Ast.Type.Bool));
           body_statement         = statement;

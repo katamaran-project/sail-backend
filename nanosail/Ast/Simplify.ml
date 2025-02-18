@@ -67,7 +67,7 @@ let rec simplify_statement (statement : Statement.t) : Statement.t =
       end
     end
 
-  | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
+  | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
       let body_statement =
         simplify_statement body_statement
       in
@@ -78,10 +78,10 @@ let rec simplify_statement (statement : Statement.t) : Statement.t =
         Statement.free_variables body_statement
       in
       if
-        Identifier.Set.mem free_variables_in_body variable_identifier
+        Identifier.Set.mem free_variables_in_body binder
       then
         Let {
-          variable_identifier;
+          binder;
           binding_statement_type;
           binding_statement;
           body_statement;

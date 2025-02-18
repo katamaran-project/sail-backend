@@ -62,7 +62,7 @@
     or, more formally,
 
       Ast.Statement.Let {
-        variable_identifier    = Id "generated";
+        binder                 = Id "generated";
         binding_statement_type = Enum (Id "MyEnum");
         binding_statement      = Expression e;
         body_statement         = Match begin
@@ -1585,7 +1585,7 @@ let rec build_leveled_match_statements
               not binder.wildcard
             then
               Ast.Statement.Let {
-                variable_identifier    = binder.identifier;
+                binder                 = binder.identifier;
                 binding_statement_type = enum_type;
                 binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, enum_type));
                 body_statement         = statement;
@@ -1653,7 +1653,7 @@ let rec build_leveled_match_statements
                     in
                     TC.return begin
                       Ast.Statement.Let {
-                        variable_identifier    = binder.identifier;
+                        binder                 = binder.identifier;
                         binding_statement_type = variant_type;
                         binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, variant_type));
                         body_statement         = substatement
@@ -1683,7 +1683,7 @@ let rec build_leveled_match_statements
                            In other words, Sail wants to "recycle" the same unit value found in the variant value.
                         *)
                         Ast.Statement.Let {
-                          variable_identifier    = field_binder.identifier;
+                          binder                 = field_binder.identifier;
                           binding_statement_type = Ast.Type.Unit;
                           binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
                           body_statement         = substatement;
@@ -1733,7 +1733,7 @@ let rec build_leveled_match_statements
           else
             TC.return begin
               Ast.Statement.Let {
-                variable_identifier    = binder.identifier;
+                binder                 = binder.identifier;
                 binding_statement_type = element_type;
                 binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, element_type));
                 body_statement         = substatement;
@@ -2055,10 +2055,10 @@ let translate_list_match
       let matched_type = Ast.Type.List element_type
       in
       TC.return @@ Ast.Statement.Let {
-        variable_identifier = binder_identifier;
+        binder                 = binder_identifier;
         binding_statement_type = matched_type;
-        binding_statement = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
-        body_statement = body
+        binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, matched_type));
+        body_statement         = body
       }
     end
   | [ (Pattern.ListNil, nil_body);

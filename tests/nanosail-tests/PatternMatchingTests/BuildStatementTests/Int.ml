@@ -70,7 +70,7 @@ let test_build_match_for_int_2 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "n";
+          binder                 = mkid "n";
           binding_statement_type = Ast.Type.Int;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
           body_statement         = statement;
@@ -149,11 +149,11 @@ let test_build_match_for_int_int_2 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier        = mkid "n";
+          binder                     = mkid "n";
           binding_statement_type     = Ast.Type.Int;
           binding_statement          = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
           body_statement             = Ast.Statement.Let {
-              variable_identifier    = mkid "k";
+              binder                 = mkid "k";
               binding_statement_type = Ast.Type.Int;
               binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", Ast.Type.Int));
               body_statement         = statement;

@@ -246,12 +246,12 @@ module Implementation = struct
         return @@ Ast.Statement.Call (function_identifier, arguments)
       end
 
-    | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
-        let* variable_identifier = substitute_identifier variable_identifier
+    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+        let* binder              = substitute_identifier binder
         and* binding_statement   = normalize_statement binding_statement
         and* body_statement      = normalize_statement body_statement
         in
-        return @@ Ast.Statement.Let { variable_identifier; binding_statement_type; binding_statement; body_statement }
+        return @@ Ast.Statement.Let { binder; binding_statement_type; binding_statement; body_statement }
       end
 
     | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin

@@ -452,14 +452,14 @@ module Statement = struct
           ~(body          : PP.document                     ) : PP.document
       =
       let record_pattern =
-        let build acc (field_identifier, variable_identifier) =
+        let build acc (field_identifier, binder) =
           PP.(surround parens) begin
               Coq.pp_application
                 (PP.annotate [%here] @@ PP.string "recordpat_snoc")
                 [
                   PP.annotate [%here] @@ acc;
                   PP.annotate [%here] @@ PP.(surround dquotes) field_identifier;
-                  PP.annotate [%here] @@ PP.(surround dquotes) variable_identifier;
+                  PP.annotate [%here] @@ PP.(surround dquotes) binder;
                 ]
             end
         in

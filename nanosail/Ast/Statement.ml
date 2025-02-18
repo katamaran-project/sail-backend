@@ -8,11 +8,11 @@ type t =
   | Expression        of Expression.t
   | Call              of Identifier.t * Expression.t list
   (*
-    let <variable_identifier> : <binding_statement_type> = <binding_statement>
+    let <binder> : <binding_statement_type> = <binding_statement>
     in
     <body>
   *)
-  | Let               of { variable_identifier    : Identifier.t      ;
+  | Let               of { binder                 : Identifier.t      ;
                            binding_statement_type : Type.t            ;
                            binding_statement      : t                 ;
                            body_statement         : t                 }
@@ -202,8 +202,8 @@ let rec equal
       match statement_2 with
       | Let data_2 -> begin
           Identifier.equal
-            data_1.variable_identifier
-            data_2.variable_identifier
+            data_1.binder
+            data_2.binder
           &&
           Type.equal
             data_1.binding_statement_type
@@ -431,14 +431,14 @@ let rec to_fexpr (statement : t) : FExpr.t =
     FExpr.mk_application ~keyword "Stm:Call"
 
   and let_to_fexpr
-      (variable_identifier    : Identifier.t)
+      (binder                 : Identifier.t)
       (binding_statement_type : Type.t      )
       (binding_statement      : t           )
       (body_statement         : t           ) : FExpr.t
     =
     let keyword =
       [
-        ("id", Identifier.to_fexpr variable_identifier);
+        ("id", Identifier.to_fexpr binder);
         ("type", Type.to_fexpr binding_statement_type);
         ("value", to_fexpr binding_statement);
         ("body", to_fexpr body_statement);
@@ -510,11 +510,11 @@ let rec to_fexpr (statement : t) : FExpr.t =
   | Cast (expression, typ)       -> cast_to_fexpr expression typ
   | Fail message                 -> fail_to_fexpr message
   | Let {
-      variable_identifier   ;
+      binder;
       binding_statement_type;
-      binding_statement     ;
+      binding_statement;
       body_statement
-    }                            -> let_to_fexpr variable_identifier binding_statement_type binding_statement body_statement
+    }                            -> let_to_fexpr binder binding_statement_type binding_statement body_statement
   | DestructureRecord {
       record_type_identifier;
       field_identifiers;
@@ -623,12 +623,12 @@ let rec free_variables (statement : t) : Identifier.Set.t =
       ]
     end
 
-  | Let { variable_identifier; binding_statement_type = _; binding_statement; body_statement } -> begin
+  | Let { binder; binding_statement_type = _; binding_statement; body_statement } -> begin
       Identifier.Set.unions [
         free_variables binding_statement;
         Identifier.Set.diff
           (free_variables body_statement)
-          (Identifier.Set.singleton variable_identifier)
+          (Identifier.Set.singleton binder)
       ]
     end
 

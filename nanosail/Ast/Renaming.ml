@@ -301,13 +301,13 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
       return @@ Statement.Call (function_identifier, arguments)
     end
 
-  | Let { variable_identifier; binding_statement_type; binding_statement; body_statement } -> begin
+  | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
       let* binding_statement = rename_in_statement binding_statement
-      and* body_statement    = with_binders [ variable_identifier ] @@ rename_in_statement body_statement
+      and* body_statement    = with_binders [ binder ] @@ rename_in_statement body_statement
       in
       return begin
         Statement.Let {
-          variable_identifier;
+          binder;
           binding_statement_type;
           binding_statement;
           body_statement;

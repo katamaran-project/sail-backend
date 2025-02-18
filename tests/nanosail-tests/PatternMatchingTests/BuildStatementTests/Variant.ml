@@ -210,7 +210,7 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder = mkid "x";
           binding_statement_type = variant_type;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value", variant_type));
           body_statement         = a1_statement;
@@ -273,7 +273,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
                   (
                     [gen#id],
                     Ast.Statement.Let {
-                      variable_identifier    = mkid "x";
+                      binder = mkid "x";
                       binding_statement_type = Ast.Type.Unit;
                       binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
                       body_statement         = a1_statement;
@@ -975,15 +975,15 @@ let test_build_match_for_tuple_of_variants_binders =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder = mkid "x";
           binding_statement_type = variant_type;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type));
           body_statement         = Ast.Statement.Let {
-              variable_identifier    = mkid "y";
+              binder = mkid "y";
               binding_statement_type = variant_type;
               binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", variant_type));
               body_statement         = Ast.Statement.Let {
-                  variable_identifier    = mkid "z";
+                  binder = mkid "z";
                   binding_statement_type = variant_type;
                   binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type));
                   body_statement         = statement
@@ -1053,15 +1053,15 @@ let test_build_match_for_tuple_of_variants_binders_2 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder = mkid "x";
           binding_statement_type = variant_type_a;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type_a));
           body_statement         = Ast.Statement.Let {
-              variable_identifier    = mkid "y";
+              binder = mkid "y";
               binding_statement_type = variant_type_b;
               binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", variant_type_b));
               body_statement         = Ast.Statement.Let {
-                  variable_identifier    = mkid "z";
+                  binder = mkid "z";
                   binding_statement_type = variant_type_c;
                   binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
                   body_statement         = statement
@@ -1142,11 +1142,11 @@ let test_build_match_for_tuple_of_variants_binders_3 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder = mkid "x";
           binding_statement_type = variant_type_a;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type_a));
           body_statement         = Ast.Statement.Let {
-              variable_identifier    = mkid "z";
+              binder = mkid "z";
               binding_statement_type = variant_type_c;
               binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
               body_statement         = statement
@@ -1235,7 +1235,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder = mkid "x";
           binding_statement_type = variant_type_a;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", variant_type_a));
           body_statement         = Ast.Statement.Match begin
@@ -1248,7 +1248,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
                       (
                         [gen#id],
                         Ast.Statement.Let {
-                          variable_identifier    = mkid "z";
+                          binder = mkid "z";
                           binding_statement_type = variant_type_c;
                           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
                           body_statement         = statement
@@ -1260,7 +1260,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
                       (
                         [gen#id; gen#id; gen#id],
                         Ast.Statement.Let {
-                          variable_identifier    = mkid "z";
+                          binder = mkid "z";
                           binding_statement_type = variant_type_c;
                           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value3", variant_type_c));
                           body_statement         = statement

@@ -11,7 +11,7 @@ let test_simplify_statement_1 =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
-        variable_identifier    = Ast.Identifier.mk_generated "a";
+        binder                 = Ast.Identifier.mk_generated "a";
         binding_statement_type = Ast.Type.Unit;
         binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
         body_statement         = Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
@@ -40,10 +40,10 @@ let test_simplify_statement_2 =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
-        variable_identifier    = Ast.Identifier.mk_generated "a";
+        binder                 = Ast.Identifier.mk_generated "a";
         binding_statement_type = Ast.Type.Unit;
         binding_statement      = Ast.Statement.Let {
-            variable_identifier    = Ast.Identifier.mk_generated "a";
+            binder                 = Ast.Identifier.mk_generated "a";
             binding_statement_type = Ast.Type.Unit;
             binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
             body_statement         = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);

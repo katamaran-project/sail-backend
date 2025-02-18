@@ -239,7 +239,7 @@ let test_build_match_for_enum_with_two_cases_use_binder =
                 (
                   mkid "A2",
                   Ast.Statement.Let {
-                    variable_identifier    = mkid "x";
+                    binder                 = mkid "x";
                     binding_statement_type = Ast.Type.Enum (mkid "A");
                     binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Enum (mkid "A")));
                     body_statement         = a2_statement
@@ -610,7 +610,7 @@ let test_build_match_for_enum_8 =
       in
       let expected_match_statement =
         Ast.Statement.Let {
-          variable_identifier    = mkid "x";
+          binder                 = mkid "x";
           binding_statement_type = enum_type;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", enum_type));
           body_statement         = Ast.Statement.Match begin

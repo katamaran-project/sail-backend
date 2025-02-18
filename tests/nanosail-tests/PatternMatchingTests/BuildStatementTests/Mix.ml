@@ -46,7 +46,7 @@ let test_build_match_for_enum_int =
                 (
                   mkid "A1",
                   Ast.Statement.Let {
-                    variable_identifier    = mkid "k";
+                    binder                 = mkid "k";
                     binding_statement_type = Ast.Type.Int;
                     binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "int_value", Ast.Type.Int));
                     body_statement         = statement

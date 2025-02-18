@@ -77,7 +77,7 @@ let create_if_statement
   in
   TC.return begin
     Ast.Statement.Let {
-      variable_identifier = condition_variable;
+      binder = condition_variable;
       binding_statement_type = Ast.Type.Bool;
       binding_statement = condition;
       body_statement = Ast.Statement.Match match_pattern
@@ -460,14 +460,14 @@ let rec wrap_in_named_statements_context
       (statement        : Ast.Statement.t                                       ) : Ast.Statement.t
   =
   match named_statements with
-  | (variable_identifier, binding_statement_type, binding_statement)::rest -> begin
+  | (binder, binding_statement_type, binding_statement)::rest -> begin
       let body_statement = wrap_in_named_statements_context rest statement
       in
       Let {
-          variable_identifier   ;
+          binder;
           binding_statement_type;
-          binding_statement     ;
-          body_statement        ;
+          binding_statement;
+          body_statement;
         }
     end
   | []                -> statement
@@ -583,7 +583,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     TC.return begin
       Ast.Statement.Let {
-        variable_identifier    = matched_variable;
+        binder                 = matched_variable;
         binding_statement_type = matched_variable_type;
         binding_statement      = matched;
         body_statement         = match_statement
@@ -602,10 +602,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
-              let variable_identifier = List.nth_exn binders selected_field_index
-              and variable_type       = snd @@ List.nth_exn fields selected_field_index
+              let binder        = List.nth_exn binders selected_field_index
+              and variable_type  = snd @@ List.nth_exn fields selected_field_index
               in
-              Ast.Expression.Variable (variable_identifier, variable_type)
+              Ast.Expression.Variable (binder, variable_type)
             in
             TC.return @@ Ast.Statement.Expression expression
           end
@@ -768,7 +768,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     TC.return begin
       Ast.Statement.Let {
-        variable_identifier    = id';
+        binder                 = id';
         binding_statement_type = typ1';
         binding_statement      = s1;
         body_statement         = s2;
@@ -802,7 +802,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     TC.return begin
       wrap_in_named_statements_context condition_named_statements begin
         Ast.Statement.Let {
-          variable_identifier    = condition_variable;
+          binder                 = condition_variable;
           binding_statement_type = Ast.Type.Bool;
           binding_statement      = condition;
           body_statement         = Ast.Statement.Match match_pattern;
@@ -840,7 +840,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         Identifier.translate_identifier [%here] field_identifier
       in
       (* Generate fresh name for variable that will be assigned the value of the field *)
-      let* variable_identifier =
+      let* binder =
         TC.generate_unique_identifier ~prefix:("updated_" ^ (Ast.Identifier.to_string field_identifier)) ()
       in
       (* Convert assigned expression to statement *)
@@ -850,10 +850,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         TC.return @@ (expression_type, wrap_in_named_statements_context named_statements (Ast.Statement.Expression expression))
       in
       let named_statements' =
-        (variable_identifier, field_type, named_statement) :: named_statements
+        (binder, field_type, named_statement) :: named_statements
       in
       let field_map' =
-        StringMap.overwrite ~key:field_identifier ~data:variable_identifier field_map
+        StringMap.overwrite ~key:field_identifier ~data:binder field_map
       in
       TC.return @@ (field_map', named_statements')
     in
@@ -912,7 +912,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           in
           let write_register_translation =
             Ast.Statement.Let {
-              variable_identifier    = rhs_identifier;
+              binder                 = rhs_identifier;
               binding_statement_type = rhs_type;
               binding_statement      = translated_rhs;
               body_statement         = Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = rhs_identifier }
