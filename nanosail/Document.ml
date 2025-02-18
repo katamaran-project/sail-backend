@@ -377,6 +377,7 @@ module Make(Annotation : ANNOTATION) = struct
           horizontal [
             string @@ String.pad_left ~char:' ' (Int.to_string index) ~len:max_index_width;
             colon;
+            space;
             item
           ]
         in
