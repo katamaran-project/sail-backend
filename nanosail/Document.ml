@@ -375,7 +375,7 @@ module Make(Annotation : ANNOTATION) = struct
       let rows =
         let build_row index item =
           horizontal [
-            string @@ String.pad_left ~char:' ' (Int.to_string index) ~len:max_index_width;
+            string @@ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
             colon;
             space;
             item
