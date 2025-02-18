@@ -1042,9 +1042,6 @@ let translate_function_definition
         and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
         let* () =
-          let* _top_level_type_constraint = (* todo use to determine whether function is polymorphic *)
-            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named function_name)
-          in
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
           in
           let* tannot_opt_message =
@@ -1077,6 +1074,32 @@ let translate_function_definition
           in
           TC.log [%here] Logging.info message
         in
+        let* polymorphic =
+          let* top_level_type_constraint =
+            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named function_name)
+          in
+          match top_level_type_constraint with
+          | Some top_level_type_constraint -> begin
+              let* () =
+                let message = lazy begin
+                  PP.format "IMPLEMENT THIS"
+                end
+                in
+                TC.log [%here] Logging.error message
+              in
+              TC.return false
+            end
+          | None -> begin
+              let* () =
+                let message = lazy begin
+                  PP.format "No top level type constraint found for function %s; assuming it is not polymorphic" (Ast.Identifier.to_string function_name)
+                end
+                in
+                TC.log [%here] Logging.warning message
+              in
+              TC.return false
+            end
+        in
         let function_body =
           Ast.Simplify.simplify_statement function_body
         in
@@ -1088,6 +1111,7 @@ let translate_function_definition
           };
           extended_function_type;
           function_body;
+          polymorphic;
         }
       end
     | _ -> TC.not_yet_implemented [%here] definition_annotation.loc
