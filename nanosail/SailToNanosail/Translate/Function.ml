@@ -705,6 +705,25 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           let call_statement =
             Ast.Statement.Call (receiver_identifier', argument_expressions)
           in
+          (* Warn user when polymorphic function was called *)
+          let* () =
+            let* called_function_definition =
+              TC.lookup_definition (Ast.Definition.Select.function_definition_named receiver_identifier')
+            in
+            if
+              called_function_definition.polymorphic
+            then begin
+              let message = lazy begin
+                PP.vertical [
+                  PP.format "Call to polymorphic function %s detected" (Ast.Identifier.to_string receiver_identifier')
+                ]
+              end
+              in
+              TC.log [%here] Logging.warning message
+            end
+            else
+              TC.return ()
+          in
           TC.return @@ wrap call_statement
         end
     in
