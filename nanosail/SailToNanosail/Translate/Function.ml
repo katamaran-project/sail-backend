@@ -718,7 +718,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   PP.format "Call to polymorphic function %s detected" (Ast.Identifier.to_string receiver_identifier');
                   PP.format "Argument types:";
                   PP.indent begin
-                    PP.vertical begin
+                    PP.numbered_list begin
                       List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
                     end
                   end
