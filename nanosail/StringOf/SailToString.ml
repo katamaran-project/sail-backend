@@ -109,7 +109,7 @@ let pat (pattern : Sail.tannot Libsail.Ast.pat) : string =
   Printf.sprintf "(%s : %s)" (Libsail.Ast_util.string_of_pat pattern) (Libsail.Ast_util.string_of_typ typ)
 
 
-let location (location : Libsail.Parse_ast.l) =
+let location (location : Libsail.Parse_ast.l) : string =
   let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
     Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
   in
