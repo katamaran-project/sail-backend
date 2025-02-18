@@ -768,10 +768,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     in
     TC.return begin
       Ast.Statement.Let {
-        variable_identifier = id';
+        variable_identifier    = id';
         binding_statement_type = typ1';
-        binding_statement = s1;
-        body_statement = s2;
+        binding_statement      = s1;
+        body_statement         = s2;
       }
     end
 
