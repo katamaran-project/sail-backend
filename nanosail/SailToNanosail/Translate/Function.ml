@@ -591,7 +591,6 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     end
 
   and statement_of_field_access
-        (location         : S.l         )
         (value            : S.typ S.aval)
         (field_identifier : S.id        )
         (_field_type      : S.typ       ) : Ast.Statement.t TC.t
@@ -1010,7 +1009,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
   | AE_match (aval, cases, _)                                     -> statement_of_match aval cases
   | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
-  | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access location aval field_identifier field_type
+  | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access aval field_identifier field_type
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
   | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
   | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
