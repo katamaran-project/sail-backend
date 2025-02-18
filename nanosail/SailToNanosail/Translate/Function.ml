@@ -702,7 +702,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
-          TC.return @@ wrap @@ Ast.Statement.Call (receiver_identifier', argument_expressions)
+          let call_statement = Ast.Statement.Call (receiver_identifier', argument_expressions)
+          in
+          TC.return @@ wrap call_statement
         end
     in
 
