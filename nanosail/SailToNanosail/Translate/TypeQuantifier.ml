@@ -38,7 +38,7 @@ let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(
           PP.format "Ignoring constraint %s" (StringOf.Sail.quant_item quantifier_item)
         end
         in
-        TC.log [%here] Logging.warning message
+        TC.log [%here] Logging.info message
       in
       TC.return None
     end
