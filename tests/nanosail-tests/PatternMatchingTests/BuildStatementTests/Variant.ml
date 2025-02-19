@@ -21,7 +21,7 @@ let test_build_match_for_variant_single_nullary_constructor =
         TC.define_variant "A" [("A1", [])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -79,7 +79,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
         TC.define_variant "A" [("A1", [])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -143,7 +143,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         TC.define_variant "A" [("A1", [])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -191,7 +191,7 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
         TC.define_variant "A" [("A1", [])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -246,7 +246,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
         TC.define_variant "A" [("A1", [])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -307,7 +307,7 @@ let test_build_match_for_variant_single_unary_constructor =
         TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -363,7 +363,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
         TC.define_variant "A" [("A1", [Ast.Type.Int])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -419,7 +419,7 @@ let test_build_match_for_variant_single_binary_constructor =
         TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -486,9 +486,9 @@ let test_build_match_for_variant_two_constructors =
         ]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and a2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -573,7 +573,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
         TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type ]
@@ -641,9 +641,9 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         TC.define_variant "B" [("B1", []); ("B2", [])]
       in
       let b1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and b2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b ]
@@ -774,9 +774,9 @@ let test_build_match_for_tuple_of_variants =
         TC.define_variant "B" [("B1", []); ("B2", [])]
       in
       let b1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and b2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b ]
@@ -905,7 +905,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
         TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_a; variant_type_a ]
@@ -955,7 +955,7 @@ let test_build_match_for_tuple_of_variants_binders =
         TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
       in
       let statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type; variant_type; variant_type ]
@@ -1033,7 +1033,7 @@ let test_build_match_for_tuple_of_variants_binders_2 =
         ]
       in
       let statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b; variant_type_c ]
@@ -1122,7 +1122,7 @@ let test_build_match_for_tuple_of_variants_binders_3 =
         ]
       in
       let statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b; variant_type_c ]
@@ -1206,7 +1206,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
         ]
       in
       let statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* pattern_tree =
         let* pattern_tree = build_empty_pattern_tree [ variant_type_a; variant_type_b; variant_type_c ]
