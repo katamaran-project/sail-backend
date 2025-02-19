@@ -18,15 +18,3 @@ let using ~resource:(x : 'a) ~close ~body =
       raise e
   end;
   close x
-
-
-module Pair = struct
-  let first = fst
-  let second = snd
-end
-
-module Triple = struct
-  let first  (x, _, _) = x
-  let second (_, x, _) = x
-  let third  (_, _, x) = x
-end

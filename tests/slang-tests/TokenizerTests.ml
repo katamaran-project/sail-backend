@@ -1,4 +1,4 @@
-open Base
+open Nanosail.ExtBase
 open OUnit2
 
 module Slang = Nanosail.Slang
@@ -52,7 +52,7 @@ let tokenizer_tests =
   in
   let test_tokenize (input, expected) =
     input >:: fun _ -> begin
-        let actual = Sequence.to_list @@ Sequence.map ~f:Auxlib.Triple.third @@ tokenize_string input
+        let actual = Sequence.to_list @@ Sequence.map ~f:Tuple.Triple.third @@ tokenize_string input
         in
         assert_equal expected actual
       end

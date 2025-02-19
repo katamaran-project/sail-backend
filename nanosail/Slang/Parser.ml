@@ -75,6 +75,6 @@ let parse_string string =
     Tokenizing.tokenize_string string
   in
   let tokens =
-    Sequence.map ~f:Auxlib.Triple.third triples
+    Sequence.map ~f:Tuple.Triple.third triples
   in
   parse_tokens tokens

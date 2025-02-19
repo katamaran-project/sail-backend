@@ -980,7 +980,7 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
         Ast.Identifier.Map.data table
       in
       let subtrees : PatternTree.t list =
-        List.map ~f:Auxlib.Triple.third values
+        List.map ~f:Tuple.Triple.third values
       in
       List.exists subtrees ~f:contains_gap
     end
@@ -2259,7 +2259,7 @@ let translate_tuple_match
         let* () =
           let message = lazy begin
             let tree_sizes =
-              String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string Auxlib.Triple.second) triples_of_tree_size_permuter
+              String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string Tuple.Triple.second) triples_of_tree_size_permuter
             in
             PP.format "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
           end
