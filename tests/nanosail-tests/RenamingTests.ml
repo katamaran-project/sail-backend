@@ -480,7 +480,7 @@ let test_rename_match_bool_4 =
 let test_rename_let_1 =
   let test _ =
     let statement : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -495,7 +495,7 @@ let test_rename_let_1 =
     let actual =
       Ast.Renaming.rename_in_statement renamer statement
     and expected : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -520,7 +520,7 @@ let test_rename_let_1 =
 let test_rename_let_2 =
   let test _ =
     let statement : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -535,7 +535,7 @@ let test_rename_let_2 =
     let actual =
       Ast.Renaming.rename_in_statement renamer statement
     and expected : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "y" ]);
@@ -560,7 +560,7 @@ let test_rename_let_2 =
 let test_rename_let_3 =
   let test _ =
     let statement : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -575,7 +575,7 @@ let test_rename_let_3 =
     let actual =
       Ast.Renaming.rename_in_statement renamer statement
     and expected : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "renamed" ]);
@@ -600,7 +600,7 @@ let test_rename_let_3 =
 let test_rename_let_4 =
   let test _ =
     let statement : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -615,7 +615,7 @@ let test_rename_let_4 =
     let actual =
       Ast.Renaming.rename_in_statement renamer statement
     and expected : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
@@ -640,7 +640,7 @@ let test_rename_let_4 =
 let test_rename_let_5 =
   let test _ =
     let statement : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "x" ]);
@@ -655,7 +655,7 @@ let test_rename_let_5 =
     let actual =
       Ast.Renaming.rename_in_statement renamer statement
     and expected : Ast.Statement.t =
-      Ast.Statement.Let {
+      Let {
         binder                 = mkid "x";
         binding_statement_type = Tuple [ Int; Int ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "renamed" ]);

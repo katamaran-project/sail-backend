@@ -134,7 +134,7 @@ module Implementation = struct
         in
         return begin
           Ast.Statement.Match begin
-            Ast.Statement.MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }
+            MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }
           end
         end
       end
@@ -147,7 +147,7 @@ module Implementation = struct
         in
         return begin
           Ast.Statement.Match begin
-            Ast.Statement.MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }
+            MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }
           end
         end
       end
@@ -164,7 +164,7 @@ module Implementation = struct
         in
         return begin
           Ast.Statement.Match begin
-            Ast.Statement.MatchTuple { matched; binders; body }
+            MatchTuple { matched; binders; body }
           end
         end
       end
@@ -176,7 +176,7 @@ module Implementation = struct
         in
         return begin
           Ast.Statement.Match begin
-            Ast.Statement.MatchBool { condition; when_true; when_false }
+            MatchBool { condition; when_true; when_false }
           end
         end
       end
