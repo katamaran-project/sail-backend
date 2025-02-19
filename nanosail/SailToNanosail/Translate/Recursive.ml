@@ -187,27 +187,27 @@ end = struct
         TC.return @@ Ast.Type.Tuple items'
 
       and nanotype_of_fn
-          (types  : S.typ list)
-          (fn_typ : S.typ     ) : Ast.Type.t TC.t
+          (parameter_types : S.typ list)
+          (result_type     : S.typ     ) : Ast.Type.t TC.t
         =
         let* () =
           let message = lazy begin
             PP.vertical [
-              PP.string "Encountered Typ_fn";
+              PP.string "Function type";
               PP.description_list [
                 (
-                  PP.string "string representation",
+                  PP.string "String representation",
                   PP.string @@ StringOf.Sail.typ typ
                 );
                 (
-                  PP.string "types",
+                  PP.string "Function parameter types",
                   PP.numbered_list begin
-                    List.map ~f:(Fn.compose PP.string StringOf.Sail.typ) types
+                    List.map ~f:(Fn.compose PP.string StringOf.Sail.typ) parameter_types
                   end
                 );
                 (
-                  PP.string "fn_typ",
-                  PP.string @@ StringOf.Sail.typ fn_typ
+                  PP.string "Function result type",
+                  PP.string @@ StringOf.Sail.typ result_type
                 )
               ]
             ]
