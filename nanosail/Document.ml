@@ -542,4 +542,3 @@ module Make(Annotation : ANNOTATION) = struct
     in
     vertical @@ List.map ~f:string lines
 end
-
