@@ -215,7 +215,15 @@ end = struct
           in
           TC.log [%here] Logging.warning message
         in
-        TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+        let* parameter_types' = TC.map ~f:nanotype_of_sail_type parameter_types
+        and* result_type'     = nanotype_of_sail_type result_type
+        in
+        TC.return begin
+          Ast.Type.Function {
+            parameter_types = parameter_types';
+            result_type     = result_type'
+          }
+        end
 
       in
       match unwrapped_type with
