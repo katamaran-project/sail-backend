@@ -22,11 +22,11 @@ let translate_top_level_type_constraint
   TC.translation_block [%here] (PP.string "Translating top level type constraint") begin
     let VS_aux (unwrapped_top_level_type_constraint, _vspec_annotation) = top_level_type_constraint
     in
-    let VS_val_spec (
-        TypSchm_aux (
-          TypSchm_ts (type_quantifier, Typ_aux (_typ, _type_location)),
-          _type_scheme_location),
-        identifier, _extern) = unwrapped_top_level_type_constraint
+    let VS_val_spec (type_scheme, identifier, _extern) = unwrapped_top_level_type_constraint
+    in
+    let TypSchm_aux (unwrapped_type_scheme, _type_scheme_location) = type_scheme
+    in
+    let TypSchm_ts (type_quantifier, Typ_aux (_typ, _type_location)) = unwrapped_type_scheme
     in
     let* identifier' = translate_identifier [%here] identifier
     in
