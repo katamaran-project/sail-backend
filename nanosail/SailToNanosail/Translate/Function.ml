@@ -955,7 +955,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     let* lhs_expression, _lhs_expression_type, lhs_named_statements = expression_of_aval location lhs
     and* rhs_statement = statement_of_aexp rhs
     in
-    let lhs_expr_as_statement = Ast.Statement.Expression lhs_expression
+    let lhs_expr_as_statement : Ast.Statement.t =
+      Expression lhs_expression
     in
     let* if_statement =
       match logical_operator with
@@ -985,9 +986,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
               if ( x ) { true } else { y }
            *)
-          let condition  = lhs_expr_as_statement
-          and when_true  = Ast.(Statement.Expression (Value (Bool true)))
-          and when_false = rhs_statement
+          let condition  : Ast.Statement.t = lhs_expr_as_statement
+          and when_true  : Ast.Statement.t = Expression (Value (Bool true))
+          and when_false : Ast.Statement.t = rhs_statement
           in
           create_if_statement ~condition ~when_true ~when_false
         end
