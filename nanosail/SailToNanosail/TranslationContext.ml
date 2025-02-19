@@ -10,7 +10,7 @@ module Context = struct
 
   let empty : t =
     {
-      definitions = [];
+      definitions   = [];
       next_id_index = 0;
     }
 
