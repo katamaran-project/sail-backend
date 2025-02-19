@@ -16,3 +16,10 @@ module Pair = struct
       snd_1
       snd_2
 end
+
+
+module Triple = struct
+  let first  (x, _, _) = x
+  let second (_, x, _) = x
+  let third  (_, _, x) = x
+end
