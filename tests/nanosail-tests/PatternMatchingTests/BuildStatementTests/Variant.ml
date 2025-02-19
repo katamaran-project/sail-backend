@@ -371,7 +371,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = true } ))
+              VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = true } )
             ]
             a1_statement
         in
@@ -427,14 +427,12 @@ let test_build_match_for_variant_single_binary_constructor =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "y"; wildcard = false };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"; wildcard = false };
+                  Binder { identifier = mkid "y"; wildcard = false };
+                ]
               )
             ]
             a1_statement
