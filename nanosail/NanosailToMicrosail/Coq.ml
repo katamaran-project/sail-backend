@@ -229,7 +229,7 @@ let pp_match
   let case_lines =
     let longest_pattern_width =
       let widths =
-        List.map ~f:PP.measure_width (List.map ~f:fst cases)
+        List.map ~f:(Fn.compose fst PP.measure) (List.map ~f:fst cases)
       in
       Option.value ~default:0 @@ List.max_elt ~compare:Int.compare widths
     in
@@ -267,7 +267,7 @@ let pp_match_pair matched_expressions cases =
   let left_patterns_max_width =
     Option.value
       ~default:0
-      (List.max_elt ~compare:Int.compare @@ List.map ~f:PP.measure_width left_patterns)
+      (List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose fst PP.measure) left_patterns)
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
@@ -454,7 +454,7 @@ let pp_record
     let longest_field_length =
       Option.value
         ~default:0
-        (List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose PP.measure_width fst) fields)
+        (List.max_elt ~compare:Int.compare @@ List.map ~f:(fun (field, _) -> fst @@ PP.measure field) fields)
     in
     List.map fields ~f:(
         fun (id, t) -> begin
