@@ -20,13 +20,13 @@ let translate_top_level_type_constraint
     (top_level_type_constraint : Sail.type_annotation S.val_spec) : Ast.Definition.t TC.t
   =  
   TC.translation_block [%here] (PP.string "Translating top level type constraint") begin
-    let VS_aux (value_specification, _vspec_annotation) = top_level_type_constraint
+    let VS_aux (unwrapped_top_level_type_constraint, _vspec_annotation) = top_level_type_constraint
     in
     let VS_val_spec (
         TypSchm_aux (
           TypSchm_ts (type_quantifier, Typ_aux (_typ, _type_location)),
           _type_scheme_location),
-        identifier, _extern) = value_specification
+        identifier, _extern) = unwrapped_top_level_type_constraint
     in
     let* identifier' = translate_identifier [%here] identifier
     in
