@@ -100,8 +100,8 @@ let test_adorn_bool_wildcard =
     let gen = new generator
     in
     let tc =
-      let statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
       let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
@@ -113,11 +113,11 @@ let test_adorn_bool_wildcard =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
-          matched_type = Ast.Type.Bool;
+      let expected_tree : TM.PatternTree.t =
+        Binder {
+          matched_type = Bool;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal (Some statement)
+          subtree      = Terminal (Some statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
