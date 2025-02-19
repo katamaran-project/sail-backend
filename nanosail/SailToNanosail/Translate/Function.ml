@@ -75,10 +75,10 @@ let create_if_statement
   in
   TC.return begin
     Ast.Statement.Let {
-      binder = condition_variable;
-      binding_statement_type = Ast.Type.Bool;
-      binding_statement = condition;
-      body_statement = Ast.Statement.Match match_pattern
+      binder                 = condition_variable;
+      binding_statement_type = Bool;
+      binding_statement      = condition;
+      body_statement         = Match match_pattern
     }
   end
 
