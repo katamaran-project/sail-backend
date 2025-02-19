@@ -1,3 +1,8 @@
+(*
+   Base is a standard library for OCaml developed by Jane Street (https://github.com/janestreet/base).
+   BaseExt is our own extension of this library.
+*)
+
 module List       = List
 module Fn         = Fn
 module Tuple      = Tuple
