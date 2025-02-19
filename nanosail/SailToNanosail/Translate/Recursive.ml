@@ -186,6 +186,12 @@ end = struct
         in
         TC.return @@ Ast.Type.Tuple items'
 
+      and nanotype_of_fn
+          (_types : S.typ list)
+          (_typ   : S.typ     ) : Ast.Type.t TC.t
+        =
+        TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+
       in
       match unwrapped_type with
       | Typ_tuple items                 -> nanotype_of_tuple items
@@ -194,7 +200,7 @@ end = struct
       | Typ_exist (ids, nc, typ)        -> nanotype_of_existential ids nc typ
       | Typ_internal_unknown            -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
       | Typ_var _                       -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
-      | Typ_fn (_, _)                   -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+      | Typ_fn (types, typ)             -> nanotype_of_fn types typ
       | Typ_bidir (_, _)                -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
     end
 
