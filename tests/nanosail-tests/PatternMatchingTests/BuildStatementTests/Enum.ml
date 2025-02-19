@@ -446,7 +446,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
                 (
                   mkid "A1",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "value2";
                       matched_type = mkid "A";
                       cases = Ast.Identifier.Map.of_alist_exn [
@@ -465,7 +465,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
                 (
                   mkid "A2",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "value2";
                       matched_type = mkid "A";
                       cases = Ast.Identifier.Map.of_alist_exn [
@@ -612,9 +612,9 @@ let test_build_match_for_enum_8 =
         Let {
           binder                 = mkid "x";
           binding_statement_type = enum_type;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", enum_type));
-          body_statement         = Ast.Statement.Match begin
-              Ast.Statement.MatchEnum {
+          binding_statement      = Expression (Ast.Expression.Variable (mkid "value1", enum_type));
+          body_statement         = Match begin
+              MatchEnum {
                 matched      = mkid "value2";
                 matched_type = mkid "A";
                 cases        = Ast.Identifier.Map.of_alist_exn [
@@ -711,7 +711,7 @@ let test_build_match_for_enum_9 =
                 (
                   mkid "A1",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "b";
                       matched_type = mkid "B";
                       cases = Ast.Identifier.Map.of_alist_exn [
@@ -730,7 +730,7 @@ let test_build_match_for_enum_9 =
                 (
                   mkid "A2",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "b";
                       matched_type = mkid "B";
                       cases = Ast.Identifier.Map.of_alist_exn [
