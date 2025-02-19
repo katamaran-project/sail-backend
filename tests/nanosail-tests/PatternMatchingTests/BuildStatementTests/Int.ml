@@ -33,7 +33,7 @@ let test_build_match_for_int_1 =
       let* actual_match_statement =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         statement
       in
       TC.assert_equal_statements expected_match_statement actual_match_statement
@@ -68,7 +68,7 @@ let test_build_match_for_int_2 =
       let* actual_match_statement =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder                 = mkid "n";
           binding_statement_type = Ast.Type.Int;
@@ -111,7 +111,7 @@ let test_build_match_for_int_int_1 =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         statement
       in
       TC.assert_equal_statements expected_match_statement actual_match_statement
@@ -147,7 +147,7 @@ let test_build_match_for_int_int_2 =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder                     = mkid "n";
           binding_statement_type     = Ast.Type.Int;
