@@ -698,8 +698,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
-          let call_statement =
-            Ast.Statement.Call (receiver_identifier', argument_expressions)
+          let call_statement : Ast.Statement.t =
+            Call (receiver_identifier', argument_expressions)
           in
           (* Warn user when polymorphic function was called *)
           let* () =
@@ -778,14 +778,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     and* s1    = statement_of_aexp expression
     and* s2    = statement_of_aexp body
     in
-    TC.return begin
-      Ast.Statement.Let {
+    let translation : Ast.Statement.t =    
+      Let {
         binder                 = id';
         binding_statement_type = typ1';
         binding_statement      = s1;
         body_statement         = s2;
       }
-    end
+    in
+    TC.return translation
 
   and statement_of_if
         (condition   : S.typ S.aval)
