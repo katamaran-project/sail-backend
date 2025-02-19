@@ -39,8 +39,8 @@ let test_build_match_for_variant_single_nullary_constructor =
         build_match [mkid "value1"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -97,8 +97,8 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
         build_match [mkid "value1"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
