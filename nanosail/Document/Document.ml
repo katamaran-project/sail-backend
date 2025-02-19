@@ -12,8 +12,7 @@ open ExtBase
 
 
 module Make(Annotation : Functor.ANNOTATION) = struct
-  module DocImpl = Functor.Make(Annotation)
-  include DocImpl
+  include Functor.Make(Annotation)
 
   let plus       = string "+"
   let star       = string "*"
