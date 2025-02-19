@@ -34,16 +34,16 @@ let type_of_aval
   match value with
    | AV_lit (_literal, literal_type) -> Nanotype.nanotype_of_sail_type literal_type
    | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Nanotype.nanotype_of_sail_type t
-   | AV_list (_elements, typ)        -> begin
-       let* element_type = Nanotype.nanotype_of_sail_type typ
-       in
-       TC.return @@ Ast.Type.List element_type
-     end
    | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
    | AV_tuple _                      -> TC.not_yet_implemented [%here] location
    | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
    | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
    | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
+   | AV_list (_elements, typ)        -> begin
+       let* element_type = Nanotype.nanotype_of_sail_type typ
+       in
+       TC.return @@ Ast.Type.List element_type
+     end
 
 
 (*
