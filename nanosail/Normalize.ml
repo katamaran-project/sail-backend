@@ -75,7 +75,7 @@ module Implementation = struct
         return @@ Ast.Expression.Variable (identifier, typ)
       end
 
-    | Val _ -> return expression
+    | Value _ -> return expression
 
     | List elements -> begin
         let* elements = map ~f:normalize_expression elements

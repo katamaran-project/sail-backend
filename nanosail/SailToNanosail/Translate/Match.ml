@@ -1655,7 +1655,7 @@ let rec build_leveled_match_statements
                       Ast.Statement.Let {
                         binder                 = binder.identifier;
                         binding_statement_type = variant_type;
-                        binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (first_matched_identifier, variant_type));
+                        binding_statement      = Expression (Variable (first_matched_identifier, variant_type));
                         body_statement         = substatement
                       }
                     end
@@ -1684,8 +1684,8 @@ let rec build_leveled_match_statements
                         *)
                         Ast.Statement.Let {
                           binder                 = field_binder.identifier;
-                          binding_statement_type = Ast.Type.Unit;
-                          binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+                          binding_statement_type = Unit;
+                          binding_statement      = Expression (Value Unit);
                           body_statement         = substatement;
                         }
                     in

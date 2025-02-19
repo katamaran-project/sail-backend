@@ -244,7 +244,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
            (x, y, ...) : tuple of x y ...
       *)
       match fields with
-      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Val Ast.Value.Unit
+      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Value Ast.Value.Unit
       | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
       | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
       | xs     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs
@@ -273,8 +273,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (* Returns the bit (as Some bit) if it's known at compile time, otherwise None *)
       let get_compile_time_digit (expression : Ast.Expression.t) : bool option =
         match expression with
-        | Ast.Expression.Val (Ast.Value.Bit bit) -> Some bit
-        | _ -> None
+        | Value (Ast.Value.Bit bit) -> Some bit
+        | _                         -> None
       in
       Option.all @@ List.map ~f:get_compile_time_digit elements
     in
@@ -298,7 +298,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   in
   match expression with
   | Variable (identifier, _typ)                       -> GC.pp_annotate [%here] @@ pp_variable identifier
-  | Val value                                         -> GC.pp_annotate [%here] @@ pp_value value
+  | Value value                                       -> GC.pp_annotate [%here] @@ pp_value value
   | UnaryOperation (operator, operand)                -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
   | BinaryOperation (op, e1, e2)                      -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2
   | List elements                                     -> GC.pp_annotate [%here] @@ pp_list elements

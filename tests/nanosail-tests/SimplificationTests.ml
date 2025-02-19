@@ -13,7 +13,7 @@ let test_simplify_statement_1 =
       Let {
         binder                 = Ast.Identifier.mk_generated "a";
         binding_statement_type = Ast.Type.Unit;
-        binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+        binding_statement      = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
         body_statement         = Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
       }
     in
@@ -45,8 +45,8 @@ let test_simplify_statement_2 =
         binding_statement      = Ast.Statement.Let {
             binder                 = Ast.Identifier.mk_generated "a";
             binding_statement_type = Ast.Type.Unit;
-            binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
-            body_statement         = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+            binding_statement      = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
+            body_statement         = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
           };
         body_statement         = Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
       }

@@ -225,7 +225,7 @@ let rec expression_of_aval
     let* lit' = Literal.value_of_literal literal
     and* typ' = Nanotype.nanotype_of_sail_type typ
     in
-    TC.return @@ (Ast.Expression.Val lit', typ', [])
+    TC.return @@ (Ast.Expression.Value lit', typ', [])
 
   and expression_of_identifier
         (identifier : S.id                       )
@@ -678,7 +678,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               *)
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
-                | Val Unit                     -> []
+                | Value Unit                   -> []
                 | BinaryOperation (Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
                 | _                            -> [expression]
               in
@@ -933,7 +933,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           TC.return begin
             Ast.Statement.Seq (
               write_register_translation,
-              Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit)
+              Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit)
             )
           end
         end
@@ -971,7 +971,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            *)
           let condition  = lhs_expr_as_statement
           and when_true  = rhs_statement
-          and when_false = Ast.(Statement.Expression (Val (Bool false)))
+          and when_false = Ast.(Statement.Expression (Value (Bool false)))
           in
           create_if_statement ~condition ~when_true ~when_false
         end
@@ -986,7 +986,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               if ( x ) { true } else { y }
            *)
           let condition  = lhs_expr_as_statement
-          and when_true  = Ast.(Statement.Expression (Val (Bool true)))
+          and when_true  = Ast.(Statement.Expression (Value (Bool true)))
           and when_false = rhs_statement
           in
           create_if_statement ~condition ~when_true ~when_false

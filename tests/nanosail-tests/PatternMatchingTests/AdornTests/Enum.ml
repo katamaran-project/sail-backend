@@ -518,7 +518,7 @@ let test_clashing_binders_2 =
           BinaryOperation (
             Plus,
             Variable (id, Ast.Type.Int),
-            Val (Ast.Value.mk_int 1)
+            Value (Ast.Value.mk_int 1)
           )
         end
       in
@@ -527,7 +527,7 @@ let test_clashing_binders_2 =
           BinaryOperation (
             Plus,
             Variable (id, Ast.Type.Int),
-            Val (Ast.Value.mk_int 2)
+            Value (Ast.Value.mk_int 2)
           )
         end
       in
@@ -614,7 +614,7 @@ let test_clashing_binders_3 =
           BinaryOperation (
             Plus,
             Variable (id, Ast.Type.Int),
-            Val (Ast.Value.mk_int 1)
+            Value (Ast.Value.mk_int 1)
           )
         end
       in
@@ -623,7 +623,7 @@ let test_clashing_binders_3 =
           BinaryOperation (
             Plus,
             Variable (id, Ast.Type.Int),
-            Val (Ast.Value.mk_int 2)
+            Value (Ast.Value.mk_int 2)
           )
         end
       in
@@ -719,7 +719,7 @@ let test_clashing_binders_4 =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
       let statement n : Ast.Statement.t =
-        Expression (Val (Ast.Value.mk_int n))
+        Expression (Value (Ast.Value.mk_int n))
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]

@@ -139,8 +139,8 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
       return @@ Expression.Bitvector elements
     end
 
-  | Val _  -> return expression
-  | Enum _ -> return expression
+  | Value _ -> return expression
+  | Enum _  -> return expression
 
 
 let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =

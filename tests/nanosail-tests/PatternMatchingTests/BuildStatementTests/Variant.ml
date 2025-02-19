@@ -275,7 +275,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
                     Ast.Statement.Let {
                       binder = mkid "x";
                       binding_statement_type = Ast.Type.Unit;
-                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Val Ast.Value.Unit);
+                      binding_statement      = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
                       body_statement         = a1_statement;
                     }
                   )

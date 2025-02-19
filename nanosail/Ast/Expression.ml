@@ -3,7 +3,7 @@ open! ExtBase
 
 type t =
   | Variable        of Identifier.t * Nanotype.t
-  | Val             of Value.t
+  | Value           of Value.t
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
   | BinaryOperation of BinaryOperator.t * t * t
@@ -47,7 +47,7 @@ let rec equal
         subexpressions_1
         subexpressions_2
     end
-  | Val value_1, Val value_2 -> begin
+  | Value value_1, Value value_2 -> begin
       Value.equal
         value_1
         value_2
@@ -79,7 +79,7 @@ let rec equal
   | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
   | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
   | Variable _, _                                        -> false
-  | Val _, _                                             -> false
+  | Value _, _                                           -> false
   | List _, _                                            -> false
   | UnaryOperation _, _                                  -> false
   | BinaryOperation (_, _, _), _                         -> false
@@ -96,7 +96,7 @@ exception UnimplementedTypeInference
 let infer_type (expression : t) : Nanotype.t =
   match expression with
    | Variable (_, typ)         -> typ
-   | Val _                     -> raise UnimplementedTypeInference
+   | Value _                   -> raise UnimplementedTypeInference
    | List _                    -> raise UnimplementedTypeInference
    | UnaryOperation (_, _)     -> raise UnimplementedTypeInference
    | BinaryOperation (_, _, _) -> raise UnimplementedTypeInference
@@ -180,7 +180,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
   in
   match expression with
    | Variable (identifier, typ)                              -> variable_to_fexpr identifier typ
-   | Val value                                               -> value_to_fexpr value
+   | Value value                                             -> value_to_fexpr value
    | List items                                              -> list_to_fexpr items
    | UnaryOperation (operator, operand)                      -> unary_operation_to_fexpr operator operand
    | BinaryOperation (operator, left_operand, right_operand) -> binary_operation_to_fexpr operator left_operand right_operand
@@ -198,7 +198,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
 let rec free_variables (expression : t) : Identifier.Set.t =
   match expression with
    | Variable (identifier, _)                                            -> Identifier.Set.singleton identifier
-   | Val _                                                               -> Identifier.Set.empty
+   | Value _                                                             -> Identifier.Set.empty
    | List elements                                                       -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | UnaryOperation (_, operand)                                         -> free_variables operand
    | BinaryOperation (_, left_operand, right_operand)                    -> Identifier.Set.union (free_variables left_operand) (free_variables right_operand)
