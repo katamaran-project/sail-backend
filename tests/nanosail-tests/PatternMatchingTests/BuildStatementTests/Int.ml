@@ -69,7 +69,7 @@ let test_build_match_for_int_2 =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Let {
+        Let {
           binder                 = mkid "n";
           binding_statement_type = Ast.Type.Int;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
@@ -148,11 +148,11 @@ let test_build_match_for_int_int_2 =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Let {
+        Let {
           binder                     = mkid "n";
           binding_statement_type     = Ast.Type.Int;
           binding_statement          = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
-          body_statement             = Ast.Statement.Let {
+          body_statement             = Let {
               binder                 = mkid "k";
               binding_statement_type = Ast.Type.Int;
               binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", Ast.Type.Int));
