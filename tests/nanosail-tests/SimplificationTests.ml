@@ -13,13 +13,13 @@ let test_simplify_statement_1 =
       Let {
         binder                 = Ast.Identifier.mk_generated "a";
         binding_statement_type = Ast.Type.Unit;
-        binding_statement      = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
-        body_statement         = Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
+        binding_statement      = Expression (Value Unit);
+        body_statement         = Expression (Variable (Ast.Identifier.mk "x", Unit))
       }
     in
     let actual = Ast.Simplify.simplify_statement statement
-    and expected =
-      Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
+    and expected : Ast.Statement.t =
+      Expression (Variable (Ast.Identifier.mk "x", Unit))
     in
     assert_equal
       ~cmp:Ast.Statement.equal
