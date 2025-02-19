@@ -724,6 +724,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                           PP.string @@ StringOf.Sail.location location
                         );
                         (
+                          PP.string "Parameter types",
+                          PP.indent begin
+                            PP.numbered_list begin
+                              [
+                                PP.string "TODO";
+                              ]
+                            end
+                          end
+                        );
+                        (
                           PP.string "Argument types",
                           PP.indent begin
                             PP.numbered_list begin
