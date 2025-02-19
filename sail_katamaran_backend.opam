@@ -14,7 +14,6 @@ depends: [
   "base"
   "stdio"
   "pprint"
-  "auxlib"
   "odoc" {with-doc}
 ]
 build: [

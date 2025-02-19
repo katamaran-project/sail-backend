@@ -10,7 +10,6 @@ depends: [
   "ocaml"
   "dune" {>= "3.8"}
   "base"
-  "auxlib"
   "odoc" {with-doc}
 ]
 build: [

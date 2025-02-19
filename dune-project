@@ -24,18 +24,7 @@
                  ppx_here
                  pprint
                  base
-                 stdio
-                 auxlib)
-	(allow_empty))
-
-(package
-	(name auxlib)
-	(synopsis
-		"Auxlib")
-	(depends ocaml
-                 dune
-                 base
-                 pprint)
+                 stdio)
 	(allow_empty))
 
 (package
@@ -44,8 +33,7 @@
 		"Monad Library")
 	(depends ocaml
                  dune
-                 base
-                 auxlib)
+                 base)
 	(allow_empty))
 
 (package
@@ -57,6 +45,5 @@
                  sail
                  base
                  stdio
-                 pprint
-                 auxlib)
+                 pprint)
 	(allow_empty))
