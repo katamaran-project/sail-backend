@@ -12,7 +12,7 @@ let test_simplify_statement_1 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = Ast.Identifier.mk_generated "a";
-        binding_statement_type = Ast.Type.Unit;
+        binding_statement_type = Unit;
         binding_statement      = Expression (Value Unit);
         body_statement         = Expression (Variable (Ast.Identifier.mk "x", Unit))
       }
@@ -41,19 +41,20 @@ let test_simplify_statement_2 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = Ast.Identifier.mk_generated "a";
-        binding_statement_type = Ast.Type.Unit;
-        binding_statement      = Ast.Statement.Let {
+        binding_statement_type = Unit;
+        binding_statement      = Let {
             binder                 = Ast.Identifier.mk_generated "a";
             binding_statement_type = Ast.Type.Unit;
-            binding_statement      = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
-            body_statement         = Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit);
+            binding_statement      = Expression (Value Unit);
+            body_statement         = Expression (Value Unit);
           };
-        body_statement         = Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
+        body_statement         = Expression (Variable (Ast.Identifier.mk "x", Unit))
       }
     in
-    let actual = Ast.Simplify.simplify_statement statement
-    and expected =
-      Ast.Statement.Expression (Ast.Expression.Variable (Ast.Identifier.mk "x", Ast.Type.Unit))
+    let actual = 
+      Ast.Simplify.simplify_statement statement
+    and expected : Ast.Statement.t =
+      Expression (Variable (Ast.Identifier.mk "x", Unit))
     in
     assert_equal
       ~cmp:Ast.Statement.equal
