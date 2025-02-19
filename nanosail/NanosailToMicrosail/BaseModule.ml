@@ -84,7 +84,7 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast
       in
       genblock [%here] "Alias Notation" begin
         let quantifiers =
-          let Ast.TypeQuantifier.TypeQuantifier pairs = type_quantifier
+          let TypeQuantifier pairs = type_quantifier
           in
           List.map ~f:fst pairs
         in
@@ -410,12 +410,12 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                 let pp_constructor_tag =
                   PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_constructor_name constructor_identifier
                 in
-                let* pp_constructor_field_types =
-                  let packed_type =
+                let* pp_constructor_field_types : PP.t =
+                  let packed_type : Ast.Type.t =
                     match constructor_field_types with
-                    | []     -> Ast.Type.Unit
+                    | []     -> Unit
                     | [x]    -> x
-                    | xs     -> Ast.Type.Tuple xs
+                    | xs     -> Tuple xs
                   in
                   GC.pp_annotate [%here] @@ Nanotype.pp_nanotype packed_type
                 in

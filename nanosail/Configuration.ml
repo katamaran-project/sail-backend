@@ -137,8 +137,8 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     let result, _ = Slang.EvaluationContext.run @@ get ignore_function_definition_predicate arguments
     in
     match result with
-    | C.EC.Success result -> Slang.Value.truthy result
-    | C.EC.Failure _      -> failwith "Error while reading configuration"
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
 
   and should_ignore_type_definition type_definition =
     let identifier = Sail.identifier_of_type_definition type_definition
@@ -148,8 +148,8 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
     in
     match result with
-    | C.EC.Success result -> Slang.Value.truthy result
-    | C.EC.Failure _      -> failwith "Error while reading configuration"
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
 
   and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
     let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
@@ -161,8 +161,8 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
     in
     match result with
-    | C.EC.Success result -> Slang.Value.truthy result
-    | C.EC.Failure _      -> failwith "Error while reading configuration"
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
 
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
     get ignore_default_order
