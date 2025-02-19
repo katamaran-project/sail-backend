@@ -11,18 +11,6 @@
 
 open! ExtBase
 
-let rec repeat_string (string : string) (n : int) : string =
-  if n = 0
-  then ""
-  else string ^ (repeat_string string (n-1))
-
-
-let indent_strings (indentation : int) (strings : string list) : string list =
-  let indent string =
-    repeat_string " " indentation ^ string
-  in
-  List.map ~f:indent strings
-
 
 module type ANNOTATION = sig
   type t
@@ -113,7 +101,7 @@ module Make(Annotation : ANNOTATION) = struct
               | first_right' :: bottom_right' -> begin
                   let indentation =
                     AnnotatedString {
-                      string             = repeat_string " " (length last_left');
+                      string             = String.repeat " " (length last_left');
                       annotation         = Annotation.empty;
                       undecorated_length = length last_left';
                     }
@@ -354,7 +342,7 @@ module Make(Annotation : ANNOTATION) = struct
 
   let indent ?(level = 2) (document : t) : t =
     horizontal [
-      string @@ repeat_string " " level;
+      string @@ String.repeat " " level;
       document
     ]
 
