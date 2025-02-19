@@ -14,10 +14,10 @@ let test_adorn_bool_true_false =
     let _gen = new generator
     in
     let tc =
-      let true_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
-      and false_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
+      let true_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
+      and false_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
       in
       let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
@@ -34,10 +34,10 @@ let test_adorn_bool_true_false =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Bool {
-          when_true  = TM.PatternTree.Terminal (Some true_statement);
-          when_false = TM.PatternTree.Terminal (Some false_statement)
+      let expected_tree : TM.PatternTree.t =
+        Bool {
+          when_true  = Terminal (Some true_statement);
+          when_false = Terminal (Some false_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -57,10 +57,10 @@ let test_adorn_bool_false_true =
     let _gen = new generator
     in
     let tc =
-      let true_statement =
-        Ast.Statement.ReadRegister (mkid "r2")
-      and false_statement =
-        Ast.Statement.ReadRegister (mkid "r1")
+      let true_statement : Ast.Statement.t =
+        ReadRegister (mkid "r2")
+      and false_statement : Ast.Statement.t =
+        ReadRegister (mkid "r1")
       in
       let* actual_tree =
         let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
@@ -77,10 +77,10 @@ let test_adorn_bool_false_true =
         in
         TC.return tree
       in
-      let expected_tree =
-        TM.PatternTree.Bool {
-            when_true  = TM.PatternTree.Terminal (Some true_statement);
-            when_false = TM.PatternTree.Terminal (Some false_statement)
+      let expected_tree : TM.PatternTree.t =
+        Bool {
+            when_true  = Terminal (Some true_statement);
+            when_false = Terminal (Some false_statement)
           }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
