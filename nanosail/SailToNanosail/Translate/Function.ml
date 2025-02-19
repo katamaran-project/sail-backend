@@ -922,18 +922,18 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           and* translated_rhs = statement_of_aexp rhs
           and* rhs_type       = Nanotype.nanotype_of_sail_type lhs_type;
           in
-          let write_register_translation =
-            Ast.Statement.Let {
+          let write_register_translation : Ast.Statement.t =
+            Let {
               binder                 = rhs_identifier;
               binding_statement_type = rhs_type;
               binding_statement      = translated_rhs;
-              body_statement         = Ast.Statement.WriteRegister { register_identifier = id_in_lhs; written_value = rhs_identifier }
+              body_statement         = WriteRegister { register_identifier = id_in_lhs; written_value = rhs_identifier }
             }
           in
           TC.return begin
             Ast.Statement.Seq (
               write_register_translation,
-              Ast.Statement.Expression (Ast.Expression.Value Ast.Value.Unit)
+              Expression (Value Unit)
             )
           end
         end
