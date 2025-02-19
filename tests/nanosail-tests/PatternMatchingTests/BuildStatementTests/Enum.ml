@@ -18,7 +18,7 @@ let test_build_match_for_enum_with_single_case =
       let* enum_type =
         TC.define_enum_str "A" ["A1"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r1")
       in
       let* tree =
@@ -33,10 +33,10 @@ let test_build_match_for_enum_with_single_case =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -69,9 +69,9 @@ let test_build_match_for_enum_with_two_cases =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r1")
-      and a2_statement =
+      and a2_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
@@ -93,10 +93,10 @@ let test_build_match_for_enum_with_two_cases =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -134,9 +134,9 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r1")
-      and a2_statement =
+      and a2_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
@@ -158,10 +158,10 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -199,9 +199,9 @@ let test_build_match_for_enum_with_two_cases_use_binder =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r1")
-      and a2_statement =
+      and a2_statement : Ast.Statement.t =
         Ast.Statement.ReadRegister (mkid "r2")
       in
       let* tree =
@@ -223,10 +223,10 @@ let test_build_match_for_enum_with_two_cases_use_binder =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -269,13 +269,13 @@ let test_build_match_for_pair_of_enums =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_a1_statement =
+      let a1_a1_statement : Ast.Statement.t =
         mkstm 1
-      and a1_a2_statement =
+      and a1_a2_statement : Ast.Statement.t =
         mkstm 2
-      and a2_a1_statement =
+      and a2_a1_statement : Ast.Statement.t =
         mkstm 3
-      and a2_a2_statement =
+      and a2_a2_statement : Ast.Statement.t =
         mkstm 4
       in
       let* tree =
@@ -315,10 +315,10 @@ let test_build_match_for_pair_of_enums =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -388,13 +388,13 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_a1_statement =
+      let a1_a1_statement : Ast.Statement.t =
         mkstm 1
-      and a1_a2_statement =
+      and a1_a2_statement : Ast.Statement.t =
         mkstm 2
-      and a2_a1_statement =
+      and a2_a1_statement : Ast.Statement.t =
         mkstm 3
-      and a2_a2_statement =
+      and a2_a2_statement : Ast.Statement.t =
         mkstm 4
       in
       let* tree =
@@ -434,10 +434,10 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "value1";
@@ -507,9 +507,9 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         mkstm 1
-      and a2_statement =
+      and a2_statement : Ast.Statement.t =
         mkstm 2
       in
       let* tree =
@@ -533,10 +533,10 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched      = mkid "value2";
@@ -579,9 +579,9 @@ let test_build_match_for_enum_8 =
       let* enum_type =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
-      let a1_statement =
+      let a1_statement : Ast.Statement.t =
         mkstm 1
-      and a2_statement =
+      and a2_statement : Ast.Statement.t =
         mkstm 2
       in
       let* tree =
@@ -605,10 +605,10 @@ let test_build_match_for_enum_8 =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "value1"; mkid "value2"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder                 = mkid "x";
           binding_statement_type = enum_type;
@@ -653,13 +653,13 @@ let test_build_match_for_enum_9 =
       and* enum_type_b =
         TC.define_enum_str "B" ["B1"; "B2"]
       in
-      let a1_b1_statement =
+      let a1_b1_statement : Ast.Statement.t =
         mkstm 1
-      and a1_b2_statement =
+      and a1_b2_statement : Ast.Statement.t =
         mkstm 2
-      and a2_b1_statement =
+      and a2_b1_statement : Ast.Statement.t =
         mkstm 3
-      and a2_b2_statement =
+      and a2_b2_statement : Ast.Statement.t =
         mkstm 4
       in
       let* tree =
@@ -699,10 +699,10 @@ let test_build_match_for_enum_9 =
         in
         TC.return tree
       in
-      let* actual_match_statement =
+      let* actual_match_statement : Ast.Statement.t =
         build_match [mkid "a"; mkid "b"] tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchEnum {
             matched = mkid "a";
