@@ -768,20 +768,16 @@ let test_build_match_for_tuple_of_variants =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "y"; wildcard = false };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"; wildcard = false };
+                  Binder { identifier = mkid "y"; wildcard = false };
+                ]
               );
-              Pattern.(
-                VariantCase (
-                  mkid "B1",
-                  Unit
-                )
+              VariantCase (
+                mkid "B1",
+                Unit
               )
             ]
             b1_statement
@@ -789,20 +785,16 @@ let test_build_match_for_tuple_of_variants =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "y"; wildcard = false };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"; wildcard = false };
+                  Binder { identifier = mkid "y"; wildcard = false };
+                ]
               );
-              Pattern.(
-                VariantCase (
-                  mkid "B2",
-                  Unit
-                )
+              VariantCase (
+                mkid "B2",
+                Unit
               )
             ]
             b2_statement
@@ -1025,9 +1017,9 @@ let test_build_match_for_tuple_of_variants_binders_2 =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.Binder { identifier = mkid "y"; wildcard = false };
-              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+              Binder { identifier = mkid "x"; wildcard = false };
+              Binder { identifier = mkid "y"; wildcard = false };
+              Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
@@ -1199,7 +1191,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
             pattern_tree
             [
               Binder { identifier = mkid "x"; wildcard = false };
-              VariantCase ( mkid "B1", Pattern.Unit );
+              VariantCase ( mkid "B1", Unit );
               Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
@@ -1207,9 +1199,9 @@ let test_build_match_for_tuple_of_variants_binders_4 =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.Binder { identifier = mkid "y"; wildcard = true };
-              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+              Binder { identifier = mkid "x"; wildcard = false };
+              Binder { identifier = mkid "y"; wildcard = true };
+              Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
