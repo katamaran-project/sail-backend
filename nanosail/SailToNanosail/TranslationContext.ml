@@ -153,7 +153,7 @@ let string_of_error (error : Error.t) : string =
 (*
   If an error occurs while executing f, print it out and 'reraise' it.
   In other words, this function has no impact on the execution,
-  except that it might print out an error.
+  except that it might print out an error message.
 *)
 let debug_error f =
   let show e =
