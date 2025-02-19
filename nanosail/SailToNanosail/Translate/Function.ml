@@ -771,7 +771,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (typ1        : S.typ               )
         (expression  : S.typ S.aexp        )
         (body        : S.typ S.aexp        )
-        (_typ2       : S.typ               )
+        (_typ2       : S.typ               ) : Ast.Statement.t TC.t
     =
     let* id'   = Identifier.translate_identifier [%here] identifier
     and* typ1' = Nanotype.nanotype_of_sail_type typ1
@@ -792,7 +792,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (condition   : S.typ S.aval)
         (then_clause : S.typ S.aexp)
         (else_clause : S.typ S.aexp)
-        (_typ        : S.typ       )
+        (_typ        : S.typ       ) : Ast.Statement.t TC.t
     =
     let* (condition, condition_named_statements) =
       let* condition_expression, _condition_expression_type, named_statements = expression_of_aval location condition
@@ -826,7 +826,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   and statement_of_block
         (statements     : S.typ S.aexp list)
         (last_statement : S.typ S.aexp     )
-        (_typ           : S.typ            )
+        (_typ           : S.typ            ) : Ast.Statement.t TC.t
     =
     let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
     in
@@ -879,12 +879,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         in
         TC.fold_left ~f:process_binding ~init:(initial_field_map, []) (Bindings.bindings bindings)
       in
-      let record_expression =
+      let record_expression : Ast.Expression.t =
         let type_identifier = record_type_identifier
         and fields =
           List.map field_identifiers ~f:(StringMap.find_exn field_map)
         in
-        Ast.Expression.Record { type_identifier; fields }
+        Record { type_identifier; fields }
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Expression record_expression)
     end
