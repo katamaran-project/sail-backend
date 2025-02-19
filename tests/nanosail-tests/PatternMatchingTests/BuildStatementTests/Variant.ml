@@ -913,9 +913,9 @@ let test_build_match_for_tuple_of_variants_wildcards =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = true };
-              Pattern.Binder { identifier = mkid "y"; wildcard = true };
-              Pattern.Binder { identifier = mkid "z"; wildcard = true };
+              Binder { identifier = mkid "x"; wildcard = true };
+              Binder { identifier = mkid "y"; wildcard = true };
+              Binder { identifier = mkid "z"; wildcard = true };
             ]
             statement
         in
