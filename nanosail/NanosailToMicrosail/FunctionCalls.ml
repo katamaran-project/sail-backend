@@ -162,9 +162,9 @@ let try_lookup_string_value_bound_to (identifier : Ast.Identifier.t) : string op
 *)
 let extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC.t =
   match expression with
-  | Ast.Expression.Value (Ast.Value.Int value) -> GC.return @@ Some value
-  | Ast.Expression.Variable (identifier, _typ) -> try_lookup_integer_value_bound_to identifier
-  | _                                          -> GC.return None
+  | Value (Ast.Value.Int value) -> GC.return @@ Some value
+  | Variable (identifier, _typ) -> try_lookup_integer_value_bound_to identifier
+  | _                           -> GC.return None
 
 
 (*
@@ -173,9 +173,9 @@ let extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC
 *)
 let extract_compile_time_string (expression : Ast.Expression.t) : string option GC.t =
   match expression with
-  | Ast.Expression.Value (Ast.Value.String value) -> GC.return @@ Some value
-  | Ast.Expression.Variable (identifier, _typ)    -> try_lookup_string_value_bound_to identifier
-  | _                                             -> GC.return None
+  | Value (Ast.Value.String value) -> GC.return @@ Some value
+  | Variable (identifier, _typ)    -> try_lookup_string_value_bound_to identifier
+  | _                              -> GC.return None
 
 
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
@@ -479,8 +479,8 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
   in
   let derive_vector_length (expression : Ast.Expression.t) : PP.document GC.t =
     match Ast.Expression.infer_type expression with
-    | Ast.Type.Bitvector (Ast.Numeric.Expression.Constant n) -> GC.return @@ PP.string @@ Z.to_string n
-    | _                                                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
+    | Bitvector (Constant n) -> GC.return @@ PP.string @@ Z.to_string n
+    | _                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
   in
   match arguments with
   | [ bv1; bv2 ] -> begin
