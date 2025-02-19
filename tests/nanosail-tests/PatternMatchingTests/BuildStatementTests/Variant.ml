@@ -526,8 +526,8 @@ let test_build_match_for_variant_two_constructors =
         build_match [mkid "value1"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -599,8 +599,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
         build_match [mkid "value1"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -696,8 +696,8 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         build_match [mkid "value1"; mkid "value2"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -706,7 +706,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
                   (
                     [ mkid "x"; mkid "y" ],
                     Ast.Statement.Match begin
-                      Ast.Statement.MatchVariant {
+                      MatchVariant {
                         matched = mkid "value2";
                         matched_type = mkid "B";
                         cases = Ast.Identifier.Map.of_alist_exn [
@@ -829,8 +829,8 @@ let test_build_match_for_tuple_of_variants =
         build_match [mkid "value1"; mkid "value2"] pattern_tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchVariant {
+        Match begin
+          MatchVariant {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -839,7 +839,7 @@ let test_build_match_for_tuple_of_variants =
                   (
                     [ mkid "x"; mkid "y" ],
                     Ast.Statement.Match begin
-                      Ast.Statement.MatchVariant {
+                      MatchVariant {
                         matched = mkid "value2";
                         matched_type = mkid "B";
                         cases = Ast.Identifier.Map.of_alist_exn [
@@ -963,9 +963,9 @@ let test_build_match_for_tuple_of_variants_binders =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.Binder { identifier = mkid "y"; wildcard = false };
-              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+              Binder { identifier = mkid "x"; wildcard = false };
+              Binder { identifier = mkid "y"; wildcard = false };
+              Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
@@ -1130,9 +1130,9 @@ let test_build_match_for_tuple_of_variants_binders_3 =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.Binder { identifier = mkid "y"; wildcard = true };
-              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+              Binder { identifier = mkid "x"; wildcard = false };
+              Binder { identifier = mkid "y"; wildcard = true };
+              Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
@@ -1214,9 +1214,9 @@ let test_build_match_for_tuple_of_variants_binders_4 =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.VariantCase ( mkid "B1", Pattern.Unit );
-              Pattern.Binder { identifier = mkid "z"; wildcard = false };
+              Binder { identifier = mkid "x"; wildcard = false };
+              VariantCase ( mkid "B1", Pattern.Unit );
+              Binder { identifier = mkid "z"; wildcard = false };
             ]
             statement
         in
