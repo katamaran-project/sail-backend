@@ -275,8 +275,8 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
                     [gen#id],
                     Ast.Statement.Let {
                       binder = mkid "x";
-                      binding_statement_type = Ast.Type.Unit;
-                      binding_statement      = Expression (Ast.Expression.Value Ast.Value.Unit);
+                      binding_statement_type = Unit;
+                      binding_statement      = Expression (Value Unit);
                       body_statement         = a1_statement;
                     }
                   )
@@ -304,7 +304,7 @@ let test_build_match_for_variant_single_unary_constructor =
   let test _ =
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int])]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -360,7 +360,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
   let test _ =
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int])]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -416,7 +416,7 @@ let test_build_match_for_variant_single_binary_constructor =
   let test _ =
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -481,8 +481,8 @@ let test_build_match_for_variant_two_constructors =
     let tc =
       let* variant_type =
         TC.define_variant "A" [
-          ("A1", [Ast.Type.Int; Ast.Type.Int]);
-          ("A2", [Ast.Type.Int]);
+          ("A1", [Int; Int]);
+          ("A2", [Int]);
         ]
       in
       let a1_statement : Ast.Statement.t =
@@ -570,7 +570,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
   let test _ =
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       in
       let a1_statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -636,7 +636,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
     in
     let tc =
       let* variant_type_a =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       and* variant_type_b =
         TC.define_variant "B" [("B1", []); ("B2", [])]
       in
@@ -769,7 +769,7 @@ let test_build_match_for_tuple_of_variants =
     in
     let tc =
       let* variant_type_a =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       and* variant_type_b =
         TC.define_variant "B" [("B1", []); ("B2", [])]
       in
@@ -902,7 +902,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
     in
     let tc =
       let* variant_type_a =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       in
       let statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -952,7 +952,7 @@ let test_build_match_for_tuple_of_variants_binders =
     in
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int; Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int; Int])]
       in
       let statement : Ast.Statement.t =
         ReadRegister (mkid "r1")
@@ -1018,18 +1018,18 @@ let test_build_match_for_tuple_of_variants_binders_2 =
     let tc =
       let* variant_type_a =
         TC.define_variant "A" [
-          ("A1", [Ast.Type.Int; Ast.Type.Int])
+          ("A1", [Int; Int])
         ]
       and* variant_type_b =
         TC.define_variant "B" [
           ("B1", []);
-          ("B2", [Ast.Type.Int; Ast.Type.Int; Ast.Type.Int])
+          ("B2", [Int; Int; Int])
         ]
       and* variant_type_c =
         TC.define_variant "C" [
-          ("C1", [Ast.Type.Int]);
-          ("C2", [Ast.Type.Int]);
-          ("C3", [Ast.Type.Int]);
+          ("C1", [Int]);
+          ("C2", [Int]);
+          ("C3", [Int]);
         ]
       in
       let statement : Ast.Statement.t =
@@ -1107,18 +1107,18 @@ let test_build_match_for_tuple_of_variants_binders_3 =
     let tc =
       let* variant_type_a =
         TC.define_variant "A" [
-          ("A1", [Ast.Type.Int; Ast.Type.Int])
+          ("A1", [Int; Int])
         ]
       and* variant_type_b =
         TC.define_variant "B" [
           ("B1", []);
-          ("B2", [Ast.Type.Int; Ast.Type.Int; Ast.Type.Int])
+          ("B2", [Int; Int; Int])
         ]
       and* variant_type_c =
         TC.define_variant "C" [
-          ("C1", [Ast.Type.Int]);
-          ("C2", [Ast.Type.Int]);
-          ("C3", [Ast.Type.Int]);
+          ("C1", [Int]);
+          ("C2", [Int]);
+          ("C3", [Int]);
         ]
       in
       let statement : Ast.Statement.t =
@@ -1191,18 +1191,18 @@ let test_build_match_for_tuple_of_variants_binders_4 =
     let tc =
       let* variant_type_a =
         TC.define_variant "A" [
-          ("A1", [Ast.Type.Int; Ast.Type.Int])
+          ("A1", [Int; Int])
         ]
       and* variant_type_b =
         TC.define_variant "B" [
           ("B1", []);
-          ("B2", [Ast.Type.Int; Ast.Type.Int; Ast.Type.Int])
+          ("B2", [Int; Int; Int])
         ]
       and* variant_type_c =
         TC.define_variant "C" [
-          ("C1", [Ast.Type.Int]);
-          ("C2", [Ast.Type.Int]);
-          ("C3", [Ast.Type.Int]);
+          ("C1", [Int]);
+          ("C2", [Int]);
+          ("C3", [Int]);
         ]
       in
       let statement : Ast.Statement.t =
