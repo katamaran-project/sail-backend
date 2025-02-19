@@ -1215,8 +1215,8 @@ let test_build_match_for_tuple_of_variants_binders_4 =
           binder = mkid "x";
           binding_statement_type = variant_type_a;
           binding_statement      = Expression (Variable (mkid "value1", variant_type_a));
-          body_statement         = Ast.Statement.Match begin
-              Ast.Statement.MatchVariant {
+          body_statement         = Match begin
+              MatchVariant {
                 matched = mkid "value2";
                 matched_type = mkid "B";
                 cases = Ast.Identifier.Map.of_alist_exn [
