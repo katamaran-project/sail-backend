@@ -17,7 +17,7 @@ let test_rename_match_product_1 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -36,7 +36,7 @@ let test_rename_match_product_1 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -65,7 +65,7 @@ let test_rename_match_product_2 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -84,7 +84,7 @@ let test_rename_match_product_2 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "renamed"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "renamed"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -113,7 +113,7 @@ let test_rename_match_product_3 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -132,7 +132,7 @@ let test_rename_match_product_3 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
@@ -161,7 +161,7 @@ let test_rename_match_product_4 =
           type_snd = Int;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
-          body     = Ast.Statement.Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
+          body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
         }
       end
     in
