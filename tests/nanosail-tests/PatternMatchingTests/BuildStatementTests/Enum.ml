@@ -19,7 +19,7 @@ let test_build_match_for_enum_with_single_case =
         TC.define_enum_str "A" ["A1"]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -70,9 +70,9 @@ let test_build_match_for_enum_with_two_cases =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and a2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -135,9 +135,9 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and a2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
@@ -200,9 +200,9 @@ let test_build_match_for_enum_with_two_cases_use_binder =
         TC.define_enum_str "A" ["A1"; "A2"]
       in
       let a1_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r1")
+        ReadRegister (mkid "r1")
       and a2_statement : Ast.Statement.t =
-        Ast.Statement.ReadRegister (mkid "r2")
+        ReadRegister (mkid "r2")
       in
       let* tree =
         let* tree = build_empty_pattern_tree [ enum_type ]
