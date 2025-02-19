@@ -34,7 +34,8 @@ let translate_top_level_type_constraint
       TypeQuantifier.translate_type_quantifier type_quantifier
     in
     let* typ' =
-      Nanotype.nanotype_of_sail_type typ
+      (* Nanotype.nanotype_of_sail_type typ *)
+      TC.return Ast.Type.Unit  (* todo restore this *)
     in
     let polymorphic =
       match type_quantifier' with
