@@ -187,9 +187,34 @@ end = struct
         TC.return @@ Ast.Type.Tuple items'
 
       and nanotype_of_fn
-          (_types : S.typ list)
-          (_typ   : S.typ     ) : Ast.Type.t TC.t
+          (types  : S.typ list)
+          (fn_typ : S.typ     ) : Ast.Type.t TC.t
         =
+        let* () =
+          let message = lazy begin
+            PP.vertical [
+              PP.string "Encountered Typ_fn";
+              PP.description_list [
+                (
+                  PP.string "string representation",
+                  PP.string @@ StringOf.Sail.typ typ
+                );
+                (
+                  PP.string "types",
+                  PP.numbered_list begin
+                    List.map ~f:(Fn.compose PP.string StringOf.Sail.typ) types
+                  end
+                );
+                (
+                  PP.string "fn_typ",
+                  PP.string @@ StringOf.Sail.typ fn_typ
+                )
+              ]
+            ]
+          end
+          in
+          TC.log [%here] Logging.warning message
+        in
         TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
 
       in
