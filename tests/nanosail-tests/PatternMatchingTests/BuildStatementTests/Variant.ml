@@ -29,7 +29,7 @@ let test_build_match_for_variant_single_nullary_constructor =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(VariantCase (mkid "A1", Pattern.Unit))
+              VariantCase (mkid "A1", Unit)
             ]
             a1_statement
         in
@@ -254,7 +254,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
         let* pattern_tree = adorn
             pattern_tree
             [
-              (VariantCase (mkid "A1", Pattern.Binder { identifier = mkid "x"; wildcard = false }))
+              (VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false }))
             ]
             a1_statement
         in
@@ -315,7 +315,7 @@ let test_build_match_for_variant_single_unary_constructor =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } ))
+              VariantCase (mkid "A1", Binder { identifier = mkid "x"; wildcard = false } )
             ]
             a1_statement
         in
