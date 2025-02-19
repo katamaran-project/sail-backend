@@ -241,7 +241,7 @@ let test_build_match_for_enum_with_two_cases_use_binder =
                   Ast.Statement.Let {
                     binder                 = mkid "x";
                     binding_statement_type = Ast.Type.Enum (mkid "A");
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Enum (mkid "A")));
+                    binding_statement      = Expression (Variable (mkid "value1", Enum (mkid "A")));
                     body_statement         = a2_statement
                   }
                 );
@@ -327,7 +327,7 @@ let test_build_match_for_pair_of_enums =
                 (
                   mkid "A1",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "value2";
                       matched_type = mkid "A";
                       cases = Ast.Identifier.Map.of_alist_exn [
@@ -346,7 +346,7 @@ let test_build_match_for_pair_of_enums =
                 (
                   mkid "A2",
                   Ast.Statement.Match begin
-                    Ast.Statement.MatchEnum {
+                    MatchEnum {
                       matched = mkid "value2";
                       matched_type = mkid "A";
                       cases = Ast.Identifier.Map.of_alist_exn [
