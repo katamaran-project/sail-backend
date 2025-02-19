@@ -17,43 +17,43 @@ let rec value_of_expression (expression : Sail.type_annotation S.exp) : Ast.Valu
   let S.E_aux (unwrapped_expression, (location, type_annotation)) = expression
   in
   match unwrapped_expression with
-  | S.E_lit literal                            -> Literal.value_of_literal literal
-  | S.E_vector bitvector_elements              -> value_of_bitvector_expression ~location ~type_annotation ~bitvector_elements
-  | S.E_block _                                -> TC.not_yet_implemented [%here] location
-  | S.E_id _                                   -> TC.not_yet_implemented [%here] location
-  | S.E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_app (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_app_infix (_, _, _)                    -> TC.not_yet_implemented [%here] location
-  | S.E_tuple _                                -> TC.not_yet_implemented [%here] location
-  | S.E_if (_, _, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_loop (_, _, _, _)                      -> TC.not_yet_implemented [%here] location
-  | S.E_for (_, _, _, _, _, _)                 -> TC.not_yet_implemented [%here] location
-  | S.E_vector_access (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_vector_subrange (_, _, _)              -> TC.not_yet_implemented [%here] location
-  | S.E_vector_update (_, _, _)                -> TC.not_yet_implemented [%here] location
-  | S.E_vector_update_subrange (_, _, _, _)    -> TC.not_yet_implemented [%here] location
-  | S.E_vector_append (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_list _                                 -> TC.not_yet_implemented [%here] location
-  | S.E_cons (_, _)                            -> TC.not_yet_implemented [%here] location
-  | S.E_struct _                               -> TC.not_yet_implemented [%here] location
-  | S.E_struct_update (_, _)                   -> TC.not_yet_implemented [%here] location
-  | S.E_field (_, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_match (_, _)                           -> TC.not_yet_implemented [%here] location
-  | S.E_let (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_assign (_, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_sizeof _                               -> TC.not_yet_implemented [%here] location
-  | S.E_return _                               -> TC.not_yet_implemented [%here] location
-  | S.E_exit _                                 -> TC.not_yet_implemented [%here] location
-  | S.E_ref _                                  -> TC.not_yet_implemented [%here] location
-  | S.E_throw _                                -> TC.not_yet_implemented [%here] location
-  | S.E_try (_, _)                             -> TC.not_yet_implemented [%here] location
-  | S.E_assert (_, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_var (_, _, _)                          -> TC.not_yet_implemented [%here] location
-  | S.E_internal_plet (_, _, _)                -> TC.not_yet_implemented [%here] location
-  | S.E_internal_return _                      -> TC.not_yet_implemented [%here] location
-  | S.E_internal_value _                       -> TC.not_yet_implemented [%here] location
-  | S.E_internal_assume (_, _)                 -> TC.not_yet_implemented [%here] location
-  | S.E_constraint _                           -> TC.not_yet_implemented [%here] location
+  | E_lit literal                            -> Literal.value_of_literal literal
+  | E_vector bitvector_elements              -> value_of_bitvector_expression ~location ~type_annotation ~bitvector_elements
+  | E_block _                                -> TC.not_yet_implemented [%here] location
+  | E_id _                                   -> TC.not_yet_implemented [%here] location
+  | E_typ (_, _)                             -> TC.not_yet_implemented [%here] location
+  | E_app (_, _)                             -> TC.not_yet_implemented [%here] location
+  | E_app_infix (_, _, _)                    -> TC.not_yet_implemented [%here] location
+  | E_tuple _                                -> TC.not_yet_implemented [%here] location
+  | E_if (_, _, _)                           -> TC.not_yet_implemented [%here] location
+  | E_loop (_, _, _, _)                      -> TC.not_yet_implemented [%here] location
+  | E_for (_, _, _, _, _, _)                 -> TC.not_yet_implemented [%here] location
+  | E_vector_access (_, _)                   -> TC.not_yet_implemented [%here] location
+  | E_vector_subrange (_, _, _)              -> TC.not_yet_implemented [%here] location
+  | E_vector_update (_, _, _)                -> TC.not_yet_implemented [%here] location
+  | E_vector_update_subrange (_, _, _, _)    -> TC.not_yet_implemented [%here] location
+  | E_vector_append (_, _)                   -> TC.not_yet_implemented [%here] location
+  | E_list _                                 -> TC.not_yet_implemented [%here] location
+  | E_cons (_, _)                            -> TC.not_yet_implemented [%here] location
+  | E_struct _                               -> TC.not_yet_implemented [%here] location
+  | E_struct_update (_, _)                   -> TC.not_yet_implemented [%here] location
+  | E_field (_, _)                           -> TC.not_yet_implemented [%here] location
+  | E_match (_, _)                           -> TC.not_yet_implemented [%here] location
+  | E_let (_, _)                             -> TC.not_yet_implemented [%here] location
+  | E_assign (_, _)                          -> TC.not_yet_implemented [%here] location
+  | E_sizeof _                               -> TC.not_yet_implemented [%here] location
+  | E_return _                               -> TC.not_yet_implemented [%here] location
+  | E_exit _                                 -> TC.not_yet_implemented [%here] location
+  | E_ref _                                  -> TC.not_yet_implemented [%here] location
+  | E_throw _                                -> TC.not_yet_implemented [%here] location
+  | E_try (_, _)                             -> TC.not_yet_implemented [%here] location
+  | E_assert (_, _)                          -> TC.not_yet_implemented [%here] location
+  | E_var (_, _, _)                          -> TC.not_yet_implemented [%here] location
+  | E_internal_plet (_, _, _)                -> TC.not_yet_implemented [%here] location
+  | E_internal_return _                      -> TC.not_yet_implemented [%here] location
+  | E_internal_value _                       -> TC.not_yet_implemented [%here] location
+  | E_internal_assume (_, _)                 -> TC.not_yet_implemented [%here] location
+  | E_constraint _                           -> TC.not_yet_implemented [%here] location
 
 and value_of_bitvector_expression
       ~(location : S.l)
@@ -66,13 +66,13 @@ and value_of_bitvector_expression
   *)
   let convert_value_to_bool (value : Ast.Value.t) : bool TC.t =
     match value with
-     | Ast.Value.Bit b       -> TC.return b
-     | Ast.Value.Unit        -> TC.not_yet_implemented [%here] location
-     | Ast.Value.Bool _      -> TC.not_yet_implemented [%here] location
-     | Ast.Value.Int _       -> TC.not_yet_implemented [%here] location
-     | Ast.Value.String _    -> TC.not_yet_implemented [%here] location
-     | Ast.Value.Prod (_, _) -> TC.not_yet_implemented [%here] location
-     | Ast.Value.Bitvector _ -> TC.not_yet_implemented [%here] location
+     | Bit b       -> TC.return b
+     | Unit        -> TC.not_yet_implemented [%here] location
+     | Bool _      -> TC.not_yet_implemented [%here] location
+     | Int _       -> TC.not_yet_implemented [%here] location
+     | String _    -> TC.not_yet_implemented [%here] location
+     | Prod (_, _) -> TC.not_yet_implemented [%here] location
+     | Bitvector _ -> TC.not_yet_implemented [%here] location
   in
   let* bitvector_values = TC.map ~f:value_of_expression bitvector_elements
   in

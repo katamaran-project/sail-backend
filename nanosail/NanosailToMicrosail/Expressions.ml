@@ -122,8 +122,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (operand  : Ast.Expression.t   ) : PP.document GC.t
     =
     match operator with
-    | Ast.UnaryOperator.Neg -> GC.pp_annotate [%here] @@ pp_negation operand
-    | Ast.UnaryOperator.Not -> GC.pp_annotate [%here] @@ pp_logical_negation operand
+    | Neg -> GC.pp_annotate [%here] @@ pp_negation operand
+    | Not -> GC.pp_annotate [%here] @@ pp_logical_negation operand
 
   and pp_negation (operand : Ast.Expression.t) : PP.document GC.t =
     let* pp_operand =

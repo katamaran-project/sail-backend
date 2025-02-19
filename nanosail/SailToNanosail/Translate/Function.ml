@@ -258,8 +258,8 @@ let rec expression_of_aval
         in
         let* type_identifier =
           match typ' with
-          | Ast.Type.Enum type_identifier -> TC.return type_identifier
-          | _                             -> TC.fail [%here] "Expected enum type"
+          Enum type_identifier -> TC.return type_identifier
+          | _                  -> TC.fail [%here] "Expected enum type"
         in
         let enum_value =
           Ast.Expression.Enum { type_identifier; constructor_identifier = id' }

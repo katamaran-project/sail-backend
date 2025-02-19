@@ -270,7 +270,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
     =
     (* Start by inferring type of left operand. We know this to be a bitvector, but we need to know its size *)
     match Ast.Expression.infer_type bitvector_argument with
-    | Ast.Type.Bitvector (Ast.Definition.NumericExpression.Constant bitvector_size) -> begin
+    | Bitvector (Constant bitvector_size) -> begin
         (* Pretty print left operand *)
         let* pp_bitvector_argument =
           let* doc = Expressions.pp_expression bitvector_argument
