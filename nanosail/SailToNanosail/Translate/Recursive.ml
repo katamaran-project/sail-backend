@@ -192,10 +192,10 @@ end = struct
       | Typ_id id                       -> nanotype_of_identifier id
       | Typ_app (identifier, type_args) -> nanotype_of_application identifier type_args
       | Typ_exist (ids, nc, typ)        -> nanotype_of_existential ids nc typ
-      | Typ_internal_unknown            -> TC.not_yet_implemented [%here] location
-      | Typ_var _                       -> TC.not_yet_implemented [%here] location
-      | Typ_fn (_, _)                   -> TC.not_yet_implemented [%here] location
-      | Typ_bidir (_, _)                -> TC.not_yet_implemented [%here] location
+      | Typ_internal_unknown            -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+      | Typ_var _                       -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+      | Typ_fn (_, _)                   -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+      | Typ_bidir (_, _)                -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
     end
 
   and translate_type_argument (type_argument : Libsail.Ast.typ_arg) : Ast.TypeArgument.t TC.t =
