@@ -494,14 +494,12 @@ let test_build_match_for_variant_two_constructors =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "y"; wildcard = false };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"; wildcard = false };
+                  Binder { identifier = mkid "y"; wildcard = false };
+                ]
               )
             ]
             a1_statement
@@ -509,11 +507,9 @@ let test_build_match_for_variant_two_constructors =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A2",
-                  Binder { identifier = mkid "x"; wildcard = false };
-                )
+              VariantCase (
+                mkid "A2",
+                Binder { identifier = mkid "x"; wildcard = false };
               )
             ]
             a2_statement
@@ -579,14 +575,12 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "y"; wildcard = true  };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"; wildcard = false };
+                  Binder { identifier = mkid "y"; wildcard = true  };
+                ]
               )
             ]
             a1_statement
@@ -649,20 +643,16 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "xxx"; wildcard = true };
-                    Binder { identifier = mkid "y"; wildcard = false  };
-                  ]
-                )
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "xxx"; wildcard = true  };
+                  Binder { identifier = mkid "y"  ; wildcard = false };
+                ]
               );
-              Pattern.(
-                VariantCase (
-                  mkid "B1",
-                  Unit
-                )
+              VariantCase (
+                mkid "B1",
+                Unit
               )
             ]
             b1_statement
@@ -670,20 +660,16 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         let* pattern_tree = adorn
             pattern_tree
             [
-              Pattern.(
-                VariantCase (
-                  mkid "A1",
-                  Tuple [
-                    Binder { identifier = mkid "x"; wildcard = false };
-                    Binder { identifier = mkid "yyy"; wildcard = true  };
-                  ]
-                );
+              VariantCase (
+                mkid "A1",
+                Tuple [
+                  Binder { identifier = mkid "x"  ; wildcard = false };
+                  Binder { identifier = mkid "yyy"; wildcard = true  };
+                ]
               );
-              Pattern.(
-                VariantCase (
-                  mkid "B2",
-                  Unit
-                )
+              VariantCase (
+                mkid "B2",
+                Unit
               )
             ]
             b2_statement
