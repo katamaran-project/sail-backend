@@ -139,8 +139,16 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
   | Sum (_, _)                       -> GC.not_yet_implemented [%here]
   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
+  | Function _                       -> begin
+      (*
+          Should not occur
+          As far as we know, these types only appear in top level type constraints,
+          which are not translated into muSail
+      *)
+      GC.not_yet_implemented [%here]
+    end
 
-
+    
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
     let* n' =
@@ -204,6 +212,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Bit                 -> GC.not_yet_implemented [%here]
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
   | Range (_, _)        -> GC.not_yet_implemented [%here]
+  | Function _          -> GC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
   match type_argument with

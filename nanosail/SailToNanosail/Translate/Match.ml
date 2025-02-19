@@ -928,15 +928,16 @@ let rec build_empty_pattern_tree
         | Unit                         -> build_binder_node Ast.Type.Unit subtree
         | Bool                         -> build_binder_node Ast.Type.Bool subtree
         | String                       -> build_binder_node Ast.Type.String subtree
+        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) subtree
         | Bit                          -> TC.not_yet_implemented [%here] location
         | List _                       -> TC.not_yet_implemented [%here] location
         | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
-        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) subtree
         | Tuple _                      -> TC.not_yet_implemented [%here] location
         | Record _                     -> TC.not_yet_implemented [%here] location
         | Application (_, _)           -> TC.not_yet_implemented [%here] location
         | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
         | Range (_, _)                 -> TC.not_yet_implemented [%here] location
+        | Function _                   -> TC.not_yet_implemented [%here] location
       in
       let* () =
         let node_count = PatternTree.count_nodes tree
@@ -1901,6 +1902,7 @@ let rec translate_pattern
   | Application (_, _) -> translate_pattern_for_atomic_type ()
   | Alias (_, _)       -> translate_pattern_for_atomic_type ()
   | Range (_, _)       -> translate_pattern_for_atomic_type ()
+  | Function _         -> translate_pattern_for_atomic_type ()                            
 
 
 let translate_case
@@ -2356,3 +2358,4 @@ let translate
   | Application (_, _)           -> TC.not_yet_implemented [%here] location
   | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
   | Range (_, _)                 -> TC.not_yet_implemented [%here] location
+  | Function _                   -> TC.not_yet_implemented [%here] location

@@ -32,6 +32,12 @@ module Subst = struct
       | Sum (t1, t2)            -> Sum (aux t1, aux t2)
       | Alias (id, t)           -> Alias (id, t)
       | Range (a, b)            -> Range (numeric_expression subst a, numeric_expression subst b)
+      | Function { parameter_types; result_type } -> begin
+          Function {
+            parameter_types = List.map ~f:aux parameter_types;
+            result_type     = aux result_type
+          }
+        end
     in
     aux
 
