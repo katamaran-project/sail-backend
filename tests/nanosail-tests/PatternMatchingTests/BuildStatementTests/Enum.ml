@@ -37,8 +37,8 @@ let test_build_match_for_enum_with_single_case =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -97,8 +97,8 @@ let test_build_match_for_enum_with_two_cases =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -162,8 +162,8 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -227,8 +227,8 @@ let test_build_match_for_enum_with_two_cases_use_binder =
         build_match [mkid "value1"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -319,8 +319,8 @@ let test_build_match_for_pair_of_enums =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -438,8 +438,8 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "value1";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
@@ -537,8 +537,8 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched      = mkid "value2";
             matched_type = mkid "A";
             cases        = Ast.Identifier.Map.of_alist_exn [
@@ -609,7 +609,7 @@ let test_build_match_for_enum_8 =
         build_match [mkid "value1"; mkid "value2"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Let {
+        Let {
           binder                 = mkid "x";
           binding_statement_type = enum_type;
           binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", enum_type));
@@ -703,8 +703,8 @@ let test_build_match_for_enum_9 =
         build_match [mkid "a"; mkid "b"] tree
       in
       let expected_match_statement : Ast.Statement.t =
-        Ast.Statement.Match begin
-          Ast.Statement.MatchEnum {
+        Match begin
+          MatchEnum {
             matched = mkid "a";
             matched_type = mkid "A";
             cases = Ast.Identifier.Map.of_alist_exn [
