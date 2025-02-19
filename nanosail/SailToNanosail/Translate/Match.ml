@@ -19,7 +19,7 @@
     In nSail this is represented by (has not been checked thoroughly):
 
       Ast.Statement.Match begin
-        Ast.Statement.MatchEnum {
+        MatchEnum {
           matched      = Id "e";
           matched_type = Enum (Id "MyEnum");
           cases        = Ast.Identifier.Map.of_alist [
@@ -1545,7 +1545,7 @@ let rec build_leveled_match_statements
           in
           TC.return begin
             Ast.Statement.Match begin
-              Ast.Statement.MatchBool {
+              MatchBool {
                 condition = first_matched_identifier;
                 when_true;
                 when_false;
@@ -1616,7 +1616,7 @@ let rec build_leveled_match_statements
           in
           TC.return begin
             Ast.Statement.Match begin
-              Ast.Statement.MatchEnum {
+              MatchEnum {
                 matched      = first_matched_identifier;
                 matched_type = enum_identifier;
                 cases;
@@ -1710,7 +1710,7 @@ let rec build_leveled_match_statements
           in
           TC.return begin
             Ast.Statement.Match begin
-              Ast.Statement.MatchVariant {
+              MatchVariant {
                 matched      = first_matched_identifier;
                 matched_type = variant_identifier;
                 cases
@@ -2009,7 +2009,7 @@ let translate_list_match
     =
     TC.return begin
       Ast.Statement.Match begin
-        Ast.Statement.MatchList {
+        MatchList {
           matched      = matched_identifier                           ;
           element_type                                                ;
           when_cons    = (head_identifier, tail_identifier, cons_body);
@@ -2168,7 +2168,7 @@ let create_tuple_match
   | [ (id_fst, type_fst); (id_snd, type_snd) ] -> begin
       TC.return begin
         Ast.Statement.Match begin
-          Ast.Statement.MatchProduct {
+          MatchProduct {
             matched;
             type_fst;
             type_snd;
@@ -2182,7 +2182,7 @@ let create_tuple_match
   | _ -> begin
       TC.return begin
         Ast.Statement.Match begin
-          Ast.Statement.MatchTuple {
+          MatchTuple {
             matched;
             binders;
             body;
