@@ -26,12 +26,15 @@ let translate_top_level_type_constraint
     in
     let TypSchm_aux (unwrapped_type_scheme, _type_scheme_location) = type_scheme
     in
-    let TypSchm_ts (type_quantifier, Typ_aux (_typ, _type_location)) = unwrapped_type_scheme
+    let TypSchm_ts (type_quantifier, typ) = unwrapped_type_scheme
     in
     let* identifier' = translate_identifier [%here] identifier
     in
     let* type_quantifier' =
       TypeQuantifier.translate_type_quantifier type_quantifier
+    in
+    let* typ' =
+      Nanotype.nanotype_of_sail_type typ
     in
     let polymorphic =
       match type_quantifier' with
@@ -49,6 +52,10 @@ let translate_top_level_type_constraint
             (
               PP.string "Type quantifier",
               PP.string @@ FExpr.to_string @@ Ast.TypeQuantifier.to_fexpr type_quantifier'
+            );
+            (
+              PP.string "Type",
+              PP.string @@ FExpr.to_string @@ Ast.Type.to_fexpr typ'
             );
           ]
         in
