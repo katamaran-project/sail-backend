@@ -38,7 +38,7 @@ let test_build_match_for_variant_single_nullary_constructor =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -96,7 +96,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -160,7 +160,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
       let* actual_match_statement =
         build_match [mkid "value"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         a1_statement
       in
       TC.assert_equal_statements expected_match_statement actual_match_statement
@@ -206,9 +206,10 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
         TC.return pattern_tree
       in
       let* actual_match_statement =
-        build_match [mkid "value"] pattern_tree
+        build_match 
+        [mkid "value"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder = mkid "x";
           binding_statement_type = variant_type;
@@ -262,7 +263,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -323,7 +324,7 @@ let test_build_match_for_variant_single_unary_constructor =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -379,7 +380,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -443,7 +444,7 @@ let test_build_match_for_variant_single_binary_constructor =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -524,7 +525,7 @@ let test_build_match_for_variant_two_constructors =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -597,7 +598,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
       let* actual_match_statement =
         build_match [mkid "value1"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -694,7 +695,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -827,7 +828,7 @@ let test_build_match_for_tuple_of_variants =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Match begin
           Ast.Statement.MatchVariant {
             matched = mkid "value1";
@@ -923,7 +924,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         statement
       in
       TC.assert_equal_statements expected_match_statement actual_match_statement
@@ -973,7 +974,7 @@ let test_build_match_for_tuple_of_variants_binders =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder = mkid "x";
           binding_statement_type = variant_type;
@@ -1051,7 +1052,7 @@ let test_build_match_for_tuple_of_variants_binders_2 =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder = mkid "x";
           binding_statement_type = variant_type_a;
@@ -1140,7 +1141,7 @@ let test_build_match_for_tuple_of_variants_binders_3 =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder = mkid "x";
           binding_statement_type = variant_type_a;
@@ -1233,7 +1234,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
       let* actual_match_statement =
         build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
       in
-      let expected_match_statement =
+      let expected_match_statement : Ast.Statement.t =
         Ast.Statement.Let {
           binder = mkid "x";
           binding_statement_type = variant_type_a;
