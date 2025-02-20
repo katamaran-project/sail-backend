@@ -56,7 +56,7 @@ let translate_top_level_type_constraint
             );
             (
               PP.string "Type",
-              PP.string @@ FExpr.to_string @@ Ast.Type.to_fexpr typ'
+              FExpr.pp @@ Ast.Type.to_fexpr typ'
             );
           ]
         in
@@ -66,7 +66,7 @@ let translate_top_level_type_constraint
         ]
       end
       in
-      TC.log [%here] Logging.info message
+      TC.log [%here] Logging.warning message
     in
     TC.return begin
       Ast.Definition.TopLevelTypeConstraintDefinition {
