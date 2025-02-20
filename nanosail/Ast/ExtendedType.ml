@@ -184,8 +184,8 @@ end = struct
     | Unknown { ocaml_location; sail_location; sail_type } -> begin
         let keyword = [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
-            ("SailLocation", FExpr.mk_sail_location sail_location);
-            ("SailType", FExpr.String sail_type);
+            ("SailLocation" , FExpr.mk_sail_location sail_location  );
+            ("SailType"     , FExpr.String sail_type                );
           ]
         in
         FExpr.mk_application ~keyword @@ prefix "Unknown"
