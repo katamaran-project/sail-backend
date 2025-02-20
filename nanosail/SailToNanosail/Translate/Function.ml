@@ -1114,9 +1114,6 @@ let translate_function_definition
                 TC.return @@ PP.string "Some"
               end
           in
-          let* type_annotation_message =
-            TC.return @@ PP.string @@ StringOf.Sail.type_annotation type_annotation
-          in
           let message = lazy begin
             let properties =
               PP.description_list [
@@ -1129,8 +1126,12 @@ let translate_function_definition
                   PP.from_multiline_string @@ StringOf.Sail.definition full_sail_definition
                 );
                 (
+                  PP.string "Parameter bindings",
+                  PP.string @@ StringOf.Sail.pat parts.parameter_bindings
+                );
+                (
                   PP.string "type_annotation",
-                  type_annotation_message
+                  PP.string @@ StringOf.Sail.type_annotation type_annotation
                 );
                 (
                   PP.string "tannot_opt",
@@ -1144,7 +1145,7 @@ let translate_function_definition
             ]
           end
           in
-          TC.log [%here] Logging.info message
+          TC.log [%here] Logging.warning message
         in
         let* polymorphic =
           let* top_level_type_constraint =
