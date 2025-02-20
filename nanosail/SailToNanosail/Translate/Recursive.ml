@@ -213,7 +213,7 @@ end = struct
             ]
           end
           in
-          TC.log [%here] Logging.warning message
+          TC.log [%here] Logging.info message
         in
         let* parameter_types' = TC.map ~f:nanotype_of_sail_type parameter_types
         and* result_type'     = nanotype_of_sail_type result_type
