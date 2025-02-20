@@ -1145,7 +1145,7 @@ let translate_function_definition
             ]
           end
           in
-          TC.log [%here] Logging.warning message
+          TC.log [%here] Logging.info message
         in
         let* polymorphic =
           let* top_level_type_constraint =
