@@ -1,5 +1,4 @@
 open! Base
-open! Auxlib
 module EC = EvaluationContext
 open Monads.Notations.Star(EC)
 

@@ -13,5 +13,4 @@
             stdio
             libsail
             pprint
-            monads
-            auxlib))
+            monads))

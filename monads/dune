@@ -1,4 +1,4 @@
 (library
  (name monads)
  (public_name monads)
- (libraries auxlib))
+ (libraries base))
