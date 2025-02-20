@@ -228,9 +228,9 @@ end = struct
       and nanotype_of_type_variable (kid : S.kid) : Ast.Type.t TC.t =
         let Kid_aux (unwrapped_kid, _kid_location) = kid
         in
-        let Var _identifier = unwrapped_kid
+        let Var identifier = unwrapped_kid
         in
-        TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+        TC.return @@ Ast.Type.TypeVariable (Ast.Identifier.mk identifier)
 
       in
       match unwrapped_type with
