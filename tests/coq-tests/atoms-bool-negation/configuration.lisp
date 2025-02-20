@@ -7,7 +7,7 @@
                 "file_end"
                 "sail_internal")
 
-(define (ignorer identifier)
+(define (should-be-ignored? identifier)
   (or
    (string-ends-with? "_of_num" identifier)
    (string-starts-with? "num_of_" identifier)
@@ -33,7 +33,8 @@
                 "concat_str_dec")
               identifier)))
 
-(ignore-function-definition-predicate ignorer)
+(ignore-function-definition-predicate should-be-ignored?)
+(ignore-top-level-type-constraint-predicate should-be-ignored?)
 
 (ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(

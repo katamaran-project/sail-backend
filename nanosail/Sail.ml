@@ -23,12 +23,22 @@ let string_of_id (id : id) : string =
 
 
 (* determines the name of a function *)
-let identifier_of_function_definition (function_definition : 'a fundef) =
+let identifier_of_function_definition (function_definition : 'a fundef) : string =
   let FD_aux (FD_function (_, _, x), (_location, _)) = function_definition
   in
   match x with
   | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
   | _ -> failwith "wanted to extract function name from function definition; failed because I didn't recognize structure"
+
+
+let identifier_of_top_level_type_constraint (top_level_type_constraint : 'a val_spec) : string =
+  let VS_aux (unwrapped_top_level_type_constraint, _annotation) = top_level_type_constraint
+  in
+  let VS_val_spec (_type_scheme, identifier, _extern) = unwrapped_top_level_type_constraint
+  in
+  match identifier with
+  | Id_aux (Id name, _)       -> name
+  | Id_aux (Operator name, _) -> name
 
 
 let identifier_of_type_definition (TD_aux (definition, (_location, _))) =

@@ -12,26 +12,27 @@ module C = struct
   open Slang.Prelude.Shared
 
   module S = struct
-    let output_width                         = integer  "output-width"                     200
-    let use_list_notations                   = bool     "use-list-notations"               false (* Use list notations                                                          *)
-    let include_original_code                = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
-    let ignore_overloads                     = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
-    let ignore_default_order                 = bool     "ignore-default-order"             true
-    let print_warnings                       = bool     "print-warnings"                   false
-    let pretty_print_let                     = bool     "pretty-print-let"                 false
-    let pretty_print_match_enum              = bool     "pretty-print-match-enum"          false
-    let pretty_print_binary_operators        = bool     "pretty-print-binary-operators"    false
-    let show_generation_blocks               = bool     "show-generation-blocks"           false
-    let bitvectors_zeros_ones_as_literal     = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones)                       *)
-    let inline_definitions_in_notations      = bool     "inline-definitions-in-notations"  true
-    let annotate_functions_with_ast          = bool     "annotate-functions-with-ast"      false
-    let ignored_pragmas                      = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
-    let ignored_functions                    = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
-    let base_name                            = string   "base-name"                        "UntitledBase"
-    let program_name                         = string   "program-name"                     "ModelProgram"
-    let ignore_type_definition_predicate     = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
-    let ignore_value_definition_predicate    = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
-    let ignore_function_definition_predicate = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let output_width                               = integer  "output-width"                     200
+    let use_list_notations                         = bool     "use-list-notations"               false (* Use list notations                                                          *)
+    let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
+    let ignore_overloads                           = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
+    let ignore_default_order                       = bool     "ignore-default-order"             true
+    let print_warnings                             = bool     "print-warnings"                   false
+    let pretty_print_let                           = bool     "pretty-print-let"                 false
+    let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
+    let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
+    let show_generation_blocks                     = bool     "show-generation-blocks"           false
+    let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones)                       *)
+    let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
+    let annotate_functions_with_ast                = bool     "annotate-functions-with-ast"      false
+    let ignored_pragmas                            = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
+    let ignored_functions                          = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
+    let base_name                                  = string   "base-name"                        "UntitledBase"
+    let program_name                               = string   "program-name"                     "ModelProgram"
+    let ignore_type_definition_predicate           = callable ~error_message:"missing ignore-type-definition-predicate" "ignore-type-definition-predicate"
+    let ignore_value_definition_predicate          = callable ~error_message:"missing ignore-value-definition-predicate" "ignore-value-definition-predicate"
+    let ignore_function_definition_predicate       = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_top_level_type_constraint_predicate = callable' "ignore-top-level-type-constraint-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
 
     (* template block delimiters *)
@@ -164,26 +165,37 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     | Success result -> Slang.Value.truthy result
     | Failure _      -> failwith "Error while reading configuration"
 
+  and should_ignore_top_level_type_constraint (top_level_type_constraint : Sail.type_annotation val_spec) =
+    let identifier = Sail.identifier_of_top_level_type_constraint top_level_type_constraint
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
+    in
+    match result with
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
+
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
     get ignore_default_order
 
   in
   match definition with
-  | DEF_type type_definition       -> should_ignore_type_definition type_definition
-  | DEF_fundef function_definition -> should_ignore_function_definition function_definition
-  | DEF_mapdef _                   -> false
-  | DEF_impl _                     -> false
-  | DEF_let value_definition       -> should_ignore_value_definition value_definition
-  | DEF_val _                      -> false
-  | DEF_outcome (_, _)             -> false
-  | DEF_instantiation (_, _)       -> false
-  | DEF_fixity (_, _, _)           -> false
-  | DEF_overload (_, _)            -> get (ignore_overloads)
-  | DEF_default default_spec       -> should_ignore_default_definition default_spec
-  | DEF_scattered _                -> false
-  | DEF_measure (_, _, _)          -> false
-  | DEF_loop_measures (_, _)       -> false
-  | DEF_register _                 -> false
-  | DEF_internal_mutrec _          -> false
-  | DEF_constraint _               -> false
-  | DEF_pragma (identifier, _, _)  -> should_ignore_pragma identifier
+  | DEF_type type_definition          -> should_ignore_type_definition type_definition
+  | DEF_fundef function_definition    -> should_ignore_function_definition function_definition
+  | DEF_mapdef _                      -> false
+  | DEF_impl _                        -> false
+  | DEF_let value_definition          -> should_ignore_value_definition value_definition
+  | DEF_val top_level_type_constraint -> should_ignore_top_level_type_constraint top_level_type_constraint
+  | DEF_outcome (_, _)                -> false
+  | DEF_instantiation (_, _)          -> false
+  | DEF_fixity (_, _, _)              -> false
+  | DEF_overload (_, _)               -> get (ignore_overloads)
+  | DEF_default default_spec          -> should_ignore_default_definition default_spec
+  | DEF_scattered _                   -> false
+  | DEF_measure (_, _, _)             -> false
+  | DEF_loop_measures (_, _)          -> false
+  | DEF_register _                    -> false
+  | DEF_internal_mutrec _             -> false
+  | DEF_constraint _                  -> false
+  | DEF_pragma (identifier, _, _)     -> should_ignore_pragma identifier
