@@ -233,6 +233,7 @@ module rec Type : sig
     | Range        of NumericExpression.t * NumericExpression.t
     | Function     of { parameter_types : t list; result_type : t }
     | TypeVariable of Identifier.t
+    | Nat
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
@@ -256,6 +257,7 @@ end = struct
     | Range        of NumericExpression.t * NumericExpression.t
     | Function     of { parameter_types : t list; result_type : t }
     | TypeVariable of Identifier.t
+    | Nat
 
   let rec to_string (t : t) : string =
     match t with
@@ -264,6 +266,7 @@ end = struct
     | String               -> "Type.String"
     | List _               -> "Type.List"
     | Bit                  -> "Type.Bit"
+    | Nat                  -> "Type.Nat"
     | Sum (t1, t2)         -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
     | Unit                 -> "Type.Unit"
     | Bitvector numexp     -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
@@ -304,6 +307,7 @@ end = struct
     | String             -> FExpr.mk_symbol @@ prefix "String"
     | Bit                -> FExpr.mk_symbol @@ prefix "Bit"
     | Unit               -> FExpr.mk_symbol @@ prefix "Unit"
+    | Nat                -> FExpr.mk_symbol @@ prefix "Nat"
     | List t             -> FExpr.mk_application ~positional:[to_fexpr t]                         @@ prefix "List"
     | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]           @@ prefix "Sum"
     | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Enum"
@@ -462,6 +466,12 @@ end = struct
               identifier_2
           end
         | _ -> false
+      end
+
+    | Nat -> begin
+        match t2 with
+        | Nat -> true
+        | _   -> false
       end
 end
 

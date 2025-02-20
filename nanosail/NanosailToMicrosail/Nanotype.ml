@@ -143,6 +143,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   | TypeVariable id                  -> GC.pp_annotate [%here] @@ pp_type_variable id
   | Sum (_, _)                       -> GC.not_yet_implemented [%here]
   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
+  | Nat                              -> GC.not_yet_implemented [%here]
   | Function _                       -> begin
       (*
           Should not occur
@@ -215,7 +216,8 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
   | Range (_, _)        -> GC.not_yet_implemented [%here]
   | Function _          -> GC.not_yet_implemented [%here]
-  | TypeVariable _      -> GC.not_yet_implemented [%here]                             
+  | TypeVariable _      -> GC.not_yet_implemented [%here]
+  | Nat                 -> GC.not_yet_implemented [%here]
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
   match type_argument with

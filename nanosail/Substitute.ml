@@ -33,6 +33,7 @@ module Subst = struct
       | Alias (id, t)           -> Alias (id, t)
       | Range (a, b)            -> Range (numeric_expression subst a, numeric_expression subst b)
       | TypeVariable id         -> TypeVariable id
+      | Nat                     -> Nat
       | Function { parameter_types; result_type } -> begin
           Function {
             parameter_types = List.map ~f:aux parameter_types;
