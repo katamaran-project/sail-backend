@@ -12,6 +12,7 @@ module Parameter = struct
                       sail_location  : Libsail.Ast.l  ;
                       sail_type      : string         }
 
+  
   let rec string_of (extended_type : t) : string =
     match extended_type with
     | Tuple ts       -> String.concat ~sep:" * " @@ List.map ~f:(fun t -> Printf.sprintf "(%s)" (string_of t)) ts
@@ -21,6 +22,7 @@ module Parameter = struct
     | Bitvector nexp -> Printf.sprintf "bitvector(%s)" (Numeric.Expression.to_string nexp)
     | Unknown _      -> Printf.sprintf "unknown"
 
+  
   let rec to_fexpr (extended_parameter_type : t) : FExpr.t =
     let prefix str =
       "ExtType:Param:" ^ str
@@ -81,7 +83,6 @@ end
 
 (* OCaml requires this duplication for recursive modules *)
 module rec IntExpression : sig
-
   type t =
     | Var      of int
     | Constant of Z.t
@@ -94,9 +95,7 @@ module rec IntExpression : sig
                     sail_type      : string         }
 
   val to_fexpr : t -> FExpr.t
-
 end = struct
-
   type t =
     | Var      of int
     | Constant of Z.t
@@ -108,6 +107,7 @@ end = struct
                     sail_location  : Libsail.Ast.l  ;
                     sail_type      : string         }
 
+  
   let rec to_fexpr (int_expression : t) : FExpr.t =
     let prefix str =
       "IntExpr:" ^ str
@@ -131,7 +131,6 @@ end = struct
 
 
 end and BoolExpression : sig
-
   type t =
     | Bool                 of bool
     | Var                  of int
@@ -148,9 +147,7 @@ end and BoolExpression : sig
                                 sail_type      : string         }
 
   val to_fexpr : t -> FExpr.t
-
 end = struct
-
   type t =
     | Bool                 of bool
     | Var                  of int
@@ -166,6 +163,7 @@ end = struct
                                 sail_location  : Libsail.Ast.l  ;
                                 sail_type      : string         }
 
+  
   let rec to_fexpr (bool_expression : t) : FExpr.t =
     let prefix str =
       "BoolExpr:" ^ str
@@ -192,6 +190,7 @@ end = struct
       end
 end
 
+
 module ReturnValue = struct
   type t =
     | Int     of IntExpression.t
@@ -202,6 +201,7 @@ module ReturnValue = struct
                    sail_location  : Libsail.Ast.l  ;
                    sail_type      : string         }
 
+  
   let rec to_fexpr (return_type : t) : FExpr.t =
     let prefix str =
       "Return:" ^ str
