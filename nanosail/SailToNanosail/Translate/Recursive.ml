@@ -88,6 +88,7 @@ end = struct
         | "vector"    -> nanotype_of_vector type_arguments'
         | "range"     -> nanotype_of_range type_arguments'
         | "itself"    -> nanotype_of_itself type_arguments'
+        | "implicit"  -> nanotype_of_implicit type_arguments'
         | _           -> begin
             let* constructor = nanotype_of_identifier identifier
             in
@@ -174,6 +175,14 @@ end = struct
           end
         | _ -> TC.fail [%here] "vector expected to have two type arguments (numexp, type)"
 
+      and nanotype_of_implicit (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+        match args with
+        | [ Ast.TypeArgument.NumericExpression (Ast.Numeric.Expression.Var identifier)] -> begin
+            TC.not_yet_implemented [%here] location
+            (* TC.return @@ Ast.Type.Implicit identifier *)
+          end
+        | _ -> TC.fail [%here] "implicit expected to have single type variable argument"
+      
       and nanotype_of_existential
           (ids         : Libsail.Ast.kinded_id list)
           (constraints : Libsail.Ast.n_constraint  )
