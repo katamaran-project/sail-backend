@@ -225,6 +225,13 @@ end = struct
           }
         end
 
+      and nanotype_of_type_variable (kid : S.kid) : Ast.Type.t TC.t =
+        let Kid_aux (unwrapped_kid, _kid_location) = kid
+        in
+        let Var _identifier = unwrapped_kid
+        in
+        TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+
       in
       match unwrapped_type with
       | Typ_tuple items                 -> nanotype_of_tuple items
@@ -232,7 +239,7 @@ end = struct
       | Typ_app (identifier, type_args) -> nanotype_of_application identifier type_args
       | Typ_exist (ids, nc, typ)        -> nanotype_of_existential ids nc typ
       | Typ_internal_unknown            -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
-      | Typ_var _                       -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
+      | Typ_var kid                     -> nanotype_of_type_variable kid
       | Typ_fn (types, typ)             -> nanotype_of_function_type types typ
       | Typ_bidir (_, _)                -> TC.not_yet_implemented ~message:(StringOf.Sail.typ typ) [%here] location
     end
