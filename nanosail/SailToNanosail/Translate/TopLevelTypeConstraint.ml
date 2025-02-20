@@ -52,7 +52,7 @@ let translate_top_level_type_constraint
             );
             (
               PP.string "Type quantifier",
-              PP.string @@ FExpr.to_string @@ Ast.TypeQuantifier.to_fexpr type_quantifier'
+              FExpr.pp @@ Ast.TypeQuantifier.to_fexpr type_quantifier'
             );
             (
               PP.string "Type",
