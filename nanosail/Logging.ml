@@ -101,7 +101,7 @@ let log
     (message        : PP.document lazy_t) : unit
   =
   if
-    VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level: level
+    VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level:level
   then
     let output_message =
       let tag =
