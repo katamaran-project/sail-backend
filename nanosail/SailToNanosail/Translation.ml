@@ -12,6 +12,92 @@ open Monads.Notations.Star(TC)
 open! ExtBase
 
 
+let should_ignore_definition (definition : Sail.sail_definition) : bool =
+  let open Libsail.Ast
+  in
+  let open Configuration
+  in
+  let Libsail.Ast.DEF_aux (definition, _annotation) = definition
+  in
+  let member setting item =
+    List.mem (get setting) item ~equal:String.equal
+  in
+
+  let should_ignore_pragma identifier =
+    member ignored_pragmas identifier
+
+  and should_ignore_function_definition function_definition =
+    let identifier = Sail.identifier_of_function_definition function_definition
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_function_definition_predicate arguments
+    in
+    match result with
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
+
+  and should_ignore_type_definition type_definition =
+    let identifier = Sail.identifier_of_type_definition type_definition
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
+    in
+    match result with
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
+
+  and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
+    let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
+    in
+    let identifier = Sail.identifier_of_pattern pattern
+    in
+    let arguments  = [ Slang.Value.String identifier ]
+    in
+    let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
+    in
+    match result with
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
+
+  and should_ignore_top_level_type_constraint (top_level_type_constraint : Sail.type_annotation val_spec) =
+    let identifier = Sail.identifier_of_top_level_type_constraint top_level_type_constraint
+    in
+    let arguments = [ Slang.Value.String identifier ]
+    in
+    let result, _ = Slang.EvaluationContext.run @@ get ignore_top_level_type_constraint_predicate arguments
+    in
+    match result with
+    | Success result -> Slang.Value.truthy result
+    | Failure _      -> failwith "Error while reading configuration"
+
+  and should_ignore_default_definition (_default_spec : default_spec) : bool =
+    get ignore_default_order
+
+  in
+  match definition with
+  | DEF_type type_definition          -> should_ignore_type_definition type_definition
+  | DEF_fundef function_definition    -> should_ignore_function_definition function_definition
+  | DEF_mapdef _                      -> false
+  | DEF_impl _                        -> false
+  | DEF_let value_definition          -> should_ignore_value_definition value_definition
+  | DEF_val top_level_type_constraint -> should_ignore_top_level_type_constraint top_level_type_constraint
+  | DEF_outcome (_, _)                -> false
+  | DEF_instantiation (_, _)          -> false
+  | DEF_fixity (_, _, _)              -> false
+  | DEF_overload (_, _)               -> get (ignore_overloads)
+  | DEF_default default_spec          -> should_ignore_default_definition default_spec
+  | DEF_scattered _                   -> false
+  | DEF_measure (_, _, _)             -> false
+  | DEF_loop_measures (_, _)          -> false
+  | DEF_register _                    -> false
+  | DEF_internal_mutrec _             -> false
+  | DEF_constraint _                  -> false
+  | DEF_pragma (identifier, _, _)     -> should_ignore_pragma identifier
+
+
+
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let label =
     let open PP
@@ -25,9 +111,9 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
     in
     if
-      Configuration.should_ignore_definition sail_definition
+      should_ignore_definition sail_definition
     then
-      let* () = TC.log [%here] Logging.debug @@ lazy (PP.string "Skipping this definition")
+      let* () = TC.log [%here] Logging.info @@ lazy (PP.string "Skipping this definition")
       in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
