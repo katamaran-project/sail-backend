@@ -30,7 +30,8 @@
                 "sail_mask"
                 "sail_ones"
                 "concat_str_bits"
-                "concat_str_dec")
+                "concat_str_dec"
+                "__deref")
               identifier)))
 
 (ignore-function-definition-predicate should-be-ignored?)
