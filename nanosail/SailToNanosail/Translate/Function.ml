@@ -1120,10 +1120,22 @@ let translate_function_definition
           let message = lazy begin
             let properties =
               PP.description_list [
-                (PP.string "Function name", PP.string @@ Ast.Identifier.to_string function_name);
-                (PP.string "Original", PP.from_multiline_string @@ StringOf.Sail.definition full_sail_definition);
-                (PP.string "type_annotation", type_annotation_message);
-                (PP.string "tannot_opt", tannot_opt_message);
+                (
+                  PP.string "Function name",
+                  PP.string @@ Ast.Identifier.to_string function_name
+                );
+                (
+                  PP.string "Original",
+                  PP.from_multiline_string @@ StringOf.Sail.definition full_sail_definition
+                );
+                (
+                  PP.string "type_annotation",
+                  type_annotation_message
+                );
+                (
+                  PP.string "tannot_opt",
+                  tannot_opt_message
+                );
               ]
             in
             PP.vertical [
