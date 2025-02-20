@@ -115,15 +115,21 @@ let pp_application
     (positional : PP.document list                )
     (keyword    : (PP.document * PP.document) list) : PP.document
   =
-  let delimiters = (PP.lbracket, PP.rbracket)
-  and arguments  =
-    let keyword =
-      List.map ~f:(fun (k, v) -> PP.(horizontal [ k; equals; v ])) keyword
+  if
+    List.is_empty positional && List.is_empty keyword
+  then
+    head
+  else begin
+    let delimiters = (PP.lbracket, PP.rbracket)
+    and arguments  =
+      let keyword =
+        List.map ~f:(fun (k, v) -> PP.(horizontal [ k; equals; v ])) keyword
+      in
+      List.concat [positional; keyword]
+    and separator = PP.string ","
     in
-    List.concat [positional; keyword]
-  and separator = PP.string ","
-  in
-  PP.application ~head ~delimiters ~arguments ~separator
+    PP.application ~head ~delimiters ~arguments ~separator
+  end
 
 
 let rec pp (fexpr : t) : PP.document
