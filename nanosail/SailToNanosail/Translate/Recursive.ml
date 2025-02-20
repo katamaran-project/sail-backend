@@ -42,6 +42,7 @@ end = struct
         | "atom_bool" -> TC.fail [%here] "Type atom_bool should be intercepted higher up"
         | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
         | "bitvector" -> TC.fail [%here] "Type bitvector should be intercepted higher up"
+        | "vector"    -> TC.fail [%here] "Type vector should be intercepted higher up"
         | _           -> begin
             let* type_definition : Ast.Definition.Type.t option =
               TC.lookup_definition_opt (Ast.Definition.Select.(type_definition @@ of_anything_named identifier'))
@@ -84,6 +85,7 @@ end = struct
         | "atom_bool" -> nanotype_of_atom_bool type_arguments'
         | "bits"      -> nanotype_of_bits type_arguments'
         | "bitvector" -> nanotype_of_bitvector type_arguments'
+        | "vector"    -> nanotype_of_vector type_arguments'
         | "range"     -> nanotype_of_range type_arguments'
         | "itself"    -> nanotype_of_itself type_arguments'
         | _           -> begin
@@ -164,6 +166,13 @@ end = struct
       *)
       and nanotype_of_bitvector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         nanotype_of_bits args
+
+      and nanotype_of_vector (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
+        match args with
+        | [ Ast.TypeArgument.NumericExpression numeric_expression; Ast.TypeArgument.Type typ ] -> begin
+            TC.return @@ Ast.Type.Vector (typ, numeric_expression)
+          end
+        | _ -> TC.fail [%here] "vector expected to have two type arguments (numexp, type)"
 
       and nanotype_of_existential
           (ids         : Libsail.Ast.kinded_id list)
