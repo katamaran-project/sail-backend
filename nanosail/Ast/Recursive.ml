@@ -220,18 +220,19 @@ module rec Type : sig
     | Bool
     | String
     | Bit
-    | List        of t
-    | Sum         of t * t
+    | List         of t
+    | Sum          of t * t
     | Unit
-    | Enum        of Identifier.t
-    | Bitvector   of NumericExpression.t
-    | Tuple       of t list
-    | Variant     of Identifier.t
-    | Record      of Identifier.t
-    | Application of t * TypeArgument.t list
-    | Alias       of Identifier.t * t
-    | Range       of NumericExpression.t * NumericExpression.t
-    | Function    of { parameter_types : t list; result_type : t }
+    | Enum         of Identifier.t
+    | Bitvector    of NumericExpression.t
+    | Tuple        of t list
+    | Variant      of Identifier.t
+    | Record       of Identifier.t
+    | Application  of t * TypeArgument.t list
+    | Alias        of Identifier.t * t
+    | Range        of NumericExpression.t * NumericExpression.t
+    | Function     of { parameter_types : t list; result_type : t }
+    | TypeVariable of Identifier.t
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
@@ -242,18 +243,19 @@ end = struct
     | Bool
     | String
     | Bit
-    | List        of t
-    | Sum         of t * t
+    | List         of t
+    | Sum          of t * t
     | Unit
-    | Enum        of Identifier.t
-    | Bitvector   of NumericExpression.t
-    | Tuple       of t list
-    | Variant     of Identifier.t
-    | Record      of Identifier.t
-    | Application of t * TypeArgument.t list
-    | Alias       of Identifier.t * t
-    | Range       of NumericExpression.t * NumericExpression.t
-    | Function    of { parameter_types : t list; result_type : t }
+    | Enum         of Identifier.t
+    | Bitvector    of NumericExpression.t
+    | Tuple        of t list
+    | Variant      of Identifier.t
+    | Record       of Identifier.t
+    | Application  of t * TypeArgument.t list
+    | Alias        of Identifier.t * t
+    | Range        of NumericExpression.t * NumericExpression.t
+    | Function     of { parameter_types : t list; result_type : t }
+    | TypeVariable of Identifier.t
 
   let rec to_string (t : t) : string =
     match t with
@@ -269,6 +271,7 @@ end = struct
     | Record id            -> Printf.sprintf "Type.Record(%s)" (Identifier.to_string id)
     | Variant id           -> Printf.sprintf "Type.Variant(%s)" (Identifier.to_string id)
     | Alias (id, _)        -> Printf.sprintf "Type.Alias(%s)" (Identifier.to_string id)
+    | TypeVariable id      -> Printf.sprintf "Type.TypeVariable(%s)" (Identifier.to_string id)
     | Range (lower, upper) -> Printf.sprintf "Type.Range(%s, %s)" (NumericExpression.to_string lower) (NumericExpression.to_string upper)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
@@ -308,6 +311,7 @@ end = struct
     | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)            @@ prefix "Tuple"
     | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Variant"
     | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Record"
+    | TypeVariable id    -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "TypeVariable"
     | Application (t, args) -> begin
         let positional =
           [
@@ -446,6 +450,16 @@ end = struct
             equal
               result_type_1
               result_type_2
+          end
+        | _ -> false
+      end
+
+    | TypeVariable identifier_1 -> begin
+        match t2 with
+        | TypeVariable identifier_2 -> begin
+            Identifier.equal
+              identifier_1
+              identifier_2
           end
         | _ -> false
       end

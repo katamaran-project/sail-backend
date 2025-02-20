@@ -122,6 +122,9 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   and ty s =
     GC.return @@ PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk @@ "ty." ^ s
 
+  and pp_type_variable id =
+    GC.return @@ PP.annotate [%here] @@ Identifier.pp id
+
   in
   match typ with
   | Unit                             -> GC.pp_annotate [%here] @@ ty "unit"
@@ -137,6 +140,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   | Tuple ts                         -> GC.pp_annotate [%here] @@ pp_tuple ts
   | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
   | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
+  | TypeVariable id                  -> GC.pp_annotate [%here] @@ pp_type_variable id
   | Sum (_, _)                       -> GC.not_yet_implemented [%here]
   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
   | Function _                       -> begin
@@ -193,8 +197,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
     | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
     | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
 
-
-
   in
   match nanotype with
   | Unit                -> GC.return @@ PP.annotate [%here] @@ PP.string "Datatypes.unit"
@@ -213,6 +215,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Sum (_, _)          -> GC.not_yet_implemented [%here]
   | Range (_, _)        -> GC.not_yet_implemented [%here]
   | Function _          -> GC.not_yet_implemented [%here]
+  | TypeVariable _      -> GC.not_yet_implemented [%here]                             
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
   match type_argument with
