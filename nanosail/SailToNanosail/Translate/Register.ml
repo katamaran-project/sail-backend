@@ -12,7 +12,7 @@ end
 module TC = TranslationContext
 open Monads.Notations.Star(TC)
 open Identifier
-open Nanotype
+open Type
 open TopLevelTypeConstraint
 
 

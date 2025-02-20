@@ -22,7 +22,7 @@ let translate_record
   =
   TC.translation_block [%here] (PP.string "Translating record definition") begin
     let translate_field (field_type : S.typ) (field_identifier : S.id) =
-      let* field_type'       = Nanotype.nanotype_of_sail_type field_type
+      let* field_type'       = Type.nanotype_of_sail_type field_type
       and* field_identifier' = Identifier.translate_identifier [%here] field_identifier
       in
       TC.return @@ (field_identifier', field_type')

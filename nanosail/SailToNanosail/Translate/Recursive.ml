@@ -13,7 +13,7 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
-module rec Nanotype : sig
+module rec Type : sig
   val nanotype_of_sail_type   : S.typ -> Ast.Type.t TC.t
   val translate_type_argument : S.typ_arg -> Ast.TypeArgument.t TC.t
 end = struct
@@ -365,7 +365,7 @@ end = struct
       let* function_identifier' =
         Identifier.translate_identifier [%here] function_identifier
       and* arguments' =
-        TC.map ~f:Nanotype.translate_type_argument arguments
+        TC.map ~f:Type.translate_type_argument arguments
       in
       TC.return @@ Ast.Numeric.Constraint.App (function_identifier', arguments')
     in
@@ -373,14 +373,14 @@ end = struct
     let S.NC_aux (unwrapped_numeric_constraint, location) = numeric_constraint
     in
     let translate_equal (x : S.typ_arg) (y : S.typ_arg) =
-      let* x' = Nanotype.translate_type_argument x
-      and* y' = Nanotype.translate_type_argument y
+      let* x' = Type.translate_type_argument x
+      and* y' = Type.translate_type_argument y
       in
       TC.return @@ Ast.Numeric.Constraint.Equal (x', y')
 
     and translate_not_equal (x : S.typ_arg) (y : S.typ_arg) =
-      let* x' = Nanotype.translate_type_argument x
-      and* y' = Nanotype.translate_type_argument y
+      let* x' = Type.translate_type_argument x
+      and* y' = Type.translate_type_argument y
       in
       TC.return @@ Ast.Numeric.Constraint.NotEqual (x', y')
 

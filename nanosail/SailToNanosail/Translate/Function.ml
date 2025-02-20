@@ -32,15 +32,15 @@ let type_of_aval
     (location : S.l         ) : Ast.Type.t TC.t
   =
   match value with
-   | AV_lit (_literal, literal_type) -> Nanotype.nanotype_of_sail_type literal_type
-   | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Nanotype.nanotype_of_sail_type t
+   | AV_lit (_literal, literal_type) -> Type.nanotype_of_sail_type literal_type
+   | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Type.nanotype_of_sail_type t
    | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
    | AV_tuple _                      -> TC.not_yet_implemented [%here] location
    | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
    | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
    | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
    | AV_list (_elements, typ)        -> begin
-       let* element_type = Nanotype.nanotype_of_sail_type typ
+       let* element_type = Type.nanotype_of_sail_type typ
        in
        TC.return @@ Ast.Type.List element_type
      end
@@ -91,7 +91,7 @@ let statement_of_lvar
   match lvar with
   | Register _     -> TC.return @@ Ast.Statement.ReadRegister identifier
   | Local (_, typ) -> begin
-      let* typ' = Nanotype.nanotype_of_sail_type typ
+      let* typ' = Type.nanotype_of_sail_type typ
       in
       TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable (identifier, typ'))
     end
@@ -100,7 +100,7 @@ let statement_of_lvar
 
 
 let translate_return_type (sail_type : Libsail.Ast.typ) : Ast.Type.t TC.t =
-  Nanotype.nanotype_of_sail_type sail_type
+  Type.nanotype_of_sail_type sail_type
 
 
 let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t  =
@@ -124,7 +124,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
      end
   | P_id id -> begin
       let* x  = Identifier.translate_identifier [%here] id in
-      let* ty = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      let* ty = Type.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
       TC.return [(x, ty)]
     end
@@ -134,7 +134,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
       TC.return @@ List.concat pats'
     end
   | P_wild -> begin
-      let* typ = Nanotype.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      let* typ = Type.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       and* id  = TC.generate_unique_identifier ~underscore:true ()
       in
       TC.return [(id, typ)]
@@ -223,7 +223,7 @@ let rec expression_of_aval
         (typ     : S.typ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
     let* lit' = Literal.value_of_literal literal
-    and* typ' = Nanotype.nanotype_of_sail_type typ
+    and* typ' = Type.nanotype_of_sail_type typ
     in
     TC.return @@ (Ast.Expression.Value lit', typ', [])
 
@@ -236,12 +236,12 @@ let rec expression_of_aval
     match lvar with
     | Local (_, typ) -> begin
         let* typ' =
-          Nanotype.nanotype_of_sail_type typ
+          Type.nanotype_of_sail_type typ
         in
         TC.return (Ast.Expression.Variable (id', typ'), typ', [])
       end
     | Register typ -> begin
-        let* typ' = Nanotype.nanotype_of_sail_type typ
+        let* typ' = Type.nanotype_of_sail_type typ
         in
         let* unique_id =
           let prefix = Printf.sprintf "reg_%s_" (Ast.Identifier.to_string id')
@@ -254,7 +254,7 @@ let rec expression_of_aval
         TC.return (Ast.Expression.Variable (unique_id, typ'), typ', named_statements)
       end
     | Enum typ -> begin
-        let* typ' = Nanotype.nanotype_of_sail_type typ
+        let* typ' = Type.nanotype_of_sail_type typ
         in
         let* type_identifier =
           match typ' with
@@ -273,7 +273,7 @@ let rec expression_of_aval
         (typ : S.typ             ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
     =
     let* translation_triples = TC.map ~f:(expression_of_aval location) list
-    and* typ'                = Nanotype.nanotype_of_sail_type typ
+    and* typ'                = Type.nanotype_of_sail_type typ
     in
     let translation_expressions, _, translation_statements =
       List.unzip3 translation_triples
@@ -365,7 +365,7 @@ let rec expression_of_aval
       end
     in
     let* typ' =
-      Nanotype.nanotype_of_sail_type typ
+      Type.nanotype_of_sail_type typ
     in
     TC.return @@ (expression', typ', named_statements')
 
@@ -784,7 +784,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (_typ2       : S.typ               ) : Ast.Statement.t TC.t
     =
     let* id'   = Identifier.translate_identifier [%here] identifier
-    and* typ1' = Nanotype.nanotype_of_sail_type typ1
+    and* typ1' = Type.nanotype_of_sail_type typ1
     and* s1    = statement_of_aexp expression
     and* s2    = statement_of_aexp body
     in
@@ -931,7 +931,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
            *)
           let* rhs_identifier = TC.generate_unique_identifier ()
           and* translated_rhs = statement_of_aexp rhs
-          and* rhs_type       = Nanotype.nanotype_of_sail_type lhs_type;
+          and* rhs_type       = Type.nanotype_of_sail_type lhs_type;
           in
           let write_register_translation : Ast.Statement.t =
             Let {
@@ -1011,7 +1011,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (target_type : S.typ       ) : Ast.Statement.t TC.t
     =
     let* translated_expression = statement_of_aexp expression
-    and* translated_type       = Nanotype.nanotype_of_sail_type target_type
+    and* translated_type       = Type.nanotype_of_sail_type target_type
     in
     TC.return @@ Ast.Statement.Cast (translated_expression, translated_type)
 
@@ -1109,7 +1109,7 @@ let translate_function_definition
             | Typ_annot_opt_none -> TC.return @@ PP.string "None"
             | Typ_annot_opt_some (type_quantifier, typ) -> begin
                 let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
-                and* _typ'             = Nanotype.nanotype_of_sail_type typ
+                and* _typ'             = Type.nanotype_of_sail_type typ
                 in
                 TC.return @@ PP.string "Some"
               end
