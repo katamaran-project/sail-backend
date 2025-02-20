@@ -37,12 +37,12 @@
 (ignore-top-level-type-constraint-predicate should-be-ignored?)
 
 (ignore-type-definition-predicate (lambda (identifier)
-                               (contains? '(
-                                            "option"
-                                            "register_value"
-                                            "bits"
-                                            "regstate")
-                                          identifier)))
+                                    (contains? '(
+                                                 "option"
+                                                 "register_value"
+                                                 "bits"
+                                                 "regstate")
+                                               identifier)))
 
 (ignore-value-definition-predicate
  (lambda (identifier)
