@@ -99,8 +99,8 @@ end = struct
         (*
            itself(x) seems to be a singleton type, e.g., itself(50) has as sole value 50.
 
-           todo probably needs to always return Ast.Type.Int
-           for now, it's left unimplemented so as to catch more occurrences in the wild
+           todo probably needs to return Ast.Type.Int in all cases
+           for now, it's left unimplemented in cases so as to catch more occurrences in the wild
            to give us confirmation
         *)
         match args with
