@@ -7,31 +7,33 @@
                 "file_end"
                 "sail_internal")
 
-(ignore-function-definition-predicate (lambda (identifier)
-                                        (or
-                                         (string-ends-with? "_of_num" identifier)
-                                         (string-starts-with? "num_of_" identifier)
-                                         (string-starts-with? "undefined_" identifier)
-                                         (string-starts-with? "regval_of_" identifier)
-                                         (string-ends-with? "_of_regval" identifier)
-                                         (contains? '(
-                                                      "eq_unit"
-                                                      "neq_int"
-                                                      "neq_bool"
-                                                      "neq_bits"
-                                                      "slice_mask"
-                                                      "_shl_int_general"
-                                                      "_shr_int_general"
-                                                      "fdiv_int"
-                                                      "fmod_int"
-                                                      "is_none"
-                                                      "is_some"
-                                                      "__id"
-                                                      "sail_mask"
-                                                      "sail_ones"
-                                                      "concat_str_bits"
-                                                      "concat_str_dec")
-                                                      identifier))))
+(define (ignorer identifier)
+  (or
+   (string-ends-with? "_of_num" identifier)
+   (string-starts-with? "num_of_" identifier)
+   (string-starts-with? "undefined_" identifier)
+   (string-starts-with? "regval_of_" identifier)
+   (string-ends-with? "_of_regval" identifier)
+   (contains? '(
+                "eq_unit"
+                "neq_int"
+                "neq_bool"
+                "neq_bits"
+                "slice_mask"
+                "_shl_int_general"
+                "_shr_int_general"
+                "fdiv_int"
+                "fmod_int"
+                "is_none"
+                "is_some"
+                "__id"
+                "sail_mask"
+                "sail_ones"
+                "concat_str_bits"
+                "concat_str_dec")
+              identifier)))
+
+(ignore-function-definition-predicate ignorer)
 
 (ignore-type-definition-predicate (lambda (identifier)
                                (contains? '(
