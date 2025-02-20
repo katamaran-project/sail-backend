@@ -25,7 +25,7 @@ module Subst = struct
       | List x                  -> List (aux x)
       | Bitvector nexpr         -> Bitvector (numeric_expression subst nexpr)
       | Tuple ts                -> Tuple (List.map ~f:aux ts)
-      | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* id should probably not be substituted *)
+      | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* todo id should probably not be substituted *)
       | Record id               -> Record id
       | Enum id                 -> Enum id
       | Variant id              -> Variant id
