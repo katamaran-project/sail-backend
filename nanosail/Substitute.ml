@@ -24,6 +24,7 @@ module Subst = struct
       | Bit                     -> Bit
       | List x                  -> List (aux x)
       | Bitvector nexpr         -> Bitvector (numeric_expression subst nexpr)
+      | Vector (typ, nexpr)     -> Vector (aux typ, numeric_expression subst nexpr)
       | Tuple ts                -> Tuple (List.map ~f:aux ts)
       | Application (id, targs) -> Application (id, List.map ~f:(type_argument subst) targs) (* todo id should probably not be substituted *)
       | Record id               -> Record id

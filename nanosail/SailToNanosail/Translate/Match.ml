@@ -940,6 +940,7 @@ let rec build_empty_pattern_tree
         | Function _                   -> TC.not_yet_implemented [%here] location
         | TypeVariable _               -> TC.not_yet_implemented [%here] location
         | Nat                          -> TC.not_yet_implemented [%here] location
+        | Vector _                     -> TC.not_yet_implemented [%here] location
       in
       let* () =
         let node_count = PatternTree.count_nodes tree
@@ -1907,6 +1908,7 @@ let rec translate_pattern
   | Function _         -> translate_pattern_for_atomic_type ()
   | TypeVariable _     -> translate_pattern_for_atomic_type ()
   | Nat                -> translate_pattern_for_atomic_type ()
+  | Vector _           -> translate_pattern_for_atomic_type ()
 
 
 let translate_case
@@ -2365,3 +2367,4 @@ let translate
   | Function _                   -> TC.not_yet_implemented [%here] location
   | TypeVariable _               -> TC.not_yet_implemented [%here] location
   | Nat                          -> TC.not_yet_implemented [%here] location
+  | Vector _                     -> TC.not_yet_implemented [%here] location

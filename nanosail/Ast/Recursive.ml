@@ -234,6 +234,7 @@ module rec Type : sig
     | Function     of { parameter_types : t list; result_type : t }
     | TypeVariable of Identifier.t
     | Nat
+    | Vector       of t * NumericExpression.t
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
@@ -258,6 +259,7 @@ end = struct
     | Function     of { parameter_types : t list; result_type : t }
     | TypeVariable of Identifier.t
     | Nat
+    | Vector       of t * NumericExpression.t
 
   let rec to_string (t : t) : string =
     match t with
@@ -270,6 +272,7 @@ end = struct
     | Sum (t1, t2)         -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
     | Unit                 -> "Type.Unit"
     | Bitvector numexp     -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
+    | Vector (typ, numexp) -> Printf.sprintf "Type.Vector(%s, %s)" (to_string typ) (NumericExpression.to_string numexp)
     | Enum id              -> Printf.sprintf "Type.Enum(%s)" (Identifier.to_string id)
     | Record id            -> Printf.sprintf "Type.Record(%s)" (Identifier.to_string id)
     | Variant id           -> Printf.sprintf "Type.Variant(%s)" (Identifier.to_string id)
@@ -302,20 +305,21 @@ end = struct
       String.append "Type:" s
     in
     match t with
-    | Int                -> FExpr.mk_symbol @@ prefix "Int"
-    | Bool               -> FExpr.mk_symbol @@ prefix "Bool"
-    | String             -> FExpr.mk_symbol @@ prefix "String"
-    | Bit                -> FExpr.mk_symbol @@ prefix "Bit"
-    | Unit               -> FExpr.mk_symbol @@ prefix "Unit"
-    | Nat                -> FExpr.mk_symbol @@ prefix "Nat"
-    | List t             -> FExpr.mk_application ~positional:[to_fexpr t]                         @@ prefix "List"
-    | Sum (t1, t2)       -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]           @@ prefix "Sum"
-    | Enum id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Enum"
-    | Bitvector numexpr  -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
-    | Tuple ts           -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)            @@ prefix "Tuple"
-    | Variant id         -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Variant"
-    | Record id          -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "Record"
-    | TypeVariable id    -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]             @@ prefix "TypeVariable"
+    | Int                   -> FExpr.mk_symbol @@ prefix "Int"
+    | Bool                  -> FExpr.mk_symbol @@ prefix "Bool"
+    | String                -> FExpr.mk_symbol @@ prefix "String"
+    | Bit                   -> FExpr.mk_symbol @@ prefix "Bit"
+    | Unit                  -> FExpr.mk_symbol @@ prefix "Unit"
+    | Nat                   -> FExpr.mk_symbol @@ prefix "Nat"
+    | List t                -> FExpr.mk_application ~positional:[to_fexpr t]                                       @@ prefix "List"
+    | Sum (t1, t2)          -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]                         @@ prefix "Sum"
+    | Enum id               -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Enum"
+    | Bitvector numexpr     -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr]               @@ prefix "Bitvector"
+    | Vector (typ, numexpr) -> FExpr.mk_application ~positional:[to_fexpr typ; NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
+    | Tuple ts              -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)                          @@ prefix "Tuple"
+    | Variant id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Variant"
+    | Record id             -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Record"
+    | TypeVariable id       -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "TypeVariable"
     | Application (t, args) -> begin
         let positional =
           [
@@ -472,6 +476,20 @@ end = struct
         match t2 with
         | Nat -> true
         | _   -> false
+      end
+
+    | Vector (type_1, numeric_expression_1) -> begin
+        match t2 with
+        | Vector (type_2, numeric_expression_2) -> begin
+            equal
+              type_1
+              type_2
+            &&
+            NumericExpression.equal
+              numeric_expression_1
+              numeric_expression_2
+          end
+        | _ -> false
       end
 end
 
