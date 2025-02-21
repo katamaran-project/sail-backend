@@ -15,6 +15,7 @@ let tests =
     NormalizationTests.test_suite;
     SimplificationTests.test_suite;
     ListTests.test_suite;
+    SequenceTests.test_suite;
     RenamingTests.test_suite;
   ]
 
