@@ -22,16 +22,25 @@ module Make (_ : sig end) = struct
 
 
   let rec read_file_contents (path : string) : string =
+    let directory =
+      Filename.dirname path
+    in
     let contents =
       Stdio.In_channel.read_all path
     in
     let lines =
       String.split_lines contents
     in
+    
     let preprocessed_lines =
       let preprocess_line (line : string) : string =
         match String.chop_prefix line ~prefix:"$include " with
-        | Some included_path -> read_file_contents included_path
+        | Some included_path -> begin
+            let included_path =
+              Filename.concat directory included_path
+            in
+            read_file_contents included_path
+          end
         | None               -> line
       in
       List.map ~f:preprocess_line lines
