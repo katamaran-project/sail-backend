@@ -1,246 +1,247 @@
 (*
 
-    This module contains all logic related to the translation of a Sail match to a nSail equivalent.
+   This module contains all logic related to the translation of a Sail match to a nSail equivalent.
 
 
-    Problem statement
-    =================
-    Sail code contains match statements which we need to support.
-    A simple example would be
+   Problem statement
+   =================
+   Sail code contains match statements which we need to support.
+   A simple example would be
 
-      enum MyEnum = { x, y, z }
+     enum MyEnum = { x, y, z }
 
-      match e {
-        x => 1,
-        y => 2,
-        z => 3
-      }
+     match e {
+       x => 1,
+       y => 2,
+       z => 3
+     }
 
-    In nSail this is represented by (has not been checked thoroughly):
+   In nSail this is represented by (has not been checked thoroughly):
 
-      Ast.Statement.Match begin
-        MatchEnum {
-          matched      = Id "e";
-          matched_type = Enum (Id "MyEnum");
-          cases        = Ast.Identifier.Map.of_alist [
-                           (Id "x", Expression (Val (Ast.Value.Int 1)));
-                           (Id "y", Expression (Val (Ast.Value.Int 2)));
-                           (Id "z", Expression (Val (Ast.Value.Int 3)));
-                         ]
-        }
-      end
+     Ast.Statement.Match begin
+       MatchEnum {
+         matched      = Id "e";
+         matched_type = Enum (Id "MyEnum");
+         cases        = Ast.Identifier.Map.of_alist [
+                          (Id "x", Expression (Val (Ast.Value.Int 1)));
+                          (Id "y", Expression (Val (Ast.Value.Int 2)));
+                          (Id "z", Expression (Val (Ast.Value.Int 3)));
+                        ]
+       }
+     end
 
-    which should ultimately be translated to
+   which should ultimately be translated to
 
-      stm_match_enum Emyenum
-                     (stm_exp (exp_var "e"))
-                     (fun K => match K with
-                               | x => stm_exp (exp_int 1%Z)
-                               | y => stm_exp (exp_int 2%Z)
-                               | z => stm_exp (exp_int 3%Z)
-                               end)
+     stm_match_enum Emyenum
+                    (stm_exp (exp_var "e"))
+                    (fun K => match K with
+                              | x => stm_exp (exp_int 1%Z)
+                              | y => stm_exp (exp_int 2%Z)
+                              | z => stm_exp (exp_int 3%Z)
+                              end)
 
+   
+   ISSUE 1 : Statements vs Expressions
+   -----------------------------------
+   A first small issue is the fact that muSail match statements operate on *expressions*, whereas
+   some Sail-expressions are actually translated into muSail *statements*.
+   This problem is dealt with outside this module using a helper let constructor:
 
-    ISSUE 1 : Statements vs Expressions
-    -----------------------------------
-    A first small issue is the fact that muSail match statements operate on *expressions*, whereas
-    some Sail-expressions are actually translated into muSail *statements*.
-    This problem is dealt with outside this module using a helper let constructor:
+     match e {
+       ...
+     }
 
-      match e {
-        ...
-      }
+   becomes
 
-    becomes
+     let generated = e
+     in
+     match generated {
+       ...
+     }
 
-      let generated = e
-      in
-      match generated {
-        ...
-      }
+   or, more formally,
 
-    or, more formally,
-
-      Ast.Statement.Let {
-        binder                 = Id "generated";
-        binding_statement_type = Enum (Id "MyEnum");
-        binding_statement      = Expression e;
-        body_statement         = Match begin
-                                   MatchEnum {
-                                     matched      = Id "generated";
-                                     matched_type = Enum (Id "MyEnum");
-                                     ...
-                                   }
-                                 end
-
-
-    ISSUE 2 : Nested Patterns
-    -------------------------
-    Sail supports nested patterns, such as
-
-      enum A = { A1, A2 }
-      union B = { B1 : A, B2 : A }
-
-      match B_value {
-        B1(A1) => 1,
-        B1(A2) => 2,
-        B2(A1) => 3,
-        B2(A2) => 4,
-      }
-
-    In muSail we use stm_match_prod, stm_match_tuple, stm_match_list, stm_match_enum,
-    stm_match_union_alt_list, and so on, which only match "one deep", so we
-    need to transform the above match into
-
-      match B_value {
-        B1(x) => match x {
-                   A1 => 1,
-                   A2 => 2
-                 },
-        B2(x) => match x {
-                   A1 => 3,
-                   A2 => 4
-                 }
-      }
-
-    The current implementation does NOT support this yet.
-    Only one specific instance of subpatterns is allowed for now,
-    namely those appearing in tuples:
-
-      enum A = { A1, A2 }
-      match pair {
-        (A1, A1) => 1,
-        (A1, A2) => 2,
-        (A2, A1) => 3,
-        (A2, A2) => 4
-      }
-
-    We support this special case because of scattered functions,
-    which are rewritten by Sail as matches against tuples.
-
-      enum A = { A1, A2 }
-      val foo : (MyEnum, int) -> int
-      scattered function foo
-
-      function clause foo(A1, x) = ...
-      function clause foo(A2, x) = ...
-
-    is rewritten (in Sail itself) into
-
-      function foo merge#var =      // merge#var is a tuple typed (A, int)
-        match merge#var {
-          (A1, x) => ...,
-          (A2, x) => ...,
-        }
+     Ast.Statement.Let {
+       binder                 = Id "generated";
+       binding_statement_type = Enum (Id "MyEnum");
+       binding_statement      = Expression e;
+       body_statement         = Match begin
+                                  MatchEnum {
+                                    matched      = Id "generated";
+                                    matched_type = Enum (Id "MyEnum");
+                                    ...
+                                  }
+                                end
 
 
-    ISSUE 3 : Wildcards
-    -------------------
-    Sail allows wildcards in patterns, making it possible to deal with
-    multiple cases at once.
-    When our current implementation encounters a wildcard, e.g.,
-    _ => foo or x => foo, it will duplicate foo for every as of yet unmatched case.
-    In other words,
+   ISSUE 2 : Nested Patterns
+   -------------------------
+   Sail supports nested patterns, such as
 
-       enum A = { A1, A2, A3 }
-       match A_value {
-         A1 => 1,
-         _  => 2
+     enum A = { A1, A2 }
+     union B = { B1 : A, B2 : A }
+
+     match B_value {
+       B1(A1) => 1,
+       B1(A2) => 2,
+       B2(A1) => 3,
+       B2(A2) => 4,
+     }
+
+   In muSail we use stm_match_prod, stm_match_tuple, stm_match_list, stm_match_enum,
+   stm_match_union_alt_list, and so on, which only match "one deep", so we
+   need to transform the above match into
+
+     match B_value {
+       B1(x) => match x {
+                  A1 => 1,
+                  A2 => 2
+                },
+       B2(x) => match x {
+                  A1 => 3,
+                  A2 => 4
+                }
+     }
+
+   The current implementation does NOT support this yet.
+   Only one specific instance of subpatterns is allowed for now,
+   namely those appearing in tuples:
+
+     enum A = { A1, A2 }
+     match pair {
+       (A1, A1) => 1,
+       (A1, A2) => 2,
+       (A2, A1) => 3,
+       (A2, A2) => 4
+     }
+
+   We support this special case because of scattered functions,
+   which are rewritten by Sail as matches against tuples.
+
+     enum A = { A1, A2 }
+     val foo : (MyEnum, int) -> int
+     scattered function foo
+
+     function clause foo(A1, x) = ...
+     function clause foo(A2, x) = ...
+
+   is rewritten (in Sail itself) into
+
+     function foo merge#var =      // merge#var is a tuple typed (A, int)
+       match merge#var {
+         (A1, x) => ...,
+         (A2, x) => ...,
        }
 
-    is reinterpreted as
 
+   ISSUE 3 : Wildcards
+   -------------------
+   Sail allows wildcards in patterns, making it possible to deal with
+   multiple cases at once.
+   When our current implementation encounters a wildcard, e.g.,
+   _ => foo or x => foo, it will duplicate foo for every as of yet unmatched case.
+   In other words,
+
+      enum A = { A1, A2, A3 }
       match A_value {
         A1 => 1,
-        A2 => 2,
-        A3 => 2
+        _  => 2
       }
 
-    Note that if a value (e.g., enum, variant/union, bool)
+   is reinterpreted as
+
+     match A_value {
+       A1 => 1,
+       A2 => 2,
+       A3 => 2
+     }
+
+   Note that if a value (e.g., enum, variant/union, bool)
 
 
-    ISSUE 4 : Clashing Binders
-    --------------------------
-    It is possible that the same value is bound to different identifiers in
-    different match clauses.
+   ISSUE 4 : Clashing Binders
+   --------------------------
+   It is possible that the same value is bound to different identifiers in
+   different match clauses.
 
-      enum A { A1, A2 }
-      match (int_value, A_value) {
-        x, A1 => x,
-        y, A2 => y
-      }
+     enum A { A1, A2 }
+     match (int_value, A_value) {
+       x, A1 => x,
+       y, A2 => y
+     }
 
-    In the above example, int_value is bound to x and y by different clauses.
-    In general, the current implementation expects the same value to be bound to the same
-    identifier in all clauses.
-    (It just so happens that in this example, although clear, the implementation is actually
-    able to handle the clashing binders, as explained below. An example
-    of an unsupported case is also given.)
-
+   In the above example, int_value is bound to x and y by different clauses.
+   In general, the current implementation expects the same value to be bound to the same
+   identifier in all clauses.
+   (It just so happens that in this example, although clear, the implementation is actually
+   able to handle the clashing binders, as explained below. An example
+   of an unsupported case is also given.)
 
     There are some specific cases where the current implementation can
-    deal with clashing binders: a binder X is upgraded to a wildcard if no reference to X
-    appears in the right hand side of the clause.
+   deal with clashing binders: a binder X is upgraded to a wildcard if no reference to X
+   appears in the right hand side of the clause.
 
-      match (int_value, A_value) {
-        x, A1 => stm1          // x not in free(stm1)
-      }
+     match (int_value, A_value) {
+       x, A1 => stm1          // x not in free(stm1)
+     }
 
-    becomes
+   becomes
 
-      match (int_value, A_value) {
-        _, A1 => stm1
-      }
+     match (int_value, A_value) {
+       _, A1 => stm1
+     }
 
-    Another case where clashing binders are allowed is when
-    the same value has been matched exclusively against binders/wildcards:
+   Another case where clashing binders are allowed is when
+   the same value has been matched exclusively against binders/wildcards:
 
-      enum A = { A1, A2 }
-      match pair {
-        (x, A1) => x,
-        (y, A2) => y
-      }
+     enum A = { A1, A2 }
+     match pair {
+       (x, A1) => x,
+       (y, A2) => y
+     }
 
-    This will be transformed into
+   This will be transformed into
 
-      match pair {
-        (gen, A1) => gen,
-        (gen, A2) => gen
-      }
+     match pair {
+       (gen, A1) => gen,
+       (gen, A2) => gen
+     }
 
-    An example that will be rejected by the current implementation is
+   An example that will be rejected by the current implementation is
 
-      enum A = { A1, A2 }
-      match pair {
-        (A1, A1) => 1,
-        (x,  A1) => 2,
-        (y,   _) => 3,
-      }
+     enum A = { A1, A2 }
+     match pair {
+       (A1, A1) => 1,
+       (x,  A1) => 2,
+       (y,   _) => 3,
+     }
 
-    This fails because the pattern node is expanded by the first clause,
-    while the implementation can only resolve unexpanded nodes.
-
-
-    Optimization
-    ------------
-    Given a tuple (x, y, z), the order in which the values are matched against
-    impact the size of the generated code.
-
-    The current implementation relies on brute force to find the smallest tree:
-    it tries all possible orderings. This approach should be acceptable
-    for most cases, i.e., where tuples don't grow larger than 8 elements.
+   This fails because the pattern node is expanded by the first clause,
+   while the implementation can only resolve unexpanded nodes.
 
 
-    Pattern Trees
-    =============
+   Optimization
+   ------------
+   Given a tuple (x, y, z), the order in which the values are matched against
+   impact the size of the generated code.
 
-    TODOs
-    =====
-    * Generalized support for nested patterns
-    * Improved optimization
-    * Avoid duplication in case of wildcards
-       * Introduce wildcards in muSail
-       * Put duplicated code in a function
+   The current implementation relies on brute force to find the smallest tree:
+   it tries all possible orderings. This approach should be acceptable
+   for most cases, i.e., where tuples don't grow larger than 8 elements.
+
+
+   Pattern Trees
+   =============
+
+   
+
+   TODOs
+   =====
+   * Generalized support for nested patterns
+   * Improved optimization
+   * Avoid duplication in case of wildcards
+      * Introduce wildcards in muSail
+      * Put duplicated code in a function
 *)
 
 open! ExtBase
