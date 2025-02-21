@@ -21,7 +21,7 @@ module Make (_ : sig end) = struct
     exported_functions := (identifier, callable) :: !exported_functions
 
 
-  let load_configuration path =
+  let load_configuration (path : string) : unit =
     let open Slang
     in
     let contents = Stdio.In_channel.read_all path
