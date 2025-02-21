@@ -540,12 +540,82 @@
    Note that the translation preserves the order of function parameters.
    It is merely the order in which they are matched that can change.
 
-   To find the smallest tree, all permutations are considered.
-   As long as the tuple size remains small, this approach should be workable.
-   
+   To find the smallest tree, all permutations (up to a certain number,
+   determined by Configuration.pattern_tree_maximum_permutations)
+   are tried out and the smallest tree is picked.   
 
+   
    Possible Sail-Level Code Optimizations
    ======================================
+   Below we discuss a number of ways to limit the amount of generated code.
+
+   
+   Helper functions
+   ----------------
+   Since upon expansion of a Binder node its subtree is copied N times,
+   leading to a lot of duplication in the final code generation.
+   For example,
+
+     enum A { A1, A2, ..., An }
+     match (a1, a2) {
+       (A1, _) => S1,
+       (_ , _) => bigchunkofcode,
+     }
+
+   This leads to the following code:
+
+     match a {
+       A1 => S1,
+       A2 => bigchunkofcode,
+       A3 => bigchunkofcode,
+       A3 => bigchunkofcode,
+       ...,
+       An => bigchunkofcode
+     }
+
+   The duplication of bigchunkofcode can be prevented by introducing a helper function:
+
+     function helper(parameters) {
+       bigchunkofcode
+     }
+
+     match a {
+       A1 => S1,
+       A2 => helper(arguments),
+       A2 => helper(arguments),
+       A3 => helper(arguments),
+       ...,
+       An => helper(arguments)
+     }  
+
+   Partitioning
+   ------------
+   Consider the following code:
+
+     enum A { A1, A2, ..., An }
+     match a {
+       A1 => S1,
+       _  => Sx
+     }
+
+   This will always lead to a match with n cases, where n can be large.
+   If matching against one particular case occurs frequently,
+   this can be optimized by grouping the values in partitions (i.e., similar to view patterns):
+
+     function is_A1(a) =
+       match a {
+         A1 => true,
+         _  => false
+       }
+
+
+     match is_A1(a) {
+       true  => S1,
+       false => Sx
+     }
+
+   A large match statement will still exist in is_A1, but all other matches distinguishing between
+   A1 and all other values will only need two clauses.
    
    
    TODOs
