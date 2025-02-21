@@ -72,7 +72,7 @@ and evaluate_call func arguments =
 and evaluate_callable native_function arguments =
   native_function arguments
 
-and evaluate_many asts =
+and evaluate_many (asts : Value.t list) : Value.t EC.t =
   let open EC
   in
   let* results = EC.map ~f:evaluate asts
