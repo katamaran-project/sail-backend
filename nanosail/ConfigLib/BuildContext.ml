@@ -1,4 +1,4 @@
-open! ExtBase
+open ExtBase
 open Slang.Evaluation
 open Monads.Notations.Star(Slang.EvaluationContext)
 
@@ -21,9 +21,23 @@ module Make (_ : sig end) = struct
     exported_functions := (identifier, callable) :: !exported_functions
 
 
-  let read_file_contents (path : string) : string =
-    Stdio.In_channel.read_all path
-  
+  let rec read_file_contents (path : string) : string =
+    let contents =
+      Stdio.In_channel.read_all path
+    in
+    let lines =
+      String.split_lines contents
+    in
+    let preprocessed_lines =
+      let preprocess_line (line : string) : string =
+        match String.chop_prefix line ~prefix:"$include " with
+        | Some included_path -> read_file_contents included_path
+        | None               -> line
+      in
+      List.map ~f:preprocess_line lines
+    in
+    String.concat_lines preprocessed_lines
+
 
   let load_configuration (path : string) : unit =
     let open Slang
