@@ -2553,8 +2553,11 @@ let translate_tuple_match
       in
       TC.return adorned_tree
     in
-    let permuters =
-      List.permuters (List.length element_types)
+    let permuters : <permute : 'a. 'a list -> 'a list> list =
+      let permutations : int list list =
+        Sequence.to_list @@ Sequence.take (Sequence.permutations @@ List.indices element_types) (Configuration.(get pattern_tree_maximum_permutations))
+      in
+      List.map ~f:List.create_permuter permutations
     in
     let* triples_of_tree_size_permuter =
       let build permuter =
