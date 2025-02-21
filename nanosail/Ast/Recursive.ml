@@ -264,24 +264,27 @@ end = struct
     | Implicit     of Identifier.t
 
   let rec to_string (t : t) : string =
+    let format fmt =
+      Printf.ksprintf (fun s -> "Type." ^ s) fmt
+    in
     match t with
-    | Int                  -> "Type.Int"
-    | Bool                 -> "Type.Bool"
-    | String               -> "Type.String"
-    | List _               -> "Type.List"
-    | Bit                  -> "Type.Bit"
-    | Nat                  -> "Type.Nat"
-    | Sum (t1, t2)         -> Printf.sprintf "(%s + %s)" (to_string t1) (to_string t2)
-    | Unit                 -> "Type.Unit"
-    | Bitvector numexp     -> Printf.sprintf "Type.Bitvector(%s)" (NumericExpression.to_string numexp)
-    | Vector (typ, numexp) -> Printf.sprintf "Type.Vector(%s, %s)" (to_string typ) (NumericExpression.to_string numexp)
-    | Enum id              -> Printf.sprintf "Type.Enum(%s)" (Identifier.to_string id)
-    | Record id            -> Printf.sprintf "Type.Record(%s)" (Identifier.to_string id)
-    | Variant id           -> Printf.sprintf "Type.Variant(%s)" (Identifier.to_string id)
-    | Alias (id, _)        -> Printf.sprintf "Type.Alias(%s)" (Identifier.to_string id)
-    | TypeVariable id      -> Printf.sprintf "Type.TypeVariable(%s)" (Identifier.to_string id)
-    | Range (lower, upper) -> Printf.sprintf "Type.Range(%s, %s)" (NumericExpression.to_string lower) (NumericExpression.to_string upper)
-    | Implicit id          -> Printf.sprintf "Type.Implicit(%s)" (Identifier.to_string id)
+    | Int                  -> format "Int"
+    | Bool                 -> format "Bool"
+    | String               -> format "String"
+    | List _               -> format "List"
+    | Bit                  -> format "Bit"
+    | Nat                  -> format "Nat"
+    | Sum (t1, t2)         -> Printf.sprintf "Sum(%s + %s)" (to_string t1) (to_string t2)
+    | Unit                 -> format "Unit"
+    | Bitvector numexp     -> format "Bitvector(%s)" (NumericExpression.to_string numexp)
+    | Vector (typ, numexp) -> format "Vector(%s, %s)" (to_string typ) (NumericExpression.to_string numexp)
+    | Enum id              -> format "Enum(%s)" (Identifier.to_string id)
+    | Record id            -> format "Record(%s)" (Identifier.to_string id)
+    | Variant id           -> format "Variant(%s)" (Identifier.to_string id)
+    | Alias (id, _)        -> format "Alias(%s)" (Identifier.to_string id)
+    | TypeVariable id      -> format "TypeVariable(%s)" (Identifier.to_string id)
+    | Range (lower, upper) -> format "Range(%s, %s)" (NumericExpression.to_string lower) (NumericExpression.to_string upper)
+    | Implicit id          -> format "Implicit(%s)" (Identifier.to_string id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs
