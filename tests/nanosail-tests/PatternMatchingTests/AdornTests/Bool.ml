@@ -20,16 +20,16 @@ let test_adorn_bool_true_false =
         ReadRegister (mkid "r2")
       in
       let* actual_tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
+        let* tree = build_empty_pattern_tree [ Bool ]
         in
         let* tree = adorn
           tree
-          [ Pattern.BoolCase true ]
+          [ BoolCase true ]
           true_statement
         in
         let* tree = adorn
           tree
-          [ Pattern.BoolCase false ]
+          [ BoolCase false ]
           false_statement
         in
         TC.return tree
@@ -63,16 +63,16 @@ let test_adorn_bool_false_true =
         ReadRegister (mkid "r1")
       in
       let* actual_tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
+        let* tree = build_empty_pattern_tree [ Bool ]
         in
         let* tree = adorn
           tree
-          [ Pattern.BoolCase false ]
+          [ BoolCase false ]
           false_statement
         in
         let* tree = adorn
           tree
-          [ Pattern.BoolCase true ]
+          [ BoolCase true ]
           true_statement
         in
         TC.return tree
@@ -104,11 +104,11 @@ let test_adorn_bool_wildcard =
         ReadRegister (mkid "r1")
       in
       let* actual_tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Bool ]
+        let* tree = build_empty_pattern_tree [ Bool ]
         in
         let* tree = adorn
           tree
-          [ Pattern.Binder gen#wildcard ]
+          [ Binder gen#wildcard ]
           statement
         in
         TC.return tree
