@@ -62,6 +62,11 @@ module C = struct
 
     let template_translations = ConfigLib.Setting.mk ([] : template_translation list)
 
+    (*
+       Defines Slang function named template.
+
+         (template path)
+    *)
     let () =
       let exported_function_name = "template"
       and add_translation template_filename output_filename =
