@@ -30,10 +30,10 @@ module C = struct
     let ignored_functions                          = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let base_name                                  = string   "base-name"                        "UntitledBase"
     let program_name                               = string   "program-name"                     "ModelProgram"
-    let ignore_type_definition_predicate           = callable' "ignore-type-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
-    let ignore_value_definition_predicate          = callable' "ignore-value-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
-    let ignore_function_definition_predicate       = callable' "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
-    let ignore_top_level_type_constraint_predicate = callable' "ignore-top-level-type-constraint-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_type_definition_predicate           = callable "ignore-type-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_value_definition_predicate          = callable "ignore-value-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_function_definition_predicate       = callable "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_top_level_type_constraint_predicate = callable "ignore-top-level-type-constraint-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
 
 
     (* template block delimiters *)
