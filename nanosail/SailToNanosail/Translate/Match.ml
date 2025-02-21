@@ -2535,24 +2535,24 @@ let translate_tuple_match
     in
     TC.map ~f:process_case cases
   in
-  let build_pattern_tree_using_permuter (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
-    =
-    let* initial_tree =
-      build_empty_pattern_tree
-        location
-        (permuter#permute element_types)
-    in
-    let* adorned_tree =
-      TC.fold_left
-        ~init:initial_tree
-        ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree (permuter#permute subpatterns) statement)
-        cases
-    in
-    let* () = TC.log [%here] Logging.debug @@ lazy (PP.format "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
-    in
-    TC.return adorned_tree
-  in
   let* optimal_tree, optimal_permuter =
+    let build_pattern_tree_using_permuter (permuter : <permute : 'a. 'a list -> 'a list>) : PatternTree.t TC.t
+      =
+      let* initial_tree =
+        build_empty_pattern_tree
+          location
+          (permuter#permute element_types)
+      in
+      let* adorned_tree =
+        TC.fold_left
+          ~init:initial_tree
+          ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree (permuter#permute subpatterns) statement)
+          cases
+      in
+      let* () = TC.log [%here] Logging.debug @@ lazy (PP.format "Built pattern tree with %d nodes" (PatternTree.count_nodes adorned_tree))
+      in
+      TC.return adorned_tree
+    in
     let permuters =
       List.permuters (List.length element_types)
     in
