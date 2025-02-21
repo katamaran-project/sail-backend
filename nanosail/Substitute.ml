@@ -31,10 +31,11 @@ module Subst = struct
       | Enum id                 -> Enum id
       | Variant id              -> Variant id
       | Sum (t1, t2)            -> Sum (aux t1, aux t2)
-      | Alias (id, t)           -> Alias (id, t)
+      | Alias (id, t)           -> Alias (subst id, t)
       | Range (a, b)            -> Range (numeric_expression subst a, numeric_expression subst b)
-      | TypeVariable id         -> TypeVariable id
+      | TypeVariable id         -> TypeVariable (subst id)
       | Nat                     -> Nat
+      | Implicit id             -> Implicit (subst id)
       | Function { parameter_types; result_type } -> begin
           Function {
             parameter_types = List.map ~f:aux parameter_types;

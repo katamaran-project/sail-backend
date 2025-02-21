@@ -235,6 +235,7 @@ module rec Type : sig
     | TypeVariable of Identifier.t
     | Nat
     | Vector       of t * NumericExpression.t
+    | Implicit     of Identifier.t
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
@@ -260,6 +261,7 @@ end = struct
     | TypeVariable of Identifier.t
     | Nat
     | Vector       of t * NumericExpression.t
+    | Implicit     of Identifier.t
 
   let rec to_string (t : t) : string =
     match t with
@@ -279,6 +281,7 @@ end = struct
     | Alias (id, _)        -> Printf.sprintf "Type.Alias(%s)" (Identifier.to_string id)
     | TypeVariable id      -> Printf.sprintf "Type.TypeVariable(%s)" (Identifier.to_string id)
     | Range (lower, upper) -> Printf.sprintf "Type.Range(%s, %s)" (NumericExpression.to_string lower) (NumericExpression.to_string upper)
+    | Implicit id          -> Printf.sprintf "Type.Implicit(%s)" (Identifier.to_string id)
     | Application (constructor, targs) -> begin
         let constructor' = to_string constructor
         and targs' = List.map ~f:TypeArgument.to_string targs
@@ -320,6 +323,7 @@ end = struct
     | Variant id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Variant"
     | Record id             -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Record"
     | TypeVariable id       -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "TypeVariable"
+    | Implicit id           -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Implicit"
     | Application (t, args) -> begin
         let positional =
           [
@@ -491,6 +495,16 @@ end = struct
           end
         | _ -> false
       end
+
+    | Implicit identifier_1 -> begin
+        match t2 with
+        | Implicit identifier_2 -> begin
+            Identifier.equal
+              identifier_1
+              identifier_2
+          end
+        | _ -> false
+      end              
 end
 
 and TypeArgument : sig

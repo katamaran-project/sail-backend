@@ -177,7 +177,7 @@ end = struct
 
       and nanotype_of_implicit (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
-        | [ Ast.TypeArgument.NumericExpression (Ast.Numeric.Expression.Var identifier)] -> begin
+        | [ Ast.TypeArgument.NumericExpression (Ast.Numeric.Expression.Var _identifier)] -> begin
             TC.not_yet_implemented [%here] location
             (* TC.return @@ Ast.Type.Implicit identifier *)
           end
