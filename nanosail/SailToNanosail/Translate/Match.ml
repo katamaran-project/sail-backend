@@ -265,16 +265,137 @@
       S11       S12      S21     S22
 
 
-   Each level of the tree corresponds to a value. A tuple of N elements leads to a tree with depth N.
-   The branching factor of each node is equal to the number of cases in the corresponding value.
+   * Each level of the tree corresponds to a value. A tuple of N elements leads to a tree with depth N.
+   * The branching factor of each node is equal to the number of cases in the corresponding value.
+   * For each kind of type (union, variant, bool, ...) there is a corresponding pattern tree node
+     (PatternTree.Enum, PatternTree.Variant, PatternTree.Bool).
+   * The leaves contain statements and are represented using PatternTree.Leaf values.
 
+
+   Pattern Tree Construction
+   -------------------------
    The construction of this tree goes as follows:
 
+   * As input, the construction algorithm takes the types of each element in the tuple (e.g., A and B for a tuple A*B).
    * First, an empty pattern tree is built.
-     "Empty" here means that the tree does already have its shape, but that it has no statements in its leaves.
+     "Empty" here means that the tree does have its shape based on the types (N-tuple leads to N-levelled tree, ...),
+     but that it has no statements in its leaves.
+
+                A1       |       A2
+                ---------+---------
+                |                 |
+           B1   |   B2        B1  |  B2
+           -----+-----        ----+----
+           |         |        |       |
+           |         |        |       |
+          None      None     None    None
+
+   * Next, each match clause (i.e., pattern => statement) is used in turn to "adorn" the tree.
+     For example, the clause (A2, B1) => S21 would cause the tree to be updated to
+
+                A1       |       A2
+                ---------+---------
+                |                 |
+           B1   |   B2        B1  |  B2
+           -----+-----        ----+----
+           |         |        |       |
+           |         |        |       |
+          None      None     S21     None
+
+   After all clauses have been used to adorn the tree, it can be translated to a series of nested match statements:
+
+       match first_value {
+         A1 => match second_value {
+                 B1 => S11,
+                 B2 => S12
+               },
+         A2 => match second_value {
+                 B1 => S21,
+                 B2 => S22
+               }
+       }
+
+   
+   Binders and Wildcards
+   ---------------------
+   Patterns can also contain binders and/or wildcards:
+
+       match tuple {
+         A1, B1 => S11,
+         A2, _  => S2x
+       }
+
+   When a wildcard/binder is encountered, adornment continues on all the subtrees of the current branch and
+   a statement is assigned to a leaf only if it is empty.
+
+
+   Binder Branches
+   ---------------
+   Consider the following match statement:
+
+     match (fst, snd) {
+       (_, B1) => Sx1,
+       (_, B2) => Sx2
+     }
+
+   Based on the information given earlier, this should lead to the tree
+
+                A1       |       A2
+                ---------+---------
+                |                 |
+           B1   |   B2        B1  |  B2
+           -----+-----        ----+----
+           |         |        |       |
+           |         |        |       |
+          Sx1       Sx2      Sx1     Sx2
+
+   and muSail code
+
+      match fst {
+        A1 => match snd {
+                B1 => Sx1,
+                B2 => Sx2
+              },
+        A2 => match snd {
+                B1 => Sx1,
+                B2 => Sx2
+              }
+      }
+
+   This could be simplified to
+
+       match snd {
+           B1 => Sx1,
+           B2 => Sx2
+       }   
+
+   since the value of fst does not matter.
+   Such a simplification can also dramatically decrease the tree's size
+   when dealing with long tuples containing types with many cases.
+
+   A special PatternTree.Binder node allows us to perform this simplification.
+   This node makes no distinction between different cases and therefore has branching factor 1.
+   Using it would make the above tree
+
+
+                |
+                |
+              Binder
+                |
+           B1   |   B2
+           -----+-----
+           |         |
+           |         |
+          Sx1       Sx2
+
+
+   
    
    
 
+   Possible Sail-Level Code Optimizations
+   ======================================
+   
    
    TODOs
    =====
