@@ -73,7 +73,7 @@ let test_adorn_enum_single_case_wildcard =
         let* tree = adorn
           tree
           [
-            Pattern.Binder gen#wildcard
+            Binder gen#wildcard
           ]
           a1_statement
         in
@@ -114,7 +114,7 @@ let test_adorn_enum_single_case_binder =
         let* tree = adorn
           tree
           [
-            Pattern.Binder { identifier = mkid "x"; wildcard = false }
+            Binder { identifier = mkid "x"; wildcard = false }
           ]
           a1_statement
         in
@@ -228,14 +228,14 @@ let test_adorn_enum_two_cases_wildcard =
         let* tree = adorn
             tree
             [
-              Pattern.EnumCase (mkid "A1")
+              EnumCase (mkid "A1")
             ]
             a1_statement
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder gen#wildcard
+              Binder gen#wildcard
             ]
             a2_statement
         in
@@ -296,14 +296,14 @@ let test_adorn_enum_two_cases_binder =
         let* tree = adorn
             tree
             [
-              Pattern.EnumCase (mkid "A1")
+              EnumCase (mkid "A1")
             ]
             a1_statement
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false }
+              Binder { identifier = mkid "x"; wildcard = false }
             ]
             a2_statement
         in
@@ -364,16 +364,16 @@ let test_adorn_enum_two_cases_pair_wildcard =
         let* tree = adorn
             tree
             [
-              Pattern.Binder gen#wildcard;
-              Pattern.EnumCase (mkid "A1");
+              Binder gen#wildcard;
+              EnumCase (mkid "A1");
             ]
             a1_statement
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder gen#wildcard;
-              Pattern.EnumCase (mkid "A2");
+              Binder gen#wildcard;
+              EnumCase (mkid "A2");
             ]
             a2_statement
         in
@@ -441,16 +441,16 @@ let test_clashing_binders =
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = mkid "x"; wildcard = false };
-              Pattern.EnumCase (mkid "A1")
+              Binder { identifier = mkid "x"; wildcard = false };
+              EnumCase (mkid "A1")
             ]
             (a1_statement (mkid "x"))
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder { identifier = mkid "y"; wildcard = false };
-              Pattern.EnumCase (mkid "A2")
+              Binder { identifier = mkid "y"; wildcard = false };
+              EnumCase (mkid "A2")
             ]
             (a2_statement (mkid "y"))
         in
@@ -537,16 +537,16 @@ let test_clashing_binders_2 =
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "x");
-              Pattern.EnumCase (mkid "A1")
+              Binder (mkbinder "x");
+              EnumCase (mkid "A1")
             ]
             (a1_statement (mkid "x"))
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "y");
-              Pattern.EnumCase (mkid "A2")
+              Binder (mkbinder "y");
+              EnumCase (mkid "A2")
             ]
             (a2_statement (mkid "y"))
         in
@@ -633,16 +633,16 @@ let test_clashing_binders_3 =
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "x");
-              Pattern.EnumCase (mkid "A1")
+              Binder (mkbinder "x");
+              EnumCase (mkid "A1")
             ]
             (a1_statement (mkid "x"))
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "y");
-              Pattern.Binder gen#wildcard;
+              Binder (mkbinder "y");
+              Binder gen#wildcard;
             ]
             (a2_statement (mkid "y"))
         in
@@ -727,24 +727,24 @@ let test_clashing_binders_4 =
         let* tree = adorn
             tree
             [
-              Pattern.EnumCase (mkid "A1");
-              Pattern.EnumCase (mkid "A1");
+              EnumCase (mkid "A1");
+              EnumCase (mkid "A1");
             ]
             (statement 1)
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "x");
-              Pattern.EnumCase (mkid "A1");
+              Binder (mkbinder "x");
+              EnumCase (mkid "A1");
             ]
             (statement 2)
         in
         let* tree = adorn
             tree
             [
-              Pattern.Binder (mkbinder "y");
-              Pattern.Binder (mkwild "z");
+              Binder (mkbinder "y");
+              Binder (mkwild "z");
             ]
             (statement 3)
         in
@@ -760,7 +760,7 @@ let test_clashing_binders_4 =
                   gen#wildcard,
                   TM.PatternTree.Enum {
                     enum_identifier = mkid "A";
-                    table           = Ast.Identifier.Map.of_alist_exn [
+                    table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
                           (gen#wildcard, TM.PatternTree.Leaf (Some (statement 1)))
