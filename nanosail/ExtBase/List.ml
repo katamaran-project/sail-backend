@@ -117,6 +117,23 @@ let rec permutations (xs : 'a list) : 'a list list =
     end
 
 
+(*
+   Calls f on each element of xs, as long as f returns true.
+   Returns true if all elements were iterated over and f returned true for each.
+   Note that a false return value can still mean that all values were iterated over.
+*)
+let iter_while
+     (xs : 'a list   )
+    ~(f  : 'a -> bool) : bool
+  =
+  let rec iter (xs : 'a list) : bool =
+    match xs with
+    | []    -> true
+    | x::xs -> f x && iter xs
+  in
+  iter xs
+
+
 let create_permuter (permutation : int list) : <permute : 'a. 'a t -> 'a t> =
   let size = length permutation
   in
