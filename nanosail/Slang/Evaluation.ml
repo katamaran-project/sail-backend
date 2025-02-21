@@ -72,7 +72,11 @@ and evaluate_call func arguments =
 and evaluate_callable native_function arguments =
   native_function arguments
 
-and evaluate_many (asts : Value.t list) : Value.t EC.t =
+(*
+   Evaluates each value in order.
+   Returns the result of the evaluation of the last value (or Nil if the given list is empty).
+*)
+and evaluate_sequentially (asts : Value.t list) : Value.t EC.t =
   let open EC
   in
   let* results = EC.map ~f:evaluate asts
@@ -92,7 +96,7 @@ let mk_closure env parameters body : Value.callable =
       in
       let* () = add_binding "recurse" (Value.Callable callable)
       in
-      evaluate_many body
+      evaluate_sequentially body
     end
   in
   callable
@@ -106,7 +110,7 @@ let mk_macro env parameters body : Value.callable =
       in
       let* () = add_binding "recurse" (Value.Callable callable)
       in
-      let* result = evaluate_many body
+      let* result = evaluate_sequentially body
       in
       evaluate result
     end
@@ -116,4 +120,4 @@ let mk_macro env parameters body : Value.callable =
 let evaluate_string (s : string) : Value.t EC.t =
   let asts = P.parse_string s
   in
-  evaluate_many asts
+  evaluate_sequentially asts

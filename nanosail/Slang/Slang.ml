@@ -19,7 +19,7 @@ module Error               = Error
 let extend_environment = EnvironmentBuilder.extend_environment
 
 let run_asts environment asts =
-  EvaluationContext.run_with_state (Evaluation.evaluate_many asts) environment
+  EvaluationContext.run_with_state (Evaluation.evaluate_sequentially asts) environment
 
 let run_string environment string =
   let asts = Parser.parse_string string
