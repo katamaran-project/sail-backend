@@ -7,8 +7,6 @@
                 "file_end"
                 "sail_internal")
 
-(define (should-be-ignored? identifier)
-  )
 
 (ignore-function-definition-and-top-level-type-constraints-predicate
  (lambda (identifier)
