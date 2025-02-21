@@ -227,14 +227,55 @@
 
    The current implementation relies on brute force to find the smallest tree:
    it tries all possible orderings. This approach should be acceptable
-   for most cases, i.e., where tuples don't grow larger than 8 elements.
+   for most cases, i.e., where tuples don't grow larger than 7-8 elements.
 
 
    Pattern Trees
    =============
+   (Disclaimer: this explanation is a gradual one. It does not detail the final implementation
+   in one go but instead starts off with a simplified version which is then refined upon.
+   In other words, white lies lie ahead.)
+   
+   As a working example, we'll use the following enums:
 
+     enum A { A1, A2 }
+     enum B { B1, B2 }
+     etc.
+
+   Given a tuple of type A * B, it can be one of four possible values: (A1, B1), (A1, B2), etc.
+   Pattern matching such a tuple entails associating statements to each of these four possibilities.
+
+     match tuple {
+       (A1, B1) => S11
+       (A1, B2) => S12
+       (A2, B1) => S21
+       (A2, B2) => S22
+     }
+   
+   We can represent this by a tree:
+
+
+            A1       |       A2
+            ---------+---------
+            |                 |
+       B1   |   B2        B1  |  B2
+       -----+-----        ----+----
+       |         |        |       |
+       |         |        |       |
+      S11       S12      S21     S22
+
+
+   Each level of the tree corresponds to a value. A tuple of N elements leads to a tree with depth N.
+   The branching factor of each node is equal to the number of cases in the corresponding value.
+
+   The construction of this tree goes as follows:
+
+   * First, an empty pattern tree is built.
+     "Empty" here means that the tree does already have its shape, but that it has no statements in its leaves.
+   
    
 
+   
    TODOs
    =====
    * Generalized support for nested patterns
