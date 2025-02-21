@@ -20,11 +20,11 @@ let test_build_pattern_tree_enum_single_case =
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Leaf None
+          subtree      = Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -49,11 +49,11 @@ let test_build_pattern_tree_enum_1 =
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Leaf None
+          subtree      = Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -78,11 +78,11 @@ let test_build_pattern_tree_enum_2 =
       let* actual_tree =
         build_empty_pattern_tree [ enum_type ]
       in
-      let expected_tree =
-        TM.PatternTree.Binder {
+      let expected_tree : TM.PatternTree.t =
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Leaf None
+          subtree      = Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -108,13 +108,13 @@ let test_build_pattern_tree_enum_3 =
         build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternTree.t =
-        TM.PatternTree.Binder {
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Binder {
+          subtree      = Binder {
               matched_type = enum_type;
               binder       = gen#wildcard;
-              subtree      = TM.PatternTree.Leaf None
+              subtree      = Leaf None
             }
         }
       in
@@ -141,13 +141,13 @@ let test_build_pattern_tree_enum_4 =
         build_empty_pattern_tree [ enum_type; enum_type ]
       in
       let expected_tree : TM.PatternTree.t =
-        TM.PatternTree.Binder {
+        Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Binder {
+          subtree      = Binder {
               matched_type = enum_type;
               binder       = gen#wildcard;
-              subtree      = TM.PatternTree.Leaf None
+              subtree      = Leaf None
             }
         }
       in
