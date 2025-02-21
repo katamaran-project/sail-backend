@@ -115,6 +115,26 @@ module C = struct
       in
       export_callable exported_function_name handler_function
   end
+
+
+  let () =
+    let exported_function_name =
+      "ignore-function-definition-and-top-level-type-constraints-predicate"
+    and handler_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
+      in
+      let open Monads.Notations.Star(Slang.EvaluationContext)
+      in
+      let* evaluated_arguments = EC.map ~f:Evaluation.evaluate arguments
+      in
+      let=! callable = Converters.(map1 callable) evaluated_arguments
+      in
+      ConfigLib.Setting.set S.ignore_function_definition_predicate callable;
+      ConfigLib.Setting.set S.ignore_top_level_type_constraint_predicate callable;
+      EC.return @@ Value.Nil
+    in
+    export_callable exported_function_name handler_function
 end
 
 include C.S
