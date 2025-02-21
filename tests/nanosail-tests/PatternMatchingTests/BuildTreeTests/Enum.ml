@@ -24,7 +24,7 @@ let test_build_pattern_tree_enum_single_case =
         TM.PatternTree.Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal None
+          subtree      = TM.PatternTree.Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -53,7 +53,7 @@ let test_build_pattern_tree_enum_1 =
         TM.PatternTree.Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal None
+          subtree      = TM.PatternTree.Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -82,7 +82,7 @@ let test_build_pattern_tree_enum_2 =
         TM.PatternTree.Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal None
+          subtree      = TM.PatternTree.Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -114,7 +114,7 @@ let test_build_pattern_tree_enum_3 =
           subtree      = TM.PatternTree.Binder {
               matched_type = enum_type;
               binder       = gen#wildcard;
-              subtree      = TM.PatternTree.Terminal None
+              subtree      = TM.PatternTree.Leaf None
             }
         }
       in
@@ -147,7 +147,7 @@ let test_build_pattern_tree_enum_4 =
           subtree      = TM.PatternTree.Binder {
               matched_type = enum_type;
               binder       = gen#wildcard;
-              subtree      = TM.PatternTree.Terminal None
+              subtree      = TM.PatternTree.Leaf None
             }
         }
       in

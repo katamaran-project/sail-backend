@@ -38,7 +38,7 @@ let test_adorn_enum_single_case =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, TM.PatternTree.Terminal (Some a1_statement));
+                (gen#wildcard, TM.PatternTree.Leaf (Some a1_statement));
               );
             ];
         }
@@ -83,7 +83,7 @@ let test_adorn_enum_single_case_wildcard =
         Binder {
           matched_type = enum_type;
           binder       = gen#wildcard;
-          subtree      = Terminal (Some a1_statement)
+          subtree      = Leaf (Some a1_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -124,7 +124,7 @@ let test_adorn_enum_single_case_binder =
         Binder {
           matched_type = enum_type;
           binder       = mkbinder "x";
-          subtree      = Terminal (Some a1_statement)
+          subtree      = Leaf (Some a1_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -185,11 +185,11 @@ let test_adorn_enum_two_cases =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, TM.PatternTree.Terminal (Some a1_statement))
+                (gen#wildcard, TM.PatternTree.Leaf (Some a1_statement))
               );
               (
                 mkid "A2",
-                (gen#wildcard, TM.PatternTree.Terminal (Some a2_statement))
+                (gen#wildcard, TM.PatternTree.Leaf (Some a2_statement))
               );
             ];
         }
@@ -249,14 +249,14 @@ let test_adorn_enum_two_cases_wildcard =
                 mkid "A1",
                 (
                   gen#wildcard,
-                  TM.PatternTree.Terminal (Some a1_statement)
+                  TM.PatternTree.Leaf (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
                   gen#wildcard,
-                  TM.PatternTree.Terminal (Some a2_statement)
+                  TM.PatternTree.Leaf (Some a2_statement)
                 )
               );
             ];
@@ -317,14 +317,14 @@ let test_adorn_enum_two_cases_binder =
                 mkid "A1",
                 (
                   gen#wildcard,  (* no binder since pattern mentions "A1" explicitly *)
-                  TM.PatternTree.Terminal (Some a1_statement)
+                  TM.PatternTree.Leaf (Some a1_statement)
                 )
               );
               (
                 mkid "A2",
                 (
                   mkbinder "x",  (* binder necessary because pattern requires the value to be bound to x *)
-                  TM.PatternTree.Terminal (Some a2_statement)
+                  TM.PatternTree.Leaf (Some a2_statement)
                 )
               );
             ];
@@ -390,14 +390,14 @@ let test_adorn_enum_two_cases_pair_wildcard =
                     mkid "A1",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some a1_statement)
+                      TM.PatternTree.Leaf (Some a1_statement)
                     )
                   );
                   (
                     mkid "A2",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some a2_statement)
+                      TM.PatternTree.Leaf (Some a2_statement)
                     )
                   );
                 ];
@@ -467,14 +467,14 @@ let test_clashing_binders =
                     mkid "A1",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some (a1_statement genid))
+                      TM.PatternTree.Leaf (Some (a1_statement genid))
                     )
                   );
                   (
                     mkid "A2",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                      TM.PatternTree.Leaf (Some (a2_statement genid))
                     )
                   );
                 ];
@@ -563,14 +563,14 @@ let test_clashing_binders_2 =
                     mkid "A1",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some (a1_statement genid))
+                      TM.PatternTree.Leaf (Some (a1_statement genid))
                     )
                   );
                   (
                     mkid "A2",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                      TM.PatternTree.Leaf (Some (a2_statement genid))
                     )
                   );
                 ];
@@ -661,21 +661,21 @@ let test_clashing_binders_3 =
                     mkid "A1",
                     (
                       gen#wildcard,
-                      TM.PatternTree.Terminal (Some (a1_statement genid))
+                      TM.PatternTree.Leaf (Some (a1_statement genid))
                     )
                   );
                   (
                     mkid "A2",
                     (
                       wildcard_a2_a3,
-                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                      TM.PatternTree.Leaf (Some (a2_statement genid))
                     )
                   );
                   (
                     mkid "A3",
                     (
                       wildcard_a2_a3, (* must be same wildcard as in A2 case, since when a pattern tree node is expanded, subtrees are copied *)
-                      TM.PatternTree.Terminal (Some (a2_statement genid))
+                      TM.PatternTree.Leaf (Some (a2_statement genid))
                     )
                   );
                 ];
@@ -763,11 +763,11 @@ let test_clashing_binders_4 =
                     table           = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 1)))
+                          (gen#wildcard, TM.PatternTree.Leaf (Some (statement 1)))
                         );
                         (
                           mkid "A2",
-                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 3)))
+                          (gen#wildcard, TM.PatternTree.Leaf (Some (statement 3)))
                         );
                       ]
                   }
@@ -782,11 +782,11 @@ let test_clashing_binders_4 =
                     table = Ast.Identifier.Map.of_alist_exn [
                         (
                           mkid "A1",
-                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 2)))
+                          (gen#wildcard, TM.PatternTree.Leaf (Some (statement 2)))
                         );
                         (
                           mkid "A2",
-                          (gen#wildcard, TM.PatternTree.Terminal (Some (statement 3)))
+                          (gen#wildcard, TM.PatternTree.Leaf (Some (statement 3)))
                         );
                       ]
                   }

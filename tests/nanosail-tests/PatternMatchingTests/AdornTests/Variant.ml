@@ -44,7 +44,7 @@ let test_adorn_variant_single_unary_constructor =
           table = Ast.Identifier.Map.of_alist_exn [
               (
                 mkid "A1",
-                (gen#wildcard, PT.UnaryConstructor (mkbinder "x"), PT.Terminal (Some a1_statement))
+                (gen#wildcard, PT.UnaryConstructor (mkbinder "x"), PT.Leaf (Some a1_statement))
               );
             ]
         }
@@ -91,7 +91,7 @@ let test_adorn_variant_wildcard =
         PT.Binder {
           matched_type = variant_type;
           binder       = gen#wildcard;
-          subtree      = PT.Terminal (Some a1_statement)
+          subtree      = PT.Leaf (Some a1_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -137,7 +137,7 @@ let test_adorn_variant_binder =
         PT.Binder {
           matched_type = variant_type;
           binder       = mkbinder "x";
-          subtree      = PT.Terminal (Some a1_statement)
+          subtree      = PT.Leaf (Some a1_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree

@@ -24,7 +24,7 @@ let test_build_pattern_tree_variant_single_unary_constructor =
         TM.PatternTree.Binder {
           matched_type = variant_type;
           binder       = gen#wildcard;
-          subtree      = TM.PatternTree.Terminal None
+          subtree      = TM.PatternTree.Leaf None
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -56,7 +56,7 @@ let test_build_pattern_tree_variant_single_unary_constructor_pair =
           subtree      = TM.PatternTree.Binder {
               matched_type = variant_type;
               binder       = gen#wildcard;
-              subtree      = TM.PatternTree.Terminal None
+              subtree      = TM.PatternTree.Leaf None
             }
         }
       in

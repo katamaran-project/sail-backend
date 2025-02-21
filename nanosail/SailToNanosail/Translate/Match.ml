@@ -523,7 +523,7 @@ module PatternTree = struct
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
     | Bool       of { when_true : t; when_false : t }
     | Binder     of { matched_type : Ast.Type.t; binder : Binder.t; subtree : t }
-    | Terminal   of Ast.Statement.t option
+    | Leaf       of Ast.Statement.t option
 
   (*
      From Sail's standpoint, all constructors are unary:
@@ -636,9 +636,9 @@ module PatternTree = struct
         | _ -> false
       end
 
-    | Terminal statement_1 -> begin
+    | Leaf statement_1 -> begin
         match node_2 with
-        | Terminal statement_2 -> begin
+        | Leaf statement_2 -> begin
             Option.equal Ast.Statement.equal statement_1 statement_2
           end
         | _ -> false
@@ -766,7 +766,7 @@ module PatternTree = struct
         FExpr.mk_application ~keyword @@ mk_head "Binder"
       end
 
-    | Terminal statement -> begin
+    | Leaf statement -> begin
         let keyword =
           [
             (
@@ -797,7 +797,7 @@ module PatternTree = struct
 
     | Binder { subtree; _ }          -> 1 + count_nodes subtree
     | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
-    | Terminal _                     -> 1
+    | Leaf _                         -> 1
 
 
   let rename
@@ -835,10 +835,10 @@ module PatternTree = struct
           }
         end
 
-      | Terminal None -> tree
+      | Leaf None -> tree
 
-      | Terminal (Some statement) -> begin
-          Terminal (Some (Ast.Renaming.rename_in_statement renamer statement))
+      | Leaf (Some statement) -> begin
+          Leaf (Some (Ast.Renaming.rename_in_statement renamer statement))
         end
     in
     rename tree
@@ -953,7 +953,7 @@ let rec build_empty_pattern_tree
     (element_types : Ast.Type.t list) : PatternTree.t TC.t
   =
   match element_types with
-  | []           -> TC.return @@ PatternTree.Terminal None
+  | []           -> TC.return @@ PatternTree.Leaf None
   | head :: tail -> begin
       let* subtree =
         build_empty_pattern_tree location tail
@@ -1036,8 +1036,8 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       contains_gap when_true || contains_gap when_false
     end
 
-  | Binder { subtree; _ }  -> contains_gap subtree
-  | Terminal statement     -> Option.is_none statement
+  | Binder { subtree; _ } -> contains_gap subtree
+  | Leaf statement        -> Option.is_none statement
 
 
 let rec adorn_pattern_tree
@@ -1058,7 +1058,7 @@ let rec adorn_pattern_tree
       TC.fail location "pattern is incompatible with type of value being matched"
     in
     match pattern_tree, tuple_subpatterns with
-    | Terminal statement, [] -> begin
+    | Leaf statement, [] -> begin
         match statement with
         | Some _ -> begin
             if
@@ -1073,10 +1073,10 @@ let rec adorn_pattern_tree
                   *)
               TC.fail [%here] "clashing patterns"
           end
-        | None -> TC.return @@ PatternTree.Terminal (Some body)
+        | None -> TC.return @@ PatternTree.Leaf (Some body)
       end
 
-    | Terminal _, _ -> invalid_number_of_subpatterns [%here]
+    | Leaf _, _ -> invalid_number_of_subpatterns [%here]
 
     | _, [] -> invalid_number_of_subpatterns [%here]
 
@@ -1789,7 +1789,7 @@ let rec build_leveled_match_statements
         end
     end
 
-  | Terminal statement -> begin
+  | Leaf statement -> begin
       match matched_identifiers with
       | [] -> begin
           match statement with

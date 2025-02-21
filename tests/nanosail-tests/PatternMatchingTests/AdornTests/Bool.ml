@@ -36,8 +36,8 @@ let test_adorn_bool_true_false =
       in
       let expected_tree : TM.PatternTree.t =
         Bool {
-          when_true  = Terminal (Some true_statement);
-          when_false = Terminal (Some false_statement)
+          when_true  = Leaf (Some true_statement);
+          when_false = Leaf (Some false_statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -79,8 +79,8 @@ let test_adorn_bool_false_true =
       in
       let expected_tree : TM.PatternTree.t =
         Bool {
-            when_true  = Terminal (Some true_statement);
-            when_false = Terminal (Some false_statement)
+            when_true  = Leaf (Some true_statement);
+            when_false = Leaf (Some false_statement)
           }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree
@@ -117,7 +117,7 @@ let test_adorn_bool_wildcard =
         Binder {
           matched_type = Bool;
           binder       = gen#wildcard;
-          subtree      = Terminal (Some statement)
+          subtree      = Leaf (Some statement)
         }
       in
       TC.assert_equal_pattern_trees expected_tree actual_tree

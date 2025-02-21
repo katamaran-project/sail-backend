@@ -378,13 +378,13 @@ module Implementation = struct
         return @@ PatternTree.Binder { matched_type; binder; subtree }
       end
 
-    | Terminal statement -> begin
+    | Leaf statement -> begin
         let* statement =
           match statement with
           | Some statement -> let* statement = normalize_statement statement in return @@ Some statement
           | None           -> return None
         in
-        return @@ PatternTree.Terminal statement
+        return @@ PatternTree.Leaf statement
       end
 end
 
