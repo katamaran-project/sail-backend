@@ -21,10 +21,14 @@ module Make (_ : sig end) = struct
     exported_functions := (identifier, callable) :: !exported_functions
 
 
+  let read_file_contents (path : string) : string =
+    Stdio.In_channel.read_all path
+  
+
   let load_configuration (path : string) : unit =
     let open Slang
     in
-    let contents = Stdio.In_channel.read_all path
+    let contents = read_file_contents path
     in
     let program =
       let* () = Prelude.initialize
