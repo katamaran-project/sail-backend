@@ -388,9 +388,160 @@
            |         |
           Sx1       Sx2
 
+   
+   Pattern Tree Construction (revisited)
+   -------------------------------------
+   Instead of starting off with a fully expanded tree, i.e.,
+   a tree where each branch has one subtree for each of the possible case,
+   we can start with a fully "collapsed" tree populated only by binders.
+
+   For example, consider a tree for a tuple A * A * A * A * A.
+   Fully expanded, the pattern tree would contain 1 + 2 + 4 + 8 + 16 + 32 nodes.
+   However, if we start off with only binders, the tree would only count 6 nodes.
+
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+        None
+
+   If a clause mentions a specific case, e.g. (_, _, A1, _, _) => S, then the corresponding
+   node should be expanded:
+
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+     A1  |  A2
+     ----+----
+     |       |
+   Binder  Binder
+     |       |
+   Binder  Binder
+     |       |
+     S      None
+
+   Upon expansion, the subtree of the Binder is duplicated N times, where N is the number of possible cases.
+
+   Expansion happens as soon as a pattern mentions a specific case, but as long as wildcards/binders are
+   used to match against a particular value, the corresponding node will remain a Binder and no duplication will occur,
+   keeping the tree small.
+   
+   In normal circumstances, this optimization should not be very effective: if a value is matched against,
+   one would expect that its value actually matters and that node expansion is bound to happen for every node.
+   However,
+
+   * Some cases might only appear under specific circumstances, so that only nodes in part of the pattern tree get expanded.
+     For example,
+
+       match (a, b) {
+         (A1, _)  => S1x,
+         (A2, B1) => S21,
+         (A2, B2) => S22
+       }
+
+     leads to
+
+                A1       |       A2
+                ---------+---------
+                |                 |
+                |             B1  |  B2
+              Binder          ----+----
+                |             |       |
+                |             |       |
+               S1x           S21     S22
+
+     As shown, the b-node is only expanded in the right side of the pattern tree.
+   * Scattered functions are translated to pattern matches, causing values not actually matched against to appear in the tuple.
+     For example,
+
+       val foo : (A * B) -> int
+       scattered function foo
+       function clause foo(A1, b) { ... }
+       function clause foo(A2, b) { ... }
+    
+     The b-value is not matched against, so the corresponding node does not need expansion.
 
    
+   Further Optimization
+   --------------------
+   The order in which the values of a tuple are matched against affects the size of the pattern tree.
+   Consider again the example
+
+     match (a1, a2, a3, a4, a5) {
+       (_, _, A1, _, _) => S,
+     }
+
+   gives rise to
+
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+     A1  |  A2
+     ----+----
+     |       |
+   Binder  Binder
+     |       |
+   Binder  Binder
+     |       |
+     S      None
+
+   This tree counts 10 nodes.
+   If the order of the tuple elements were changed:
+
+     match (a1, a2, a4, a5, a3) {
+       (_, _, _, _, A1) => S,
+     }
+
+   We get as tree
+
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+         |
+       Binder
+         |
+     A1  |  A2
+     ----+----
+     |       |
+     |       |
+     S      None
    
+
+   This tree counts only 8 nodes.
+
+   Note that the translation preserves the order of function parameters.
+   It is merely the order in which they are matched that can change.
+
+   To find the smallest tree, all permutations are considered.
+   As long as the tuple size remains small, this approach should be workable.
    
 
    Possible Sail-Level Code Optimizations
