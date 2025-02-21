@@ -245,6 +245,9 @@ module Make (_ : sig end) = struct
     setting
 
 
+  (*
+     Creates a constant function that takes <arity> arguments and always returns <return_value>.
+  *)
   let constant_function
       ~(arity        : int          )
       ~(return_value : Slang.Value.t) : Slang.Value.callable
