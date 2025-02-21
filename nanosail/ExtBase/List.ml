@@ -134,6 +134,24 @@ let iter_while
   iter xs
 
 
+let rec generate_permutations
+    (xs       : 'a list        )
+    (receiver : 'a list -> bool) : bool
+  =
+  match xs with
+  | [] -> receiver []
+  | _  -> begin
+      iter_while (indices xs) ~f:(fun index ->
+          let x = nth_exn xs index
+          in
+          let remaining =
+            drop_nth xs index
+          in
+          generate_permutations remaining (fun permutation -> receiver @@ x :: permutation)
+        )
+    end
+
+
 let create_permuter (permutation : int list) : <permute : 'a. 'a t -> 'a t> =
   let size = length permutation
   in
