@@ -266,12 +266,22 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
             let* pp_argument_types =
               GC.map ~f:Nanotype.pp_nanotype argument_types
             in
-            GC.return @@ PP.numbered_list pp_argument_types
+            let index_formatter (index : int) : PP.t =
+              PP.(horizontal [ string "arg #"; integer index; string ": " ])
+            in
+            GC.return begin
+              PP.vertical [
+                PP.string "Argument types";
+                PP.indent begin
+                  PP.numbered_list ~index_formatter:(Some index_formatter) pp_argument_types
+                end
+              ]
+            end
           in            
           let* pp_argument_types_list =
             GC.map argument_types_list ~f:pp_argument_types
           in
-          GC.return @@ PP.vertical pp_argument_types_list
+          GC.return @@ PP.numbered_list pp_argument_types_list
         in
         GC.return (
           pp_function_identifier,
