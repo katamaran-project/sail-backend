@@ -730,14 +730,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                           PP.string @@ StringOf.Sail.location location
                         );
                         (
+                          PP.string "Type quantifier",
+                          FExpr.pp @@ Ast.TypeQuantifier.to_fexpr called_function_type_constraint.type_quantifier
+                        );
+                        (
                           PP.string "Parameter types",
-                          PP.indent begin
-                            PP.numbered_list begin
-                              [
-                                PP.string "TODO";
-                              ]
-                            end
-                          end
+                          FExpr.pp @@ Ast.Type.to_fexpr called_function_type_constraint.typ
                         );
                         (
                           PP.string "Argument types",
