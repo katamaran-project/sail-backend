@@ -20,14 +20,6 @@ let html_of_document =
   PP.to_html
 
 
-let nullary_string_function id func =
-  (id, Slang.Helpers.Function.to_string id func)
-
-
-let nullary_boolean_function id func =
-  (id, Slang.Helpers.Function.to_bool id func)
-
-
 class virtual exported_function (identifier : string) = object
   method identifier = identifier
   method virtual callable : Slang.Value.t
