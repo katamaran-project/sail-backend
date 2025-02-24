@@ -34,6 +34,24 @@ class virtual exported_nullary_string_function (identifier : string) = object(se
   method virtual generate_string : string EC.t
 end
 
+class virtual string_of_document_exported_function (identifier : string) (program : Ast.program) = object(self)
+  inherit exported_nullary_string_function identifier
+
+  method generate_string =
+    EC.return @@ string_of_document @@ GC.generate program self#document
+
+  method virtual document : PP.t GC.t
+end
+
+class virtual html_of_document_exported_function (identifier : string) (program : Ast.program) = object(self)
+  inherit exported_nullary_string_function identifier
+
+  method generate_string =
+    EC.return @@ Html.to_string @@ html_of_document @@ GC.generate program self#document
+
+  method virtual document : PP.t GC.t
+end
+
 class virtual exported_nullary_boolean_function (identifier : string) = object(self)
   inherit exported_function identifier
 
