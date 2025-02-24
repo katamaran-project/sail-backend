@@ -43,45 +43,90 @@ module Output = struct
 end
 
 
-let test_process_lines_1 =
-  "process_lines" >:: fun _ -> begin
-      let output : Output.t list ref = ref []
-      in
-      let process_out_of_block_line line =
-        output := (Output.OutOfBlockLine line) :: !output
-      and process_block lines =
-        output := (Output.Block lines) :: !output
-      and input = create_input [
-          "a";
-          "<<";
-          "b";
-          "c";
-          ">>";
-          "d";          
-        ]
-      and expected : Output.t list = [
-        OutOfBlockLine "a";
-        Block [ "b"; "c" ];
-        OutOfBlockLine "d"
-      ]
-      in
-      let () =
-        Blocks.process_lines
-          input
-          ~process_out_of_block_line
-          ~process_block
-      in
-      let actual =
-        List.rev !output
-      in
-      assert_equal
-        ~cmp:(List.equal Output.equal)
-        expected
-        actual
-    end
+let test_process_lines =
+  let test
+      (lines    : string list  )
+      (expected : Output.t list)
+    =
+    String.concat ~sep:"\n" lines >:: fun _ -> begin
+        let output : Output.t list ref = ref []
+        in
+        let process_out_of_block_line line =
+          output := (Output.OutOfBlockLine line) :: !output
+        and process_block lines =
+          output := (Output.Block lines) :: !output
+        and input = create_input lines
+        in
+        let () =
+          Blocks.process_lines
+            input
+            ~process_out_of_block_line
+            ~process_block
+        in
+        let actual =
+          List.rev !output
+        in
+        assert_equal
+          ~cmp:(List.equal Output.equal)
+          expected
+          actual
+      end
+  in
+  "process lines" >::: [
+    test [] [];
 
+    test [
+      "a";
+    ] [
+      OutOfBlockLine "a";
+    ];
+
+    test [
+      "a";
+      "b";
+    ] [
+      OutOfBlockLine "a";
+      OutOfBlockLine "b";
+    ];
+
+    test [
+      "<<";
+      "a";
+      "b";
+      ">>";
+    ] [
+      Block ["a"; "b"];
+    ];
+
+    test [
+      "<<";
+      "a";
+      "b";
+      ">>";
+      "<<";
+      "c";
+      "d";
+      ">>";
+    ] [
+      Block ["a"; "b"];
+      Block ["c"; "d"];
+    ];   
+    
+    test [
+      "a";
+      "<<";
+      "b";
+      "c";
+      ">>";
+      "d";          
+    ] [
+      OutOfBlockLine "a";
+      Block [ "b"; "c" ];
+      OutOfBlockLine "d"
+    ];
+  ]
 
 let test_suite =
   "block" >::: [
-    test_process_lines_1;
+    test_process_lines;
   ]
