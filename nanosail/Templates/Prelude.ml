@@ -181,10 +181,10 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit exported_nullary_string_function "argument-types-of-polymorphic-function-calls"
+      inherit string_of_document_exported_function "argument-types-of-polymorphic-function-calls" translation#program
 
-      method generate_string =
-        EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_argument_types_of_polymorphic_function_calls
+      method document =
+        translation#pp_argument_types_of_polymorphic_function_calls
     end
   ]
   in
