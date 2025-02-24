@@ -13,3 +13,4 @@ tests-*.txt
 generated.sail
 delta-*.diff
 rewrite-*.sail
+polymorphic.txt
