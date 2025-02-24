@@ -92,10 +92,10 @@ val reti_inst : (BW, AM, Register) -> unit
 function reti_inst(_, _, _) = {
   let tos : WordByte =  readMem(WORD_INSTRUCTION,SP_reg) in
     X(WORD_INSTRUCTION, SRCG1, REGISTER_MODE) = tos;
-  SP_reg = SP_reg + zero_extend(0x2);
+  SP_reg = SP_reg + sail_zero_extend(0x2, 16);
   let tos : WordByte =  readMem(WORD_INSTRUCTION,SP_reg) in
     X(WORD_INSTRUCTION, PC, REGISTER_MODE) = tos;
-  SP_reg = SP_reg + zero_extend(0x2);
+  SP_reg = SP_reg + sail_zero_extend(0x2, 16);
 }
 
 

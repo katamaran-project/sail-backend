@@ -30,22 +30,22 @@ function clause addBw(Word(w1), Word(w2)) = {
   Word(w1 + w2)
 }
 function clause addBw(Word(w1), Byte(b2)) = {
-  Word(w1 + zero_extend(b2))
+  Word(w1 + sail_zero_extend(b2, 16))
 }
 function clause addBw(Byte(b1), Word(w2)) = {
-  Word(w2 + zero_extend(b1))
+  Word(w2 + sail_zero_extend(b1, 16))
 }
 
 overload operator + = {addBw}
 
 val W_zero_extend : forall 'n, 8 < 'n & 'n <= 16. (bits('n)) -> WordByte
 function W_zero_extend(b) = {
-  let bts:bits(16) = zero_extend(b) in
+  let bts:bits(16) = sail_zero_extend(b, 16) in
   Word(bts)
 }
 val B_zero_extend : forall 'n, 'n <= 8. (bits('n)) -> WordByte
 function B_zero_extend(b) = {
-  let bts:bits(8) = zero_extend(b) in
+  let bts:bits(8) = sail_zero_extend(b, 8) in
   Byte(bts)
 }
 
