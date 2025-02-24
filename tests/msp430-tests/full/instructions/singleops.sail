@@ -105,7 +105,7 @@ val sxt_inst : (BW, AM, Register) -> unit
 function sxt_inst(_, AddressingMode, reg) = {
   clearStatusRegisters();
   let Byte(value) : WordByte =  X(BYTE_INSTRUCTION, reg, AddressingMode) in
-  let res : WordByte = Word(sign_extend(value)) in {
+  let res : WordByte = Word(sail_sign_extend(value, 16)) in {
     if isNegative(res) then setNegativebit();
     if isZero(res) then setZerobit();
     if ~(isZero(res)) then setCarrybit();
