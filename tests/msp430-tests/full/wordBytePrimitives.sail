@@ -54,12 +54,12 @@ overload BW_zero_extend = {W_zero_extend, B_zero_extend}
 
 val W_sign_extend : forall 'n, 8 < 'n & 'n <= 16. (bits('n)) -> WordByte
 function W_sign_extend(b) = {
-  let bts:bits(16) = sign_extend(b) in
+  let bts:bits(16) = sail_sign_extend(b, 16) in
   Word(bts)
 }
 val B_sign_extend : forall 'n, 'n <= 8. (bits('n)) -> WordByte
 function B_sign_extend(b) = {
-  let bts:bits(8) = sign_extend(b) in
+  let bts:bits(8) = sail_sign_extend(b, 8) in
   Byte(bts)
 }
 
