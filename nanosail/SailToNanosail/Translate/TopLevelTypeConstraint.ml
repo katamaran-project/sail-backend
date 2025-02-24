@@ -65,11 +65,13 @@ let translate_top_level_type_constraint
         ]
       end
       in
-      TC.log [%here] Logging.info message
+      TC.log [%here] Logging.error message
     in
     TC.return begin
       Ast.Definition.TopLevelTypeConstraintDefinition {
-        identifier = identifier';
+        identifier      = identifier';
+        type_quantifier = type_quantifier';
+        typ             = typ';
         polymorphic
       }
     end

@@ -292,8 +292,10 @@ end
 module TopLevelTypeConstraint = struct
   type t =
     {
-      identifier  : Identifier.t;
-      polymorphic : bool;
+      identifier      : Identifier.t;
+      type_quantifier : TypeQuantifier.t;
+      typ             : Nanotype.t;
+      polymorphic     : bool;
     }
 
   let to_fexpr (top_level_type_constraint : t) : FExpr.t =
@@ -303,6 +305,14 @@ module TopLevelTypeConstraint = struct
       ]
     and keyword =
       [
+        (
+          "type_quantifier",
+          TypeQuantifier.to_fexpr top_level_type_constraint.type_quantifier
+        );
+        (
+          "type",
+          Nanotype.to_fexpr top_level_type_constraint.typ
+        );
         (
           "polymorphic",
           FExpr.mk_bool top_level_type_constraint.polymorphic
