@@ -112,10 +112,10 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit exported_nullary_string_function "base-translation"
+      inherit string_of_document_exported_function "base-translation" translation#program
           
-      method generate_string =
-        EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_base
+      method document =
+        translation#pp_base
     end;
 
     export object
