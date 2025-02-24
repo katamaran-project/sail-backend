@@ -4,9 +4,9 @@ open! ExtBase
 module Context = struct
   type t =
     {
-      definitions          : Ast.Definition.t list;                 (* list of definitions                                                        *)
-      next_id_index        : int;                                   (* counter used to generate unique identifiers                                *)
-      polymorphic_argtypes : Ast.Type.t list Ast.Identifier.Map.t;  (* collects the types of the arguments used in calls to polymorphic functions *)
+      definitions          : Ast.Definition.t list;                      (* list of definitions                                                        *)
+      next_id_index        : int;                                        (* counter used to generate unique identifiers                                *)
+      polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;  (* collects the types of the arguments used in calls to polymorphic functions *)
     }
 
   let empty : t =
@@ -42,11 +42,11 @@ module Context = struct
     (get, set)
 
   let argument_types_of_polymorphic_function_calls =
-    let get (context : t) : Ast.Type.t list Ast.Identifier.Map.t =
+    let get (context : t) : Ast.Type.t list list Ast.Identifier.Map.t =
       context.polymorphic_argtypes
     and set
-        (context              : t                                   )
-        (polymorphic_argtypes : Ast.Type.t list Ast.Identifier.Map.t) : t
+        (context              : t                                        )
+        (polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t) : t
       =
       { context with polymorphic_argtypes }
     in
