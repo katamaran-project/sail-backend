@@ -52,3 +52,6 @@ val repeat                         : int -> f:('a t) -> 'a list t
 
 val log                            : Lexing.position -> (Lexing.position -> PP.document lazy_t -> unit) -> PP.document lazy_t -> unit t
 val translation_block              : Lexing.position -> PP.document -> 'a t -> 'a t
+
+
+val register_polymorphic_function_call_type_arguments : Ast.Identifier.t -> Ast.Type.t list -> unit t
