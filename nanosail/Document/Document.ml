@@ -89,25 +89,35 @@ module Make(Annotation : Functor.ANNOTATION) = struct
          1: item1
          2: item2
          3: item3
+
+       The appearance of the numbering can be customized with index_formatter.
     *)
   let numbered_list
-      ?(start_index : int    = 1 )
-      ?(prefix      : string = "")
-      (items        : t list     ) : t
+      ?(start_index     : int               = 1   )
+      ?(index_formatter : (int -> t) option = None)
+      (items            : t list                  ) : t
     =
-    let max_index_width : int =
-      String.length prefix + (Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> fst @@ measure @@ integer @@ start_index + offset) (List.indices items))
+    let index_formatter : int -> t =
+      (* default index formatter generates "I: " *)
+      let default (index : int) =
+        horizontal [ integer index; colon; space ]
+      in
+      Option.value index_formatter ~default
+    in
+    let indices : t list =
+      let make_prefix k =
+        index_formatter (start_index + k)
+      in
+      List.map ~f:make_prefix (List.indices items)
     in
     let rows =
-      let build_row index item =
+      let build_row (index : t) (item : t) =
         horizontal [
-          string @@ prefix ^ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
-          colon;
-          space;
+          index;
           item
         ]
       in
-      List.mapi items ~f:build_row
+      List.map ~f:(Fn.uncurry build_row) @@ List.zip_exn indices items
     in
     vertical rows
 
