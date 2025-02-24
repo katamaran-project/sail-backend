@@ -17,6 +17,7 @@ let tests =
     ListTests.test_suite;
     SequenceTests.test_suite;
     RenamingTests.test_suite;
+    BlockTests.test_suite;
   ]
 
 
