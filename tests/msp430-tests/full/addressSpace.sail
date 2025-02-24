@@ -33,7 +33,7 @@ function clause writeMem(BYTE_INSTRUCTION, address, Word(wbTolong)) = {
 }
 
 function clause writeMem(bw, address, Byte(bb)) = {
-    writeMem(bw, address, Word(zero_extend(bb)))
+    writeMem(bw, address, Word(sail_zero_extend(bb, 16)))
 }
 
 overload Xmem = {readMem, writeMem}
