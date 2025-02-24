@@ -161,16 +161,16 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit exported_nullary_string_function "untranslated-definitions"
+      inherit string_of_document_exported_function "untranslated-definitions" translation#program
 
-      method generate_string =
+      method document =
         let untranslated_definitions =
           translation#untranslated_definitions
         in
         let formatted_untranslated_definitions =
           PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
         in
-        EC.return @@ string_of_document formatted_untranslated_definitions
+        GC.return formatted_untranslated_definitions
     end;    
 
     export object
