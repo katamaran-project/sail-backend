@@ -14,7 +14,7 @@ let addloc (numexp : S.Ast.nexp_aux) =
 
 let string_of_numeric_expression (nexp : S.Ast.nexp)  =
   match TC.run @@ translate_numeric_expression nexp with
-  | (TC.Success nano_nexp, _) -> begin
+  | (TC.Success (nano_nexp, _)) -> begin
       let document = GC.generate Nanosail.Ast.empty_program (Nanosail.NanosailToMicrosail.Numeric.Expression.pp nano_nexp)
       in
       Nanosail.PP.to_string document

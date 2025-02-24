@@ -113,10 +113,10 @@ module TC = struct
 
   
   let run_expecting_success (tc : 'a t) : 'a =
-    let result, _ = run tc
+    let result = run tc
     in
     match result with
-    | Success result -> result
+    | Success (result, _) -> result
     | Failure error  -> begin
         let error_message =
           Printf.sprintf "execution of TC resulted in failure: %s" @@ Error.to_string error
@@ -126,7 +126,7 @@ module TC = struct
 
 
   let run_expecting_failure (tc : 'a t) : unit =
-    let result, _ = run tc
+    let result = run tc
     in
     match result with
     | Success _ -> assert_failure "expected failure but succeeded instead"

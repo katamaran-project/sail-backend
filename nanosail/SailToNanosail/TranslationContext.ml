@@ -88,7 +88,18 @@ let act        = Monad.act
 let error      = Monad.fail
 let bind       = Monad.bind
 let recover    = Monad.recover
-let run f      = Monad.run f Context.empty
+
+
+let run (f : 'a t) : ('a * Ast.Type.t list list Ast.Identifier.Map.t) result =
+  let wrapper =
+    let* result = f
+    and* polymorphic_argtypes = Monad.get Context.argument_types_of_polymorphic_function_calls
+    in
+    return (result, polymorphic_argtypes)
+  in
+  let result, _context = Monad.run wrapper Context.empty
+  in
+  result
 
 
 let log

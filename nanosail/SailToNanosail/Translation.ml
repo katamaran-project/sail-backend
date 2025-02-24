@@ -197,8 +197,8 @@ let translate (ast : Sail.ast) : Ast.program =
       TC.map ~f:translate_definition ast.defs
     end
   in
-  let (result, _context) = TC.run translate
+  let result = TC.run translate
   in
   match result with
-  | TC.Success definitions -> { definitions = definitions }
-  | TC.Failure _           -> failwith "Bug: failures should have been recovered from earlier"
+  | TC.Success (definitions, polymorphic_argtypes) -> { definitions; polymorphic_argtypes }
+  | TC.Failure _                                   -> failwith "Bug: failures should have been recovered from earlier"
