@@ -116,7 +116,6 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
         List.map ~f:fst translation#ignored_definitions
       in
       let formatted_ignored_definitions =
-        (* todo improve this *)
         let open Monads.Notations.Star(GC)
         in
         let result =
