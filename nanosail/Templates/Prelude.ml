@@ -25,6 +25,26 @@ class virtual exported_function (identifier : string) = object
   method virtual callable : Slang.Value.t
 end
 
+class virtual exported_nullary_string_function (identifier : string) = object(self)
+  inherit exported_function identifier
+
+  method callable =
+    Slang.Helpers.Function.to_string self#identifier (fun () -> self#implementation)
+
+  method virtual implementation : string EC.t
+end
+
+class virtual exported_nullary_boolean_function (identifier : string) = object(self)
+  inherit exported_function identifier
+
+  method callable =
+    Slang.Helpers.Function.to_bool self#identifier (fun () -> self#implementation)
+
+  method virtual implementation : bool EC.t
+end
+
+(* helper function to easily cast from a subtype of exported_function to exported_function *)
+let export (f : #exported_function) : exported_function = (f :> exported_function)
 
 let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   (*
@@ -58,7 +78,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
   in
 
   let exported_functions : exported_function list = [
-    object(self)
+    export object(self)
       inherit exported_function "generate"
 
       method callable =
@@ -72,94 +92,73 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
         Slang.Value.Callable (Slang.Functions.mk_multimethod [ implementation; error self#identifier ])
     end;
 
-    object(self)
-      inherit exported_function "base-translation"
-
-      method callable =
-        let implementation () =
-          EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_base
-        in
-        Slang.Helpers.Function.to_string self#identifier implementation
+    export object
+      inherit exported_nullary_string_function "base-translation"
+          
+      method implementation =
+        EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_base
     end;
 
-    object(self)
-      inherit exported_function "base-html-translation"
-
-      method callable =
-        let implementation () =
-          EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_base
-        in
-        Slang.Helpers.Function.to_string self#identifier implementation        
+    export object
+      inherit exported_nullary_string_function "base-html-translation"
+          
+      method implementation =
+        EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_base
     end;
 
-    object(self)
-      inherit exported_function "program-translation"
+    export object
+      inherit exported_nullary_string_function "program-translation"
 
-      method callable =
-        let implementation () =
-          EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_program
-        in
-        Slang.Helpers.Function.to_string self#identifier implementation
+      method implementation =
+        EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_program
     end;
 
-    object(self)
-      inherit exported_function "program-html-translation"
+    export object
+      inherit exported_nullary_string_function "program-html-translation"
 
-      method callable =
-        let implementation () =
-          EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_program
-        in
-        Slang.Helpers.Function.to_string self#identifier implementation
+      method implementation =
+        EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_program
     end;
 
-    object(self)
-      inherit exported_function "ignored-definitions"
+    export object
+      inherit exported_nullary_string_function "ignored-definitions"
 
-      method callable =
-        let implementation () =
-          let ignored_definitions =
-            List.map ~f:fst translation#ignored_definitions
+      method implementation =
+        let ignored_definitions =
+          List.map ~f:fst translation#ignored_definitions
+        in
+        let formatted_ignored_definitions =
+          let open Monads.Notations.Star(GC)
           in
-          let formatted_ignored_definitions =
-            let open Monads.Notations.Star(GC)
+          let result =
+            let* ignored_definitions' =
+              GC.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions
             in
-            let result =
-              let* ignored_definitions' =
-                GC.map ~f:NanosailToMicrosail.Ignored.generate ignored_definitions
-              in
-              GC.return @@ PP.paragraphs ignored_definitions'
-            in
-            GC.generate translation#program result
+            GC.return @@ PP.paragraphs ignored_definitions'
           in
-          EC.return @@ string_of_document formatted_ignored_definitions
+          GC.generate translation#program result
         in
-        Slang.Helpers.Function.to_string self#identifier implementation
+        EC.return @@ string_of_document formatted_ignored_definitions
     end;
 
-    object(self)
-      inherit exported_function "untranslated-definitions"
+    export object
+      inherit exported_nullary_string_function "untranslated-definitions"
 
-      method callable =
-        let implementation () =
-          let untranslated_definitions =
-            translation#untranslated_definitions
-          in
-          let formatted_untranslated_definitions =
-            PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
-          in
-          EC.return @@ string_of_document formatted_untranslated_definitions
+      method implementation =
+        let untranslated_definitions =
+          translation#untranslated_definitions
         in
-        Slang.Helpers.Function.to_string self#identifier implementation
+        let formatted_untranslated_definitions =
+          PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
+        in
+        EC.return @@ string_of_document formatted_untranslated_definitions
     end;    
 
-    object(self)
-      inherit exported_function "untranslated-definitions?"
+    export object
+      inherit exported_nullary_boolean_function "untranslated-definitions?"
 
-      method callable =
-        let implementation () =
-          EC.return @@ not @@ List.is_empty translation#untranslated_definitions
-        in
-        Slang.Helpers.Function.to_bool self#identifier implementation
+      method implementation =
+        EC.return @@ not @@ List.is_empty translation#untranslated_definitions
     end;    
   ]
   in
