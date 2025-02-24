@@ -29,7 +29,7 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
   method ignored_definitions                   = ignored_definitions
   method untranslated_definitions              = untranslated_definitions
   method function_definitions                  = function_definitions
-  method top_level_type_constraint_definitions = top_level_type_constraint_definitions
+  method top_level_type_constraint_definitions = top_level_type_constraint_definitions    
 
   method pp_base_prelude : PP.document GC.t =
     GC.block begin
@@ -248,4 +248,37 @@ class katamaran (intermediate_representation : Ast.program) = object(self : 'sel
       ]
     in
     GC.return @@ PP.annotate [%here] @@ PP.(paragraphs sections)
+
+  method pp_argument_types_of_polymorphic_function_calls : PP.document GC.t =
+    let pairs : (Ast.Identifier.t * Ast.Type.t list list) list =
+      Ast.Identifier.Map.to_alist intermediate_representation.polymorphic_argtypes
+    in
+    let* entries =
+      let build_entry
+          (function_identifier : Ast.Identifier.t    )
+          (argument_types_list : Ast.Type.t list list) : (PP.document * PP.document) GC.t
+        =
+        let pp_function_identifier =
+          Identifier.pp function_identifier
+        in
+        let* pp_argument_types_list : PP.document =
+          let pp_argument_types (argument_types : Ast.Type.t list) : PP.document GC.t =
+            let* pp_argument_types =
+              GC.map ~f:Nanotype.pp_nanotype argument_types
+            in
+            GC.return @@ PP.numbered_list pp_argument_types
+          in            
+          let* pp_argument_types_list =
+            GC.map argument_types_list ~f:pp_argument_types
+          in
+          GC.return @@ PP.vertical pp_argument_types_list
+        in
+        GC.return (
+          pp_function_identifier,
+          pp_argument_types_list
+        )
+      in
+      GC.map ~f:(Fn.uncurry build_entry) pairs
+    in
+    GC.return @@ PP.description_list entries
 end
