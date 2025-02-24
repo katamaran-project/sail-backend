@@ -703,6 +703,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           in
           (* Warn user when polymorphic function was called *)
           let* () =
+            (* Look up information about the called function; we need to determine whether it is polymorphic *)
             let* called_function_type_constraint =
               TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
             in
@@ -711,6 +712,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                 if
                   called_function_type_constraint.polymorphic
                 then begin
+                  (* Called function turned out to be polymorphic, build the message to be printed *)
                   let message = lazy begin
                     PP.vertical [
                       PP.format "Call to polymorphic function detected";
@@ -748,6 +750,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   TC.log [%here] Logging.warning message
                 end
                 else
+                  (* Called function turned out NOT to be polymorphic; no action required *)
                   TC.return ()
               end
             | None -> begin
