@@ -5,13 +5,6 @@ $include <smt.sail> //division modulo and absolute value
 
 
 
-// extension for bitvectors of all lengths
-val sign_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-val zero_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-function sign_extend(m, v) = sail_sign_extend(v, m)
-function zero_extend(m, v) = sail_zero_extend(v, m)
-
-
 // bitshift operator
 val shiftl = pure "shiftl" : forall 'm. (bits('m), int) -> bits('m)
 
