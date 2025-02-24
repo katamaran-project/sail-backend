@@ -39,22 +39,27 @@ let process_template_streams
     (input_channel  : Stdio.In_channel.t )
     (output_channel : Stdio.Out_channel.t) : unit
   =
+  let module Input = struct
+    let next_line () =
+      Stdio.In_channel.input_line input_channel
+        
+    let is_block_entry line =
+      let left_delimiter =
+        Configuration.(get template_block_left_delimiter)
+      in
+      String.equal (String.rstrip line) left_delimiter
+        
+    let is_block_exit line =
+      let right_delimiter =
+        Configuration.(get template_block_right_delimiter)
+      in
+      String.equal (String.rstrip line) right_delimiter
+  end
+  in
   let output_line line =
     Stdio.Out_channel.output_lines output_channel [line]
   in
-  let next_line () =
-    Stdio.In_channel.input_line input_channel
-  and is_block_entry line =
-    let left_delimiter =
-      Configuration.(get template_block_left_delimiter)
-    in
-    String.equal (String.rstrip line) left_delimiter
-  and is_block_exit line =
-    let right_delimiter =
-      Configuration.(get template_block_right_delimiter)
-    in
-    String.equal (String.rstrip line) right_delimiter
-  and process_out_of_block_line line =
+  let process_out_of_block_line line =
     output_line line
   and process_block lines =
     let code = String.concat ~sep:"\n" lines
@@ -63,7 +68,7 @@ let process_template_streams
     in
     output_line generated_output
   in
-  Blocks.process_lines ~next_line ~is_block_entry ~is_block_exit ~process_out_of_block_line ~process_block
+  Blocks.process_lines (module Input) ~process_out_of_block_line ~process_block
 
 
 (* Processes a single template, given the names of the input and output files *)

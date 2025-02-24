@@ -1,43 +1,38 @@
 open! ExtBase
 
 
+module type INPUT = sig
+  val next_line      : unit -> string option
+  val is_block_entry : string -> bool
+  val is_block_exit  : string -> bool
+end
+
 type categorized_line =
   | BlockEntry
   | BlockExit
   | Line of string
 
-
 (*
-
-   next_line
-     Returns the next line in the input
-   is_block_entry
-     Predicate that checks whether a given line represents the opening of a new block
-   is_block_exit
-     Predicate that checks whether a given line represents the closing a a block
    process_out_of_block_line
      Called with each line that appears outside a block
    process_block
      Called with lines making up a block
-
- *)
+*)
 let process_lines
-    ~(next_line                 : unit        -> string option)
-    ~(is_block_entry            : string      -> bool         )
-    ~(is_block_exit             : string      -> bool         )
+    (module Input : INPUT)
     ~(process_out_of_block_line : string      -> unit         )
     ~(process_block             : string list -> unit         ) : unit
   =
   let categorize_line (line : string) : categorized_line =
-    if is_block_entry line
+    if Input.is_block_entry line
     then BlockEntry
-    else if is_block_exit line
+    else if Input.is_block_exit line
     then BlockExit
     else Line line
   in
 
   let categorize_next_line () : categorized_line option =
-    Option.map (next_line ()) ~f:categorize_line
+    Option.map (Input.next_line ()) ~f:categorize_line
   in
 
   let rec process_line_outside_block (line_index : int) : unit =
