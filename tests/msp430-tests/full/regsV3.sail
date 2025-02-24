@@ -69,7 +69,7 @@ function clause writeReg(BYTE_INSTRUCTION, reg, Word(wbTolong)) = {
   //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=48
   //3.2.5 General-Purpose Registers R4 to R15
   //writing in all modes will override the high byte
-  let wb:bits(16) = zero_extend(wbTolong[7..0]);
+  let wb:bits(16) = sail_zero_extend(wbTolong[7..0], 16);
   match reg {
     PC    =>    PC_reg = wb,
     SP    =>    SP_reg = wb,
