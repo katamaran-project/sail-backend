@@ -7,7 +7,7 @@ type 'a t
 module Error : sig
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
-    | AssertionFailure of Lexing.position * string
+    | AssertionFailure  of Lexing.position * string
 
   val to_string : t -> string
 end
