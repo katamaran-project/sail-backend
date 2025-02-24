@@ -54,5 +54,6 @@
 
 (template "base.template.v")
 (template "machine.template.v")
+(template "polymorphic.template.txt")
 ;(template "base.template.html")
 ;(template "machine.template.html")
