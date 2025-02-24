@@ -31,25 +31,25 @@ function jnc_inst(offset) = {
 val jn_inst : (Offset) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=94
 function jn_inst(offset) = {
-  if(negativebitSet()) then PC_reg = PC_reg + sign_extend(offset << 1)
+  if(negativebitSet()) then PC_reg = PC_reg + sail_sign_extend(offset << 1, 16)
 }
 
 val jge_inst : (Offset) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=91
 function jge_inst(offset) = {
-  if(~(overflowbitSet() ^ negativebitSet())) then PC_reg = PC_reg + sign_extend(offset << 1)
+  if(~(overflowbitSet() ^ negativebitSet())) then PC_reg = PC_reg + sail_sign_extend(offset << 1, 16)
 }
 
 val jl_inst : (Offset) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=92
 function jl_inst(offset) = {
-  if(overflowbitSet() ^ negativebitSet()) then PC_reg = PC_reg + sign_extend(offset << 1)
+  if(overflowbitSet() ^ negativebitSet()) then PC_reg = PC_reg + sail_sign_extend(offset << 1, 16)
 }
 
 val jmp_inst : (Offset) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=93
 function jmp_inst(offset) = {
-  PC_reg = PC_reg + sign_extend(offset << 1)
+  PC_reg = PC_reg + sail_sign_extend(offset << 1, 16)
 }
 
 mapping encdec_jump : jump <-> bits(3) = {
