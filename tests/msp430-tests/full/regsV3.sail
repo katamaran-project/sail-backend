@@ -90,7 +90,7 @@ function clause writeReg(BYTE_INSTRUCTION, reg, Word(wbTolong)) = {
   }
 }
 function clause writeReg(bw, reg, Byte(bb)) = {
-  writeReg(bw, reg, Word(zero_extend(bb)))
+  writeReg(bw, reg, Word(sail_zero_extend(bb, 16)))
 }
 
 overload Xreg = {readReg, writeReg}
