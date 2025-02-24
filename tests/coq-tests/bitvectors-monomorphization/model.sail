@@ -19,3 +19,9 @@ val baz : bits(8) -> int
 function baz(x) = {
   foo(x)
 }
+
+
+val qux : bits(8) -> int
+function qux(x) = {
+  foo(x)
+}
