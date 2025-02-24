@@ -140,9 +140,9 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit exported_nullary_string_function "ignored-definitions"
+      inherit string_of_document_exported_function "ignored-definitions" translation#program
 
-      method generate_string =
+      method document =
         let ignored_definitions =
           List.map ~f:fst translation#ignored_definitions
         in
@@ -157,7 +157,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
           in
           GC.generate translation#program result
         in
-        EC.return @@ string_of_document formatted_ignored_definitions
+        GC.return formatted_ignored_definitions
     end;
 
     export object
