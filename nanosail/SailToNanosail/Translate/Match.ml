@@ -1305,9 +1305,9 @@ let rec build_empty_pattern_tree
            Using atomic_node is the easy way out as it only provides support for binders.
            When the need arises, it can be useful to implement specialized functions for specific types.
         *)
-        match head with
+        match head with (* todo simplify thhis code, reuse head instead of rebuilding the type value *)
         | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) subtree
-        | Int                          -> build_binder_node Ast.Type.Int subtree
+        | Int _                        -> build_binder_node head subtree
         | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) subtree
         | Unit                         -> build_binder_node Ast.Type.Unit subtree
         | Bool                         -> build_binder_node Ast.Type.Bool subtree
@@ -2280,7 +2280,7 @@ let rec translate_pattern
       | _                                   -> unexpected_pattern [%here]
     end
 
-  | Int                -> translate_pattern_for_atomic_type ()
+  | Int _              -> translate_pattern_for_atomic_type ()
   | Bool               -> translate_pattern_for_atomic_type ()
   | String             -> translate_pattern_for_atomic_type ()
   | Bit                -> translate_pattern_for_atomic_type ()
@@ -2743,7 +2743,7 @@ let translate
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases
   | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases
   | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases
-  | Int                          -> TC.not_yet_implemented [%here] location
+  | Int _                        -> TC.not_yet_implemented [%here] location
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location
   | Bit                          -> TC.not_yet_implemented [%here] location

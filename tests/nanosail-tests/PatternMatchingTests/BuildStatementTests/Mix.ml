@@ -22,7 +22,7 @@ let test_build_match_for_enum_int =
         mkstm 1
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ enum_type; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ enum_type; Int None ]
         in
         let* tree = adorn
             tree
@@ -47,8 +47,8 @@ let test_build_match_for_enum_int =
                   mkid "A1",
                   Ast.Statement.Let {
                     binder                 = mkid "k";
-                    binding_statement_type = Ast.Type.Int;
-                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "int_value", Ast.Type.Int));
+                    binding_statement_type = Int None;
+                    binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "int_value", Int None));
                     body_statement         = statement
                   }
                 )

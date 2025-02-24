@@ -216,7 +216,7 @@ end
 
 module rec Type : sig
   type t =
-    | Int
+    | Int          of NumericExpression.t option
     | Bool
     | String
     | Bit
@@ -242,7 +242,7 @@ module rec Type : sig
   val equal     : t -> t -> bool
 end = struct
   type t =
-    | Int
+    | Int          of NumericExpression.t option
     | Bool
     | String
     | Bit
@@ -268,7 +268,8 @@ end = struct
       Printf.ksprintf (fun s -> "Type." ^ s) fmt
     in
     match t with
-    | Int                  -> format "Int"
+    | Int None             -> format "Int"
+    | Int (Some numexp)    -> format "Int(%s)" (NumericExpression.to_string numexp)
     | Bool                 -> format "Bool"
     | String               -> format "String"
     | List _               -> format "List"
@@ -311,7 +312,8 @@ end = struct
       String.append "Type:" s
     in
     match t with
-    | Int                   -> FExpr.mk_symbol @@ prefix "Int"
+    | Int None              -> FExpr.mk_symbol @@ prefix "Int"
+    | Int Some (numexpr)    -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr]               @@ prefix "Int"
     | Bool                  -> FExpr.mk_symbol @@ prefix "Bool"
     | String                -> FExpr.mk_symbol @@ prefix "String"
     | Bit                   -> FExpr.mk_symbol @@ prefix "Bit"
@@ -365,10 +367,14 @@ end = struct
 
   let rec equal (t1 : t) (t2 : t) : bool =
     match t1 with
-    | Int -> begin
+    | Int numeric_expression_1 -> begin
         match t2 with
-        | Int -> true
-        | _   -> false
+        | Int numeric_expression_2 -> begin
+            Option.equal NumericExpression.equal
+              numeric_expression_1
+              numeric_expression_2
+          end
+        | _ -> false
       end
 
     | Bool -> begin

@@ -21,7 +21,7 @@ let test_adorn_variant_single_unary_constructor =
     in
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int None])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -70,7 +70,7 @@ let test_adorn_variant_wildcard =
     in
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int None])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -116,7 +116,7 @@ let test_adorn_variant_binder =
     in
     let tc =
       let* variant_type =
-        TC.define_variant "A" [("A1", [Ast.Type.Int])]
+        TC.define_variant "A" [("A1", [Int None])]
       in
       let a1_statement =
         Ast.Statement.ReadRegister (mkid "r1")
@@ -160,8 +160,8 @@ let test_failure_due_to_clashing_field_binders =
     let tc =
       let* variant_type =
         TC.define_variant "A" [
-          ("A1", [Ast.Type.Int]);
-          ("A2", [Ast.Type.Int]);
+          ("A1", [Int None]);
+          ("A2", [Int None]);
         ]
       in
       let a1_statement =

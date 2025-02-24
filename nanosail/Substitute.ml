@@ -19,7 +19,7 @@ module Subst = struct
       match t with
       | Unit                    -> Unit
       | Bool                    -> Bool
-      | Int                     -> Int
+      | Int nexpr               -> Int (Option.map ~f:(numeric_expression subst) nexpr)
       | String                  -> String
       | Bit                     -> Bit
       | List x                  -> List (aux x)

@@ -129,7 +129,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
   match typ with
   | Unit                             -> GC.pp_annotate [%here] @@ ty "unit"
   | Bool                             -> GC.pp_annotate [%here] @@ ty "bool"
-  | Int                              -> GC.pp_annotate [%here] @@ ty "int"
+  | Int _                            -> GC.pp_annotate [%here] @@ ty "int"
   | String                           -> GC.pp_annotate [%here] @@ ty "string"
   | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
@@ -204,7 +204,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   match nanotype with
   | Unit                -> GC.return @@ PP.annotate [%here] @@ PP.string "Datatypes.unit"
   | Bool                -> GC.return @@ PP.annotate [%here] @@ PP.string "Datatypes.bool"
-  | Int                 -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"
+  | Int _               -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"
   | String              -> GC.return @@ PP.annotate [%here] @@ PP.string "String.string"
   | Record id           -> GC.return @@ PP.annotate [%here] @@ Identifier.pp id
   | Enum id             -> GC.return @@ PP.annotate [%here] @@ Identifier.pp id

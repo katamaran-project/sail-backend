@@ -4,7 +4,7 @@ open Shared
 
 
 let mkid = Ast.Identifier.mk
-let evar id = Ast.Expression.Variable (mkid id, Ast.Type.Int)
+let evar id = Ast.Expression.Variable (mkid id, Ast.Type.Int None)
 
 
 let test_rename_match_product_1 =
@@ -13,8 +13,8 @@ let test_rename_match_product_1 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -32,8 +32,8 @@ let test_rename_match_product_1 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -61,8 +61,8 @@ let test_rename_match_product_2 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -80,8 +80,8 @@ let test_rename_match_product_2 =
       Match begin
         MatchProduct {
           matched  = mkid "renamed";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "renamed"; evar "y"; evar "left"; evar "right" ])
@@ -109,8 +109,8 @@ let test_rename_match_product_3 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -128,8 +128,8 @@ let test_rename_match_product_3 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -157,8 +157,8 @@ let test_rename_match_product_4 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Ast.Expression.Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -176,8 +176,8 @@ let test_rename_match_product_4 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -205,8 +205,8 @@ let test_rename_match_product_5 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Tuple [ evar "x"; evar "y"; evar "left"; evar "right" ])
@@ -224,8 +224,8 @@ let test_rename_match_product_5 =
       Match begin
         MatchProduct {
           matched  = mkid "x";
-          type_fst = Int;
-          type_snd = Int;
+          type_fst = Int None;
+          type_snd = Int None;
           id_fst   = mkid "left";
           id_snd   = mkid "right";
           body     = Expression (Tuple [ evar "x"; evar "renamed"; evar "left"; evar "right" ])
@@ -482,7 +482,7 @@ let test_rename_let_1 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -497,7 +497,7 @@ let test_rename_let_1 =
     and expected : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -522,7 +522,7 @@ let test_rename_let_2 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -537,7 +537,7 @@ let test_rename_let_2 =
     and expected : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -562,7 +562,7 @@ let test_rename_let_3 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -577,7 +577,7 @@ let test_rename_let_3 =
     and expected : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "renamed" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -602,7 +602,7 @@ let test_rename_let_4 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "z" ]);
       }
@@ -617,7 +617,7 @@ let test_rename_let_4 =
     and expected : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "y" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "renamed" ]);
       }
@@ -642,7 +642,7 @@ let test_rename_let_5 =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "x"; evar "x" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
       }
@@ -657,7 +657,7 @@ let test_rename_let_5 =
     and expected : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
-        binding_statement_type = Tuple [ Int; Int ];
+        binding_statement_type = Tuple [ Int None; Int None ];
         binding_statement      = Expression (Tuple [ evar "renamed"; evar "renamed" ]);
         body_statement         = Expression (Tuple [ evar "x"; evar "x" ]);
       }

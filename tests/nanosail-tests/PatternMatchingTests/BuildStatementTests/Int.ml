@@ -19,7 +19,7 @@ let test_build_match_for_int_1 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Int None ]
         in
         let* tree = adorn
             tree
@@ -54,7 +54,7 @@ let test_build_match_for_int_2 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Int None ]
         in
         let* tree = adorn
             tree
@@ -71,8 +71,8 @@ let test_build_match_for_int_2 =
       let expected_match_statement : Ast.Statement.t =
         Let {
           binder                 = mkid "n";
-          binding_statement_type = Ast.Type.Int;
-          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
+          binding_statement_type = Int None;
+          binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Int None));
           body_statement         = statement;
         }
       in
@@ -96,7 +96,7 @@ let test_build_match_for_int_int_1 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Int None; Int None ]
         in
         let* tree = adorn
             tree
@@ -132,7 +132,7 @@ let test_build_match_for_int_int_2 =
         mkstm 1
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int; Ast.Type.Int ]
+        let* tree = build_empty_pattern_tree [ Int None; Int None ]
         in
         let* tree = adorn
             tree
@@ -150,12 +150,12 @@ let test_build_match_for_int_int_2 =
       let expected_match_statement : Ast.Statement.t =
         Let {
           binder                     = mkid "n";
-          binding_statement_type     = Ast.Type.Int;
-          binding_statement          = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Ast.Type.Int));
+          binding_statement_type     = Int None;
+          binding_statement          = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value1", Int None));
           body_statement             = Let {
               binder                 = mkid "k";
-              binding_statement_type = Ast.Type.Int;
-              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", Ast.Type.Int));
+              binding_statement_type = Int None;
+              binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (mkid "value2", Int None));
               body_statement         = statement;
             };
         }

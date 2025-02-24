@@ -46,13 +46,13 @@ let test_normalize_expressions =
   in
   let open Ast.Expression
   in
-  let mkgenvar ?(t = Ast.Type.Int) n =
+  let mkgenvar ?(t = Ast.Type.Int None) n =
     Variable (mkgid n, t)
   in
   "expressions" >::: List.map ~f:test [
     (
-      Variable (mkid "x", Ast.Type.Int),
-      Variable (mkid "x", Ast.Type.Int)
+      Variable (mkid "x", Ast.Type.Int None),
+      Variable (mkid "x", Ast.Type.Int None)
     );
     (
       mkgenvar 0,

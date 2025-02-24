@@ -27,7 +27,7 @@ let rec type_of_value (value : t) : Nanotype.t =
   match value with
   | Unit          -> Nanotype.Unit
   | Bool _        -> Nanotype.Bool
-  | Int _         -> Nanotype.Int
+  | Int _         -> Nanotype.Int None
   | String _      -> Nanotype.String
   | Prod (v1, v2) -> Nanotype.Tuple [type_of_value v1; type_of_value v2]
   | Bit _         -> Nanotype.Bit

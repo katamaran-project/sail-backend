@@ -430,10 +430,10 @@ let test_clashing_binders =
         gen#id
       in
       let a1_statement id : Ast.Statement.t =
-        Expression (Variable (id, Int))
+        Expression (Variable (id, Int None))
       in
       let a2_statement id : Ast.Statement.t =
-        Expression (Variable (id, Int))
+        Expression (Variable (id, Int None))
       in
       let* actual_tree =
         let* tree = build_empty_pattern_tree [ enum_type; enum_type ]
@@ -517,7 +517,7 @@ let test_clashing_binders_2 =
         Expression begin
           BinaryOperation (
             Plus,
-            Variable (id, Ast.Type.Int),
+            Variable (id, Int None),
             Value (Ast.Value.mk_int 1)
           )
         end
@@ -526,13 +526,13 @@ let test_clashing_binders_2 =
         Expression begin
           BinaryOperation (
             Plus,
-            Variable (id, Ast.Type.Int),
+            Variable (id, Int None),
             Value (Ast.Value.mk_int 2)
           )
         end
       in
       let* actual_tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int; enum_type ]
+        let* tree = build_empty_pattern_tree [ Int None; enum_type ]
         in
         let* tree = adorn
             tree
@@ -554,7 +554,7 @@ let test_clashing_binders_2 =
       in
       let expected_tree : TM.PatternTree.t =
         Binder {
-          matched_type = Ast.Type.Int;
+          matched_type = Int None;
           binder       = { identifier = genid; wildcard = false };
           subtree      = Enum {
               enum_identifier = mkid "A";
@@ -613,7 +613,7 @@ let test_clashing_binders_3 =
         Expression begin
           BinaryOperation (
             Plus,
-            Variable (id, Ast.Type.Int),
+            Variable (id, Int None),
             Value (Ast.Value.mk_int 1)
           )
         end
@@ -622,13 +622,13 @@ let test_clashing_binders_3 =
         Expression begin
           BinaryOperation (
             Plus,
-            Variable (id, Ast.Type.Int),
+            Variable (id, Int None),
             Value (Ast.Value.mk_int 2)
           )
         end
       in
       let* tree =
-        let* tree = build_empty_pattern_tree [ Ast.Type.Int; enum_type ]
+        let* tree = build_empty_pattern_tree [ Int None; enum_type ]
         in
         let* tree = adorn
             tree
@@ -652,7 +652,7 @@ let test_clashing_binders_3 =
         let wildcard_a2_a3 = gen#wildcard
         in
         Binder {
-          matched_type = Ast.Type.Int;
+          matched_type = Int None;
           binder       = { identifier = genid; wildcard = false };
           subtree      = Enum {
               enum_identifier = mkid "A";

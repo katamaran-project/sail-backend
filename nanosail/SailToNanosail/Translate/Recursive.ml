@@ -33,7 +33,7 @@ end = struct
         in
         match id_as_string with
         | "bool"      -> TC.return @@ Ast.Type.Bool
-        | "int"       -> TC.return @@ Ast.Type.Int
+        | "int"       -> TC.return @@ Ast.Type.Int None
         | "unit"      -> TC.return @@ Ast.Type.Unit
         | "string"    -> TC.return @@ Ast.Type.String
         | "bit"       -> TC.return @@ Ast.Type.Bit
@@ -106,26 +106,19 @@ end = struct
         match args with
         | [ type_argument ] -> begin
             match type_argument with
-            | NumericExpression numeric_expression -> begin
-                match numeric_expression with
-                | Constant _                -> TC.return Ast.Type.Int
-                | Var _                     -> TC.return Ast.Type.Int
-                | BinaryOperation (_, _, _) -> TC.not_yet_implemented [%here] location
-                | Neg _                     -> TC.not_yet_implemented [%here] location
-                | PowerOf2 _                -> TC.not_yet_implemented [%here] location
-                | Id _                      -> TC.not_yet_implemented [%here] location
-              end
-            | Type _                        -> TC.not_yet_implemented [%here] location
-            | Bool _                        -> TC.not_yet_implemented [%here] location
+            | NumericExpression numeric_expression -> TC.return @@ Ast.Type.Int (Some numeric_expression)
+            | Type _                               -> TC.not_yet_implemented [%here] location
+            | Bool _                               -> TC.not_yet_implemented [%here] location
           end
         | _ -> TC.fail [%here] "type 'itself' expected to receive exactly one parameter"
 
       and nanotype_of_atom (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
-        | [ _ ] -> begin
-            let* () = TC.log [%here] Logging.debug @@ lazy (PP.format "simplifying %s to int" @@ StringOf.Sail.typ typ)
-            in
-            TC.return Ast.Type.Int
+        | [ type_argument ] -> begin
+            match type_argument with
+            | NumericExpression numeric_expression -> TC.return @@ Ast.Type.Int (Some numeric_expression)
+            | Type _ -> TC.not_yet_implemented [%here] location
+            | Bool _ -> TC.not_yet_implemented [%here] location
           end
         | _     -> TC.fail [%here] "atom expected to have exactly one argument"
 
