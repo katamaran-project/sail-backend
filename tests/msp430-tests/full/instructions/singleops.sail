@@ -59,7 +59,7 @@ val push_inst : (BW, AM, Register) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=101
 function push_inst(bw, AddressingMode, reg) = {
   let sourceValue : WordByte =  X(bw, reg, AddressingMode) in {
-    SP_reg = SP_reg + sign_extend(neg(0x2));
+    SP_reg = SP_reg + sail_sign_extend(neg(0x2, 4), 16);
     writeMemInstruction(bw,SP_reg,sourceValue)
   }
 }
@@ -76,7 +76,7 @@ val call_inst : (BW, AM, Register) -> unit
 //https://www.ti.com/lit/ug/slau144k/slau144k.pdf#page=73
 function clause call_inst(WORD_INSTRUCTION, AddressingMode, reg) = {
   let dst : WordByte =  X(WORD_INSTRUCTION, reg, AddressingMode) in {
-    SP_reg = SP_reg + sign_extend(neg(0x2));
+    SP_reg = SP_reg + sail_sign_extend(neg(0x2, 4), 16);
     let PCValue = X(WORD_INSTRUCTION, PC, REGISTER_MODE) in
       writeMemInstruction(WORD_INSTRUCTION,SP_reg,PCValue);
     X(WORD_INSTRUCTION, reg, REGISTER_MODE) = dst;
