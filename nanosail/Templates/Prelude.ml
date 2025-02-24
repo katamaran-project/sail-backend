@@ -159,7 +159,14 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
 
       method implementation =
         EC.return @@ not @@ List.is_empty translation#untranslated_definitions
-    end;    
+    end;
+
+    export object
+      inherit exported_nullary_string_function "argument-types-of-polymorphic-function-calls"
+
+      method implementation =
+        EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_argument_types_of_polymorphic_function_calls
+    end
   ]
   in
   let* () =
