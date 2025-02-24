@@ -91,16 +91,17 @@ module Make(Annotation : Functor.ANNOTATION) = struct
          3: item3
     *)
   let numbered_list
-      ?(start_index : int    = 1)
-      (items        : t list    ) : t
+      ?(start_index : int    = 1 )
+      ?(prefix      : string = "")
+      (items        : t list     ) : t
     =
     let max_index_width : int =
-      Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> fst @@ measure @@ integer @@ start_index + offset) (List.indices items)
+      String.length prefix + (Option.value ~default:0 @@ List.max_elt ~compare:Int.compare @@ List.map ~f:(fun offset -> fst @@ measure @@ integer @@ start_index + offset) (List.indices items))
     in
     let rows =
       let build_row index item =
         horizontal [
-          string @@ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
+          string @@ prefix ^ String.pad_left ~char:' ' (Int.to_string (start_index + index)) ~len:max_index_width;
           colon;
           space;
           item
