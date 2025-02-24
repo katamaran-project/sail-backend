@@ -323,3 +323,33 @@ let rec try_multiple (fs : 'a t list) : 'a t =
   match fs with
   | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (PP.string @@ Error.to_string error) in try_multiple fs)
   | []    -> fail [%here] "ran out of alternatives"
+
+
+let register_polymorphic_function_call_type_arguments
+    (function_identifier : Ast.Identifier.t)
+    (argument_types      : Ast.Type.t list ) : unit t
+  =
+  let* mapping = Monad.get Context.argument_types_of_polymorphic_function_calls
+  in
+  let update_list (argument_types_list : Ast.Type.t list list option) : Ast.Type.t list list =
+    (* if this is our first encounter with the function, asssume it's been associated with [] *)
+    let argument_types_list =
+      Option.value argument_types_list ~default:[]
+    in
+    (* keep elements in the argument_types_list unique *)
+    if
+      List.mem
+        argument_types_list
+        argument_types
+        ~equal:(List.equal Ast.Type.equal)
+    then
+      (* list already contains argument types; return it unchanged *)
+      argument_types_list
+    else
+      (* add new argument types to list *)
+      argument_types :: argument_types_list
+  in
+  let updated_mapping =
+    Ast.Identifier.Map.update mapping function_identifier ~f:update_list
+  in
+  Monad.put Context.argument_types_of_polymorphic_function_calls updated_mapping
