@@ -29,9 +29,9 @@ class virtual exported_nullary_string_function (identifier : string) = object(se
   inherit exported_function identifier
 
   method callable =
-    Slang.Helpers.Function.to_string self#identifier (fun () -> self#implementation)
+    Slang.Helpers.Function.to_string self#identifier (fun () -> self#generate_string)
 
-  method virtual implementation : string EC.t
+  method virtual generate_string : string EC.t
 end
 
 class virtual exported_nullary_boolean_function (identifier : string) = object(self)
@@ -42,6 +42,7 @@ class virtual exported_nullary_boolean_function (identifier : string) = object(s
 
   method virtual implementation : bool EC.t
 end
+
 
 (* helper function to easily cast from a subtype of exported_function to exported_function *)
 let export (f : #exported_function) : exported_function = (f :> exported_function)
@@ -95,35 +96,35 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     export object
       inherit exported_nullary_string_function "base-translation"
           
-      method implementation =
+      method generate_string =
         EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_base
     end;
 
     export object
       inherit exported_nullary_string_function "base-html-translation"
           
-      method implementation =
+      method generate_string =
         EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_base
     end;
 
     export object
       inherit exported_nullary_string_function "program-translation"
 
-      method implementation =
+      method generate_string =
         EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_program
     end;
 
     export object
       inherit exported_nullary_string_function "program-html-translation"
 
-      method implementation =
+      method generate_string =
         EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_program
     end;
 
     export object
       inherit exported_nullary_string_function "ignored-definitions"
 
-      method implementation =
+      method generate_string =
         let ignored_definitions =
           List.map ~f:fst translation#ignored_definitions
         in
@@ -144,7 +145,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     export object
       inherit exported_nullary_string_function "untranslated-definitions"
 
-      method implementation =
+      method generate_string =
         let untranslated_definitions =
           translation#untranslated_definitions
         in
@@ -164,7 +165,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     export object
       inherit exported_nullary_string_function "argument-types-of-polymorphic-function-calls"
 
-      method implementation =
+      method generate_string =
         EC.return @@ Html.to_string @@ html_of_document @@ GC.generate translation#program translation#pp_argument_types_of_polymorphic_function_calls
     end
   ]
