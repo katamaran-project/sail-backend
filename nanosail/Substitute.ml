@@ -3,9 +3,9 @@ open! ExtBase
 
 module Subst = struct
   let rec numeric_expression (subst : Ast.Identifier.t -> Ast.Identifier.t) =
-    let rec aux (nexp : Ast.Numeric.Expression.t) =
-      match nexp with
-      | Constant _                        -> nexp
+    let rec aux (numeric_expression : Ast.Numeric.Expression.t) =
+      match numeric_expression with
+      | Constant _                        -> numeric_expression
       | BinaryOperation (op, left, right) -> BinaryOperation (op, aux left, aux right)
       | Neg operand                       -> Neg (aux operand)
       | Id identifier                     -> Id (subst identifier)
