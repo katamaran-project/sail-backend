@@ -1174,19 +1174,79 @@ let translate_function_definition
         let function_body =
           Ast.Simplify.simplify_statement function_body
         in
-        let monomorphs =
-          []
-        in
-        let* () =
-          if polymorphic
-          then begin
-            let message = lazy begin
-              PP.format "Encountered polymorphic function %s" (Ast.Identifier.to_string function_name)
+        let* monomorphs : Ast.Definition.Function.t list =
+          match polymorphic, Configuration.requested_monomorphizations_for function_name with
+          | true, None -> begin
+              (* we encountered a polymorphic function, but no monomorphizations were requested *)
+              let* () =
+                let message = lazy begin
+                  PP.vertical [
+                    PP.format "Encountered polymorphic function %s" (Ast.Identifier.to_string function_name);
+                    PP.format "No monomorphizations were requested";
+                  ]
+                end
+                in
+                TC.log [%here] Logging.warning message
+              in
+              TC.return []
             end
-            in
-            TC.log [%here] Logging.warning message
-          end
-          else TC.return ()
+          | false, Some _ -> begin
+              (* we encountered a monomorphic function, yet monomorphizations were requested *)
+              let* () =
+                let message = lazy begin
+                  PP.format "Monomorphization was requested for the monomorphic function %s" (Ast.Identifier.to_string function_name)
+                end
+                in
+                TC.log [%here] Logging.error message
+              in
+              TC.return []
+            end
+          | false, None -> begin
+              (* monomorphic function, no monomorphization requests *)
+              TC.return []
+            end
+          | true, Some monomorphization_requests -> begin
+              (* polymorphic function with monomorphization requests *)
+              let generate_monomorph (monomorphization_request : Configuration.monomorphization_request) : Ast.Definition.Function.t TC.t =
+                let substitution (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t =
+                  match List.Assoc.find monomorphization_request.substitutions ~equal:Ast.Identifier.equal identifier with
+                  | Some value -> Ast.Numeric.Expression.Constant (Z.of_int value)
+                  | None       -> Ast.Numeric.Expression.Id identifier
+                in
+                let substituted_parameters =
+                  let substitute_parameter
+                      (parameter_identifier : Ast.Identifier.t)
+                      (parameter_type       : Ast.Type.t      ) : Ast.Identifier.t * Ast.Type.t
+                    =
+                    (
+                      parameter_identifier,
+                      Ast.Type.substitute_numeric_expression_identifier substitution parameter_type
+                    )
+                  in
+                  List.map ~f:(Fn.uncurry substitute_parameter) parameters
+                in
+                let substituted_return_type =
+                  Ast.Type.substitute_numeric_expression_identifier substitution return_type
+                in
+                let monomorph : Ast.Definition.Function.t =
+                  {
+                    function_name = monomorphization_request.monomorphization_identifier;
+                    function_type = {
+                      parameters  = substituted_parameters;
+                      return_type = substituted_return_type;
+                    };
+                    extended_function_type; (* todo should also be updated *)
+                    function_body;
+                    polymorphic = false;
+                    monomorphs  = [];
+                  }
+                in
+                TC.return monomorph
+              in
+              TC.map
+                monomorphization_requests
+                ~f:generate_monomorph
+            end
         in
         TC.return @@ Ast.Definition.FunctionDefinition {
           function_name;
