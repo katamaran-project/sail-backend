@@ -1228,6 +1228,9 @@ let translate_function_definition
                 let substituted_return_type =
                   Ast.Type.substitute_numeric_expression_identifier substitution return_type
                 in
+                let substituted_function_body =
+                  Ast.Statement.substitute_numeric_expression_identifier substitution function_body
+                in
                 let monomorph : Ast.Definition.Function.t =
                   {
                     function_name = monomorphization_request.monomorphization_identifier;
@@ -1236,7 +1239,7 @@ let translate_function_definition
                       return_type = substituted_return_type;
                     };
                     extended_function_type; (* todo should also be updated *)
-                    function_body;
+                    function_body = substituted_function_body;
                     polymorphic = false;
                     monomorphs  = [];
                   }
