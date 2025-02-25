@@ -1174,6 +1174,9 @@ let translate_function_definition
         let function_body =
           Ast.Simplify.simplify_statement function_body
         in
+        let monomorphs =
+          []
+        in
         let* () =
           if polymorphic
           then begin
@@ -1194,6 +1197,7 @@ let translate_function_definition
           extended_function_type;
           function_body;
           polymorphic;
+          monomorphs;
         }
       end
     | _ -> TC.not_yet_implemented [%here] definition_annotation.loc

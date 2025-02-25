@@ -41,9 +41,10 @@ module Function = struct
       extended_function_type : ExtendedFunctionType.t;
       function_body          : Statement.t;
       polymorphic            : bool;
+      monomorphs             : t list;
     }
 
-  let to_fexpr (function_definition : t) : FExpr.t =
+  let rec to_fexpr (function_definition : t) : FExpr.t =
     let function_name' =
       Identifier.to_fexpr function_definition.function_name
     and function_type' =
@@ -54,7 +55,8 @@ module Function = struct
       Statement.to_fexpr function_definition.function_body
     and polymorphic' =
       FExpr.mk_bool function_definition.polymorphic
-
+    and monomorphs' =
+      FExpr.mk_list @@ List.map ~f:to_fexpr function_definition.monomorphs
     in
     let keyword =
       [
@@ -63,6 +65,7 @@ module Function = struct
         ("extended_type", extended_function_type');
         ("body"         , function_body'         );
         ("polymorphic"  , polymorphic'           );
+        ("monomorphs"   , monomorphs'            );
       ]
     in
     FExpr.mk_application ~keyword "Def:Function"
