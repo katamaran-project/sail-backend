@@ -42,7 +42,7 @@ module NumericExpression = struct
   (*
      Replaces occurrences of Id id by the given numeric expression.
   *)
-  let substitute_identifier
+  let substitute_identifier (* todo remove this and replace it by substitute *)
       (identifier         : Identifier.t)
       (replace_by         : t           )
       (numeric_expression : t           ) : t
@@ -67,7 +67,7 @@ module NumericExpression = struct
     aux numeric_expression
 
 
-  let substitute_multiple_identifiers
+  let substitute_multiple_identifiers (* todo remove this *)
       (substitutions      : (Identifier.t * t) list)
       (numeric_expression : t                      ) : t
     =
@@ -75,8 +75,25 @@ module NumericExpression = struct
       substitutions
       ~init:numeric_expression
       ~f:(fun nexp (id, ne) -> substitute_identifier id ne nexp)
-  
 
+
+  let substitute
+      (subst              : Identifier.t -> t)
+      (numeric_expression : t                ) : t
+    =
+    let rec aux (numeric_expression : t) : t
+      =
+      match numeric_expression with
+      | Constant _                        -> numeric_expression
+      | BinaryOperation (op, left, right) -> BinaryOperation (op, aux left, aux right)
+      | Neg operand                       -> Neg (aux operand)
+      | PowerOf2 operand                  -> PowerOf2 (aux operand)
+      | Var _                             -> numeric_expression
+      | Id id                             -> subst id
+    in
+    aux numeric_expression
+
+  
   (* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
   module OptionLetSyntax = Monads.Notations.Star(
     struct
@@ -282,6 +299,8 @@ module rec Type : sig
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
+
+  val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
 end = struct
   type t =
     | Int          of NumericExpression.t option
@@ -304,6 +323,36 @@ end = struct
     | Nat
     | Vector       of t * NumericExpression.t
     | Implicit     of Identifier.t
+
+
+  let substitute_numeric_expression_identifier
+      (substitution : Identifier.t -> NumericExpression.t)
+      (typ          : t                                  ) : t
+    =
+    let rec subst (typ : t) : t =
+      match (typ : t) with
+      | Bool                                      -> typ
+      | String                                    -> typ
+      | Bit                                       -> typ
+      | Unit                                      -> typ
+      | Enum _                                    -> typ
+      | Variant _                                 -> typ
+      | Record _                                  -> typ
+      | TypeVariable _                            -> typ
+      | Nat                                       -> typ       
+      | Implicit _                                -> typ (* todo it would make sense to remove implicits after substitution *)
+      | Int numeric_expression                    -> Int (Option.map numeric_expression ~f:(NumericExpression.substitute substitution))
+      | List element_type                         -> List (subst element_type)
+      | Sum (left, right)                         -> Sum (subst left, subst right)
+      | Bitvector numeric_expression              -> Bitvector (NumericExpression.substitute substitution numeric_expression)
+      | Tuple element_types                       -> Tuple (List.map ~f:subst element_types)
+      | Application (receiver, type_arguments)    -> Application (subst receiver, List.map type_arguments ~f:(TypeArgument.substitute_numeric_expression_identifier substitution))
+      | Alias (identifier, t)                     -> Alias (identifier, subst t)
+      | Range (lower, upper)                      -> Range (NumericExpression.substitute substitution lower, NumericExpression.substitute substitution upper)
+      | Function { parameter_types; result_type } -> Function { parameter_types = List.map parameter_types ~f:subst; result_type = subst result_type }
+      | Vector (element_type, numeric_expression) -> Vector (subst element_type, NumericExpression.substitute substitution numeric_expression)
+    in
+    subst typ
 
   
   let rec to_string (t : t) : string =
@@ -568,12 +617,25 @@ and TypeArgument : sig
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
+
+  val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
 end = struct
   type t =
     | Type              of Type.t
     | NumericExpression of NumericExpression.t
     | Bool              of NumericConstraint.t
 
+
+  let substitute_numeric_expression_identifier
+      (substitution  : Identifier.t -> NumericExpression.t)
+      (type_argument : t                                  ) : t
+    =
+    match type_argument with
+    | Type typ                             -> Type (Type.substitute_numeric_expression_identifier substitution typ)
+    | NumericExpression numeric_expression -> NumericExpression (NumericExpression.substitute substitution numeric_expression)
+    | Bool numeric_constraint              -> Bool (NumericConstraint.substitute_numeric_expression_identifier substitution numeric_constraint)
+
+  
   let to_string (type_argument : t) : string =
     match type_argument with
     | Type t                   -> Type.to_string t
@@ -641,6 +703,8 @@ and NumericConstraint : sig
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
   val equal     : t -> t -> bool
+
+  val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
 end = struct
   type t =
     | Equal                of TypeArgument.t      * TypeArgument.t
@@ -658,6 +722,71 @@ end = struct
     | False
 
 
+  let rec substitute_numeric_expression_identifier
+      (substitution       : Identifier.t -> NumericExpression.t)
+      (numeric_constraint : t                                  ) : t
+    =
+    match numeric_constraint with
+    | Equal (left, right) -> begin
+        Equal (
+          TypeArgument.substitute_numeric_expression_identifier substitution left,
+          TypeArgument.substitute_numeric_expression_identifier substitution right
+        )
+      end
+    | NotEqual (left, right) -> begin
+        NotEqual (
+          TypeArgument.substitute_numeric_expression_identifier substitution left,
+          TypeArgument.substitute_numeric_expression_identifier substitution right
+        )
+      end
+    | GreaterThanOrEqualTo (left, right) -> begin
+        GreaterThanOrEqualTo (
+          NumericExpression.substitute substitution left,
+          NumericExpression.substitute substitution right
+        )
+      end
+    | GreaterThan (left, right) -> begin
+        GreaterThan (
+          NumericExpression.substitute substitution left,
+          NumericExpression.substitute substitution right
+        )
+      end
+    | LessThanOrEqualTo (left, right) -> begin
+        LessThanOrEqualTo (
+          NumericExpression.substitute substitution left,
+          NumericExpression.substitute substitution right
+        )
+      end
+    | LessThan (left, right) -> begin
+        LessThan (
+          NumericExpression.substitute substitution left,
+          NumericExpression.substitute substitution right
+        )
+      end
+    | Or (left, right) -> begin
+        Or (
+          substitute_numeric_expression_identifier substitution left,
+          substitute_numeric_expression_identifier substitution right
+        )
+      end
+    | And (left, right) -> begin
+        And (
+          substitute_numeric_expression_identifier substitution left,
+          substitute_numeric_expression_identifier substitution right
+        )
+      end
+    | App (receiver_identifier, type_arguments) -> begin
+        App (
+          receiver_identifier,
+          List.map ~f:(TypeArgument.substitute_numeric_expression_identifier substitution) type_arguments
+        )
+      end
+    | Set _ -> numeric_constraint
+    | Var _ -> numeric_constraint
+    | True  -> numeric_constraint
+    | False -> numeric_constraint
+
+  
   let rec to_string (numeric_constraint : t) =
     let binop e1 op e2 =
       Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)
