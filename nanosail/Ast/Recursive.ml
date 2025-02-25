@@ -66,6 +66,17 @@ module NumericExpression = struct
     in
     aux numeric_expression
 
+
+  let substitute_multiple_identifiers
+      (substitutions      : (Identifier.t * t) list)
+      (numeric_expression : t                      ) : t
+    =
+    List.fold_left
+      substitutions
+      ~init:numeric_expression
+      ~f:(fun nexp (id, ne) -> substitute_identifier id ne nexp)
+  
+
   (* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
   module OptionLetSyntax = Monads.Notations.Star(
     struct
