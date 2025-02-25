@@ -2,6 +2,11 @@
 
 * TODO
 
+** TODO stm_call
+** TODO Foreign Function Kit
+** TODO Have regular functions be translated to foreign functions
+** TODO Check that ignored definitions are indeed ignored
+
 ** Create Issue on GitHub about Pattern Tree
 
 Explain blow up, give examples (encode/decode functions for mappings, C backend), possible solutions
