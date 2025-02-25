@@ -207,3 +207,31 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | Variant { type_identifier = _; constructor_identifier = _; fields } -> Identifier.Set.unions @@ List.map ~f:free_variables fields
    | Tuple elements                                                      -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | Bitvector elements                                                  -> Identifier.Set.unions @@ List.map ~f:free_variables elements
+
+
+let substitute_numeric_expression_identifier
+    (substitution : Identifier.t -> Numeric.Expression.t)
+    (expression   : t                                   ) : t
+  =
+  let typsubst = Nanotype.substitute_numeric_expression_identifier substitution
+  in
+  let rec subst (expression : t) : t =
+    match expression with
+    | Variable (identifier, typ)                                  -> Variable (identifier, typsubst typ)
+    | Value _                                                     -> expression
+    | List elements                                               -> List (List.map ~f:subst elements)
+    | UnaryOperation (operator, operand)                          -> UnaryOperation (operator, subst operand)
+    | BinaryOperation (operator, left_operand, right_operand)     -> BinaryOperation (operator, left_operand, right_operand)
+    | Record _                                                    -> expression
+    | Enum _                                                      -> expression
+    | Tuple elements                                              -> Tuple (List.map ~f:subst elements)
+    | Bitvector elements                                          -> Bitvector (List.map ~f:subst elements)
+    | Variant { type_identifier; constructor_identifier; fields } -> begin
+        Variant {
+          type_identifier;
+          constructor_identifier;
+          fields = List.map ~f:subst fields
+        }
+      end
+  in
+  subst expression
