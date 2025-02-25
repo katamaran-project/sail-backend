@@ -66,6 +66,37 @@ module NumericExpression = struct
     in
     aux numeric_expression
 
+  (* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
+  module OptionLetSyntax = Monads.Notations.Star(
+    struct
+      type 'a t    = 'a Option.t
+      let bind x f = Option.bind x ~f
+      let return   = Option.return
+    end)
+
+  (*
+     Evaluates numeric expression to a Z.int, if possible (i.e., no unknowns appear in the numeric expression)
+  *)
+  let rec evaluate (numeric_expression : t) : Z.t option =
+    let open OptionLetSyntax
+    in
+    match numeric_expression with
+     | Constant n -> Some n
+     | Neg n      -> let* n = evaluate n in Some (Z.neg n)
+     | PowerOf2 n -> let* n = evaluate n in Some (Z.shift_left Z.one (Z.to_int n))
+     | Id _       -> None
+     | Var _      -> None
+     | BinaryOperation (operator, left_operand, right_operand) -> begin
+         let* left_operand  = evaluate left_operand
+         and* right_operand = evaluate right_operand
+         in
+         match operator with
+         | Add -> Some (Z.add left_operand right_operand)
+         | Sub -> Some (Z.sub left_operand right_operand)
+         | Mul -> Some (Z.mul left_operand right_operand)
+         | Div -> Some (Z.div left_operand right_operand)
+         | Mod -> Some (Z.rem left_operand right_operand)
+       end
 
   let rec to_string (numeric_expression : t) =
     let string_of_binop op e1 e2 =
