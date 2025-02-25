@@ -139,11 +139,25 @@ end
 
 include C.S
 
+type monomorphization_request = {
+  monomorphization_identifier : Ast.Identifier.t;
+  substitutions               : (Ast.Identifier.t * int) list;
+}
+  
+
 (* todo make this actually configurable instead of hard coded *)
-let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : (Ast.Identifier.t * int) list =
+let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
   match function_identifier with
-  | Id "foo" -> [ (Ast.Identifier.mk "'n", 1) ]
-  | _        -> []
+  | Id "foo" -> Some begin
+      [
+        {
+          monomorphization_identifier = Ast.Identifier.mk "foo_1";
+          substitutions               = [ (Ast.Identifier.mk "'n", 1) ]
+        }
+      ]
+    end
+  | _        -> None
+
 
 let load_configuration = C.load_configuration
 let get                = ConfigLib.Setting.get
