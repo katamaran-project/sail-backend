@@ -305,6 +305,7 @@ end = struct
     | Vector       of t * NumericExpression.t
     | Implicit     of Identifier.t
 
+  
   let rec to_string (t : t) : string =
     let format fmt =
       Printf.ksprintf (fun s -> "Type." ^ s) fmt
