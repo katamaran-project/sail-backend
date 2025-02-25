@@ -22,6 +22,7 @@ module C = struct
     let pretty_print_let                           = bool     "pretty-print-let"                 false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
+    let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
     let show_generation_blocks                     = bool     "show-generation-blocks"           false
     let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones)                       *)
     let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
