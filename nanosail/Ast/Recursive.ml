@@ -34,7 +34,7 @@ module NumericExpression = struct
       | Neg operand                      -> aux operand
       | PowerOf2 operand                 -> aux operand
       | Id id                            -> [id]
-      | Var _                            -> []
+      | Var _                            -> [] (* todo check if this needs fixing *)
     in
     List.dedup_and_sort (aux numeric_expression) ~compare:Identifier.compare
 
@@ -88,7 +88,7 @@ module NumericExpression = struct
       | BinaryOperation (op, left, right) -> BinaryOperation (op, aux left, aux right)
       | Neg operand                       -> Neg (aux operand)
       | PowerOf2 operand                  -> PowerOf2 (aux operand)
-      | Var _                             -> numeric_expression
+      | Var id                            -> subst id
       | Id id                             -> subst id
     in
     aux numeric_expression
@@ -781,8 +781,8 @@ end = struct
           List.map ~f:(TypeArgument.substitute_numeric_expression_identifier substitution) type_arguments
         )
       end
-    | Set _ -> numeric_constraint
     | Var _ -> numeric_constraint
+    | Set _ -> numeric_constraint
     | True  -> numeric_constraint
     | False -> numeric_constraint
 
