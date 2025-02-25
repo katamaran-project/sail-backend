@@ -1241,6 +1241,16 @@ let translate_function_definition
                     monomorphs  = [];
                   }
                 in
+                let* () =
+                  let message = lazy begin
+                    PP.vertical [
+                      PP.string "Generated monomorph";
+                      FExpr.pp @@ Ast.Definition.Function.to_fexpr monomorph;
+                    ]
+                  end
+                  in
+                  TC.log [%here] Logging.warning message
+                in
                 TC.return monomorph
               in
               TC.map
