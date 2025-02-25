@@ -139,6 +139,12 @@ end
 
 include C.S
 
+(* todo make this actually configurable instead of hard coded *)
+let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : (Ast.Identifier.t * int) list =
+  match function_identifier with
+  | Id "foo" -> [ (Ast.Identifier.mk "'n", 1) ]
+  | _        -> []
+
 let load_configuration = C.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
