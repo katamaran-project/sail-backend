@@ -1247,8 +1247,31 @@ let translate_function_definition
                 let* () =
                   let message = lazy begin
                     PP.vertical [
-                      PP.string "Generated monomorph";
-                      FExpr.pp @@ Ast.Definition.Function.to_fexpr monomorph;
+                      PP.format "Generated monomorph";
+                      PP.description_list [
+                        (
+                          PP.string "Polymorphic function name",
+                          PP.string @@ Ast.Identifier.to_string function_name
+                        );
+                        (
+                          PP.string "Applied substitutions",
+                          PP.vertical begin
+                            List.map
+                              monomorphization_request.substitutions
+                              ~f:(fun (identifier, value) -> begin
+                                    PP.horizontal [
+                                      PP.string @@ Ast.Identifier.to_string identifier;
+                                      PP.string " -> ";
+                                      PP.integer value
+                                    ]
+                                  end)
+                          end
+                        );
+                        (
+                          PP.string "Monomorphization",
+                          FExpr.pp @@ Ast.Definition.Function.to_fexpr monomorph;
+                        )
+                      ]
                     ]
                   end
                   in
