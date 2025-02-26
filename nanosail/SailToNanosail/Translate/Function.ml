@@ -89,12 +89,12 @@ let statement_of_lvar
     (location   : S.l                  ) : Ast.Statement.t TC.t
   =
   match lvar with
-  | Register _     -> TC.return @@ Ast.Statement.ReadRegister identifier
-  | Local (_, typ) -> begin
+  | Local (_mutability, typ) -> begin
       let* typ' = Type.nanotype_of_sail_type typ
       in
       TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable (identifier, typ'))
     end
+  | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
   | Enum _       -> TC.not_yet_implemented [%here] location
   | Unbound _    -> TC.not_yet_implemented [%here] location
 
