@@ -1302,10 +1302,6 @@ let rec build_empty_pattern_tree
         build_empty_pattern_tree location tail
       in
       let* tree =
-        (*
-           Using atomic_node is the easy way out as it only provides support for binders.
-           When the need arises, it can be useful to implement specialized functions for specific types.
-        *)
         match head with (* todo simplify thhis code, reuse head instead of rebuilding the type value *)
         | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) subtree
         | Int _                        -> build_binder_node head subtree
