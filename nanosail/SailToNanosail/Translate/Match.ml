@@ -1887,9 +1887,6 @@ let rec adorn_pattern_tree
       end
     | None -> TC.return @@ PatternTree.Leaf (Some body)
 
-  and adorn_bool_node
-    
-
   in
   adorn pattern_tree tuple_subpatterns gap_filling
 
