@@ -480,7 +480,7 @@ module Statement = struct
   (*
      (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
   *)
-  let pp_call
+  let pp_call_using_notation
       (function_identifier : Ast.Identifier.t)
       (arguments           : PP.document list) : PP.document
     =

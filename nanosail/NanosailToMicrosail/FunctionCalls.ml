@@ -24,7 +24,7 @@ let report_incorrect_argument_count
   in
   let translation =
     PP.annotate [%here] begin
-      MuSail.Statement.pp_call original_function_name operands
+      MuSail.Statement.pp_call_using_notation original_function_name operands
     end
   in
   GC.return begin
@@ -722,6 +722,6 @@ let translate
     end
   | _ -> begin
       GC.pp_annotate [%here] begin
-        GC.return @@ MuSail.Statement.pp_call function_identifier pp_arguments
+        GC.return @@ MuSail.Statement.pp_call_using_notation function_identifier pp_arguments
       end
     end
