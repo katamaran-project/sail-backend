@@ -1036,13 +1036,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
-    TC.return @@ Ast.Statement.Fail "\"failure\"" (* todo *)
+    TC.return @@ Ast.Statement.Fail "\"failure\""
 
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
-    TC.return @@ Ast.Statement.Fail "\"failure\"" (* todo *)
+    TC.return @@ Ast.Statement.Fail "\"failure\""
 
   in
   match unwrapped_expression with
