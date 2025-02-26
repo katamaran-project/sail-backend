@@ -98,12 +98,15 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
 
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
+  let pp_sail_definition : PP.document =
+    PP.from_multiline_string @@ StringOf.Sail.definition sail_definition
+  in
   let label =
     let open PP
     in
     vertical [
       string "Processing definition";
-      indent @@ from_multiline_string @@ StringOf.Sail.definition sail_definition
+      indent pp_sail_definition
     ]
   in
   TC.translation_block [%here] label begin
@@ -114,7 +117,10 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     then
       let* () =
         let message = lazy begin
-          PP.string "Skipping this definition"
+          PP.vertical [
+            PP.string "Skipping this definition";
+            pp_sail_definition
+          ]
         end
         in
         TC.log [%here] Logging.info message
