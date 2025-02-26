@@ -478,23 +478,23 @@ module Statement = struct
   end
 
   (*
-     (call <function_identifier> <arguments[0]> <arguments[1]> ...)%exp
+     (call <function_name> <arguments[0]> <arguments[1]> ...)%exp
   *)
   let pp_call_using_notation
-      (function_identifier : Ast.Identifier.t)
-      (arguments           : PP.document list) : PP.document
+      (function_name : PP.document     )
+      (arguments     : PP.document list) : PP.document
     =
     PP.annotate [%here] begin
       Coq.pp_scope (PP.string "exp") begin
         Coq.pp_application
           (PP.string "call")
-          (Identifier.pp function_identifier :: arguments)
+          (function_name :: arguments)
       end
     end
 
 
   let pp_call
-      (function_identifier : Ast.Identifier.t)
+      (function_identifier : PP.document     )
       (arguments           : PP.document list) : PP.document
     =
     pp_call_using_notation function_identifier arguments

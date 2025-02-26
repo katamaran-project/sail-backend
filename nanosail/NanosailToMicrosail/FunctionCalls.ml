@@ -11,15 +11,15 @@ end
    Generates function call using the syntax specified in the configuration.
 *)
 let pp_function_call
-    (function_identifier : Ast.Identifier.t)
-    (arguments           : PP.t list       ) : PP.t
+    (function_name : PP.t     )
+    (arguments     : PP.t list) : PP.t
   =
   if
     Configuration.(get pretty_print_function_calls)
   then
-    MuSail.Statement.pp_call_using_notation function_identifier arguments
+    MuSail.Statement.pp_call_using_notation function_name arguments
   else
-    MuSail.Statement.pp_call function_identifier arguments
+    MuSail.Statement.pp_call function_name arguments
       
 
 let report_incorrect_argument_count
@@ -39,7 +39,7 @@ let report_incorrect_argument_count
   in
   let translation =
     PP.annotate [%here] begin
-      MuSail.Statement.pp_call_using_notation original_function_name operands
+      MuSail.Statement.pp_call_using_notation (Identifier.pp original_function_name) operands
     end
   in
   GC.return begin
@@ -737,6 +737,10 @@ let translate
     end
   | _ -> begin
       GC.pp_annotate [%here] begin
-        GC.return @@ MuSail.Statement.pp_call_using_notation function_identifier pp_arguments
+        GC.return begin
+          MuSail.Statement.pp_call_using_notation
+            (Identifier.pp function_identifier)
+            pp_arguments
+        end
       end
     end
