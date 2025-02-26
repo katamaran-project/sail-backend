@@ -104,18 +104,24 @@ let log
     VerbosityLevel.should_show ~filter_level:Configuration.(get verbosity_level) ~message_level:level
   then
     let output_message =
-      let tag =
-        let level_message =
-          PP.(enclose horizontal brackets (VerbosityLevel.to_message level))
-        and location_message =
-          let filename    = ocaml_position.pos_fname
-          and line_number = ocaml_position.pos_lnum
-          in
-          PP.format " (%s:%d) " filename line_number
+      let level_message =
+        PP.(enclose horizontal brackets (VerbosityLevel.to_message level))
+      and location_message =
+        let filename    = ocaml_position.pos_fname
+        and line_number = ocaml_position.pos_lnum
         in
-        PP.horizontal [ level_message; location_message ]
+        PP.format "%s:%d" filename line_number
       in
-      PP.indent ~level:!indentation_level @@ PP.horizontal [tag; Lazy.force message]
+      PP.indent ~level:!indentation_level begin
+        PP.horizontal [
+          level_message;
+          PP.space;
+          PP.vertical [
+            location_message;
+            Lazy.force message;
+          ]
+        ]
+      end
     in
     let output_string =
       PP.to_string output_message
