@@ -1302,27 +1302,7 @@ let rec build_empty_pattern_tree
         build_empty_pattern_tree location tail
       in
       let* tree =
-        match head with
-        | Enum _                       -> build_binder_node head subtree
-        | Int _                        -> build_binder_node head subtree
-        | Variant _                    -> build_binder_node head subtree
-        | Unit                         -> build_binder_node head subtree
-        | Bool                         -> build_binder_node head subtree
-        | String                       -> build_binder_node head subtree
-        | Bitvector _                  -> build_binder_node head subtree
-        | Bit                          -> TC.not_yet_implemented [%here] location
-        | List _                       -> TC.not_yet_implemented [%here] location
-        | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
-        | Tuple _                      -> TC.not_yet_implemented [%here] location
-        | Record _                     -> TC.not_yet_implemented [%here] location
-        | Application (_, _)           -> TC.not_yet_implemented [%here] location
-        | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
-        | Range (_, _)                 -> TC.not_yet_implemented [%here] location
-        | Function _                   -> TC.not_yet_implemented [%here] location
-        | TypeVariable _               -> TC.not_yet_implemented [%here] location
-        | Nat                          -> TC.not_yet_implemented [%here] location
-        | Vector _                     -> TC.not_yet_implemented [%here] location
-        | Implicit _                   -> TC.not_yet_implemented [%here] location
+        build_binder_node head subtree
       in
       let* () =
         let node_count = PatternTree.count_nodes tree
