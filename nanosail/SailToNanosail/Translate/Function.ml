@@ -675,6 +675,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
                  flatten_fields extracts the different arguments from these potentially nested pairs.
                  We probably do not deal correctly with the case that one of the fields is an actual pair.
+
+                 todo check why we don't work with tuples instead of nested pairs
               *)
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
