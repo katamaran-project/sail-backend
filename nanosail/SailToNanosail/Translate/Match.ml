@@ -1374,25 +1374,7 @@ let rec adorn_pattern_tree
       (gap_filling       : bool          ) : PatternTree.t TC.t
     =
     match pattern_tree, tuple_subpatterns with
-    | Leaf statement, [] -> begin
-        match statement with
-        | Some _ -> begin
-            if
-              gap_filling
-            then
-              (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
-              TC.return pattern_tree
-            else
-              (*
-                 We're not in gap-filling mode, and we expect a gap.
-                 However, there is none, which means we're dealing with the same case twice,
-                 which should never occur.
-              *)
-              TC.fail [%here] "clashing patterns"
-          end
-        | None -> TC.return @@ PatternTree.Leaf (Some body)
-      end
-
+    | Leaf statement, [] -> adorn_leaf statement gap_filling
     | Leaf _, _::_ -> invalid_number_of_subpatterns [%here]
 
     | _, [] -> invalid_number_of_subpatterns [%here]
@@ -1885,6 +1867,28 @@ let rec adorn_pattern_tree
           end
         | Unit -> TC.not_yet_implemented [%here] location
       end
+
+  and adorn_leaf
+      (leaf_statement : Ast.Statement.t option)
+      (gap_filling    : bool                  ) : PatternTree.t TC.t
+    =
+    match leaf_statement with
+    | Some _ -> begin
+        if
+          gap_filling
+        then
+          (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
+          TC.return (PatternTree.Leaf leaf_statement)
+        else
+          (*
+             We're not in gap-filling mode, and we expect a gap.
+             However, there is none, which means we're dealing with the same case twice,
+             which should never occur.
+          *)
+          TC.fail [%here] "clashing patterns"
+      end
+    | None -> TC.return @@ PatternTree.Leaf (Some body)
+    
   in
   adorn pattern_tree tuple_subpatterns gap_filling
 
