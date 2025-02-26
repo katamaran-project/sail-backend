@@ -1897,7 +1897,6 @@ let rec adorn_pattern_tree
     | VariantCase (_, _) -> invalid_pattern [%here]
     | BoolCase _         -> invalid_pattern [%here]
 
-
   in
   adorn pattern_tree tuple_subpatterns gap_filling
 
