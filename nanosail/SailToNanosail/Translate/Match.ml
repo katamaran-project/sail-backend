@@ -1363,16 +1363,16 @@ let rec adorn_pattern_tree
     ?(gap_filling      : bool           = false )
     (body              : Ast.Statement.t        ) : PatternTree.t TC.t
   =
+  let invalid_number_of_subpatterns (location : Lexing.position) =
+    TC.fail location "the tree should be as deep as there are tuple subpatterns"
+  and invalid_pattern (location : Lexing.position) =
+    TC.fail location "pattern is incompatible with type of value being matched"
+  in
   let rec adorn
       (pattern_tree      : PatternTree.t )
       (tuple_subpatterns : Pattern.t list)
       (gap_filling       : bool          ) : PatternTree.t TC.t
     =
-    let invalid_number_of_subpatterns (location : Lexing.position) =
-      TC.fail location "the tree should be as deep as there are tuple subpatterns"
-    and invalid_pattern (location : Lexing.position) =
-      TC.fail location "pattern is incompatible with type of value being matched"
-    in
     match pattern_tree, tuple_subpatterns with
     | Leaf statement, [] -> begin
         match statement with
