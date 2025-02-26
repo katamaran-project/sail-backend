@@ -781,7 +781,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (expression_type : S.typ               )
         (expression      : S.typ S.aexp        )
         (body            : S.typ S.aexp        )
-        (_typ2           : S.typ               ) : Ast.Statement.t TC.t
+        (_body_type      : S.typ               ) : Ast.Statement.t TC.t
     =
     let* id'   = Identifier.translate_identifier [%here] identifier
     and* expression_type' = Type.nanotype_of_sail_type expression_type
