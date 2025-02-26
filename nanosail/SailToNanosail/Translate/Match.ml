@@ -1302,14 +1302,14 @@ let rec build_empty_pattern_tree
         build_empty_pattern_tree location tail
       in
       let* tree =
-        match head with (* todo simplify thhis code, reuse head instead of rebuilding the type value *)
-        | Enum enum_identifier         -> build_binder_node (Ast.Type.Enum enum_identifier) subtree
+        match head with
+        | Enum _                       -> build_binder_node head subtree
         | Int _                        -> build_binder_node head subtree
-        | Variant variant_identifier   -> build_binder_node (Ast.Type.Variant variant_identifier) subtree
-        | Unit                         -> build_binder_node Ast.Type.Unit subtree
-        | Bool                         -> build_binder_node Ast.Type.Bool subtree
-        | String                       -> build_binder_node Ast.Type.String subtree
-        | Bitvector numeric_expression -> build_binder_node (Ast.Type.Bitvector numeric_expression) subtree
+        | Variant _                    -> build_binder_node head subtree
+        | Unit                         -> build_binder_node head subtree
+        | Bool                         -> build_binder_node head subtree
+        | String                       -> build_binder_node head subtree
+        | Bitvector _                  -> build_binder_node head subtree
         | Bit                          -> TC.not_yet_implemented [%here] location
         | List _                       -> TC.not_yet_implemented [%here] location
         | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
