@@ -1377,9 +1377,9 @@ let rec adorn_pattern_tree
     | Leaf statement, []   -> adorn_leaf statement gap_filling
     | Leaf _        , _::_ -> invalid_number_of_subpatterns [%here]   (* Leaf nodes expect there to be no more patterns *)
     | _             , []   -> invalid_number_of_subpatterns [%here]   (* only Leaf nodes can deal with zero remaining patterns *)
-    | Bool { when_true; when_false }, first_subpattern :: remaining_subpatterns -> adorn_bool_node when_true when_false first_subpattern remaining_subpatterns
-    | Enum { enum_identifier; table }, first_subpattern :: remaining_subpatterns -> adorn_enum_node enum_identifier table first_subpattern remaining_subpatterns
-    | Variant { variant_identifier; table }, first_subpattern :: remaining_subpatterns -> adorn_variant_node variant_identifier table first_subpattern remaining_subpatterns
+    | Bool { when_true; when_false }          , first_subpattern :: remaining_subpatterns -> adorn_bool_node when_true when_false first_subpattern remaining_subpatterns
+    | Enum { enum_identifier; table }         , first_subpattern :: remaining_subpatterns -> adorn_enum_node enum_identifier table first_subpattern remaining_subpatterns
+    | Variant { variant_identifier; table }   , first_subpattern :: remaining_subpatterns -> adorn_variant_node variant_identifier table first_subpattern remaining_subpatterns
     | Binder { matched_type; binder; subtree }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
         | EnumCase _ -> begin
