@@ -7,6 +7,21 @@ module GC = struct
 end
 
 
+(*
+   Generates function call using the syntax specified in the configuration.
+*)
+let pp_function_call
+    (function_identifier : Ast.Identifier.t)
+    (arguments           : PP.t list       ) : PP.t
+  =
+  if
+    Configuration.(get pretty_print_function_calls)
+  then
+    MuSail.Statement.pp_call_using_notation function_identifier arguments
+  else
+    MuSail.Statement.pp_call_using_notation function_identifier arguments
+      
+
 let report_incorrect_argument_count
     (original_function_name : Ast.Identifier.t )
     (expected_operand_count : int              )
