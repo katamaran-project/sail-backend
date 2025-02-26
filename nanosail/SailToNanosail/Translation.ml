@@ -113,7 +113,12 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     if
       should_ignore_definition sail_definition
     then
-      let* () = TC.log [%here] Logging.info @@ lazy (PP.string "Skipping this definition")
+      let* () =
+        let message = lazy begin
+          PP.string "Skipping this definition"
+        end
+        in
+        TC.log [%here] Logging.info message
       in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
