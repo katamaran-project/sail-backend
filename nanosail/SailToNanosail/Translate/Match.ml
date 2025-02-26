@@ -1378,78 +1378,7 @@ let rec adorn_pattern_tree
     | Leaf _        , _::_ -> invalid_number_of_subpatterns [%here]   (* Leaf nodes expect there to be no more patterns *)
     | _             , []   -> invalid_number_of_subpatterns [%here]   (* only Leaf nodes can deal with zero remaining patterns *)
     | Bool { when_true; when_false }, first_subpattern :: remaining_subpatterns -> adorn_bool_node when_true when_false first_subpattern remaining_subpatterns
-    | Enum { enum_identifier; table }, first_subpattern :: remaining_subpatterns -> begin
-        match first_subpattern with
-        | EnumCase case_identifier -> begin
-            let* updated_table =
-              let binder_identifier, subtree =
-                Ast.Identifier.Map.find_exn table case_identifier
-              in
-              let* updated_subtree =
-                adorn subtree remaining_subpatterns gap_filling
-              in
-              TC.return begin
-                Ast.Identifier.Map.overwrite
-                  table
-                  ~key:case_identifier
-                  ~data:(binder_identifier, updated_subtree)
-              end
-            in
-            TC.return begin
-              PatternTree.Enum { enum_identifier; table = updated_table }
-            end
-          end
-        | Binder pattern_binder -> begin
-            let* enum_definition =
-              TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
-            in
-            let enum_cases =
-              enum_definition.cases
-            in
-            let update_table
-                (table     : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
-                (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
-              =
-              let binder, subtree =
-                Ast.Identifier.Map.find_exn table enum_case
-              in
-              if
-                contains_gap subtree
-              then begin
-                let* updated_subtree : PatternTree.t =
-                  adorn
-                    subtree
-                    remaining_subpatterns
-                    true
-                in
-                let* updated_binder_identifier : Binder.t =
-                  Binder.unify binder pattern_binder
-                in
-                TC.return begin
-                  Ast.Identifier.Map.overwrite
-                    table
-                    ~key:enum_case
-                    ~data:(updated_binder_identifier, updated_subtree)
-                end
-              end
-              else
-                TC.return table
-            in
-            let* updated_table =
-              TC.fold_left ~f:update_table ~init:table enum_cases
-            in
-            TC.return begin
-              PatternTree.Enum { enum_identifier; table = updated_table }
-            end
-          end
-        | Unit               -> invalid_pattern [%here]
-        | ListCons (_, _)    -> invalid_pattern [%here]
-        | ListNil            -> invalid_pattern [%here]
-        | Tuple _            -> invalid_pattern [%here]
-        | VariantCase (_, _) -> invalid_pattern [%here]
-        | BoolCase _         -> invalid_pattern [%here]
-      end
-
+    | Enum { enum_identifier; table }, first_subpattern :: remaining_subpatterns -> adorn_enum_node enum_identifier table first_subpattern remaining_subpatterns
     | Variant { variant_identifier; table }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
         | VariantCase (constructor_identifier, field_pattern) -> begin
@@ -1891,6 +1820,83 @@ let rec adorn_pattern_tree
     | EnumCase _         -> invalid_pattern [%here]
     | VariantCase (_, _) -> invalid_pattern [%here]
     | Unit               -> invalid_pattern [%here]
+
+  and adorn_enum_node
+      enum_identifier
+      table
+      first_subpattern
+      remaining_subpatterns
+    =
+    match first_subpattern with
+    | EnumCase case_identifier -> begin
+        let* updated_table =
+          let binder_identifier, subtree =
+            Ast.Identifier.Map.find_exn table case_identifier
+          in
+          let* updated_subtree =
+            adorn subtree remaining_subpatterns gap_filling
+          in
+          TC.return begin
+            Ast.Identifier.Map.overwrite
+              table
+              ~key:case_identifier
+              ~data:(binder_identifier, updated_subtree)
+          end
+        in
+        TC.return begin
+          PatternTree.Enum { enum_identifier; table = updated_table }
+        end
+      end
+    | Binder pattern_binder -> begin
+        let* enum_definition =
+          TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
+        in
+        let enum_cases =
+          enum_definition.cases
+        in
+        let update_table
+            (table     : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+            (enum_case : Ast.Identifier.t                               ) : (Binder.t * PatternTree.t) Ast.Identifier.Map.t TC.t
+          =
+          let binder, subtree =
+            Ast.Identifier.Map.find_exn table enum_case
+          in
+          if
+            contains_gap subtree
+          then begin
+            let* updated_subtree : PatternTree.t =
+              adorn
+                subtree
+                remaining_subpatterns
+                true
+            in
+            let* updated_binder_identifier : Binder.t =
+              Binder.unify binder pattern_binder
+            in
+            TC.return begin
+              Ast.Identifier.Map.overwrite
+                table
+                ~key:enum_case
+                ~data:(updated_binder_identifier, updated_subtree)
+            end
+          end
+          else
+            TC.return table
+        in
+        let* updated_table =
+          TC.fold_left ~f:update_table ~init:table enum_cases
+        in
+        TC.return begin
+          PatternTree.Enum { enum_identifier; table = updated_table }
+        end
+      end
+    | Unit               -> invalid_pattern [%here]
+    | ListCons (_, _)    -> invalid_pattern [%here]
+    | ListNil            -> invalid_pattern [%here]
+    | Tuple _            -> invalid_pattern [%here]
+    | VariantCase (_, _) -> invalid_pattern [%here]
+    | BoolCase _         -> invalid_pattern [%here]
+
 
   in
   adorn pattern_tree tuple_subpatterns gap_filling
