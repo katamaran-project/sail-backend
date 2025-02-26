@@ -19,7 +19,7 @@ let pp_function_call
   then
     MuSail.Statement.pp_call_using_notation function_identifier arguments
   else
-    MuSail.Statement.pp_call_using_notation function_identifier arguments
+    MuSail.Statement.pp_call function_identifier arguments
       
 
 let report_incorrect_argument_count

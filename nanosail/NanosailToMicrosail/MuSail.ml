@@ -493,6 +493,13 @@ module Statement = struct
     end
 
 
+  let pp_call
+      (function_identifier : Ast.Identifier.t)
+      (arguments           : PP.document list) : PP.document
+    =
+    pp_call_using_notation function_identifier arguments
+
+
   (*
     stm_if (<condition>)
            (<when_true>)
