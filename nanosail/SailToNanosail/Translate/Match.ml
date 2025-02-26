@@ -1392,7 +1392,7 @@ let rec adorn_pattern_tree
         | None -> TC.return @@ PatternTree.Leaf (Some body)
       end
 
-    | Leaf _, _ -> invalid_number_of_subpatterns [%here]
+    | Leaf _, _::_ -> invalid_number_of_subpatterns [%here]
 
     | _, [] -> invalid_number_of_subpatterns [%here]
 
