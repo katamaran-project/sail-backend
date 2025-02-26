@@ -714,6 +714,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   called_function_type_constraint.polymorphic
                 then begin
                   (* called function turned out to be polymorphic *)
+                  (* todo find out if a monomorph exists for the given argument types *)
                   (* store combination of argument types *)
                   let* () =
                     TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
