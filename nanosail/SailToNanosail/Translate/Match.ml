@@ -1720,10 +1720,10 @@ let rec adorn_pattern_tree
   and adorn_variant_node
       (variant_identifier    : Ast.Identifier.t                                                             )
       (table                 : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
-      (first_subpattern      : Pattern.t                                                                    )
+      (pattern               : Pattern.t                                                                    )
       (remaining_subpatterns : Pattern.t list                                                               ) : PatternTree.t TC.t
     =
-    match first_subpattern with
+    match pattern with
     | VariantCase (constructor_identifier, field_pattern) -> begin
         (*
            Example context:
