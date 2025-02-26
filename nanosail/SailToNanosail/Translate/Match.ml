@@ -1822,10 +1822,10 @@ let rec adorn_pattern_tree
     | Unit               -> invalid_pattern [%here]
 
   and adorn_enum_node
-      enum_identifier
-      table
-      first_subpattern
-      remaining_subpatterns
+      (enum_identifier       : Ast.Identifier.t                               )
+      (table                 : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+      (first_subpattern      : Pattern.t                                      )
+      (remaining_subpatterns : Pattern.t list                                 ) : PatternTree.t TC.t
     =
     match first_subpattern with
     | EnumCase case_identifier -> begin
