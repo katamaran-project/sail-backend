@@ -1718,10 +1718,10 @@ let rec adorn_pattern_tree
     | BoolCase _         -> invalid_pattern [%here]
 
   and adorn_variant_node
-      (variant_identifier    : Ast.Identifier.t                                                             )
-      (table                 : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
-      (pattern               : Pattern.t                                                                    )
-      (remaining_subpatterns : Pattern.t list                                                               ) : PatternTree.t TC.t
+      (variant_identifier : Ast.Identifier.t                                                             )
+      (table              : (Binder.t * PatternTree.variant_binders * PatternTree.t) Ast.Identifier.Map.t)
+      (pattern            : Pattern.t                                                                    )
+      (remaining_patterns : Pattern.t list                                                               ) : PatternTree.t TC.t
     =
     match pattern with
     | VariantCase (constructor_identifier, field_pattern) -> begin
@@ -1738,7 +1738,7 @@ let rec adorn_pattern_tree
           let* new_binder =
             TC.return old_binder
           and* new_subtree =
-            adorn old_subtree remaining_subpatterns gap_filling
+            adorn old_subtree remaining_patterns gap_filling
           and* new_field_binders =
             match old_field_binders with
             | NullaryConstructor old_field_binder -> begin
@@ -1871,7 +1871,7 @@ let rec adorn_pattern_tree
             let* new_binder =
               Binder.unify old_binder pattern_binder
             and* new_subtree =
-              adorn old_subtree remaining_subpatterns true
+              adorn old_subtree remaining_patterns true
             in
             let new_field_binders =
               old_field_binders
