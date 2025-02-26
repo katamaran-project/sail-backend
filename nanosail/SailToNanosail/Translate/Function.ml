@@ -776,22 +776,22 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     | _           -> statement_of_function_call ()
 
   and statement_of_let
-        (_mutability : Libsail.Ast_util.mut)
-        (identifier  : S.id                )
-        (typ1        : S.typ               )
-        (expression  : S.typ S.aexp        )
-        (body        : S.typ S.aexp        )
-        (_typ2       : S.typ               ) : Ast.Statement.t TC.t
+        (_mutability     : Libsail.Ast_util.mut)
+        (identifier      : S.id                )
+        (expression_type : S.typ               )
+        (expression      : S.typ S.aexp        )
+        (body            : S.typ S.aexp        )
+        (_typ2           : S.typ               ) : Ast.Statement.t TC.t
     =
     let* id'   = Identifier.translate_identifier [%here] identifier
-    and* typ1' = Type.nanotype_of_sail_type typ1
+    and* expression_type' = Type.nanotype_of_sail_type expression_type
     and* s1    = statement_of_aexp expression
     and* s2    = statement_of_aexp body
     in
     let translation : Ast.Statement.t =    
       Let {
         binder                 = id';
-        binding_statement_type = typ1';
+        binding_statement_type = expression_type';
         binding_statement      = s1;
         body_statement         = s2;
       }
