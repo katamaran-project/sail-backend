@@ -430,6 +430,23 @@ let make_sequence (statements : Ast.Statement.t list) : Ast.Statement.t =
   | statement :: statements -> List.fold_right statements ~init:statement ~f:(fun statement sequence -> Ast.Statement.Seq (statement, sequence))
 
 
+let find_monomorphization
+    (polymorphic_function_identifier : Ast.Identifier.t)
+    (argument_types                  : Ast.Type.t list ) : Ast.Definition.Function.t option TC.t
+  =
+  let* polymorphic_function_definition =
+    TC.lookup_definition (Ast.Definition.Select.function_definition_named polymorphic_function_identifier)
+  in
+  let has_required_parameter_types (function_definition : Ast.Definition.Function.t) : bool =
+    let parameter_types = List.map ~f:snd function_definition.function_type.parameters
+    in
+    List.equal Ast.Type.equal argument_types parameter_types
+  in
+  TC.return begin
+    List.find polymorphic_function_definition.monomorphs ~f:has_required_parameter_types
+  end
+      
+
 (*
   Given a list of named statements (i.e., pairs of strings and statements)
   and a statement, generates nested let bindings for each of the named statements
