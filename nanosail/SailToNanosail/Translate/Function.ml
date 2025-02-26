@@ -424,18 +424,10 @@ and translate_bindings
   result
 
 
-let make_sequence statements location =
-  let rec aux statements =
-    match statements with
-    | []    -> TC.not_yet_implemented ~message:"Should not happen" [%here]  location
-    | [x]   -> TC.return x
-    | x::xs -> begin
-        let* xs' = aux xs
-        in
-        TC.return @@ Ast.Statement.Seq (x, xs')
-      end
-  in
-  aux statements
+let make_sequence (statements : Ast.Statement.t list) : Ast.Statement.t =
+  match statements with
+  | [] -> failwith "Cannot build a sequence of zero statements"
+  | statement :: statements -> List.fold_right statements ~init:statement ~f:(fun statement sequence -> Ast.Statement.Seq (statement, sequence))
 
 
 (*
@@ -848,7 +840,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     =
     let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
     in
-    make_sequence translated_statements location
+    TC.return @@ make_sequence translated_statements
 
   and statement_of_struct_update
         (aval     : S.typ S.aval           )
