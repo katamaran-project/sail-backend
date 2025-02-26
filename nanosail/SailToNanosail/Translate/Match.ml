@@ -1377,99 +1377,7 @@ let rec adorn_pattern_tree
     | Leaf statement, []   -> adorn_leaf statement gap_filling
     | Leaf _        , _::_ -> invalid_number_of_subpatterns [%here]   (* Leaf nodes expect there to be no more patterns *)
     | _             , []   -> invalid_number_of_subpatterns [%here]   (* only Leaf nodes can deal with zero remaining patterns *)
-    | Bool { when_true = old_when_true; when_false = old_when_false }, first_subpattern :: remaining_subpatterns -> begin
-        match first_subpattern with
-        | Binder pattern_binder -> begin
-            (*
-               Example context
-
-                 // if pattern_binder.wildcard = false
-                 match boolean_value {
-                   false => ...,
-                   x = > ...
-                 }
-
-               or
-
-                 // if pattern_binder.wildcard = true
-                 match boolean_value {
-                   false => ...,
-                   _ => ...
-                 }
-
-               In other words, the Bool pattern tree node has been expanded by a first clause,
-               and a second clause uses a binder/wildcard to match the boolean value.
-            *)
-            let* () =
-              if
-                not pattern_binder.wildcard
-              then begin
-                (*
-                   We have
-
-                     match bool_value {
-                       false => ...,
-                       x => ...
-                     }
-
-                   The current implementation translates this to
-
-                     match bool_value {
-                       false => ...,
-                       true => ...
-                     }
-
-                   whereas it should be
-
-                     match bool_value {
-                       false => ...,
-                       true => let x = true in ...,
-                     }
-
-                   todo fix this
-                *)
-                TC.log [%here] Logging.warning @@ lazy (PP.string "ignoring binder while matching bool")
-              end
-              else TC.return ()
-            in
-            let* new_when_true =
-              adorn old_when_true remaining_subpatterns true
-            and* new_when_false =
-              adorn old_when_false remaining_subpatterns true
-            in
-            TC.return begin
-              PatternTree.Bool {
-                when_true  = new_when_true;
-                when_false = new_when_false
-              }
-            end
-          end
-        | BoolCase b -> begin
-            if
-              b
-            then
-              let* new_when_true =
-                adorn old_when_true remaining_subpatterns gap_filling
-              in
-              TC.return begin
-                PatternTree.Bool { when_true = new_when_true; when_false = old_when_false }
-              end
-            else
-              let* new_when_false =
-                adorn old_when_false remaining_subpatterns gap_filling
-              in
-              TC.return begin
-                PatternTree.Bool { when_true = old_when_true; when_false = new_when_false }
-              end
-          end
-        | ListCons (_, _)    -> invalid_pattern [%here]
-        | ListNil            -> invalid_pattern [%here]
-        | Tuple _            -> invalid_pattern [%here]
-        | EnumCase _         -> invalid_pattern [%here]
-        | VariantCase (_, _) -> invalid_pattern [%here]
-        | Unit               -> invalid_pattern [%here]
-      end
-
+    | Bool { when_true; when_false }, first_subpattern :: remaining_subpatterns -> adorn_bool_node when_true when_false first_subpattern remaining_subpatterns
     | Enum { enum_identifier; table }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
         | EnumCase case_identifier -> begin
@@ -1886,6 +1794,103 @@ let rec adorn_pattern_tree
           TC.fail [%here] "clashing patterns"
       end
     | None -> TC.return @@ PatternTree.Leaf (Some body)
+
+  and adorn_bool_node
+      (when_true          : PatternTree.t )
+      (when_false         : PatternTree.t )
+      (pattern            : Pattern.t     )
+      (remaining_patterns : Pattern.t list) : PatternTree.t TC.t
+    =
+    match pattern with
+    | Binder pattern_binder -> begin
+        (*
+           Example context
+
+             // if pattern_binder.wildcard = false
+             match boolean_value {
+               false => ...,
+               x = > ...
+             }
+
+           or
+
+             // if pattern_binder.wildcard = true
+             match boolean_value {
+               false => ...,
+               _ => ...
+             }
+
+           In other words, the Bool pattern tree node has been expanded by a first clause,
+           and a second clause uses a binder/wildcard to match the boolean value.
+        *)
+        let* () =
+          if
+            not pattern_binder.wildcard
+          then begin
+            (*
+               We have
+
+                 match bool_value {
+                   false => ...,
+                   x => ...
+                 }
+
+               The current implementation translates this to
+
+                 match bool_value {
+                   false => ...,
+                   true => ...
+                 }
+
+               whereas it should be
+
+                 match bool_value {
+                   false => ...,
+                   true => let x = true in ...,
+                 }
+
+               todo fix this
+            *)
+            TC.log [%here] Logging.warning @@ lazy (PP.string "ignoring binder while matching bool")
+          end
+          else TC.return ()
+        in
+        let* new_when_true =
+          adorn when_true remaining_patterns true
+        and* new_when_false =
+          adorn when_false remaining_patterns true
+        in
+        TC.return begin
+          PatternTree.Bool {
+            when_true  = new_when_true;
+            when_false = new_when_false
+          }
+        end
+      end
+    | BoolCase b -> begin
+        if
+          b
+        then
+          let* new_when_true =
+            adorn when_true remaining_patterns gap_filling
+          in
+          TC.return begin
+            PatternTree.Bool { when_true = new_when_true; when_false }
+          end
+        else
+          let* new_when_false =
+            adorn when_false remaining_patterns gap_filling
+          in
+          TC.return begin
+            PatternTree.Bool { when_true; when_false = new_when_false }
+          end
+      end
+    | ListCons (_, _)    -> invalid_pattern [%here]
+    | ListNil            -> invalid_pattern [%here]
+    | Tuple _            -> invalid_pattern [%here]
+    | EnumCase _         -> invalid_pattern [%here]
+    | VariantCase (_, _) -> invalid_pattern [%here]
+    | Unit               -> invalid_pattern [%here]
 
   in
   adorn pattern_tree tuple_subpatterns gap_filling
