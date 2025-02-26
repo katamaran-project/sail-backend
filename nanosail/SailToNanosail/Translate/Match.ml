@@ -1822,10 +1822,10 @@ let rec adorn_pattern_tree
     | Unit               -> invalid_pattern [%here]
 
   and adorn_enum_node
-      (enum_identifier       : Ast.Identifier.t                               )
-      (table                 : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
-      (pattern               : Pattern.t                                      )
-      (remaining_subpatterns : Pattern.t list                                 ) : PatternTree.t TC.t
+      (enum_identifier    : Ast.Identifier.t                               )
+      (table              : (Binder.t * PatternTree.t) Ast.Identifier.Map.t)
+      (pattern            : Pattern.t                                      )
+      (remaining_patterns : Pattern.t list                                 ) : PatternTree.t TC.t
     =
     match pattern with
     | EnumCase case_identifier -> begin
@@ -1834,7 +1834,7 @@ let rec adorn_pattern_tree
             Ast.Identifier.Map.find_exn table case_identifier
           in
           let* updated_subtree =
-            adorn subtree remaining_subpatterns gap_filling
+            adorn subtree remaining_patterns gap_filling
           in
           TC.return begin
             Ast.Identifier.Map.overwrite
@@ -1867,7 +1867,7 @@ let rec adorn_pattern_tree
             let* updated_subtree : PatternTree.t =
               adorn
                 subtree
-                remaining_subpatterns
+                remaining_patterns
                 true
             in
             let* updated_binder_identifier : Binder.t =
