@@ -1374,16 +1374,9 @@ let rec adorn_pattern_tree
       (gap_filling       : bool          ) : PatternTree.t TC.t
     =
     match pattern_tree, tuple_subpatterns with
-    | Leaf statement, [] -> adorn_leaf statement gap_filling
-    | Leaf _, _::_ -> begin
-        (* Leaf nodes expect there to be no more patterns *)
-        invalid_number_of_subpatterns [%here]
-      end
-    | _, [] -> begin
-        (* only Leaf nodes can deal with zero remaining patterns *)
-        invalid_number_of_subpatterns [%here]
-      end
-
+    | Leaf statement, []   -> adorn_leaf statement gap_filling
+    | Leaf _        , _::_ -> invalid_number_of_subpatterns [%here]   (* Leaf nodes expect there to be no more patterns *)
+    | _             , []   -> invalid_number_of_subpatterns [%here]   (* only Leaf nodes can deal with zero remaining patterns *)
     | Bool { when_true = old_when_true; when_false = old_when_false }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
         | Binder pattern_binder -> begin
@@ -1893,7 +1886,10 @@ let rec adorn_pattern_tree
           TC.fail [%here] "clashing patterns"
       end
     | None -> TC.return @@ PatternTree.Leaf (Some body)
+
+  and adorn_bool_node
     
+
   in
   adorn pattern_tree tuple_subpatterns gap_filling
 
