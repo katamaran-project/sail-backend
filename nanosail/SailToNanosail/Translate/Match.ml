@@ -1375,9 +1375,14 @@ let rec adorn_pattern_tree
     =
     match pattern_tree, tuple_subpatterns with
     | Leaf statement, [] -> adorn_leaf statement gap_filling
-    | Leaf _, _::_ -> invalid_number_of_subpatterns [%here]
-
-    | _, [] -> invalid_number_of_subpatterns [%here]
+    | Leaf _, _::_ -> begin
+        (* Leaf nodes expect there to be no more patterns *)
+        invalid_number_of_subpatterns [%here]
+      end
+    | _, [] -> begin
+        (* only Leaf nodes can deal with zero remaining patterns *)
+        invalid_number_of_subpatterns [%here]
+      end
 
     | Bool { when_true = old_when_true; when_false = old_when_false }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
