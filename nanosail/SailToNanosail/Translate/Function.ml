@@ -1113,10 +1113,21 @@ let translate_function_definition
             match unwrapped_tannot_opt with
             | Typ_annot_opt_none -> TC.return @@ PP.string "None"
             | Typ_annot_opt_some (type_quantifier, typ) -> begin
-                let* _type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
-                and* _typ'             = Type.nanotype_of_sail_type typ
+                let* type_quantifier' = TypeQuantifier.translate_type_quantifier type_quantifier
+                and* typ'             = Type.nanotype_of_sail_type typ
                 in
-                TC.return @@ PP.string "Some"
+                TC.return begin
+                  PP.description_list [
+                    (
+                      PP.string "Type quantifier",
+                      FExpr.pp @@ Ast.TypeQuantifier.to_fexpr type_quantifier'
+                    );
+                    (
+                      PP.string "Type",
+                      FExpr.pp @@ Ast.Type.to_fexpr typ'
+                    )
+                  ]
+                end
               end
           in
           let message = lazy begin
