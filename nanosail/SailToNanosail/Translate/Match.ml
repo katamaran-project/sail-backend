@@ -1383,10 +1383,11 @@ let rec adorn_pattern_tree
               (* We're in gap-filling mode, but there is no gap, so keep things as they are *)
               TC.return pattern_tree
             else
-                  (*
-                     We're not in gap-filling mode, and we expect a gap.
-                     However, there is none, which means we're dealing with the same case twice, which should never occur.
-                  *)
+              (*
+                 We're not in gap-filling mode, and we expect a gap.
+                 However, there is none, which means we're dealing with the same case twice,
+                 which should never occur.
+              *)
               TC.fail [%here] "clashing patterns"
           end
         | None -> TC.return @@ PatternTree.Leaf (Some body)
