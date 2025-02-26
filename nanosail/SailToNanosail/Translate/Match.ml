@@ -879,6 +879,7 @@ module PatternTree = struct
     | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
+  
   let rec equal
       (node_1 : t)
       (node_2 : t) : bool
