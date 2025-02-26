@@ -10,7 +10,7 @@ end
 (*
    Generates function call using the syntax specified in the configuration.
 *)
-let pp_function_call
+let pp_function_call_using_configured_syntax
     (function_name : PP.t     )
     (arguments     : PP.t list) : PP.t
   =
@@ -39,7 +39,7 @@ let report_incorrect_argument_count
   in
   let translation =
     PP.annotate [%here] begin
-      MuSail.Statement.pp_call_using_notation (Identifier.pp original_function_name) operands
+      pp_function_call_using_configured_syntax (Identifier.pp original_function_name) operands
     end
   in
   GC.return begin
@@ -738,7 +738,7 @@ let translate
   | _ -> begin
       GC.pp_annotate [%here] begin
         GC.return begin
-          MuSail.Statement.pp_call_using_notation
+          pp_function_call_using_configured_syntax
             (Identifier.pp function_identifier)
             pp_arguments
         end

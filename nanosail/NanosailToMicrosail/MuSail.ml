@@ -497,7 +497,29 @@ module Statement = struct
       (function_identifier : PP.document     )
       (arguments           : PP.document list) : PP.document
     =
-    pp_call_using_notation function_identifier arguments
+    let pp_arguments =
+      let add_snoc tail argument =
+        Coq.pp_application
+          (PP.string "env.snoc")
+          [
+            PP.(surround parens) tail;
+            PP.string "(_::_)";
+            Coq.pp_scope (PP.string "exp") argument
+          ]
+      in
+      List.fold_left
+        arguments
+        ~init:(PP.string "env.nil")
+        ~f:add_snoc
+    in
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "stm_call")
+        [
+          function_identifier;
+          PP.(surround parens) pp_arguments
+        ]
+    end
 
 
   (*
