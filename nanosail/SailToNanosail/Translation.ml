@@ -97,7 +97,6 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_pragma (identifier, _, _)     -> should_ignore_pragma identifier
 
 
-
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let label =
     let open PP
