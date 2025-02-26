@@ -3,7 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 
-val foo : (int, int, int) -> int
+val foo : (int, bool, bitvector(4)) -> int
 function foo(x, y, z) = {
   x
 }
@@ -11,5 +11,5 @@ function foo(x, y, z) = {
 
 val bar : unit -> int
 function bar() = {
-  foo(1, 2, 3)
+  foo(1, false, 0x1)
 }
