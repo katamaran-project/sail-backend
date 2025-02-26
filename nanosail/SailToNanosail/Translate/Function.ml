@@ -783,17 +783,17 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (body            : S.typ S.aexp        )
         (_body_type      : S.typ               ) : Ast.Statement.t TC.t
     =
-    let* id'   = Identifier.translate_identifier [%here] identifier
-    and* expression_type' = Type.nanotype_of_sail_type expression_type
-    and* s1    = statement_of_aexp expression
-    and* s2    = statement_of_aexp body
+    let* binder                 = Identifier.translate_identifier [%here] identifier
+    and* binding_statement_type = Type.nanotype_of_sail_type expression_type
+    and* binding_statement      = statement_of_aexp expression
+    and* body_statement         = statement_of_aexp body
     in
     let translation : Ast.Statement.t =    
       Let {
-        binder                 = id';
-        binding_statement_type = expression_type';
-        binding_statement      = s1;
-        body_statement         = s2;
+        binder;
+        binding_statement_type;
+        binding_statement;
+        body_statement;
       }
     in
     TC.return translation
