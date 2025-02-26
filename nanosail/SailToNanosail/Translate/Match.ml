@@ -1902,8 +1902,6 @@ let rec adorn_pattern_tree
         | ListNil            -> invalid_pattern [%here]
         | Tuple _            -> invalid_pattern [%here]
 
-    
-
   in
   adorn pattern_tree tuple_subpatterns gap_filling
 
