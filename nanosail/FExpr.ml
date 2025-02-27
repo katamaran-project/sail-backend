@@ -102,12 +102,18 @@ let rec equal
 
 (* Helper function for pp/pp_diff *)
 let pp_list (items : PP.document list) : PP.document =
-  let delimiters =
-    (PP.lbracket, PP.rbracket)
-  and separator =
-    PP.string ","
-  in
-  PP.(delimited_list ~delimiters ~items ~separator)
+  if
+    List.is_empty items
+  then
+    PP.horizontal [ PP.lbracket; PP.rbracket ]
+  else begin
+    let delimiters =
+      (PP.lbracket, PP.rbracket)
+    and separator =
+      PP.string ","
+    in
+    PP.(delimited_list ~delimiters ~items ~separator)
+  end
 
 
 let pp_application
