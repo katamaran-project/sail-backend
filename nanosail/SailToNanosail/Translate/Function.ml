@@ -744,6 +744,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             end
             in
             TC.log [%here] Logging.warning message
+
+          and log_no_type_constraint_found () =
+            let message = lazy begin
+              PP.format "Could not determine whether function %s is polymorphic: no corresponding function definition found" (Ast.Identifier.to_string receiver_identifier')
+            end
+            in
+            TC.log [%here] Logging.warning message
           in
           
           let call_statement : Ast.Statement.t =
@@ -772,11 +779,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   TC.return ()
               end
             | None -> begin
-                let message = lazy begin
-                  PP.format "Could not determine whether function %s is polymorphic: no corresponding function definition found" (Ast.Identifier.to_string receiver_identifier')
-                end
-                in
-                TC.log [%here] Logging.warning message
+                log_no_type_constraint_found ()
               end
           in
           TC.return @@ wrap call_statement
