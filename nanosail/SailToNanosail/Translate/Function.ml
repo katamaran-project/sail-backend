@@ -752,37 +752,39 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
             in
             TC.log [%here] Logging.warning message
           in
+
+          let statement_of_polymorphic_function_call (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) : Ast.Statement.t TC.t =
+            (* todo find out if a monomorph exists for the given argument types *)
+            (* store combination of argument types *)
+            let* () = TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
+            and* () = log_encounter_with_call_to_polymorphic_function called_function_type_constraint
+            in
+            TC.return @@ wrap @@ Call (receiver_identifier', argument_expressions)
+          in
           
           let call_statement : Ast.Statement.t =
             Call (receiver_identifier', argument_expressions)
           in
-          let* () =
-            (* Look up information about the called function; we need to determine whether it is polymorphic *)
-            let* called_function_type_constraint =
-              TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
-            in
-            match called_function_type_constraint with
-            | Some called_function_type_constraint -> begin
-                if
-                  called_function_type_constraint.polymorphic
-                then begin
-                  (* called function turned out to be polymorphic *)
-                  (* todo find out if a monomorph exists for the given argument types *)
-                  (* store combination of argument types *)
-                  let* () =
-                    TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
-                  in
-                  log_encounter_with_call_to_polymorphic_function called_function_type_constraint
-                end
-                else
-                  (* Called function turned out NOT to be polymorphic; no action required *)
-                  TC.return ()
-              end
-            | None -> begin
-                log_no_type_constraint_found ()
-              end
+          (* Look up information about the called function; we need to determine whether it is polymorphic *)
+          let* called_function_type_constraint =
+            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
           in
-          TC.return @@ wrap call_statement
+          match called_function_type_constraint with
+          | Some called_function_type_constraint -> begin
+              if
+                called_function_type_constraint.polymorphic
+              then
+                (* called function turned out to be polymorphic *)
+                statement_of_polymorphic_function_call called_function_type_constraint
+              else
+                (* Called function turned out NOT to be polymorphic; no action required *)
+                TC.return @@ wrap call_statement
+            end
+          | None -> begin
+              let* () = log_no_type_constraint_found ()
+              in
+              TC.return @@ wrap call_statement                
+            end
         end
     in
 
