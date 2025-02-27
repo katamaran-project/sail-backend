@@ -709,8 +709,10 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
-
-          let log_encounter_with_call_to_polymorphic_function (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) =
+          let log_encounter_with_call_to_polymorphic_function
+              (level                           : Lexing.position -> PP.t lazy_t -> unit )
+              (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t)
+            =
             let message = lazy begin
               PP.vertical [
                 PP.format "Call to polymorphic function detected";
@@ -743,7 +745,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
               ]
             end
             in
-            TC.log [%here] Logging.warning message
+            TC.log [%here] level message
 
           and log_no_type_constraint_found () =
             let message = lazy begin
@@ -756,7 +758,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           let statement_of_polymorphic_function_call (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) : Ast.Statement.t TC.t =
             (* store combination of argument types *)
             let* () = TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
-            and* () = log_encounter_with_call_to_polymorphic_function called_function_type_constraint
+            and* () = log_encounter_with_call_to_polymorphic_function Logging.warning called_function_type_constraint
             in
             let* monomorph : Ast.Definition.Function.t option =
               find_monomorphization receiver_identifier' argument_expression_types
@@ -1317,7 +1319,7 @@ let translate_function_definition
                     ]
                   end
                   in
-                  TC.log [%here] Logging.warning message
+                  TC.log [%here] Logging.info message
                 in
                 TC.return monomorph
               in
