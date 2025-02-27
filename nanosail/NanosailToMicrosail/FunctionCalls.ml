@@ -594,6 +594,11 @@ let translate
         translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
       end
     end
+  | "not_vec" -> begin
+    GC.pp_annotate [%here] begin
+        translate_unary_operator function_identifier (PP.string "uop.pbvnot") pp_arguments
+      end
+    end
   | "signed" -> begin
       GC.pp_annotate [%here] begin
         translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
