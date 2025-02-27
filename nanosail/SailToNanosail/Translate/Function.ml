@@ -709,6 +709,43 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
+
+          let log_encounter_with_call_to_polymorphic_function (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) =
+            let message = lazy begin
+              PP.vertical [
+                PP.format "Call to polymorphic function detected";
+                PP.description_list [
+                  (
+                    PP.string "Function name",
+                    PP.string @@ Ast.Identifier.to_string receiver_identifier'
+                  );
+                  (
+                    PP.string "Location",
+                    PP.string @@ StringOf.Sail.location location
+                  );
+                  (
+                    PP.string "Type quantifier",
+                    FExpr.pp @@ Ast.TypeQuantifier.to_fexpr called_function_type_constraint.type_quantifier
+                  );
+                  (
+                    PP.string "Parameter types",
+                    FExpr.pp @@ Ast.Type.to_fexpr called_function_type_constraint.typ
+                  );
+                  (
+                    PP.string "Argument types",
+                    PP.indent begin
+                      PP.numbered_list begin
+                        List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
+                      end
+                    end
+                  );
+                ]
+              ]
+            end
+            in
+            TC.log [%here] Logging.warning message
+          in
+          
           let call_statement : Ast.Statement.t =
             Call (receiver_identifier', argument_expressions)
           in
@@ -728,40 +765,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                   let* () =
                     TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
                   in
-                  (* build the message to be printed *)
-                  let message = lazy begin
-                    PP.vertical [
-                      PP.format "Call to polymorphic function detected";
-                      PP.description_list [
-                        (
-                          PP.string "Function name",
-                          PP.string @@ Ast.Identifier.to_string receiver_identifier'
-                        );
-                        (
-                          PP.string "Location",
-                          PP.string @@ StringOf.Sail.location location
-                        );
-                        (
-                          PP.string "Type quantifier",
-                          FExpr.pp @@ Ast.TypeQuantifier.to_fexpr called_function_type_constraint.type_quantifier
-                        );
-                        (
-                          PP.string "Parameter types",
-                          FExpr.pp @@ Ast.Type.to_fexpr called_function_type_constraint.typ
-                        );
-                        (
-                          PP.string "Argument types",
-                          PP.indent begin
-                            PP.numbered_list begin
-                              List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
-                            end
-                          end
-                        );
-                      ]
-                    ]
-                  end
-                  in
-                  TC.log [%here] Logging.warning message
+                  log_encounter_with_call_to_polymorphic_function called_function_type_constraint
                 end
                 else
                   (* Called function turned out NOT to be polymorphic; no action required *)
