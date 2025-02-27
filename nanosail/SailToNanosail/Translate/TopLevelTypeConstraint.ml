@@ -41,6 +41,9 @@ let translate_top_level_type_constraint
       | TypeQuantifier [] -> false
       | TypeQuantifier _  -> true   (* we assume this straightforward check is sufficient to determine whether we're dealing with polymorphism *)
     in
+    let monomorphs : Ast.Definition.TopLevelTypeConstraint.t list =
+      []
+    in
     let* () =
       let message = lazy begin
         let properties =
@@ -73,7 +76,7 @@ let translate_top_level_type_constraint
         type_quantifier = type_quantifier';
         typ             = typ';
         polymorphic;
-        monomorphs = []; (* todo *)
+        monomorphs;
       }
     end
   end
