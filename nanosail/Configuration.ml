@@ -3,6 +3,12 @@ open! ExtBase
 type sail_definition = Sail.sail_definition
 
 
+type monomorphization_request = {
+  monomorphization_identifier : Ast.Identifier.t;
+  substitutions               : (Ast.Identifier.t * int) list;
+}
+
+
 module C = struct
   include ConfigLib.BuildContext.Make(struct end)
 
@@ -136,36 +142,60 @@ module C = struct
       EC.return @@ Value.Nil
     in
     export_callable exported_function_name handler_function
+
+
+  let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref = ref Ast.Identifier.Map.empty
+
+  (*
+     Adds an extra entry to monomorphization_requests.
+  *)
+  let register_monomorphization_request
+      (polymorphic_identifier : Ast.Identifier.t        )
+      (request                : monomorphization_request) : unit
+    =
+    let update (requests : monomorphization_request list option) : monomorphization_request list =
+      let requests =
+        Option.value ~default:[] requests
+      in
+      request :: requests
+    in
+    monomorphization_requests := Ast.Identifier.Map.update !monomorphization_requests polymorphic_identifier ~f:update
+
+
+  let () =
+    let exported_function_name =
+      "monomorphize"
+    and handler_function arguments =
+      let open Slang in
+      let open Slang.Prelude.Shared
+      in
+      let open Monads.Notations.Star(Slang.EvaluationContext)
+      in
+      let* evaluated_arguments = EC.map ~f:Evaluation.evaluate arguments
+      in
+      let=! polymorphic_identifier, monomorphization_identifier, substitutions =
+        Converters.(map3 string string (list (tuple2 string integer))) evaluated_arguments
+      in
+      let polymorphic_identifier      = Ast.Identifier.mk polymorphic_identifier
+      and monomorphization_identifier = Ast.Identifier.mk monomorphization_identifier
+      and substitutions               = List.map ~f:(fun (id, n) -> (Ast.Identifier.mk id, n)) substitutions
+      in
+      let monomorphization_request : monomorphization_request = {
+        monomorphization_identifier;
+        substitutions;
+      }
+      in
+      register_monomorphization_request polymorphic_identifier monomorphization_request;
+      EC.return @@ Value.Nil
+    in
+    export_callable exported_function_name handler_function
 end
 
 include C.S
 
-type monomorphization_request = {
-  monomorphization_identifier : Ast.Identifier.t;
-  substitutions               : (Ast.Identifier.t * int) list;
-}
-  
 
-(* todo make this actually configurable instead of hard coded *)
 let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
-  match function_identifier with
-  | Id "foo" -> Some begin
-      [
-        {
-          monomorphization_identifier = Ast.Identifier.mk "foo_1";
-          substitutions               = [ (Ast.Identifier.mk "'n", 1) ]
-        };
-        {
-          monomorphization_identifier = Ast.Identifier.mk "foo_8";
-          substitutions               = [ (Ast.Identifier.mk "'n", 8) ]
-        };
-        {
-          monomorphization_identifier = Ast.Identifier.mk "foo_32";
-          substitutions               = [ (Ast.Identifier.mk "'n", 32) ]
-        };
-      ]
-    end
-  | _        -> None
+  Ast.Identifier.Map.find !C.monomorphization_requests function_identifier
 
 
 let load_configuration = C.load_configuration
