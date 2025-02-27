@@ -11,7 +11,7 @@ val bar : bitvector(8) -> bitvector(8)
 function bar(x) = foo(x)
 
 
-val baz : bitvector(12) -> bitvector(12)
+val baz : bitvector(16) -> bitvector(16)
 function baz(x) = foo(x)
 
 
