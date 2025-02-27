@@ -56,10 +56,10 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
     in
     let* inductive_type_declaration =
       GC.block begin
-        let name = PP.annotate [%here] @@ PP.string "Fun"
-        and typ  = PP.annotate [%here] @@ PP.string "PCtx -> Ty -> Set"
+        let name = PP.string "Fun"
+        and typ  = PP.string "PCtx -> Ty -> Set"
         in
-        GC.pp_annotate [%here] @@ GC.pp_inductive_type name typ @@ fun add_constructor -> begin
+        GC.pp_inductive_type name typ @@ fun add_constructor -> begin
           GC.iter function_definitions ~f:(fun function_definition ->
               let* name, function_type = pp_function_declaration function_definition
               in
