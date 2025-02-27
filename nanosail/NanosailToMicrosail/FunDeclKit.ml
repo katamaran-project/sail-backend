@@ -60,10 +60,20 @@ let generate (function_definitions : Ast.Definition.Function.t list) =
         and typ  = PP.string "PCtx -> Ty -> Set"
         in
         GC.pp_inductive_type name typ @@ fun add_constructor -> begin
-          GC.iter function_definitions ~f:(fun function_definition ->
-              let* name, function_type = pp_function_declaration function_definition
-              in
-              add_constructor ~typ:function_type name
+          GC.iter function_definitions ~f:(fun (function_definition : Ast.Definition.Function.t) ->
+              if
+                function_definition.polymorphic
+              then
+                (* function is polymorhic; add all monomorphs associated with it *)
+                GC.iter function_definition.monomorphs ~f:(fun (monomorph_definition : Ast.Definition.Function.t) ->
+                    let* name, function_type = pp_function_declaration monomorph_definition
+                    in
+                    add_constructor ~typ:function_type name
+                  )
+              else
+                let* name, function_type = pp_function_declaration function_definition
+                in
+                add_constructor ~typ:function_type name
             )
         end
       end
