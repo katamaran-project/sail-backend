@@ -72,7 +72,8 @@ let translate_top_level_type_constraint
         identifier      = identifier';
         type_quantifier = type_quantifier';
         typ             = typ';
-        polymorphic
+        polymorphic;
+        monomorphs = []; (* todo *)
       }
     end
   end

@@ -299,9 +299,10 @@ module TopLevelTypeConstraint = struct
       type_quantifier : TypeQuantifier.t;
       typ             : Nanotype.t;
       polymorphic     : bool;
+      monomorphs      : t list;
     }
 
-  let to_fexpr (top_level_type_constraint : t) : FExpr.t =
+  let rec to_fexpr (top_level_type_constraint : t) : FExpr.t =
     let positional =
       [
         Identifier.to_fexpr top_level_type_constraint.identifier
@@ -319,6 +320,12 @@ module TopLevelTypeConstraint = struct
         (
           "polymorphic",
           FExpr.mk_bool top_level_type_constraint.polymorphic
+        );
+        (
+          "monomorphs",
+          FExpr.mk_list begin
+            List.map ~f:to_fexpr top_level_type_constraint.monomorphs
+          end
         )
       ]
     in
