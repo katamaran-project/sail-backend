@@ -41,8 +41,50 @@ let translate_top_level_type_constraint
       | TypeQuantifier [] -> false
       | TypeQuantifier _  -> true   (* we assume this straightforward check is sufficient to determine whether we're dealing with polymorphism *)
     in
-    let monomorphs : Ast.Definition.TopLevelTypeConstraint.t list =
-      []
+    let* monomorphs : Ast.Definition.TopLevelTypeConstraint.t list =
+      match polymorphic, Configuration.requested_monomorphizations_for identifier' with
+      | false, None -> TC.return []
+      | true , None -> begin
+          let* () =
+            let message = lazy begin
+              PP.format "Encountered polymorphic top level type constraint %s without requests for monomorphization" (Ast.Identifier.to_string identifier')
+            end
+            in
+            TC.log [%here] Logging.warning message
+          in
+          TC.return []
+        end
+      | false, Some _ -> begin
+          let* () =
+            let message = lazy begin
+              PP.format "Monomorphization requests found for %s, which is not polymorphic" (Ast.Identifier.to_string identifier')
+            end
+            in
+            TC.log [%here] Logging.error message
+          in
+          TC.return []
+        end
+      | true, Some monomorphization_requests -> begin
+          let build_monomorph (monomorphization_request : Configuration.monomorphization_request) : Ast.Definition.TopLevelTypeConstraint.t TC.t =
+            (* todo this function is duplicated (see module Function) *)
+            let substitution (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t =
+              match List.Assoc.find monomorphization_request.substitutions ~equal:Ast.Identifier.equal identifier with
+              | Some value -> Ast.Numeric.Expression.Constant (Z.of_int value)
+              | None       -> Ast.Numeric.Expression.Id identifier
+            in
+            let top_level_type_constraint : Ast.Definition.TopLevelTypeConstraint.t =
+              {
+                identifier      = monomorphization_request.monomorphization_identifier;
+                type_quantifier = Ast.TypeQuantifier.TypeQuantifier []; (* todo we might want to do better than to indiscriminately throw it all away *)
+                typ             = Ast.Type.substitute_numeric_expression_identifier substitution typ';
+                polymorphic     = false;
+                monomorphs      = []
+              }
+            in
+            TC.return top_level_type_constraint
+          in
+          TC.map monomorphization_requests ~f:build_monomorph
+        end
     in
     let* () =
       let message = lazy begin
@@ -60,6 +102,16 @@ let translate_top_level_type_constraint
               PP.string "Type",
               FExpr.pp @@ Ast.Type.to_fexpr typ'
             );
+            (
+              PP.string "Polymorphic",
+              FExpr.pp @@ FExpr.mk_bool polymorphic
+            );
+            (
+              PP.string "Monomorphs",
+              FExpr.pp @@ FExpr.List begin
+                List.map ~f:Ast.Definition.TopLevelTypeConstraint.to_fexpr monomorphs
+              end
+            )
           ]
         in
         PP.vertical [
@@ -68,7 +120,7 @@ let translate_top_level_type_constraint
         ]
       end
       in
-      TC.log [%here] Logging.info message
+      TC.log [%here] Logging.warning message
     in
     TC.return begin
       Ast.Definition.TopLevelTypeConstraintDefinition {
