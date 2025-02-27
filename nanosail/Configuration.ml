@@ -154,7 +154,15 @@ let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : m
         {
           monomorphization_identifier = Ast.Identifier.mk "foo_1";
           substitutions               = [ (Ast.Identifier.mk "'n", 1) ]
-        }
+        };
+        {
+          monomorphization_identifier = Ast.Identifier.mk "foo_8";
+          substitutions               = [ (Ast.Identifier.mk "'n", 8) ]
+        };
+        {
+          monomorphization_identifier = Ast.Identifier.mk "foo_32";
+          substitutions               = [ (Ast.Identifier.mk "'n", 32) ]
+        };
       ]
     end
   | _        -> None

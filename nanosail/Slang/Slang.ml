@@ -1,3 +1,11 @@
+(*
+
+   Slang (S-Expression Language)
+
+   Used to configure the generation of muSail code.
+   
+*)
+
 module Token               = Token
 module Tokenizing          = Tokenizing
 module Value               = Value

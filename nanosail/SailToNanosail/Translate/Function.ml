@@ -709,73 +709,93 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         end
       | None -> begin
           (* Function call does not refer to variant constructor *)
+          let log_encounter_with_call_to_polymorphic_function (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) : unit TC.t
+            =
+            let message = lazy begin
+              PP.vertical [
+                PP.format "Call to polymorphic function detected";
+                PP.description_list [
+                  (
+                    PP.string "Function name",
+                    PP.string @@ Ast.Identifier.to_string receiver_identifier'
+                  );
+                  (
+                    PP.string "Location",
+                    PP.string @@ StringOf.Sail.location location
+                  );
+                  (
+                    PP.string "Type quantifier",
+                    FExpr.pp @@ Ast.TypeQuantifier.to_fexpr called_function_type_constraint.type_quantifier
+                  );
+                  (
+                    PP.string "Parameter types",
+                    FExpr.pp @@ Ast.Type.to_fexpr called_function_type_constraint.typ
+                  );
+                  (
+                    PP.string "Argument types",
+                    PP.indent begin
+                      PP.numbered_list begin
+                        List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
+                      end
+                    end
+                  );
+                ]
+              ]
+            end
+            in
+            TC.log [%here] Logging.warning message
+
+          and log_no_type_constraint_found () =
+            let message = lazy begin
+              PP.format "Could not determine whether function %s is polymorphic: no corresponding function definition found" (Ast.Identifier.to_string receiver_identifier')
+            end
+            in
+            TC.log [%here] Logging.warning message
+          in
+
+          let statement_of_polymorphic_function_call (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) : Ast.Statement.t TC.t =
+            (* store combination of argument types *)
+            let* () = TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
+            in
+            let* monomorph : Ast.Definition.Function.t option =
+              find_monomorphization receiver_identifier' argument_expression_types
+            in
+            match monomorph with
+            | Some monomorph -> begin
+                (* Monomorph with matching parameter types found *)
+                TC.return @@ wrap @@ Call (monomorph.function_name, argument_expressions)
+              end
+            | None -> begin
+                (* No monomorph found, generate call to polymorphic function *)
+                let* () = log_encounter_with_call_to_polymorphic_function called_function_type_constraint
+                in
+                TC.return @@ wrap @@ Call (receiver_identifier', argument_expressions)
+              end
+          in
+          
           let call_statement : Ast.Statement.t =
             Call (receiver_identifier', argument_expressions)
           in
-          let* () =
-            (* Look up information about the called function; we need to determine whether it is polymorphic *)
-            let* called_function_type_constraint =
-              TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
-            in
-            match called_function_type_constraint with
-            | Some called_function_type_constraint -> begin
-                if
-                  called_function_type_constraint.polymorphic
-                then begin
-                  (* called function turned out to be polymorphic *)
-                  (* todo find out if a monomorph exists for the given argument types *)
-                  (* store combination of argument types *)
-                  let* () =
-                    TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
-                  in
-                  (* build the message to be printed *)
-                  let message = lazy begin
-                    PP.vertical [
-                      PP.format "Call to polymorphic function detected";
-                      PP.description_list [
-                        (
-                          PP.string "Function name",
-                          PP.string @@ Ast.Identifier.to_string receiver_identifier'
-                        );
-                        (
-                          PP.string "Location",
-                          PP.string @@ StringOf.Sail.location location
-                        );
-                        (
-                          PP.string "Type quantifier",
-                          FExpr.pp @@ Ast.TypeQuantifier.to_fexpr called_function_type_constraint.type_quantifier
-                        );
-                        (
-                          PP.string "Parameter types",
-                          FExpr.pp @@ Ast.Type.to_fexpr called_function_type_constraint.typ
-                        );
-                        (
-                          PP.string "Argument types",
-                          PP.indent begin
-                            PP.numbered_list begin
-                              List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
-                            end
-                          end
-                        );
-                      ]
-                    ]
-                  end
-                  in
-                  TC.log [%here] Logging.warning message
-                end
-                else
-                  (* Called function turned out NOT to be polymorphic; no action required *)
-                  TC.return ()
-              end
-            | None -> begin
-                let message = lazy begin
-                  PP.format "Could not determine whether function %s is polymorphic: no corresponding function definition found" (Ast.Identifier.to_string receiver_identifier')
-                end
-                in
-                TC.log [%here] Logging.warning message
-              end
+          (* Look up information about the called function; we need to determine whether it is polymorphic *)
+          let* called_function_type_constraint =
+            TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named receiver_identifier')
           in
-          TC.return @@ wrap call_statement
+          match called_function_type_constraint with
+          | Some called_function_type_constraint -> begin
+              if
+                called_function_type_constraint.polymorphic
+              then
+                (* called function turned out to be polymorphic *)
+                statement_of_polymorphic_function_call called_function_type_constraint
+              else
+                (* Called function turned out NOT to be polymorphic; no action required *)
+                TC.return @@ wrap call_statement
+            end
+          | None -> begin
+              let* () = log_no_type_constraint_found ()
+              in
+              TC.return @@ wrap call_statement                
+            end
         end
     in
 
@@ -1298,7 +1318,7 @@ let translate_function_definition
                     ]
                   end
                   in
-                  TC.log [%here] Logging.warning message
+                  TC.log [%here] Logging.info message
                 in
                 TC.return monomorph
               in

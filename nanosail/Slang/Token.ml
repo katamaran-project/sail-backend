@@ -1,9 +1,9 @@
 type t =
-  | LeftParenthesis
-  | RightParenthesis
-  | Quote
-  | Symbol           of string
-  | String           of string
-  | Integer          of int
-  | True
-  | False
+  | LeftParenthesis                  (* ( *)
+  | RightParenthesis                 (* ) *)
+  | Quote                            (* ' *)
+  | Symbol           of string       (* foo *)
+  | String           of string       (* "foo" *)
+  | Integer          of int          (* 123 *)
+  | True                             (* #t *)
+  | False                            (* #f *)

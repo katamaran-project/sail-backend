@@ -32,6 +32,7 @@ FAIL bitvectors-indexing
 PASS bitvectors-matching
 FAIL bitvectors-monomorphization
 PASS bitvectors-nested-comparison
+PASS bitvectors-not-vec
 FAIL bitvectors-ones-with-literal-formatting
 FAIL bitvectors-ones-with-literal-size
 FAIL bitvectors-ones-with-sizeof-size
@@ -107,6 +108,7 @@ PASS functions-call
 PASS functions-call-as-parameter
 PASS functions-call-binary
 PASS functions-call-nullary
+PASS functions-call-pretty
 PASS functions-call-ternary
 PASS functions-call-unary
 PASS functions-double
@@ -265,4 +267,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:244 FAIL:23
+PASS:246 FAIL:23
