@@ -754,12 +754,22 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
           in
 
           let statement_of_polymorphic_function_call (called_function_type_constraint : Ast.Definition.TopLevelTypeConstraint.t) : Ast.Statement.t TC.t =
-            (* todo find out if a monomorph exists for the given argument types *)
             (* store combination of argument types *)
             let* () = TC.register_polymorphic_function_call_type_arguments receiver_identifier' argument_expression_types
             and* () = log_encounter_with_call_to_polymorphic_function called_function_type_constraint
             in
-            TC.return @@ wrap @@ Call (receiver_identifier', argument_expressions)
+            let* monomorph : Ast.Definition.Function.t option =
+              find_monomorphization receiver_identifier' argument_expression_types
+            in
+            match monomorph with
+            | Some monomorph -> begin
+                (* Monomorph with matching parameter types found *)
+                TC.return @@ wrap @@ Call (monomorph.function_name, argument_expressions)
+              end
+            | None -> begin
+                (* No monomorph found, generate call to polymorphic function *)
+                TC.return @@ wrap @@ Call (receiver_identifier', argument_expressions)
+              end
           in
           
           let call_statement : Ast.Statement.t =
