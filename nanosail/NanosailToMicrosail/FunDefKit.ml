@@ -18,6 +18,10 @@ let rec pp_function_definition
       match type_constraint with
       | Some (sail_top_level_type_constraint, top_level_type_constraint) -> begin
           let pairs =
+            (*
+               todo we're assuming that the monomorphs in function_definition and type_constraint match.
+               This ought to be the case, but maybe we want to add some sanity checks.
+            *)
             List.zip_exn function_definition.monomorphs top_level_type_constraint.monomorphs
           in
           List.map ~f:(fun (fundef, constr) -> (fundef, Some (sail_top_level_type_constraint, constr))) pairs
