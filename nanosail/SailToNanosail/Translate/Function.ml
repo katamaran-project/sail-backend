@@ -1,3 +1,5 @@
+open ExtBase
+
 module Big_int = Nat_big_num
 
 module S = struct
@@ -10,9 +12,7 @@ end
 
 module TC        = TranslationContext
 module Bindings  = Libsail.Ast_util.Bindings
-module StringMap = Map.String
 
-open! ExtBase
 open Monads.Notations.Star(TC)
 
 
@@ -913,7 +913,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (binder, field_type, named_statement) :: named_statements
       in
       let field_map' =
-        StringMap.overwrite ~key:field_identifier ~data:binder field_map
+        Map.overwrite ~key:field_identifier ~data:binder field_map
       in
       TC.return @@ (field_map', named_statements')
     in
@@ -929,7 +929,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       let record_expression : Ast.Expression.t =
         let type_identifier = record_type_identifier
         and fields =
-          List.map field_identifiers ~f:(StringMap.find_exn field_map)
+          List.map field_identifiers ~f:(Map.find_exn field_map)
         in
         Record { type_identifier; fields }
       in

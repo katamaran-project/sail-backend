@@ -1,3 +1,4 @@
+open! ExtBase
 module Big_int = Nat_big_num
 
 module S = struct
@@ -10,9 +11,7 @@ end
 
 module TC        = TranslationContext
 module Bindings  = Libsail.Ast_util.Bindings
-module StringMap = Map.String
 
-open! ExtBase
 open Monads.Notations.Star(TC)
 
 
