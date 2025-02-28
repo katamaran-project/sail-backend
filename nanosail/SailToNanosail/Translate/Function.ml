@@ -1272,10 +1272,10 @@ let translate_function_definition
                   List.map ~f:(Fn.uncurry substitute_parameter) parameters
                 in
                 let substituted_return_type =
-                  Ast.Type.substitute_numeric_expression_identifier substitution return_type
+                  Ast.Type.evaluate_numeric_expressions @@ Ast.Type.substitute_numeric_expression_identifier substitution return_type
                 in
                 let substituted_function_body =
-                  Ast.Statement.substitute_numeric_expression_identifier substitution function_body
+                  Ast.Statement.evaluate_numeric_expressions @@ Ast.Statement.substitute_numeric_expression_identifier substitution function_body
                 in
                 let monomorph : Ast.Definition.Function.t =
                   {
