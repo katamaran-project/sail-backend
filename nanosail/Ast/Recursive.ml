@@ -841,19 +841,19 @@ end = struct
       end        
     in
     match (numeric_constraint : t) with
-    | Equal (left, right) -> Equal (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
-    | NotEqual (left, right) -> NotEqual (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
+    | Equal (left, right)                -> Equal (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
+    | NotEqual (left, right)             -> NotEqual (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
     | GreaterThanOrEqualTo (left, right) -> GreaterThanOrEqualTo (eval left, eval right)
-    | GreaterThan (left, right) -> GreaterThan (eval left, eval right)
-    | LessThanOrEqualTo (left, right) -> LessThanOrEqualTo (eval left, eval right)
-    | LessThan (left, right) -> LessThan (eval left, eval right)
-    | Set (_, _) -> numeric_constraint
-    | Or (left, right) -> Or (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
-    | And (left, right) -> And (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
-    | App (identifier, type_arguments) -> App (identifier, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
-    | Var _ -> numeric_constraint
-    | True -> numeric_constraint
-    | False -> numeric_constraint
+    | GreaterThan (left, right)          -> GreaterThan (eval left, eval right)
+    | LessThanOrEqualTo (left, right)    -> LessThanOrEqualTo (eval left, eval right)
+    | LessThan (left, right)             -> LessThan (eval left, eval right)
+    | Set (_, _)                         -> numeric_constraint
+    | Or (left, right)                   -> Or (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | And (left, right)                  -> And (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | App (identifier, type_arguments)   -> App (identifier, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
+    | Var _                              -> numeric_constraint
+    | True                               -> numeric_constraint
+    | False                              -> numeric_constraint
   
   
   let rec to_string (numeric_constraint : t) =
