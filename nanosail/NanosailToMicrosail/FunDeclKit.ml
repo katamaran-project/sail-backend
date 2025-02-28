@@ -60,9 +60,9 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
     GC.pp_inductive_type name typ @@ fun add_constructor -> begin
       GC.iter function_definitions ~f:(fun (function_definition : Ast.Definition.Function.t) ->
           if
-            function_definition.polymorphic
+            function_definition.polymorphic && not (List.is_empty function_definition.monomorphs)
           then
-            (* function is polymorhic; add all monomorphs associated with it *)
+            (* function is polymorhic and has monomorphs; add all monomorphs associated with it *)
             GC.iter function_definition.monomorphs ~f:(fun (monomorph_definition : Ast.Definition.Function.t) ->
                 let* name, function_type = pp_function_declaration monomorph_definition
                 in
