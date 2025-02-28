@@ -206,6 +206,8 @@ PASS model-006
 PASS model-007
 FAIL model-008
 PASS monomorphize
+PASS monomorphize-2
+FAIL monomorphize-3
 PASS no-confusion-hom
 PASS overloading
 PASS products-match
@@ -267,4 +269,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:247 FAIL:22
+PASS:248 FAIL:23
