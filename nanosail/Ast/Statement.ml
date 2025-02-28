@@ -743,15 +743,15 @@ let substitute_numeric_expression_identifier
   subst statement
 
 
-let rec evaluate_numeric_expressions (statement : t) : t =
+let rec simplify (statement : t) : t =
   match (statement : t) with
   | Match (MatchList { matched; element_type; when_cons = (head_identifier, tail_identifier, when_cons); when_nil }) -> begin
       Match begin
         MatchList {
           matched;
           element_type = Type.evaluate_numeric_expressions element_type;
-          when_cons    = (head_identifier, tail_identifier, evaluate_numeric_expressions when_cons);
-          when_nil     = evaluate_numeric_expressions when_nil;
+          when_cons    = (head_identifier, tail_identifier, simplify when_cons);
+          when_nil     = simplify when_nil;
         }
       end
     end
@@ -763,7 +763,7 @@ let rec evaluate_numeric_expressions (statement : t) : t =
           type_snd = Type.evaluate_numeric_expressions type_snd;
           id_fst;
           id_snd;
-          body     = evaluate_numeric_expressions body;
+          body     = simplify body;
         }
       end
     end
@@ -772,7 +772,7 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         MatchTuple {
           matched;
           binders = List.map ~f:(fun (id, t) -> (id, Type.evaluate_numeric_expressions t)) binders;
-          body    = evaluate_numeric_expressions body;
+          body    = simplify body;
         }
       end
     end
@@ -780,8 +780,8 @@ let rec evaluate_numeric_expressions (statement : t) : t =
       Match begin
         MatchBool {
           condition;
-          when_true  = evaluate_numeric_expressions when_true;
-          when_false = evaluate_numeric_expressions when_false;
+          when_true  = simplify when_true;
+          when_false = simplify when_false;
         }
       end
     end
@@ -790,7 +790,7 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         MatchEnum {
           matched;
           matched_type;
-          cases = Identifier.Map.map_values ~f:evaluate_numeric_expressions cases;
+          cases = Identifier.Map.map_values ~f:simplify cases;
         }
       end
     end
@@ -799,7 +799,7 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         MatchVariant {
           matched;
           matched_type;
-          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, evaluate_numeric_expressions stm)) cases;
+          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, simplify stm)) cases;
         }
       end
     end
@@ -807,8 +807,8 @@ let rec evaluate_numeric_expressions (statement : t) : t =
       Let {
         binder;
         binding_statement_type = Type.evaluate_numeric_expressions binding_statement_type;
-        binding_statement      = evaluate_numeric_expressions binding_statement;
-        body_statement         = evaluate_numeric_expressions body_statement;
+        binding_statement      = simplify binding_statement;
+        body_statement         = simplify body_statement;
       }
     end
   | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
@@ -816,14 +816,14 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         record_type_identifier;
         field_identifiers;
         binders;
-        destructured_record = evaluate_numeric_expressions destructured_record;
-        body                = evaluate_numeric_expressions body;
+        destructured_record = simplify destructured_record;
+        body                = simplify body;
       }
     end
   | Expression expression      -> Expression (Expression.evaluate_numeric_expressions expression)
   | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.evaluate_numeric_expressions arguments)
-  | Seq (left, right)          -> Seq (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+  | Seq (left, right)          -> Seq (simplify left, simplify right)
   | ReadRegister _             -> statement
   | WriteRegister _            -> statement
-  | Cast (statement, typ)      -> Cast (evaluate_numeric_expressions statement, Type.evaluate_numeric_expressions typ)
+  | Cast (statement, typ)      -> Cast (simplify statement, Type.evaluate_numeric_expressions typ)
   | Fail _                     -> statement
