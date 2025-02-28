@@ -1266,7 +1266,7 @@ let translate_function_definition
                     =
                     (
                       parameter_identifier,
-                      Ast.Type.substitute_numeric_expression_identifier substitution parameter_type
+                      Ast.Type.evaluate_numeric_expressions @@ Ast.Type.substitute_numeric_expression_identifier substitution parameter_type
                     )
                   in
                   List.map ~f:(Fn.uncurry substitute_parameter) parameters
