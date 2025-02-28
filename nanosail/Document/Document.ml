@@ -204,8 +204,11 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     if
       width < target_width
     then
+      let padding_width =
+        target_width - width
+      in
       let padding =
-        repeat horizontal (target_width - width) space
+        string @@ String.repeat " " padding_width
       in
       horizontal [ document; padding ]
     else
