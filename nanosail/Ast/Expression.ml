@@ -237,15 +237,15 @@ let substitute_numeric_expression_identifier
   subst expression
 
 
-let rec evaluate_numeric_expressions (expression : t) : t =
+let rec simplify (expression : t) : t =
   match expression with
   | Variable (identifier, typ) -> Variable (identifier, Nanotype.evaluate_numeric_expressions typ)
   | Value _ -> expression
-  | List elements -> List (List.map ~f:evaluate_numeric_expressions elements)
-  | UnaryOperation (operator, operand) -> UnaryOperation (operator, evaluate_numeric_expressions operand)
-  | BinaryOperation (operator, left_operand, right_operand) -> BinaryOperation (operator, evaluate_numeric_expressions left_operand, evaluate_numeric_expressions right_operand)
+  | List elements -> List (List.map ~f:simplify elements)
+  | UnaryOperation (operator, operand) -> UnaryOperation (operator, simplify operand)
+  | BinaryOperation (operator, left_operand, right_operand) -> BinaryOperation (operator, simplify left_operand, simplify right_operand)
   | Record _ -> expression
   | Enum _ -> expression
   | Variant _ -> expression
-  | Tuple elements -> Tuple (List.map ~f:evaluate_numeric_expressions elements)
-  | Bitvector elements -> Bitvector (List.map ~f:evaluate_numeric_expressions elements)
+  | Tuple elements -> Tuple (List.map ~f:simplify elements)
+  | Bitvector elements -> Bitvector (List.map ~f:simplify elements)

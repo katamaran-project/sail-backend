@@ -820,8 +820,8 @@ let rec simplify (statement : t) : t =
         body                = simplify body;
       }
     end
-  | Expression expression      -> Expression (Expression.evaluate_numeric_expressions expression)
-  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.evaluate_numeric_expressions arguments)
+  | Expression expression      -> Expression (Expression.simplify expression)
+  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
   | Seq (left, right)          -> Seq (simplify left, simplify right)
   | ReadRegister _             -> statement
   | WriteRegister _            -> statement
