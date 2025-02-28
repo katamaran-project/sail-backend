@@ -1218,7 +1218,7 @@ let translate_function_definition
             end
         in
         let function_body =
-          Ast.Simplify.simplify_statement function_body
+          Ast.Statement.simplify function_body
         in
         let* monomorphs : Ast.Definition.Function.t list =
           match polymorphic, Configuration.requested_monomorphizations_for function_name with

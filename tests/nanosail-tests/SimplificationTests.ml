@@ -17,7 +17,7 @@ let test_simplify_statement_1 =
         body_statement         = Expression (Variable (Ast.Identifier.mk "x", Unit))
       }
     in
-    let actual = Ast.Simplify.simplify_statement statement
+    let actual = Ast.Statement.simplify statement
     and expected : Ast.Statement.t =
       Expression (Variable (Ast.Identifier.mk "x", Unit))
     in
@@ -52,7 +52,7 @@ let test_simplify_statement_2 =
       }
     in
     let actual = 
-      Ast.Simplify.simplify_statement statement
+      Ast.Statement.simplify statement
     and expected : Ast.Statement.t =
       Expression (Variable (Ast.Identifier.mk "x", Unit))
     in
