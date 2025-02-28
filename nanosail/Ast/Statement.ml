@@ -814,12 +814,17 @@ let rec simplify (statement : t) : t =
       and binding_statement      = simplify binding_statement
       and body_statement         = simplify body_statement
       in
-      Let {
-        binder;
-        binding_statement_type;
-        binding_statement;
-        body_statement;
-      }
+      if
+        Identifier.Set.mem (free_variables body_statement) binder
+      then
+        Let {
+          binder;
+          binding_statement_type;
+          binding_statement;
+          body_statement;
+        }
+      else
+        simplify @@ Seq (binding_statement, body_statement)
     end
     
   | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
