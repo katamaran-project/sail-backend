@@ -837,9 +837,15 @@ let rec simplify (statement : t) : t =
       }
     end
     
+  | Seq (left, right) -> begin
+      let left  = simplify left
+      and right = simplify right
+      in
+      Seq (left, right)
+    end
+
   | Expression expression      -> Expression (Expression.simplify expression)
   | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
-  | Seq (left, right)          -> Seq (simplify left, simplify right)
   | ReadRegister _             -> statement
   | WriteRegister _            -> statement
   | Cast (statement, typ)      -> Cast (simplify statement, Type.evaluate_numeric_expressions typ)
