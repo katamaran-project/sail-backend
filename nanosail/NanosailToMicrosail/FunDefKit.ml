@@ -188,27 +188,27 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
     and parameters =
       [
         (
-          PP.annotate [%here] @@ PP.string "f",
-          Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
+          PP.string "f",
+          Some (PP.string "Fun Δ τ")
         )
       ]
     and result_type =
-      Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
+      Some (PP.string "Stm Δ τ")
     and body =
       let matched_expression =
-        PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
+        PP.string "f in Fun Δ τ return Stm Δ τ"
       and cases =
         let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
           (
-            PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
-            PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+            Identifier.pp function_definition.function_name,
+            Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
           )
         in
         List.map ~f:case_of_function_definition function_definitions
       in
       PP.annotate [%here] @@ Coq.pp_match matched_expression cases
     in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
+    GC.return @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
   end
     
 
