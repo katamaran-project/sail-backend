@@ -226,7 +226,7 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     a + b + c + d
 
   *)
-  let binary_operation (* todo rename to binary_operation *)
+  let binary_operation
       (operator : t     )
       (operands : t list) : t
     =
