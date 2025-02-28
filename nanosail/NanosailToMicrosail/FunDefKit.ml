@@ -177,7 +177,7 @@ let pp_function_definitions
   GC.map ~f:(Fn.uncurry pp_function_definition) type_and_function_pairs
 
 
-let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) =
+let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   let identifier =
     PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
 
@@ -211,7 +211,7 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
     in
     PP.annotate [%here] @@ Coq.pp_match matched_expression cases
   in
-  PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
+  GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
 
 
 let pp_function_definition_kit
@@ -222,13 +222,15 @@ let pp_function_definition_kit
     let* contents =
       let* pp_function_definitions =
         pp_function_definitions function_definitions top_level_type_constraint_definitions
+      and* pp_fundef =
+        pp_fundef_inductive_type @@ Ast.Definition.Select.drop_sail_definitions function_definitions
       in
       GC.return begin
         PP.annotate [%here] begin
           PP.paragraphs begin
             List.build_list (fun { add; addall; _ } ->
                 addall pp_function_definitions;
-                add    (pp_fundef_inductive_type @@ Ast.Definition.Select.drop_sail_definitions function_definitions)
+                add    pp_fundef
               )
           end
         end
