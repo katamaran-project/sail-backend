@@ -755,6 +755,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
       Match begin
         MatchProduct {
@@ -767,6 +768,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Match (MatchTuple { matched; binders; body }) -> begin
       Match begin
         MatchTuple {
@@ -776,6 +778,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Match (MatchBool { condition; when_true; when_false }) -> begin
       Match begin
         MatchBool {
@@ -785,6 +788,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Match (MatchEnum { matched; matched_type; cases }) -> begin
       Match begin
         MatchEnum {
@@ -794,6 +798,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Match (MatchVariant { matched; matched_type; cases }) -> begin
       Match begin
         MatchVariant {
@@ -803,6 +808,7 @@ let rec simplify (statement : t) : t =
         }
       end
     end
+    
   | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
       Let {
         binder;
@@ -811,6 +817,7 @@ let rec simplify (statement : t) : t =
         body_statement         = simplify body_statement;
       }
     end
+    
   | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
       DestructureRecord {
         record_type_identifier;
@@ -820,6 +827,7 @@ let rec simplify (statement : t) : t =
         body                = simplify body;
       }
     end
+    
   | Expression expression      -> Expression (Expression.simplify expression)
   | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
   | Seq (left, right)          -> Seq (simplify left, simplify right)
