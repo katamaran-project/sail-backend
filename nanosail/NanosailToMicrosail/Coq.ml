@@ -218,7 +218,7 @@ let pp_match
     (cases      : (PP.document * PP.document) list      ) : PP.document
   =
   let match_line =
-    PP.annotate [%here] @@ PP.(
+    PP.(
       separate_horizontally ~separator:space [
         string "match";
         expression;
@@ -247,8 +247,8 @@ let pp_match
   in
   let final_line =
     match scope with
-    | Some scope -> PP.annotate [%here] @@ PP.(horizontal [ string "end"; percent; scope ])
-    | None       -> PP.annotate [%here] @@ PP.string "end"
+    | Some scope -> PP.(horizontal [ string "end"; percent; scope ])
+    | None       -> PP.string "end"
   in
   let result_lines =
     List.build_list (fun { add; addall; _ } ->
