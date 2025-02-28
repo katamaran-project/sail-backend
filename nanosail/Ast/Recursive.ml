@@ -127,6 +127,39 @@ module NumericExpression = struct
          | Mod -> Some (Z.rem left_operand right_operand)
        end
 
+  
+  let rec simplify (numeric_expression : t) : t =
+    match numeric_expression with
+    | Constant _ -> numeric_expression
+    | Id _       -> numeric_expression
+    | Var _      -> numeric_expression
+    | Neg n -> begin
+        match simplify n with
+        | Constant n -> Constant (Z.neg n)
+        | simplified_expression -> simplified_expression
+      end
+    | PowerOf2 n -> begin
+        match simplify n with
+        | Constant n -> Constant (Z.shift_left Z.one (Z.to_int n))
+        | simplified_expression -> simplified_expression
+      end
+    | BinaryOperation (operator, left_operand, right_operand) -> begin
+        match simplify left_operand, simplify right_operand with
+        | Constant left_value, Constant right_value -> begin
+            let result =
+              match operator with
+              | Add -> Z.add left_value right_value
+              | Sub -> Z.sub left_value right_value
+              | Mul -> Z.mul left_value right_value
+              | Div -> Z.div left_value right_value
+              | Mod -> Z.rem left_value right_value
+            in
+            Constant result
+          end
+        | simplified_left_operand, simplified_right_operand -> BinaryOperation (operator, simplified_left_operand, simplified_right_operand)
+      end
+
+                    
   let rec to_string (numeric_expression : t) =
     let string_of_binop op e1 e2 =
       let op_string =
