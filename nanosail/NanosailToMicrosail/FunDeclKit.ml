@@ -12,8 +12,8 @@ let genblock loc label (doc : PP.document GC.t) =
   GC.generation_block loc label doc
 
 
-let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) =
-  let pp_function_declaration (function_definition : Ast.Definition.Function.t) =
+let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
+  let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t) GC.t =
     let name =
       PP.annotate [%here] @@ Identifier.pp function_definition.function_name
     in
@@ -77,7 +77,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
   end
 
 
-let generate (function_definitions : Ast.Definition.Function.t list) =
+let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   genblock [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
     in
