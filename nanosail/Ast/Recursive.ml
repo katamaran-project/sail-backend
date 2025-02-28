@@ -675,9 +675,9 @@ end = struct
 
   let evaluate_numeric_expressions (type_argument : t) : t =
     match type_argument with
-    | Type typ -> Type (Type.evaluate_numeric_expressions typ)
+    | Type typ                             -> Type (Type.evaluate_numeric_expressions typ)
     | NumericExpression numeric_expression -> NumericExpression (Option.value ~default:numeric_expression @@ Option.map ~f:(fun n -> NumericExpression.Constant n) @@ NumericExpression.evaluate numeric_expression)
-    | Bool numeric_constraint -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
+    | Bool numeric_constraint              -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
   
   
   let to_string (type_argument : t) : string =
