@@ -6,6 +6,15 @@
 open! ExtBase
 
 
+(* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
+module OptionLetSyntax = Monads.Notations.Star(
+  struct
+    type 'a t    = 'a Option.t
+    let bind x f = Option.bind x ~f
+    let return   = Option.return
+  end)
+
+
 module NumericExpression = struct
   type t =
     | Constant        of Z.t
@@ -93,14 +102,6 @@ module NumericExpression = struct
     in
     aux numeric_expression
 
-  
-  (* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
-  module OptionLetSyntax = Monads.Notations.Star(
-    struct
-      type 'a t    = 'a Option.t
-      let bind x f = Option.bind x ~f
-      let return   = Option.return
-    end)
 
   (*
      Evaluates numeric expression to a Z.int, if possible (i.e., no unknowns appear in the numeric expression)
@@ -301,6 +302,7 @@ module rec Type : sig
   val equal     : t -> t -> bool
 
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
+  val evaluate_numeric_expressions : t -> t
 end = struct
   type t =
     | Int          of NumericExpression.t option
@@ -354,7 +356,40 @@ end = struct
     in
     subst typ
 
-  
+
+  let rec evaluate_numeric_expressions (typ : t) : t =
+    let eval (numeric_expression : NumericExpression.t) : NumericExpression.t =
+      let open OptionLetSyntax
+      in
+      Option.value ~default:numeric_expression begin
+        let* value = NumericExpression.evaluate numeric_expression
+        in
+        Some (NumericExpression.Constant value)
+      end
+    in
+    match (typ : t) with
+    | Int numeric_expression -> Int (Option.map ~f:eval numeric_expression)
+    | Bool -> typ
+    | String -> typ
+    | Bit -> typ
+    | List element_type -> List (evaluate_numeric_expressions element_type)
+    | Sum (left, right) -> Sum (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | Unit -> typ
+    | Enum _ -> typ
+    | Bitvector numeric_expression -> Bitvector (eval numeric_expression)
+    | Tuple element_types -> Tuple (List.map ~f:evaluate_numeric_expressions element_types)
+    | Variant _ -> typ
+    | Record _ -> typ
+    | Application (receiver, type_arguments) -> Application (evaluate_numeric_expressions receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
+    | Alias (identifier, typ) -> Alias (identifier, evaluate_numeric_expressions typ)
+    | Range (lower, upper) -> Range (eval lower, eval upper)
+    | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:evaluate_numeric_expressions parameter_types; result_type = evaluate_numeric_expressions result_type }
+    | TypeVariable _ -> typ
+    | Nat -> typ
+    | Vector (typ, numeric_expression) -> Vector (evaluate_numeric_expressions typ, eval numeric_expression)
+    | Implicit _ -> typ
+
+
   let rec to_string (t : t) : string =
     let format fmt =
       Printf.ksprintf (fun s -> "Type." ^ s) fmt
@@ -619,6 +654,7 @@ and TypeArgument : sig
   val equal     : t -> t -> bool
 
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
+  val evaluate_numeric_expressions             : t -> t
 end = struct
   type t =
     | Type              of Type.t
@@ -635,6 +671,13 @@ end = struct
     | NumericExpression numeric_expression -> NumericExpression (NumericExpression.substitute substitution numeric_expression)
     | Bool numeric_constraint              -> Bool (NumericConstraint.substitute_numeric_expression_identifier substitution numeric_constraint)
 
+
+  let evaluate_numeric_expressions (type_argument : t) : t =
+    match type_argument with
+    | Type typ -> Type (Type.evaluate_numeric_expressions typ)
+    | NumericExpression numeric_expression -> NumericExpression (Option.value ~default:numeric_expression @@ Option.map ~f:(fun n -> NumericExpression.Constant n) @@ NumericExpression.evaluate numeric_expression)
+    | Bool numeric_constraint -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
+  
   
   let to_string (type_argument : t) : string =
     match type_argument with
@@ -705,6 +748,7 @@ and NumericConstraint : sig
   val equal     : t -> t -> bool
 
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
+  val evaluate_numeric_expressions : t -> t
 end = struct
   type t =
     | Equal                of TypeArgument.t      * TypeArgument.t
@@ -786,6 +830,30 @@ end = struct
     | True  -> numeric_constraint
     | False -> numeric_constraint
 
+
+  let rec evaluate_numeric_expressions (numeric_constraint : t) : t =
+    let eval (numeric_expression : NumericExpression.t) : NumericExpression.t =
+      Option.value ~default:numeric_expression begin
+        Option.map ~f:(fun n -> NumericExpression.Constant n) begin
+          NumericExpression.evaluate numeric_expression
+        end
+      end        
+    in
+    match (numeric_constraint : t) with
+    | Equal (left, right) -> Equal (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
+    | NotEqual (left, right) -> NotEqual (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
+    | GreaterThanOrEqualTo (left, right) -> GreaterThanOrEqualTo (eval left, eval right)
+    | GreaterThan (left, right) -> GreaterThan (eval left, eval right)
+    | LessThanOrEqualTo (left, right) -> LessThanOrEqualTo (eval left, eval right)
+    | LessThan (left, right) -> LessThan (eval left, eval right)
+    | Set (_, _) -> numeric_constraint
+    | Or (left, right) -> Or (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | And (left, right) -> And (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | App (identifier, type_arguments) -> App (identifier, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
+    | Var _ -> numeric_constraint
+    | True -> numeric_constraint
+    | False -> numeric_constraint
+  
   
   let rec to_string (numeric_constraint : t) =
     let binop e1 op e2 =
