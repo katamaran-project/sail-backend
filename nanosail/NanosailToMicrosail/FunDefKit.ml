@@ -178,6 +178,18 @@ let pp_function_definitions
 
 
 let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
+  (* extract monomorphs *)
+  let function_definitions : Ast.Definition.Function.t list =
+    let fetch_monomorphs_if_present (function_definition : Ast.Definition.Function.t) : Ast.Definition.Function.t list =
+      if
+        List.is_empty function_definition.monomorphs
+      then
+        [ function_definition ]
+      else
+        function_definition.monomorphs
+    in
+    List.concat_map function_definitions ~f:fetch_monomorphs_if_present
+  in
   GC.generation_block [%here] "FunDef" begin
     let identifier =
       Identifier.pp @@ Ast.Identifier.mk "FunDef"
