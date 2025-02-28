@@ -841,7 +841,10 @@ let rec simplify (statement : t) : t =
       let left  = simplify left
       and right = simplify right
       in
-      Seq (left, right)
+      match left, right with
+      | Expression (Value Unit)                 , _ -> right
+      | Expression (Variable (_, Nanotype.Unit)), _ -> right
+      | _                                           -> Seq (left, right)
     end
 
   | Expression expression      -> Expression (Expression.simplify expression)
