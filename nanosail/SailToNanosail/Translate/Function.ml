@@ -100,7 +100,9 @@ let statement_of_lvar
 
 
 let translate_return_type (sail_type : Libsail.Ast.typ) : Ast.Type.t TC.t =
-  Type.nanotype_of_sail_type sail_type
+  let* translation = Type.nanotype_of_sail_type sail_type
+  in
+  TC.return @@ Ast.Type.simplify translation
 
 
 let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t  =
