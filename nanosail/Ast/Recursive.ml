@@ -368,26 +368,27 @@ end = struct
       end
     in
     match (typ : t) with
-    | Int numeric_expression -> Int (Option.map ~f:eval numeric_expression)
-    | Bool -> typ
-    | String -> typ
-    | Bit -> typ
-    | List element_type -> List (evaluate_numeric_expressions element_type)
-    | Sum (left, right) -> Sum (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
-    | Unit -> typ
-    | Enum _ -> typ
-    | Bitvector numeric_expression -> Bitvector (eval numeric_expression)
-    | Tuple element_types -> Tuple (List.map ~f:evaluate_numeric_expressions element_types)
-    | Variant _ -> typ
-    | Record _ -> typ
-    | Application (receiver, type_arguments) -> Application (evaluate_numeric_expressions receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
-    | Alias (identifier, typ) -> Alias (identifier, evaluate_numeric_expressions typ)
-    | Range (lower, upper) -> Range (eval lower, eval upper)
-    | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:evaluate_numeric_expressions parameter_types; result_type = evaluate_numeric_expressions result_type }
-    | TypeVariable _ -> typ
-    | Nat -> typ
-    | Vector (typ, numeric_expression) -> Vector (evaluate_numeric_expressions typ, eval numeric_expression)
-    | Implicit _ -> typ
+    | Int numeric_expression                    -> Int (Option.map ~f:eval numeric_expression)
+    | Bool                                      -> typ
+    | String                                    -> typ
+    | Bit                                       -> typ
+    | List element_type                         -> List (evaluate_numeric_expressions element_type)
+    | Sum (left, right)                         -> Sum (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | Unit                                      -> typ
+    | Enum _                                    -> typ
+    | Bitvector numeric_expression              -> Bitvector (eval numeric_expression)
+    | Tuple element_types                       -> Tuple (List.map ~f:evaluate_numeric_expressions element_types)
+    | Variant _                                 -> typ
+    | Record _                                  -> typ
+    | Application (receiver, type_arguments)    -> Application (evaluate_numeric_expressions receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
+    | Alias (identifier, typ)                   -> Alias (identifier, evaluate_numeric_expressions typ)
+    | Range (lower, upper)                      -> Range (eval lower, eval upper)
+    | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:evaluate_numeric_expressions parameter_types;
+                                                              result_type = evaluate_numeric_expressions result_type }
+    | TypeVariable _                            -> typ
+    | Nat                                       -> typ
+    | Vector (typ, numeric_expression)          -> Vector (evaluate_numeric_expressions typ, eval numeric_expression)
+    | Implicit _                                -> typ
 
 
   let rec to_string (t : t) : string =
