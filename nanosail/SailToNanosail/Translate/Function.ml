@@ -435,17 +435,20 @@ let find_monomorphization
     (argument_types                  : Ast.Type.t list ) : Ast.Definition.Function.t option TC.t
   =
   let* polymorphic_function_definition =
-    TC.lookup_definition (Ast.Definition.Select.function_definition_named polymorphic_function_identifier)
+    TC.lookup_definition_opt (Ast.Definition.Select.function_definition_named polymorphic_function_identifier)
   in
-  let has_required_parameter_types (function_definition : Ast.Definition.Function.t) : bool =
-    let parameter_types = List.map ~f:snd function_definition.function_type.parameters
-    in
-    List.equal Ast.Type.equal argument_types parameter_types
-  in
-  TC.return begin
-    List.find polymorphic_function_definition.monomorphs ~f:has_required_parameter_types
-  end
-      
+  match polymorphic_function_definition with
+  | Some polymorphic_function_definition -> begin
+      let has_required_parameter_types (function_definition : Ast.Definition.Function.t) : bool =
+        let parameter_types = List.map ~f:snd function_definition.function_type.parameters
+        in
+        List.equal Ast.Type.equal argument_types parameter_types
+      in
+      TC.return begin
+        List.find polymorphic_function_definition.monomorphs ~f:has_required_parameter_types
+      end
+    end
+  | None -> TC.return None
 
 (*
   Given a list of named statements (i.e., pairs of strings and statements)
