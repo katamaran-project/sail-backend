@@ -803,8 +803,6 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         }
       end
     end
-  | Expression expression -> Expression (Expression.evaluate_numeric_expressions expression)
-  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.evaluate_numeric_expressions arguments)
   | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
       Let {
         binder;
@@ -822,8 +820,10 @@ let rec evaluate_numeric_expressions (statement : t) : t =
         body                = evaluate_numeric_expressions body;
       }
     end
-  | Seq (left, right) -> Seq (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
-  | ReadRegister _ -> statement
-  | WriteRegister _ -> statement
-  | Cast (statement, typ) -> Cast (evaluate_numeric_expressions statement, Type.evaluate_numeric_expressions typ)
-  | Fail _ -> statement
+  | Expression expression      -> Expression (Expression.evaluate_numeric_expressions expression)
+  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.evaluate_numeric_expressions arguments)
+  | Seq (left, right)          -> Seq (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+  | ReadRegister _             -> statement
+  | WriteRegister _            -> statement
+  | Cast (statement, typ)      -> Cast (evaluate_numeric_expressions statement, Type.evaluate_numeric_expressions typ)
+  | Fail _                     -> statement
