@@ -741,3 +741,89 @@ let substitute_numeric_expression_identifier
     | Fail _                     -> statement
   in
   subst statement
+
+
+let rec evaluate_numeric_expressions (statement : t) : t =
+  match (statement : t) with
+  | Match (MatchList { matched; element_type; when_cons = (head_identifier, tail_identifier, when_cons); when_nil }) -> begin
+      Match begin
+        MatchList {
+          matched;
+          element_type = Type.evaluate_numeric_expressions element_type;
+          when_cons    = (head_identifier, tail_identifier, evaluate_numeric_expressions when_cons);
+          when_nil     = evaluate_numeric_expressions when_nil;
+        }
+      end
+    end
+  | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
+      Match begin
+        MatchProduct {
+          matched;
+          type_fst = Type.evaluate_numeric_expressions type_fst;
+          type_snd = Type.evaluate_numeric_expressions type_snd;
+          id_fst;
+          id_snd;
+          body     = evaluate_numeric_expressions body;
+        }
+      end
+    end
+  | Match (MatchTuple { matched; binders; body }) -> begin
+      Match begin
+        MatchTuple {
+          matched;
+          binders = List.map ~f:(fun (id, t) -> (id, Type.evaluate_numeric_expressions t)) binders;
+          body    = evaluate_numeric_expressions body;
+        }
+      end
+    end
+  | Match (MatchBool { condition; when_true; when_false }) -> begin
+      Match begin
+        MatchBool {
+          condition;
+          when_true  = evaluate_numeric_expressions when_true;
+          when_false = evaluate_numeric_expressions when_false;
+        }
+      end
+    end
+  | Match (MatchEnum { matched; matched_type; cases }) -> begin
+      Match begin
+        MatchEnum {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map_values ~f:evaluate_numeric_expressions cases;
+        }
+      end
+    end
+  | Match (MatchVariant { matched; matched_type; cases }) -> begin
+      Match begin
+        MatchVariant {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, evaluate_numeric_expressions stm)) cases;
+        }
+      end
+    end
+  | Expression expression -> Expression (Expression.evaluate_numeric_expressions expression)
+  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.evaluate_numeric_expressions arguments)
+  | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+      Let {
+        binder;
+        binding_statement_type = Type.evaluate_numeric_expressions binding_statement_type;
+        binding_statement      = evaluate_numeric_expressions binding_statement;
+        body_statement         = evaluate_numeric_expressions body_statement;
+      }
+    end
+  | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
+      DestructureRecord {
+        record_type_identifier;
+        field_identifiers;
+        binders;
+        destructured_record = evaluate_numeric_expressions destructured_record;
+        body                = evaluate_numeric_expressions body;
+      }
+    end
+  | Seq (left, right) -> Seq (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+  | ReadRegister _ -> statement
+  | WriteRegister _ -> statement
+  | Cast (statement, typ) -> Cast (evaluate_numeric_expressions statement, Type.evaluate_numeric_expressions typ)
+  | Fail _ -> statement
