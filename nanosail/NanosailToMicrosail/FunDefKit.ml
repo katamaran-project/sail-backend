@@ -177,57 +177,58 @@ let pp_function_definitions
   GC.map ~f:(Fn.uncurry pp_function_definition) type_and_function_pairs
 
 
+let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) =
+  let identifier =
+    PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
+
+  and implicit_parameters = [
+    (PP.annotate [%here] @@ PP.string "Δ", None);
+    (PP.annotate [%here] @@ PP.string "τ", None);
+  ]
+
+  and parameters =
+    [
+      (
+        PP.annotate [%here] @@ PP.string "f",
+        Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
+      )
+    ]
+
+  and result_type =
+    Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
+
+  and body =
+    let matched_expression =
+      PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
+    and cases =
+      let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+        (
+          PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
+          PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+        )
+      in
+      List.map ~f:case_of_function_definition function_definitions
+    in
+    PP.annotate [%here] @@ Coq.pp_match matched_expression cases
+  in
+  PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
+
+
 let pp_function_definition_kit
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
     (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document GC.t
   =
   GC.generation_block [%here] "FunDefKit" begin
-    let fundef : PP.t =
-      let identifier =
-        PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
-
-      and implicit_parameters = [
-        (PP.annotate [%here] @@ PP.string "Δ", None);
-        (PP.annotate [%here] @@ PP.string "τ", None);
-      ]
-
-      and parameters =
-        [
-          (
-            PP.annotate [%here] @@ PP.string "f",
-            Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
-          )
-        ]
-
-      and result_type =
-        Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
-
-      and body =
-        let matched_expression =
-          PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
-        and cases =
-          let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
-            (
-              PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
-              PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
-            )
-          in
-          List.map ~f:case_of_function_definition @@ Ast.Definition.Select.drop_sail_definitions function_definitions
-        in
-        PP.annotate [%here] @@ Coq.pp_match matched_expression cases
-      in
-      PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
-    in
     let* contents =
-      let* function_definitions =
+      let* pp_function_definitions =
         pp_function_definitions function_definitions top_level_type_constraint_definitions
       in
       GC.return begin
         PP.annotate [%here] begin
           PP.paragraphs begin
             List.build_list (fun { add; addall; _ } ->
-                addall function_definitions;
-                add    fundef
+                addall pp_function_definitions;
+                add    (pp_fundef_inductive_type @@ Ast.Definition.Select.drop_sail_definitions function_definitions)
               )
           end
         end
