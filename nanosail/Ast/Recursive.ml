@@ -391,17 +391,8 @@ end = struct
 
 
   let rec simplify (typ : t) : t =
-    let eval (numeric_expression : NumericExpression.t) : NumericExpression.t =
-      let open OptionLetSyntax
-      in
-      Option.value ~default:numeric_expression begin
-        let* value = NumericExpression.evaluate numeric_expression
-        in
-        Some (NumericExpression.Constant value)
-      end
-    in
     match (typ : t) with
-    | Int numeric_expression                    -> Int (Option.map ~f:eval numeric_expression)
+    | Int numeric_expression                    -> Int (Option.map ~f:NumericExpression.simplify numeric_expression)
     | Bool                                      -> typ
     | String                                    -> typ
     | Bit                                       -> typ
@@ -409,18 +400,18 @@ end = struct
     | Sum (left, right)                         -> Sum (simplify left, simplify right)
     | Unit                                      -> typ
     | Enum _                                    -> typ
-    | Bitvector numeric_expression              -> Bitvector (eval numeric_expression)
+    | Bitvector numeric_expression              -> Bitvector (NumericExpression.simplify numeric_expression)
     | Tuple element_types                       -> Tuple (List.map ~f:simplify element_types)
     | Variant _                                 -> typ
     | Record _                                  -> typ
     | Application (receiver, type_arguments)    -> Application (simplify receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
     | Alias (identifier, typ)                   -> Alias (identifier, simplify typ)
-    | Range (lower, upper)                      -> Range (eval lower, eval upper)
+    | Range (lower, upper)                      -> Range (NumericExpression.simplify lower, NumericExpression.simplify upper)
     | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:simplify parameter_types;
                                                               result_type = simplify result_type }
     | TypeVariable _                            -> typ
     | Nat                                       -> typ
-    | Vector (typ, numeric_expression)          -> Vector (simplify typ, eval numeric_expression)
+    | Vector (typ, numeric_expression)          -> Vector (simplify typ, NumericExpression.simplify numeric_expression)
     | Implicit _                                -> typ
 
 
@@ -709,7 +700,7 @@ end = struct
   let evaluate_numeric_expressions (type_argument : t) : t =
     match type_argument with
     | Type typ                             -> Type (Type.simplify typ)
-    | NumericExpression numeric_expression -> NumericExpression (Option.value ~default:numeric_expression @@ Option.map ~f:(fun n -> NumericExpression.Constant n) @@ NumericExpression.evaluate numeric_expression)
+    | NumericExpression numeric_expression -> NumericExpression (NumericExpression.simplify numeric_expression)
     | Bool numeric_constraint              -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
   
   
@@ -866,20 +857,13 @@ end = struct
 
 
   let rec evaluate_numeric_expressions (numeric_constraint : t) : t =
-    let eval (numeric_expression : NumericExpression.t) : NumericExpression.t =
-      Option.value ~default:numeric_expression begin
-        Option.map ~f:(fun n -> NumericExpression.Constant n) begin
-          NumericExpression.evaluate numeric_expression
-        end
-      end        
-    in
     match (numeric_constraint : t) with
     | Equal (left, right)                -> Equal (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
     | NotEqual (left, right)             -> NotEqual (TypeArgument.evaluate_numeric_expressions left, TypeArgument.evaluate_numeric_expressions right)
-    | GreaterThanOrEqualTo (left, right) -> GreaterThanOrEqualTo (eval left, eval right)
-    | GreaterThan (left, right)          -> GreaterThan (eval left, eval right)
-    | LessThanOrEqualTo (left, right)    -> LessThanOrEqualTo (eval left, eval right)
-    | LessThan (left, right)             -> LessThan (eval left, eval right)
+    | GreaterThanOrEqualTo (left, right) -> GreaterThanOrEqualTo (NumericExpression.simplify left, NumericExpression.simplify right)
+    | GreaterThan (left, right)          -> GreaterThan (NumericExpression.simplify left, NumericExpression.simplify right)
+    | LessThanOrEqualTo (left, right)    -> LessThanOrEqualTo (NumericExpression.simplify left, NumericExpression.simplify right)
+    | LessThan (left, right)             -> LessThan (NumericExpression.simplify left, NumericExpression.simplify right)
     | Set (_, _)                         -> numeric_constraint
     | Or (left, right)                   -> Or (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
     | And (left, right)                  -> And (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
