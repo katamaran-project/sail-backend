@@ -81,17 +81,22 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
   genblock [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
     in
+    let pp_definitions : PP.t =
+      PP.vertical @@ List.map ~f:PP.string [
+        "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
+        "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
+        "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
+      ]
+    in      
     let contents =
       PP.annotate [%here] begin
           PP.vertical [
-              pp_fun_inductive_type;
-              PP.vertical @@ List.map ~f:PP.string [
-                                 "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
-                                 "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
-                                 "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
-                               ]
-            ]
+            pp_fun_inductive_type;
+            pp_definitions
+          ]
         end
     in
-    GC.return @@ PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "FunDeclKit") contents
+    GC.return begin
+      Coq.pp_section (Ast.Identifier.mk "FunDeclKit") contents
+    end
   end
