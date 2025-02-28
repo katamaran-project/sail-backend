@@ -125,10 +125,10 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
        | L_real _   -> TC.not_yet_implemented [%here] location
      end
   | P_id id -> begin
-      let* x  = Identifier.translate_identifier [%here] id in
-      let* ty = Type.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
+      let* identifier = Identifier.translate_identifier [%here] id in
+      let* typ = Type.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       in
-      TC.return [(x, ty)]
+      TC.return [(identifier, Ast.Type.simplify typ)]
     end
   | P_tuple pats -> begin (* todo correction: only top level tuple should be turned into a list *)
       let* pats' = TC.map ~f:translate_parameter_bindings pats
@@ -139,7 +139,7 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
       let* typ = Type.nanotype_of_sail_type @@ Libsail.Type_check.typ_of_annot annotation
       and* id  = TC.generate_unique_identifier ~underscore:true ()
       in
-      TC.return [(id, typ)]
+      TC.return [(id, Ast.Type.simplify typ)]
     end
   | P_typ (_typ, pattern)       -> translate_parameter_bindings pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
   | P_or (_, _)                 -> TC.not_yet_implemented [%here] location
