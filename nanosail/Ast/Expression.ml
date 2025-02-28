@@ -239,7 +239,7 @@ let substitute_numeric_expression_identifier
 
 let rec simplify (expression : t) : t =
   match expression with
-  | Variable (identifier, typ) -> Variable (identifier, Nanotype.evaluate_numeric_expressions typ)
+  | Variable (identifier, typ) -> Variable (identifier, Nanotype.simplify typ)
   | Value _ -> expression
   | List elements -> List (List.map ~f:simplify elements)
   | UnaryOperation (operator, operand) -> UnaryOperation (operator, simplify operand)

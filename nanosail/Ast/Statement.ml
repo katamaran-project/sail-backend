@@ -749,7 +749,7 @@ let rec simplify (statement : t) : t =
       Match begin
         MatchList {
           matched;
-          element_type = Type.evaluate_numeric_expressions element_type;
+          element_type = Type.simplify element_type;
           when_cons    = (head_identifier, tail_identifier, simplify when_cons);
           when_nil     = simplify when_nil;
         }
@@ -760,8 +760,8 @@ let rec simplify (statement : t) : t =
       Match begin
         MatchProduct {
           matched;
-          type_fst = Type.evaluate_numeric_expressions type_fst;
-          type_snd = Type.evaluate_numeric_expressions type_snd;
+          type_fst = Type.simplify type_fst;
+          type_snd = Type.simplify type_snd;
           id_fst;
           id_snd;
           body     = simplify body;
@@ -773,7 +773,7 @@ let rec simplify (statement : t) : t =
       Match begin
         MatchTuple {
           matched;
-          binders = List.map ~f:(fun (id, t) -> (id, Type.evaluate_numeric_expressions t)) binders;
+          binders = List.map ~f:(fun (id, t) -> (id, Type.simplify t)) binders;
           body    = simplify body;
         }
       end
@@ -810,7 +810,7 @@ let rec simplify (statement : t) : t =
     end
     
   | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
-      let binding_statement_type = Type.evaluate_numeric_expressions binding_statement_type
+      let binding_statement_type = Type.simplify binding_statement_type
       and binding_statement      = simplify binding_statement
       and body_statement         = simplify body_statement
       in
@@ -851,5 +851,5 @@ let rec simplify (statement : t) : t =
   | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
   | ReadRegister _             -> statement
   | WriteRegister _            -> statement
-  | Cast (statement, typ)      -> Cast (simplify statement, Type.evaluate_numeric_expressions typ)
+  | Cast (statement, typ)      -> Cast (simplify statement, Type.simplify typ)
   | Fail _                     -> statement

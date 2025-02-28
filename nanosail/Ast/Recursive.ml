@@ -302,7 +302,7 @@ module rec Type : sig
   val equal     : t -> t -> bool
 
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
-  val evaluate_numeric_expressions : t -> t
+  val simplify                                 : t -> t
 end = struct
   type t =
     | Int          of NumericExpression.t option
@@ -357,7 +357,7 @@ end = struct
     subst typ
 
 
-  let rec evaluate_numeric_expressions (typ : t) : t =
+  let rec simplify (typ : t) : t =
     let eval (numeric_expression : NumericExpression.t) : NumericExpression.t =
       let open OptionLetSyntax
       in
@@ -372,22 +372,22 @@ end = struct
     | Bool                                      -> typ
     | String                                    -> typ
     | Bit                                       -> typ
-    | List element_type                         -> List (evaluate_numeric_expressions element_type)
-    | Sum (left, right)                         -> Sum (evaluate_numeric_expressions left, evaluate_numeric_expressions right)
+    | List element_type                         -> List (simplify element_type)
+    | Sum (left, right)                         -> Sum (simplify left, simplify right)
     | Unit                                      -> typ
     | Enum _                                    -> typ
     | Bitvector numeric_expression              -> Bitvector (eval numeric_expression)
-    | Tuple element_types                       -> Tuple (List.map ~f:evaluate_numeric_expressions element_types)
+    | Tuple element_types                       -> Tuple (List.map ~f:simplify element_types)
     | Variant _                                 -> typ
     | Record _                                  -> typ
-    | Application (receiver, type_arguments)    -> Application (evaluate_numeric_expressions receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
-    | Alias (identifier, typ)                   -> Alias (identifier, evaluate_numeric_expressions typ)
+    | Application (receiver, type_arguments)    -> Application (simplify receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
+    | Alias (identifier, typ)                   -> Alias (identifier, simplify typ)
     | Range (lower, upper)                      -> Range (eval lower, eval upper)
-    | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:evaluate_numeric_expressions parameter_types;
-                                                              result_type = evaluate_numeric_expressions result_type }
+    | Function { parameter_types; result_type } -> Function { parameter_types = List.map ~f:simplify parameter_types;
+                                                              result_type = simplify result_type }
     | TypeVariable _                            -> typ
     | Nat                                       -> typ
-    | Vector (typ, numeric_expression)          -> Vector (evaluate_numeric_expressions typ, eval numeric_expression)
+    | Vector (typ, numeric_expression)          -> Vector (simplify typ, eval numeric_expression)
     | Implicit _                                -> typ
 
 
@@ -675,7 +675,7 @@ end = struct
 
   let evaluate_numeric_expressions (type_argument : t) : t =
     match type_argument with
-    | Type typ                             -> Type (Type.evaluate_numeric_expressions typ)
+    | Type typ                             -> Type (Type.simplify typ)
     | NumericExpression numeric_expression -> NumericExpression (Option.value ~default:numeric_expression @@ Option.map ~f:(fun n -> NumericExpression.Constant n) @@ NumericExpression.evaluate numeric_expression)
     | Bool numeric_constraint              -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
   
