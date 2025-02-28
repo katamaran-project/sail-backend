@@ -1,0 +1,17 @@
+foo
+  1: Argument types
+       arg #1: ty.bvec (8)
+       arg #2: ty.bvec (8)
+       arg #3: ty.int
+  2: Argument types
+       arg #1: ty.bvec (4)
+       arg #2: ty.bvec (1)
+       arg #3: ty.int
+  3: Argument types
+       arg #1: ty.bvec (1)
+       arg #2: ty.bvec (2)
+       arg #3: ty.int
+sail_zero_extend
+  1: Argument types
+       arg #1: ty.bvec (1)
+       arg #2: ty.int
