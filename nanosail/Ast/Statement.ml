@@ -810,11 +810,15 @@ let rec simplify (statement : t) : t =
     end
     
   | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+      let binding_statement_type = Type.evaluate_numeric_expressions binding_statement_type
+      and binding_statement      = simplify binding_statement
+      and body_statement         = simplify body_statement
+      in
       Let {
         binder;
-        binding_statement_type = Type.evaluate_numeric_expressions binding_statement_type;
-        binding_statement      = simplify binding_statement;
-        body_statement         = simplify body_statement;
+        binding_statement_type;
+        binding_statement;
+        body_statement;
       }
     end
     
