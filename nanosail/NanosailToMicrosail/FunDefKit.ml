@@ -178,37 +178,39 @@ let pp_function_definitions
 
 
 let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
-  let identifier =
-    PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.mk "FunDef"
-  and implicit_parameters = [
-    (PP.annotate [%here] @@ PP.string "Δ", None);
-    (PP.annotate [%here] @@ PP.string "τ", None);
-  ]
-  and parameters =
-    [
-      (
-        PP.annotate [%here] @@ PP.string "f",
-        Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
-      )
+  GC.generation_block [%here] "FunDef" begin
+    let identifier =
+      Identifier.pp @@ Ast.Identifier.mk "FunDef"
+    and implicit_parameters = [
+      PP.string "Δ", None;
+      PP.string "τ", None;
     ]
-  and result_type =
-    Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
-  and body =
-    let matched_expression =
-      PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
-    and cases =
-      let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+    and parameters =
+      [
         (
-          PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
-          PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+          PP.annotate [%here] @@ PP.string "f",
+          Some (PP.annotate [%here] @@ PP.string "Fun Δ τ")
         )
+      ]
+    and result_type =
+      Some (PP.annotate [%here] @@ PP.string "Stm Δ τ")
+    and body =
+      let matched_expression =
+        PP.annotate [%here] @@ PP.string "f in Fun Δ τ return Stm Δ τ"
+      and cases =
+        let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+          (
+            PP.annotate [%here] @@ Identifier.pp function_definition.function_name,
+            PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+          )
+        in
+        List.map ~f:case_of_function_definition function_definitions
       in
-      List.map ~f:case_of_function_definition function_definitions
+      PP.annotate [%here] @@ Coq.pp_match matched_expression cases
     in
-    PP.annotate [%here] @@ Coq.pp_match matched_expression cases
-  in
-  GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
-
+    GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
+  end
+    
 
 let pp_function_definition_kit
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
