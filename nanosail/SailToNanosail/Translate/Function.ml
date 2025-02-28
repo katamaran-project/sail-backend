@@ -1286,8 +1286,8 @@ let translate_function_definition
                     };
                     extended_function_type; (* todo should also be updated *)
                     function_body = substituted_function_body;
-                    polymorphic = false;
-                    monomorphs  = [];
+                    polymorphic   = false;
+                    monomorphs    = [];
                   }
                 in
                 let* () =
