@@ -180,16 +180,22 @@ end = struct
           (constraints : Libsail.Ast.n_constraint  )
           (typ         : Libsail.Ast.typ           ) : Ast.Type.t TC.t
         =
-        let ids'                = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
-        and numeric_constraint' = StringOf.Sail.n_constraint constraints
-        and typ'                = Libsail.Ast_util.string_of_typ typ
+        let* () =
+          let message = lazy begin
+            let ids'                = String.concat ~sep:", " @@ List.map ~f:Libsail.Ast_util.string_of_kinded_id ids
+            and numeric_constraint' = StringOf.Sail.n_constraint constraints
+            and typ'                = Libsail.Ast_util.string_of_typ typ
+            in
+            PP.vertical [
+              PP.string "Encountered Typ_exist";
+              PP.format "Kinded ids: %s" ids';
+              PP.format "Numeric constraint: %s" numeric_constraint';
+              PP.format "Type: %s"  typ';
+            ]
+          end
+          in
+          TC.log [%here] Logging.warning message
         in
-        begin
-          if
-            Configuration.(get print_warnings)
-          then
-            Stdio.printf "Encountered Typ_exist\nKinded ids: %s\nNumeric constraint: %s\nType: %s\n\n" ids' numeric_constraint' typ'
-        end;
         nanotype_of_sail_type typ
 
       and nanotype_of_tuple (items : Libsail.Ast.typ list) : Ast.Type.t TC.t =
