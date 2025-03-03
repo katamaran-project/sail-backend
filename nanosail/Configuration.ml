@@ -14,7 +14,7 @@ type template_translation =
   }
 
 
-module C = struct
+module Implementation = struct
   include ConfigLib.BuildContext.Make(struct end)
 
   module EC = Slang.EvaluationContext
@@ -183,13 +183,13 @@ module C = struct
     export_callable exported_function_name handler_function
 end
 
-include C.Exported
+include Implementation.Exported
 
 
 let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
-  Ast.Identifier.Map.find !C.monomorphization_requests function_identifier
+  Ast.Identifier.Map.find !Implementation.monomorphization_requests function_identifier
 
 
-let load_configuration = C.load_configuration
+let load_configuration = Implementation.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
