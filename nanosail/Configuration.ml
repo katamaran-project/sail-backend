@@ -28,7 +28,6 @@ module C = struct
     let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
     let ignore_overloads                           = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
     let ignore_default_order                       = bool     "ignore-default-order"             true
-    let print_warnings                             = bool     "print-warnings"                   false
     let pretty_print_let                           = bool     "pretty-print-let"                 false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
