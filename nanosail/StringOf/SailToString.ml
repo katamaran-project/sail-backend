@@ -145,9 +145,11 @@ let definition
     ?(ribbon_width        : float          = 1.0                 )
     (sail_definition      : Sail.typed_def                       ) : string
   =
-  let buffer = Buffer.create buffer_initial_size
+  let buffer =
+    Buffer.create buffer_initial_size
   in
-  let document = Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
+  let document =
+    Libsail.Pretty_print_sail.doc_def (Libsail.Type_check.strip_def sail_definition)
   in
   PPrint.ToBuffer.pretty ribbon_width line_width buffer document;
   Buffer.contents buffer
