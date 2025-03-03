@@ -1,10 +1,17 @@
 open! ExtBase
 
 
-type monomorphization_request = {
-  monomorphization_identifier : Ast.Identifier.t;
-  substitutions               : (Ast.Identifier.t * int) list;
-}
+type monomorphization_request =
+  {
+    monomorphization_identifier : Ast.Identifier.t;
+    substitutions               : (Ast.Identifier.t * int) list;
+  }
+
+type template_translation =
+  {
+    template_filename : string;
+    output_filename   : string;
+  }
 
 
 module C = struct
@@ -53,17 +60,6 @@ module C = struct
         ConfigLib.Setting.set template_block_right_delimiter right
       end
 
-
-    (*
-       Template translations
-
-       It is possible to specify multiple templates to be translated.
-     *)
-    type template_translation =
-      {
-        template_filename : string;
-        output_filename   : string;
-      }
 
     let template_translations = ConfigLib.Setting.mk ([] : template_translation list)
 
