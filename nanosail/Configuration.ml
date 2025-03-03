@@ -22,7 +22,7 @@ module C = struct
 
   open Slang.Prelude.Shared
 
-  module S = struct
+  module Exported = struct
     let pattern_tree_maximum_permutations          = integer  "pattern-tree-max-permutations"    1000
     let use_list_notations                         = bool     "use-list-notations"               false (* Use list notations                                                          *)
     let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
@@ -129,8 +129,8 @@ module C = struct
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
-      ConfigLib.Setting.set S.ignore_function_definition_predicate callable;
-      ConfigLib.Setting.set S.ignore_top_level_type_constraint_predicate callable;
+      ConfigLib.Setting.set Exported.ignore_function_definition_predicate callable;
+      ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate callable;
       EC.return @@ Value.Nil
     in
     export_callable exported_function_name handler_function
@@ -183,7 +183,7 @@ module C = struct
     export_callable exported_function_name handler_function
 end
 
-include C.S
+include C.Exported
 
 
 let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
