@@ -23,7 +23,6 @@ module C = struct
   open Slang.Prelude.Shared
 
   module S = struct
-    let output_width                               = integer  "output-width"                     200
     let pattern_tree_maximum_permutations          = integer  "pattern-tree-max-permutations"    1000
     let use_list_notations                         = bool     "use-list-notations"               false (* Use list notations                                                          *)
     let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
