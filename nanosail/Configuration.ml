@@ -1,7 +1,5 @@
 open! ExtBase
 
-type sail_definition = Sail.sail_definition
-
 
 type monomorphization_request = {
   monomorphization_identifier : Ast.Identifier.t;
