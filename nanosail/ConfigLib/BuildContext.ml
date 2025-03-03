@@ -103,15 +103,31 @@ module Make (_ : sig end) = struct
     setting
 
   (*
-    Exports a Slang function named <export_as> that takes a boolean argument.
-    Calling this function causes a refcell to be set with this argument.
-   *)
-  let bool export_as init =
-    let setting = Setting.mk init
+     Exports a Slang function named <export_as> that takes an optional boolean argument.
+     Calling this function causes the setting to be set with this argument.
+     If no argument is given, the setting is set to the negation of <default_value>.
+     If the function is not called, the setting is set to <default_value>.
+  *)
+  let bool export_as default_value =
+    let setting = Setting.mk default_value
     in
-    let script_function _values =
-      Setting.set setting true;
-      EC.return Slang.Value.Nil
+    let script_function arguments =
+      match arguments with
+      | [] -> begin
+          (* No arguments given; set refcell to (not default_value) *)
+          Setting.set setting (not default_value);
+          EC.return Slang.Value.Nil
+        end
+      | [argument] -> begin
+          (* Single argument given, evaluate it, determine its truthiness, and assign it to the setting *)
+          let* evaluated_argument = evaluate argument
+          in
+          let truthiness = Slang.Value.truthy evaluated_argument
+          in
+          Setting.set setting truthiness;
+          EC.return Slang.Value.Nil
+        end
+      | _ -> failwith @@ Printf.sprintf "Function %s expects at most one argument" export_as
     in
     export_callable export_as script_function;
     setting
