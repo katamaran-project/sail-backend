@@ -76,15 +76,20 @@ and evaluate_callable native_function arguments =
 
 
 (*
+   Evaluates each value in order and returns the results in a list.
+*)
+let evaluate_sequentially (asts : Value.t list) : Value.t list EC.t =
+  EC.map ~f:evaluate asts
+
+
+(*
    Evaluates each value in order.
    Returns the result of the evaluation of the last value (or Nil if the given list is empty).
 *)
-let evaluate_sequentially (asts : Value.t list) : Value.t EC.t =
-  let* results = EC.map ~f:evaluate asts
+let evaluate_block (block : Value.t list) : Value.t EC.t =
+  let* results = evaluate_sequentially block
   in
-  match List.last results with
-  | None   -> EC.return Value.Nil
-  | Some x -> EC.return x
+  EC.return @@ Option.value ~default:Value.Nil @@ List.last results
 
 
 let mk_closure env parameters body : Value.callable =
@@ -96,7 +101,10 @@ let mk_closure env parameters body : Value.callable =
       in
       let* () = EC.add_binding "recurse" (Value.Callable callable)
       in
-      evaluate_sequentially body
+      let* values =
+        evaluate_block body
+      in
+      EC.return values
     end
   in
   callable
@@ -109,7 +117,7 @@ let mk_macro env parameters body : Value.callable =
       in
       let* ()     = EC.add_binding "recurse" (Value.Callable callable)
       in
-      let* result = evaluate_sequentially body
+      let* result = evaluate_block body
       in
       evaluate result
     end
@@ -120,4 +128,4 @@ let mk_macro env parameters body : Value.callable =
 let parse_and_evaluate_string (s : string) : Value.t EC.t =
   let asts = P.parse_string s
   in
-  evaluate_sequentially asts
+  evaluate_block asts
