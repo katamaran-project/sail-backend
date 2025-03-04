@@ -9,6 +9,13 @@ module C = Converters
 open Shared
 
 
+(*
+   (= arg1 arg2 ... argn)
+
+   Checks if all arguments are equal.
+   (=) returns true.
+   (= arg) returns true.
+*)
 let equality_check =
   let id = "="
   in
