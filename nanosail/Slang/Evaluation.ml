@@ -58,6 +58,7 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
   | Value.Callable _     -> EC.return ast
   | Value.Reference _    -> EC.return ast
 
+
 and evaluate_call func arguments =
   match func with
   | Value.Cons (_, _)    -> raise @@ SlangError "cons are not callable"
@@ -69,46 +70,44 @@ and evaluate_call func arguments =
   | Value.Reference _    -> raise @@ SlangError "references are not callable"
   | Value.Callable f     -> evaluate_callable f arguments
 
+
 and evaluate_callable native_function arguments =
   native_function arguments
+
 
 (*
    Evaluates each value in order.
    Returns the result of the evaluation of the last value (or Nil if the given list is empty).
 *)
 and evaluate_sequentially (asts : Value.t list) : Value.t EC.t =
-  let open EC
-  in
   let* results = EC.map ~f:evaluate asts
   in
   match List.last results with
-  | None   -> return Value.Nil
-  | Some x -> return x
+  | None   -> EC.return Value.Nil
+  | Some x -> EC.return x
+
 
 let mk_closure env parameters body : Value.callable =
   let rec callable arguments =
-    let open EC
-    in
-    let* evaluated_arguments = map ~f:evaluate arguments
+    let* evaluated_arguments = EC.map ~f:evaluate arguments
     in
     with_environment env begin
       let* () = bind_parameters parameters evaluated_arguments
       in
-      let* () = add_binding "recurse" (Value.Callable callable)
+      let* () = EC.add_binding "recurse" (Value.Callable callable)
       in
       evaluate_sequentially body
     end
   in
   callable
 
+
 let mk_macro env parameters body : Value.callable =
   let rec callable arguments =
-    let open EC
-    in
     with_environment env begin
-      let* () = bind_parameters parameters arguments
+      let* ()     = bind_parameters parameters arguments
       in
-      let* () = add_binding "recurse" (Value.Callable callable)
+      let* ()     = EC.add_binding "recurse" (Value.Callable callable)
       in
       let* result = evaluate_sequentially body
       in
@@ -116,6 +115,7 @@ let mk_macro env parameters body : Value.callable =
     end
   in
   callable
+
 
 let evaluate_string (s : string) : Value.t EC.t =
   let asts = P.parse_string s
