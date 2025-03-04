@@ -222,7 +222,9 @@ module Make (_ : sig end) = struct
     setting
 
 
-  let mandatory_callable ?(error_message = "missing setting") export_as =
+  let mandatory_callable
+      ?(error_message : string = "missing setting")
+      (export_as      : string                    ) : Slang.Value.callable Setting.t =
     let setting = Setting.mk (fun _ -> failwith error_message)
     in
     let script_function arguments =
