@@ -92,7 +92,11 @@ let evaluate_block (block : Value.t list) : Value.t EC.t =
   EC.return @@ Option.value ~default:Value.Nil @@ List.last results
 
 
-let mk_closure env parameters body : Value.callable =
+let mk_closure
+    (env        : Value.t Environment.t)
+    (parameters : string list          )
+    (body       : Value.t list         ) : Value.callable
+  =
   let rec callable arguments =
     let* evaluated_arguments = EC.map ~f:evaluate arguments
     in
