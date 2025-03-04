@@ -19,9 +19,9 @@ module Make (_ : sig end) = struct
   
 
   (*
-     Evaluate f using the configuration interpreter
+     Run f using the configuration interpreter
   *)
-  let evaluate (f : 'a EC.t) : 'a =
+  let run (f : 'a EC.t) : 'a =
     let result, new_slang_state = Slang.EvaluationContext.run_with_state f !configuration_interpreter_state
     in
     match result with
@@ -40,7 +40,7 @@ module Make (_ : sig end) = struct
       (identifier : string       )
       (value      : Slang.Value.t) : unit
     =
-    evaluate (EC.add_binding identifier value)
+    run (EC.add_binding identifier value)
 
   
   let export_callable
@@ -88,7 +88,7 @@ module Make (_ : sig end) = struct
     let program =
       Slang.Evaluation.parse_and_evaluate_string contents
     in
-    ignore @@ evaluate program
+    ignore @@ run program
 
 
   let export_strict_function
