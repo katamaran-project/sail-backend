@@ -29,8 +29,6 @@ let with_environment
 
 
 let rec evaluate (ast : Value.t) : Value.t EC.t =
-  let open EC
-  in
   match ast with
   | Value.Cons (id, args)   -> begin
       let* f = evaluate id
@@ -44,21 +42,21 @@ let rec evaluate (ast : Value.t) : Value.t EC.t =
         Value.is_keyword identifier
       then
         (* keywords evaluate to themselves *)
-        return ast
+        EC.return ast
       else begin
-        let* lookup_result = lookup identifier
+        let* lookup_result = EC.lookup identifier
         in
         match lookup_result with
-        | Some value          -> return value
+        | Some value          -> EC.return value
         | None                -> raise @@ SlangError ("unbound identifier " ^ identifier)
       end
     end
-  | Value.Integer _      -> return ast
-  | Value.String _       -> return ast
-  | Value.Bool _         -> return ast
-  | Value.Nil            -> return ast
-  | Value.Callable _     -> return ast
-  | Value.Reference _    -> return ast
+  | Value.Integer _      -> EC.return ast
+  | Value.String _       -> EC.return ast
+  | Value.Bool _         -> EC.return ast
+  | Value.Nil            -> EC.return ast
+  | Value.Callable _     -> EC.return ast
+  | Value.Reference _    -> EC.return ast
 
 and evaluate_call func arguments =
   match func with
