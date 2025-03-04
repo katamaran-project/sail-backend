@@ -245,26 +245,6 @@ module Make (_ : sig end) = struct
     setting
 
 
-  let mandatory_callable
-      ?(error_message : string = "missing setting")
-      (export_as      : string                    ) : Slang.Value.callable Setting.t =
-    let setting = Setting.mk (fun _ -> failwith error_message)
-    in
-    let script_function arguments =
-      let open Slang in
-      let open Slang.Prelude.Shared
-      in
-      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
-      in
-      let=! callable = Converters.(map1 callable) evaluated_arguments
-      in
-      Setting.set setting callable;
-      EC.return @@ Value.Nil
-    in
-    export_callable export_as script_function;
-    setting
-
-
   let callable
       (export_as : string              )
       (default   : Slang.Value.callable) : Slang.Value.callable Setting.t
