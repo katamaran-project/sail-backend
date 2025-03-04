@@ -40,8 +40,18 @@ let equality_check =
   (id, impl)
 
 
-let comparison converter comparator =
-  let impl args =
+(*
+   Returns a function that, given a list, first converts all items and
+   then compares adjacent pairs using comparator.
+
+   If a conversion fails, the function returns None.
+   If all comparisons succeed, the function returns the Slang value for true, otherwise false.
+*)
+let comparison
+    (converter  : 'a -> 'b option )
+    (comparator : 'b -> 'b -> bool) : 'a list -> V.t option t
+  =
+  let impl (args : 'a list) : V.t option t =
     let=?? ns = List.map ~f:converter args
     in
     let result = Value.Bool (List.for_all ~f:(Fn.uncurry comparator) @@ List.consecutive_overlapping_pairs ns)
@@ -51,14 +61,21 @@ let comparison converter comparator =
   impl
 
 
-let int_string_comparison id int_comparator string_comparator =
-  let mm = Functions.mk_multimethod [
+(*
+   Helper function to create overloads for comparison operators.
+*)
+let int_string_comparison
+    (identifier        : string                  )
+    (int_comparator    : int -> int -> bool      )
+    (string_comparator : string -> string -> bool)
+  =
+  let multimethod = Functions.mk_multimethod [
       comparison C.integer int_comparator;
       comparison C.string  string_comparator;
-      error id;
+      error identifier;
     ]
   in
-  (id, mm)
+  (identifier, multimethod)
 
 
 let less_than                = int_string_comparison "<"  (<)  String.(<)
