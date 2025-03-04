@@ -79,7 +79,7 @@ and evaluate_callable native_function arguments =
    Evaluates each value in order.
    Returns the result of the evaluation of the last value (or Nil if the given list is empty).
 *)
-and evaluate_sequentially (asts : Value.t list) : Value.t EC.t =
+let evaluate_sequentially (asts : Value.t list) : Value.t EC.t =
   let* results = EC.map ~f:evaluate asts
   in
   match List.last results with
