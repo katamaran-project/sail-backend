@@ -1,5 +1,4 @@
 open ExtBase
-open Slang.Evaluation
 open Monads.Notations.Star(Slang.EvaluationContext)
 
 module BuildContext = BuildContext
@@ -16,7 +15,7 @@ module Make (_ : sig end) = struct
 
   let export_callable
       (identifier : string              )
-      (callable   : Slang.Value.callable)
+      (callable   : Slang.Value.callable) : unit
     =
     exported_functions := (identifier, callable) :: !exported_functions
 
@@ -73,7 +72,7 @@ module Make (_ : sig end) = struct
       (process   : Slang.Value.t list -> 'a) : unit
     =
     let script_function arguments =
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       process evaluated_arguments;
       EC.return Slang.Value.Nil
@@ -92,7 +91,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let strings = translate evaluated_arguments
       in
@@ -120,7 +119,7 @@ module Make (_ : sig end) = struct
         end
       | [argument] -> begin
           (* Single argument given, evaluate it, determine its truthiness, and assign it to the setting *)
-          let* evaluated_argument = evaluate argument
+          let* evaluated_argument = Slang.Evaluation.evaluate argument
           in
           let truthiness = Slang.Value.truthy evaluated_argument
           in
@@ -181,7 +180,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let=!! strings = List.map ~f:C.string evaluated_arguments
       in
@@ -204,7 +203,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let=! pair = C.map2 C.string C.string evaluated_arguments
       in
@@ -231,7 +230,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
@@ -252,7 +251,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:evaluate arguments
+      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
@@ -272,7 +271,7 @@ module Make (_ : sig end) = struct
     =
     let script_function arguments =
       (* strict evaluation demands we evaluate the arguments *)
-      let* _ = EC.map ~f:evaluate arguments
+      let* _ = EC.map ~f:Slang.Evaluation.evaluate arguments
       in
       let argument_count = List.length arguments
       in
