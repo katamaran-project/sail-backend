@@ -17,7 +17,7 @@ let test_run input expected =
       let program =
         let* _ = Slang.Prelude.initialize
         in
-        Slang.Evaluation.evaluate_string input
+        Slang.Evaluation.parse_and_evaluate_string input
       in
       let (actual, _)  = Slang.EvaluationContext.run program
       in

@@ -117,7 +117,7 @@ let mk_macro env parameters body : Value.callable =
   callable
 
 
-let evaluate_string (s : string) : Value.t EC.t =
+let parse_and_evaluate_string (s : string) : Value.t EC.t =
   let asts = P.parse_string s
   in
   evaluate_sequentially asts

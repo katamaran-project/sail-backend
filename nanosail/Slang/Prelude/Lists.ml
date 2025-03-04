@@ -78,19 +78,19 @@ let contains =
 
 
 let caar =
-  EC.ignore @@ Evaluation.evaluate_string "(define (caar x) (car (car x)))"
+  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (caar x) (car (car x)))"
 
 let cadr =
-  EC.ignore @@ Evaluation.evaluate_string "(define (cadr x) (car (cdr x)))"
+  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cadr x) (car (cdr x)))"
 
 let cdar =
-  EC.ignore @@ Evaluation.evaluate_string "(define (cdar x) (cdr (car x)))"
+  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cdar x) (cdr (car x)))"
 
 let cadar =
-  EC.ignore @@ Evaluation.evaluate_string "(define (cadar x) (car (cdr (car x))))"
+  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cadar x) (car (cdr (car x))))"
 
 let filter =
-  EC.ignore @@ Evaluation.evaluate_string {|
+  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
       (define (filter pick? xs)
         (cond ((nil? xs)
                   ())
@@ -102,7 +102,7 @@ let filter =
     |}
 
 let nth =
-  EC.ignore @@ Evaluation.evaluate_string {|
+  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
       (define (nth index xs)
         (if (= index 0)
             (car xs)
@@ -111,7 +111,7 @@ let nth =
     |}
 
 let last =
-  EC.ignore @@ Evaluation.evaluate_string {|
+  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
       (define (last xs)
         (if (nil? (cdr xs))
             (car xs)

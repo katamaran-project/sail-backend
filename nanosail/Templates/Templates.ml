@@ -22,7 +22,7 @@ let run_code
     let* () = Slang.Prelude.initialize
     and* fetch_generated = Prelude.prelude translation
     in
-    let* _ = Slang.Evaluation.evaluate_string source
+    let* _ = Slang.Evaluation.parse_and_evaluate_string source
     in
     fetch_generated
   in

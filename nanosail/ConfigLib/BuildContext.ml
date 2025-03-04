@@ -86,7 +86,7 @@ module Make (_ : sig end) = struct
       read_file_contents path
     in
     let program =
-      Slang.Evaluation.evaluate_string contents
+      Slang.Evaluation.parse_and_evaluate_string contents
     in
     ignore @@ evaluate program
 
