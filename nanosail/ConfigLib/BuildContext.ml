@@ -96,7 +96,7 @@ module Make (_ : sig end) = struct
       (process   : Slang.Value.t list -> 'a) : unit
     =
     let script_function arguments =
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       process evaluated_arguments;
       EC.return Slang.Value.Nil
@@ -115,7 +115,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       let strings = translate evaluated_arguments
       in
@@ -204,7 +204,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       let=!! strings = List.map ~f:C.string evaluated_arguments
       in
@@ -227,7 +227,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       let=! pair = C.map2 C.string C.string evaluated_arguments
       in
@@ -254,7 +254,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
@@ -275,7 +275,7 @@ module Make (_ : sig end) = struct
       let open Slang in
       let open Slang.Prelude.Shared
       in
-      let* evaluated_arguments = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* evaluated_arguments = Slang.Evaluation.evaluate_sequentially arguments
       in
       let=! callable = Converters.(map1 callable) evaluated_arguments
       in
@@ -295,7 +295,7 @@ module Make (_ : sig end) = struct
     =
     let script_function arguments =
       (* strict evaluation demands we evaluate the arguments *)
-      let* _ = EC.map ~f:Slang.Evaluation.evaluate arguments
+      let* _ = Slang.Evaluation.evaluate_sequentially arguments
       in
       let argument_count = List.length arguments
       in
