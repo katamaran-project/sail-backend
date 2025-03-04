@@ -3,10 +3,8 @@ open! ExtBase
 open Exception
 
 
-module EC = struct
-  include EvaluationContext
-  include Monads.Notations.Star(EvaluationContext)
-end
+module EC = EvaluationContext
+open Monads.Notations.Star(EC)
 
 
 let bind_parameters parameters arguments =
@@ -15,15 +13,19 @@ let bind_parameters parameters arguments =
   | List.Or_unequal_lengths.Unequal_lengths -> raise @@ SlangError "wrong number of parameters"
 
 
-let with_environment (env : Value.t Environment.t) (func : 'a EC.t) : 'a EC.t =
-  let open EC
+let with_environment
+    (env  : Value.t Environment.t)
+    (func : 'a EC.t              ) : 'a EC.t
+  =
+  let* old_env = EC.(get environment)
   in
-  let* old_env = get environment in
-  let* ()      = put environment env in
-  let* result  = func in
-  let* ()      = put environment old_env
+  let* ()      = EC.(put environment) env
   in
-  return result
+  let* result  = func
+  in
+  let* ()      = EC.(put environment) old_env
+  in
+  EC.return result
 
 
 let rec evaluate (ast : Value.t) : Value.t EC.t =
