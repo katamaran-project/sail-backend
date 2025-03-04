@@ -242,7 +242,7 @@ module Make (_ : sig end) = struct
 
   let callable
       (export_as : string              )
-      (default   : Slang.Value.callable)
+      (default   : Slang.Value.callable) : Slang.Value.callable Setting.t
     =
     let setting = Setting.mk default
     in
