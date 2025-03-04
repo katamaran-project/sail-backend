@@ -19,10 +19,14 @@ let equality_check =
       match values with
       | []       -> return @@ V.Bool true
       | [_]      -> return @@ V.Bool true
-      | x::y::xs ->
-        if not (V.equal x y)
-        then return @@ V.Bool false
-        else aux @@ y::xs
+      | x::y::xs -> begin
+          if
+            not (V.equal x y)
+          then
+            return @@ V.Bool false
+          else
+            aux @@ y::xs
+        end
     in
     aux evaluated_arguments
   in
