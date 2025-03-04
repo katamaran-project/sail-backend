@@ -83,8 +83,8 @@ module Make (_ : sig end) = struct
 
   let generic_strict
       (export_as : string                  )
-      ~init
-      (translate : Slang.Value.t list -> 'a)
+      ~(init     : 'a                      )
+      (translate : Slang.Value.t list -> 'a) : 'a Setting.t
     =
     let setting = Setting.mk init
     in
