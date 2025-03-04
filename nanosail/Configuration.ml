@@ -69,7 +69,7 @@ module Implementation = struct
     let () =
       let exported_function_name = "template"
       and add_translation template_filename output_filename =
-        ConfigLib.Setting.update template_translations (fun x -> { template_filename; output_filename } :: x)
+        ConfigLib.Setting.update template_translations ~f:(fun x -> { template_filename; output_filename } :: x)
       and derive_output_filename_from_template_filename (template_filename : string) : string =
         (*
            Given the filename of the template file, derives an output filename from it.

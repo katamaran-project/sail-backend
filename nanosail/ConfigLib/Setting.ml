@@ -1,22 +1,41 @@
-type 'a getter  = unit -> 'a
-type 'a setter  = 'a -> unit
-type 'a t       = Setting of 'a getter * 'a setter
+class virtual ['a] setting = object
+  method virtual get : 'a
+  method virtual set : 'a -> unit
+end
 
 
-let mk initial_value =
-  let cell = ref initial_value
-  in
-  let get () = !cell
-  and set b  = cell := b
-  in
-  Setting (get, set)
+class ['a] variable_setting (initial : 'a) = object
+  inherit ['a] setting
+      
+  val mutable value = initial
 
-let get (Setting (getter, _    )) = getter ()
-let set (Setting (_,     setter)) = setter
+  method get = value
 
-let update setting (f : 'a -> 'a) =
-  let value = get setting
-  in
-  let updated_value = f value
-  in
-  set setting updated_value
+  method set (new_value : 'a) : unit =
+    value <- new_value
+end
+
+
+type 'a t = 'a setting
+
+
+let mk (initial : 'a) : 'a t =
+  new variable_setting initial
+
+
+let get (setting : 'a t) : 'a =
+  setting#get
+
+
+let set
+    (setting : 'a t)
+    (value   : 'a  ) : unit
+  =
+  setting#set value
+
+
+let update
+    (setting : 'a t)
+    ~(f      : 'a -> 'a) : unit
+  =
+  setting#set (f setting#get)
