@@ -34,10 +34,10 @@ let addition =
 let subtraction =
   let id = "-"
 
-  and impl args =
-    let* evaluated_args = EC.map ~f:evaluate args
+  and impl arguments =
+    let* evaluated_arguments = evaluate_sequentially arguments
     in
-    let=!! ns = List.map ~f:C.integer evaluated_args
+    let=!! ns = List.map ~f:C.integer evaluated_arguments
     in
     let result = match ns with
       | []    -> 0
@@ -85,10 +85,10 @@ let multiplication =
 let division =
   let id = "/"
 
-  and impl args =
-    let* evaluated_args = EC.map ~f:evaluate args
+  and impl arguments =
+    let* evaluated_arguments = evaluate_sequentially arguments
     in
-    let=!! ns = List.map ~f:C.integer evaluated_args
+    let=!! ns = List.map ~f:C.integer evaluated_arguments
     in
     let result = match ns with
       | []

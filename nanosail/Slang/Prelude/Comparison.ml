@@ -12,8 +12,8 @@ open Shared
 let equality_check =
   let id = "="
   in
-  let impl args =
-    let* evaluated_args = map ~f:evaluate args
+  let impl arguments =
+    let* evaluated_arguments = evaluate_sequentially arguments
     in
     let rec aux values =
       match values with
@@ -24,7 +24,7 @@ let equality_check =
         then return @@ V.Bool false
         else aux @@ y::xs
     in
-    aux evaluated_args
+    aux evaluated_arguments
   in
   (id, impl)
 

@@ -98,7 +98,7 @@ let mk_closure
     (body       : Value.t list         ) : Value.callable
   =
   let rec callable arguments =
-    let* evaluated_arguments = EC.map ~f:evaluate arguments
+    let* evaluated_arguments = evaluate_sequentially arguments
     in
     with_environment env begin
       let* () = bind_parameters parameters evaluated_arguments
