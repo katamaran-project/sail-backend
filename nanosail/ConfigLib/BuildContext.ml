@@ -9,17 +9,52 @@ module C  = Slang.Converters
 
 
 module Make (_ : sig end) = struct
-  let exported_functions : (string * Slang.Value.callable) list ref =
-    ref []
+  (*
+     State of Slang interpreter used to interpret configuration commands
+  *)
+  let configuration_interpreter_state : EC.state ref =
+    let _, state = EC.run Slang.Prelude.initialize
+    in
+    ref state
+  
+
+  (*
+     Evaluate f using the configuration interpreter
+  *)
+  let evaluate (f : 'a EC.t) : 'a =
+    let result, new_slang_state = Slang.EvaluationContext.run_with_state f !configuration_interpreter_state
+    in
+    match result with
+    | Success result -> begin
+        configuration_interpreter_state := new_slang_state;
+        result
+      end
+    | Failure error -> failwith error
 
 
+  (*
+     Adds an extra binding to the environment of the configuration interpreter.
+     Used to make configuration functions available to the user.
+  *)
+  let export
+      (identifier : string       )
+      (value      : Slang.Value.t) : unit
+    =
+    evaluate (EC.add_binding identifier value)
+
+  
   let export_callable
       (identifier : string              )
       (callable   : Slang.Value.callable) : unit
     =
-    exported_functions := (identifier, callable) :: !exported_functions
+    export identifier (Slang.Value.Callable callable)
 
 
+  (*
+     Reads the entire contents of the given file as a string.
+     This function allows files to include other files using the $include directive.
+     Note that no recursion check is made, so a file including itself will cause problems.
+  *)
   let rec read_file_contents (path : string) : string =
     let directory =
       Filename.dirname path
@@ -30,7 +65,6 @@ module Make (_ : sig end) = struct
     let lines =
       String.split_lines contents
     in
-    
     let preprocessed_lines =
       let preprocess_line (line : string) : string =
         match String.chop_prefix line ~prefix:"$include " with
@@ -40,7 +74,7 @@ module Make (_ : sig end) = struct
             in
             read_file_contents included_path
           end
-        | None               -> line
+        | None -> line
       in
       List.map ~f:preprocess_line lines
     in
@@ -48,23 +82,12 @@ module Make (_ : sig end) = struct
 
 
   let load_configuration (path : string) : unit =
-    let open Slang
-    in
     let contents = read_file_contents path
     in
     let program =
-      let* () = Prelude.initialize
-      in
-      let* () =
-        EC.iter !exported_functions ~f:(fun (id, callable) ->
-            EC.add_binding id @@ Slang.Value.Mk.callable callable
-          )
-      in
-      let* _ = Evaluation.evaluate_string contents
-      in
-      EC.return ()
+      Slang.Evaluation.evaluate_string contents
     in
-    ignore @@ EvaluationContext.run program
+    ignore @@ evaluate program
 
 
   let export_strict_function
