@@ -82,7 +82,8 @@ module Make (_ : sig end) = struct
 
 
   let load_configuration (path : string) : unit =
-    let contents = read_file_contents path
+    let contents =
+      read_file_contents path
     in
     let program =
       Slang.Evaluation.evaluate_string contents
