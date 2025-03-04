@@ -551,8 +551,10 @@ and pp_cast
   GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 
 
-and pp_fail (message : string) : PP.document GC.t =
-  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail @@ PP.string message
+and pp_fail (typ : Ast.Type.t) (message : string) : PP.document GC.t =
+  let pp_message = PP.string message in
+  let* pp_typ = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ in
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
@@ -587,4 +589,4 @@ and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
                                                                              ~destructured_record
                                                                              ~body
   | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast statement_to_be_cast target_type
-  | Fail message                              -> GC.pp_annotate [%here] @@ pp_fail message
+  | Fail (typ, message)                       -> GC.pp_annotate [%here] @@ pp_fail typ message

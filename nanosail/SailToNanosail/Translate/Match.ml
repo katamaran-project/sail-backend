@@ -1914,7 +1914,7 @@ let rec build_leveled_match_statements
     TC.fail location "invalid number of tuple elements"
   in
   let fail_due_to_unhandled_cases =
-    TC.return @@ Ast.Statement.Fail "incomplete matching"
+    TC.return @@ Ast.Statement.Fail (Ast.Type.Implicit (Ast.Identifier.mk "_"), "incomplete matching")
   in
   match pattern_tree with
   | Bool { when_true; when_false } -> begin
