@@ -108,7 +108,7 @@ let translate_top_level_type_constraint
             );
             (
               PP.string "Monomorphs",
-              FExpr.pp @@ FExpr.List begin
+              FExpr.pp @@ FExpr.mk_list begin
                 List.map ~f:Ast.Definition.TopLevelTypeConstraint.to_fexpr monomorphs
               end
             )
