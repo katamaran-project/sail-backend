@@ -1,6 +1,10 @@
 open! ExtBase
 
 
+(*
+   We "temporarily" put the Identifier related functionality in a separate
+   module so that we can refer to it later in our specialized Map and Set modules.
+*)
 module Implementation = struct
   module T = struct
     type t = Id of string
@@ -15,8 +19,16 @@ module Implementation = struct
   include T
   include Comparator.Make(T)
 
-  let equal (Id x) (Id y) =
-    String.equal x y
+  let equal
+      (identifier_1 : t)
+      (identifier_2 : t) : bool
+    =
+    let Id name_1 = identifier_1
+    and Id name_2 = identifier_2
+    in
+    String.equal
+      name_1
+      name_2
 
   let mk x = Id x
 
@@ -43,6 +55,7 @@ module Implementation = struct
       ~positional:[FExpr.mk_string @@ to_string identifier]
       "Identifier"
 end
+
 
 module Map = struct
   include Base.Map
@@ -95,6 +108,7 @@ module Map = struct
     FExpr.mk_application ~positional:formatted_pairs "Mapping"
 end
 
+
 module Set = struct
   include Base.Set
 
@@ -106,4 +120,8 @@ module Set = struct
   let unions    = Base.Set.union_list (module Implementation)
 end
 
+
+(*
+   Pull all definitions from Implementation into the Identifier module.
+*)
 include Implementation
