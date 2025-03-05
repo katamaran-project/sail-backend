@@ -24,13 +24,8 @@ module CLI = struct
 
     let check       = mk_option "check"
     let config_file = mk_option "config"
-    let verbose     = mk_option "verbose"
   end
 end
-
-
-let set_verbosity_level (level : int) =
-  Nanosail.Configuration.(set Nanosail.Logging.verbosity_level @@ Nanosail.Logging.VerbosityLevel.from_int level)
 
 
 (** Command line options added to sail when the sail_katamaran_backend is loaded
@@ -42,19 +37,7 @@ let katamaran_options = [
   (CLI.Arg.config_file,
    Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
    "Specify configuration file");
-  (CLI.Arg.verbose,
-   Stdlib.Arg.Int set_verbosity_level,
-   "Verbose");
 ]
-
-
-let configure_verbosity () =
-  let verbosity_from_environment_variable () =
-    match Sys.getenv "VERBOSE" with
-    | Some level -> set_verbosity_level @@ Int.of_string level
-    | None       -> ()
-  in
-  verbosity_from_environment_variable ()
 
 
 (* Entry point for Katamaran target *)
@@ -63,7 +46,6 @@ let katamaran_target
       (state : Libsail.Interactive.State.istate)
   =
   Stdio.print_endline "Starting translation from Sail to muSail";
-  configure_verbosity ();
   let ast = state.ast
   in
   let translation = Nanosail.SailToNanosail.translate ast

@@ -299,6 +299,21 @@ module Make (_ : sig end) = struct
     setting
 
 
+  let environment_variable
+      (name      : string      )
+      (default   : 'a          )
+      (converter : string -> 'a) : 'a Setting.t
+    =
+    let setting = Setting.mk default
+    in
+    begin
+      match Sys.getenv_opt name with
+      | Some value -> Setting.set setting (converter value)
+      | None       -> ()
+    end;
+    setting                    
+  
+
   (*
      Creates a constant function that takes <arity> arguments and always returns <return_value>.
   *)

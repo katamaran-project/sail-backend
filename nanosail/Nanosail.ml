@@ -2,6 +2,7 @@ module AnsiColor           = AnsiColor
 module Document            = Document
 module PP                  = PP
 module Configuration       = Configuration
+module LoggingLib          = LoggingLib
 module Logging             = Logging
 module ExtendedInteger     = ExtendedInteger
 module Ast                 = Ast
