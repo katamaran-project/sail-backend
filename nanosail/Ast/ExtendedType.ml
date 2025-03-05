@@ -120,10 +120,11 @@ end = struct
     | Mul (e1, e2) -> FExpr.mk_application ~positional:[to_fexpr e1; to_fexpr e2]   @@ prefix "Mul"
     | Neg e        -> FExpr.mk_application ~positional:[to_fexpr e]                 @@ prefix "Neg"
     | Unknown { ocaml_location; sail_location; sail_type } -> begin
-        let keyword = [
+        let keyword =
+          [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
-            ("SailLocation", FExpr.mk_sail_location sail_location);
-            ("SailType", FExpr.mk_string sail_type);
+            ("SailLocation" , FExpr.mk_sail_location sail_location  );
+            ("SailType"     , FExpr.mk_string sail_type             );
           ]
         in
         FExpr.mk_application ~keyword @@ prefix "Unknown"
