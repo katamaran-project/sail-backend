@@ -28,7 +28,10 @@ module Implementation = struct
     (* Annotate muSail definitions with their corresponding Sail definition *)
     let include_original_code = bool "include-original-code" true
 
-    (* Ignore overload definitions *)
+    (*
+       Ignore overload definitions
+       Overloads should be resolved by Sail, so there's no need to process them.
+    *)
     let ignore_overloads                           = bool     "ignore-all-overloads"             false
     let ignore_default_order                       = bool     "ignore-default-order"             true
     let pretty_print_lists                         = bool     "pretty-print-lists"               false
