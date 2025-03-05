@@ -40,7 +40,6 @@ module Implementation = struct
     let program_name                               = string   "program-name"                     "ModelProgram"
     
     let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
-    let ignored_functions                          = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
     let ignore_value_definition_predicate          = string_predicate "ignore-value-definition-predicate"          (Fn.const false)
     let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
