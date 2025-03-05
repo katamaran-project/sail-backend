@@ -1,7 +1,7 @@
 open! ExtBase
 
 
-module Impl = struct
+module Implementation = struct
   module T = struct
     type t = Id of string
 
@@ -47,11 +47,11 @@ end
 module Map = struct
   include Base.Map
 
-  type 'a t = (Impl.t, 'a, Impl.comparator_witness) Base.Map.t
+  type 'a t = (Implementation.t, 'a, Implementation.comparator_witness) Base.Map.t
 
-  let of_alist_exn (pairs : (Impl.t * 'a) list) = Base.Map.of_alist_exn (module Impl) pairs
+  let of_alist_exn (pairs : (Implementation.t * 'a) list) = Base.Map.of_alist_exn (module Implementation) pairs
 
-  let empty = Base.Map.empty(module Impl)
+  let empty = Base.Map.empty(module Implementation)
 
   let overwrite map ~key ~data =
     Base.Map.update map key ~f:(fun _ -> data)
@@ -65,9 +65,9 @@ module Map = struct
 
   (* Only adds if key is not element yet *)
   let add_new
-      (map   : 'a t  )
-      ~(key  : Impl.t)
-      ~(data : 'a    ) : 'a t
+      (map   : 'a t            )
+      ~(key  : Implementation.t)
+      ~(data : 'a              ) : 'a t
     =
     match add map ~key ~data with
     | `Duplicate      -> map
@@ -77,14 +77,14 @@ module Map = struct
       (value_formatter : 'a -> FExpr.t)
       (map             : 'a t         ) : FExpr.t
     =
-    let pairs : (Impl.t * 'a) list =
+    let pairs : (Implementation.t * 'a) list =
       to_alist map
     in
     let formatted_pairs : FExpr.t list =
-      let format_pair (key : Impl.t) (value : 'a) =
+      let format_pair (key : Implementation.t) (value : 'a) =
         let positional =
           [
-            Impl.to_fexpr key;
+            Implementation.to_fexpr key;
             value_formatter value
           ]
         in
@@ -98,12 +98,12 @@ end
 module Set = struct
   include Base.Set
 
-  type t = (Impl.t, Impl.comparator_witness) Base.Set.t
+  type t = (Implementation.t, Implementation.comparator_witness) Base.Set.t
 
-  let empty     = Base.Set.empty      (module Impl)
-  let singleton = Base.Set.singleton  (module Impl)
-  let of_list   = Base.Set.of_list    (module Impl)
-  let unions    = Base.Set.union_list (module Impl)
+  let empty     = Base.Set.empty      (module Implementation)
+  let singleton = Base.Set.singleton  (module Implementation)
+  let of_list   = Base.Set.of_list    (module Implementation)
+  let unions    = Base.Set.union_list (module Implementation)
 end
 
-include Impl
+include Implementation
