@@ -102,6 +102,22 @@ let rec equal
     end
 
 
+(*
+   Pretty prints a list as
+
+     [
+       element1;
+       element2;
+       ...;
+       elementN
+     ]
+
+   or just
+
+     []
+
+   if the list is empty.
+*)
 let pp_list (items : PP.document list) : PP.document =
   if
     List.is_empty items
