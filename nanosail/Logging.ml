@@ -1,3 +1,9 @@
+(*
+   Logging module.
+
+   Logging and LogLib are separate modules to prevent cyclical dependencies.
+*)
+
 include LogLib.Make(
   struct
     let verbosity_level () =
