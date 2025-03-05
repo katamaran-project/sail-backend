@@ -1,6 +1,3 @@
-open! ExtBase
-
-
 module Identifier           = Identifier
 module Numeric              = Numeric
 module Kind                 = Kind
