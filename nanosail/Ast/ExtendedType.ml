@@ -76,7 +76,7 @@ module Parameter = struct
      | Tuple ts                                             -> tuple_to_fexpr ts
      | Int n                                                -> int_to_fexpr n
      | Bool n                                               -> bool_to_fexpr n
-     | Identifier s                                         -> FExpr.mk_application ~positional:[FExpr.String s] "ExtType:Param:Id"
+     | Identifier s                                         -> FExpr.mk_application ~positional:[FExpr.mk_string s] "ExtType:Param:Id"
      | Bitvector nexp                                       -> FExpr.mk_application ~positional:[Numeric.Expression.to_fexpr nexp] "ExtType:Param:Bitvector"
      | Unknown { ocaml_location; sail_location; sail_type } -> unknown_to_fexpr ocaml_location sail_location sail_type
 end
@@ -123,7 +123,7 @@ end = struct
         let keyword = [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
             ("SailLocation", FExpr.mk_sail_location sail_location);
-            ("SailType", FExpr.String sail_type);
+            ("SailType", FExpr.mk_string sail_type);
           ]
         in
         FExpr.mk_application ~keyword @@ prefix "Unknown"
@@ -183,7 +183,7 @@ end = struct
         let keyword = [
             ("OCamlLocation", FExpr.mk_ocaml_location ocaml_location);
             ("SailLocation" , FExpr.mk_sail_location sail_location  );
-            ("SailType"     , FExpr.String sail_type                );
+            ("SailType"     , FExpr.mk_string sail_type             );
           ]
         in
         FExpr.mk_application ~keyword @@ prefix "Unknown"
