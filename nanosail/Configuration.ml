@@ -49,7 +49,7 @@ module Implementation = struct
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
-    let template_translations = ConfigLib.Setting.mk ([] : template_translation list)
+    let template_translations                      = ConfigLib.Setting.mk ([] : template_translation list)
 
     (*
        Defines Slang function named template.
