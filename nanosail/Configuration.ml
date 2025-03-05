@@ -44,8 +44,6 @@ module Implementation = struct
     let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
     let ignore_top_level_type_constraint_predicate = string_predicate "ignore-top-level-type-constraint-predicate" (Fn.const false)
 
-
-    (* template block delimiters *)
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
