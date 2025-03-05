@@ -22,7 +22,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   in
 
   let should_ignore_pragma (identifier : string) =
-    member Configuration.ignored_pragmas identifier
+    Configuration.(get ignore_pragma_predicate) identifier
 
   and should_ignore_function_definition (function_definition : 'a fundef) =
     Configuration.(get ignore_function_definition_predicate) (Sail.identifier_of_function_definition function_definition)

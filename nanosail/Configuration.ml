@@ -36,11 +36,11 @@ module Implementation = struct
     let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones)                       *)
     let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
     let annotate_functions_with_ast                = bool     "annotate-functions-with-ast"      false
-    let ignored_pragmas                            = strings  "ignore-pragmas"                         (* Pragmas to be ignored                                                       *)
-    let ignored_functions                          = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let base_name                                  = string   "base-name"                        "UntitledBase"
     let program_name                               = string   "program-name"                     "ModelProgram"
     
+    let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
+    let ignored_functions                          = strings  "ignore-functions"                       (* Functions to be ignored                                                     *)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
     let ignore_value_definition_predicate          = string_predicate "ignore-value-definition-predicate"          (Fn.const false)
     let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
