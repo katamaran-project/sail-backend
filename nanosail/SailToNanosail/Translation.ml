@@ -17,10 +17,6 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   in
   let Libsail.Ast.DEF_aux (definition, _annotation) = definition
   in
-  let member setting item =
-    List.mem (Configuration.get setting) item ~equal:String.equal
-  in
-
   let should_ignore_pragma (identifier : string) =
     Configuration.(get ignore_pragma_predicate) identifier
 
