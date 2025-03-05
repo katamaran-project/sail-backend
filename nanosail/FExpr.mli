@@ -2,7 +2,7 @@ type t
     
 val equal : t -> t -> bool
 val pp : t -> PP.t
-val pp_diff : t -> t -> PP.t
+val pp_diff : (PP.t -> PP.t) -> compared_with : t -> printed : t -> PP.t
 val to_string : t -> string
 
 val mk_int : int -> t

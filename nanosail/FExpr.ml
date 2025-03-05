@@ -182,9 +182,9 @@ let rec pp (fexpr : t) : PP.document =
    are decorated using <highlight>.
 *)
 let rec pp_diff
-    (highlight      : PP.document -> PP.document)
-    (compared_with  : t                         )
-    (printed        : t                         ) : PP.document
+     (highlight      : PP.document -> PP.document)
+    ~(compared_with  : t                         )
+    ~(printed        : t                         ) : PP.document
   =
   if
     equal printed compared_with
@@ -200,7 +200,7 @@ let rec pp_diff
         match compared_with with
         | List compared_with_elements -> begin
             match List.zip compared_with_elements printed_elements with
-            | Ok pairs        -> pp_list @@ List.map ~f:(Fn.uncurry @@ pp_diff highlight) pairs
+            | Ok pairs        -> pp_list @@ List.map ~f:(fun (compared_with, printed) -> pp_diff highlight ~compared_with ~printed) pairs
             | Unequal_lengths -> highlight @@ pp printed
           end
         | _ -> highlight @@ pp printed
@@ -229,7 +229,7 @@ let rec pp_diff
                 | []   , _     -> [ highlight @@ PP.string "<missing>" ]
                 | x::xs, y::ys -> begin
                     let head =
-                      pp_diff highlight y x
+                      pp_diff highlight ~compared_with:y ~printed:x
                     and tail =
                       pp_positional xs ys
                     in
@@ -258,7 +258,7 @@ let rec pp_diff
                       else
                         highlight doc
                     and value =
-                      pp_diff highlight v2 v1
+                      pp_diff highlight ~compared_with:v2 ~printed:v1
                     in
                     (keyword, value) :: pp_keyword xs ys                      
                   end

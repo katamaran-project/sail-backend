@@ -18,6 +18,9 @@ let pp_diff
     (formatter          : Stdlib.Format.formatter)
     ((expected, actual) : 'a * 'a                ) : unit
   =
+  let highlight =
+    PP.decorate [ BackgroundColor Red ]
+  in
   let expected_fexpr = to_fexpr expected
   and actual_fexpr   = to_fexpr actual
   in
@@ -34,7 +37,7 @@ let pp_diff
       ];
       PP.horizontal [
         PP.string "Difference: ";
-        FExpr.pp_diff actual_fexpr expected_fexpr
+        FExpr.pp_diff highlight ~compared_with:actual_fexpr ~printed:expected_fexpr
       ]
     ]
   in  
