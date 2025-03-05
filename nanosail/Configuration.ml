@@ -24,10 +24,10 @@ module Implementation = struct
 
   module Exported = struct
     let pattern_tree_maximum_permutations          = integer  "pattern-tree-max-permutations"    1000
-    let use_list_notations                         = bool     "use-list-notations"               false (* Use list notations                                                          *)
     let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
     let ignore_overloads                           = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
     let ignore_default_order                       = bool     "ignore-default-order"             true
+    let use_list_notations                         = bool     "pretty-print-lists"               false (* Use list notations                                                          *)
     let pretty_print_let                           = bool     "pretty-print-let"                 false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false

@@ -1,4 +1,4 @@
-(use-list-notations)
+(pretty-print-lists)
 
 (ignore-all-overloads)
 (ignore-pragmas (lambda (identifier)
