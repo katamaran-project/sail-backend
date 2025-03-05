@@ -24,10 +24,13 @@ module Implementation = struct
   module Exported = struct
     let verbosity_level                            = environment_variable "VERBOSE" LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
     let pattern_tree_maximum_permutations          = integer  "pattern-tree-max-permutations"    1000
-    let include_original_code                      = bool     "include-original-code"            true  (* Annotate all Microsail definitions with their corresponding Sail definition *)
-    let ignore_overloads                           = bool     "ignore-all-overloads"             false (* Ignore all overloads                                                        *)
+
+    (* Annotate muSail definitions with their corresponding Sail definition *)
+    let include_original_code = bool "include-original-code" true
+        
+    let ignore_overloads                           = bool     "ignore-all-overloads"             false
     let ignore_default_order                       = bool     "ignore-default-order"             true
-    let pretty_print_lists                         = bool     "pretty-print-lists"               false (* Use list notations                                                          *)
+    let pretty_print_lists                         = bool     "pretty-print-lists"               false
     let pretty_print_let                           = bool     "pretty-print-let"                 false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
