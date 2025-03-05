@@ -51,14 +51,25 @@ let tuple_right_delimiter  = PP.rparen
 let tuple_delimiters       = (tuple_left_delimiter, tuple_right_delimiter)
 
 
+(*
+   contents.
+*)
 let pp_sentence (contents : PP.t) : PP.t =
   PP.(horizontal [contents; eol])
 
 
+(*
+   (* comment *)
+*)
 let pp_inline_comment (comment : PP.document) : PP.document =
   PP.surround comment_delimiters comment
 
 
+(*
+   (*
+     comment
+   *)
+*)
 let pp_multiline_comment (comment : PP.document) : PP.document =
   PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent comment
 
@@ -69,6 +80,12 @@ let pp_comment (comment : PP.document) : PP.document =
   else pp_multiline_comment comment
 
 
+(*
+   (*
+     comments
+   *)
+   document
+*)
 let add_comments
     ~(comments : PP.document)
     ~(document : PP.document) : PP.document
