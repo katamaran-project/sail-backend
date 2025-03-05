@@ -11,7 +11,7 @@ let genblock loc label doc =
 let pp_require_imports () : PP.document =
   let coq_imports =
     List.build_list (fun { add; _ } ->
-        if Configuration.(get use_list_notations) then add "Lists.List";
+        if Configuration.(get pretty_print_lists) then add "Lists.List";
         add "Classes.EquivDec";
         add "Strings.String";
         add "ZArith.BinInt"
@@ -32,7 +32,7 @@ let pp_imports () : PP.document =
         add "ctx.resolution";
         add "env.notations";
         add "bv.notations";
-        if Configuration.(get use_list_notations) then add "ListNotations";
+        if Configuration.(get pretty_print_lists) then add "ListNotations";
       )
   in
   PP.annotate [%here] @@ Coq.pp_imports imports

@@ -155,7 +155,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
     in
     let pp_list =
       PP.annotate [%here] begin
-          Coq.pp_list ~use_notation:Configuration.(get use_list_notations) pp_elements
+          Coq.pp_list ~use_notation:Configuration.(get pretty_print_lists) pp_elements
         end
     in
     GC.return begin
