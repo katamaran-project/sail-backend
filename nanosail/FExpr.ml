@@ -16,6 +16,8 @@
     - keyword arguments
     An application is formatted as Head[pos1, pos2, ..., kw1=val1, kw2=val2, ...]
 
+   F-Expressions can be pretty printed and diffed.
+   
 *)
 open! ExtBase
 
@@ -100,7 +102,6 @@ let rec equal
     end
 
 
-(* Helper function for pp/pp_diff *)
 let pp_list (items : PP.document list) : PP.document =
   if
     List.is_empty items
