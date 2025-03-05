@@ -26,7 +26,7 @@ type t =
   | WriteRegister     of { register_identifier : Identifier.t ;
                            written_value       : Identifier.t }
   | Cast              of t * Type.t
-  | Fail              of string
+  | Fail              of Type.t * string
 
 and match_pattern =
   | MatchList    of { matched      : Identifier.t                    ;
@@ -286,12 +286,16 @@ let rec equal
       | _ -> false
     end
 
-  | Fail message_1 -> begin
+  | Fail (type_1, message_1) -> begin
       match statement_2 with
-      | Fail message_2 -> begin
-          String.equal
-            message_1
-            message_2
+      | Fail (type_2, message_2) -> begin
+        Type.equal
+          type_1
+          type_2
+        &&
+        String.equal
+          message_1
+          message_2
         end
       | _ -> false
     end
@@ -497,8 +501,14 @@ let rec to_fexpr (statement : t) : FExpr.t =
     in
     FExpr.mk_application ~keyword "Stm:Cast"
 
-  and fail_to_fexpr (message : string) : FExpr.t =
-    FExpr.mk_application ~positional:[FExpr.mk_string message] "Stm:Fail"
+  and fail_to_fexpr (typ : Type.t) (message : string) : FExpr.t =
+    let keyword =
+      [
+        ("type", Type.to_fexpr typ);
+        ("message", FExpr.mk_string message)
+      ]
+    in
+    FExpr.mk_application ~keyword "Stm:Fail"
 
   in
   match statement with
@@ -508,7 +518,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
   | Seq (t1, t2)                 -> seq_to_fexpr t1 t2
   | ReadRegister id              -> read_register_to_fexpr id
   | Cast (expression, typ)       -> cast_to_fexpr expression typ
-  | Fail message                 -> fail_to_fexpr message
+  | Fail (typ, message)          -> fail_to_fexpr typ message
   | Let {
       binder;
       binding_statement_type;

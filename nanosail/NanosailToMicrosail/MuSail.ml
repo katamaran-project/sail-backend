@@ -292,8 +292,8 @@ module Statement = struct
       end
 
 
-  let pp_fail (message : PP.document) : PP.document =
-    Coq.pp_application (PP.string "fail") [ message ]
+  let pp_fail (typ : PP.document) (message : PP.document) : PP.document =
+    Coq.pp_application (PP.string "stm_fail") [ PP.(surround parens) typ; message ]
 
 
   let pp_assert
