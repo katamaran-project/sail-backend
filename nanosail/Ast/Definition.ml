@@ -123,7 +123,7 @@ module Register = struct
     let fexpr_of_initial_value (initial_value : initial_value) =
       match initial_value with
       | NoneSpecified       -> FExpr.mk_symbol "None"
-      | Specified value     -> Ast.Value.to_fexpr value
+      | Specified value     -> Value.to_fexpr value
       | RawSpecified string -> FExpr.mk_string string
     in
     let keyword =
