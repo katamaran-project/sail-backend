@@ -4,6 +4,10 @@
 
    This module (and its submodules) contain all data types and functionality
    related to this intermediate language.
+
+   Design-wise, nanosail is supposed to be a distilled version of Sail, i.e.,
+   it contains only those bits of information that are relevant to
+   the translation in muSail.
 *)
 
 module Identifier           = Identifier
