@@ -15,57 +15,34 @@ open! ExtBase
 let should_ignore_definition (definition : Sail.sail_definition) : bool =
   let open Libsail.Ast
   in
-  let open Configuration
-  in
   let Libsail.Ast.DEF_aux (definition, _annotation) = definition
   in
   let member setting item =
-    List.mem (get setting) item ~equal:String.equal
+    List.mem (Configuration.get setting) item ~equal:String.equal
   in
 
-  let should_ignore_pragma identifier =
-    member ignored_pragmas identifier
+  let should_ignore_pragma (identifier : string) =
+    member Configuration.ignored_pragmas identifier
 
-  and should_ignore_function_definition function_definition =
-    let identifier = Sail.identifier_of_function_definition function_definition
+  and should_ignore_function_definition (function_definition : 'a fundef) =
+    let function_identifier : string = Sail.identifier_of_function_definition function_definition
     in
-    let arguments = [ Slang.Value.String identifier ]
-    in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_function_definition_predicate arguments
-    in
-    match result with
-    | Success result -> Slang.Value.truthy result
-    | Failure _      -> failwith "Error while reading configuration"
+    Configuration.(get ignore_function_definition_predicate) function_identifier
 
   and should_ignore_type_definition (type_definition : 'a type_def) : bool =
     Configuration.(get ignore_type_definition_predicate) (Sail.identifier_of_type_definition type_definition)
 
-  and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
-    let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
-    in
-    let identifier = Sail.identifier_of_pattern pattern
-    in
-    let arguments  = [ Slang.Value.String identifier ]
-    in
-    let result, _  = Slang.EvaluationContext.run @@ get ignore_value_definition_predicate arguments
-    in
-    match result with
-    | Success result -> Slang.Value.truthy result
-    | Failure _      -> failwith "Error while reading configuration"
+  and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) : bool =
+    Configuration.(get ignore_value_definition_predicate) (Sail.identifier_of_value_definition value_definition)
 
   and should_ignore_top_level_type_constraint (top_level_type_constraint : Sail.type_annotation val_spec) =
-    let identifier = Sail.identifier_of_top_level_type_constraint top_level_type_constraint
-    in
-    let arguments = [ Slang.Value.String identifier ]
-    in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_top_level_type_constraint_predicate arguments
-    in
-    match result with
-    | Success result -> Slang.Value.truthy result
-    | Failure _      -> failwith "Error while reading configuration"
+    Configuration.(get ignore_top_level_type_constraint_predicate) (Sail.identifier_of_top_level_type_constraint top_level_type_constraint)
 
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
-    get ignore_default_order
+    Configuration.(get ignore_default_order)
+
+  and should_ignore_overload (_identifier : string) : bool =
+    Configuration.(get ignore_overloads)
 
   in
   match definition with
@@ -78,7 +55,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_outcome (_, _)                -> false
   | DEF_instantiation (_, _)          -> false
   | DEF_fixity (_, _, _)              -> false
-  | DEF_overload (_, _)               -> get (ignore_overloads)
+  | DEF_overload (identifier, _)      -> should_ignore_overload (StringOf.Sail.id identifier)
   | DEF_default default_spec          -> should_ignore_default_definition default_spec
   | DEF_scattered _                   -> false
   | DEF_measure (_, _, _)             -> false

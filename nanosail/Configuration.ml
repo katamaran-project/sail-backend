@@ -41,10 +41,10 @@ module Implementation = struct
     let base_name                                  = string   "base-name"                        "UntitledBase"
     let program_name                               = string   "program-name"                     "ModelProgram"
     
-    let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate" (Fn.const false)
-    let ignore_value_definition_predicate          = callable "ignore-value-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
-    let ignore_function_definition_predicate       = callable "ignore-function-definition-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
-    let ignore_top_level_type_constraint_predicate = callable "ignore-top-level-type-constraint-predicate" (constant_function ~arity:1 ~return_value:(Slang.Value.Bool false))
+    let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
+    let ignore_value_definition_predicate          = string_predicate "ignore-value-definition-predicate"          (Fn.const false)
+    let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
+    let ignore_top_level_type_constraint_predicate = string_predicate "ignore-top-level-type-constraint-predicate" (Fn.const false)
 
 
     (* template block delimiters *)
@@ -120,21 +120,11 @@ module Implementation = struct
   let () =
     let exported_function_name =
       "ignore-function-definition-and-top-level-type-constraints-predicate"
-    and handler_function arguments =
-      let open Slang in
-      let open Slang.Prelude.Shared
-      in
-      let open Monads.Notations.Star(Slang.EvaluationContext)
-      in
-      let* evaluated_arguments = EC.map ~f:Evaluation.evaluate arguments
-      in
-      let=! callable = Converters.(map1 callable) evaluated_arguments
-      in
-      ConfigLib.Setting.set Exported.ignore_function_definition_predicate callable;
-      ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate callable;
-      EC.return @@ Value.Nil
+    and setter (predicate : string -> bool) : unit =
+      (ConfigLib.Setting.set Exported.ignore_function_definition_predicate) predicate;
+      (ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate) predicate
     in
-    export_callable exported_function_name handler_function
+    export_string_predicate_setter exported_function_name setter
 
 
   let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref = ref Ast.Identifier.Map.empty

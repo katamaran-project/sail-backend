@@ -79,6 +79,12 @@ let rec identifier_of_pattern (pattern : 'a pat) : string =
   | P_struct (_, _)             -> not_supported [%here]
 
 
+let identifier_of_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
+  let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
+  in
+  identifier_of_pattern pattern
+
+
 (*
    Some wildcards are rewritten as named binders, e.g., _ becomes g__41.
    This function attempts to recognize these.

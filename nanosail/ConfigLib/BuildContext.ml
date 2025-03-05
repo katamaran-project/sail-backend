@@ -266,12 +266,10 @@ module Make (_ : sig end) = struct
     setting
 
 
-  let string_predicate
-      (export_as : string        )
-      (default   : string -> bool) : (string -> bool) Setting.t
+  let export_string_predicate_setter
+      (export_as : string                  )
+      (setter    : (string -> bool) -> unit) : unit
     =
-    let setting = Setting.mk default
-    in
     let script_function (arguments : Slang.Value.t list) : Slang.Value.t EC.t =
       let open Slang in
       let open Slang.Prelude.Shared
@@ -285,10 +283,19 @@ module Make (_ : sig end) = struct
         in
         Slang.Value.truthy result
       in
-      Setting.set setting func;
+      setter func;
       EC.return @@ Value.Nil
     in
-    export_callable export_as script_function;
+    export_callable export_as script_function
+  
+
+  let string_predicate
+      (export_as : string        )
+      (default   : string -> bool) : (string -> bool) Setting.t
+    =
+    let setting = Setting.mk default
+    in
+    export_string_predicate_setter export_as (Setting.set setting);
     setting
 
 
