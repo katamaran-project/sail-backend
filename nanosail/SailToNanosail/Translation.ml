@@ -162,7 +162,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     end
   end
 
-let translate (ast : Sail.ast) : Ast.program =
+let translate (ast : Sail.ast) : Ast.Program.t =
   let translate =
     let* () = Prelude.register_types ()
     in

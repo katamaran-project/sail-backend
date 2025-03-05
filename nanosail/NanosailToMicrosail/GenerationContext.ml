@@ -8,7 +8,7 @@ end
 type annotation     = Annotation of PP.document
 type comment        = Comment of PP.document
 type frame          = annotation list * comment list
-type state          = frame list * int * Ast.program
+type state          = frame list * int * Ast.Program.t
 
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
 type   'a t         = 'a Monad.t
@@ -35,7 +35,7 @@ let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Ac
 let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame       )
 let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame       )
 let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Triple.second id            )
-let program     : (state, Ast.program    ) Monads.Accessors.accessor = Monads.Accessors.(Triple.third id             )
+let program     : (state, Ast.Program.t  ) Monads.Accessors.accessor = Monads.Accessors.(Triple.third id             )
 
 exception FrameException of string
 
@@ -45,7 +45,7 @@ module MonadUtil = Monads.Util.Make(Monad)
 include MonadUtil
 
 
-let mk_initial_state (program : Ast.program) : state = ([], 0, program)
+let mk_initial_state (program : Ast.Program.t) : state = ([], 0, program)
 
 
 let log
@@ -253,7 +253,7 @@ let generation_block
 
 (* Computes the document described by f *)
 let generate
-    (program : Ast.program  )
+    (program : Ast.Program.t)
     (f       : PP.document t) : PP.document
   =
   let result, _ =
@@ -402,7 +402,7 @@ let pp_annotate'
   lift ~f:(PP.annotate location ~label) annotated
 
 
-let get_program : Ast.program t =
+let get_program : Ast.Program.t t =
   get program
 
 

@@ -7,7 +7,7 @@ val fail    : Lexing.position -> string -> 'a t
 val recover : 'a t -> (string -> 'a t) -> 'a t
 val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
-val generate            : Ast.program -> PP.document t -> PP.document
+val generate            : Ast.Program.t -> PP.document t -> PP.document
 val block               : PP.document t -> PP.document t
 val add_annotation      : PP.document -> int t
 val add_comment         : PP.document -> unit t
@@ -29,7 +29,7 @@ val add_original_definitions : Sail.sail_definition list -> unit t
 
 val log : Lexing.position -> (Lexing.position -> PP.document lazy_t -> unit) -> PP.document lazy_t -> unit t
 
-val get_program : Ast.program t
+val get_program : Ast.Program.t t
 
 val select_definitions    : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
 val lookup_definition_opt : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t

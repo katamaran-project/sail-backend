@@ -15,7 +15,7 @@ let test_formatting =
           Nanosail.NanosailToMicrosail.Numeric.Expression.pp ast
         in
         let document =
-          Nanosail.NanosailToMicrosail.GenerationContext.generate Nanosail.Ast.empty_program document
+          Nanosail.NanosailToMicrosail.GenerationContext.generate Nanosail.Ast.Program.empty document
         in
         let actual =
           Nanosail.PP.to_string document

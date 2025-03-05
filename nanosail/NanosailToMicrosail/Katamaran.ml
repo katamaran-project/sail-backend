@@ -7,7 +7,7 @@ module GC = struct
 end
 
 
-class katamaran (intermediate_representation : Ast.program) = object(self : 'self)
+class katamaran (intermediate_representation : Ast.Program.t) = object(self : 'self)
   val all_definitions                          = intermediate_representation.definitions
   val type_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition of_anything         ) intermediate_representation.definitions)
   val enum_definitions                         = Ast.Definition.Select.(select (with_sail_definition @@ type_definition of_enum             ) intermediate_representation.definitions)

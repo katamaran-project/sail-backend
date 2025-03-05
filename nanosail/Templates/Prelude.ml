@@ -34,7 +34,7 @@ class virtual exported_nullary_string_function (identifier : string) = object(se
   method virtual generate_string : string EC.t
 end
 
-class virtual string_of_document_exported_function (identifier : string) (program : Ast.program) = object(self)
+class virtual string_of_document_exported_function (identifier : string) (program : Ast.Program.t) = object(self)
   inherit exported_nullary_string_function identifier
 
   method generate_string =
@@ -43,7 +43,7 @@ class virtual string_of_document_exported_function (identifier : string) (progra
   method virtual document : PP.t GC.t
 end
 
-class virtual html_of_document_exported_function (identifier : string) (program : Ast.program) = object(self)
+class virtual html_of_document_exported_function (identifier : string) (program : Ast.Program.t) = object(self)
   inherit exported_nullary_string_function identifier
 
   method generate_string =

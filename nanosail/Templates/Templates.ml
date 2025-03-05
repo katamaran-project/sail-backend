@@ -86,7 +86,7 @@ let process_template
 
 
 (* Processes all templates defined in the configuration *)
-let process (translation : Ast.program) =
+let process (translation : Ast.Program.t) =
   let sanitized_translation =
     new NanosailToMicrosail.Katamaran.katamaran translation
   in
