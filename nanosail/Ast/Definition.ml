@@ -1,9 +1,13 @@
-open! ExtBase
+open ExtBase
 include Recursive
 
-(* Alias needed because this module introduces its own Type module *)
-module AstType = Type
 
+(*
+   Alias needed because this module introduces its own Type module.
+   OCaml does not seem to allow us to refer to use Ast.Type and Ast.Definition.Type to
+   distinguish between the two.
+*)
+module AstType = Type
 
 module FunctionType = struct
   type t =
