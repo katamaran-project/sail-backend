@@ -177,6 +177,10 @@ let rec pp (fexpr : t) : PP.document =
     end
 
 
+(*
+   Pretty prints <printed>, but parts that differs from <compared_with>
+   are decorated using <highlight>.
+*)
 let rec pp_diff
     (highlight      : PP.document -> PP.document)
     (compared_with  : t                         )
