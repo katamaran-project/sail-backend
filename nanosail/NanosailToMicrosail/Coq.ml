@@ -93,7 +93,7 @@ let pp_list_using_cons (items : PP.document list) : PP.document =
   let rec pp items =
     match items with
     | []         -> PP.string "nil"
-    | head::tail -> PP.(surround parens @@ pp_hanging_application (string "cons") [ head; pp tail])
+    | head::tail -> PP.(surround parens @@ pp_hanging_application (string "cons") [ PP.(surround parens) head; pp tail])
   in
   PP.annotate [%here] @@ pp items
 
