@@ -49,15 +49,6 @@ module Implementation = struct
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
-    (* helper function template-block-delimiters that allows setting both template block delimiters in one step *)
-    let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
-        let=! left, right = Slang.Converters.(map2 string string) evaluated_arguments
-        in
-        ConfigLib.Setting.set template_block_left_delimiter left;
-        ConfigLib.Setting.set template_block_right_delimiter right
-      end
-
-
     let template_translations = ConfigLib.Setting.mk ([] : template_translation list)
 
     (*
@@ -114,6 +105,14 @@ module Implementation = struct
       export_callable exported_function_name handler_function
   end
 
+  (* helper function template-block-delimiters that allows setting both template block delimiters in one step *)
+  let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
+      let=! left, right = Slang.Converters.(map2 string string) evaluated_arguments
+      in
+      ConfigLib.Setting.set Exported.template_block_left_delimiter left;
+      ConfigLib.Setting.set Exported.template_block_right_delimiter right
+    end
+ 
 
   let () =
     let exported_function_name =
