@@ -37,16 +37,8 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     | Success result -> Slang.Value.truthy result
     | Failure _      -> failwith "Error while reading configuration"
 
-  and should_ignore_type_definition type_definition =
-    let identifier = Sail.identifier_of_type_definition type_definition
-    in
-    let arguments = [ Slang.Value.String identifier ]
-    in
-    let result, _ = Slang.EvaluationContext.run @@ get ignore_type_definition_predicate arguments
-    in
-    match result with
-    | Success result -> Slang.Value.truthy result
-    | Failure _      -> failwith "Error while reading configuration"
+  and should_ignore_type_definition (type_definition : 'a type_def) : bool =
+    Configuration.(get ignore_type_definition_predicate) (Sail.identifier_of_type_definition type_definition)
 
   and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
     let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
