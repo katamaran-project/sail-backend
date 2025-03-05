@@ -1,3 +1,11 @@
+(*
+   In a first phase, Sail code is translated into an intermediate language called nanosail.
+   During a second phase, nanosail is translated into muSail.
+
+   This module (and its submodules) contain all data types and functionality
+   related to this intermediate language.
+*)
+
 module Identifier           = Identifier
 module Numeric              = Numeric
 module Kind                 = Kind
