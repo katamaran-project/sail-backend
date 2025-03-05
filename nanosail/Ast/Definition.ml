@@ -120,11 +120,17 @@ module Register = struct
     }
 
   let to_fexpr (register_definition : t) : FExpr.t =
+    let fexpr_of_initial_value (initial_value : initial_value) =
+      match initial_value with
+      | NoneSpecified -> FExpr.mk_symbol "None"
+      | Specified value -> Ast.Value.to_fexpr value
+      | RawSpecified string -> FExpr.mk_string string
+    in
     let keyword =
       [
         ("identifier", Identifier.to_fexpr register_definition.identifier);
         ("type", AstType.to_fexpr register_definition.typ);
-        (* todo : add initial value *)
+        ("initial_value", fexpr_of_initial_value register_definition.initial_value);
       ]
     in
     FExpr.mk_application ~keyword "Def:Register"
