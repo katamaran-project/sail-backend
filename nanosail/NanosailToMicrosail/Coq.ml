@@ -123,9 +123,12 @@ let pp_product
   PP.annotate [%here] @@ PP.(surround tuple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
 
 
-let pp_section identifier contents =
-  let first_line = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "Section"; space; Identifier.pp identifier ])
-  and last_line  = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "End"; space; Identifier.pp identifier ])
+let pp_section
+    (identifier : PP.t)
+    (contents   : PP.t) : PP.t
+  =
+  let first_line = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "Section"; space; identifier ])
+  and last_line  = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "End"; space; identifier ])
   in
   let delimiters = (first_line, last_line)
   in

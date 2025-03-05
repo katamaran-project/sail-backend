@@ -53,7 +53,7 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
 let pp_no_confusion_for_reg () : PP.document GC.t =
   GC.generation_block [%here] "No Confusion for Reg" begin
     GC.return begin
-      Coq.pp_section (Ast.Identifier.mk "TransparentObligations") (
+      Coq.pp_section (PP.string "TransparentObligations") (
         PP.(vertical [
             string "Local Set Transparent Obligations.";
             string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
@@ -279,7 +279,7 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
   GC.block begin
     GC.return begin
       PP.annotate [%here] begin
-        Coq.pp_section (Ast.Identifier.mk "RegDeclKit") section_contents
+        Coq.pp_section (PP.string "RegDeclKit") section_contents
       end
     end
   end

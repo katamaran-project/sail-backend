@@ -97,6 +97,6 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
         end
     in
     GC.return begin
-      Coq.pp_section (Ast.Identifier.mk "FunDeclKit") contents
+      Coq.pp_section (PP.string "FunDeclKit") contents
     end
   end

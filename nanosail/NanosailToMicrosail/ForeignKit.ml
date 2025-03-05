@@ -6,7 +6,8 @@ module GC = GenerationContext
 
 let pp_foreign_kit () : PP.document GC.t =
   GC.generation_block [%here] "Foreign Kit" begin
-    let title = Ast.Identifier.mk "ForeignKit"
+    let title =
+      PP.string "ForeignKit"
     and contents =
       PP.vertical @@ List.map ~f:PP.string [
         "Definition ForeignCall {σs σ} (f : 𝑭𝑿 σs σ) (args : NamedEnv Val σs)";

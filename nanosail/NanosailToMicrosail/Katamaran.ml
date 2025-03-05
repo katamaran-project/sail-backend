@@ -129,7 +129,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
     GC.block begin
       GC.generation_block [%here] "Finite" begin
         GC.return begin
-          Coq.pp_section (Ast.Identifier.mk "Finite") @@ PP.(paragraphs parts)
+          Coq.pp_section (PP.string "Finite") @@ PP.(paragraphs parts)
         end
       end
     end
@@ -137,8 +137,8 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
   method pp_no_confusion : PP.document GC.t =
     let* () = GC.log [%here] Logging.debug @@ lazy (PP.string "pp_no_confusion")
     in
-    let section_identifier =
-      Ast.Identifier.mk "TransparentObligations"
+    let section_identifier : PP.t =
+      PP.string "TransparentObligations"
     in
     let section_contents =
       (*

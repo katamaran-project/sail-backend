@@ -247,7 +247,7 @@ let pp_function_definition_kit
       end
     in
     let section =
-      PP.annotate [%here] @@ Coq.pp_section (Ast.Identifier.mk "FunDefKit") contents
+      PP.annotate [%here] @@ Coq.pp_section (PP.string "FunDefKit") contents
     in
     GC.return @@ PP.annotate [%here] @@ section
   end

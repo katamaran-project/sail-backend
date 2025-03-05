@@ -1038,7 +1038,7 @@ let pp_regdeclkit register_definitions : PP.document GC.t =
 let pp_memory_model () : PP.document GC.t =
   genblock [%here] "Memory Model" begin
     let identifier =
-      Ast.Identifier.mk "MemoryModel"
+      PP.string "MemoryModel"
     in
     let* content =
       GC.block begin
