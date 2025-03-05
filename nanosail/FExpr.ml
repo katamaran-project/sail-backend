@@ -155,8 +155,7 @@ let pp_application
   end
 
 
-let rec pp (fexpr : t) : PP.document
-  =
+let rec pp (fexpr : t) : PP.document =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
   | Bool b           -> PP.string @@ if b then "True" else "False"
