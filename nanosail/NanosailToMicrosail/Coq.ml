@@ -1,3 +1,9 @@
+(*
+   Collection of functions to generate Coq code.
+
+   Each of these functions operate outside the generation monad.
+   muSail specific generation functionality resides in the MuSail module.
+*)
 open ExtBase
 
 module Big_int = Nat_big_num
@@ -45,7 +51,7 @@ let tuple_right_delimiter  = PP.rparen
 let tuple_delimiters       = (tuple_left_delimiter, tuple_right_delimiter)
 
 
-let pp_sentence contents =
+let pp_sentence (contents : PP.t) : PP.t =
   PP.(horizontal [contents; eol])
 
 
