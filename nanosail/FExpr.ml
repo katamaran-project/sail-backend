@@ -155,6 +155,9 @@ let pp_application
   end
 
 
+(*
+   Pretty prints an f-expression.
+*)
 let rec pp (fexpr : t) : PP.document =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
