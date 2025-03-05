@@ -9,43 +9,6 @@ end
 
 
 module Make(Configuration : CONFIGURATION) = struct
-  let indentation_level = ref 0
-
-
-  let increase_indentation () =
-    indentation_level := !indentation_level + 1
-
-
-  let decrease_indentation () =
-    if
-      Int.equal !indentation_level 0
-    then
-      failwith "cannot decrease indentation level when already at level 0"
-    else
-      indentation_level := !indentation_level - 1
-
-
-  let create_indentation_restorer () : unit -> unit =
-    let current_indentation = !indentation_level
-    in
-    fun () -> indentation_level := current_indentation
-
-
-  let with_increased_indentation f =
-    let restore_indentation = create_indentation_restorer ()
-    in
-    increase_indentation ();
-    try
-      let result = f ()
-      in
-      restore_indentation ();
-      result
-    with e -> begin
-        restore_indentation ();
-        raise e
-      end
-
-
   let log
       (level          : VerbosityLevel.t  )
       (ocaml_position : Lexing.position   )
@@ -63,16 +26,14 @@ module Make(Configuration : CONFIGURATION) = struct
           in
           PP.format "%s:%d" filename line_number
         in
-        PP.indent ~level:!indentation_level begin
-          PP.horizontal [
-            level_message;
-            PP.space;
-            PP.vertical [
-              location_message;
-              Lazy.force message;
-            ]
+        PP.horizontal [
+          level_message;
+          PP.space;
+          PP.vertical [
+            location_message;
+            Lazy.force message;
           ]
-        end
+        ]
       in
       let output_string =
         PP.to_string output_message
@@ -102,7 +63,7 @@ module Make(Configuration : CONFIGURATION) = struct
     in
     enter_block ();
     try
-      let result = with_increased_indentation f
+      let result = f ()
       in
       exited_block_successfully ();
       result

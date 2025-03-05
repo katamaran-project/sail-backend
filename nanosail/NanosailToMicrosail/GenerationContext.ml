@@ -211,14 +211,10 @@ let generation_block
   =
   let* contents =
     let* () = log position Logging.debug @@ lazy (PP.format "Entering %s" label)
-    and* restore_indentation = act Logging.create_indentation_restorer
-    in
-    let* () = act @@ fun () -> Logging.increase_indentation ()
     in
     let* contents
     in
-    let* () = act restore_indentation (* fix indentation restoration to handle failures correctly *)
-    and* () = log position Logging.debug @@ lazy (PP.format "Exiting %s" label)
+    let* () = log position Logging.debug @@ lazy (PP.format "Exiting %s" label)
     in
     return contents
   in
