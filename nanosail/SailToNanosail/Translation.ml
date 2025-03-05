@@ -25,9 +25,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     member Configuration.ignored_pragmas identifier
 
   and should_ignore_function_definition (function_definition : 'a fundef) =
-    let function_identifier : string = Sail.identifier_of_function_definition function_definition
-    in
-    Configuration.(get ignore_function_definition_predicate) function_identifier
+    Configuration.(get ignore_function_definition_predicate) (Sail.identifier_of_function_definition function_definition)
 
   and should_ignore_type_definition (type_definition : 'a type_def) : bool =
     Configuration.(get ignore_type_definition_predicate) (Sail.identifier_of_type_definition type_definition)
