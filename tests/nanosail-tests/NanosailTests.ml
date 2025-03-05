@@ -21,6 +21,6 @@ let tests =
   ]
 
 
-let _ = Configuration.(set verbosity_level) LoggingLib.VerbosityLevel.quiet
+let _ = Configuration.(set verbosity_level) LogLib.VerbosityLevel.quiet
 
 let _ = run_test_tt_main tests
