@@ -1,26 +1,29 @@
 open! ExtBase
 include Recursive
 
+(* Alias needed because this module introduces its own Type module *)
+module AstType = Type
+
 
 module FunctionType = struct
   type t =
     {
-      parameters  : (Identifier.t * Type.t) list;
-      return_type : Type.t
+      parameters  : (Identifier.t * AstType.t) list;
+      return_type : AstType.t
     }
 
   let to_fexpr (function_type_definition : t) : FExpr.t =
     let parameters' =
       let parameter_to_fexpr
             (identifier : Identifier.t)
-            (typ        : Type.t      ) : FExpr.t
+            (typ        : AstType.t   ) : FExpr.t
         =
-        FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Parameter"
+        FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; AstType.to_fexpr typ] "Parameter"
       in
       FExpr.mk_list @@ List.map ~f:(Fn.uncurry parameter_to_fexpr) function_type_definition.parameters
 
     and return_type' =
-      Type.to_fexpr function_type_definition.return_type
+      AstType.to_fexpr function_type_definition.return_type
 
     in
     let keyword =
@@ -108,7 +111,7 @@ module Register = struct
   type t =
     {
       identifier    : Identifier.t ;
-      typ           : Type.t       ;
+      typ           : AstType.t    ;
       initial_value : initial_value;
     }
 
@@ -116,7 +119,7 @@ module Register = struct
     let keyword =
       [
         ("identifier", Identifier.to_fexpr register_definition.identifier);
-        ("type", Type.to_fexpr register_definition.typ);
+        ("type", AstType.to_fexpr register_definition.typ);
         (* todo : add initial value *)
       ]
     in
@@ -133,11 +136,11 @@ module Type = struct
         constructors    : constructor list;
       }
 
-    and constructor = (Identifier.t * Type.t list)
+    and constructor = (Identifier.t * AstType.t list)
 
     let find_constructor_field_types
         (definition : t           )
-        (target     : Identifier.t) : Type.t list option
+        (target     : Identifier.t) : AstType.t list option
       =
       let is_right_constructor (constructor : constructor) : bool =
         let constructor_identifier, _ = constructor
@@ -155,7 +158,7 @@ module Type = struct
         let positional =
           [
             Identifier.to_fexpr constructor_identifier;
-            FExpr.mk_list @@ List.map ~f:Type.to_fexpr constructor_field_types
+            FExpr.mk_list @@ List.map ~f:AstType.to_fexpr constructor_field_types
           ]
         in
         FExpr.mk_application ~positional "Constructor"
@@ -191,19 +194,19 @@ module Type = struct
   module Record = struct
     type t =
       {
-        identifier      : Identifier.t                ;
-        type_quantifier : TypeQuantifier.t            ;
-        fields          : (Identifier.t * Type.t) list;
+        identifier      : Identifier.t                   ;
+        type_quantifier : TypeQuantifier.t               ;
+        fields          : (Identifier.t * AstType.t) list;
       }
 
     let to_fexpr (record_definition : t) : FExpr.t =
-      let fexpr_of_field (field : Identifier.t * Type.t) : FExpr.t =
+      let fexpr_of_field (field : Identifier.t * AstType.t) : FExpr.t =
         let field_identifier, field_type = field
         in
         let keyword =
           [
             ("identifier", Identifier.to_fexpr field_identifier);
-            ("type", Type.to_fexpr field_type);
+            ("type", AstType.to_fexpr field_type);
           ]
         in
         FExpr.mk_application ~keyword "Field"
@@ -222,7 +225,7 @@ module Type = struct
     type type_abbreviation = (* todo find better name *)
       | NumericExpression of TypeQuantifier.t * NumericExpression.t
       | NumericConstraint of TypeQuantifier.t * NumericConstraint.t
-      | Alias             of TypeQuantifier.t * Type.t
+      | Alias             of TypeQuantifier.t * AstType.t
 
     type t =
       {
@@ -255,7 +258,7 @@ module Type = struct
             let keyword =
               [
                 ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
-                ("type", Type.to_fexpr aliased_type);
+                ("type", AstType.to_fexpr aliased_type);
               ]
             in
             FExpr.mk_application ~keyword "Alias"
@@ -297,7 +300,7 @@ module TopLevelTypeConstraint = struct
     {
       identifier      : Identifier.t;
       type_quantifier : TypeQuantifier.t;
-      typ             : Nanotype.t;
+      typ             : AstType.t;
       polymorphic     : bool;
       monomorphs      : t list;
     }
@@ -315,7 +318,7 @@ module TopLevelTypeConstraint = struct
         );
         (
           "type",
-          Nanotype.to_fexpr top_level_type_constraint.typ
+          AstType.to_fexpr top_level_type_constraint.typ
         );
         (
           "polymorphic",
@@ -482,7 +485,7 @@ module Select = struct
 
 
     class ['a] abbreviation_kind_selector
-        (name        : Identifier.t option                        )
+        (name        : Identifier.t option        )
         (subselector : 'a abbreviation_subselector)
       =
       object(self)
@@ -508,9 +511,9 @@ module Select = struct
 
 
     class alias_abbreviation_subselector = object
-      inherit [TypeQuantifier.t * Nanotype.t] abbreviation_subselector
+      inherit [TypeQuantifier.t * AstType.t] abbreviation_subselector
 
-      method select (abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * Nanotype.t) option =
+      method select (abbreviation_definition : Type.Abbreviation.type_abbreviation) : (TypeQuantifier.t * AstType.t) option =
         match abbreviation_definition with
         | Alias (type_quantifier, typ) -> Some (type_quantifier, typ)
         | _                            -> None
@@ -735,7 +738,7 @@ module Select = struct
     =
     new Selectors.abbreviation_kind_selector named of_type
 
-  let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Nanotype.t) selector =
+  let of_alias : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * AstType.t) selector =
     new Selectors.alias_abbreviation_subselector
 
   let of_numeric_expression : (Type.Abbreviation.type_abbreviation, TypeQuantifier.t * Numeric.Expression.t) selector =

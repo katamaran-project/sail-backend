@@ -2,7 +2,7 @@ open! ExtBase
 
 
 type t =
-  | Variable        of Identifier.t * Nanotype.t
+  | Variable        of Identifier.t * Type.t
   | Value           of Value.t
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
@@ -33,7 +33,7 @@ let rec equal
         identifier_1
         identifier_2
       &&
-      Nanotype.equal
+      Type.equal
         type_1
         type_2
     end
@@ -93,7 +93,7 @@ let rec equal
 exception UnimplementedTypeInference
 
 (* Still incomplete, raises UnimplementedTypeInference in unimplemented cases, todo complete this *)
-let infer_type (expression : t) : Nanotype.t =
+let infer_type (expression : t) : Type.t =
   match expression with
    | Variable (_, typ)         -> typ
    | Value _                   -> raise UnimplementedTypeInference
@@ -104,15 +104,15 @@ let infer_type (expression : t) : Nanotype.t =
    | Enum _                    -> raise UnimplementedTypeInference
    | Variant _                 -> raise UnimplementedTypeInference
    | Tuple _                   -> raise UnimplementedTypeInference
-   | Bitvector bits            -> Nanotype.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bits))
+   | Bitvector bits            -> Type.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bits))
 
 
 let rec to_fexpr (expression : t) : FExpr.t =
   let variable_to_fexpr
       (identifier : Identifier.t)
-      (typ        : Nanotype.t  ) : FExpr.t
+      (typ        : Type.t      ) : FExpr.t
     =
-    FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Nanotype.to_fexpr typ] "Var"
+    FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Var"
 
   and value_to_fexpr (value : Value.t) : FExpr.t =
     FExpr.mk_application ~positional:[Value.to_fexpr value] "Val"
@@ -213,7 +213,7 @@ let substitute_numeric_expression_identifier
     (substitution : Identifier.t -> Numeric.Expression.t)
     (expression   : t                                   ) : t
   =
-  let typsubst = Nanotype.substitute_numeric_expression_identifier substitution
+  let typsubst = Type.substitute_numeric_expression_identifier substitution
   in
   let rec subst (expression : t) : t =
     match expression with
@@ -239,7 +239,7 @@ let substitute_numeric_expression_identifier
 
 let rec simplify (expression : t) : t =
   match expression with
-  | Variable (identifier, typ) -> Variable (identifier, Nanotype.simplify typ)
+  | Variable (identifier, typ) -> Variable (identifier, Type.simplify typ)
   | Value _ -> expression
   | List elements -> List (List.map ~f:simplify elements)
   | UnaryOperation (operator, operand) -> UnaryOperation (operator, simplify operand)

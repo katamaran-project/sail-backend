@@ -23,15 +23,15 @@ let mk_string (value : string) =
   String value
 
 
-let rec type_of_value (value : t) : Nanotype.t =
+let rec type_of_value (value : t) : Type.t =
   match value with
-  | Unit          -> Nanotype.Unit
-  | Bool _        -> Nanotype.Bool
-  | Int _         -> Nanotype.Int None
-  | String _      -> Nanotype.String
-  | Prod (v1, v2) -> Nanotype.Tuple [type_of_value v1; type_of_value v2]
-  | Bit _         -> Nanotype.Bit
-  | Bitvector bs  -> Nanotype.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bs))
+  | Unit          -> Unit
+  | Bool _        -> Bool
+  | Int _         -> Int None
+  | String _      -> String
+  | Prod (v1, v2) -> Tuple [type_of_value v1; type_of_value v2]
+  | Bit _         -> Bit
+  | Bitvector bs  -> Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bs))
 
 
 let rec to_fexpr (value : t) : FExpr.t =

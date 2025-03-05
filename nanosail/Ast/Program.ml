@@ -1,6 +1,6 @@
 type t = {
   definitions          : (Sail.sail_definition * Definition.t) list;  (* list of all translated definitions; original order preserved *)
-  polymorphic_argtypes : Nanotype.t list list Identifier.Map.t;       (* maps polymorphic functions to the argument types *)
+  polymorphic_argtypes : Type.t list list Identifier.Map.t;           (* maps polymorphic functions to the argument types *)
 }
 
 

@@ -30,18 +30,18 @@ type t =
 
 and match_pattern =
   | MatchList    of { matched      : Identifier.t                    ;
-                      element_type : Nanotype.t                      ;
+                      element_type : Type.t                          ;
                       when_cons    : Identifier.t * Identifier.t * t ;
                       when_nil     : t                               }
   | MatchProduct of { matched      : Identifier.t ;
-                      type_fst     : Nanotype.t   ;
-                      type_snd     : Nanotype.t   ;
+                      type_fst     : Type.t       ;
+                      type_snd     : Type.t       ;
                       id_fst       : Identifier.t ;
                       id_snd       : Identifier.t ;
                       body         : t            }
-  | MatchTuple   of { matched      : Identifier.t                     ;
-                      binders      : (Identifier.t * Nanotype.t) list ;
-                      body         : t                                }
+  | MatchTuple   of { matched      : Identifier.t                 ;
+                      binders      : (Identifier.t * Type.t) list ;
+                      body         : t                            }
   | MatchBool    of { condition    : Identifier.t ;
                       when_true    : t            ;
                       when_false   : t            }
@@ -308,7 +308,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
         let matched' =
           Identifier.to_fexpr matched
         and element_type' =
-          Nanotype.to_fexpr element_type
+          Type.to_fexpr element_type
         and when_cons' =
           let head_identifier, tail_identifier, body = when_cons
           in
@@ -339,8 +339,8 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ("matched", Identifier.to_fexpr matched);
             ("id_fst", Identifier.to_fexpr id_fst);
             ("id_snd", Identifier.to_fexpr id_snd);
-            ("type_fst", Nanotype.to_fexpr type_fst);
-            ("type_snd", Nanotype.to_fexpr type_snd);
+            ("type_fst", Type.to_fexpr type_fst);
+            ("type_snd", Type.to_fexpr type_snd);
             ("body", to_fexpr body)
           ]
         in
@@ -853,7 +853,7 @@ let rec simplify (statement : t) : t =
       in
       match left, right with
       | Expression (Value Unit)                 , _ -> right
-      | Expression (Variable (_, Nanotype.Unit)), _ -> right
+      | Expression (Variable (_, Type.Unit)), _ -> right
       | _                                           -> Seq (left, right)
     end
 
