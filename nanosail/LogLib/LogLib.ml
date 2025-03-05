@@ -5,17 +5,21 @@ module VerbosityLevel = VerbosityLevel
 
 module type CONFIGURATION = sig
   val verbosity_level : unit -> VerbosityLevel.t
+  val print           : string -> unit
+  val flush           : unit -> unit
 end
 
 
 module Make(Configuration : CONFIGURATION) = struct
+  include Configuration
+  
   let log
       (level          : VerbosityLevel.t  )
       (ocaml_position : Lexing.position   )
       (message        : PP.document lazy_t) : unit
     =
     if
-      VerbosityLevel.should_show ~filter_level:(Configuration.verbosity_level ()) ~message_level:level
+      VerbosityLevel.should_show ~filter_level:(verbosity_level ()) ~message_level:level
     then
       let output_message =
         let level_message =
@@ -35,11 +39,11 @@ module Make(Configuration : CONFIGURATION) = struct
           ]
         ]
       in
-      let output_string =
+      let output : string =
         PP.to_string output_message
       in
-      (* %! forces a flush *)
-      Stdio.printf "%s\n%!" output_string
+      print output;
+      flush ()
 
 
   let error   = log VerbosityLevel.error
