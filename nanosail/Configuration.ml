@@ -50,60 +50,60 @@ module Implementation = struct
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
     let template_translations                      = ConfigLib.Setting.mk ([] : template_translation list)
-
-    (*
-       Defines Slang function named template.
-
-         (template path)
-    *)
-    let () =
-      let exported_function_name = "template"
-      and add_translation template_filename output_filename =
-        ConfigLib.Setting.update template_translations ~f:(fun x -> { template_filename; output_filename } :: x)
-      and derive_output_filename_from_template_filename (template_filename : string) : string =
-        (*
-           Given the filename of the template file, derives an output filename from it.
-           This is achieved by looking for a ".template" substring in template_filename and remove it.
-         *)
-        let pattern = String.Search_pattern.create ".template"
-        in
-        match String.Search_pattern.index_all pattern ~may_overlap:false ~in_:template_filename with
-        | [] -> begin
-            let error_message = Printf.sprintf "Error: when using (template %s), %s must contain the substring \".template\"." template_filename template_filename
-            in
-            failwith error_message
-          end
-        | [_] -> begin
-            String.Search_pattern.replace_first pattern ~in_:template_filename ~with_:""
-          end
-        | _  -> begin
-            let error_message = Printf.sprintf "Error: when using (template %s), %s must contain \".template\" at most once" template_filename template_filename
-            in
-            failwith error_message
-          end
-      in
-      let handler_function =
-        let unary_version evaluated_arguments =
-          match Slang.Converters.(map1 string) evaluated_arguments with
-          | Some template_filename -> begin
-              let output_filename = derive_output_filename_from_template_filename template_filename
-              in
-              add_translation template_filename output_filename;
-              EC.return @@ Some Slang.Value.Nil
-            end
-          | None -> EC.return None
-        and binary_version evaluated_arguments =
-          match Slang.Converters.(map2 string string) evaluated_arguments with
-          | Some (template_filename, output_filename) -> begin
-              add_translation template_filename output_filename;
-              EC.return @@ Some Slang.Value.Nil
-            end
-          | None -> EC.return None
-        in
-        Slang.Functions.mk_multimethod [ unary_version; binary_version ]
-      in
-      export_callable exported_function_name handler_function
   end
+
+  (*
+     Defines Slang function named template.
+
+       (template path)
+  *)
+  let () =
+    let exported_function_name = "template"
+    and add_translation template_filename output_filename =
+      ConfigLib.Setting.update Exported.template_translations ~f:(fun x -> { template_filename; output_filename } :: x)
+    and derive_output_filename_from_template_filename (template_filename : string) : string =
+      (*
+         Given the filename of the template file, derives an output filename from it.
+         This is achieved by looking for a ".template" substring in template_filename and remove it.
+       *)
+      let pattern = String.Search_pattern.create ".template"
+      in
+      match String.Search_pattern.index_all pattern ~may_overlap:false ~in_:template_filename with
+      | [] -> begin
+          let error_message = Printf.sprintf "Error: when using (template %s), %s must contain the substring \".template\"." template_filename template_filename
+          in
+          failwith error_message
+        end
+      | [_] -> begin
+          String.Search_pattern.replace_first pattern ~in_:template_filename ~with_:""
+        end
+      | _  -> begin
+          let error_message = Printf.sprintf "Error: when using (template %s), %s must contain \".template\" at most once" template_filename template_filename
+          in
+          failwith error_message
+        end
+    in
+    let handler_function =
+      let unary_version evaluated_arguments =
+        match Slang.Converters.(map1 string) evaluated_arguments with
+        | Some template_filename -> begin
+            let output_filename = derive_output_filename_from_template_filename template_filename
+            in
+            add_translation template_filename output_filename;
+            EC.return @@ Some Slang.Value.Nil
+          end
+        | None -> EC.return None
+      and binary_version evaluated_arguments =
+        match Slang.Converters.(map2 string string) evaluated_arguments with
+        | Some (template_filename, output_filename) -> begin
+            add_translation template_filename output_filename;
+            EC.return @@ Some Slang.Value.Nil
+          end
+        | None -> EC.return None
+      in
+      Slang.Functions.mk_multimethod [ unary_version; binary_version ]
+    in
+    export_callable exported_function_name handler_function  
 
   (* helper function template-block-delimiters that allows setting both template block delimiters in one step *)
   let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
