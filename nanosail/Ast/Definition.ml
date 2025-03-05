@@ -791,4 +791,4 @@ let to_fexpr (definition : t) =
   | RegisterDefinition definition               -> Register.to_fexpr definition
   | UntranslatedDefinition definition           -> Untranslated.to_fexpr definition
   | ValueDefinition definition                  -> Value.to_fexpr definition
-  | IgnoredDefinition                           -> FExpr.String "Def:Ignored"
+  | IgnoredDefinition                           -> FExpr.mk_string "Def:Ignored"
