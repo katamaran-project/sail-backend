@@ -1,11 +1,13 @@
 (use-list-notations)
 
 (ignore-all-overloads)
-(ignore-pragmas "include_start"
-                "include_end"
-                "file_start"
-                "file_end"
-                "sail_internal")
+(ignore-pragmas (lambda (identifier)
+                  (contains? '("include_start"
+                               "include_end"
+                               "file_start"
+                               "file_end"
+                               "sail_internal")
+                             identifier)))
 
 (ignore-function-definition-and-top-level-type-constraints-predicate
  (lambda (identifier)
@@ -52,4 +54,3 @@
                 "initial_Capability"
                 )
               identifier)))
-
