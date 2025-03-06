@@ -174,7 +174,8 @@ module Implementation = struct
           end
        
     *)
-    let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
+    let pretty_print_match_enum = bool"pretty-print-match-enum" false
+    
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
     let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
     let show_generation_blocks                     = bool     "show-generation-blocks"           false
