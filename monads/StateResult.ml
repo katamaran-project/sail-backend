@@ -1,3 +1,9 @@
+(*
+   
+   Monad that combines the component state monad and result monad.
+   
+*)
+
 module type S = sig
   include Sig.Monad
 
@@ -16,6 +22,7 @@ module type S = sig
   val fail    : error -> 'a t
   val recover : 'a t -> (error -> 'a t) -> 'a t
 end
+
 
 module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t and type error = E.t) = struct
   module SM = ComponentState.Make(S)
@@ -45,16 +52,25 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
   let get (accessor : 'a accessor) : 'a t =
     SM.bind (SM.get accessor) return
 
-  let put (accessor : 'a accessor) (x : 'a) : unit t =
+  let put
+      (accessor : 'a accessor)
+      (x        : 'a         ) : unit t
+    =
     SM.bind (SM.put accessor x) return
 
   let act (action : unit -> 'a) : 'a t =
     SM.bind (SM.act action) return
 
-  let update (accessor : 'a accessor) (f : 'a -> 'a) : unit t =
+  let update
+      (accessor : 'a accessor)
+      (f        : 'a -> 'a   ) : unit t
+    =
     bind (get accessor) @@ fun x -> put accessor (f x)
 
-  let recover (f : 'a t) (error_handler: error -> 'a t) =
+  let recover
+      (f             : 'a t         )
+      (error_handler : error -> 'a t) : 'a t
+    =
     SM.bind f (fun result ->
         match result with
         | Success _ -> SM.return result
