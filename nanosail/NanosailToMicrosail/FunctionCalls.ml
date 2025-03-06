@@ -581,6 +581,64 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
+let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP.document GC.t =
+  let sail_name = "update_subrange_bits"
+  in
+  match arguments with
+  | [bitvector; first_index; second_index; new_bitvector] -> begin
+      let pp_slice
+          (low_index : PP.document)
+          (length    : PP.document)
+          (bitvector : PP.document)
+          (new_bitvector : PP.document) : PP.document GC.t
+        =
+        translate_binary_operator_using_function_notation
+          (Ast.Identifier.mk sail_name)
+          (
+            PP.(surround parens) begin
+              Coq.pp_application
+                (PP.string "bop.update_vector_subrange")
+                [ low_index; length ]
+            end
+          )
+          [ PP.(surround parens) bitvector; PP.(surround parens) new_bitvector ]
+      in
+      (*
+        How indices need to be interpreted depends on the order
+        Here we assume that "backward slices" are not possible, i.e.,
+        that the range goes from the lowest index to the highest index.
+      *)
+      let* pp_bitvector = Expressions.pp_expression bitvector
+      and* first_index  = extract_compile_time_integer first_index
+      and* second_index = extract_compile_time_integer second_index
+      and* pp_new_bitvector = Expressions.pp_expression new_bitvector
+      in
+      match first_index, second_index with
+      | Some first_index, Some second_index -> begin
+          let first_index   = Z.to_int first_index
+          and second_index  = Z.to_int second_index
+          in
+          let low_index     = Int.min first_index second_index
+          and high_index    = Int.max first_index second_index
+          in
+          let length        = high_index - low_index + 1
+          in
+          pp_slice
+            (PP.integer low_index)
+            (PP.integer length   )
+            pp_bitvector
+            pp_new_bitvector
+        end
+      | _ -> begin
+          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          in
+          pp_slice low_index length pp_bitvector pp_new_bitvector
+        end
+    end
+  | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.document GC.t
@@ -738,6 +796,11 @@ let translate
   | "subrange_bits" -> begin
       GC.pp_annotate [%here] begin
         translate_bitvector_slicing arguments
+      end
+    end
+  | "update_subrange_bits" -> begin
+      GC.pp_annotate [%here] begin
+        translate_bitvector_update_subrange arguments
       end
     end
   | _ -> begin
