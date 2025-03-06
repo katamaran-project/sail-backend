@@ -37,7 +37,43 @@ module Implementation = struct
     (* Ignore the default Order line *)
     let ignore_default_order = bool "ignore-default-order" true
 
-    let pretty_print_lists                         = bool     "pretty-print-lists"               false
+    (*
+       
+       Plain printing produces
+
+          (cons (exp_int 1%Z)
+                (cons (exp_int 2%Z)
+                      (cons (exp_int 3%Z)
+                            nil)))
+
+       Pretty printing produces
+
+          [
+            exp_int 1%Z;
+            exp_int 2%Z;
+            exp_int 3%Z
+          ]
+         
+    *)
+    let pretty_print_lists = bool "pretty-print-lists" false
+
+    (*
+       
+       Plain printing produces
+
+        stm_let "x"
+                (ty.int)
+                (stm_exp (exp_int 5%Z))
+                (stm_exp (exp_var "x"))
+         
+
+       Pretty printing produces
+
+        let: "x" :: ty.int := stm_exp (exp_int 5%Z)
+        in
+          stm_exp (exp_var "x")
+       
+    *)
     let pretty_print_let                           = bool     "pretty-print-let"                 false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
