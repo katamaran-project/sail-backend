@@ -12,7 +12,10 @@ let to_string (kind : t) =
 
 
 let to_fexpr (kind : t) : FExpr.t =
+  let mk (name : string) =
+    FExpr.mk_symbol @@ "Kind:" ^ name
+  in
   match kind with
-  | Type -> FExpr.mk_symbol "KindType"
-  | Int  -> FExpr.mk_symbol "KindInt"
-  | Bool -> FExpr.mk_symbol "KindBool"
+  | Type -> mk "Type"
+  | Int  -> mk "Int"
+  | Bool -> mk "Bool"
