@@ -1113,5 +1113,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       in
       GC.return @@ PP.paragraphs sections
     in
-    GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
+    GC.pp_annotate [%here] begin
+      GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
+    end
   end
