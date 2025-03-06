@@ -73,4 +73,4 @@ let to_escape_sequence (decorations : Decoration.t list) : string =
     build_escape_sequence [ "0" ]
   else
     build_escape_sequence @@ List.map ~f:Decoration.code_of decorations
-    
+
