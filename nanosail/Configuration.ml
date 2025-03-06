@@ -153,6 +153,27 @@ module Implementation = struct
        
     *)
     let pretty_print_let = bool "pretty-print-let" false
+
+    (*
+       Plain printing produces
+
+          stm_match_enum Emyenum
+                         (stm_exp (exp_var "ж0"))
+                         (fun K => match K with
+                                   | x => stm_exp (exp_int 1%Z)
+                                   | y => stm_exp (exp_int 2%Z)
+                                   | z => stm_exp (exp_int 3%Z)
+                                   end)
+       
+       Pretty printing produces
+
+          match: (stm_exp (exp_var "ж0")) in Emyenum with
+           | x  =>  stm_exp (exp_int 1%Z)
+           | y  =>  stm_exp (exp_int 2%Z)
+           | z  =>  stm_exp (exp_int 3%Z)
+          end
+       
+    *)
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
     let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
