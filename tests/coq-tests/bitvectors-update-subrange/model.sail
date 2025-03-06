@@ -2,7 +2,7 @@ default Order dec
 
 $include <prelude.sail>
 
-register x : bits(12) = 12^0
+register x : bits(12)
 
 val foo : bits(4) -> unit
 function foo(y) = {
