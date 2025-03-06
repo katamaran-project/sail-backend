@@ -551,9 +551,14 @@ and pp_cast
   GC.pp_annotate [%here] @@ pp_statement statement_to_be_cast
 
 
-and pp_fail (typ : Ast.Type.t) (message : string) : PP.document GC.t =
-  let pp_message = PP.string message in
-  let* pp_typ = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ in
+and pp_fail
+    (typ     : Ast.Type.t)
+    (message : string    ) : PP.document GC.t
+  =
+  let pp_message = PP.string message
+  in
+  let* pp_typ = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
+  in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
