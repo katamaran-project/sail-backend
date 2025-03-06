@@ -494,8 +494,8 @@ module Statement = struct
 
 
   let pp_call
-      (function_identifier : PP.document     )
-      (arguments           : PP.document list) : PP.document
+      (function_name : PP.document     )
+      (arguments     : PP.document list) : PP.document
     =
     let pp_arguments =
       let add_snoc tail argument =
@@ -516,7 +516,7 @@ module Statement = struct
       Coq.pp_application
         (PP.string "stm_call")
         [
-          function_identifier;
+          function_name;
           PP.(surround parens) pp_arguments
         ]
     end
