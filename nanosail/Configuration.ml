@@ -175,7 +175,18 @@ module Implementation = struct
        
     *)
     let pretty_print_match_enum = bool"pretty-print-match-enum" false
-    
+
+    (*
+       
+       Plain printing produces
+
+        stm_exp (exp_binop bop.bvadd (exp_var "x") (exp_var "y")).
+
+       Pretty printing produces
+
+         stm_exp (((exp_var "x") +ᵇ (exp_var "y"))).
+       
+    *)
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
     let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
     let show_generation_blocks                     = bool     "show-generation-blocks"           false
