@@ -502,7 +502,7 @@ module Statement = struct
     =
     let pp_arguments =
       let add_snoc tail argument =
-        Coq.pp_application
+        Coq.pp_hanging_application
           (PP.string "env.snoc")
           [
             PP.(surround parens) tail;
