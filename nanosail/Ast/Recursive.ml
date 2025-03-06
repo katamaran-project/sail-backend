@@ -6,15 +6,6 @@
 open! ExtBase
 
 
-(* todo make this local module redundant by either updating Sig.Monad or providing a ready made adapter module *)
-module OptionLetSyntax = Monads.Notations.Star(
-  struct
-    type 'a t    = 'a Option.t
-    let bind x f = Option.bind x ~f
-    let return   = Option.return
-  end)
-
-
 module NumericExpression = struct
   type t =
     | Constant        of Z.t
@@ -107,17 +98,17 @@ module NumericExpression = struct
      Evaluates numeric expression to a Z.int, if possible (i.e., no unknowns appear in the numeric expression)
   *)
   let rec evaluate (numeric_expression : t) : Z.t option =
-    let open OptionLetSyntax
+    let open Monads.OptionNotation
     in
     match numeric_expression with
      | Constant n -> Some n
-     | Neg n      -> let* n = evaluate n in Some (Z.neg n)
-     | PowerOf2 n -> let* n = evaluate n in Some (Z.shift_left Z.one (Z.to_int n))
+     | Neg n      -> let=? n = evaluate n in Some (Z.neg n)
+     | PowerOf2 n -> let=? n = evaluate n in Some (Z.shift_left Z.one (Z.to_int n))
      | Id _       -> None
      | Var _      -> None
      | BinaryOperation (operator, left_operand, right_operand) -> begin
-         let* left_operand  = evaluate left_operand
-         and* right_operand = evaluate right_operand
+         let=? left_operand  = evaluate left_operand
+         and=? right_operand = evaluate right_operand
          in
          match operator with
          | Add -> Some (Z.add left_operand right_operand)
