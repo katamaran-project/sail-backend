@@ -32,10 +32,10 @@ module Implementation = struct
        Ignore overload definitions
        Overloads should be resolved by Sail, so there's no need to process them.
     *)
-    let ignore_overloads                           = bool     "ignore-all-overloads"             false
+    let ignore_overloads = bool "ignore-all-overloads" false
 
     (* Ignore the default Order line *)
-    let ignore_default_order                       = bool     "ignore-default-order"             true
+    let ignore_default_order = bool "ignore-default-order" true
 
     let pretty_print_lists                         = bool     "pretty-print-lists"               false
     let pretty_print_let                           = bool     "pretty-print-let"                 false
