@@ -90,26 +90,34 @@ let add_comments
     ~(comments : PP.document)
     ~(document : PP.document) : PP.document
   =
-  PP.annotate [%here] @@ PP.vertical [ pp_comment comments; document ]
+  PP.annotate [%here] begin
+    PP.vertical [ pp_comment comments; document ]
+  end
 
 
 let pp_hanging_application
       (func      : PP.document     )
       (arguments : PP.document list) : PP.document
   =
-  PP.annotate [%here] @@ PP.(hanging @@ horizontal [ func; space ] :: arguments)
+  PP.annotate [%here] begin
+    PP.(hanging @@ horizontal [ func; space ] :: arguments)
+  end
 
 
 let pp_list_using_notation (items : PP.document list) : PP.document =
   if
     List.is_empty items
   then
-    PP.annotate [%here] @@ PP.(horizontal [lbracket; rbracket])
+    PP.annotate [%here] begin
+      PP.(horizontal [lbracket; rbracket])
+    end
   else
-    PP.annotate [%here] @@ PP.(delimited_list
-          ~delimiters:brackets
-          ~items
-          ~separator:semi)
+    PP.annotate [%here] begin
+      PP.(delimited_list
+            ~delimiters:brackets
+            ~items
+            ~separator:semi)
+    end
 
 
 let pp_list_using_cons (items : PP.document list) : PP.document =
@@ -118,7 +126,9 @@ let pp_list_using_cons (items : PP.document list) : PP.document =
     | []         -> PP.string "nil"
     | head::tail -> PP.(surround parens @@ pp_hanging_application (string "cons") [ PP.(surround parens) head; pp tail])
   in
-  PP.annotate [%here] @@ pp items
+  PP.annotate [%here] begin
+    pp items
+  end
 
 
 let pp_list
@@ -137,15 +147,17 @@ let pp_product
     (v1 : PP.document)
     (v2 : PP.document) : PP.document
   =
-  PP.annotate [%here] @@ PP.(surround tuple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
+  PP.annotate [%here] begin
+    PP.(surround tuple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
+  end
 
 
 let pp_section
     (identifier : PP.t)
     (contents   : PP.t) : PP.t
   =
-  let first_line = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "Section"; space; identifier ])
-  and last_line  = PP.annotate [%here] @@ pp_sentence @@ PP.(horizontal [ string "End"; space; identifier ])
+  let first_line = pp_sentence @@ PP.(horizontal [ string "Section"; space; identifier ])
+  and last_line  = pp_sentence @@ PP.(horizontal [ string "End"; space; identifier ])
   in
   let delimiters = (first_line, last_line)
   in
@@ -183,12 +195,14 @@ let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
         )
     )
   and last_line =
-    PP.annotate [%here] @@ PP.(pp_sentence @@ separate_horizontally ~separator:space [ string "End"; string identifier ])
+    PP.(pp_sentence @@ separate_horizontally ~separator:space [ string "End"; string identifier ])
   in
   let delimiters =
     (first_line, last_line)
   in
-  PP.annotate [%here] @@ PP.(surround ~layout:vertical delimiters (indent contents))
+  PP.annotate [%here] begin
+    PP.(surround ~layout:vertical delimiters (indent contents))
+  end
 
 
 let pp_definition
@@ -202,15 +216,15 @@ let pp_definition
     let pp_implicit_parameters =
       let pp_implicit_parameter (var, typ) =
         match typ with
-        | Some typ -> PP.(annotate [%here] @@ surround braces @@ separate_horizontally ~separator:space [ var; colon; typ ])
-        | None     -> PP.(annotate [%here] @@ surround braces @@ var)
+        | Some typ -> PP.(surround braces @@ separate_horizontally ~separator:space [ var; colon; typ ])
+        | None     -> PP.(surround braces @@ var)
       in
       List.map ~f:pp_implicit_parameter implicit_parameters
     and pp_explicit_parameters =
       let pp_parameter (var, typ) =
         match typ with
-        | Some typ -> PP.(annotate [%here] @@ surround parens @@ horizontal [ var; string " : "; typ ])
-        | None     -> PP.annotate [%here] @@ var
+        | Some typ -> PP.(surround parens @@ horizontal [ var; string " : "; typ ])
+        | None     -> var
       in
       List.map ~f:pp_parameter parameters
     in
@@ -224,18 +238,20 @@ let pp_definition
   let pp_return_type =
     match result_type with
     | None    -> None
-    | Some rt -> Some PP.(annotate [%here] @@ separate_horizontally ~separator:PP.space [ PP.colon; rt ])
+    | Some rt -> Some PP.(separate_horizontally ~separator:PP.space [ PP.colon; rt ])
   in
   let definition_line =
     PP.separate_horizontally ~separator:PP.space @@ List.build_list begin fun { add; addopt; _ } ->
-      add    @@ PP.(annotate [%here] @@ string "Definition");
-      add    @@ PP.annotate [%here] @@ identifier;
-      addopt @@ Option.(pp_parameters >>| PP.annotate [%here]);
-      addopt @@ Option.(pp_return_type >>| PP.annotate [%here]);
-      add    @@ PP.(annotate [%here] @@ string ":=");
+      add    @@ PP.string "Definition";
+      add    @@ identifier;
+      addopt @@ pp_parameters;
+      addopt @@ pp_return_type;
+      add    @@ PP.string ":=";
     end
   in
-  PP.(annotate [%here] @@ pp_sentence @@ vertical [ definition_line; indent body ])
+  PP.annotate [%here] begin
+    PP.(pp_sentence @@ vertical [ definition_line; indent body ])
+  end
 
 
 let pp_match
@@ -260,7 +276,7 @@ let pp_match
       Option.value ~default:0 @@ List.max_elt ~compare:Int.compare widths
     in
     let generate_case (pattern, expression) =
-      PP.annotate [%here] @@ PP.(
+      PP.(
         separate_horizontally ~separator:space [
           bar;
           pad_right longest_pattern_width pattern;
@@ -283,7 +299,9 @@ let pp_match
         add    final_line
       )
   in
-  PP.annotate [%here] @@ PP.(vertical result_lines)
+  PP.annotate [%here] begin
+    PP.(vertical result_lines)
+  end
 
 
 let pp_match_pair matched_expressions cases =
@@ -298,11 +316,11 @@ let pp_match_pair matched_expressions cases =
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
         PP.(
-          annotate [%here] @@ separate_horizontally ~separator:(horizontal [comma; space]) [
+          separate_horizontally ~separator:(horizontal [comma; space]) [
             pad_right left_patterns_max_width left;
             right
           ],
-          PP.annotate [%here] @@ expression
+          expression
         )
       )
   in
@@ -310,13 +328,15 @@ let pp_match_pair matched_expressions cases =
     let left, right = matched_expressions
     in
     PP.(
-      annotate [%here] @@ separate_horizontally ~separator:(horizontal [comma; space]) [
+      separate_horizontally ~separator:(horizontal [comma; space]) [
         left;
         right
       ]
     )
   in
-  PP.annotate [%here] @@ pp_match matched_expression aligned_cases
+  PP.annotate [%here] begin
+    pp_match matched_expression aligned_cases
+  end
 
 
 (*
@@ -326,9 +346,7 @@ let pp_match_pair matched_expressions cases =
 *)
 let pp_integer value =
   let pp_i =
-    PP.annotate [%here] begin
-      PP.string @@ Big_int.to_string value ^ "%Z"
-    end
+    PP.string @@ Big_int.to_string value ^ "%Z"
   in
   if
     Big_int.less value Z.zero
@@ -356,13 +374,13 @@ let pp_require
     match from with
     | Some s ->
        [
-         PP.annotate [%here] @@ PP.string "From";
-         PP.annotate [%here] @@ PP.string s;
+         PP.string "From";
+         PP.string s;
        ]
     | None   -> []
   and require_words =
     [
-      PP.annotate [%here] @@ PP.string "Require"
+      PP.string "Require"
     ]
   and import_words =
     if import
@@ -372,29 +390,35 @@ let pp_require
   let words     = List.concat [ from_words; require_words; import_words ]
   and libraries = List.map ~f:PP.string libraries
   in
-  PP.annotate [%here] @@ pp_sentence @@ PP.hanging @@ (PP.horizontal [ PP.separate_horizontally ~separator:PP.space words; PP.space ]) :: libraries
+  PP.annotate [%here] begin
+    pp_sentence @@ PP.hanging @@ (PP.horizontal [ PP.separate_horizontally ~separator:PP.space words; PP.space ]) :: libraries
+  end
 
 
 let pp_imports names =
-  PP.annotate [%here] @@ PP.(pp_sentence @@ hanging (string "Import " :: List.map ~f:string names))
+  PP.annotate [%here] begin
+    PP.(pp_sentence @@ hanging (string "Import " :: List.map ~f:string names))
+  end
 
 
 let pp_open_scopes scopes =
   let open_scope scope =
     PP.(
-      annotate [%here] @@ pp_sentence @@ separate_horizontally ~separator:space [
+      pp_sentence @@ separate_horizontally ~separator:space [
         string "Local Open Scope";
         string scope;
       ]
     )
   in
-  PP.(vertical @@ List.map ~f:open_scope scopes)
+  PP.annotate [%here] begin
+    PP.(vertical @@ List.map ~f:open_scope scopes)
+  end
 
 
 let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
   let items =
     let item_of_field (field_name, field_value) =
-      PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space [
+      PP.separate_horizontally ~separator:PP.space [
         field_name;
         PP.string ":=";
         field_value
@@ -403,9 +427,11 @@ let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
     List.map ~f:item_of_field fields
   in
   let separator =
-    PP.annotate [%here] @@ PP.(horizontal [ record_field_separator; space ])
+    PP.(horizontal [ record_field_separator; space ])
   in
-  PP.annotate [%here] @@ PP.(delimited_list ~delimiters:record_delimiters ~items ~separator)
+  PP.annotate [%here] begin
+    PP.(delimited_list ~delimiters:record_delimiters ~items ~separator)
+  end
 
 
 (*
@@ -420,38 +446,34 @@ let pp_finite_instance
       ~(values     : PP.document list) : PP.document
   =
   let enum_values =
-    PP.annotate [%here] begin
-        PP.delimited_list
-          ~delimiters:list_delimiters
-          ~separator:list_item_separator
-          ~items:values
-      end
+    PP.delimited_list
+      ~delimiters:list_delimiters
+      ~separator:list_item_separator
+      ~items:values
   in
   let declaration =
-    PP.annotate [%here] begin
-        PP.(
-        vertical [
-            separate_horizontally ~separator:space [
-                string "#[export,program]";
-                string "Instance";
-                horizontal [identifier; string "_finite"];
-                colon;
-                string "Finite";
-                type_name;
-                string ":=";
-              ];
-            PP.indent begin
-                PP.horizontal [
-                    string "{|";
-                    string "enum";
-                    string ":=";
-                    enum_values;
-                    string "|}"
-                  ]
-              end
+    PP.(
+      vertical [
+        separate_horizontally ~separator:space [
+          string "#[export,program]";
+          string "Instance";
+          horizontal [identifier; string "_finite"];
+          colon;
+          string "Finite";
+          type_name;
+          string ":=";
+        ];
+        PP.indent begin
+          PP.horizontal [
+            string "{|";
+            string "enum";
+            string ":=";
+            enum_values;
+            string "|}"
           ]
-        )
-      end
+        end
+      ]
+    )
   in
   PP.annotate [%here] @@ pp_sentence declaration
 
@@ -464,17 +486,15 @@ let pp_record
       ~(fields      : (PP.document * PP.document) list) : PP.document
   =
   let first_line =
-    PP.annotate [%here] begin
-        PP.(
-        separate_horizontally ~separator:space [
-            string "Record";
-            identifier;
-            colon;
-            type_name;
-            string ":="
-          ]
-        )
-      end
+    PP.(
+      separate_horizontally ~separator:space [
+        string "Record";
+        identifier;
+        colon;
+        type_name;
+        string ":="
+      ]
+    )
   in
   let pp_fields =
     let longest_field_length =
@@ -484,17 +504,15 @@ let pp_record
     in
     List.map fields ~f:(
         fun (id, t) -> begin
-            PP.annotate [%here] begin
-                PP.(horizontal [
-                        separate_horizontally ~separator:space [ PP.pad_right longest_field_length id; colon; t ];
-                        semi
-                ])
-              end
+            PP.(horizontal [
+                separate_horizontally ~separator:space [ PP.pad_right longest_field_length id; colon; t ];
+                semi
+              ])
           end
       )
   in
   let body =
-    PP.annotate [%here] @@ PP.(surround ~layout:vertical braces (indent @@ vertical pp_fields))
+    PP.(surround ~layout:vertical braces (indent @@ vertical pp_fields))
   in
   PP.annotate [%here] begin
       pp_sentence begin
@@ -554,31 +572,43 @@ let pp_lambda parameter body =
 
 
 let pp_application f args =
-  PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space @@ f :: args)
+  PP.annotate [%here] begin
+    PP.(separate_horizontally ~separator:space @@ f :: args)
+  end
 
 
 let pp_explicit_application f args =
-  PP.annotate [%here] @@ PP.(separate_horizontally ~separator:space @@ horizontal [ PP.at; f ] :: args)
+  PP.annotate [%here] begin
+    PP.(separate_horizontally ~separator:space @@ horizontal [ PP.at; f ] :: args)
+  end
 
 
 let pp_function_type parameter_types result_type =
-  PP.annotate [%here] @@ PP.separate_horizontally ~separator:PP.space @@ List.build_list @@ fun { addall; add; _ } -> begin
-    addall parameter_types;
-    add arrow;
-    add result_type
+  PP.annotate [%here] begin
+    PP.separate_horizontally ~separator:PP.space @@ List.build_list @@ fun { addall; add; _ } -> begin
+      addall parameter_types;
+      add arrow;
+      add result_type
+    end
   end
 
 
 let pp_canonical identifier =
-  PP.annotate [%here] @@ pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; Identifier.pp identifier ])
+  PP.annotate [%here] begin
+    pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; Identifier.pp identifier ])
+  end
 
 
 let pp_include_module (name : PP.document) =
-  PP.annotate [%here] @@ pp_sentence @@ PP.(separate_horizontally ~separator:space [ string "Include"; name ])
+  PP.annotate [%here] begin
+    pp_sentence @@ PP.(separate_horizontally ~separator:space [ string "Include"; name ])
+  end
 
 
 let pp_tuple_type ts =
-  PP.annotate [%here] @@ PP.separate_horizontally ~separator:(PP.string " * ") ts
+  PP.annotate [%here] begin
+    PP.separate_horizontally ~separator:(PP.string " * ") ts
+  end
 
 
 let pp_notation notation expression =
