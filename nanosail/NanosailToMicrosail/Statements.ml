@@ -8,7 +8,7 @@ end
 
 
 let pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
-  let* pp_expression = GC.pp_annotate [%here] @@ Expressions.pp_expression expression
+  let* pp_expression = Expressions.pp_expression expression
   in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
 
@@ -35,15 +35,13 @@ let rec pp_match_list
   let id_head, id_tail, when_cons_body = when_cons
   in
   let* pp_matched =
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        PP.(surround parens) begin
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-        end
+    GC.return begin
+      PP.(surround parens) begin
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
       end
     end
-  and* pp_when_nil  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_nil
-  and* pp_when_cons = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement when_cons_body
+  and* pp_when_nil  = parenthesize @@ pp_statement when_nil
+  and* pp_when_cons = parenthesize @@ pp_statement when_cons_body
   in
   let pp_id_head = Identifier.pp id_head
   and pp_id_tail = Identifier.pp id_tail
@@ -66,14 +64,12 @@ and pp_match_product
     ~(body    : Ast.Statement.t ) : PP.document GC.t
   =
   let* pp_matched =
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        PP.(surround parens) begin
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-        end
+    GC.return begin
+      PP.(surround parens) begin
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
       end
     end
-  and* pp_body = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
+  and* pp_body = parenthesize @@ pp_statement body
   in
   let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
   and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
@@ -94,15 +90,13 @@ and pp_match_tuple
     ~(body     : Ast.Statement.t                     ) : PP.document GC.t
   =
   let* pp_matched =
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        PP.(surround parens) begin
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-        end
+    GC.return begin
+      PP.(surround parens) begin
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
       end
     end
   and* pp_body =
-    GC.pp_annotate [%here] @@ parenthesize @@ pp_statement body
+    parenthesize @@ pp_statement body
   in
   let pp_binders : PP.document list =
     List.map binders ~f:(fun (id, _) -> PP.(surround dquotes) (Identifier.pp id))
@@ -122,15 +116,13 @@ and pp_match_bool
     ~(when_false : Ast.Statement.t ) : PP.document GC.t
   =
   let* pp_condition =
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        PP.(surround parens) begin
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp condition
-        end
+    GC.return begin
+      PP.(surround parens) begin
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp condition
       end
     end
-  and* pp_when_true  = GC.pp_annotate [%here] @@ pp_statement when_true
-  and* pp_when_false = GC.pp_annotate [%here] @@ pp_statement when_false
+  and* pp_when_true  = pp_statement when_true
+  and* pp_when_false = pp_statement when_false
   in
   GC.return begin
       PP.annotate [%here] @@ begin
@@ -160,7 +152,7 @@ and pp_match_enum
     (* deal with a match against unit separately *)
     match Ast.Identifier.Map.data cases with
     | [ clause ] -> begin
-        GC.pp_annotate [%here] @@ pp_statement clause
+        pp_statement clause
       end
     | _ -> GC.fail [%here] "expected exactly one case for unit-typed matches"
   else begin
@@ -214,10 +206,10 @@ and pp_match_enum
             (clause_statement       : Ast.Statement.t ) : PP.document GC.t
           =
           let pp_pattern =
-            PP.annotate [%here] @@ Identifier.pp constructor_identifier
+            Identifier.pp constructor_identifier
           in
           let* pp_clause =
-            GC.pp_annotate [%here] @@ pp_statement clause_statement
+            pp_statement clause_statement
           in
           GC.return begin
               PP.annotate [%here] begin
@@ -303,7 +295,7 @@ and pp_match_enum
             PP.annotate [%here] @@ Identifier.pp constructor_identifier
           in
           let* pp_clause =
-            GC.pp_annotate [%here] @@ pp_statement clause_statement
+            pp_statement clause_statement
           in
           GC.return (pp_constructor, pp_clause)
         in
@@ -395,10 +387,7 @@ and pp_match_variant
       and pp_bindings =
         List.map ~f:Identifier.pp bindings
       in
-      let* pp_body =
-        GC.pp_annotate [%here] begin
-          pp_statement body
-        end
+      let* pp_body = pp_statement body
       in
       GC.return (pp_constructor, pp_bindings, pp_body)
     in
@@ -416,12 +405,12 @@ and pp_match_variant
 
 and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
   match match_pattern with
-  | MatchList { matched; when_nil; when_cons; _ }     -> GC.pp_annotate [%here] @@ pp_match_list ~matched ~when_nil ~when_cons
-  | MatchProduct { matched; id_fst; id_snd; body; _ } -> GC.pp_annotate [%here] @@ pp_match_product ~matched ~id_fst ~id_snd ~body
-  | MatchBool { condition; when_true; when_false }    -> GC.pp_annotate [%here] @@ pp_match_bool ~condition ~when_true ~when_false
-  | MatchEnum { matched; matched_type; cases }        -> GC.pp_annotate [%here] @@ pp_match_enum ~matched ~matched_type ~cases
-  | MatchVariant { matched; matched_type; cases }     -> GC.pp_annotate [%here] @@ pp_match_variant ~matched ~matched_type ~cases
-  | MatchTuple { matched; binders; body }             -> GC.pp_annotate [%here] @@ pp_match_tuple ~matched ~binders ~body
+  | MatchList { matched; when_nil; when_cons; _ }     -> pp_match_list ~matched ~when_nil ~when_cons
+  | MatchProduct { matched; id_fst; id_snd; body; _ } -> pp_match_product ~matched ~id_fst ~id_snd ~body
+  | MatchBool { condition; when_true; when_false }    -> pp_match_bool ~condition ~when_true ~when_false
+  | MatchEnum { matched; matched_type; cases }        -> pp_match_enum ~matched ~matched_type ~cases
+  | MatchVariant { matched; matched_type; cases }     -> pp_match_variant ~matched ~matched_type ~cases
+  | MatchTuple { matched; binders; body }             -> pp_match_tuple ~matched ~binders ~body
 
 
 and pp_call
@@ -441,9 +430,9 @@ and pp_let
   =
   let  pp_binder                 = PP.annotate [%here] @@ Identifier.pp binder
   in
-  let* pp_binding_statement      = GC.pp_annotate [%here] @@ pp_statement binding_statement
-  and* pp_binding_statement_type = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype binding_statement_type
-  and* pp_body_statement         = GC.pp_annotate [%here] @@ pp_statement body_statement
+  let* pp_binding_statement      = pp_statement binding_statement
+  and* pp_binding_statement_type = Nanotype.pp_nanotype binding_statement_type
+  and* pp_body_statement         = pp_statement body_statement
   in
   if
     Configuration.(get pretty_print_let)
@@ -473,8 +462,8 @@ and pp_sequence
       (left  : Ast.Statement.t)
       (right : Ast.Statement.t) : PP.document GC.t
   =
-  let* pp_left  = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement left
-  and* pp_right = GC.pp_annotate [%here] @@ parenthesize @@ pp_statement right
+  let* pp_left  = parenthesize @@ pp_statement left
+  and* pp_right = parenthesize @@ pp_statement right
   in
   GC.return begin
       PP.annotate [%here] begin
@@ -557,41 +546,41 @@ and pp_fail
   =
   let pp_message = Coq.pp_string message
   in
-  let* pp_typ = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
+  let* pp_typ = Nanotype.pp_nanotype typ
   in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
   match statement with
-  | Expression expression                     -> GC.pp_annotate [%here] @@ pp_expression expression
-  | Match match_pattern                       -> GC.pp_annotate [%here] @@ pp_match match_pattern
-  | Call (function_identifier, arguments)     -> GC.pp_annotate [%here] @@ pp_call ~function_identifier ~arguments
+  | Expression expression                     -> pp_expression expression
+  | Match match_pattern                       -> pp_match match_pattern
+  | Call (function_identifier, arguments)     -> pp_call ~function_identifier ~arguments
   | Let
       { binder;
         binding_statement_type;
         binding_statement;
-        body_statement }                      -> GC.pp_annotate [%here] @@ pp_let
-                                                                             ~binder
-                                                                             ~binding_statement_type
-                                                                             ~binding_statement
-                                                                             ~body_statement
-  | Seq (s1, s2)                              -> GC.pp_annotate [%here] @@ pp_sequence s1 s2
-  | ReadRegister register_identifier          -> GC.pp_annotate [%here] @@ pp_read_register register_identifier
+        body_statement }                      -> pp_let
+                                                   ~binder
+                                                   ~binding_statement_type
+                                                   ~binding_statement
+                                                   ~body_statement
+  | Seq (s1, s2)                              -> pp_sequence s1 s2
+  | ReadRegister register_identifier          -> pp_read_register register_identifier
   | WriteRegister { register_identifier;
-                    written_value }           -> GC.pp_annotate [%here] @@ pp_write_register_statement
-                                                                             ~register_identifier
-                                                                             ~written_value
+                    written_value }           -> pp_write_register_statement
+                                                   ~register_identifier
+                                                   ~written_value
   | DestructureRecord
       { record_type_identifier;
         field_identifiers;
         binders;
         destructured_record;
-        body }                                -> GC.pp_annotate [%here] @@ pp_destructure_record
-                                                                             ~record_type_identifier
-                                                                             ~field_identifiers
-                                                                             ~binders
-                                                                             ~destructured_record
-                                                                             ~body
-  | Cast (statement_to_be_cast, target_type)  -> GC.pp_annotate [%here] @@ pp_cast statement_to_be_cast target_type
-  | Fail (typ, message)                       -> GC.pp_annotate [%here] @@ pp_fail typ message
+        body }                                -> pp_destructure_record
+                                                   ~record_type_identifier
+                                                   ~field_identifiers
+                                                   ~binders
+                                                   ~destructured_record
+                                                   ~body
+  | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
+  | Fail (typ, message)                       -> pp_fail typ message
