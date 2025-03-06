@@ -4,13 +4,13 @@ open! ExtBase
 exception ParseError of string
 
 
-module TokenSource = Monads.Reader.MakeSequenceSource(struct type t = Token.t end)
-module TokenReader = Monads.Reader.Make(TokenSource)
+module TokenSource    = Monads.Dispenser.MakeSequenceSource(struct type t = Token.t end)
+module TokenDispenser = Monads.Dispenser.Make(TokenSource)
 
 
 let parse_tokens tokens =
-  let open TokenReader in
-  let open Monads.Notations.Star(TokenReader)
+  let open TokenDispenser in
+  let open Monads.Notations.Star(TokenDispenser)
   in
   let rec parse_single () : Value.t t =
     let* c = current

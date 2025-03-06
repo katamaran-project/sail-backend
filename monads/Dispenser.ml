@@ -70,5 +70,5 @@ module Make (S : Source) : (S with type item = S.item and type source = S.t) = s
     in
     match S.next state with
     | Some (_, tail) -> MState.put tail
-    | None           -> failwith "reader end reached"
+    | None           -> failwith "dispenser end reached"
 end

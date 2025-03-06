@@ -3,14 +3,14 @@ open OUnit2
 open Monads
 
 
-module IntList       = Reader.MakeListSource(struct type t = int end)
-module IntListReader = Reader.Make(IntList)
+module IntList          = Dispenser.MakeListSource(struct type t = int end)
+module IntListDispenser = Dispenser.Make(IntList)
 
 
 let test_sum =
   "sum" >:: fun _ -> begin
-                let open Monads.Notations.Star(IntListReader) in
-                let open IntListReader
+                let open Monads.Notations.Star(IntListDispenser) in
+                let open IntListDispenser
                 in
                 let source = [1; 2; 3; 4; 5]
                 in
