@@ -27,8 +27,39 @@ module Implementation = struct
   open Slang.Prelude.Shared
 
   module Exported = struct
-    let verbosity_level                            = environment_variable "VERBOSE" LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
-    let pattern_tree_maximum_permutations          = integer "pattern-tree-max-permutations" 1000
+    (*
+       Verbosity level.
+
+       This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
+       the desired verbosity level.
+       To see which values are valid and which verbosity levels they represent, see LogLib.VerbosityLevel.of_int.
+       
+
+       Example Usage
+       -------------
+       VERBOSE=0 sail ...        # Suppress all logging
+       VERBOSE=4 sail ...        # Enable all logging (check LogLib to make sure this is still valid)
+    *)
+    let verbosity_level = environment_variable "VERBOSE" LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
+
+    (*
+       The translation of match expressions can lead to an explosion in code generation.
+       We therefore try out many different translations and look for the one that leads
+       to the least amount of generated code.
+       This is done in a brute force way: all permutations of a list are tried one after the other,
+       i.e., there is a superexponential growth in the number of possibilities to consider.
+
+       This setting imposes an upper limit on this number of permutations.
+       
+       For more detailed information, see the SailToNanosail.Translate.Match module.
+       
+       
+       Example Usage
+       -------------
+       
+         (pattern-tree-max-permutations 10000)
+    *)
+    let pattern_tree_maximum_permutations = integer "pattern-tree-max-permutations" 1000
 
     (*
        Annotate muSail definitions with their corresponding Sail definition.
@@ -58,8 +89,8 @@ module Implementation = struct
            stm_exp (((exp_int 2%Z))*((exp_var "x"))).
        
 
-       Usage
-       -----
+       Example Usage
+       -------------
 
          (include-original-code #t)
          (include-original-code #f)
@@ -112,9 +143,16 @@ module Implementation = struct
         let: "x" :: ty.int := stm_exp (exp_int 5%Z)
         in
           stm_exp (exp_var "x")
+
+       Example Usage
+       -------------
+
+         (pretty-print-let #t)
+         (pretty-print-let #f)
+         (pretty-print-let)        ; Same as (pretty-print-let #t)
        
     *)
-    let pretty_print_let                           = bool     "pretty-print-let"                 false
+    let pretty_print_let = bool "pretty-print-let" false
     let pretty_print_match_enum                    = bool     "pretty-print-match-enum"          false
     let pretty_print_binary_operators              = bool     "pretty-print-binary-operators"    false
     let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
