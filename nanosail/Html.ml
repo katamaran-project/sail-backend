@@ -1,9 +1,15 @@
+(*
+
+   Module providing HTML generation functionality.
+   
+*)
+
 open! ExtBase
 
 
 (*
-  We use a separate type to represent HTML strings
-  This helps us prevent escaping the same string twice
+  We use a separate type to represent HTML strings.
+  This helps us prevent escaping the same string twice.
 *)
 type t = Html of string
 
@@ -11,6 +17,10 @@ type t = Html of string
 let to_string (Html s) =
   s
 
+
+(*
+   Turns an arbitrary string into valid HTML.
+*)
 let escape_string (string : string) : t =
   let escape_char (char : char) : string =
     match char with
@@ -27,6 +37,14 @@ let escape_string (string : string) : t =
   Html (String.concat ~sep:"" escaped)
 
 
+(*
+   <ul>
+     <li>item 1</li>
+     <li>item 2</li>
+     ...
+     <li>item N</li>
+   </ul>
+*)
 let unordered_list (items : t list) : t =
   let html_items : string =
     let html_item (Html item) : string =
@@ -37,6 +55,11 @@ let unordered_list (items : t list) : t =
   Html (Printf.sprintf "<ul>%s</ul>" html_items)
 
 
+(*
+  <tag attr1="value1" attr2="value2">
+   child
+  </tag>
+*)
 let element
       (tag         : string                     )
       ?(attributes : (string * string) list = [])
@@ -58,6 +81,11 @@ let element
     )
 
 
+(*
+   <span class="class_name">
+     child
+   </span>
+*)
 let span
       ?(class_name : string option)
       (child       : t            ) : t
@@ -70,6 +98,11 @@ let span
   element "span" ~attributes child
 
 
+(*
+   <div class="class_name">
+     child
+   </div>
+*)
 let div
       ?(class_name : string option)
       (child       : t            ) : t
@@ -82,8 +115,11 @@ let div
   element "div" ~attributes child
 
 
-let concat (elements : t list) : t =
-  Html (String.concat @@ List.map ~f:to_string elements)
+(*
+   Concatenates html documents into one.
+*)
+let concat (ts : t list) : t =
+  Html (String.concat @@ List.map ~f:to_string ts)
 
 
 let string (string : string) : t =
