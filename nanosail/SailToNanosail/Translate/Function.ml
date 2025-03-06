@@ -1063,7 +1063,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     =
     let* translated_type = Type.nanotype_of_sail_type typ
     in
-    TC.return @@ Ast.Statement.Fail (translated_type, "\"failure\"")
+    TC.return @@ Ast.Statement.Fail (translated_type, "failure")
 
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
@@ -1071,7 +1071,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     =
     let* translated_type = Type.nanotype_of_sail_type typ
     in
-    TC.return @@ Ast.Statement.Fail (translated_type, "\"failure\"")
+    TC.return @@ Ast.Statement.Fail (translated_type, "failure")
 
   in
   match unwrapped_expression with

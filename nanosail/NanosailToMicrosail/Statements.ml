@@ -555,7 +555,7 @@ and pp_fail
     (typ     : Ast.Type.t)
     (message : string    ) : PP.document GC.t
   =
-  let pp_message = PP.string message
+  let pp_message = Coq.pp_string message
   in
   let* pp_typ = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
   in
