@@ -50,29 +50,4 @@ module Make(Configuration : CONFIGURATION) = struct
   let warning = log VerbosityLevel.warning
   let info    = log VerbosityLevel.info
   let debug   = log VerbosityLevel.debug
-
-
-  let surround
-      (ocaml_position : Lexing.position                              )
-      (logger         : Lexing.position -> PP.document lazy_t -> unit)
-      (caption        : string lazy_t                                )
-      (f              : unit -> 'a                                   ) : 'a
-    =
-    let enter_block () =
-      logger ocaml_position @@ lazy (PP.format "Entering %s" (Lazy.force caption))
-    and exited_block_successfully () =
-      logger ocaml_position @@ lazy (PP.format "Exiting %s" (Lazy.force caption))
-    and exited_block_with_exception () =
-      logger ocaml_position @@ lazy (PP.format "Escaping %s" (Lazy.force caption))
-    in
-    enter_block ();
-    try
-      let result = f ()
-      in
-      exited_block_successfully ();
-      result
-    with e -> begin
-        exited_block_with_exception ();
-        raise e
-      end
 end
