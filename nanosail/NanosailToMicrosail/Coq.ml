@@ -641,6 +641,8 @@ let pp_scope scope_name scoped_expression =
 
 
 let pp_bool (value : bool) : PP.document =
-  if value
-  then PP.string "true"
-  else PP.string "false"
+  PP.annotate [%here] begin
+    if value
+    then PP.string "true"
+    else PP.string "false"
+  end
