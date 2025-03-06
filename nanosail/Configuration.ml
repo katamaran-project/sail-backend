@@ -189,6 +189,18 @@ module Implementation = struct
     *)
     let pretty_print_binary_operators = bool "pretty-print-binary-operators" false
 
+    (*
+
+       Plain printing produces
+
+         stm_call foo (env.snoc (env.snoc (env.snoc (env.nil) (_::_) ((exp_int 1%Z))%exp) (_::_) ((exp_false))%exp) (_::_) ((exp_val (ty.bvec 4) ([bv 1])))%exp).
+         
+
+       Pretty printing produces
+
+         (call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp.
+
+    *)
     let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
     let show_generation_blocks                     = bool     "show-generation-blocks"           false
     let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones) *)
