@@ -1913,8 +1913,8 @@ let rec build_leveled_match_statements
   let invalid_number_of_tuple_elements (location : Lexing.position) =
     TC.fail location "invalid number of tuple elements"
   in
-  let fail_due_to_unhandled_cases =
-    TC.return @@ Ast.Statement.Fail (Ast.Type.Implicit (Ast.Identifier.mk "_"), "incomplete matching")
+  let fail_due_to_unhandled_cases (typ : Ast.Type.t) =
+    TC.return @@ Ast.Statement.Fail (typ, "incomplete matching")
   in
   match pattern_tree with
   | Bool { when_true; when_false } -> begin
@@ -2127,7 +2127,7 @@ let rec build_leveled_match_statements
       match matched_identifiers with
       | [] -> begin
           match statement with
-          | None           -> fail_due_to_unhandled_cases
+          | None           -> fail_due_to_unhandled_cases Ast.Type.Unit (* todo needs fixing *)
           | Some statement -> TC.return @@ statement
         end
       | _::_ -> invalid_number_of_tuple_elements [%here]
