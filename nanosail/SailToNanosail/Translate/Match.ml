@@ -2276,7 +2276,6 @@ let rec translate_pattern
   | Bool               -> translate_pattern_for_atomic_type ()
   | String             -> translate_pattern_for_atomic_type ()
   | Bit                -> translate_pattern_for_atomic_type ()
-  | Sum (_, _)         -> translate_pattern_for_atomic_type ()
   | Bitvector _        -> translate_pattern_for_atomic_type ()
   | Record _           -> translate_pattern_for_atomic_type ()
   | Application (_, _) -> translate_pattern_for_atomic_type ()
@@ -2739,7 +2738,6 @@ let translate
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location
   | Bit                          -> TC.not_yet_implemented [%here] location
-  | Sum (_, _)                   -> TC.not_yet_implemented [%here] location
   | Bitvector _                  -> TC.not_yet_implemented [%here] location
   | Record _                     -> TC.not_yet_implemented [%here] location
   | Application (_, _)           -> TC.not_yet_implemented [%here] location

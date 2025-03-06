@@ -314,7 +314,6 @@ module rec Type : sig
     | String
     | Bit
     | List         of t
-    | Sum          of t * t
     | Unit
     | Enum         of Identifier.t
     | Bitvector    of NumericExpression.t
@@ -343,7 +342,6 @@ end = struct
     | String
     | Bit
     | List         of t
-    | Sum          of t * t
     | Unit
     | Enum         of Identifier.t
     | Bitvector    of NumericExpression.t
@@ -378,7 +376,6 @@ end = struct
       | Implicit _                                -> typ (* todo it would make sense to remove implicits after substitution *)
       | Int numeric_expression                    -> Int (Option.map numeric_expression ~f:(NumericExpression.substitute substitution))
       | List element_type                         -> List (subst element_type)
-      | Sum (left, right)                         -> Sum (subst left, subst right)
       | Bitvector numeric_expression              -> Bitvector (NumericExpression.substitute substitution numeric_expression)
       | Tuple element_types                       -> Tuple (List.map ~f:subst element_types)
       | Application (receiver, type_arguments)    -> Application (subst receiver, List.map type_arguments ~f:(TypeArgument.substitute_numeric_expression_identifier substitution))
@@ -397,7 +394,6 @@ end = struct
     | String                                    -> typ
     | Bit                                       -> typ
     | List element_type                         -> List (simplify element_type)
-    | Sum (left, right)                         -> Sum (simplify left, simplify right)
     | Unit                                      -> typ
     | Enum _                                    -> typ
     | Bitvector numeric_expression              -> Bitvector (NumericExpression.simplify numeric_expression)
@@ -427,7 +423,6 @@ end = struct
     | List _               -> format "List"
     | Bit                  -> format "Bit"
     | Nat                  -> format "Nat"
-    | Sum (t1, t2)         -> Printf.sprintf "Sum(%s + %s)" (to_string t1) (to_string t2)
     | Unit                 -> format "Unit"
     | Bitvector numexp     -> format "Bitvector(%s)" (NumericExpression.to_string numexp)
     | Vector (typ, numexp) -> format "Vector(%s, %s)" (to_string typ) (NumericExpression.to_string numexp)
@@ -472,7 +467,6 @@ end = struct
     | Unit                  -> FExpr.mk_symbol @@ prefix "Unit"
     | Nat                   -> FExpr.mk_symbol @@ prefix "Nat"
     | List t                -> FExpr.mk_application ~positional:[to_fexpr t]                                       @@ prefix "List"
-    | Sum (t1, t2)          -> FExpr.mk_application ~positional:[to_fexpr t1; to_fexpr t2]                         @@ prefix "Sum"
     | Enum id               -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Enum"
     | Bitvector numexpr     -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr]               @@ prefix "Bitvector"
     | Vector (typ, numexpr) -> FExpr.mk_application ~positional:[to_fexpr typ; NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
@@ -551,12 +545,6 @@ end = struct
         match t2 with
         | List x' -> equal x x'
         | _       -> false
-      end
-
-    | Sum (x, y) -> begin
-        match t2 with
-        | Sum (x', y') -> equal x x' && equal y y'
-        | _            -> false
       end
 
     | Unit -> begin
