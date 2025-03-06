@@ -1082,8 +1082,8 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   in
   begin
     let base_module_name = Configuration.(get base_name)
-    and flag = Coq.Export
-    and includes = [ "Base" ]
+    and flag             = Coq.Export
+    and includes         = [ "Base" ]
     in
     let* contents =
       let* sections = GC.sequence [
