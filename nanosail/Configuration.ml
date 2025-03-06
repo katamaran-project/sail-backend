@@ -201,7 +201,8 @@ module Implementation = struct
          (call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp.
 
     *)
-    let pretty_print_function_calls                = bool     "pretty-print-function-calls"      false
+    let pretty_print_function_calls = bool "pretty-print-function-calls" false
+
     let show_generation_blocks                     = bool     "show-generation-blocks"           false
     let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones) *)
     let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
