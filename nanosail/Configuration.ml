@@ -23,7 +23,7 @@ module Implementation = struct
 
   module Exported = struct
     let verbosity_level                            = environment_variable "VERBOSE" LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
-    let pattern_tree_maximum_permutations          = integer  "pattern-tree-max-permutations"    1000
+    let pattern_tree_maximum_permutations          = integer "pattern-tree-max-permutations" 1000
 
     (* Annotate muSail definitions with their corresponding Sail definition *)
     let include_original_code = bool "include-original-code" true
