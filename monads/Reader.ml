@@ -8,6 +8,7 @@ module type Source = sig
   val next : t -> (item * t) option
 end
 
+
 module MakeListSource (Item : sig type t end) : (Source with type item = Item.t and type t = Item.t list) = struct
   type item = Item.t
   type t    = item list
@@ -18,12 +19,14 @@ module MakeListSource (Item : sig type t end) : (Source with type item = Item.t 
     | x::xs -> Some (x, xs)
 end
 
+
 module MakeSequenceSource (Item : sig type t end) : (Source with type item = Item.t and type t = Item.t Sequence.t) = struct
   type item = Item.t
   type t    = item Sequence.t
 
   let next  = Sequence.next
 end
+
 
 module type S = sig
   include Sig.Monad
@@ -38,6 +41,7 @@ module type S = sig
 
   val run         : 'a t -> source -> ('a * source)
 end
+
 
 module Make (S : Source) : (S with type item = S.item and type source = S.t) = struct
   type item        = S.item
