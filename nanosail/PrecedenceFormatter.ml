@@ -1,15 +1,21 @@
 (*
+   
    Module to help format expressions involving infix notations
    where operators have certain precedences and parenthesizing
    may be a necessity.
+   
 *)
 
 
 module type Output = sig
-  (* Type of the output, e.g., string *)
+  (*
+     Type of the output, e.g., string
+  *)
   type t
 
-  (* Surrounds the given output with parentheses *)
+  (*
+     Surrounds the given output with parentheses
+  *)
   val parenthesize : t -> t
 end
 
