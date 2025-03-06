@@ -74,6 +74,17 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
   PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent comment
 
 
+(*
+   If <comment> fits on a single line, returns
+
+     (* <comment> *)
+
+   Otherwise, returns
+
+     (*
+        <comment>
+     *)
+*)
 let pp_comment (comment : PP.document) : PP.document =
   if PP.is_single_line comment
   then pp_inline_comment comment
