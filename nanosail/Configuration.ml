@@ -38,8 +38,18 @@ module Implementation = struct
 
     *)
     let base_name = string "base-name" "UntitledBase"
-        
-    let program_name                               = string   "program-name"                     "ModelProgram"
+
+    (*
+
+       Name of the generated program.
+
+       Example Usage
+       -------------
+
+         (program-name "MyLittleProgram")
+
+    *)
+    let program_name = string "program-name" "ModelProgram"
 
     (*
        Verbosity level.
