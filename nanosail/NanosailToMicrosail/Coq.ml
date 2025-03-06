@@ -644,7 +644,3 @@ let pp_bool (value : bool) : PP.document =
   if value
   then PP.string "true"
   else PP.string "false"
-
-
-let pp_string (string : string) : PP.document =
-  PP.(surround dquotes) (PP.string string)
