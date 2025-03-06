@@ -10,7 +10,14 @@ module type CONFIGURATION = sig
 end
 
 
-module Make(Configuration : CONFIGURATION) = struct
+module Make(Configuration : CONFIGURATION) : sig
+  val log     : VerbosityLevel.t -> Lexing.position -> PP.t lazy_t -> unit
+
+  val error   : Lexing.position -> PP.t lazy_t -> unit
+  val warning : Lexing.position -> PP.t lazy_t -> unit
+  val info    : Lexing.position -> PP.t lazy_t -> unit
+  val debug   : Lexing.position -> PP.t lazy_t -> unit
+end = struct
   include Configuration
   
   let log
