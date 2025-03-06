@@ -5,7 +5,6 @@ module ListWriter     = ListWriter
 module Notations      = Notations
 module Monoid         = Monoid
 module Util           = Util
-module Continuation   = Continuation
 module Dispenser      = Dispenser
 module Result         = Result
 module StateResult    = StateResult
