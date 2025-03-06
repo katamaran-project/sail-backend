@@ -39,7 +39,7 @@ module Make (S : sig type t end) (E : sig type t end) : (S with type state = S.t
   let return (x : 'a) : 'a t =
     Base.Fn.compose SM.return RM.return x
 
-  let fail error =
+  let fail (error : error) : 'a t =
     SM.return @@ RM.Failure error
 
   let bind (f : 'a t) (g : 'a -> 'b t) : 'b t =
