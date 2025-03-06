@@ -107,8 +107,8 @@ let add_comments
 
 
 let pp_hanging_application
-      (func      : PP.document     )
-      (arguments : PP.document list) : PP.document
+    (func      : PP.document     )
+    (arguments : PP.document list) : PP.document
   =
   PP.annotate [%here] begin
     PP.(hanging @@ horizontal [ func; space ] :: arguments)
