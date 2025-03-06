@@ -28,6 +28,20 @@ module Implementation = struct
 
   module Exported = struct
     (*
+
+       Name of the generated base module.
+
+       Example Usage
+       -------------
+
+         (base-name "MinimalCapsBase")
+
+    *)
+    let base_name = string "base-name" "UntitledBase"
+        
+    let program_name                               = string   "program-name"                     "ModelProgram"
+
+    (*
        Verbosity level.
 
        This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
@@ -211,8 +225,6 @@ module Implementation = struct
     let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones) *)
     let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
     let annotate_functions_with_ast                = bool     "annotate-functions-with-ast"      false
-    let base_name                                  = string   "base-name"                        "UntitledBase"
-    let program_name                               = string   "program-name"                     "ModelProgram"
     
     let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
