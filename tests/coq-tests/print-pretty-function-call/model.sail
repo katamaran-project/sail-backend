@@ -1,8 +1,3 @@
-default Order dec
-
-$include <prelude.sail>
-
-
 val foo : (int, bool, bitvector(4)) -> int
 function foo(x, y, z) = {
   x
