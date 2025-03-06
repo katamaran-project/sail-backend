@@ -552,35 +552,37 @@ and pp_fail
 
 
 and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
-  match statement with
-  | Expression expression                     -> pp_expression expression
-  | Match match_pattern                       -> pp_match match_pattern
-  | Call (function_identifier, arguments)     -> pp_call ~function_identifier ~arguments
-  | Let
-      { binder;
-        binding_statement_type;
-        binding_statement;
-        body_statement }                      -> pp_let
-                                                   ~binder
-                                                   ~binding_statement_type
-                                                   ~binding_statement
-                                                   ~body_statement
-  | Seq (s1, s2)                              -> pp_sequence s1 s2
-  | ReadRegister register_identifier          -> pp_read_register register_identifier
-  | WriteRegister { register_identifier;
-                    written_value }           -> pp_write_register_statement
-                                                   ~register_identifier
-                                                   ~written_value
-  | DestructureRecord
-      { record_type_identifier;
-        field_identifiers;
-        binders;
-        destructured_record;
-        body }                                -> pp_destructure_record
-                                                   ~record_type_identifier
-                                                   ~field_identifiers
-                                                   ~binders
-                                                   ~destructured_record
-                                                   ~body
-  | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
-  | Fail (typ, message)                       -> pp_fail typ message
+  GC.pp_annotate [%here] begin
+    match statement with
+    | Expression expression                     -> pp_expression expression
+    | Match match_pattern                       -> pp_match match_pattern
+    | Call (function_identifier, arguments)     -> pp_call ~function_identifier ~arguments
+    | Let
+        { binder;
+          binding_statement_type;
+          binding_statement;
+          body_statement }                      -> pp_let
+                                                     ~binder
+                                                     ~binding_statement_type
+                                                     ~binding_statement
+                                                     ~body_statement
+    | Seq (s1, s2)                              -> pp_sequence s1 s2
+    | ReadRegister register_identifier          -> pp_read_register register_identifier
+    | WriteRegister { register_identifier;
+                      written_value }           -> pp_write_register_statement
+                                                     ~register_identifier
+                                                     ~written_value
+    | DestructureRecord
+        { record_type_identifier;
+          field_identifiers;
+          binders;
+          destructured_record;
+          body }                                -> pp_destructure_record
+                                                     ~record_type_identifier
+                                                     ~field_identifiers
+                                                     ~binders
+                                                     ~destructured_record
+                                                     ~body
+    | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
+    | Fail (typ, message)                       -> pp_fail typ message
+  end
