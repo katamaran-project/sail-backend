@@ -328,7 +328,7 @@ module rec Type : sig
     | TypeVariable of Identifier.t
     | Nat
     | Vector       of t * NumericExpression.t
-    | Implicit     of Identifier.t
+    | Implicit     of Identifier.t (* should never be used *)
 
   val to_string : t -> string
   val to_fexpr  : t -> FExpr.t
