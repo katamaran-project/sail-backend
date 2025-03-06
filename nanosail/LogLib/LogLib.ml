@@ -1,5 +1,3 @@
-open! ExtBase
-
 module VerbosityLevel = VerbosityLevel
 
 
