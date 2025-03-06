@@ -1,3 +1,8 @@
+(*
+
+   This module serves as globally accessible source of configuration settings.
+
+*)
 open! ExtBase
 
 
@@ -25,8 +30,43 @@ module Implementation = struct
     let verbosity_level                            = environment_variable "VERBOSE" LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
     let pattern_tree_maximum_permutations          = integer "pattern-tree-max-permutations" 1000
 
-    (* Annotate muSail definitions with their corresponding Sail definition *)
-    let include_original_code = bool "include-original-code" true
+    (*
+       Annotate muSail definitions with their corresponding Sail definition.
+
+       Example
+       -------
+       The following Sail code
+
+          val double : int -> int
+          function double(x) = {
+            2 * x
+          }
+
+       becomes
+
+         (*
+           Original Sail code
+           
+             val double : int -> int
+             $[complete]
+             function double x = $[overloaded { "name" = "*", "is_infix" = true }] mult_atom(2, x)
+         *)
+         Definition fun_double : Stm [
+                                       "x"  ∷  ty.int
+                                     ]
+                                     (ty.int) :=
+           stm_exp (((exp_int 2%Z))*((exp_var "x"))).
+       
+
+       Usage
+       -----
+
+         (include-original-code #t)
+         (include-original-code #f)
+         (include-original-code)    ; Same as (include-original-code #t)
+       
+    *)
+    let include_original_code = bool "include-original-code" false
 
     (*
        Ignore overload definitions
