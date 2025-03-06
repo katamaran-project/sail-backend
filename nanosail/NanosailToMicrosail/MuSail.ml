@@ -493,6 +493,9 @@ module Statement = struct
     end
 
 
+  (*
+     stm_call <function_name> (env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3)
+  *)
   let pp_call
       (function_name : PP.document     )
       (arguments     : PP.document list) : PP.document
