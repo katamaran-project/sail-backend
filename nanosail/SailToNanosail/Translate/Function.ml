@@ -1079,12 +1079,38 @@ let rec statement_of_aexp
 
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
-        (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
+        (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
     (* the type that Sail provides is untrustworthy, so we use our own type information *)
+    let* () =
+      let message = lazy begin
+        PP.vertical [
+          PP.string "Mismatch between expected type and given type";
+          PP.description_list [
+            (
+              PP.string "Expected",
+              PP.string begin
+                Option.value ~default:"<unknown>" begin
+                  Option.map ~f:StringOf.Sail.typ expression_type
+                end
+              end
+            );
+            (
+              PP.string "Given",
+              PP.string @@ StringOf.Sail.typ typ
+            )
+          ];
+          PP.string "If Coq does not complain about the translation, it should be safe to ignore this warning";
+        ]
+      end
+      in
+      if not (expression_type = Some typ)
+      then TC.log [%here] Logging.warning message
+      else TC.return ()
+    in
     match expression_type with
-    | Some output_type -> begin
-        let* translated_type = Type.nanotype_of_sail_type output_type
+    | Some expression_type -> begin
+        let* translated_type = Type.nanotype_of_sail_type expression_type
         in
         TC.return @@ Ast.Statement.Fail (translated_type, "failure")
       end
