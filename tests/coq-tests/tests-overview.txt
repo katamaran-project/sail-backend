@@ -2,6 +2,7 @@ PASS atoms-bool-negation
 PASS atoms-identity-function-int
 PASS atoms-linear
 PASS atoms-linear2
+PASS base-module-name
 PASS bit-equality
 PASS bit-returning-one
 PASS bit-returning-zero
@@ -139,7 +140,6 @@ FAIL itself-001
 PASS let-bool
 PASS let-fancy-notation
 PASS let-int
-PASS let-raw-notation
 PASS let-two-bools
 PASS let-two-ints
 PASS lists-cons-literal
