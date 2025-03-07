@@ -1,12 +1,53 @@
+(*
+   Monad used during translation from Sail to nanosail.
+   It is a combination of a state monad and a result monad.
+*)
+
 open! ExtBase
 
 
 module Context = struct
+  (*
+     State implicity carried around during translation
+  *)
   type t =
     {
-      definitions          : Ast.Definition.t list;                      (* list of definitions                                                        *)
-      next_id_index        : int;                                        (* counter used to generate unique identifiers                                *)
-      polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;  (* collects the types of the arguments used in calls to polymorphic functions *)
+      (*
+         List of definitions.
+         New definitions are added to this list as translation proceeds.
+         Definitions are stored in reversed order, i.e., new definitions are added to the front of the list.
+      *)
+      definitions          : Ast.Definition.t list;
+      
+      (* Counter used to generate unique identifiers *)
+      next_id_index        : int;
+
+      (*
+         Collects the types of the arguments used in calls to polymorphic functions.
+         Can be used to produce a list of required monomorphizations.
+
+         Example
+         -------
+         We have a function
+         
+           val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
+
+         and calls
+
+           foo(0b0, 0b0)
+           foo(0b00, 0b00)
+           foo(0b11, 0b01)
+           foo(0b111, 0b0)
+
+         then this map will contain
+
+           foo -> [ [ bitvector(1); bitvector(1) ];
+                    [ bitvector(2); bitvector(2) ];
+                    [ bitvector(3); bitvector(1) ] ]
+
+         The actual order of the lists of parameter types is left unspecified.
+      *)
+      polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;  
     }
 
   let empty : t =
