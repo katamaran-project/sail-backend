@@ -1915,6 +1915,7 @@ let rec build_leveled_match_statements
     TC.fail location "invalid number of tuple elements"
   in
   let fail_due_to_unhandled_cases =
+    (* should actually never be used given that Sail itself should fill in missing cases *)
     TC.return @@ Ast.Statement.Fail (output_type, "incomplete matching")
   in
   match pattern_tree with
