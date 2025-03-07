@@ -2720,7 +2720,8 @@ let translate
     (location           : S.l                                                 )
     (matched_identifier : Ast.Identifier.t                                    )
     (matched_type       : Ast.Type.t                                          )
-    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list) : Ast.Statement.t TC.t
+    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list)
+    (_output_type       : Ast.Type.t                                          ) : Ast.Statement.t TC.t
   =
   let* translated_cases =
     let f (pattern, condition, clause) =

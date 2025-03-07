@@ -573,11 +573,14 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         }
    *)
   let statement_of_match
-      (matched  : S.typ S.aval                                     )
-      (cases    : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t
+      (matched     : S.typ S.aval                                     )
+      (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
+      (output_type : S.typ                                            ) : Ast.Statement.t TC.t
     =
     let* matched_variable =
       TC.generate_unique_identifier ()
+    and* output_type =
+      Type.nanotype_of_sail_type output_type
     and* cases_with_translated_bodies =
       let translate_case_body (pattern, condition, body) =
         let* translated_body = statement_of_aexp body
@@ -591,7 +594,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       TC.return (wrap_in_named_statements_context named_statements @@ Ast.Statement.Expression expression, expression_type)
     in
     let* match_statement =
-      Match.translate location matched_variable matched_variable_type cases_with_translated_bodies
+      Match.translate location matched_variable matched_variable_type cases_with_translated_bodies output_type
     in
     TC.return begin
       Ast.Statement.Let {
@@ -1079,7 +1082,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
   | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
   | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
-  | AE_match (aval, cases, _)                                     -> statement_of_match aval cases
+  | AE_match (aval, cases, output_type)                           -> statement_of_match aval cases output_type
   | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
   | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access aval field_identifier field_type
   | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
