@@ -1,6 +1,10 @@
 (*
    Monad used during translation from Sail to nanosail.
    It is a combination of a state monad and a result monad.
+
+   * It keeps track of all definition translations.
+   * It can generate unique identifiers.
+   * It stores information about calls to polymorphic functions.
 *)
 
 open! ExtBase
