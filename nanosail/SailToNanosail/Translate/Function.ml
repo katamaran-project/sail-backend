@@ -1015,7 +1015,7 @@ let rec statement_of_aexp
   and statement_of_short_circuit
         (logical_operator : S.sc_op     )
         (lhs              : S.typ S.aval)
-        (rhs              : S.typ S.aexp)
+        (rhs              : S.typ S.aexp) : Ast.Statement.t TC.t
     =
     let* lhs_expression, _lhs_expression_type, lhs_named_statements = expression_of_aval location lhs
     and* rhs_statement = statement_of_aexp None rhs  (* todo construct bool type to pass along to statement_of_aexp *)
