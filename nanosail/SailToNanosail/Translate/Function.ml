@@ -635,7 +635,7 @@ let rec statement_of_aexp
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; fields; binders; _ } -> (
+      fun { record_type_identifier; fields; binders; record_identifier = _ } -> (
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
