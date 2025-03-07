@@ -53,6 +53,7 @@ PASS bitvectors-sign-extend
 PASS bitvectors-slicing
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
+FAIL bitvectors-update-subrange
 PASS bitvectors-xor
 PASS bitvectors-zero-extend
 PASS bitvectors-zeros-with-literal-formatting
@@ -80,6 +81,10 @@ PASS enums-definition-long-2
 PASS enums-returning
 PASS enums-variants-records
 PASS eq-unit
+PASS exit-bool
+PASS exit-enum
+PASS exit-in-if
+PASS exit-int
 PASS expressions-as-parameter
 PASS expressions-value-int
 PASS expressions-value-nested-products
@@ -87,6 +92,9 @@ PASS expressions-value-product
 PASS expressions-value-string
 PASS expressions-value-unit
 PASS expressions-variable
+PASS fail-bool
+PASS fail-enum
+PASS fail-int
 PASS feature-anf
 PASS feature-arguments
 PASS feature-ifte
@@ -109,7 +117,6 @@ PASS functions-call
 PASS functions-call-as-parameter
 PASS functions-call-binary
 PASS functions-call-nullary
-PASS functions-call-pretty
 PASS functions-call-ternary
 PASS functions-call-unary
 PASS functions-double
@@ -282,4 +289,4 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:250 FAIL:23
+PASS:267 FAIL:24
