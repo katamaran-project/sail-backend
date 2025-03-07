@@ -355,6 +355,9 @@ let rec generate_unique_identifiers
     return @@ id :: ids
 
 
+(*
+   Should be called whenever a polymorphic function is called.
+*)
 let register_polymorphic_function_call_type_arguments
     (function_identifier : Ast.Identifier.t)
     (argument_types      : Ast.Type.t list ) : unit t
