@@ -210,7 +210,7 @@ let definitions : Ast.Definition.t list t =
 (*
    Stores the given definition.
 *)
-let store_definition (definition : Ast.Definition.t) =
+let store_definition (definition : Ast.Definition.t) : unit t =
   let* old_definitions = definitions
   in
   let new_definitions = definition :: old_definitions
