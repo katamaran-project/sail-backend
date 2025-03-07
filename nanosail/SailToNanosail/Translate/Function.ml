@@ -27,25 +27,6 @@ let sail_type_of_lvar
   | Unbound _    -> TC.not_yet_implemented [%here] loc
 
 
-let type_of_aval
-    (value    : S.typ S.aval)
-    (location : S.l         ) : Ast.Type.t TC.t
-  =
-  match value with
-   | AV_lit (_literal, literal_type) -> Type.nanotype_of_sail_type literal_type
-   | AV_id (_identifier, lvar)       -> let* t = sail_type_of_lvar lvar location in Type.nanotype_of_sail_type t
-   | AV_ref (_, _)                   -> TC.not_yet_implemented [%here] location
-   | AV_tuple _                      -> TC.not_yet_implemented [%here] location
-   | AV_vector (_, _)                -> TC.not_yet_implemented [%here] location
-   | AV_record (_, _)                -> TC.not_yet_implemented [%here] location
-   | AV_cval (_, _)                  -> TC.not_yet_implemented [%here] location
-   | AV_list (_elements, typ)        -> begin
-       let* element_type = Type.nanotype_of_sail_type typ
-       in
-       TC.return @@ Ast.Type.List element_type
-     end
-
-
 (*
    If statements need to be translated to a match on boolean values.
 
