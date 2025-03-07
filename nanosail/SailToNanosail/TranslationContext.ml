@@ -193,7 +193,11 @@ let not_yet_implemented ?(message : string option) ocaml_position sail_position 
   Monad.fail @@ NotYetImplemented (ocaml_position, sail_position, message)
 
 
-let check ocaml_position condition message =
+let check
+    (ocaml_position : Lexing.position)
+    (condition      : bool           )
+    (message        : string lazy_t  ) : unit t
+  =
   if not condition
   then Monad.fail @@ AssertionFailure (ocaml_position, Lazy.force message)
   else Monad.return ()
