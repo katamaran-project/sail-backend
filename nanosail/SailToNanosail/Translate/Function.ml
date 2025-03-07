@@ -559,6 +559,33 @@ let with_destructured_record
   | AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
 
 
+(*
+   Translate Sail expression to statements.
+
+   The expression_type parameter is the type of the expression, if it is known.
+   This seemingly useless parameter was introduced because
+
+   * We translate Sail-calls to exit to muSail-failures.
+   * muSail-failures expect a type, which we want to provide explicitly.
+     (Originally this was translated as a wildcard so as to let Coq infer its value,
+     but it was deemed necessary to make it explicit.)
+   * The type information contained in the Sail-AST seems
+     to insist that a call to exit always has type unit,
+     even in contexts where other types are expected.
+     For example, given the Sail code "if cond then 0 else exit(())",
+     one would expect exit to be polymorphic and to return an int
+     in this case, but this is contradicted by the information provided us by Sail.
+     It seems that the Sail type checker understands exit
+     and tolerates type inconsistencies.
+
+   So, in order to generate the correct type, we must carry around
+   the typing context ourselves.
+
+   The reason expression_type is "S.typ option" instead of just "S.typ":
+   when dealing with a sequence "a; b; c", it is unclear
+   what the expected types of a and b should be.
+   Our current implementation assumes unit.
+*)
 let rec statement_of_aexp
     (expression_type : S.typ option)
     (expression      : S.typ S.aexp) : Ast.Statement.t TC.t
@@ -889,6 +916,9 @@ let rec statement_of_aexp
         (last_statement_type : S.typ            ) : Ast.Statement.t TC.t
     =
     let* translated_statements =
+      (*
+         In a block "a; b; c", we assume a and b have types unit.
+      *)
       let* all_but_last = TC.map ~f:(statement_of_aexp None) statements
       and* last = statement_of_aexp (Some last_statement_type) last_statement
       in
