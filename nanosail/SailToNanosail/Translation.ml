@@ -129,7 +129,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             in
             TC.return (sail_definition, untranslated_definition)
           end
-        | AssertionFailure (ocaml_location, message) -> begin
+        | Failure (ocaml_location, message) -> begin
             let location_string =
               Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
             and pretty_printed_sail_code =

@@ -102,7 +102,7 @@ end
 module Error = struct
   type t =
     | NotYetImplemented of Lexing.position * Libsail.Ast.l * string option
-    | AssertionFailure  of Lexing.position * string
+    | Failure           of Lexing.position * string
 
   let to_string (error : t) =
     match error with
@@ -111,8 +111,8 @@ module Error = struct
         | None     -> Printf.sprintf "not yet implemented (%s)" (StringOf.OCaml.position ocaml_location)
         | Some msg -> Printf.sprintf "not yet implemented (%s): %s" (StringOf.OCaml.position ocaml_location) msg
       end
-    | AssertionFailure (ocaml_location, message) -> begin
-        Printf.sprintf "assertion failure (%s): %s" (StringOf.OCaml.position ocaml_location) message
+    | Failure (ocaml_location, message) -> begin
+        Printf.sprintf "failure (%s): %s" (StringOf.OCaml.position ocaml_location) message
       end
 end
 
@@ -199,12 +199,12 @@ let check
     (message        : string lazy_t  ) : unit t
   =
   if not condition
-  then Monad.fail @@ AssertionFailure (ocaml_position, Lazy.force message)
+  then Monad.fail @@ Failure (ocaml_position, Lazy.force message)
   else Monad.return ()
 
 
 let fail ocaml_position message =
-  Monad.fail @@ AssertionFailure (ocaml_position, message)
+  Monad.fail @@ Failure (ocaml_position, message)
 
 
 let definitions : Ast.Definition.t list t =
