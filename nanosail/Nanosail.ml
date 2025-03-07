@@ -6,7 +6,6 @@ module LogLib              = LogLib
 module Logging             = Logging
 module ExtendedInteger     = ExtendedInteger
 module Ast                 = Ast
-module Substitute          = Substitute
 module SailToNanosail      = SailToNanosail
 module NanosailToMicrosail = NanosailToMicrosail
 module Templates           = Templates
