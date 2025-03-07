@@ -522,13 +522,15 @@ let with_destructured_record
           let* destructured_record =
             statement_of_lvar record_identifier lvar location
           in
-          TC.return @@ Ast.Statement.DestructureRecord {
-                           record_type_identifier;
-                           field_identifiers;
-                           binders;
-                           destructured_record;
-                           body
-                         }
+          TC.return begin
+            Ast.Statement.DestructureRecord {
+              record_type_identifier;
+              field_identifiers;
+              binders;
+              destructured_record;
+              body
+            }
+          end
         end
       | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | Typ_var _            -> TC.not_yet_implemented [%here] location
@@ -964,7 +966,8 @@ let rec statement_of_aexp
         TC.fold_left ~f:process_binding ~init:(initial_field_map, []) (Bindings.bindings bindings)
       in
       let record_expression : Ast.Expression.t =
-        let type_identifier = record_type_identifier
+        let type_identifier =
+          record_type_identifier
         and fields =
           List.map field_identifiers ~f:(Map.find_exn field_map)
         in
