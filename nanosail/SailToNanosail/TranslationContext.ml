@@ -335,6 +335,9 @@ let generate_unique_identifier
   return @@ Ast.Identifier.mk_generated @@ Printf.sprintf "%s%s%d%s" underscore prefix index suffix
 
 
+(*
+   Generate a list of unique identifiers.
+*)
 let rec generate_unique_identifiers
     ?(prefix     : string = "" )
     ?(suffix     : string = "" )
