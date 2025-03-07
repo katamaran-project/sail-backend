@@ -564,13 +564,13 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
   in
 
   (*
-    Translation of a match expression
+     Translation of a match expression
 
-    match <matched> {
-      pattern1 => expression1,
-      pattern2 => expression2,
-      ...
-    }
+        match <matched> {
+          pattern1 => expression1,
+          pattern2 => expression2,
+          ...
+        }
    *)
   let statement_of_match
       (matched  : S.typ S.aval                                     )
