@@ -327,15 +327,12 @@ let generate_unique_identifier
   =
   let* index = generate_unique_int
   in
-  let result =
-    Ast.Identifier.mk_generated @@ Printf.sprintf "%s%d%s" prefix index suffix
+  let underscore : string =
+    if underscore
+    then "_"
+    else ""
   in
-  if
-    underscore
-  then
-    return @@ Ast.Identifier.add_prefix "_" result
-  else
-    return result
+  return @@ Ast.Identifier.mk_generated @@ Printf.sprintf "%s%s%d%s" underscore prefix index suffix
 
 
 let rec generate_unique_identifiers
