@@ -849,7 +849,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (condition   : S.typ S.aval)
         (then_clause : S.typ S.aexp)
         (else_clause : S.typ S.aexp)
-        (_typ        : S.typ       ) : Ast.Statement.t TC.t
+        (output_type : S.typ       ) : Ast.Statement.t TC.t
     =
     let* (condition, condition_named_statements) =
       let* condition_expression, _condition_expression_type, named_statements = expression_of_aval location condition
