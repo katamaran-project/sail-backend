@@ -559,7 +559,10 @@ let with_destructured_record
   | AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
 
 
-let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
+let rec statement_of_aexp
+    (output_type : S.typ option)
+    (expression  : S.typ S.aexp) : Ast.Statement.t TC.t
+  =
   let S.AE_aux (unwrapped_expression, annotation) = expression
   in
   let location = annotation.loc
@@ -585,7 +588,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       Type.nanotype_of_sail_type output_type
     and* cases_with_translated_bodies =
       let translate_case_body (pattern, condition, body) =
-        let* translated_body = statement_of_aexp body
+        let* translated_body = statement_of_aexp (Some output_type) body
         in
         TC.return (pattern, condition, translated_body)
       in
@@ -828,12 +831,12 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (expression_type : S.typ               )
         (expression      : S.typ S.aexp        )
         (body            : S.typ S.aexp        )
-        (_body_type      : S.typ               ) : Ast.Statement.t TC.t
+        (body_type       : S.typ               ) : Ast.Statement.t TC.t
     =
     let* binder                 = Identifier.translate_identifier [%here] identifier
     and* binding_statement_type = Type.nanotype_of_sail_type expression_type
-    and* binding_statement      = statement_of_aexp expression
-    and* body_statement         = statement_of_aexp body
+    and* binding_statement      = statement_of_aexp (Some expression_type) expression
+    and* body_statement         = statement_of_aexp (Some body_type) body
     in
     let translation : Ast.Statement.t =    
       Let {
@@ -856,9 +859,9 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
       in
       TC.return (Ast.Statement.Expression condition_expression, named_statements)
     and* when_true =
-      statement_of_aexp then_clause
+      statement_of_aexp (Some output_type) then_clause
     and* when_false =
-      statement_of_aexp else_clause
+      statement_of_aexp (Some output_type) else_clause
     and* condition_variable =
       TC.generate_unique_identifier ()
     in
@@ -881,11 +884,15 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     end
 
   and statement_of_block
-        (statements     : S.typ S.aexp list)
-        (last_statement : S.typ S.aexp     )
-        (_typ           : S.typ            ) : Ast.Statement.t TC.t
+        (statements          : S.typ S.aexp list)
+        (last_statement      : S.typ S.aexp     )
+        (last_statement_type : S.typ            ) : Ast.Statement.t TC.t
     =
-    let* translated_statements = TC.map ~f:statement_of_aexp (statements @ [last_statement])
+    let* translated_statements =
+      let* all_but_last = TC.map ~f:(statement_of_aexp None) statements
+      and* last = statement_of_aexp (Some last_statement_type) last_statement
+      in
+      TC.return @@ List.concat [all_but_last; [last]]
     in
     TC.return @@ make_sequence translated_statements
 
@@ -947,8 +954,8 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
     end
 
   and statement_of_assignment
-        (lhs : Libsail.Ast.typ Libsail.Anf.alexp)
-        (rhs : Libsail.Ast.typ Libsail.Anf.aexp ) : Ast.Statement.t TC.t
+        (lhs : S.typ S.alexp)
+        (rhs : S.typ S.aexp ) : Ast.Statement.t TC.t
     =
     match lhs with
     | AL_id (id, lhs_type) -> begin
@@ -977,7 +984,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
                Adding an explicit unit keeps the types the same.
            *)
           let* rhs_identifier = TC.generate_unique_identifier ()
-          and* translated_rhs = statement_of_aexp rhs
+          and* translated_rhs = statement_of_aexp None rhs (* todo determine type *)
           and* rhs_type       = Type.nanotype_of_sail_type lhs_type;
           in
           let write_register_translation : Ast.Statement.t =
@@ -1011,7 +1018,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (rhs              : S.typ S.aexp)
     =
     let* lhs_expression, _lhs_expression_type, lhs_named_statements = expression_of_aval location lhs
-    and* rhs_statement = statement_of_aexp rhs
+    and* rhs_statement = statement_of_aexp None rhs  (* todo construct bool type to pass along to statement_of_aexp *)
     in
     let lhs_expr_as_statement : Ast.Statement.t =
       Expression lhs_expression
@@ -1057,7 +1064,7 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
         (expression  : S.typ S.aexp)
         (target_type : S.typ       ) : Ast.Statement.t TC.t
     =
-    let* translated_expression = statement_of_aexp expression
+    let* translated_expression = statement_of_aexp (Some target_type) expression
     and* translated_type       = Type.nanotype_of_sail_type target_type
     in
     TC.return @@ Ast.Statement.Cast (translated_expression, translated_type)
@@ -1072,11 +1079,16 @@ let rec statement_of_aexp (expression : S.typ S.aexp) : Ast.Statement.t TC.t =
 
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
-        (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
+        (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
-    let* translated_type = Type.nanotype_of_sail_type typ
-    in
-    TC.return @@ Ast.Statement.Fail (translated_type, "failure")
+    (* the type that Sail provides is untrustworthy, so we use our own type information *)
+    match output_type with
+    | Some output_type -> begin
+        let* translated_type = Type.nanotype_of_sail_type output_type
+        in
+        TC.return @@ Ast.Statement.Fail (translated_type, "failure")
+      end
+    | None -> TC.fail [%here] "Unknown output type" (* todo keep optional type in Fail so that we can generate a _ and hope for the best *)
 
   in
   match unwrapped_expression with
@@ -1132,7 +1144,7 @@ let translate_body
     (body      : S.typ S.aexp)
     (body_type : S.typ       ) : Ast.Statement.t TC.t
   =
-  statement_of_aexp body
+  statement_of_aexp (Some body_type) body
 
 
 let translate_function_definition
