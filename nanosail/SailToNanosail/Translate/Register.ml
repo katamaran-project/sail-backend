@@ -24,7 +24,7 @@ let translate_register
     let (S.DEC_aux (DEC_reg (sail_type, identifier, initial_value), (_spec_location, _spec_annotation))) = annotated_register_definition
     in
     let* identifier'    = translate_identifier [%here] identifier
-    and* nanotype       = nanotype_of_sail_type sail_type
+    and* nanotype       = translate_type sail_type
     in
     let* initial_value' =
       match initial_value with

@@ -26,7 +26,7 @@ let translate_variant
   and* constructors'    =
     let translate_constructor (S.Tu_aux (Tu_ty_id (typ, identifier), _annotation)) =
       let* identifier' = Identifier.translate_identifier [%here] identifier
-      and* typ' = Type.nanotype_of_sail_type typ
+      and* typ' = Type.translate_type typ
       in
       let field_nanotypes =
         match typ' with

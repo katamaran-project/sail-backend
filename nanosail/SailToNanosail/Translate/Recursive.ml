@@ -14,10 +14,10 @@ open Monads.Notations.Star(TC)
 
 
 module rec Type : sig
-  val nanotype_of_sail_type   : S.typ -> Ast.Type.t TC.t
+  val translate_type          : S.typ -> Ast.Type.t TC.t
   val translate_type_argument : S.typ_arg -> Ast.TypeArgument.t TC.t
 end = struct
-  let rec nanotype_of_sail_type (typ : S.typ) : Ast.Type.t TC.t =
+  let rec translate_type (typ : S.typ) : Ast.Type.t TC.t =
     TC.translation_block [%here] (PP.string @@ "Translating type " ^ StringOf.Sail.typ typ) begin
       let (S.Typ_aux (unwrapped_type, location)) = typ
       in
@@ -196,10 +196,10 @@ end = struct
           in
           TC.log [%here] Logging.warning message
         in
-        nanotype_of_sail_type typ
+        translate_type typ
 
       and nanotype_of_tuple (items : Libsail.Ast.typ list) : Ast.Type.t TC.t =
-        let* items' = TC.map ~f:nanotype_of_sail_type items
+        let* items' = TC.map ~f:translate_type items
         in
         TC.return @@ Ast.Type.Tuple items'
 
@@ -232,8 +232,8 @@ end = struct
           in
           TC.log [%here] Logging.info message
         in
-        let* parameter_types' = TC.map ~f:nanotype_of_sail_type parameter_types
-        and* result_type'     = nanotype_of_sail_type result_type
+        let* parameter_types' = TC.map ~f:translate_type parameter_types
+        and* result_type'     = translate_type result_type
         in
         TC.return begin
           Ast.Type.Function {
@@ -271,7 +271,7 @@ end = struct
         TC.return @@ Ast.TypeArgument.NumericExpression e'
       end
     | A_typ t  -> begin
-        let* t' = nanotype_of_sail_type t
+        let* t' = translate_type t
         in
         TC.return @@ Ast.TypeArgument.Type t'
       end

@@ -40,7 +40,7 @@ let translate_type_abbreviation
           TC.return @@ Ast.Definition.Type.Abbreviation.NumericConstraint (quantifier', numeric_constraint')
         end
       | A_typ typ -> begin
-          let* typ' = Type.nanotype_of_sail_type typ
+          let* typ' = Type.translate_type typ
           in
           TC.return @@ Ast.Definition.Type.Abbreviation.Alias (quantifier', typ')
         end
