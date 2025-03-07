@@ -469,11 +469,18 @@ let rec wrap_in_named_statements_context
 
 
 type with_destructured_record_data = {
-    record_identifier      : Ast.Identifier.t;
-    record_type_identifier : Ast.Identifier.t;
-    fields                 : (Ast.Identifier.t * Ast.Type.t) list;
-    binders                : Ast.Identifier.t list;
-  }
+  (* identifier of variable containing record *)
+  record_identifier      : Ast.Identifier.t;
+
+  (* name of the record type *)
+  record_type_identifier : Ast.Identifier.t;
+
+  (* field names and types *)
+  fields                 : (Ast.Identifier.t * Ast.Type.t) list;
+
+  (* variables bound to each field *)
+  binders                : Ast.Identifier.t list;
+}
 
 let with_destructured_record
       (location       : S.l                                              )
