@@ -635,7 +635,7 @@ let rec statement_of_aexp
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; fields; binders; record_identifier = _ } -> (
+      fun { record_type_identifier; fields; binders; record_identifier = _ } -> begin
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
@@ -647,7 +647,7 @@ let rec statement_of_aexp
             TC.return @@ Ast.Statement.Expression expression
           end
         | None -> TC.fail [%here] @@ Printf.sprintf "Record %s should have field named %s" (Ast.Identifier.to_string record_type_identifier) (Ast.Identifier.to_string field_identifier)
-      )
+      end
 
   and statement_of_value (value : S.typ S.aval) : Ast.Statement.t TC.t =
     let* expression, _expression_type, named_statements = expression_of_aval location value
