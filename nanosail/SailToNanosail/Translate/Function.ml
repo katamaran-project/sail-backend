@@ -1207,7 +1207,7 @@ let translate_function_definition
           in
           TC.log [%here] Logging.info message
         in
-        let* polymorphic =
+        let* is_function_polymorphic : bool =
           let* top_level_type_constraint =
             TC.lookup_definition_opt (Ast.Definition.Select.top_level_type_constraint_definition_named function_name)
           in
@@ -1230,7 +1230,7 @@ let translate_function_definition
           Ast.Statement.simplify function_body
         in
         let* monomorphs : Ast.Definition.Function.t list =
-          match polymorphic, Configuration.requested_monomorphizations_for function_name with
+          match is_function_polymorphic, Configuration.requested_monomorphizations_for function_name with
           | true, None -> begin
               (* we encountered a polymorphic function, but no monomorphizations were requested *)
               let* () =
@@ -1347,7 +1347,7 @@ let translate_function_definition
           };
           extended_function_type;
           function_body;
-          polymorphic;
+          polymorphic = is_function_polymorphic;
           monomorphs;
         }
       end
