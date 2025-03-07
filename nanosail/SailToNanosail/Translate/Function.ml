@@ -1128,7 +1128,10 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
-let translate_body (body : S.typ S.aexp) : Ast.Statement.t TC.t =
+let translate_body
+    (body      : S.typ S.aexp)
+    (body_type : S.typ       ) : Ast.Statement.t TC.t
+  =
   statement_of_aexp body
 
 
@@ -1147,7 +1150,7 @@ let translate_function_definition
         let* function_name          = Identifier.translate_identifier [%here] parts.identifier
         and* parameters             = translate_parameter_bindings parts.parameter_bindings
         and* return_type            = translate_return_type parts.return_type
-        and* function_body          = translate_body parts.body
+        and* function_body          = translate_body parts.body parts.return_type
         and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
         let* () =
