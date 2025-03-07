@@ -919,8 +919,10 @@ let rec statement_of_aexp
       (*
          In a block "a; b; c", we assume a and b have types unit.
       *)
-      let* all_but_last = TC.map ~f:(statement_of_aexp None) statements
-      and* last = statement_of_aexp (Some last_statement_type) last_statement
+      let* all_but_last =
+        TC.map ~f:(statement_of_aexp None) statements
+      and* last =
+        statement_of_aexp (Some last_statement_type) last_statement
       in
       TC.return @@ List.concat [all_but_last; [last]]
     in
@@ -935,7 +937,7 @@ let rec statement_of_aexp
       Processes single assignment to field
       - pair: contains information pertaining to the field update
       - acc : data structure in which to accumulate the translated information
-     *)
+    *)
     let process_binding
         (acc  : Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list)
         (pair : S.id * S.typ S.aval                                                                           ) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
@@ -1012,7 +1014,7 @@ let rec statement_of_aexp
                We first need to evaluate expr, store it in a variable, and then assign its value to the register.
              - In Sail, the type of assignment is unit, but not in muSail.
                Adding an explicit unit keeps the types the same.
-           *)
+          *)
           let* rhs_identifier = TC.generate_unique_identifier ()
           and* translated_rhs = statement_of_aexp None rhs (* todo determine type *)
           and* rhs_type       = Type.nanotype_of_sail_type lhs_type;
@@ -1064,7 +1066,7 @@ let rec statement_of_aexp
             to
 
               if ( x ) { y } else { false }
-           *)
+          *)
           let condition  = lhs_expr_as_statement
           and when_true  = rhs_statement
           and when_false = Ast.(Statement.Expression (Value (Bool false)))
@@ -1080,7 +1082,7 @@ let rec statement_of_aexp
             to
 
               if ( x ) { true } else { y }
-           *)
+          *)
           let condition  : Ast.Statement.t = lhs_expr_as_statement
           and when_true  : Ast.Statement.t = Expression (Value (Bool true))
           and when_false : Ast.Statement.t = rhs_statement
