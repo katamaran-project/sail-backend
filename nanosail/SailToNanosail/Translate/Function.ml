@@ -560,8 +560,8 @@ let with_destructured_record
 
 
 let rec statement_of_aexp
-    (output_type : S.typ option)
-    (expression  : S.typ S.aexp) : Ast.Statement.t TC.t
+    (expression_type : S.typ option)
+    (expression      : S.typ S.aexp) : Ast.Statement.t TC.t
   =
   let S.AE_aux (unwrapped_expression, annotation) = expression
   in
@@ -1082,7 +1082,7 @@ let rec statement_of_aexp
         (_typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
     (* the type that Sail provides is untrustworthy, so we use our own type information *)
-    match output_type with
+    match expression_type with
     | Some output_type -> begin
         let* translated_type = Type.nanotype_of_sail_type output_type
         in
