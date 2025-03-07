@@ -908,7 +908,7 @@ let rec statement_of_aexp
      *)
     let process_binding
         (acc  : Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list)
-        (pair : S.id * S.typ S.aval                                                                           )
+        (pair : S.id * S.typ S.aval                                                                           ) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
       =
       let field_map       , named_statements = acc
       and field_identifier, value            = pair
