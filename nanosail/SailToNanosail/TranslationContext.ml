@@ -207,6 +207,9 @@ let definitions : Ast.Definition.t list t =
   Monad.get Context.definitions
 
 
+(*
+   Stores the given definition.
+*)
 let store_definition (definition : Ast.Definition.t) =
   let* old_definitions = definitions
   in
