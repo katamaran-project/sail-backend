@@ -355,12 +355,6 @@ let rec generate_unique_identifiers
     return @@ id :: ids
 
 
-let rec try_multiple (fs : 'a t list) : 'a t =
-  match fs with
-  | f::fs -> recover f (fun error -> let* () = log [%here] Logging.warning @@ lazy (PP.string @@ Error.to_string error) in try_multiple fs)
-  | []    -> fail [%here] "ran out of alternatives"
-
-
 let register_polymorphic_function_call_type_arguments
     (function_identifier : Ast.Identifier.t)
     (argument_types      : Ast.Type.t list ) : unit t
