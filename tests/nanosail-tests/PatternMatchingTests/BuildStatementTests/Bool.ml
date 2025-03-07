@@ -38,7 +38,7 @@ let test_build_match_for_bool_true_false =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "b"] tree
+        build_match [mkid "b"] tree Ast.Type.Unit
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -87,7 +87,7 @@ let test_build_match_for_bool_false_true =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "b"] tree
+        build_match [mkid "b"] tree Ast.Type.Unit
       in
       let expected_match_statement =
         Ast.Statement.Match begin
@@ -129,7 +129,7 @@ let test_build_match_for_bool_wildcard =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "b"] tree
+        build_match [mkid "b"] tree Ast.Type.Unit
       in
       let expected_match_statement =
         statement
@@ -168,7 +168,7 @@ let test_build_match_for_bool_binder =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "b"] tree
+        build_match [mkid "b"] tree Ast.Type.Unit
       in
       let expected_match_statement =
         Ast.Statement.Let {

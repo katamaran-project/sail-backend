@@ -34,7 +34,7 @@ let test_build_match_for_enum_with_single_case =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -94,7 +94,7 @@ let test_build_match_for_enum_with_two_cases =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -159,7 +159,7 @@ let test_build_match_for_enum_with_two_cases_use_wildcard =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -224,7 +224,7 @@ let test_build_match_for_enum_with_two_cases_use_binder =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -316,7 +316,7 @@ let test_build_match_for_pair_of_enums =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -435,7 +435,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -534,7 +534,7 @@ let test_build_match_for_pair_of_enums_with_wildcards_for_first_value_2 =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -606,7 +606,7 @@ let test_build_match_for_enum_8 =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -700,7 +700,7 @@ let test_build_match_for_enum_9 =
         TC.return tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "a"; mkid "b"] tree
+        build_match [mkid "a"; mkid "b"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin

@@ -36,7 +36,7 @@ let test_build_match_for_variant_single_nullary_constructor =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -94,7 +94,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_wildcard =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -158,7 +158,7 @@ let test_build_match_for_variant_single_nullary_constructor_wildcard =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value"] pattern_tree
+        build_match [mkid "value"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         a1_statement
@@ -206,8 +206,7 @@ let test_build_match_for_variant_single_nullary_constructor_binder =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match 
-        [mkid "value"] pattern_tree
+        build_match [mkid "value"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -261,7 +260,7 @@ let test_build_match_for_variant_single_nullary_constructor_field_binder =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -322,7 +321,7 @@ let test_build_match_for_variant_single_unary_constructor =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -378,7 +377,7 @@ let test_build_match_for_variant_single_unary_constructor_field_wildcard =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -440,7 +439,7 @@ let test_build_match_for_variant_single_binary_constructor =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -517,7 +516,7 @@ let test_build_match_for_variant_two_constructors =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -588,7 +587,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"] pattern_tree
+        build_match [mkid "value1"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -677,7 +676,7 @@ let test_build_match_for_variant_nary_constructor_field_wildcards_unification =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -802,7 +801,7 @@ let test_build_match_for_tuple_of_variants =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Match begin
@@ -898,7 +897,7 @@ let test_build_match_for_tuple_of_variants_wildcards =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         statement
@@ -948,7 +947,7 @@ let test_build_match_for_tuple_of_variants_binders =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -1026,7 +1025,7 @@ let test_build_match_for_tuple_of_variants_binders_2 =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -1115,7 +1114,7 @@ let test_build_match_for_tuple_of_variants_binders_3 =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -1208,7 +1207,7 @@ let test_build_match_for_tuple_of_variants_binders_4 =
         TC.return pattern_tree
       in
       let* actual_match_statement : Ast.Statement.t =
-        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree
+        build_match [mkid "value1"; mkid "value2"; mkid "value3"] pattern_tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {

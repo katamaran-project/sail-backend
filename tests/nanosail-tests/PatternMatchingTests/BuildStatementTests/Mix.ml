@@ -35,7 +35,7 @@ let test_build_match_for_enum_int =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "enum_value"; mkid "int_value"] tree
+        build_match [mkid "enum_value"; mkid "int_value"] tree Ast.Type.Unit
       in
       let expected_match_statement =
         Ast.Statement.Match begin

@@ -1908,21 +1908,22 @@ let rec adorn_pattern_tree
 
 let rec build_leveled_match_statements
     (matched_identifiers : Ast.Identifier.t list)
-    (pattern_tree        : PatternTree.t        ) : Ast.Statement.t TC.t
+    (pattern_tree        : PatternTree.t        )
+    (output_type         : Ast.Type.t           ) : Ast.Statement.t TC.t
   =
   let invalid_number_of_tuple_elements (location : Lexing.position) =
     TC.fail location "invalid number of tuple elements"
   in
-  let fail_due_to_unhandled_cases (typ : Ast.Type.t) =
-    TC.return @@ Ast.Statement.Fail (typ, "incomplete matching")
+  let fail_due_to_unhandled_cases =
+    TC.return @@ Ast.Statement.Fail (output_type, "incomplete matching")
   in
   match pattern_tree with
   | Bool { when_true; when_false } -> begin
       match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_matched_identifier :: remaining_matched_identifiers -> begin
-          let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true
-          and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false
+          let* when_true  = build_leveled_match_statements remaining_matched_identifiers when_true output_type
+          and* when_false = build_leveled_match_statements remaining_matched_identifiers when_false output_type
           in
           TC.return begin
             Ast.Statement.Match begin
@@ -1985,7 +1986,7 @@ let rec build_leveled_match_statements
                 =
                 let* statement : Ast.Statement.t =
                   let* subtree_statement =
-                    build_leveled_match_statements remaining_matched_identifiers subtree
+                    build_leveled_match_statements remaining_matched_identifiers subtree output_type
                   in
                   TC.return @@ decorate_statement binder subtree_statement
                 in
@@ -2022,7 +2023,7 @@ let rec build_leveled_match_statements
                 =
                 let* substatement =
                   let* substatement =
-                    build_leveled_match_statements remaining_matched_identifiers subtree
+                    build_leveled_match_statements remaining_matched_identifiers subtree output_type
                   in
                   if
                     binder.wildcard
@@ -2105,7 +2106,7 @@ let rec build_leveled_match_statements
       match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
       | first_matched_identifier :: remaining_matched_identifiers -> begin
-          let* substatement = build_leveled_match_statements remaining_matched_identifiers subtree
+          let* substatement = build_leveled_match_statements remaining_matched_identifiers subtree output_type
           in
           if
             binder.wildcard
@@ -2127,7 +2128,7 @@ let rec build_leveled_match_statements
       match matched_identifiers with
       | [] -> begin
           match statement with
-          | None           -> fail_due_to_unhandled_cases Ast.Type.Unit (* todo needs fixing *)
+          | None           -> fail_due_to_unhandled_cases
           | Some statement -> TC.return @@ statement
         end
       | _::_ -> invalid_number_of_tuple_elements [%here]
@@ -2500,7 +2501,8 @@ let translate_variant_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (variant_identifier : Ast.Identifier.t                  )
-    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   let* empty_pattern_tree =
     build_empty_pattern_tree
@@ -2513,7 +2515,7 @@ let translate_variant_match
       ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
-  let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree
+  let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
   in
   TC.return result
 
@@ -2581,7 +2583,8 @@ let translate_tuple_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (element_types      : Ast.Type.t list                   )
-    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   let* cases : (Pattern.t list * Ast.Statement.t) list =
     let retrieve_tuple_subpatterns (pattern : Pattern.t) : Pattern.t list TC.t =
@@ -2659,7 +2662,7 @@ let translate_tuple_match
     | None -> TC.fail [%here] "Failed to produce single pattern tree"
   in
   let builder (binder_identifiers : Ast.Identifier.t list) : Ast.Statement.t TC.t =
-    build_leveled_match_statements (optimal_permuter#permute binder_identifiers) optimal_tree
+    build_leveled_match_statements (optimal_permuter#permute binder_identifiers) optimal_tree output_type
   in
   let* result =
     create_tuple_match
@@ -2673,7 +2676,8 @@ let translate_tuple_match
 let translate_unit_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
-    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   match cases with
   | [ (pattern, statement) ] -> begin
@@ -2692,6 +2696,7 @@ let translate_unit_match
       build_leveled_match_statements
         [ matched_identifier ]
         pattern_tree
+        output_type
     end
   | _ -> TC.fail [%here] "invalid number of cases"
 
@@ -2700,7 +2705,8 @@ let translate_enum_match
     (location          : S.l                                )
     (matched_identifier : Ast.Identifier.t                  )
     (enum_identifier    : Ast.Identifier.t                  )
-    (cases              : (Pattern.t * Ast.Statement.t) list) : Ast.Statement.t TC.t
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   let* empty_pattern_tree =
     build_empty_pattern_tree
@@ -2713,7 +2719,7 @@ let translate_enum_match
       ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
       ~init:empty_pattern_tree
   in
-  build_leveled_match_statements [ matched_identifier ] pattern_tree
+  build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
 
 
 let translate
@@ -2721,7 +2727,7 @@ let translate
     (matched_identifier : Ast.Identifier.t                                    )
     (matched_type       : Ast.Type.t                                          )
     (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list)
-    (_output_type       : Ast.Type.t                                          ) : Ast.Statement.t TC.t
+    (output_type        : Ast.Type.t                                          ) : Ast.Statement.t TC.t
   =
   let* translated_cases =
     let f (pattern, condition, clause) =
@@ -2731,10 +2737,10 @@ let translate
   in
   match matched_type with
   | List element_type            -> translate_list_match location matched_identifier element_type translated_cases
-  | Unit                         -> translate_unit_match location matched_identifier translated_cases
-  | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases
-  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases
-  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases
+  | Unit                         -> translate_unit_match location matched_identifier translated_cases output_type
+  | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases output_type
+  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases output_type
+  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location

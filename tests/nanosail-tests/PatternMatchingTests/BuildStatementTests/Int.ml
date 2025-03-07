@@ -31,7 +31,7 @@ let test_build_match_for_int_1 =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         statement
@@ -66,7 +66,7 @@ let test_build_match_for_int_2 =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"] tree
+        build_match [mkid "value1"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
@@ -109,7 +109,7 @@ let test_build_match_for_int_int_1 =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         statement
@@ -145,7 +145,7 @@ let test_build_match_for_int_int_2 =
         TC.return tree
       in
       let* actual_match_statement =
-        build_match [mkid "value1"; mkid "value2"] tree
+        build_match [mkid "value1"; mkid "value2"] tree Ast.Type.Unit
       in
       let expected_match_statement : Ast.Statement.t =
         Let {
