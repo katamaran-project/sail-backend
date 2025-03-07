@@ -66,19 +66,21 @@ let create_if_statement
   let* condition_variable =
     TC.generate_unique_identifier ()
   in
-  let match_pattern =
-    Ast.Statement.MatchBool {
-      condition = condition_variable;
-      when_true;
-      when_false
-    }
+  let body_statement : Ast.Statement.t = 
+    Match begin
+      MatchBool {
+        condition = condition_variable;
+        when_true;
+        when_false
+      }
+    end
   in
   TC.return begin
     Ast.Statement.Let {
       binder                 = condition_variable;
       binding_statement_type = Bool;
       binding_statement      = condition;
-      body_statement         = Match match_pattern
+      body_statement;
     }
   end
 
