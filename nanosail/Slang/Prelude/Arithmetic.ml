@@ -3,7 +3,6 @@ open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 open Functions
 
-module EV = EvaluationContext
 module C  = Converters
 
 open Shared
