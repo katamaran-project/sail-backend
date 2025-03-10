@@ -200,6 +200,56 @@ let last_tests =
   "last" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
+let is_prime_tests =
+  let open Slang.Value
+  in
+  let test_cases =
+    List.build_list begin fun { addall; _ } ->
+      addall begin
+        let* value, expected = [
+          (
+            "1",
+            Bool false
+          );
+          (
+            "2",
+            Bool true
+          );
+          (
+            "3",
+            Bool false
+          );
+          (
+            "4",
+            Bool false
+          );
+          (
+            "5",
+            Bool true
+          );
+          (
+            "6",
+            Bool false
+          );
+          (
+            "7",
+            Bool true
+          );          
+        ]
+        in
+        [
+          Printf.sprintf
+            {|
+              (prime? %s)
+            |} value,
+            expected
+        ];
+      end;
+    end
+  in
+  "is prime" >::: List.map ~f:(Fn.uncurry test_run) test_cases
+
+
 let tests =
   "advanced tests" >::: [
     modulo_tests;
@@ -207,4 +257,5 @@ let tests =
     mapping_tests;
     nth_tests;
     last_tests;
+    is_prime_tests;
   ]
