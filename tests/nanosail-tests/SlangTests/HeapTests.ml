@@ -78,7 +78,7 @@ let counter_test =
       (define (make-counter)
         (define counter (ref 0))
         (lambda ()
-          (@= (+ 1 (@ counter)))
+          (@= counter (+ 1 (@ counter)))
           (@ counter)))
 
       (define counter (make-counter))
