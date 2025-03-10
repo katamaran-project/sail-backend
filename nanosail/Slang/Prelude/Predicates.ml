@@ -1,8 +1,6 @@
-open! ExtBase
-open Monads.Notations.Star(EvaluationContext)
+open ExtBase
 
 
-module EC = EvaluationContext
 module C  = Converters
 module P  = Value.Predicate
 
@@ -18,12 +16,12 @@ let mk_predicate id pred =
   (id, Functions.mk_multimethod [ impl; error id ])
 
 
-let is_cons     = mk_predicate "cons?" P.is_cons
-let is_integer  = mk_predicate "integer?" P.is_integer
-let is_symbol   = mk_predicate "symbol?" P.is_symbol
-let is_string   = mk_predicate "string?" P.is_string
-let is_bool     = mk_predicate "bool?" P.is_bool
-let is_nil      = mk_predicate "nil?" P.is_nil
+let is_cons     = mk_predicate "cons?"     P.is_cons
+let is_integer  = mk_predicate "integer?"  P.is_integer
+let is_symbol   = mk_predicate "symbol?"   P.is_symbol
+let is_string   = mk_predicate "string?"   P.is_string
+let is_bool     = mk_predicate "bool?"     P.is_bool
+let is_nil      = mk_predicate "nil?"      P.is_nil
 let is_callable = mk_predicate "callable?" P.is_callable
 
 
