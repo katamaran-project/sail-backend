@@ -21,6 +21,10 @@ let tests =
   ]
 
 
-let _ = Configuration.(set verbosity_level) LogLib.VerbosityLevel.quiet
+let _ =
+  match Sys.getenv_opt Configuration.verbosity_level_environment_variable with
+  | None   -> Configuration.(set verbosity_level) LogLib.VerbosityLevel.quiet
+  | Some _ -> ()
+
 
 let _ = run_test_tt_main tests
