@@ -155,7 +155,7 @@ let nth_tests =
       end;
     end
   in
-  "mapping" >::: List.map ~f:(Fn.uncurry test_run) test_cases
+  "nth" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let last_tests =
@@ -197,7 +197,7 @@ let last_tests =
       end;
     end
   in
-  "mapping" >::: List.map ~f:(Fn.uncurry test_run) test_cases
+  "last" >::: List.map ~f:(Fn.uncurry test_run) test_cases
 
 
 let tests =
