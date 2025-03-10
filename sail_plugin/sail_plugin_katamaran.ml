@@ -4,15 +4,18 @@ open Base
 let print_check_message () =
   Stdio.print_endline("The Katamaran plugin is functioning correctly")
 
-
-let rewrite_count () =
-  match Sys.getenv "REWRITES" with
-  | None     -> List.length Rewrites.katamaran_rewrites
-  | Some str -> Int.of_string str
-
-
+(*
+   By default, use all rewrites listed in Rewrites.katamaran_rewrites.
+   Setting the environment variable REWRITES allow to only enable
+   a prefix of these rewrites.
+*)
 let rewrites () =
-  List.take Rewrites.katamaran_rewrites (rewrite_count ())
+  let rewrite_count =
+    match Sys.getenv "REWRITES" with
+    | None     -> List.length Rewrites.katamaran_rewrites
+    | Some str -> Int.of_string str
+  in
+  List.take Rewrites.katamaran_rewrites rewrite_count
 
 
 module CLI = struct
