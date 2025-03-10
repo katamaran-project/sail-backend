@@ -16,6 +16,7 @@ let initialize : unit EvaluationContext.t =
       Lists.initialize;
       HeapFunctionality.initialize;
       Strings.initialize;
+      Advanced.initialize;
   ]
   in
   EvaluationContext.iter ~f:(fun f -> f) libraries
