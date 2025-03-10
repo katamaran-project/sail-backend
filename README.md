@@ -2,6 +2,7 @@
 
 * [Installation](docs/installation.md)
 * [Tests](docs/tests.md)
+* [Overview of the Code](docs/code-overview.md)
 
 ## Uninstalling
 
