@@ -1,4 +1,4 @@
-open! ExtBase
+open ExtBase
 open Monads.Notations.Star(EvaluationContext)
 
 module EC = EvaluationContext
@@ -40,3 +40,10 @@ let error identifier args =
     Printf.sprintf "error evaluating (%s %s)" identifier formatted_args
   in
   raise @@ Exception.SlangError error_message
+
+
+(* Helper function to return values successfully *)
+let return (value : Value.t) = EC.return @@ Some value
+
+(* Helper function to define functions using Slang code *)
+let define = Fn.compose EC.ignore Evaluation.parse_and_evaluate_string

@@ -1,5 +1,4 @@
-open Base
-open! ExtBase
+open ExtBase
 open Evaluation
 open Monads.Notations.Star(EvaluationContext)
 open Functions
@@ -28,7 +27,7 @@ let addition =
     EC.return @@ Some (Value.String result)
 
   in
-  (id, mk_multimethod [ add_integers; add_strings; error id ])
+  bind_callable id @@ mk_multimethod [ add_integers; add_strings; error id ]
 
 
 let subtraction =
@@ -44,9 +43,9 @@ let subtraction =
       | [n]   -> -n
       | n::ns -> List.fold_left ~f:Int.(-) ~init:n ns
     in
-    EC.return @@ Value.Integer result
+    return @@ Value.Integer result
   in
-  (id, impl)
+  bind_callable id @@ mk_multimethod [ impl; error id ]
 
 
 let multiplication =
@@ -57,29 +56,29 @@ let multiplication =
     in
     let result = List.fold_left ~f:Int.( * ) ~init:1 ns
     in
-    EC.return @@ Some (Value.Integer result)
+    return @@ Value.Integer result
 
   and multiply_string_with_int evaluated_args =
     let=? string, integer = C.map2 C.string C.integer evaluated_args
     in
     let result = String.concat @@ List.init integer ~f:(Fn.const string)
     in
-    EC.return @@ Some (Value.String result)
+    return @@ Value.String result
 
   and multiply_int_with_string evaluated_args =
     let=? integer, string = C.map2 C.integer C.string evaluated_args
     in
     let result = String.concat @@ List.init integer ~f:(Fn.const string)
     in
-    EC.return @@ Some (Value.String result)
+     return @@ Value.String result
 
   in
-  (id, mk_multimethod [
-      multiply_integers;
-      multiply_string_with_int;
-      multiply_int_with_string;
-      error id;
-    ])
+  bind_callable id @@ mk_multimethod [
+    multiply_integers;
+    multiply_string_with_int;
+    multiply_int_with_string;
+    error id;
+  ]
 
 
 let division =
@@ -95,9 +94,12 @@ let division =
       | [_]   -> raise @@ Exception.SlangError "invalid division"
       | n::ns -> List.fold_left ~f:Int.(/) ~init:n ns
     in
-    EC.return @@ Value.Integer result
+    return @@ Value.Integer result
   in
-  (id, impl)
+  bind_callable id @@ mk_multimethod [
+    impl;
+    error id
+  ]
 
 
 let modulo =
@@ -106,9 +108,9 @@ let modulo =
   let impl args =
     let=! (x, y) = C.(map2 integer integer) args
     in
-    EC.return @@ Some (Value.Integer (x % y))
+    return @@ Value.Integer Int.(x % y)
   in
-  (id, mk_multimethod [ impl; error id ])
+  bind_callable id @@ mk_multimethod [ impl; error id ]
 
 
 let initialize =
@@ -120,7 +122,4 @@ let initialize =
     modulo;
   ]
   in
-  let pairs =
-    List.map ~f:(fun (id, c) -> (id, Value.Callable c)) definitions
-  in
-  EC.iter ~f:(Fn.uncurry EC.add_binding) pairs
+  EC.ignore @@ EC.sequence definitions

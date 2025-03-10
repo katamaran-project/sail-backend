@@ -7,12 +7,6 @@ module C = Converters
 open Shared
 
 
-(* Helper function to return values successfully *)
-let return = Fn.compose EC.return Option.some
-
-(* Helper function to define functions using Slang code *)
-let define = Fn.compose EC.ignore Evaluation.parse_and_evaluate_string
-
 (* (cons x y) creates a pair with values x and y *)
 let cons =
   let id = "cons"
@@ -93,16 +87,20 @@ let contains =
 
 
 let caar =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (caar x) (car (car x)))"
+  define "(define (caar x) (car (car x)))"
+
 
 let cadr =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cadr x) (car (cdr x)))"
+  define "(define (cadr x) (car (cdr x)))"
+
 
 let cdar =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cdar x) (cdr (car x)))"
+  define "(define (cdar x) (cdr (car x)))"
+
 
 let cadar =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cadar x) (car (cdr (car x))))"
+  define "(define (cadar x) (car (cdr (car x))))"
+
 
 let filter =
   define {|
@@ -116,6 +114,7 @@ let filter =
                   (recurse pick? (cdr xs)))))
     |}
 
+
 let nth =
   define {|
       (define (nth index xs)
@@ -125,6 +124,7 @@ let nth =
                      (cdr xs))))
     |}
 
+
 let last =
   define {|
       (define (last xs)
@@ -132,6 +132,7 @@ let last =
             (car xs)
             (recurse (cdr xs))))
     |}
+
 
 let range =
   let id = "range"

@@ -1,6 +1,5 @@
 open! ExtBase
 open Evaluation
-open EvaluationContext
 open Monads.Notations.Star(EvaluationContext)
 
 module V = Value
@@ -24,13 +23,13 @@ let equality_check =
     in
     let rec aux values =
       match values with
-      | []       -> return @@ V.Bool true
-      | [_]      -> return @@ V.Bool true
+      | []       -> EC.return @@ V.Bool true
+      | [_]      -> EC.return @@ V.Bool true
       | x::y::xs -> begin
           if
             not (V.equal x y)
           then
-            return @@ V.Bool false
+            EC.return @@ V.Bool false
           else
             aux @@ y::xs
         end
@@ -49,14 +48,14 @@ let equality_check =
 *)
 let comparison
     (converter  : 'a -> 'b option )
-    (comparator : 'b -> 'b -> bool) : 'a list -> V.t option t
+    (comparator : 'b -> 'b -> bool) : 'a list -> V.t option EC.t
   =
-  let impl (args : 'a list) : V.t option t =
+  let impl (args : 'a list) : V.t option EC.t =
     let=?? ns = List.map ~f:converter args
     in
     let result = Value.Bool (List.for_all ~f:(Fn.uncurry comparator) @@ List.consecutive_overlapping_pairs ns)
     in
-    EC.return @@ Some result
+    return result
   in
   impl
 
