@@ -217,7 +217,7 @@ let is_prime_tests =
           );
           (
             "3",
-            Bool false
+            Bool true
           );
           (
             "4",
