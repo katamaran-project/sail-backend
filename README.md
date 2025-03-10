@@ -1,12 +1,7 @@
 # Sail Katamaran Backend
 
 * [Installation](docs/installation.md)
-
-## Running Tests
-
-```sh
-$ dune test
-```
+* [Tests](docs/tests.md)
 
 ## Uninstalling
 
