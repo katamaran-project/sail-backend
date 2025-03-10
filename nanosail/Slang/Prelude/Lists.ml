@@ -7,13 +7,19 @@ module C = Converters
 open Shared
 
 
+(* Helper function to return values successfully *)
+let return = Fn.compose EC.return Option.some
+
+(* Helper function to define functions using Slang code *)
+let define = Fn.compose EC.ignore Evaluation.parse_and_evaluate_string
+
 (* (cons x y) creates a pair with values x and y *)
 let cons =
   let id = "cons"
   and impl args =
     let=? car, cdr = C.(map2 value value) args
     in
-    EC.return @@ Option.some @@ Value.Cons (car, cdr)
+    return @@ Value.Cons (car, cdr)
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -22,7 +28,7 @@ let cons =
 let list =
   let id = "list"
   and impl args =
-    EC.return @@ Option.some @@ Value.list_to_cons args
+    return @@ Value.list_to_cons args
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -33,7 +39,7 @@ let car =
   and impl args =
     let=? (car, _) = C.(map1 (cons value value)) args
     in
-    EC.return @@ Some car
+    return car
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -44,7 +50,7 @@ let cdr =
   and impl args =
     let=? (_, cdr) = C.(map1 (cons value value)) args
     in
-    EC.return @@ Some cdr
+    return cdr
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -81,7 +87,7 @@ let contains =
   and impl args =
     let=? list, value = C.(map2 (list value) value) args
     in
-    EC.return @@ Option.some @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
+    return @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -99,7 +105,7 @@ let cadar =
   EC.ignore @@ Evaluation.parse_and_evaluate_string "(define (cadar x) (car (cdr (car x))))"
 
 let filter =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
+  define {|
       (define (filter pick? xs)
         (cond ((nil? xs)
                   ())
@@ -111,7 +117,7 @@ let filter =
     |}
 
 let nth =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
+  define {|
       (define (nth index xs)
         (if (= index 0)
             (car xs)
@@ -120,7 +126,7 @@ let nth =
     |}
 
 let last =
-  EC.ignore @@ Evaluation.parse_and_evaluate_string {|
+  define {|
       (define (last xs)
         (if (nil? (cdr xs))
             (car xs)
