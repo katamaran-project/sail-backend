@@ -41,4 +41,5 @@ let heap_update_tests =
 let tests =
   "heap tests" >::: [
     heap_access_tests;
+    heap_update_tests;
   ]
