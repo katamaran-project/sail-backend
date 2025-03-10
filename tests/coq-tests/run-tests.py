@@ -9,6 +9,8 @@ import sys
 from datetime import date
 
 
+# Determines the number of tests that can run in parallel
+# Lower this number if you encounter out-of-memory problems
 MAXIMUM_QUEUE_SIZE = 20
 
 
