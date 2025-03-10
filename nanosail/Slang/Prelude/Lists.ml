@@ -18,6 +18,15 @@ let cons =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
+(* (list x y z) is equivalent to (cons x (cons y (cons z nil))) *)
+let list =
+  let id = "list"
+  and impl args =
+    EC.return @@ Option.some @@ Value.list_to_cons args
+  in
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
+
+
 (* (car pair) returns the first element of the given pair *)
 let car =
   let id = "car"
@@ -121,6 +130,7 @@ let last =
 let initialize =
   let definitions = [
     cons;
+    list;
     car;
     cdr;
     caar;
