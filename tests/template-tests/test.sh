@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-for dir in `find -mindepth 1 -maxdepth 1 -type d | sort`; do
+for dir in `./list-tests`; do
     (
         cd $dir;
         echo "Testing $(basename `pwd`)";
         ./test.sh;
         if [ $? != 0 ]; then
-            echo "FAILED $?";
+            echo "FAILED $dir";
             exit -1
         fi
     )
