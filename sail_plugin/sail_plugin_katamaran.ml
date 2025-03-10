@@ -28,8 +28,9 @@ module CLI = struct
 end
 
 
-(** Command line options added to sail when the sail_katamaran_backend is loaded
-    or installed. *)
+(*
+   Command line options added to sail when the sail_katamaran_backend is loaded or installed.
+*)
 let katamaran_options = [
   (CLI.Arg.check,
     Stdlib.Arg.Unit print_check_message,
@@ -40,7 +41,9 @@ let katamaran_options = [
 ]
 
 
-(* Entry point for Katamaran target *)
+(*
+   Entry point for Katamaran target
+*)
 let katamaran_target
       (_     : string option                   )
       (state : Libsail.Interactive.State.istate)
@@ -50,10 +53,13 @@ let katamaran_target
   in
   let translation = Nanosail.SailToNanosail.translate ast
   in
-  Nanosail.Templates.process translation
+  Nanosail.Templates.process translation;
+  Stdio.print_endline "Done with translation"
 
 
-(* Tell Sail about new Katamaran target *)
+(*
+   Tell Sail about new Katamaran target
+*)
 let _ =
   Libsail.Target.register
     ~name:"katamaran"
