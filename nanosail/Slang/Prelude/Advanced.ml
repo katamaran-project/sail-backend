@@ -12,9 +12,17 @@ let is_prime =
   |}
 
 
+let constant_function =
+  define {|
+    (define (constant-function value)
+      (lambda (x) value))
+  |}
+
+
 let initialize =
   let definitions = [
     is_prime;
+    constant_function;
   ]
   in
   EC.ignore @@ EC.sequence definitions
