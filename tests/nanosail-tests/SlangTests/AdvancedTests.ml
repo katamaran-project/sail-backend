@@ -2,8 +2,8 @@ open Base
 open Nanosail.ExtBase
 open OUnit2
 
-open Shared
-open Shared.ListMonadNotations
+open SlangShared
+open ListMonadNotations
 
 module Slang = Nanosail.Slang
 

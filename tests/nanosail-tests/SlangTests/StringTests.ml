@@ -1,6 +1,6 @@
 open Nanosail.ExtBase
 open OUnit2
-open Shared
+open SlangShared
 
 module Slang = Nanosail.Slang
 

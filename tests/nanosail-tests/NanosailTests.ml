@@ -5,6 +5,7 @@ module Shared = Shared
 
 let tests =
   "all tests" >::: [
+    SlangTests.test_suite;
     ConversionTests.test_suite;
     PrecedenceFormatterTests.test_suite;
     ExtendedIntegerTests.test_suite;

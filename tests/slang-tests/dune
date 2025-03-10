@@ -1,3 +1,0 @@
-(test
- (libraries ounit2 monads nanosail)
- (name SlangTests))

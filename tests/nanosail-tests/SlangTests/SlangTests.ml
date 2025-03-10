@@ -1,8 +1,8 @@
 open OUnit2
 
 
-let tests =
-  "all tests" >::: [
+let test_suite =
+  "slang tests" >::: [
     TokenizerTests.tests;
     ParserTests.tests;
     EvaluationTests.tests;
@@ -11,6 +11,3 @@ let tests =
     HeapTests.tests;
     StringTests.tests;
   ]
-
-
-let _ = run_test_tt_main tests

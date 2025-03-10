@@ -3,12 +3,6 @@ open OUnit2
 
 module Slang = Nanosail.Slang
 
-module ListMonadNotations = struct
-  let (let*) x f = List.bind x ~f
-  let (and*) x y = let* x in let* y in List.return (x, y)
-  let return     = List.return
-end
-
 
 let test_run input expected =
   let open Monads.Notations.Star(Slang.EvaluationContext)
