@@ -105,6 +105,9 @@ let list_tests =
       ("(cdr (cons 1 2))", Integer 2 );
       ("(car (cons (+ 1 5) (cons 2 3)))", Integer 6 );
       ("(cdr (cons (+ 1 5) (cons 2 3)))", Cons (Integer 2, Integer 3) );
+      ("(list)", Nil);
+      ("(list 1)", Cons (Integer 1, Nil));
+      ("(list 1 2)", Cons (Integer 1, Cons (Integer 2, Nil)));
       ("(any? (lambda (x) #t) '())", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 2 3))", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 15 7))", Bool true);
