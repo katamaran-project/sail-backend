@@ -42,6 +42,13 @@ Three reports are generated:
 * `tests-history.txt`: each run, the number of failed and passed tests is appended to this file.
 * `tests-overview.txt`: overwritten each run with a PASS/FAIL for each tests.
 
+The tests are run by a Python script named `run-tests.py`, the main reason being that we wanted
+to run the tests in parallel in a controlled way without having to deal with shell scripting madness.
+Note that if too much memory is consumed (which can happen when running too many tests in parallel),
+the Linux way of dealing this is to randomly close another process.
+We worked on machines equipped with 32GB of RAM, so people with less memory might
+need to lower the number of tests that are allowed to run in parallel.
+
 ### Running a Single Test
 
 ```bash
@@ -55,5 +62,4 @@ $ make install && (cd ./test/coq-test/TEST ; ../test.sh)
   All intermediate (and final) results are written to file if the `DUMP` environment variable is set to any value, e.g., `DUMP= make e2e`.
   Note that defining `DUMP` also causes the `process-rewrites.rb` Ruby script to run, so make sure Ruby is installed (or remove the call to the script).
 * Setting `MONOMO` to any value causes extra command line options to be passed along to Sail.
-* Setting `NO_COQ` prevents the (very time consuming) second pass (= Coq checking the generated code) from taking place.
-
+* Setting `NO_COQ` disables the (very time consuming) second test phase, i.e., Coq checking the generated code.
