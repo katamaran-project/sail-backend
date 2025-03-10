@@ -234,7 +234,15 @@ let is_prime_tests =
           (
             "7",
             Bool true
-          );          
+          );
+          (
+            "97",
+            Bool true
+          );
+          (
+            "100",
+            Bool false
+          );
         ]
         in
         [
