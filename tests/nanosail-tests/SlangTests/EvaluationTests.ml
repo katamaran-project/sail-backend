@@ -108,6 +108,8 @@ let list_tests =
       ("(list)", Nil);
       ("(list 1)", Cons (Integer 1, Nil));
       ("(list 1 2)", Cons (Integer 1, Cons (Integer 2, Nil)));
+      ("(list (+ 1 2) (* 2 3))", Cons (Integer 3, Cons (Integer 6, Nil)));
+      ({|(list "x" "y" "z")|}, Cons (String "x", Cons (String "y", Cons (String "z", Nil))));
       ("(any? (lambda (x) #t) '())", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 2 3))", Bool false);
       ("(any? (lambda (x) (> x 10)) '(1 15 7))", Bool true);
