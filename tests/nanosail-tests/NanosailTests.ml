@@ -21,6 +21,7 @@ let tests =
   ]
 
 
+(* Set verbosity level to quiet unless user explicitly specified it using an environment variable *)
 let _ =
   match Sys.getenv_opt Configuration.verbosity_level_environment_variable with
   | None   -> Configuration.(set verbosity_level) LogLib.VerbosityLevel.quiet
