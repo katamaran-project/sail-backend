@@ -127,6 +127,16 @@ let last =
             (recurse (cdr xs))))
     |}
 
+let range =
+  let id = "range"
+  and impl args =
+    let=? start, stop = C.(map2 integer integer) args
+    in
+    EC.return @@ Option.some @@ Value.list_to_cons @@ List.map ~f:Value.Mk.integer @@ List.range ~start:`inclusive ~stop:`exclusive start stop
+  in
+  bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
+  
+
 let initialize =
   let definitions = [
     cons;
@@ -143,6 +153,7 @@ let initialize =
     filter;
     nth;
     last;
+    range;
   ]
   in
   EC.ignore @@ EC.sequence definitions
