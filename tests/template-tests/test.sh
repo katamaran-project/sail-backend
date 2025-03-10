@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
+SAIL=sail
 
-for dir in `./list-tests`; do
-    (
-        cd $dir;
-        echo "Testing $(basename `pwd`)";
-        ./test.sh;
-        if [ $? != 0 ]; then
-            echo "FAILED $dir";
-            exit -1
-        fi
-    )
-done
+SAIL_SOURCES=model.sail
+TESTED_FILE=microsail.v
+
+
+$SAIL -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+DIFF=$(diff $TESTED_FILE expected/$TESTED_FILE)
+if [ "$DIFF" ]; then
+    exit -1;
+fi

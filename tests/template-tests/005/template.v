@@ -1,7 +1,7 @@
 Require Import Nat.
 
-test
-
-another test
+(*<
+  (generate "test")
+>*)
 
 (* Done *)
