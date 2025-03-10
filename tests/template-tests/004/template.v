@@ -1,3 +1,7 @@
 Require Import Nat.
 
-(* Test comment *)
+(*<
+  (generate "test")
+>*)
+
+(* Done *)
