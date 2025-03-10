@@ -62,7 +62,7 @@ module Implementation = struct
        Example Usage
        -------------
        $ VERBOSE=0 sail ...        # Suppress all logging
-       $ VERBOSE=4 sail ...        # Enable all logging (check LogLib to make sure this is still valid)
+       $ VERBOSE=4 sail ...        # Enable all logging
     *)
     let verbosity_level_environment_variable = "VERBOSE"
     let verbosity_level = environment_variable verbosity_level_environment_variable LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
