@@ -1,5 +1,5 @@
 .PHONY: all
-all: build install test coq-tests
+all: build install test template-tests end-to-end-tests
 
 
 .PHONY: full
@@ -28,11 +28,11 @@ template-tests: build install
 tt: template-tests
 
 
-.PHONY: coq-tests ct
-coq-tests: build install
+.PHONY: end-to-end-tests e2e
+end-to-end-tests: build install
 	make -C tests/coq-tests | tee test-results.txt
 
-ct: coq-tests
+e2e: end-to-end-tests
 
 
 .PHONY: msp430-tests msp
