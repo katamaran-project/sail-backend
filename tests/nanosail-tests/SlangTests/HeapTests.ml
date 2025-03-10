@@ -10,7 +10,8 @@ let heap_access_tests =
   in
   let test_cases =
     [
-      ( {|
+      (
+        {|
           (define r (ref 1))
           (@ r)
         |}
@@ -26,7 +27,8 @@ let heap_update_tests =
   in
   let test_cases =
     [
-      ( {|
+      (
+        {|
           (define r (ref 1))
           (@= r 2)
           (@ r)
