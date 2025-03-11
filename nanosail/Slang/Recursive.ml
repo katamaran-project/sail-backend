@@ -223,7 +223,7 @@ end = struct
 end
 
 and EvaluationContext : sig
-  type 'a result   =
+  type 'a result =
     | Success of 'a
     | Failure of Error.t
 
@@ -264,10 +264,12 @@ and EvaluationContext : sig
 end
 =
 struct
-  (* todo use Monads.Result *)
-  type 'a result   =
-    | Success of 'a
-    | Failure of Error.t
+  module Result = Monads.Result.Make(Error)
+
+  type 'a result
+    = 'a Result.t
+    = | Success of 'a         (* make it transparent *)
+      | Failure of Error.t
 
   type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
 
