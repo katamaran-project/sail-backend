@@ -23,11 +23,10 @@ module Helpers             = Helpers
 module Error               = Error
 
 
-
 let extend_environment = EnvironmentBuilder.extend_environment
 
-let run_asts environment asts =
-  EvaluationContext.run_with_state (Evaluation.evaluate_sequentially asts) environment
+let run_asts state asts =
+  EvaluationContext.run_with_state (Evaluation.evaluate_sequentially asts) state
 
 let run_string environment string =
   let asts = Parser.parse_string string
