@@ -23,7 +23,7 @@ module CLI = struct
     let mk_option s =
       let words = String.split s ~on:' '
       in
-      String.concat ~sep:"_" ("-katamaran" :: words)
+      String.concat ~sep:"-" ("-katamaran" :: words)
 
     let check       = mk_option "check"
     let config_file = mk_option "config"
