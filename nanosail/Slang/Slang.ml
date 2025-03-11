@@ -28,7 +28,7 @@ let extend_environment = EnvironmentBuilder.extend_environment
 let run_asts state asts =
   EvaluationContext.run_with_state (Evaluation.evaluate_sequentially asts) state
 
-let run_string environment string =
+let run_string state string =
   let asts = Parser.parse_string string
   in
-  run_asts environment asts
+  run_asts state asts
