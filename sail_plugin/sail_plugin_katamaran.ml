@@ -1,8 +1,7 @@
 open Base
 
 
-let print_check_message () =
-  Stdio.print_endline("The Katamaran plugin is functioning correctly")
+let configuration_file = ref None
 
 (*
    By default, use all rewrites listed in Rewrites.katamaran_rewrites.
@@ -25,7 +24,6 @@ module CLI = struct
       in
       String.concat ~sep:"-" ("-katamaran" :: words)
 
-    let check       = mk_option "check"
     let config_file = mk_option "config"
   end
 end
@@ -35,11 +33,8 @@ end
    Command line options added to sail when the sail_katamaran_backend is loaded or installed.
 *)
 let katamaran_options = [
-  (CLI.Arg.check,
-    Stdlib.Arg.Unit print_check_message,
-    "(debug) check if Katamaran plugin is correctly installed");
   (CLI.Arg.config_file,
-   Stdlib.Arg.String (fun s -> Nanosail.Configuration.load_configuration s),
+   Stdlib.Arg.String (fun s -> configuration_file := Some s),
    "Specify configuration file");
 ]
 
@@ -51,13 +46,20 @@ let katamaran_target
       (_     : string option                   )
       (state : Libsail.Interactive.State.istate)
   =
-  Stdio.print_endline "Starting translation from Sail to muSail";
-  let ast = state.ast
-  in
-  let translation = Nanosail.SailToNanosail.translate ast
-  in
-  Nanosail.Templates.process translation;
-  Stdio.print_endline "Done with translation"
+  match !configuration_file with
+  | Some s -> begin
+      Stdio.print_endline "Starting translation from Sail to muSail";
+      Nanosail.Configuration.load_configuration s;
+      let ast = state.ast
+      in
+      let translation = Nanosail.SailToNanosail.translate ast
+      in
+      Nanosail.Templates.process translation;
+      Stdio.print_endline "Done with translation"
+    end
+  | None -> begin
+      Stdio.print_endline "No configuration file specified; use --katamaran-config to specify one"
+    end
 
 
 (*
