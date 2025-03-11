@@ -5,7 +5,7 @@ SAIL_SOURCES=model.sail
 TESTED_FILE=microsail.v
 
 
-$SAIL -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+$SAIL --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES
 DIFF=$(diff $TESTED_FILE expected/$TESTED_FILE)
 if [ "$DIFF" ]; then
     exit -1;

@@ -1,3 +1,3 @@
 .PHONY: all
 all:
-	./test.sh
+	./run-tests
