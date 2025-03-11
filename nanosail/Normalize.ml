@@ -1,6 +1,46 @@
+(*
+
+   This module was introduced to simplify testing and is not really important for the translation to muSail.
+
+   When comparing ASTs, it is standard to do this modulo alpha conversion, i.e.,
+
+     let x = 5 in x
+
+   is equivalent to
+
+     let y = 5 in y
+
+   When writing tests, it would make sense to consider both these ASTs as equal.
+   But, considering it is a feature of the translation step that identifier names are preserved where possible,
+   we may not actually want equality modulo alpha conversion.
+
+   However, ASTs often contain generated identifiers, the name of which depend on the order in which they are generated.
+   It makes no sense to have tests depend on this specific order.
+   What we really need is therefore "equality modulo alpha conversion of generated identifiers".
+
+   Our approach to implement this is to normalize ASTs, which consists
+   of renumbering the generated identifiers in the order they are encountered by the algorithms in this module:
+   ast_1 =_alpha ast_2 iff normalize(ast_1) = normalize(ast_2).
+   
+*)
+
 open ExtBase
 
 
+(*
+   This module exists solely to allow us to reuse function names.
+
+   The implementation relies on the state monad, a fact which is exposed in the functions' result type.
+   For example, normalize_expression returns an "Ast.Expression.t Monad.t".
+   We do not wish to leak this implementation detail to the outside world,
+   so normalize_expression should simply an Ast.Expression.t as for as the client code is concerned.
+
+   This module contains the monadic versions of the normalize functions,
+   and twin monadless wrappers with the same name are defined outside of it.
+
+   (We could of course have simply given the functions different names instead of using modules.)
+   
+*)
 module Implementation = struct
   module Context = struct
     type t = {
