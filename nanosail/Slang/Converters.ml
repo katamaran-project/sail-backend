@@ -34,7 +34,7 @@ let fail = None
    Trivial converter.
    Used in situations where any value is welcome.
 *)
-let value (v : Value.t) : Value.t option =
+let anything (v : Value.t) : Value.t option =
   Some v
 
 

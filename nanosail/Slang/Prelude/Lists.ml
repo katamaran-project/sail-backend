@@ -11,7 +11,7 @@ open Shared
 let cons =
   let id = "cons"
   and impl args =
-    let=? car, cdr = C.(map2 value value) args
+    let=? car, cdr = C.(map2 anything anything) args
     in
     return @@ Value.Cons (car, cdr)
   in
@@ -31,7 +31,7 @@ let list =
 let car =
   let id = "car"
   and impl args =
-    let=? (car, _) = C.(map1 (cons value value)) args
+    let=? (car, _) = C.(map1 (cons anything anything)) args
     in
     return car
   in
@@ -42,7 +42,7 @@ let car =
 let cdr =
   let id = "cdr"
   and impl args =
-    let=? (_, cdr) = C.(map1 (cons value value)) args
+    let=? (_, cdr) = C.(map1 (cons anything anything)) args
     in
     return cdr
   in
@@ -53,7 +53,7 @@ let cdr =
 let any =
   let id = "any?"
   and impl args =
-    let=? predicate, items = C.(map2 callable (list value)) args
+    let=? predicate, items = C.(map2 callable (list anything)) args
     in
     let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
@@ -66,7 +66,7 @@ let any =
 let all =
   let id = "all?"
   and impl args =
-    let=? predicate, items = C.(map2 callable (list value)) args
+    let=? predicate, items = C.(map2 callable (list anything)) args
     in
     let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
@@ -79,7 +79,7 @@ let all =
 let contains =
   let id = "contains?"
   and impl args =
-    let=? list, value = C.(map2 (list value) value) args
+    let=? list, value = C.(map2 (list anything) anything) args
     in
     return @@ Value.Mk.bool @@ List.exists ~f:(Value.equal value) list
   in

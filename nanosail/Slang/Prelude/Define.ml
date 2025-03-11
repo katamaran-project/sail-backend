@@ -26,7 +26,7 @@ let define =
     | _ -> EC.return None
 
   and define_variable (args : Value.t list) =
-    let=? identifier, expression = C.(map2 symbol value) args
+    let=? identifier, expression = C.(map2 symbol anything) args
     in
     let* value = Evaluation.evaluate expression
     in

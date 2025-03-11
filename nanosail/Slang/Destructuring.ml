@@ -30,7 +30,7 @@ let gather_patterns (patterns : Value.t list) =
     =
     match patterns with
     | first :: rest -> begin
-        match C.(tuple2 symbol value first) with
+        match C.(tuple2 symbol anything first) with
         | Some (target, default_value) -> gather_optionals ~positionals ~optionals:({ target; default_value } :: optionals) rest
         | None -> gather_keywords ~positionals ~optionals ~keywords:[] patterns
       end
@@ -44,7 +44,7 @@ let gather_patterns (patterns : Value.t list) =
     =
     match patterns with
     | first :: rest -> begin
-        match C.(tuple3 symbol symbol value first) with
+        match C.(tuple3 symbol symbol anything first) with
         | Some (keyword, target, default_value) -> begin
             if Value.is_keyword keyword
             then gather_keywords ~positionals ~optionals ~keywords:({ target; keyword; default_value } :: keywords) rest

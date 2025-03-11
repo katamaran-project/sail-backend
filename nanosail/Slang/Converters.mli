@@ -1,7 +1,7 @@
 type 'a converter         = Value.t -> 'a option
 type 'a multiconverter    = Value.t list -> 'a option
 
-val value          : Value.t converter
+val anything       : Value.t converter
 val integer        : int converter
 val string         : string converter
 val symbol         : string converter

@@ -18,7 +18,7 @@ let lambda =
     | params :: body -> begin
         let*   env    = EC.(get environment)   in
         let=!  params = C.list C.symbol params in
-        let=!! body   = List.map ~f:C.value body
+        let=!! body   = List.map ~f:C.anything body
         in
         EC.return @@ Value.Callable (Evaluation.mk_closure env params body)
       end

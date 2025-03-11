@@ -13,7 +13,7 @@ let if_then_else =
   let id = "if"
 
   and if_then args =
-    let=? condition, then_clause = C.(map2 value value) args
+    let=? condition, then_clause = C.(map2 anything anything) args
     in
     let* evaluated_condition = evaluate condition
     in
@@ -23,7 +23,7 @@ let if_then_else =
   in
 
   let if_then_else args =
-    let=? condition, then_clause, else_clause = C.(map3 value value value) args
+    let=? condition, then_clause, else_clause = C.(map3 anything anything anything) args
     in
     let* evaluated_condition = evaluate condition
     in
@@ -39,7 +39,7 @@ let cond =
   let id = "cond"
 
   and impl (args : Value.t list) =
-    let=?? clauses = List.map ~f:C.(tuple2 value value) args
+    let=?? clauses = List.map ~f:C.(tuple2 anything anything) args
     in
     let rec evaluate_cond (clauses : (Value.t * Value.t) list) : Value.t Option.t EC.t =
       match clauses with

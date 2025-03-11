@@ -11,7 +11,7 @@ let quote =
   let id = "quote"
   in
   let impl args =
-    let=! value = C.(map1 value) args
+    let=! value = C.(map1 anything) args
     in
     EC.return value
   in

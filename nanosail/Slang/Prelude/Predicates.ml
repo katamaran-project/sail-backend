@@ -9,7 +9,7 @@ open Shared
 
 let mk_predicate id pred =
   let impl args =
-    let=? v = C.(map1 value) args
+    let=? v = C.(map1 anything) args
     in
     EC.return @@ Some (Value.Bool (pred v))
   in
