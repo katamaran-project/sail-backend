@@ -143,7 +143,19 @@ let callable (value : Value.t) : Value.callable option =
   | _                       -> fail
 
 
-(* expects values to contain exactly 1 item that satisfy the given pattern *)
+(*
+   Expects values to contain exactly 1 item that satisfy the given pattern
+
+   
+   Example Usage
+   -------------
+
+     let fibonacci (arguments : Value.t list) =
+       let=? n : int = map1 integer arguments
+       in
+       return @@ ...
+       
+*)
 let map1
     (f      : 'a converter)
     (values : Value.t list) : 'a option
@@ -157,7 +169,19 @@ let map1
   | _    -> fail
 
 
-(* expects values to contain exactly 2 items that satisfy the given patterns *)
+(*
+   Expects values to contain exactly 2 items that satisfy the given patterns
+
+   
+   Example Usage
+   -------------
+
+     let xor(arguments : Value.t list) =
+       let=? left_operand, right_operand = map2 bool bool arguments
+       in
+       return @@ ...
+
+*)
 let map2
     (f      : 'a converter)
     (g      : 'b converter)
@@ -173,7 +197,17 @@ let map2
   | _        -> fail
 
 
-(* expects values to contain exactly 4 items that satisfy the given patterns *)
+(*
+   Expects values to contain exactly 3 items that satisfy the given patterns
+
+   Example Usage
+   -------------
+
+      let substring (arguments : Value.t list) =
+         let=? string, start, stop = map3 string integer integer
+         in
+         return @@ ...
+*)
 let map3
     (f1     : 'a converter)
     (f2     : 'b converter)
@@ -191,7 +225,9 @@ let map3
   | _            -> fail
 
 
-(* expects values to contain exactly 4 items that satisfy the given patterns *)
+(*
+   Expects values to contain exactly 4 items that satisfy the given patterns
+*)
 let map4
     (f1     : 'a converter)
     (f2     : 'b converter)
