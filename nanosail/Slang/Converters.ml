@@ -29,7 +29,12 @@ let tuple2
     (value : Value.t     ) : ('a * 'b) option
   =
   match value with
-  | Value.Cons (x1, Cons (x2, Nil)) -> let=? x1 = f1 x1 and=? x2 = f2 x2 in return (x1, x2)
+  | Value.Cons (x1, Cons (x2, Nil)) -> begin
+      let=? x1 = f1 x1
+      and=? x2 = f2 x2
+      in
+      return (x1, x2)
+    end
   | _                               -> fail
 
 
@@ -40,7 +45,13 @@ let tuple3
     (value : Value.t     ) : ('a * 'b * 'c) option
   =
   match value with
-  | Value.Cons (x1, Value.Cons (x2, Value.Cons (x3, Nil))) -> let=? x1 = f1 x1 and=? x2 = f2 x2 and=? x3 = f3 x3 in return (x1, x2, x3)
+  | Value.Cons (x1, Value.Cons (x2, Value.Cons (x3, Nil))) -> begin
+      let=? x1 = f1 x1
+      and=? x2 = f2 x2
+      and=? x3 = f3 x3
+      in
+      return (x1, x2, x3)
+    end
   | _                                                      -> fail
 
 
@@ -62,7 +73,12 @@ let cons
     (value : Value.t     ) : ('a * 'b) option
   =
   match value with
-  | Value.Cons (car, cdr) -> let=? x = f car and=? y = g cdr in return (x, y)
+  | Value.Cons (car, cdr) -> begin
+      let=? x = f car
+      and=? y = g cdr
+      in
+      return (x, y)
+    end
   | _                     -> fail
 
 
