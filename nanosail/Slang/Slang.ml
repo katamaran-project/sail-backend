@@ -12,6 +12,7 @@ module Value               = Value
 module Parser              = Parser
 module Environment         = Environment
 module EnvironmentBuilder  = EnvironmentBuilder
+module State               = State
 module Evaluation          = Evaluation
 module EvaluationContext   = EvaluationContext
 module Converters          = Converters

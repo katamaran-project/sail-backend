@@ -12,7 +12,7 @@ module Make (_ : sig end) = struct
   (*
      State of Slang interpreter used to interpret configuration commands
   *)
-  let configuration_interpreter_state : EC.state ref =
+  let configuration_interpreter_state : Slang.State.t ref =
     let _, state = EC.run Slang.Prelude.initialize
     in
     ref state

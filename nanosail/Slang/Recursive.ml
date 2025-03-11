@@ -207,34 +207,44 @@ struct
   end
 end
 
-and EvaluationContext : sig
+and State : sig
   type environment = Value.t Environment.t
   type heap        = Value.t Heap.t
-  type state       = environment * heap
+  type t           = environment * heap
+
+  val empty_state  : t
+end = struct
+  type environment = Value.t Environment.t
+  type heap        = Value.t Heap.t
+  type t           = environment * heap
+
+  let empty_state : t =
+    (Environment.empty, Heap.empty)
+end
+
+and EvaluationContext : sig
   type 'a result   =
     | Success of 'a
     | Failure of Error.t
 
-  type 'a accessor = (state -> 'a) * (state -> 'a -> state)
+  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
   type 'a t
-
-  val empty_state             : state
 
   val return                  : 'a -> 'a t
   val fail                    : Error.t -> 'a t
   val ignore                  : 'a t -> unit t
   val bind                    : 'a t -> ('a -> 'b t) -> 'b t
   val lift                    : f:('a -> 'b) -> 'a t -> 'b t
-  val run_with_state          : 'a t -> state -> 'a result * state
-  val run                     : 'a t -> 'a result * state
+  val run_with_state          : 'a t -> State.t -> 'a result * State.t
+  val run                     : 'a t -> 'a result * State.t
 
   (* State related functions *)
   val get                     : 'a accessor -> 'a t
   val put                     : 'a accessor -> 'a -> unit t
 
-  val state                   : state accessor
-  val environment             : environment accessor
-  val heap                    : heap accessor
+  val state                   : State.t accessor
+  val environment             : State.environment accessor
+  val heap                    : State.heap accessor
 
   (* Environment related functions *)
   val add_binding             : string -> Value.t -> unit t
@@ -254,16 +264,13 @@ and EvaluationContext : sig
 end
 =
 struct
-  type environment = Value.t Environment.t
-  type heap        = Value.t Heap.t
-  type state       = environment * heap
   type 'a result   =
     | Success of 'a
     | Failure of Error.t
 
-  type 'a accessor = (state -> 'a) * (state -> 'a -> state)
+  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
 
-  module Monad = Monads.StateResult.Make(struct type t = state end) (Error)
+  module Monad = Monads.StateResult.Make(State) (Error)
 
   open Monads.Notations.Star(Monad)
 
@@ -271,9 +278,6 @@ struct
 
 
   type 'a t = 'a Monad.t
-
-  let empty_state : state
-    = (Environment.empty, Heap.empty)
 
   let return      = Monad.return
   let fail        = Monad.fail
@@ -322,12 +326,12 @@ struct
     in
     put heap updated_heap
 
-  let run_with_state (f : 'a t) (state : state) : 'a result * state =
+  let run_with_state (f : 'a t) (state : State.t) : 'a result * State.t =
     let result, state' = Monad.run f state
     in
     match result with
     | Monad.Success value -> (Success value, state')
     | Monad.Failure error -> (Failure error, state')
 
-  let run p = run_with_state p empty_state
+  let run p = run_with_state p State.empty_state
 end
