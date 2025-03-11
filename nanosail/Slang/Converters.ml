@@ -3,6 +3,7 @@ module EC = EvaluationContext
 open Monads.Notations.Star(EC)
 open Monads.OptionNotation
 
+
 type 'a converter         = Value.t -> 'a option
 type 'a multiconverter    = Value.t list -> 'a option
 
@@ -16,59 +17,76 @@ let value (v : Value.t) =
   Some v
 
 
-let integer value =
+let integer (value : Value.t) : int option =
   match value with
   | Value.Integer n -> return n
   | _               -> fail
 
 
-let tuple2 f1 f2 value =
+let tuple2
+    (f1    : 'a converter)
+    (f2    : 'b converter)
+    (value : Value.t     ) : ('a * 'b) option
+  =
   match value with
   | Value.Cons (x1, Cons (x2, Nil)) -> let=? x1 = f1 x1 and=? x2 = f2 x2 in return (x1, x2)
   | _                               -> fail
 
 
-let tuple3 f1 f2 f3 value =
+let tuple3
+    (f1    : 'a converter)
+    (f2    : 'b converter)
+    (f3    : 'c converter)
+    (value : Value.t     ) : ('a * 'b * 'c) option
+  =
   match value with
   | Value.Cons (x1, Value.Cons (x2, Value.Cons (x3, Nil))) -> let=? x1 = f1 x1 and=? x2 = f2 x2 and=? x3 = f3 x3 in return (x1, x2, x3)
   | _                                                      -> fail
 
 
-let string value =
+let string (value : Value.t) : string option =
   match value with
   | Value.String s -> return s
   | _              -> fail
 
 
-let symbol value =
+let symbol (value : Value.t) : string option =
   match value with
   | Value.Symbol identifier -> return identifier
   | _                       -> fail
 
 
-let cons f g value =
+let cons
+    (f     : 'a converter)
+    (g     : 'b converter)
+    (value : Value.t     ) : ('a * 'b) option
+  =
   match value with
   | Value.Cons (car, cdr) -> let=? x = f car and=? y = g cdr in return (x, y)
   | _                     -> fail
 
 
-let nil value =
+let nil (value : Value.t) : unit option =
   match value with
   | Value.Nil -> return ()
   | _         -> fail
 
 
-let bool value =
+let bool (value : Value.t) : bool option =
   match value with
   | Value.Bool x -> return x
   | _            -> fail
 
 
-let truthy value =
+let truthy (value : Value.t) : bool option =
   return @@ Value.truthy value
 
 
-let list ?(min_length = 0) f value =
+let list
+    ?(min_length : int = 0     )
+    (f           : 'a converter)
+    (value       : Value.t     ) : 'a list option
+  =
   let rec aux acc value =
     match value with
     | Value.Cons (car, cdr) -> let=? x = f car in aux (x :: acc) cdr
@@ -82,7 +100,7 @@ let list ?(min_length = 0) f value =
   else return elts
 
 
-let callable value =
+let callable (value : Value.t) : Value.callable option =
   match value with
   | Value.Callable callable -> return callable
   | _                       -> fail
