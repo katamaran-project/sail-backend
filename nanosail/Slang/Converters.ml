@@ -91,26 +91,48 @@ let callable value =
 (* expects values to contain exactly 1 item that satisfy the given pattern *)
 let map1 (f : 'a converter) (values : Value.t list) =
   match values with
-  | [v1] -> let=? v1' = f v1 in return v1'
+  | [v1] -> begin
+      let=? v1' = f v1
+      in
+      return v1'
+    end
   | _    -> fail
 
 
 (* expects values to contain exactly 2 items that satisfy the given patterns *)
 let map2 (f : 'a converter) (g : 'b converter) (values : Value.t list) =
   match values with
-  | [v1; v2] -> let=? v1' = f v1 and=? v2' = g v2 in return (v1', v2')
+  | [v1; v2] -> begin
+      let=? v1' = f v1
+      and=? v2' = g v2
+      in
+      return (v1', v2')
+    end
   | _        -> fail
 
 
 (* expects values to contain exactly 4 items that satisfy the given patterns *)
 let map3 (f1 : 'a converter) (f2 : 'b converter) (f3 : 'c converter) (values : Value.t list) =
   match values with
-  | [v1; v2; v3] -> let=? v1' = f1 v1 and=? v2' = f2 v2 and=? v3' = f3 v3 in return (v1', v2', v3')
+  | [v1; v2; v3] -> begin
+      let=? v1' = f1 v1
+      and=? v2' = f2 v2
+      and=? v3' = f3 v3
+      in
+      return (v1', v2', v3')
+    end
   | _            -> fail
 
 
 (* expects values to contain exactly 4 items that satisfy the given patterns *)
 let map4 (f1 : 'a converter) (f2 : 'b converter) (f3 : 'c converter) (f4 : 'd converter) (values : Value.t list) =
   match values with
-  | [v1; v2; v3; v4] -> let=? v1' = f1 v1 and=? v2' = f2 v2 and=? v3' = f3 v3 and=? v4' = f4 v4 in return (v1', v2', v3', v4')
+  | [v1; v2; v3; v4] -> begin
+      let=? v1' = f1 v1
+      and=? v2' = f2 v2
+      and=? v3' = f3 v3
+      and=? v4' = f4 v4
+      in
+      return (v1', v2', v3', v4')
+    end
   | _                -> fail
