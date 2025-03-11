@@ -29,10 +29,9 @@ sail -plugin _build/default/src/sail_katamaran_backend/sail_plugin_katamaran.cmx
 
 ## Checking Installation
 
-The plugin is installed correctly if the following
-command produces the output shown.
+The plugin is installed correctly if the following command produces the output shown.
 
 ```sh
-$ sail --katamaran-check
-The Katamaran plugin is functioning correctly
+$ sail --katamaran
+No configuration file specified; use --katamaran-config to specify one
 ```
