@@ -15,8 +15,14 @@ open Monads.OptionNotation
    can be converted into an OCaml value of type a.
    If so, it produces it as in a Some, otherwise a None is returned.   
 *)
-type 'a converter         = Value.t -> 'a option
-type 'a multiconverter    = Value.t list -> 'a option
+type 'a converter = Value.t -> 'a option
+
+
+(*
+   A multiconverter converts multiple Slang values into a single OCaml value.
+   Useful for dealing with function arguments that are expected to be of a certain type.
+*)
+type 'a multiconverter = Value.t list -> 'a option
 
 
 let return x = Some x
@@ -24,7 +30,11 @@ let return x = Some x
 let fail = None
 
 
-let value (v : Value.t) =
+(*
+   Trivial converter.
+   Used in situations where any value is welcome.
+*)
+let value (v : Value.t) : Value.t option =
   Some v
 
 
