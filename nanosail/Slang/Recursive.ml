@@ -264,6 +264,7 @@ and EvaluationContext : sig
 end
 =
 struct
+  (* todo use Monads.Result *)
   type 'a result   =
     | Success of 'a
     | Failure of Error.t
