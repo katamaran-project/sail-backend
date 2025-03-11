@@ -22,7 +22,7 @@ then
 fi
 
 
-$SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+$SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES
 
 
 if [[ -v DUMP ]]
