@@ -1,9 +1,20 @@
+(*
+
+   Module containing functionality related to converting Slang values into their
+   corresponding OCaml values, e.g., Int n to n.
+   
+*)
 open ExtBase
 module EC = EvaluationContext
 open Monads.Notations.Star(EC)
 open Monads.OptionNotation
 
 
+(*
+   An 'a converter is a function that checks if a given Slang value
+   can be converted into an OCaml value of type a.
+   If so, it produces it as in a Some, otherwise a None is returned.   
+*)
 type 'a converter         = Value.t -> 'a option
 type 'a multiconverter    = Value.t list -> 'a option
 
@@ -123,7 +134,10 @@ let callable (value : Value.t) : Value.callable option =
 
 
 (* expects values to contain exactly 1 item that satisfy the given pattern *)
-let map1 (f : 'a converter) (values : Value.t list) =
+let map1
+    (f      : 'a converter)
+    (values : Value.t list) : 'a option
+  =
   match values with
   | [v1] -> begin
       let=? v1' = f v1
@@ -134,7 +148,11 @@ let map1 (f : 'a converter) (values : Value.t list) =
 
 
 (* expects values to contain exactly 2 items that satisfy the given patterns *)
-let map2 (f : 'a converter) (g : 'b converter) (values : Value.t list) =
+let map2
+    (f      : 'a converter)
+    (g      : 'b converter)
+    (values : Value.t list) : ('a * 'b) option
+  =
   match values with
   | [v1; v2] -> begin
       let=? v1' = f v1
@@ -146,7 +164,12 @@ let map2 (f : 'a converter) (g : 'b converter) (values : Value.t list) =
 
 
 (* expects values to contain exactly 4 items that satisfy the given patterns *)
-let map3 (f1 : 'a converter) (f2 : 'b converter) (f3 : 'c converter) (values : Value.t list) =
+let map3
+    (f1     : 'a converter)
+    (f2     : 'b converter)
+    (f3     : 'c converter)
+    (values : Value.t list) : ('a * 'b * 'c) option
+  =
   match values with
   | [v1; v2; v3] -> begin
       let=? v1' = f1 v1
@@ -159,7 +182,13 @@ let map3 (f1 : 'a converter) (f2 : 'b converter) (f3 : 'c converter) (values : V
 
 
 (* expects values to contain exactly 4 items that satisfy the given patterns *)
-let map4 (f1 : 'a converter) (f2 : 'b converter) (f3 : 'c converter) (f4 : 'd converter) (values : Value.t list) =
+let map4
+    (f1     : 'a converter)
+    (f2     : 'b converter)
+    (f3     : 'c converter)
+    (f4     : 'd converter)
+    (values : Value.t list) : ('a * 'b * 'c * 'd) option
+  =
   match values with
   | [v1; v2; v3; v4] -> begin
       let=? v1' = f1 v1
