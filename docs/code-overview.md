@@ -26,3 +26,4 @@ See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
 ### No wildcards
 ### Explicit Typing
+### Recursive Module
