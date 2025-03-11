@@ -139,7 +139,7 @@ struct
 
 
   let falsey (value : t) =
-    equal value @@ Bool false
+    equal value (Bool false) || equal value Nil
 
   let truthy (value : t) =
     not @@ falsey value
