@@ -11,7 +11,6 @@ module Tokenizing          = Tokenizing
 module Value               = Value
 module Parser              = Parser
 module Environment         = Environment
-module EnvironmentBuilder  = EnvironmentBuilder
 module State               = State
 module Evaluation          = Evaluation
 module EvaluationContext   = EvaluationContext
@@ -23,8 +22,6 @@ module Destructuring       = Destructuring
 module Helpers             = Helpers
 module Error               = Error
 
-
-let extend_environment = EnvironmentBuilder.extend_environment
 
 let run_asts state asts =
   EvaluationContext.run_with_state (Evaluation.evaluate_sequentially asts) state
