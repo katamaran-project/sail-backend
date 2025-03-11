@@ -15,11 +15,11 @@ let define_macro =
     | form :: body -> begin
         let=? function_name, parameters = C.(cons symbol (list symbol)) form
         in
-        let* env      = EC.(get State.environment)
+        let* env = EC.(get State.environment)
         in
         let  callable = Value.Callable (Evaluation.mk_macro env parameters body)
         in
-        let* ()       = EC.add_binding function_name callable
+        let* () = EC.add_binding function_name callable
         in
         EC.return @@ Some (Value.Nil)
       end
