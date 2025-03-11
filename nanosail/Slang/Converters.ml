@@ -1,16 +1,11 @@
 open ExtBase
 module EC = EvaluationContext
 open Monads.Notations.Star(EC)
-
+open Monads.OptionNotation
 
 type 'a converter         = Value.t -> 'a option
 type 'a multiconverter    = Value.t list -> 'a option
 
-
-
-let (let=?) x f = Option.bind x ~f:f
-
-let (and=?) x y = let=? x in let=? y in Some (x, y)
 
 let return x = Some x
 
