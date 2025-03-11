@@ -7,7 +7,11 @@ module C = Converters
 open Shared
 
 
-(* (cons x y) creates a pair with values x and y *)
+(*
+     (cons x y)
+
+   creates a pair with values x and y
+*)
 let cons =
   let id = "cons"
   and impl args =
@@ -18,7 +22,13 @@ let cons =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (list x y z) is equivalent to (cons x (cons y (cons z nil))) *)
+(*
+    (list x y z)
+   
+  is equivalent to
+
+    (cons x (cons y (cons z nil)))
+*)
 let list =
   let id = "list"
   and impl args =
@@ -27,7 +37,13 @@ let list =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (car pair) returns the first element of the given pair *)
+(*
+     (car pair)
+
+   returns the first element of the given pair
+
+     (car (cons x y)) = x
+*)
 let car =
   let id = "car"
   and impl args =
@@ -38,7 +54,14 @@ let car =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (cdr pair) returns the second element of the given pair *)
+(*
+    (cdr pair)
+
+  returns the second element of the given pair
+
+   (cdr (cons x y)) = y
+
+*)
 let cdr =
   let id = "cdr"
   and impl args =
@@ -49,7 +72,9 @@ let cdr =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (any? predicate list) *)
+(*
+   (any? predicate list)
+*)
 let any =
   let id = "any?"
   and impl args =
@@ -62,7 +87,9 @@ let any =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (all? predicate list) *)
+(*
+   (all? predicate list)
+*)
 let all =
   let id = "all?"
   and impl args =
@@ -75,7 +102,9 @@ let all =
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
 
-(* (contains? list value) *)
+(*
+   (contains? list value)
+*)
 let contains =
   let id = "contains?"
   and impl args =
@@ -102,6 +131,9 @@ let cadar =
   define "(define (cadar x) (car (cdr (car x))))"
 
 
+(*
+   (filter predicate list)
+*)
 let filter =
   define {|
       (define (filter pick? xs)
@@ -115,6 +147,11 @@ let filter =
     |}
 
 
+(*
+   (nth index list)
+
+   Zero-based indexing
+*)
 let nth =
   define {|
       (define (nth index xs)
@@ -125,6 +162,9 @@ let nth =
     |}
 
 
+(*
+   (last list)
+*)
 let last =
   define {|
       (define (last xs)
@@ -134,6 +174,11 @@ let last =
     |}
 
 
+(*
+   (range start stop)
+
+   Generates list from start (inclusive) to stop (exclusive)
+*)
 let range =
   let id = "range"
   and impl args =
