@@ -208,18 +208,30 @@ struct
 end
 
 and State : sig
+  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
+
   type environment = Value.t Environment.t
   type heap        = Value.t Heap.t
   type t           = environment * heap
 
   val empty_state  : t
+
+  val state                   : t accessor
+  val environment             : environment accessor
+  val heap                    : heap accessor
 end = struct
+  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
+
   type environment = Value.t Environment.t
   type heap        = Value.t Heap.t
   type t           = environment * heap
 
   let empty_state : t =
     (Environment.empty, Heap.empty)
+
+  let state                              = Monads.Accessors.id
+  let environment : environment accessor = Monads.Accessors.(Pair.first id)
+  let heap        : heap accessor        = Monads.Accessors.(Pair.second id)
 end
 
 and EvaluationContext : sig
@@ -227,7 +239,6 @@ and EvaluationContext : sig
     | Success of 'a
     | Failure of Error.t
 
-  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
   type 'a t
 
   val return                  : 'a -> 'a t
@@ -239,12 +250,8 @@ and EvaluationContext : sig
   val run                     : 'a t -> 'a result * State.t
 
   (* State related functions *)
-  val get                     : 'a accessor -> 'a t
-  val put                     : 'a accessor -> 'a -> unit t
-
-  val state                   : State.t accessor
-  val environment             : State.environment accessor
-  val heap                    : State.heap accessor
+  val get                     : 'a State.accessor -> 'a t
+  val put                     : 'a State.accessor -> 'a -> unit t
 
   (* Environment related functions *)
   val add_binding             : string -> Value.t -> unit t
@@ -271,8 +278,6 @@ struct
     = | Success of 'a         (* make it transparent *)
       | Failure of Error.t
 
-  type 'a accessor = (State.t -> 'a) * (State.t -> 'a -> State.t)
-
   module Monad = Monads.StateResult.Make(State) (Error)
 
   open Monads.Notations.Star(Monad)
@@ -290,44 +295,40 @@ struct
   let get         = Monad.get
   let put         = Monad.put
 
-  let state       = Monads.Accessors.id
-  let environment = Monads.Accessors.(Pair.first id)
-  let heap        = Monads.Accessors.(Pair.second id)
-
   let add_binding identifier value =
-    let* env = get environment
+    let* env = get State.environment
     in
     let env' = Environment.bind env identifier value
     in
-    put environment env'
+    put State.environment env'
 
   let lookup (identifier : string) : Value.t option t =
-    let* env = get environment
+    let* env = get State.environment
     in
     return @@ Environment.lookup env identifier
 
   let heap_allocate (initial_value : Value.t) : Address.t t =
-    let* original_heap = get heap
+    let* original_heap = get State.heap
     in
     let (updated_heap, address) = Heap.allocate original_heap initial_value
     in
-    let* () = put heap updated_heap
+    let* () = put State.heap updated_heap
     in
     return address
 
   let heap_access (address : Address.t) : Value.t t =
-    let* current_heap = get heap
+    let* current_heap = get State.heap
     in
     match Heap.read current_heap address with
     | Some value -> return value
     | None       -> failwith "Bug, should not happen; somehow an address was forged"
 
   let heap_update (address : Address.t) (value : Value.t) : unit t =
-    let* original_heap = get heap
+    let* original_heap = get State.heap
     in
     let updated_heap = Heap.write original_heap address value
     in
-    put heap updated_heap
+    put State.heap updated_heap
 
   let run_with_state (f : 'a t) (state : State.t) : 'a result * State.t =
     let result, state' = Monad.run f state

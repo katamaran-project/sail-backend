@@ -15,7 +15,7 @@ let define =
     | form :: body -> begin
         let=? function_name, parameters = C.(cons symbol (list symbol)) form
         in
-        let* env      = EC.(get environment)
+        let* env      = EC.(get State.environment)
         in
         let  callable = Value.Callable (Evaluation.mk_closure env parameters body)
         in

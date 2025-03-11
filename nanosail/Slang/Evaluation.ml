@@ -17,13 +17,13 @@ let with_environment
     (env  : Value.t Environment.t)
     (func : 'a EC.t              ) : 'a EC.t
   =
-  let* old_env = EC.(get environment)
+  let* old_env = EC.(get State.environment)
   in
-  let* ()      = EC.(put environment) env
+  let* ()      = EC.(put State.environment) env
   in
   let* result  = func
   in
-  let* ()      = EC.(put environment) old_env
+  let* ()      = EC.(put State.environment) old_env
   in
   EC.return result
 

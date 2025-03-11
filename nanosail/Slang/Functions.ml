@@ -30,13 +30,13 @@ let mk_multi_special_form methods arguments =
     match methods with
     | []    -> raise @@ Exception.SlangError "no method found"
     | m::ms -> begin
-        let* original_state = EC.(get state)
+        let* original_state = EC.(get State.state)
         in
         let* result = m arguments
         in
         match result with
         | Some result -> EC.return result
-        | None        -> let* () = EC.(put state original_state) in call_matching_method ms
+        | None        -> let* () = EC.(put State.state original_state) in call_matching_method ms
       end
   in
   call_matching_method methods

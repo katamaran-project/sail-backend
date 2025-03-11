@@ -16,9 +16,11 @@ let lambda =
     | []             -> raise @@ SlangError "ill-formed lambda"
     | [_]            -> raise @@ SlangError "ill-formed lambda"
     | params :: body -> begin
-        let*   env    = EC.(get environment)   in
-        let=!  params = C.list C.symbol params in
-        let=!! body   = List.map ~f:C.anything body
+        let* env = EC.(get State.environment)
+        in
+        let=! params = C.list C.symbol params
+        in
+        let=!! body = List.map ~f:C.anything body
         in
         EC.return @@ Value.Callable (Evaluation.mk_closure env params body)
       end
