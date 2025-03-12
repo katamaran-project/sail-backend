@@ -41,7 +41,7 @@ module Implementation = struct
 
     (*
 
-       Name of the generated program.
+       Name of the generated program module.
 
        Example Usage
        -------------
@@ -267,29 +267,50 @@ module Implementation = struct
       in
       match String.Search_pattern.index_all pattern ~may_overlap:false ~in_:template_filename with
       | [] -> begin
-          let error_message = Printf.sprintf "Error: when using (template %s), %s must contain the substring \".template\"." template_filename template_filename
+          (* No ".template" substring was found *)
+          let error_message =
+            Printf.sprintf
+              "Error: when using (template %s), %s must contain the substring \".template\"."
+              template_filename
+              template_filename
           in
           failwith error_message
         end
       | [_] -> begin
+          (* Replace ".template" by the empty string *)
           String.Search_pattern.replace_first pattern ~in_:template_filename ~with_:""
         end
       | _  -> begin
-          let error_message = Printf.sprintf "Error: when using (template %s), %s must contain \".template\" at most once" template_filename template_filename
+          (* Multiple occurrences of ".template" found *)
+          let error_message =
+            Printf.sprintf
+              {|Error: when calling template with a single argument (in this case "%s"), it must contain ".template" at most once|}
+              template_filename
           in
           failwith error_message
         end
     in
     let handler_function =
+      (*
+         Deals with
+         
+          (template input)
+      *)
       let unary_version evaluated_arguments =
         match Slang.Converters.(map1 string) evaluated_arguments with
         | Some template_filename -> begin
-            let output_filename = derive_output_filename_from_template_filename template_filename
+            let output_filename =
+              derive_output_filename_from_template_filename template_filename
             in
             add_translation template_filename output_filename;
             EC.return @@ Some Slang.Value.Nil
           end
         | None -> EC.return None
+      (*
+         Deals with
+         
+          (template input output)
+      *)
       and binary_version evaluated_arguments =
         match Slang.Converters.(map2 string string) evaluated_arguments with
         | Some (template_filename, output_filename) -> begin
@@ -321,7 +342,8 @@ module Implementation = struct
     export_string_predicate_setter exported_function_name setter
 
 
-  let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref = ref Ast.Identifier.Map.empty
+  let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref =
+    ref Ast.Identifier.Map.empty
 
   (*
      Adds an extra entry to monomorphization_requests.
