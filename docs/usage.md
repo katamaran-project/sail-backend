@@ -92,6 +92,57 @@ Definition fun_double : Stm [
   stm_exp (((exp_int 2%Z))*((exp_var "x"))).
 ```
 
+### `annotate-functions-with-ast`
+
+```lisp
+(annotate-functions-with-ast #t) ; on
+(annotate-functions-with-ast #f) ; off
+(annotate-functions-with-ast)    ; on
+```
+
+Annotates functions with the nanosail AST.
+
+```coq
+    (*
+      AST
+        Def:Function[name=Identifier["foo"],
+                     type=Def:FunctionType[parameters=[
+                                                        Parameter[Identifier["x"],
+                                                                  Type:Int[NumExpr:Var[Identifier["'n"]]]]
+                                                      ],
+                                           return_type=Type:Int[NumExpr:BinOp["Add",
+                                                                              NumExpr:Var[Identifier["'n"]],
+                                                                              NumExpr:Var[Identifier["'n"]]]]],
+                     extended_type="TODO",
+                     body=Stm:Expression[BinaryOp[Plus,
+                                                  Var[Identifier["x"],
+                                                      Type:Int[NumExpr:Var[Identifier["'n"]]]],
+                                                  Var[Identifier["x"],
+                                                      Type:Int[NumExpr:Var[Identifier["'n"]]]]]],
+                     polymorphic=True,
+                     monomorphs=[]]
+      
+      Extended type
+        parameter x
+          int($0)
+        return value
+          $0 + $0
+    *)
+    Definition fun_foo : Stm [
+                               "x"  ∷  ty.int
+                             ]
+                             (ty.int) :=
+      stm_exp (((exp_var "x"))+((exp_var "x"))).
+```
+
+
+### `inline-definitions-in-notations`
+
+Inlines definitions.
+Actived by default.
+This feature was added to deal with Coq's inability to derive `NoConfusionHom` automatically for `Reg`.
+For more details, see `tests/coq-tests/no-confusion-hom`.
+
 ## Template Files
 
 
