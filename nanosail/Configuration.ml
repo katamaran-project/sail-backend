@@ -237,10 +237,17 @@ module Implementation = struct
     (*
        Use bv 0 instead of Bitvector.bv.zero, analogously for ones
     *)
-    let bitvectors_zeros_ones_as_literal           = bool "literal-zeros-and-ones" false
-   
-    let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
-    let annotate_functions_with_ast                = bool     "annotate-functions-with-ast"      false
+    let bitvectors_zeros_ones_as_literal = bool "literal-zeros-and-ones" false
+
+    (*
+       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.       
+    *)
+    let inline_definitions_in_notations = bool "inline-definitions-in-notations" true
+
+    (*
+       Annotates functions with the nanosail AST in F-Expression form.
+    *)
+    let annotate_functions_with_ast = bool "annotate-functions-with-ast" false
     
     let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
@@ -257,7 +264,8 @@ module Implementation = struct
   (*
      Defines Slang function named template.
 
-       (template path)
+       (template in-file)
+       (template in-file out-file)
   *)
   let () =
     let exported_function_name = "template"
@@ -366,6 +374,11 @@ module Implementation = struct
     monomorphization_requests := Ast.Identifier.Map.update !monomorphization_requests polymorphic_identifier ~f:update
 
 
+  (*
+     Slang function to request monomorphizations for a specific function.
+     Multiple calls are allowed.
+     Calling monomorphize multiple time for the same function *overwrites* the previous data.
+  *)
   let () =
     let exported_function_name =
       "monomorphize"
