@@ -20,3 +20,7 @@ Slang is a fairly standard Lisp-1.
 ; Updating
 (@= my-variable (+ 1 my-variable))
 ```
+
+## Library
+
+All special forms and predefined functions are implemented in the `Slang.Prelude` module.

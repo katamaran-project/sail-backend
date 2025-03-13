@@ -39,14 +39,17 @@ let mk_multi_special_form
         in
         match result with
         | Some result -> EC.return result
-        | None        -> let* () = EC.(put State.state original_state) in call_matching_method ms
+        | None -> begin
+            let* () = EC.(put State.state original_state)
+            in
+            call_matching_method ms
+          end
       end
   in
   call_matching_method methods
 
 
 (*
-   A multimethod is a function that receives its arguments after they have been evaluated, i.e., strict evaluation.
    A multimethod is built out of multiple definitions, each with their own precondition on the arguments.
    When the precondition is not satisfied, it must signal this by returning None so that the next definition
    can be tried out.
@@ -57,7 +60,9 @@ let mk_multi_special_form
    (and therefore have a precondition demanding that all arguments be of type Integer),
    another definition will deal with the concatenation of strings
    (and demands that all its arguments be strings).
- *)
+
+   A multimethod is a function that receives its arguments after they have been evaluated, i.e., strict evaluation.
+*)
 let mk_multimethod
     (methods   : method_definition list)
     (arguments : Value.t list          ) : Value.t EC.t
