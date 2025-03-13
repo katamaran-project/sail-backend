@@ -135,13 +135,31 @@ Annotates functions with the nanosail AST.
       stm_exp (((exp_var "x"))+((exp_var "x"))).
 ```
 
-
 ### `inline-definitions-in-notations`
 
 Inlines definitions.
 Actived by default.
 This feature was added to deal with Coq's inability to derive `NoConfusionHom` automatically for `Reg`.
 For more details, see `tests/coq-tests/no-confusion-hom`.
+
+### `monomorphize`
+
+```lisp
+(monomorphize "foo" "foo_8_8" '(
+                                ("'n" 8)
+                                ("'m" 8)
+                                ))
+```
+
+This causes the function `foo` to 
+
+### `$include`
+
+```lisp
+$include ../shared-configuration.lisp
+```
+
+This directive works like C's `#include` preprocessor directive.
 
 ## Template Files
 
