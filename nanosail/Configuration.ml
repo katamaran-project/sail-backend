@@ -240,7 +240,7 @@ module Implementation = struct
     let bitvectors_zeros_ones_as_literal = bool "literal-zeros-and-ones" false
 
     (*
-       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.       
+       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.   
     *)
     let inline_definitions_in_notations = bool "inline-definitions-in-notations" true
 
