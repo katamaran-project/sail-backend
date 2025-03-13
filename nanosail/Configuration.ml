@@ -229,11 +229,16 @@ module Implementation = struct
     let pretty_print_function_calls = bool "pretty-print-function-calls" false
 
     (*
-       Outputs extra debug info. Superseded by html generation.
+       Outputs extra debug info.
+       Superseded by HTML generation.
     *)
     let show_generation_blocks = bool "show-generation-blocks" false
 
-    let bitvectors_zeros_ones_as_literal           = bool     "literal-zeros-and-ones"           false (* Use bv 0 instead of Bitvector.bv.zero (same for ones) *)
+    (*
+       Use bv 0 instead of Bitvector.bv.zero, analogously for ones
+    *)
+    let bitvectors_zeros_ones_as_literal           = bool "literal-zeros-and-ones" false
+   
     let inline_definitions_in_notations            = bool     "inline-definitions-in-notations"  true
     let annotate_functions_with_ast                = bool     "annotate-functions-with-ast"      false
     
