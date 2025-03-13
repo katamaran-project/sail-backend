@@ -1,5 +1,7 @@
 (pretty-print-lists)
 
+(annotate-functions-with-ast)
+
 (include-original-code)
 (ignore-all-overloads)
 (ignore-pragmas (lambda (identifier)
