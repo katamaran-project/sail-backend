@@ -25,7 +25,10 @@ type method_definition = Value.t list -> Value.t option EvaluationContext.t
    A special form is not a macro: the result is considered the end result, whereas
    a macro will evaluate proceed to evaluate it.
  *)
-let mk_multi_special_form methods arguments =
+let mk_multi_special_form
+    (methods   : method_definition list)
+    (arguments : Value.t list          ) : Value.t EC.t
+  =
   let rec call_matching_method methods =
     match methods with
     | []    -> raise @@ Exception.SlangError "no method found"
