@@ -377,7 +377,19 @@ module Implementation = struct
   (*
      Slang function to request monomorphizations for a specific function.
      Multiple calls are allowed.
-     Calling monomorphize multiple time for the same function *overwrites* the previous data.
+
+     For example, take the following polymorphic function:
+     
+       val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
+
+     It can be monomorphized for n=1 and m=2 with
+     
+       (monomorphize "foo"
+                     "foo_1_2"
+                     '(
+                       ("'n" 1)
+                       ("'m" 2)
+                     ))
   *)
   let () =
     let exported_function_name =
