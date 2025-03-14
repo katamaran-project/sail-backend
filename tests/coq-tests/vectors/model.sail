@@ -1,7 +1,7 @@
 default Order dec
 
 
-val foo : forall 'a 'n. vector('a, 'n) -> vector('a, 'n)
+val foo : forall 'a 'n. vector('n, 'a) -> vector('n, 'a)
 function foo(xs) = {
   xs
 }
