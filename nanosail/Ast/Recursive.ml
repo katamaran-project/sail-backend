@@ -460,7 +460,7 @@ end = struct
     | List t                -> FExpr.mk_application ~positional:[to_fexpr t]                                       @@ prefix "List"
     | Enum id               -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Enum"
     | Bitvector numexpr     -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr]               @@ prefix "Bitvector"
-    | Vector (typ, numexpr) -> FExpr.mk_application ~positional:[to_fexpr typ; NumericExpression.to_fexpr numexpr] @@ prefix "Bitvector"
+    | Vector (typ, numexpr) -> FExpr.mk_application ~positional:[to_fexpr typ; NumericExpression.to_fexpr numexpr] @@ prefix "Vector"
     | Tuple ts              -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)                          @@ prefix "Tuple"
     | Variant id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Variant"
     | Record id             -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Record"
