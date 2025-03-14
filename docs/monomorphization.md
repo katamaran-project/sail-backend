@@ -115,7 +115,7 @@ The warnings give an indication of which monomorphizations are necessary, namely
 ## Summary Generation
 
 The output from the logs, while complete, can be overwhelming, especially in cases where there are many calls to polymorphic functions.
-An easier way to get an overview of which polymorphic calls have been made is to rely on the `argument-types-of-polymorphic-function-calls` function which is usable in templates.
+An easier way to get an overview of which polymorphic calls have been made is to rely on the `argument-types-of-polymorphic-function-calls` Slang function which is usable in templates.
 
 Create a file `polymorphic.template.txt` with as content
 
@@ -194,10 +194,31 @@ Definition fun_foo_8_8 : Stm [
   stm_exp (exp_val (ty.bvec 4) ([bv 0])).
 ```
 
-When no monomorphizations have been requested for a polymorphic function `f`,
-`f` will be translated into Coq as-is (albeit not correctly).
-When N monomorphizations have been requested (with `N > 0`), no translation for `f` itself
-will be generated; instead, you'll get `N` monomorphic functions.
+**Note**
+If no monomorphizations are requested, a polymorphic function will be translated
+like any other function, but this leads to invalid Coq code.
+If at least one monomorphization is requested, the polymorphic function
+itself will be skipped and only the "monomorphs" will be translated.
 
+## Examples
 
-TODO: complication with c=a+b
+See the `tests/coq-tests/monomorphization` tests.
+
+## Missing Features
+
+### Dealing with Numeric Constraints
+
+Consider the following Sail code:
+
+```sail
+val foo : forall 'n 'm, 'n > 0 & 'm > 0. (bitvector('n), bitvector('m), int('n + 'm)) -> bitvector('n + 'm)
+```
+
+It gets rewritten by Sail into
+
+```sail
+val foo : forall 'n 'm 'n_plus_m, ('n > 0 & 'm > 0 & 'n_plus_m == 'n + 'm). (bitvector('n), bitvector('m), itself('n_plus_m)) -> bitvector('n_plus_m)
+```
+
+In other words, an extra type level variable `'n_plus_m` was introduced and a new constraint relates it to `'n` and `'m`.
+Note that the `itself` type is a singleton type: `itself(5)` has `5` as its only inhabitant.
