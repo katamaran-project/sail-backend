@@ -221,4 +221,18 @@ val foo : forall 'n 'm 'n_plus_m, ('n > 0 & 'm > 0 & 'n_plus_m == 'n + 'm). (bit
 ```
 
 In other words, an extra type level variable `'n_plus_m` was introduced and a new constraint relates it to `'n` and `'m`.
-Note that the `itself` type is a singleton type: `itself(5)` has `5` as its only inhabitant.
+
+The transformation from 2 to 3+constraint takes place in the `toplevel_nexps` Sail rewrite.
+(To see the effects of each rewrite, run the test in an environment in which the variable `DUMP` exists,
+e.g., run `DUMP= ../test.sh` in `tests/coq-tests/monomorphization-constraint`.)
+A simple possible solution would be to disable this rewrite, but it could also complicate other things.
+See the [Sail note on rewrites](./sail-notes.md) for information about disabling rewrites.
+
+### `vector`
+
+There is limited support for Sail's `vector`s:
+
+* Vectors exist in nanosail's type system (`Ast.Type.Vector`).
+* Sail to nanosail translation recognizes them.
+* The nanosail to muSail translation emits a NYI when it encounters vectors.
+* The monomorphization code does only deal with numeric expressions, not types.

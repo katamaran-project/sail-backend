@@ -8,3 +8,9 @@ Below are a few notes regarding Sail and its inner working.
 
 ## `Ast.Type.Implicit`
 
+## Rewrites
+
+TODO DUMP
+TODO where to enable/disable
+
+## Expressions vs Statements

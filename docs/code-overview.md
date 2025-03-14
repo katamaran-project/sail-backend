@@ -11,6 +11,11 @@ When Sail loads the plugin, it does not automatically also load the dependencies
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
+## Not Yet Implemented
+
+### NYI in Sail to nanosail
+### NYI in Nanosail to Sail
+
 
 ## Logging
 
