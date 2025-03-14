@@ -1,3 +1,0 @@
-(*<
-  (generate (argument-types-of-polymorphic-function-calls))
->*)
