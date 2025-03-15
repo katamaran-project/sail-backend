@@ -236,3 +236,8 @@ There is limited support for Sail's `vector`s:
 * Sail to nanosail translation recognizes them.
 * The nanosail to muSail translation emits a NYI when it encounters vectors.
 * The monomorphization code does only deal with numeric expressions, not types.
+
+### Automatic Monomorphizations
+
+Instead of having to explicitly request monomorphizations in the `configuration.lisp` file,
+we could automatically monomorphize polymorphic functions whenever a call to such a function is encountered.

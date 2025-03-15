@@ -53,3 +53,10 @@ Next, in the `configuration.lisp` file, add an extra line
 ```lisp
 (template "base.template.html")
 ```
+
+See the end to end tests (`tests/coq-tests`) for examples.
+
+**Note**
+The generated HTMLs have at some point grown to such a size (>500MB) that Chrome could not open them.
+Some steps towards reducing the number of annotations have been taken, but perhaps we should
+consider removing even more of them to keep the HTMLs to a manageable size.
