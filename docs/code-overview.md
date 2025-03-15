@@ -11,6 +11,14 @@ When Sail loads the plugin, it does not automatically also load the dependencies
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
+## Sail to nanosail
+
+TranslationContext
+
+## Nanosail to muSail
+
+GenerationContext
+
 ## Not Yet Implemented
 
 ### NYI in Sail to nanosail
@@ -22,8 +30,6 @@ See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 ## F-Expressions
 
 ## Document/PP
-
-## Slang
 
 ## Coding Style
 
@@ -37,7 +43,37 @@ a simple rebuild would lead the compiler to point out all the locations in the c
 This has somewhat been thwarted by what seems to be a bug in the OCaml compiler:
 it happened more than once that the build process simply got stuck until typing errors were fixed.
 
-### Explicit equals
-### Explicit Typing
 ### Module per Type
-### Recursive Module
+
+Many types are defined in their own personal module.
+We felt this led to much cleaner code:
+
+* No prefixes necessary for constructor: `E_Variable` but simply `Variable`.
+* Clearer names: `Ast.Expression.Variable` instead of `E_Variable`.
+* Typing context often allows us to omit the `Ast.Expression.` prefix in many cases such as in match patterns.
+* `open Ast.Expression` can alway s
+* Related functionality can be bundled in the same module, e.g., `Ast.Variable.equal`.
+* More consistent naming for related functions, i.e., all equality functions can be called `equal`.
+
+### Explicit `equals`
+
+Given that the standard equality operator `=` cannot be customized for specific types,
+it seemed better to eschew it completely.
+Instead, we chose to define `equal` function for each type, accepting
+that large amounts boilerplate code is the cost for more robust code.
+
+### Explicit Typing
+
+While perhaps not idiomatic, we chose to annotate most of our code with types.
+
+* In our opinion, it leads to clearer code.
+* It avoids issues with records with share field names.
+* Our functions often receive "too many" parameters, i.e., they were made
+  to receive all information that was available, not just information that
+  was actually required.
+  We chose this approach due to the very incremental/iterative nature of the development process:
+  the first implementation of a function would contain only very specific functionality,
+  and it was unclear what information would be necessary when the function would later be fleshed out more.
+  Having functions receive all available information from the get-go
+  made it much easier when we later had to revisit the function to extend its functionality,
+  as we had a clear view of all available puzzle pieces.
