@@ -214,9 +214,10 @@ PASS model-005
 PASS model-006
 PASS model-007
 FAIL model-008
-PASS monomorphize
-PASS monomorphize-2
-FAIL monomorphize-3
+FAIL monomorphize-constraint
+PASS monomorphize-single-int
+PASS monomorphize-two-ints
+FAIL monomorphize-type
 PASS no-confusion-hom
 PASS overloading
 PASS print-plain-binary-operation
@@ -239,7 +240,7 @@ PASS records-definition-4-fields
 PASS records-definition-with-pair
 FAIL records-definition-with-triple
 PASS records-field-access
-FAIL records-field-update
+PASS records-field-update
 PASS registers-as-parameter
 PASS registers-increment
 PASS registers-initial-value-bool
@@ -255,6 +256,7 @@ PASS sequence-register-write
 PASS sequence-unit-int
 PASS smorgasbord-001
 PASS statements-conditional
+PASS statements-vs-expressions
 PASS tuples-pair
 FAIL tuples-quad
 FAIL tuples-triple
@@ -290,4 +292,5 @@ PASS value-definition-bool
 PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
-PASS:268 FAIL:24
+FAIL vectors
+PASS:270 FAIL:25
