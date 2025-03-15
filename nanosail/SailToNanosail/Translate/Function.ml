@@ -139,10 +139,25 @@ let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat)
   | P_struct (_, _)             -> TC.not_yet_implemented [%here] location
 
 
-let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list list) : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list =
-  let flattened = List.concat named_statements
+
+type named_statement =
+  {
+    identifier : Ast.Identifier.t;
+    typ        : Ast.Type.t;
+    statement  : Ast.Statement.t;
+  }
+
+
+(*
+   Flattens a list of lists of named statements in a list of statements.
+   Checks that there are no name clashes.
+*)
+let flatten_named_statements (named_statements : named_statement list list) : named_statement list =
+  let flattened : named_statement list =
+    List.concat named_statements
   in
-  let statement_names = List.map ~f:(fun (x, _, _) -> x) flattened
+  let statement_names : Ast.Identifier.t list =
+    List.map ~f:(fun s -> s.identifier) flattened
   in
   if
     List.contains_dup statement_names ~compare:Ast.Identifier.compare
@@ -168,21 +183,21 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t 
 
   For example, a result
 
-  (expr, t, [("a", t1, s1); ("b", t2, s2)])
+  (expr, t, [ns1; ns2])
 
   should be interpreted as
 
-    let a : t1 = s1 in
-    let b : t2 = s2 in
+    let ns1.identifier : ns1.typ = ns1.statement in
+    let ns2.identifier : ns2.typ = ns2.statement in
     expr
 
   with expr : t
  *)
 let rec expression_of_aval
     (location : S.l         )
-    (value    : S.typ S.aval) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+    (value    : S.typ S.aval) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
   =
-  let expression_of_tuple (elements : S.typ S.aval list) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t =
+  let expression_of_tuple (elements : S.typ S.aval list) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t =
     if
       List.is_empty elements
     then
@@ -208,7 +223,7 @@ let rec expression_of_aval
 
   and expression_of_literal
         (literal : S.lit)
-        (typ     : S.typ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+        (typ     : S.typ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
     let* lit' = Literal.value_of_literal literal
     and* typ' = Type.translate_type typ
@@ -217,7 +232,7 @@ let rec expression_of_aval
 
   and expression_of_identifier
         (identifier : S.id                       )
-        (lvar       : S.typ Libsail.Ast_util.lvar) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+        (lvar       : S.typ Libsail.Ast_util.lvar) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
     let* id' = Identifier.translate_identifier [%here] identifier
     in
@@ -236,8 +251,14 @@ let rec expression_of_aval
           in
           TC.generate_unique_identifier ~prefix ()
         in
-        let named_statements =
-          [(unique_id, typ', Ast.Statement.ReadRegister id')]
+        let named_statements : named_statement list =
+          [
+            {
+              identifier = unique_id;
+              typ        = typ';
+              statement  = Ast.Statement.ReadRegister id';
+            }
+          ]
         in
         TC.return (Ast.Expression.Variable (unique_id, typ'), typ', named_statements)
       end
@@ -258,7 +279,7 @@ let rec expression_of_aval
 
   and expression_of_list
         (list : S.typ S.aval list)
-        (typ : S.typ             ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+        (typ : S.typ             ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
     let* translation_triples = TC.map ~f:(expression_of_aval location) list
     and* typ'                = Type.translate_type typ
@@ -274,7 +295,7 @@ let rec expression_of_aval
 
   and expression_of_record
         (bindings : S.typ S.aval Bindings.t)
-        (typ      : S.typ                  ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+        (typ      : S.typ                  ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
     let S.Typ_aux (unwrapped_type, _typ_location) = typ
     in
@@ -322,7 +343,7 @@ let rec expression_of_aval
 
   and expression_of_vector
       (values : S.typ S.aval list)
-      (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+      (typ    : S.typ            ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
     let* values', value_types', named_statements' =
       let* triples =
@@ -371,12 +392,12 @@ let rec expression_of_aval
 
 and translate_bindings
     (location : S.l                    )
-    (bindings : S.typ S.aval Bindings.t) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+    (bindings : S.typ S.aval Bindings.t) : (Ast.Identifier.t Ast.Identifier.Map.t * named_statement list) TC.t
   =
   let rec process_bindings
-      (binding_pairs    : (S.id * S.typ S.aval) list)
+      (binding_pairs    : (S.id * S.typ S.aval) list           )
       (mapping          : Ast.Identifier.t Ast.Identifier.Map.t)
-      (named_statements : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+      (named_statements : named_statement list                 ) : (Ast.Identifier.t Ast.Identifier.Map.t * named_statement list) TC.t
     =
     match binding_pairs with
     | [] -> TC.return (mapping, named_statements)
@@ -388,8 +409,12 @@ and translate_bindings
         and* fresh_id =
           TC.generate_unique_identifier ()
         in
-        let extra_named_statement =
-          (fresh_id, value_type', Ast.Statement.Expression value')
+        let extra_named_statement : named_statement =
+          {
+            identifier = fresh_id;
+            typ        = value_type';
+            statement  = Ast.Statement.Expression value'
+          }
         and updated_mapping =
           Ast.Identifier.Map.add_exn ~key:identifier' ~data:fresh_id mapping
         in
@@ -454,11 +479,11 @@ let find_monomorphization
     stm
  *)
 let rec wrap_in_named_statements_context
-      (named_statements : (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list)
-      (statement        : Ast.Statement.t                                       ) : Ast.Statement.t
+      (named_statements : named_statement list)
+      (statement        : Ast.Statement.t     ) : Ast.Statement.t
   =
   match named_statements with
-  | (binder, binding_statement_type, binding_statement)::rest -> begin
+  | { identifier = binder; typ = binding_statement_type; statement = binding_statement }::rest -> begin
       let body_statement = wrap_in_named_statements_context rest statement
       in
       Let {
@@ -932,8 +957,8 @@ let rec statement_of_aexp
       - acc : data structure in which to accumulate the translated information
     *)
     let process_binding
-        (acc  : Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list)
-        (pair : S.id * S.typ S.aval                                                                           ) : (Ast.Identifier.t Ast.Identifier.Map.t * (Ast.Identifier.t * Ast.Type.t * Ast.Statement.t) list) TC.t
+        (acc  : Ast.Identifier.t Ast.Identifier.Map.t * named_statement list)
+        (pair : S.id * S.typ S.aval                                         ) : (Ast.Identifier.t Ast.Identifier.Map.t * named_statement list) TC.t
       =
       let field_map       , named_statements = acc
       and field_identifier, value            = pair
@@ -951,8 +976,12 @@ let rec statement_of_aexp
         in
         TC.return @@ (expression_type, wrap_in_named_statements_context named_statements (Ast.Statement.Expression expression))
       in
-      let named_statements' =
-        (binder, field_type, named_statement) :: named_statements
+      let named_statements' : named_statement list =
+        {
+          identifier = binder;
+          typ        = field_type;
+          statement  = named_statement
+        }  :: named_statements
       in
       let field_map' =
         Map.overwrite ~key:field_identifier ~data:binder field_map
