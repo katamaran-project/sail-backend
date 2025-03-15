@@ -37,6 +37,7 @@
                  "sail_ones"
                  "concat_str_bits"
                  "concat_str_dec"
+                 "initialize_registers"
                  "__deref")
                identifier))))
                                         
