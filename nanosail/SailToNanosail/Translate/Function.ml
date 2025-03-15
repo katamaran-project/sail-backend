@@ -144,9 +144,12 @@ let flatten_named_statements (named_statements : (Ast.Identifier.t * Ast.Type.t 
   in
   let statement_names = List.map ~f:(fun (x, _, _) -> x) flattened
   in
-  if List.contains_dup statement_names ~compare:Ast.Identifier.compare
-  then failwith "BUG: two statements bear the same name"
-  else flattened
+  if
+    List.contains_dup statement_names ~compare:Ast.Identifier.compare
+  then
+    failwith "BUG: two statements bear the same name"
+  else
+    flattened
 
 
 (*
