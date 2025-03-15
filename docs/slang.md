@@ -1,6 +1,23 @@
 # Slang
 
-Slang is a fairly standard Lisp-1.
+Slang is a fairly standard Lisp-1, inspired by Scheme/Racket.
+
+## Values
+
+All supported values are listed in the `Slang.Value` module
+(which is an alias for `Slang.Recursive.Value`).
+
+* Cons cells
+* Nil (`()`)
+* Integers (represented by `int` in OCaml)
+* Booleans (`#t` and `#f`)
+* Symbols
+* Strings
+* Callables
+* References
+
+Symbols starting with `:` are also called keywords.
+Unlike other symbols, they evaluate to themselves.
 
 ## Defining Functions
 
