@@ -11,7 +11,15 @@ When Sail loads the plugin, it does not automatically also load the dependencies
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
+
+
+## `Ast` Module
+
+
+
 ## Sail to nanosail
+
+
 
 TranslationContext
 
@@ -33,6 +41,8 @@ GenerationContext
 
 ## Coding Style
 
+Below we justify our coding style, which may be considered to be rather unidiomatic.
+
 ### No wildcards
 
 We shied away from using wildcards in match expressions, instead opting to handle each case explicitly.
@@ -51,7 +61,7 @@ We felt this led to much cleaner code:
 * No prefixes necessary for constructor: `E_Variable` but simply `Variable`.
 * Clearer names: `Ast.Expression.Variable` instead of `E_Variable`.
 * Typing context often allows us to omit the `Ast.Expression.` prefix in many cases such as in match patterns.
-* `open Ast.Expression` can alway s
+* `open Ast.Expression` is always available if one gets tired of the long names.
 * Related functionality can be bundled in the same module, e.g., `Ast.Variable.equal`.
 * More consistent naming for related functions, i.e., all equality functions can be called `equal`.
 
@@ -64,7 +74,7 @@ that large amounts boilerplate code is the cost for more robust code.
 
 ### Explicit Typing
 
-While perhaps not idiomatic, we chose to annotate most of our code with types.
+We chose to annotate most of our code with types.
 
 * In our opinion, it leads to clearer code.
 * It avoids issues with records with share field names.
