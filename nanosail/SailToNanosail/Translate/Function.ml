@@ -201,7 +201,7 @@ let rec expression_of_aval
     if
       List.is_empty elements
     then
-      TC.not_yet_implemented ~message:"Encountered empty tuple; should not occur" [%here] location (* todo change to failure *)
+      TC.fail [%here] "Encountered empty tuple; should not occur"
     else begin
         let* translation_triples    = TC.map ~f:(expression_of_aval location) elements
         in
