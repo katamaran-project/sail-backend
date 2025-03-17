@@ -1,5 +1,7 @@
 # Code Overview
 
+## Project Structure
+
 This repository contains three projects:
 
 * `monads`: a small library providing a number of monads used by the Sail backend.
@@ -11,9 +13,21 @@ When Sail loads the plugin, it does not automatically also load the dependencies
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
+## Translation Overview
 
+The translation takes place in three phases:
+
+* The configuration file is read.
+* Sail is translated into nanosail, an intermediate language bridging Sail and muSail.
+* Nanosail is translated into muSail.
+  This is done using templates: the user provides a number of template files,
+  which specify which translations belong where.
+
+This top level logic resides in the `sail_plugin` project.
 
 ## `Ast` Module
+
+The `Ast` module contains all definitions related to the nanosail intermediate language.
 
 
 

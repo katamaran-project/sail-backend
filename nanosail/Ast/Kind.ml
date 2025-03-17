@@ -1,3 +1,15 @@
+(*
+   Nanosail version of Libsail.Ast.kind
+   Kinds are the types of values on the type level.
+
+   For example, take the following function that fetches a value from a vector:
+
+     val at : forall 'a 'n 'i, 0 <= 'i & 'i < 'n. (vector('n, 'a), int('i)) -> 'a
+
+   (This function would only be usable if the index is known at compile-time.)
+   Here, 'n and 'i have kinds Int and 'a has kind Type.
+*)
+
 type t =
   | Type
   | Int
