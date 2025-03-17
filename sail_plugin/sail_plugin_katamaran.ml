@@ -49,11 +49,15 @@ let katamaran_target
   match !configuration_file with
   | Some s -> begin
       Stdio.print_endline "Starting translation from Sail to muSail";
+      (* start by reading the configuration, as it impacts how the following phases act *)
       Nanosail.Configuration.load_configuration s;
       let ast = state.ast
       in
-      let translation = Nanosail.SailToNanosail.translate ast
+      (* translate the Sail code into nanosail *)
+      let translation =
+        Nanosail.SailToNanosail.translate ast
       in
+      (* process the templates, which will cause the nanosail program to be translated into muSail *)
       Nanosail.Templates.process translation;
       Stdio.print_endline "Done with translation"
     end
