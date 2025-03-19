@@ -115,7 +115,7 @@ let equal
          comparison_2
      end
    | BitvectorComparison (signedness_1, comparison_1),
-     BitvectorComparison (signedness_2, comparison_2)             -> begin
+     BitvectorComparison (signedness_2, comparison_2) -> begin
        Signedness.equal
          signedness_1
          signedness_2
