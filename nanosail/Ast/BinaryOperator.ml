@@ -1,5 +1,7 @@
 module Signedness = struct
-  type t = Signed | Unsigned
+  type t =
+    | Signed
+    | Unsigned
 
   let to_fexpr (signedness : t) : FExpr.t =
     match signedness with
@@ -16,6 +18,7 @@ module Signedness = struct
     | Signed  , _        -> false
     | Unsigned, _        -> false
 end
+
 
 module Comparison = struct
   type t =
@@ -96,18 +99,21 @@ let equal
     (operator_2 : t) : bool
   =
   match operator_1, operator_2 with
-   | Plus                                            , Plus       -> true
-   | Times                                           , Times      -> true
-   | Minus                                           , Minus      -> true
-   | And                                             , And        -> true
-   | Or                                              , Or         -> true
-   | Pair                                            , Pair       -> true
-   | Cons                                            , Cons       -> true
-   | Append                                          , Append     -> true
-   | EqualTo                                         , EqualTo    -> true
-   | NotEqualTo                                      , NotEqualTo -> true
-   | StandardComparison comparison_1                 ,
-     StandardComparison comparison_2                              -> Comparison.equal comparison_1 comparison_2
+   | Plus      , Plus       -> true
+   | Times     , Times      -> true
+   | Minus     , Minus      -> true
+   | And       , And        -> true
+   | Or        , Or         -> true
+   | Pair      , Pair       -> true
+   | Cons      , Cons       -> true
+   | Append    , Append     -> true
+   | EqualTo   , EqualTo    -> true
+   | NotEqualTo, NotEqualTo -> true
+   | StandardComparison comparison_1, StandardComparison comparison_2 -> begin
+       Comparison.equal
+         comparison_1
+         comparison_2
+     end
    | BitvectorComparison (signedness_1, comparison_1),
      BitvectorComparison (signedness_2, comparison_2)             -> begin
        Signedness.equal
@@ -118,6 +124,7 @@ let equal
          comparison_1
          comparison_2
      end
+   (* remainder of the cases still handled explicitly, so as to get a compiler warning/error in case we add more operators later on *)
    | Plus                                            , _          -> false
    | Times                                           , _          -> false
    | Minus                                           , _          -> false
