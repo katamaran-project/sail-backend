@@ -442,10 +442,10 @@ let rec to_fexpr (statement : t) : FExpr.t =
     =
     let keyword =
       [
-        ("id", Identifier.to_fexpr binder);
-        ("type", Type.to_fexpr binding_statement_type);
-        ("value", to_fexpr binding_statement);
-        ("body", to_fexpr body_statement);
+        ("binder"     , Identifier.to_fexpr binder          );
+        ("bound_type" , Type.to_fexpr binding_statement_type);
+        ("bound_value", to_fexpr binding_statement          );
+        ("body"       , to_fexpr body_statement             );
       ]
     in
     FExpr.mk_application ~keyword "Stm:Let"
