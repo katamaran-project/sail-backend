@@ -459,11 +459,11 @@ let rec to_fexpr (statement : t) : FExpr.t =
     =
     let keyword =
       [
-        ("record_type", Identifier.to_fexpr record_type_identifier);
-        ("fields", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr field_identifiers);
-        ("binders", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr binders);
-        ("record", to_fexpr destructured_record);
-        ("body", to_fexpr body);
+        ("record_type", Identifier.to_fexpr record_type_identifier                        );
+        ("fields"     , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr field_identifiers);
+        ("binders"    , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr binders          );
+        ("record"     , to_fexpr destructured_record                                      );
+        ("body"       , to_fexpr body                                                     );
       ]
     in
     FExpr.mk_application ~keyword "Stm:DestructureRecord"
