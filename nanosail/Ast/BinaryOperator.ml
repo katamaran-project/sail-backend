@@ -125,15 +125,15 @@ let equal
          comparison_2
      end
    (* remainder of the cases still handled explicitly, so as to get a compiler warning/error in case we add more operators later on *)
-   | Plus                                            , _          -> false
-   | Times                                           , _          -> false
-   | Minus                                           , _          -> false
-   | And                                             , _          -> false
-   | Or                                              , _          -> false
-   | Pair                                            , _          -> false
-   | Cons                                            , _          -> false
-   | Append                                          , _          -> false
-   | EqualTo                                         , _          -> false
-   | NotEqualTo                                      , _          -> false
-   | StandardComparison _                            , _          -> false
-   | BitvectorComparison _                           , _          -> false
+   | Plus                 , _ -> false
+   | Times                , _ -> false
+   | Minus                , _ -> false
+   | And                  , _ -> false
+   | Or                   , _ -> false
+   | Pair                 , _ -> false
+   | Cons                 , _ -> false
+   | Append               , _ -> false
+   | EqualTo              , _ -> false
+   | NotEqualTo           , _ -> false
+   | StandardComparison _ , _ -> false
+   | BitvectorComparison _, _ -> false
