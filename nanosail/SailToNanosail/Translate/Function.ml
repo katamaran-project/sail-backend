@@ -1232,6 +1232,70 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
 let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.t =
   let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
     match (statement : Ast.Statement.t) with
+    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+        let result_if_no_bitvector_comparison () : Ast.Statement.t =
+            Let {
+              binder;
+              binding_statement_type;
+              binding_statement = rewrite binding_statement;
+              body_statement    = rewrite body_statement;
+            }
+        in          
+        match binding_statement, body_statement with
+        | Call (f, f_arguments),
+          Let {
+            binder                 = binder2;
+            binding_statement      = Call (g, g_arguments);
+            binding_statement_type = _;
+            body_statement         = Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _)))
+          } -> begin
+            let open Monads.OptionNotation
+            in
+            let result =
+              let=? signedness =
+                match Ast.Identifier.to_string f, Ast.Identifier.to_string g with
+                | "signed"  , "signed"   -> Some Ast.BinaryOperator.Signedness.Signed
+                | "unsigned", "unsigned" -> Some Ast.BinaryOperator.Signedness.Unsigned
+                | _                      -> None
+              and=? f_argument =
+                match f_arguments with
+                | [x] -> Some x
+                | _   -> None
+              and=? g_argument =
+                match g_arguments with
+                | [x] -> Some x
+                | _   -> None
+              in
+              let=? left_operand, right_operand =
+                if
+                  Ast.Identifier.equal binder left_id && Ast.Identifier.equal binder2 right_id
+                then
+                  Some (f_argument, g_argument)
+                else if
+                  Ast.Identifier.equal binder right_id && Ast.Identifier.equal binder right_id
+                then
+                  Some (g_argument, f_argument)
+                else
+                  None
+              in
+              let=? comparison =
+                match binary_operator with
+                | StandardComparison comparison -> Some comparison
+                | _                             -> None
+              in
+              Some begin
+                Ast.Statement.Expression begin
+                  Ast.Expression.BinaryOperation (Ast.BinaryOperator.BitvectorComparison (signedness, comparison), left_operand, right_operand)
+                end
+              end
+            in
+            match result with
+            | Some result -> result
+            | None        -> result_if_no_bitvector_comparison ()
+            
+          end
+        | _ -> result_if_no_bitvector_comparison ()
+      end
     | Match (MatchList { matched; element_type; when_cons = (head_id, tail_id, when_cons); when_nil }) -> begin
         Match begin
           MatchList {
@@ -1289,14 +1353,6 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
             cases = Ast.Identifier.Map.map_values ~f:(fun (ids, b) -> (ids, rewrite b)) cases;
           }
         end
-      end
-    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
-        Let {
-          binder;
-          binding_statement_type;
-          binding_statement = rewrite binding_statement;
-          body_statement    = rewrite body_statement;
-        }
       end
     | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
         DestructureRecord {
