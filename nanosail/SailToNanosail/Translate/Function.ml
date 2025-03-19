@@ -1229,6 +1229,80 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
+(*
+   When bitvectors are compared using <, >, <= and >=, it is the integer value they represent that is actually being compared.
+   However, bitvectors can use signed or unsigned representation.
+   In other words, x=0b1111 is greater than y=0b0000 when interpreting them as unsigned integers,
+   but x < y if signed representation is used.
+
+   In Sail, the way to specify which way bitvectors should be compared is by using the signed/unsigned helper functions:
+
+     signed(bv1) < signed(bv2)
+     unsigned(bv1) >= unsigned(bv2)
+
+   These functions convert bitvectors into integers, which are them compared using the standard integer-comparing functions
+   gt_int, lt_int, lteq_int or gteq_int.
+
+   muSail allows to compare bitvector directly using
+
+      <ˢ    <ᵘ
+      <=ˢ   <=ᵘ
+      >ˢ    >ᵘ
+      >=ˢ   >=ᵘ
+   
+   Our goal is to translate
+   
+      signed(bv1) < signed(bv2)
+
+   into
+
+      bv1 <ˢ bv2
+
+
+   There is a slight complication, though: Sail rewrites its ASTs into A-normal form, so instead of
+
+      signed(bv1) < signed(bv2)
+
+   we receive
+
+      let g1 = signed(bv1)
+      and g2 = signed(bv2)
+      in
+      g1 < g2
+
+   (For some reason, this transformation isn't visible in the rewrite dumps or string_of; we didn't investigate this peculiarity)
+
+   We could have chosen to detect this pattern *during* the translation into nanosail statements,
+   but we felt it was simpler to do it after the nanosail AST has been constructed.
+   See the function translate_body.
+
+
+   This function looks for the following pattern in the AST:
+
+     let binder = f(expr1)
+     in
+     let binder2 = g(expr2)
+     in
+     comparison(left_id, right_id)
+
+   where
+
+     (binder, binder2 == left_id, right_id) or (binder, binder2 == right_id, left_id).
+
+   If found, this AST is rewritten as
+
+     comparison(expr1, expr2)
+
+   or
+
+     comparison(expr2, expr1)
+
+
+   We expect the signedness of both operands to be the same.
+   If signed is compared with unsigned (or vice versa), no transformation occurs.
+   The resulting code should still be valid in this case,
+but the specialized bitvector comparison operators will not be used.
+*)
 let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.t =
   let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
     match (statement : Ast.Statement.t) with
@@ -1241,6 +1315,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
               body_statement    = rewrite body_statement;
             }
         in          
+        (* we found a let-construct in the AST; check if it is a bitvector comparison in A-normalized form *)
         match binding_statement, body_statement with
         | Call (f, f_arguments),
           Let {
@@ -1249,14 +1324,27 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
             binding_statement_type = _;
             body_statement         = Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _)))
           } -> begin
+            (* multiple conditions need to be satisfied; relying on option monad to improve readability *)
             let open Monads.OptionNotation
             in
             let result =
+              (*
+                 Determine the signedness of both operands.
+                 We only supported signed/signed and unsigned/unsigned comparison.
+                 We fall back on the default translation if we're dealing with mixed signedness.
+              *)
               let=? signedness =
                 match Ast.Identifier.to_string f, Ast.Identifier.to_string g with
                 | "signed"  , "signed"   -> Some Ast.BinaryOperator.Signedness.Signed
                 | "unsigned", "unsigned" -> Some Ast.BinaryOperator.Signedness.Unsigned
                 | _                      -> None
+
+              (*
+                 We determined that f and g are signed/unsigned converters.
+                 Now we check that they receive exactly one argument each.
+                 If this is not the case (for some unfathomable reason),
+                 we will fall back on the default translation.
+              *)
               and=? f_argument =
                 match f_arguments with
                 | [x] -> Some x
@@ -1266,6 +1354,18 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
                 | [x] -> Some x
                 | _   -> None
               in
+
+              (*
+                 We check that the binders match the arguments.
+                 If not, fall back to default implementation.
+                 We do not assume that the binders appear in the same order as the arguments,
+                 so
+
+                   let x = signed(bv1) in let y = signed(bv2) = x < y
+                   let y = signed(bv1) in let x = signed(bv2) = x < y
+
+                 are both accepted.
+              *)
               let=? left_operand, right_operand =
                 if
                   Ast.Identifier.equal binder left_id && Ast.Identifier.equal binder2 right_id
@@ -1278,11 +1378,19 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
                 else
                   None
               in
+              (*
+                 We check that we're indeed dealing with a comparison (<. >, <= or >=),
+                 otherwise default translation.
+              *)
               let=? comparison =
                 match binary_operator with
                 | StandardComparison comparison -> Some comparison
                 | _                             -> None
               in
+              (*
+                 All conditions have been satisfied.
+                 We can rewrite the AST.
+              *)
               Some begin
                 Ast.Statement.Expression begin
                   Ast.Expression.BinaryOperation (Ast.BinaryOperator.BitvectorComparison (signedness, comparison), left_operand, right_operand)
@@ -1374,13 +1482,20 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
   rewrite statement
 
 
+(*
+   Tranlates a function's body.
+*)
 let translate_body
     (body      : S.typ S.aexp)
     (body_type : S.typ       ) : Ast.Statement.t TC.t
   =
+  (* Step 1: translate from Sail to nanosail *)
   let* translation = statement_of_aexp (Some body_type) body
   in
-  TC.return @@ rewrite_bitvector_comparisons translation
+  (* Step 2: find bitvector comparisons and rewrite them *)
+  let translation = rewrite_bitvector_comparisons translation
+  in
+  TC.return translation
 
 
 let translate_function_definition
