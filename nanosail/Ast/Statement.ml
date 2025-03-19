@@ -316,7 +316,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
             ~keyword:[
               ("head", Identifier.to_fexpr head_identifier);
               ("tail", Identifier.to_fexpr tail_identifier);
-              ("body", to_fexpr body)
+              ("body", to_fexpr body                      );
             ]
             "WhenCons"
         and when_nil' =
@@ -324,10 +324,10 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         let keyword =
           [
-            ("matched", matched');
+            ("matched"     , matched'     );
             ("element_type", element_type');
-            ("when_cons", when_cons');
-            ("when_nil", when_nil');
+            ("when_cons"   , when_cons'   );
+            ("when_nil"    , when_nil'    );
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchList"
@@ -336,12 +336,12 @@ let rec to_fexpr (statement : t) : FExpr.t =
     | MatchProduct { matched; id_fst; id_snd; type_fst; type_snd; body } -> begin
         let keyword =
           [
-            ("matched", Identifier.to_fexpr matched);
-            ("id_fst", Identifier.to_fexpr id_fst);
-            ("id_snd", Identifier.to_fexpr id_snd);
-            ("type_fst", Type.to_fexpr type_fst);
-            ("type_snd", Type.to_fexpr type_snd);
-            ("body", to_fexpr body)
+            ("matched" , Identifier.to_fexpr matched);
+            ("id_fst"  , Identifier.to_fexpr id_fst );
+            ("id_snd"  , Identifier.to_fexpr id_snd );
+            ("type_fst", Type.to_fexpr type_fst     );
+            ("type_snd", Type.to_fexpr type_snd     );
+            ("body"    , to_fexpr body              );
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchProduct"
@@ -364,9 +364,9 @@ let rec to_fexpr (statement : t) : FExpr.t =
     | MatchBool { condition; when_true; when_false } -> begin
         let keyword =
           [
-            ("condition", Identifier.to_fexpr condition);
-            ("when_true", to_fexpr when_true);
-            ("when_false", to_fexpr when_false);
+            ("condition" , Identifier.to_fexpr condition);
+            ("when_true" , to_fexpr when_true           );
+            ("when_false", to_fexpr when_false          );
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchBool"
@@ -384,9 +384,9 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         let keyword =
           [
-            ("matched", Identifier.to_fexpr matched);
+            ("matched"     , Identifier.to_fexpr matched     );
             ("matched_type", Identifier.to_fexpr matched_type);
-            ("cases", cases')
+            ("cases"       , cases'                          );
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchEnum"
@@ -397,9 +397,9 @@ let rec to_fexpr (statement : t) : FExpr.t =
           let case_to_fexpr (constructor, (identifiers, clause)) =
             let keyword =
               [
-                ("constructor", Identifier.to_fexpr constructor);
-                ("binders", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr identifiers);
-                ("clause", to_fexpr clause);
+                ("constructor", Identifier.to_fexpr constructor                             );
+                ("binders"    , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr identifiers);
+                ("clause"     , to_fexpr clause                                             );
               ]
             in
             FExpr.mk_application ~keyword:keyword "Case"
@@ -411,9 +411,9 @@ let rec to_fexpr (statement : t) : FExpr.t =
         in
         let keyword =
           [
-            ("matched", Identifier.to_fexpr matched);
+            ("matched"     , Identifier.to_fexpr matched     );
             ("matched_type", Identifier.to_fexpr matched_type);
-            ("cases", cases')
+            ("cases"       , cases'                          );
           ]
         in
         FExpr.mk_application ~keyword "Stm:MatchVariant"
@@ -428,8 +428,8 @@ let rec to_fexpr (statement : t) : FExpr.t =
     =
     let keyword =
       [
-        ("function_id", Identifier.to_fexpr identifier);
-        ("arguments", FExpr.mk_list @@ List.map ~f:Expression.to_fexpr arguments)
+        ("function_id", Identifier.to_fexpr identifier                            );
+        ("arguments"  , FExpr.mk_list @@ List.map ~f:Expression.to_fexpr arguments);
       ]
     in
     FExpr.mk_application ~keyword "Stm:Call"
