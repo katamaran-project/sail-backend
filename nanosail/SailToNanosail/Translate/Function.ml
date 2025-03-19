@@ -1206,6 +1206,9 @@ type sail_function_parts =
   }
 
 
+(*
+   Helper function that extracts all relevant data from Sail's AST.
+*)
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
