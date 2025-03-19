@@ -1513,10 +1513,10 @@ let translate_function_definition
     | [function_clause] -> begin
         let* parts = extract_function_parts function_clause
         in
-        let* function_name          = Identifier.translate_identifier [%here] parts.identifier
-        and* parameters             = translate_parameter_bindings parts.parameter_bindings
-        and* return_type            = translate_return_type parts.return_type
-        and* function_body          = translate_body parts.body parts.return_type
+        let* function_name = Identifier.translate_identifier [%here] parts.identifier
+        and* parameters    = translate_parameter_bindings parts.parameter_bindings
+        and* return_type   = translate_return_type parts.return_type
+        and* function_body = translate_body parts.body parts.return_type
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
