@@ -1307,27 +1307,19 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
   let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
     match (statement : Ast.Statement.t) with
     | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
-        let result_if_no_bitvector_comparison () : Ast.Statement.t =
+        let result : Ast.Statement.t option =
+          (* we found a let-construct in the AST; check if it is a bitvector comparison in A-normalized form *)
+          match binding_statement, body_statement with
+          | Call (f, f_arguments),
             Let {
-              binder;
-              binding_statement_type;
-              binding_statement = rewrite binding_statement;
-              body_statement    = rewrite body_statement;
-            }
-        in          
-        (* we found a let-construct in the AST; check if it is a bitvector comparison in A-normalized form *)
-        match binding_statement, body_statement with
-        | Call (f, f_arguments),
-          Let {
-            binder                 = binder2;
-            binding_statement      = Call (g, g_arguments);
-            binding_statement_type = _;
-            body_statement         = Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _)))
-          } -> begin
-            (* multiple conditions need to be satisfied; relying on option monad to improve readability *)
-            let open Monads.OptionNotation
-            in
-            let result =
+              binder                 = binder2;
+              binding_statement      = Call (g, g_arguments);
+              binding_statement_type = _;
+              body_statement         = Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _)))
+            } -> begin
+              (* multiple conditions need to be satisfied; relying on option monad to improve readability *)
+              let open Monads.OptionNotation
+              in
               (*
                  Determine the signedness of both operands.
                  We only supported signed/signed and unsigned/unsigned comparison.
@@ -1349,6 +1341,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
                 match f_arguments with
                 | [x] -> Some x
                 | _   -> None
+
               and=? g_argument =
                 match g_arguments with
                 | [x] -> Some x
@@ -1396,13 +1389,23 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
                   Ast.Expression.BinaryOperation (Ast.BinaryOperator.BitvectorComparison (signedness, comparison), left_operand, right_operand)
                 end
               end
-            in
-            match result with
-            | Some result -> result
-            | None        -> result_if_no_bitvector_comparison ()
-            
+            end
+          | _ -> None
+        in
+        match result with
+        | Some transformation -> transformation
+        | None -> begin
+            (*
+               The let-construct did not follow pattern
+               We recursively rewrite but leave this let unchanged otherwise
+            *)
+            Let {
+              binder;
+              binding_statement_type;
+              binding_statement = rewrite binding_statement;
+              body_statement    = rewrite body_statement;
+            }
           end
-        | _ -> result_if_no_bitvector_comparison ()
       end
     | Match (MatchList { matched; element_type; when_cons = (head_id, tail_id, when_cons); when_nil }) -> begin
         Match begin
