@@ -1614,7 +1614,7 @@ let translate_function_definition
               TC.return []
             end
           | false, Some _ -> begin
-              (* we encountered a monomorphic function, yet monomorphizations were requested *)
+              (* we encountered a monomorphic function, yet monomorphizations were requested; gently inform user of their foolishness *)
               let* () =
                 let message = lazy begin
                   PP.format "Monomorphization was requested for the monomorphic function %s" (Ast.Identifier.to_string function_name)
