@@ -7,7 +7,6 @@ module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
 module Enums             = Enums
 module Records           = Records
-module ExtendedType      = ExtendedType
 
 
 let pp_type_definition

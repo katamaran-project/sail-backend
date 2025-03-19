@@ -98,20 +98,7 @@ let rec pp_function_definition
               Statements.pp_statement function_definition.function_body
             end
           in
-          let* pp_extended_function_type =
-            GC.pp_annotate [%here] begin
-              Types.ExtendedType.pp_extended_function_type
-                function_definition.function_type
-                function_definition.extended_function_type
-            end
-          in
-          let* () = GC.add_comment begin
-              PP.vertical [
-                PP.string "Extended type";
-                PP.indent pp_extended_function_type
-              ]
-            end
-          and* () =
+          let* () =
             if
               Configuration.(get annotate_functions_with_ast)
             then

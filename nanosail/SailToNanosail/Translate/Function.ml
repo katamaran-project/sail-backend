@@ -1517,7 +1517,6 @@ let translate_function_definition
         and* parameters             = translate_parameter_bindings parts.parameter_bindings
         and* return_type            = translate_return_type parts.return_type
         and* function_body          = translate_body parts.body parts.return_type
-        and* extended_function_type = ExtendedType.determine_extended_type parts.parameter_bindings parts.return_type
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
@@ -1662,7 +1661,6 @@ let translate_function_definition
                       parameters  = substituted_parameters;
                       return_type = substituted_return_type;
                     };
-                    extended_function_type; (* todo should also be updated *)
                     function_body = substituted_function_body;
                     polymorphic   = false;
                     monomorphs    = [];
@@ -1714,7 +1712,6 @@ let translate_function_definition
             parameters;
             return_type;
           };
-          extended_function_type;
           function_body;
           polymorphic = is_function_polymorphic;
           monomorphs;

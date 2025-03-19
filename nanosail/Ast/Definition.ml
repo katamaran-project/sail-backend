@@ -45,7 +45,6 @@ module Function = struct
     {
       function_name          : Identifier.t;
       function_type          : FunctionType.t;
-      extended_function_type : ExtendedFunctionType.t;
       function_body          : Statement.t;
       polymorphic            : bool;
       monomorphs             : t list;
