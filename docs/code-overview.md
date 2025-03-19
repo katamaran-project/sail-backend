@@ -27,8 +27,7 @@ This top level logic resides in the `sail_plugin` project.
 The `Ast` module contains all definitions related to the nanosail intermediate language.
 
 
-
-## Sail to nanosail
+## Sail to Nanosail
 
 
 
