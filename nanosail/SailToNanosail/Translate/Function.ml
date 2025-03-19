@@ -1229,11 +1229,102 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
      end
 
 
+let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.t =
+  let rec rewrite (statement : Ast.Statement.t) : Ast.Statement.t =
+    match (statement : Ast.Statement.t) with
+    | Match (MatchList { matched; element_type; when_cons = (head_id, tail_id, when_cons); when_nil }) -> begin
+        Match begin
+          MatchList {
+            matched;
+            element_type;
+            when_cons = (head_id, tail_id, rewrite when_cons);
+            when_nil  = rewrite when_nil;
+          }
+        end
+      end
+    | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
+        Match begin
+          MatchProduct {
+            matched;
+            type_fst;
+            type_snd;
+            id_fst;
+            id_snd;
+            body = rewrite body;
+          }
+        end
+      end
+    | Match (MatchTuple { matched; binders; body }) -> begin
+        Match begin
+          MatchTuple {
+            matched;
+            binders;
+            body = rewrite body;
+          }
+        end
+      end
+    | Match (MatchBool { condition; when_true; when_false }) -> begin
+        Match begin
+          MatchBool {
+            condition;
+            when_true  = rewrite when_true;
+            when_false = rewrite when_false;
+          }
+        end
+      end
+    | Match (MatchEnum { matched; matched_type; cases }) -> begin
+        Match begin
+          MatchEnum {
+            matched;
+            matched_type;
+            cases = Ast.Identifier.Map.map_values ~f:rewrite cases
+          }
+        end
+      end
+    | Match (MatchVariant { matched; matched_type; cases }) -> begin
+        Match begin
+          MatchVariant {
+            matched;
+            matched_type;
+            cases = Ast.Identifier.Map.map_values ~f:(fun (ids, b) -> (ids, rewrite b)) cases;
+          }
+        end
+      end
+    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+        Let {
+          binder;
+          binding_statement_type;
+          binding_statement = rewrite binding_statement;
+          body_statement    = rewrite body_statement;
+        }
+      end
+    | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
+        DestructureRecord {
+          record_type_identifier;
+          field_identifiers;
+          binders;
+          destructured_record = rewrite destructured_record;
+          body                = rewrite body;
+        }
+      end
+    | Expression _          -> statement
+    | Call (_, _)           -> statement
+    | Seq (left, right)     -> Seq (rewrite left, rewrite right)
+    | ReadRegister _        -> statement
+    | WriteRegister _       -> statement
+    | Cast (statement, typ) -> Cast (rewrite statement, typ)
+    | Fail (_, _)           -> statement
+  in
+  rewrite statement
+
+
 let translate_body
     (body      : S.typ S.aexp)
     (body_type : S.typ       ) : Ast.Statement.t TC.t
   =
-  statement_of_aexp (Some body_type) body
+  let* translation = statement_of_aexp (Some body_type) body
+  in
+  TC.return @@ rewrite_bitvector_comparisons translation
 
 
 let translate_function_definition
