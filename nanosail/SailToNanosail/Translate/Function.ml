@@ -857,15 +857,19 @@ let rec statement_of_aexp
         end
     in
 
+    let statement_of_comparison (comparison : Ast.BinaryOperator.Comparison.t) : Ast.Statement.t TC.t =
+      statement_of_binary_operation @@ StandardComparison comparison
+    in
+
     match Ast.Identifier.to_string receiver_identifier' with
     | "sail_cons" -> statement_of_binary_operation Cons
     | "add_atom"  -> statement_of_binary_operation Plus
     | "sub_atom"  -> statement_of_binary_operation Minus
     | "mult_atom" -> statement_of_binary_operation Times
-    | "lt_int"    -> statement_of_binary_operation @@ StandardComparison LessThan
-    | "lteq_int"  -> statement_of_binary_operation @@ StandardComparison LessThanOrEqualTo
-    | "gt_int"    -> statement_of_binary_operation @@ StandardComparison GreaterThan
-    | "gteq_int"  -> statement_of_binary_operation @@ StandardComparison GreaterThanOrEqualTo
+    | "lt_int"    -> statement_of_comparison LessThan
+    | "lteq_int"  -> statement_of_comparison LessThanOrEqualTo
+    | "gt_int"    -> statement_of_comparison GreaterThan
+    | "gteq_int"  -> statement_of_comparison GreaterThanOrEqualTo
     | "eq_int"    -> statement_of_binary_operation EqualTo
     | "neq_int"   -> statement_of_binary_operation NotEqualTo
     | _           -> statement_of_function_call ()
