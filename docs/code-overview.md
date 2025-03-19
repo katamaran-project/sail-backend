@@ -15,13 +15,10 @@ See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
 ## Translation Overview
 
-The translation takes place in three phases:
+The translation takes place in two phases:
 
-* The configuration file is read.
 * Sail is translated into nanosail, an intermediate language bridging Sail and muSail.
-* Nanosail is translated into muSail.
-  This is done using templates: the user provides a number of template files,
-  which specify which translations belong where.
+* Nanosail is translated into muSail: user-provided templates describe which translation belongs where in which file.
 
 This top level logic resides in the `sail_plugin` project.
 
