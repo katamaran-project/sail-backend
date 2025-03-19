@@ -1,3 +1,7 @@
+(*
+   Signedness is used in the context of bitvector comparisons:
+   bitvectors can be interpreted as either signed or unsigned integers.
+*)
 module Signedness = struct
   type t =
     | Signed

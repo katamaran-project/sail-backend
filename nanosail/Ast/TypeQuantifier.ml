@@ -1,4 +1,4 @@
-open! ExtBase
+open ExtBase
 
 
 type t = TypeQuantifier of (Identifier.t * Kind.t) list

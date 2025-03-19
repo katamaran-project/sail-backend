@@ -9,6 +9,14 @@ include Recursive
 *)
 module AstType = Type
 
+
+(*
+   The FunctionType does not include type quantifiers, i.e., the forall part of a function's type.
+   As far as we can tell, this information is not made available by Sail, at least not through function definitions.
+   There are top level type constraints, however, and they do provide us with type quantifiers.
+   In other words, in order to get full typing information about a function,
+   one needs to look for the corresponding top level type constraint.
+*)
 module FunctionType = struct
   type t =
     {
@@ -43,11 +51,11 @@ end
 module Function = struct
   type t =
     {
-      function_name          : Identifier.t;
-      function_type          : FunctionType.t;
-      function_body          : Statement.t;
-      polymorphic            : bool;
-      monomorphs             : t list;
+      function_name : Identifier.t;
+      function_type : FunctionType.t;
+      function_body : Statement.t;
+      polymorphic   : bool;
+      monomorphs    : t list;         (* list of monomorphized variants of the function *)
     }
 
   let rec to_fexpr (function_definition : t) : FExpr.t =
@@ -78,6 +86,11 @@ module Function = struct
 end
 
 
+(*
+   Untranslated definitions are still being kept track of using this data structure.
+   An untranslated definition is the result of an error occurring during
+   the translation of the origin Sail definition in a corresponding nanosail definition.
+*)
 module Untranslated = struct
   type t =
     {
@@ -95,10 +108,10 @@ module Untranslated = struct
     in
     let keyword =
       [
-        ("filename", FExpr.mk_string untranslated_definition.filename);
-        ("line_number", FExpr.mk_int untranslated_definition.line_number);
+        ("filename"     , FExpr.mk_string untranslated_definition.filename                                );
+        ("line_number"  , FExpr.mk_int untranslated_definition.line_number                                );
         ("sail_location", FExpr.mk_string @@ Sail.string_of_location untranslated_definition.sail_location);
-        ("message", message')
+        ("message"      , message'                                                                        );
       ]
     in
     FExpr.mk_application ~keyword "Def:Untranslated"
