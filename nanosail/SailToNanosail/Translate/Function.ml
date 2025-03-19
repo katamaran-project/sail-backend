@@ -1486,7 +1486,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
 
 
 (*
-   Tranlates a function's body.
+   Translates a function's body.
 *)
 let translate_body
     (body      : S.typ S.aexp)
