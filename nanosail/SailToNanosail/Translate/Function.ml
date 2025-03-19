@@ -702,11 +702,13 @@ let rec statement_of_aexp
     let statement_of_binary_operation (operator : Ast.BinaryOperator.t) : Ast.Statement.t TC.t =
       match argument_expressions with
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
-      | _      -> TC.fail [%here] "binary operation should have 2 arguments"
+      | _      -> TC.fail [%here] "binary operation should have exactly two arguments"
     in
+    
     let statement_of_comparison (comparison : Ast.BinaryOperator.Comparison.t) : Ast.Statement.t TC.t =
       statement_of_binary_operation @@ StandardComparison comparison
     in
+    
     let statement_of_function_call () =
       (*
         Sail translates the construction of a variant type to a function call.
