@@ -366,9 +366,9 @@ let pp_match_pair
     List.map ~f:(Fn.compose fst fst) cases
   in
   let left_patterns_max_width =
-    Option.value
-      ~default:0
-      (List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose fst PP.measure) left_patterns)
+    Option.value ~default:0 begin
+      List.max_elt ~compare:Int.compare @@ List.map ~f:(Fn.compose fst PP.measure) left_patterns
+    end
   in
   let aligned_cases =
     List.map cases ~f:(fun ((left, right), expression) ->
