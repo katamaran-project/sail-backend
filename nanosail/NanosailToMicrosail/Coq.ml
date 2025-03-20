@@ -301,6 +301,13 @@ let pp_definition
   end
 
 
+(*
+   match expression with
+   | case_pattern_1 => case_expression_1
+   | case_pattern_2 => case_expression_2
+   ...
+   end[%scope]?
+*)
 let pp_match
     ?(scope     : PP.t option        = None)
     (expression : PP.t                     )
