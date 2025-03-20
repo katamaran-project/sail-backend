@@ -128,7 +128,7 @@ end = struct
             match type_argument with
             | Type _              -> TC.fail [%here] "atom_bools expected to have a constraint as argument, not a numeric expression"
             | NumericExpression _ -> TC.fail [%here] "atom_bools expected to have a constraint as argument, not a numeric expression"
-            | Bool _              -> TC.return Ast.Type.Bool
+            | Bool _              -> TC.return Ast.Type.Bool  (* todo keep track of constraint if the need arises *)
           end
         | _     -> TC.fail [%here] "atom_bool expected to have exactly one argument"
 
