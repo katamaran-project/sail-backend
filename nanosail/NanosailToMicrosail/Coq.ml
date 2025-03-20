@@ -461,9 +461,15 @@ let pp_require
   end
 
 
-let pp_imports (names : string list) : PP.t =
+(*
+   Import library_1
+          library_2
+          ...
+          library_n.
+*)
+let pp_imports (libraries : string list) : PP.t =
   PP.annotate [%here] begin
-    PP.(pp_sentence @@ hanging (string "Import " :: List.map ~f:string names))
+    PP.(pp_sentence @@ hanging (string "Import " :: List.map ~f:string libraries))
   end
 
 
