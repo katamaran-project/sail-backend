@@ -40,7 +40,7 @@ module FunctionType = struct
     in
     let keyword =
       [
-        ("parameters", parameters');
+        ("parameters" , parameters' );
         ("return_type", return_type');
       ]
     in
@@ -185,9 +185,9 @@ module Type = struct
 
       let keyword =
         [
-          ("identifier", Identifier.to_fexpr variant_definition.identifier);
-          ("type_quantifier", TypeQuantifier.to_fexpr variant_definition.type_quantifier);
-          ("constructors", FExpr.mk_list @@ List.map ~f:constructor_to_fexpr variant_definition.constructors);
+          ("identifier"     , Identifier.to_fexpr variant_definition.identifier                                );
+          ("type_quantifier", TypeQuantifier.to_fexpr variant_definition.type_quantifier                       );
+          ("constructors"   , FExpr.mk_list @@ List.map ~f:constructor_to_fexpr variant_definition.constructors);
         ]
       in
       FExpr.mk_application ~keyword "Def:Type:Variant"
@@ -203,8 +203,8 @@ module Type = struct
     let to_fexpr (enum_definition : t) : FExpr.t =
       let keyword =
         [
-          ("identifier", Identifier.to_fexpr enum_definition.identifier);
-          ("cases", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr enum_definition.cases);
+          ("identifier", Identifier.to_fexpr enum_definition.identifier                        );
+          ("cases"     , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr enum_definition.cases);
         ]
       in
       FExpr.mk_application ~keyword "Def:Type:Enum"
@@ -225,16 +225,16 @@ module Type = struct
         let keyword =
           [
             ("identifier", Identifier.to_fexpr field_identifier);
-            ("type", AstType.to_fexpr field_type);
+            ("type"      , AstType.to_fexpr field_type         );
           ]
         in
         FExpr.mk_application ~keyword "Field"
       in
       let keyword =
         [
-          ("identifier", Identifier.to_fexpr record_definition.identifier);
-          ("type_quantifier", TypeQuantifier.to_fexpr record_definition.type_quantifier);
-          ("fields", FExpr.mk_list @@ List.map ~f:fexpr_of_field record_definition.fields);
+          ("identifier"     , Identifier.to_fexpr record_definition.identifier                    );
+          ("type_quantifier", TypeQuantifier.to_fexpr record_definition.type_quantifier           );
+          ("fields"         , FExpr.mk_list @@ List.map ~f:fexpr_of_field record_definition.fields);
         ]
       in
       FExpr.mk_application ~keyword "Def:Type:Record"
@@ -259,7 +259,7 @@ module Type = struct
             let keyword =
               [
                 ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
-                ("expression", Numeric.Expression.to_fexpr expression);
+                ("expression"     , Numeric.Expression.to_fexpr expression );
               ]
             in
             FExpr.mk_application ~keyword "NE"
@@ -268,7 +268,7 @@ module Type = struct
             let keyword =
               [
                 ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
-                ("constraint", Numeric.Constraint.to_fexpr constr);
+                ("constraint"     , Numeric.Constraint.to_fexpr constr     );
               ]
             in
             FExpr.mk_application ~keyword "NC"
@@ -277,7 +277,7 @@ module Type = struct
             let keyword =
               [
                 ("type_quantifier", TypeQuantifier.to_fexpr type_quantifier);
-                ("type", AstType.to_fexpr aliased_type);
+                ("type"           , AstType.to_fexpr aliased_type          );
               ]
             in
             FExpr.mk_application ~keyword "Alias"
@@ -366,7 +366,7 @@ module Value = struct
     let keyword =
       [
         ("identifier", Identifier.to_fexpr value_definition.identifier);
-        ("value", Value.to_fexpr value_definition.value);
+        ("value"     , Value.to_fexpr value_definition.value          );
       ]
     in
     FExpr.mk_application ~keyword "Def:Value"
