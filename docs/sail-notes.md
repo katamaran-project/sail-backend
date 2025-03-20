@@ -22,6 +22,7 @@ Sail does not make a distinction between expressions and statements, whereas muS
 * Reading a register in Sail is no different from reading a variable, but is its own statement in muSail.
 * Function calls are statements in muSail.
 * `let x = s1 in s2` is a statement, with `s1` and `s2` also statements.
+* ...
 
 For example,
 
@@ -34,7 +35,25 @@ function bar () =
   foo(r1) + foo(r2)
 ```
 
-becomes
+needs to become
+
+```ocaml
+# Pseudocode
+function bar () =
+  let gen1 = 
+    let gen2 = read_register r1
+    in
+    foo(gen2)
+  in
+  let gen3 =
+    let gen4 = read_register r2
+    in
+    foo(gen4)
+  in
+  gen1 + gen3
+```
+
+or, in actual muSail,
 
 ```coq
 Definition fun_bar : Stm [
@@ -56,8 +75,12 @@ During the translation of Sail to muSail, we heavily rely
 on `let` constructs as well as muSail's `stm_exp`,
 which lifts expression up into the statement world.
 
-During
+The translation of expressions to statements 
 
 ## Type of Assignment
 
 ## Generated Ast Module
+
+## Full Type of Functions
+
+To be found in top level type constraints, but apparently not in functions themselves
