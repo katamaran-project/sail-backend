@@ -120,7 +120,7 @@ end = struct
             | Type _ -> TC.fail [%here] "atoms expected to have a numeric expression as argument, not a type"
             | Bool _ -> TC.fail [%here] "atoms expected to have a numeric expression as argument, not a constraint"
           end
-        | _     -> TC.fail [%here] "atom expected to have exactly one argument"
+        | _ -> TC.fail [%here] "atom expected to have exactly one argument"
 
       and nanotype_of_atom_bool (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
@@ -130,7 +130,7 @@ end = struct
             | NumericExpression _ -> TC.fail [%here] "atom_bools expected to have a constraint as argument, not a numeric expression"
             | Bool _              -> TC.return Ast.Type.Bool  (* todo keep track of constraint if the need arises *)
           end
-        | _     -> TC.fail [%here] "atom_bool expected to have exactly one argument"
+        | _ -> TC.fail [%here] "atom_bool expected to have exactly one argument"
 
       and nanotype_of_range (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         match args with
