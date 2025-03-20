@@ -106,6 +106,12 @@ let add_comments
   end
 
 
+(*
+   func arg1
+        arg2
+        ...
+        argn
+*)
 let pp_hanging_application
     (func      : PP.t     )
     (arguments : PP.t list) : PP.t
@@ -115,6 +121,9 @@ let pp_hanging_application
   end
 
 
+(*
+   [item1;item2;...;itemn]
+*)
 let pp_list_using_notation (items : PP.t list) : PP.t =
   if
     List.is_empty items
@@ -131,6 +140,12 @@ let pp_list_using_notation (items : PP.t list) : PP.t =
     end
 
 
+(*
+   (cons (item1)
+         (cons (item2)
+               (cons (item3)
+                     nil)))
+*)
 let pp_list_using_cons (items : PP.t list) : PP.t =
   let rec pp items =
     match items with
@@ -142,6 +157,9 @@ let pp_list_using_cons (items : PP.t list) : PP.t =
   end
 
 
+(*
+   Pretty prints list using cons or [] notation depending on value of use_notation
+*)
 let pp_list
       ?(use_notation : bool = true)
       (items         : PP.t list  ) : PP.t
@@ -163,6 +181,11 @@ let pp_product
   end
 
 
+(*
+   Section identifier.
+     contents
+   End identifier.
+*)
 let pp_section
     (identifier : PP.t)
     (contents   : PP.t) : PP.t
