@@ -433,7 +433,7 @@ let pp_string (value : string) =
 let pp_require
     ?(from     : string option      = None)
     ?(mode     : module_mode option = None)
-    (libraries : string list              )
+    (libraries : string list              ) : PP.t
   =
   let from_words =
     match from with
@@ -461,7 +461,7 @@ let pp_require
   end
 
 
-let pp_imports names =
+let pp_imports (names : string list) : PP.t =
   PP.annotate [%here] begin
     PP.(pp_sentence @@ hanging (string "Import " :: List.map ~f:string names))
   end
