@@ -117,8 +117,8 @@ end = struct
         | [ type_argument ] -> begin
             match type_argument with
             | NumericExpression numeric_expression -> TC.return @@ Ast.Type.Int (Some numeric_expression)
-            | Type _ -> TC.not_yet_implemented [%here] location
-            | Bool _ -> TC.not_yet_implemented [%here] location
+            | Type _ -> TC.fail [%here] "atoms expected to have numeric expressions as arguments, not types"
+            | Bool _ -> TC.fail [%here] "atoms expected to have numeric expressions as arguments, not constraints"
           end
         | _     -> TC.fail [%here] "atom expected to have exactly one argument"
 
