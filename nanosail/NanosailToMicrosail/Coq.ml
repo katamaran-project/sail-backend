@@ -209,6 +209,11 @@ type module_flag =
   | NoFlag
 
 
+(*
+   Module [Import|Export|] identifier [<: includes].
+     contents
+   End identifier.
+*)
 let pp_module
     ?(flag      : module_flag = NoFlag)
     ?(includes  : string list = []    )
