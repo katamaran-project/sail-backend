@@ -1,3 +1,6 @@
+(*
+   This module provides functions to replace identifiers by other identifiers in statements and expressions.
+*)
 open ExtBase
 
 
@@ -73,8 +76,7 @@ let rename (identifier : Identifier.t) : Identifier.t Monad.t =
     return @@ renamer identifier
 
 
-let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t
-  =
+let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t =
   match expression with
   | Variable (identifier, typ) -> begin
       let* identifier = rename identifier
