@@ -210,7 +210,7 @@ type module_flag =
 
 
 (*
-   Module [Import|Export|] identifier [<: includes]*.
+   Module [Import|Export|] identifier [<: module_type]*.
      contents
    End identifier.
 *)
