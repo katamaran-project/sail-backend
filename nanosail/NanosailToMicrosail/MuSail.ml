@@ -7,6 +7,9 @@ open ExtBase
 
 
 module Value = struct
+  let pp_integer (value : Z.t) : PP.t =
+    Coq.pp_z_integer value
+  
   let pp_bit (value : bool) : PP.t =
     Coq.pp_bool value
 
