@@ -1,4 +1,9 @@
-open! ExtBase
+(*
+
+   Contains functionality to generate muSail output.
+
+*)
+open ExtBase
 
 
 module Value = struct
