@@ -248,6 +248,10 @@ let pp_module
   end
 
 
+(*
+   Definition identifier [implicit_parameter : implicit_parameter_type?]* [parameter : parameter_type]* [: result_type]? :=
+     body.
+*)
 let pp_definition
       ~(identifier          : PP.t                                 )
       ?(implicit_parameters : (PP.t * PP.t option) list = []       )
