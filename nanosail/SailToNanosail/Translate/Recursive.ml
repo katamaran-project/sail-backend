@@ -99,10 +99,6 @@ end = struct
       and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =
         (*
            itself(x) seems to be a singleton type, e.g., itself(50) has as sole value 50.
-
-           todo probably needs to return Ast.Type.Int in all cases
-           for now, it's left unimplemented in cases so as to catch more occurrences in the wild
-           to give us confirmation
         *)
         match args with
         | [ type_argument ] -> begin
