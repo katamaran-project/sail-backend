@@ -378,12 +378,15 @@ let pp_match_pair matched_expressions cases =
 
    Put inside parentheses if necessary (i.e., if <value> is negative)
 *)
-let pp_integer value =
+let pp_integer (value : Z.t) : PP.t =
   let pp_i =
     PP.string @@ Big_int.to_string value ^ "%Z"
   in
-  if
+  let requires_parentheses =
     Big_int.less value Z.zero
+  in
+  if
+    requires_parentheses
   then
     PP.annotate [%here] @@ PP.(surround parens) pp_i
   else
