@@ -358,7 +358,10 @@ let pp_match
   end
 
 
-let pp_match_pair matched_expressions cases =
+let pp_match_pair
+    (matched_expressions : PP.t * PP.t                )
+    (cases               : ((PP.t * PP.t) * PP.t) list) : PP.t
+  =
   let left_patterns =
     List.map ~f:(Fn.compose fst fst) cases
   in
