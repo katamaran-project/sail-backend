@@ -63,8 +63,6 @@ module Function = struct
       Identifier.to_fexpr function_definition.function_name
     and function_type' =
       FunctionType.to_fexpr function_definition.function_type
-    and extended_function_type' =
-      FExpr.mk_string "TODO"
     and function_body' =
       Statement.to_fexpr function_definition.function_body
     and polymorphic' =
@@ -76,7 +74,6 @@ module Function = struct
       [
         ("name"         , function_name'         );
         ("type"         , function_type'         );
-        ("extended_type", extended_function_type');
         ("body"         , function_body'         );
         ("polymorphic"  , polymorphic'           );
         ("monomorphs"   , monomorphs'            );
