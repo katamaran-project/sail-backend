@@ -103,11 +103,20 @@ let rec pp_function_definition
               Configuration.(get annotate_functions_with_ast)
             then
               GC.add_comment begin
-                PP.vertical [
-                  PP.string "AST";
-                  PP.indent @@ PP.undecorate @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
-                ]
-              end
+                PP.vertical begin
+                  ExtBase.List.build_list @@ fun { add; _ } -> begin
+                    match type_constraint with
+                    | Some (_sail_type_constraint, nanosail_type_constraint) -> begin
+                        add @@ PP.string "Top Level Type Constraint";
+                        add @@ PP.indent @@ PP.undecorate @@ FExpr.pp @@ Ast.Definition.TopLevelTypeConstraint.to_fexpr nanosail_type_constraint;
+                        add @@ PP.string "";
+                      end
+                    | None -> ()
+                    end;
+                    add @@ PP.string "AST";
+                    add @@ PP.indent @@ PP.undecorate @@ FExpr.pp @@ Ast.Definition.Function.to_fexpr function_definition
+                  end
+                end
             else
               GC.return ()
           in
