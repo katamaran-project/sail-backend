@@ -473,18 +473,22 @@ let pp_imports (libraries : string list) : PP.t =
   end
 
 
-let pp_open_scopes scopes =
-  let open_scope scope =
+(*
+   Local Open Scope scope.
+*)
+let pp_open_scope (scope : string) : PP.t =
+  PP.annotate [%here] begin
     PP.(
       pp_sentence @@ separate_horizontally ~separator:space [
         string "Local Open Scope";
         string scope;
       ]
     )
-  in
-  PP.annotate [%here] begin
-    PP.(vertical @@ List.map ~f:open_scope scopes)
   end
+
+
+let pp_open_scopes scopes =
+  PP.(vertical @@ List.map ~f:pp_open_scope scopes)
 
 
 let pp_record_value (fields : (PP.t * PP.t) list) : PP.t =
