@@ -74,7 +74,7 @@ let pp_program_module
     and identifier      = Configuration.(get program_name)
     and base_identifier = Configuration.(get base_name)
     in
-    let includes        = [ "Program"; base_identifier ]
+    let module_types    = [ PP.separate_horizontally ~separator:PP.space [ PP.string "Program"; PP.string base_identifier ] ]
     in
     let* contents =
       let* function_declaration_kit =
@@ -102,9 +102,9 @@ let pp_program_module
         PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
       ]
     in
-    GC.return @@ PP.annotate [%here] @@  Coq.pp_module
-      ~flag:flag
-      ~includes:includes
+    GC.return @@ PP.annotate [%here] @@ Coq.pp_module
+      ~flag
+      ~module_types
       identifier
       contents
   end

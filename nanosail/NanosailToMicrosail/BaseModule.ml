@@ -1083,7 +1083,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   begin
     let base_module_name = Configuration.(get base_name)
     and flag             = Coq.Export
-    and includes         = [ "Base" ]
+    and module_types     = [ PP.string "Base" ]
     in
     let* contents =
       let* sections = GC.sequence [
@@ -1114,6 +1114,6 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       GC.return @@ PP.paragraphs sections
     in
     GC.pp_annotate [%here] begin
-      GC.return @@ Coq.pp_module ~flag ~includes base_module_name contents
+      GC.return @@ Coq.pp_module ~flag ~module_types base_module_name contents
     end
   end

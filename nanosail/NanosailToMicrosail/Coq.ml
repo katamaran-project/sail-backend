@@ -210,16 +210,19 @@ type module_flag =
 
 
 (*
-   Module [Import|Export|] identifier [<: includes].
+   Module [Import|Export|] identifier [<: includes]*.
      contents
    End identifier.
 *)
 let pp_module
-    ?(flag      : module_flag = NoFlag)
-    ?(includes  : string list = []    )
-    (identifier : string              )
-    (contents   : PP.t                ) : PP.t
+    ?(flag         : module_flag = NoFlag)
+    ?(module_types : PP.t list   = []    )
+    (identifier    : string              )
+    (contents      : PP.t                ) : PP.t
   =
+  let pp_module_type (module_type : PP.t) : PP.t =
+    PP.separate_horizontally ~separator:PP.space [ PP.string "<:"; module_type ]
+  in  
   let first_line =
     PP.annotate [%here] @@ PP.(
       pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
@@ -231,11 +234,7 @@ let pp_module
             | NoFlag -> ()
           end;
           add @@ string identifier;
-          if not (List.is_empty includes)
-          then begin
-            add @@ string "<:";
-            addall @@ List.map ~f:string includes
-          end;
+          addall @@ List.map ~f:pp_module_type module_types;
         )
     )
   and last_line =
