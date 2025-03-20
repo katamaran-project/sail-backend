@@ -11,4 +11,4 @@ val info        : t
 val debug       : t
 val default     : t
 
-val to_message  : t -> PP.document
+val to_message  : t -> PP.t

@@ -61,7 +61,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
 
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
-  let pp_sail_definition : PP.document =
+  let pp_sail_definition : PP.t =
     PP.from_multiline_string @@ StringOf.Sail.definition sail_definition
   in
   let label =

@@ -12,7 +12,7 @@ end
 let enums_inductive_type_identifier = Ast.Identifier.mk "Enums"
 
 
-let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.document GC.t =
+let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.t GC.t =
   GC.generation_block [%here] "Enum Definition" begin
     let identifier = Identifier.pp enum_definition.identifier
     and typ = Identifier.pp @@ Ast.Identifier.mk "Set"
@@ -23,7 +23,7 @@ let pp_enum_definition (enum_definition : Ast.Definition.Type.Enum.t) : PP.docum
   end
 
 
-let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : PP.document GC.t =
+let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Type.Enum.t) list) : PP.t GC.t =
   let enum_definitions =
     Ast.Definition.Select.drop_sail_definitions enum_definitions
   in

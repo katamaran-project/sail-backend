@@ -19,9 +19,9 @@ end = struct
   include Configuration
   
   let log
-      (level          : VerbosityLevel.t  )
-      (ocaml_position : Lexing.position   )
-      (message        : PP.document lazy_t) : unit
+      (level          : VerbosityLevel.t)
+      (ocaml_position : Lexing.position )
+      (message        : PP.t lazy_t     ) : unit
     =
     if
       VerbosityLevel.should_show ~filter_level:(verbosity_level ()) ~message_level:level

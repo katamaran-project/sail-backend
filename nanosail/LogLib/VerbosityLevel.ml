@@ -16,7 +16,7 @@ let to_decoration (verbosity_level : t) : AnsiColor.Decoration.t list =
   | 3 -> [ AnsiColor.Decoration.ForegroundColor AnsiColor.Color.Green ]
   | _ -> [ ]
 
-let to_message (verbose_level : t) : PP.document =
+let to_message (verbose_level : t) : PP.t =
   PP.decorate (to_decoration verbose_level) (PP.string @@ to_string verbose_level)
 
 let of_int (n : int) : t = n

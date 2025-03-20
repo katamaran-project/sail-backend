@@ -7,27 +7,27 @@ val fail    : Lexing.position -> string -> 'a t
 val recover : 'a t -> (string -> 'a t) -> 'a t
 val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
-val generate            : Ast.Program.t -> PP.document t -> PP.document
-val block               : PP.document t -> PP.document t
-val add_annotation      : PP.document -> int t
-val add_comment         : PP.document -> unit t
-val not_yet_implemented : ?message : string -> Lexing.position -> PP.document t
-val generation_block    : Lexing.position -> string -> PP.document t -> PP.document t
-val pp_annotate         : Lexing.position -> PP.document t -> PP.document t
-val pp_annotate'        : Lexing.position -> string -> PP.document t -> PP.document t
+val generate            : Ast.Program.t -> PP.t t -> PP.t
+val block               : PP.t t -> PP.t t
+val add_annotation      : PP.t -> int t
+val add_comment         : PP.t -> unit t
+val not_yet_implemented : ?message : string -> Lexing.position -> PP.t t
+val generation_block    : Lexing.position -> string -> PP.t t -> PP.t t
+val pp_annotate         : Lexing.position -> PP.t t -> PP.t t
+val pp_annotate'        : Lexing.position -> string -> PP.t t -> PP.t t
 
 (* todo move this elsewhere *)
 val pp_inductive_type :
-  PP.document ->
-  ?parameters : (PP.document * PP.document) list ->
-  PP.document ->
-  ((?parameters:PP.document -> ?typ:PP.document -> PP.document -> unit t) -> 'a t) ->
-  PP.document t
+  PP.t ->
+  ?parameters : (PP.t * PP.t) list ->
+  PP.t ->
+  ((?parameters:PP.t -> ?typ:PP.t -> PP.t -> unit t) -> 'a t) ->
+  PP.t t
 
 val add_original_definition  : Sail.sail_definition -> unit t
 val add_original_definitions : Sail.sail_definition list -> unit t
 
-val log : Lexing.position -> (Lexing.position -> PP.document lazy_t -> unit) -> PP.document lazy_t -> unit t
+val log : Lexing.position -> (Lexing.position -> PP.t lazy_t -> unit) -> PP.t lazy_t -> unit t
 
 val get_program : Ast.Program.t t
 

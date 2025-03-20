@@ -7,12 +7,12 @@ module GC = struct
 end
 
 
-let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
+let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
   (* Tuple of two elements get represented as products *)
   let pp_tuple (subtypes : Ast.Type.t list) =
     let pp_product
         (t1 : Ast.Type.t)
-        (t2 : Ast.Type.t) : PP.document GC.t
+        (t2 : Ast.Type.t) : PP.t GC.t
       =
       let* t1' =
         GC.pp_annotate [%here] @@ pp_nanotype t1
@@ -59,7 +59,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
 
   and pp_application
       (constructor    : Ast.Type.t             )
-      (type_arguments : Ast.TypeArgument.t list) : PP.document GC.t
+      (type_arguments : Ast.TypeArgument.t list) : PP.t GC.t
     =
     let* pp_constructor =
       GC.pp_annotate [%here] @@ pp_nanotype constructor
@@ -74,7 +74,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       end
     end
 
-  and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.document GC.t =
+  and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.t GC.t =
     let* pp_nexpr =
       GC.pp_annotate [%here] @@ Numeric.Expression.pp nexpr
     in
@@ -86,7 +86,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       end
     end
 
-  and pp_enum (identifier : Ast.Identifier.t) : PP.document GC.t =
+  and pp_enum (identifier : Ast.Identifier.t) : PP.t GC.t =
     let tag =
       Identifier.reified_enum_name identifier
     in
@@ -96,7 +96,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       end
     end
 
-  and pp_record (identifier : Ast.Identifier.t) : PP.document GC.t =
+  and pp_record (identifier : Ast.Identifier.t) : PP.t GC.t =
     let tag =
       Identifier.reified_record_name identifier
     in
@@ -106,7 +106,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.document GC.t =
       end
     end
 
-  and pp_variant (identifier : Ast.Identifier.t) : PP.document GC.t =
+  and pp_variant (identifier : Ast.Identifier.t) : PP.t GC.t =
     let tag =
       Identifier.reified_variant_name identifier
     in
@@ -183,7 +183,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   and coq_type_of_application t ts =
     let* t   = GC.pp_annotate [%here] @@ coq_type_of_nanotype t
     and* ts' =
-      let aux (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
+      let aux (type_argument : Ast.TypeArgument.t) : PP.t GC.t =
         GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_type_argument type_argument
       in
       GC.map ~f:aux ts
@@ -221,7 +221,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Vector _            -> GC.not_yet_implemented [%here]
   | Implicit _          -> GC.not_yet_implemented [%here]
 
-and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.document GC.t =
+and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.t GC.t =
   match type_argument with
   | Type t              -> GC.pp_annotate [%here] @@ pp_nanotype t
   | NumericExpression e -> GC.pp_annotate [%here] @@ Numeric.Expression.pp e

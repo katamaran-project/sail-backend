@@ -25,7 +25,7 @@ let pp_function_call_using_configured_syntax
 let report_incorrect_argument_count
     (original_function_name : Ast.Identifier.t )
     (expected_operand_count : int              )
-    (operands               : PP.document list ) : PP.document GC.t
+    (operands               : PP.t list        ) : PP.t GC.t
   =
   let message =
     PP.annotate [%here] @@ PP.string @@ Printf.sprintf
@@ -54,8 +54,8 @@ let report_incorrect_argument_count
 
 let translate_unary_operator
     (original_function_name : Ast.Identifier.t)
-    (operator               : PP.document     )
-    (operands               : PP.document list) : PP.document GC.t
+    (operator               : PP.t            )
+    (operands               : PP.t list       ) : PP.t GC.t
   =
   match operands with
   | [x] -> begin
@@ -73,9 +73,9 @@ let translate_unary_operator
 
 
 let translate_binary_operator_using_infix_notation
-    (original_function_name : Ast.Identifier.t )
-    (operator               : PP.document      )
-    (operands               : PP.document list ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t)
+    (operator               : PP.t            )
+    (operands               : PP.t list       ) : PP.t GC.t
   =
   match operands with
   | [x; y] -> begin
@@ -89,9 +89,9 @@ let translate_binary_operator_using_infix_notation
 
 
 let translate_binary_operator_using_function_notation
-    (original_function_name : Ast.Identifier.t )
-    (operator               : PP.document      )
-    (operands               : PP.document list ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t)
+    (operator               : PP.t            )
+    (operands               : PP.t list       ) : PP.t GC.t
   =
   match operands with
   | [x; y] -> begin
@@ -109,10 +109,10 @@ let translate_binary_operator_using_function_notation
 
 
 let translate_binary_operator
-    (original_function_name : Ast.Identifier.t         )
-    ?(infix                 : PP.document option = None)
-    ?(name                  : PP.document option = None)
-    (operands               : PP.document list         ) : PP.document GC.t
+    (original_function_name : Ast.Identifier.t       )
+    ?(infix                 : PP.t option      = None)
+    ?(name                  : PP.t option      = None)
+    (operands               : PP.t list              ) : PP.t GC.t
   =
   match Configuration.(get pretty_print_binary_operators), infix, name with
   | true , Some infix_operator, _                      -> translate_binary_operator_using_infix_notation original_function_name infix_operator operands
@@ -193,8 +193,8 @@ let extract_compile_time_string (expression : Ast.Expression.t) : string option 
   | _                              -> GC.return None
 
 
-let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t =
-  let pp_zeros (number_of_bits : int) : PP.document GC.t =
+let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.t GC.t =
+  let pp_zeros (number_of_bits : int) : PP.t GC.t =
     GC.pp_annotate [%here] begin
       GC.return begin
         if
@@ -226,7 +226,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.document GC.t 
     end
 
 
-let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_sail_ones (arguments : Ast.Expression.t list) : PP.t GC.t =
   let pp_ones (number_of_bits : int) =
       GC.return begin
         if
@@ -257,7 +257,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.document GC.t =
     end
 
 
-let translate_unit_equality () : PP.document GC.t =
+let translate_unit_equality () : PP.t GC.t =
   GC.pp_annotate [%here] begin
     GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_true ()
   end
@@ -276,12 +276,12 @@ let translate_unit_equality () : PP.document GC.t =
    In order to determine the size of the second bv, we take a look at the type of the first operand,
    which we know it a bitvector.
 *)
-let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "add_bits_int"
   in
   let pp_addition
       (bitvector_argument : Ast.Expression.t)
-      (integer_argument   : Z.t             ) : PP.document GC.t
+      (integer_argument   : Z.t             ) : PP.t GC.t
     =
     (* Start by inferring type of left operand. We know this to be a bitvector, but we need to know its size *)
     match Ast.Expression.infer_type bitvector_argument with
@@ -335,12 +335,12 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.document GC.
 *)
 let translate_shift
     ~(sail_name   : string               )
-    ~(musail_name : PP.document          )
-    ~(arguments   : Ast.Expression.t list) : PP.document GC.t
+    ~(musail_name : PP.t                 )
+    ~(arguments   : Ast.Expression.t list) : PP.t GC.t
   =
   let pp_shift
       (bitvector_argument : Ast.Expression.t)
-      (shift_argument     : Z.t             ) : PP.document GC.t
+      (shift_argument     : Z.t             ) : PP.t GC.t
     =
     let* pp_bitvector_argument =
       let* doc = Expressions.pp_expression bitvector_argument
@@ -375,14 +375,14 @@ let translate_shift
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
-let translate_shift_left (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_shift_left (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name   = "sail_shiftleft"
   and musail_name = PP.string "bop.shiftl"
   in
   GC.pp_annotate [%here] @@ translate_shift ~sail_name ~musail_name ~arguments
 
 
-let translate_shift_right (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_shift_right (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name   = "sail_shiftright"
   and musail_name = PP.string "bop.shiftr"
   in
@@ -392,12 +392,12 @@ let translate_shift_right (arguments : Ast.Expression.t list) : PP.document GC.t
 let translate_extend
     ~(sail_name   : string               )
     ~(musail_name : string               )
-    ~(arguments   : Ast.Expression.t list) : PP.document GC.t
+    ~(arguments   : Ast.Expression.t list) : PP.t GC.t
   =
-  (* "Raw" version of pp_zero_extend that takes arguments in PP.document form *)
+  (* "Raw" version of pp_zero_extend that takes arguments in PP.t form *)
   let pp_zero_extend_raw
-      (bitvector    : PP.document)
-      (new_bit_size : PP.document) : PP.document GC.t
+      (bitvector    : PP.t)
+      (new_bit_size : PP.t) : PP.t GC.t
     =
     GC.pp_annotate [%here] begin
       GC.return begin
@@ -414,7 +414,7 @@ let translate_extend
   in
   let pp_zero_extend
       (bitvector    : Ast.Expression.t)
-      (new_bit_size : int             ) : PP.document GC.t
+      (new_bit_size : int             ) : PP.t GC.t
     =
     let* pp_bitvector =
       let* doc =
@@ -454,21 +454,21 @@ let translate_extend
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
-let translate_zero_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_zero_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "sail_zero_extend"
   and musail_name = "zext"
   in
   translate_extend ~sail_name ~musail_name ~arguments
 
 
-let translate_sign_extend (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_sign_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "sail_sign_extend"
   and musail_name = "sext"
   in
   translate_extend ~sail_name ~musail_name ~arguments
 
 
-let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_assertion (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "sail_assert"
   in
   match arguments with
@@ -489,10 +489,10 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.document GC.t =
   | _ -> GC.fail [%here] @@ Printf.sprintf "expected %s to receive two arguments" sail_name
 
 
-let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "bitvector_concat"
   in
-  let derive_vector_length (expression : Ast.Expression.t) : PP.document GC.t =
+  let derive_vector_length (expression : Ast.Expression.t) : PP.t GC.t =
     match Ast.Expression.infer_type expression with
     | Bitvector (Constant n) -> GC.return @@ PP.string @@ Z.to_string n
     | _                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
@@ -526,15 +526,15 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.d
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
 
 
-let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "subrange_bits"
   in
   match arguments with
   | [bitvector; first_index; second_index] -> begin
       let pp_slice
-          (low_index : PP.document)
-          (length    : PP.document)
-          (bitvector : PP.document) : PP.document GC.t
+          (low_index : PP.t)
+          (length    : PP.t)
+          (bitvector : PP.t) : PP.t GC.t
         =
         translate_unary_operator
           (Ast.Identifier.mk sail_name)
@@ -581,16 +581,16 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.documen
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
-let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP.document GC.t =
+let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "update_subrange_bits"
   in
   match arguments with
   | [bitvector; first_index; second_index; new_bitvector] -> begin
       let pp_slice
-          (low_index : PP.document)
-          (length    : PP.document)
-          (bitvector : PP.document)
-          (new_bitvector : PP.document) : PP.document GC.t
+          (low_index     : PP.t)
+          (length        : PP.t)
+          (bitvector     : PP.t)
+          (new_bitvector : PP.t) : PP.t GC.t
         =
         translate_binary_operator_using_function_notation
           (Ast.Identifier.mk sail_name)
@@ -641,7 +641,7 @@ let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP
 
 let translate
     (function_identifier : Ast.Identifier.t     )
-    (arguments           : Ast.Expression.t list) : PP.document GC.t
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
   =
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments

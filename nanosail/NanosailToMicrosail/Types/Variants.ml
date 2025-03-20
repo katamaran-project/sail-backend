@@ -11,7 +11,7 @@ end
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
-let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
+let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.t GC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
   let inductive_type =
@@ -60,7 +60,7 @@ let derive_constructor_tags (variant_definition : Ast.Definition.Type.Variant.t)
   List.map ~f:Identifier.reified_variant_constructor_name constructor_names
 
 
-let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
+let generate_constructors_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.t GC.t =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and typ        = Identifier.pp @@ Ast.Identifier.mk "Set"
   and tags       = derive_constructor_tags variant_definition
@@ -74,7 +74,7 @@ let generate_constructors_inductive_type (variant_definition : Ast.Definition.Ty
   end
 
 
-let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) : PP.document GC.t =
+let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) : PP.t GC.t =
   GC.generation_block [%here] "Variant Definition" begin
     let* inductive_type =
       generate_inductive_type variant_definition
@@ -85,7 +85,7 @@ let pp_variant_definition (variant_definition : Ast.Definition.Type.Variant.t) :
   end
 
 
-let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : PP.document GC.t =
+let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.Type.Variant.t) list) : PP.t GC.t =
   let variant_definitions =
     Ast.Definition.Select.drop_sail_definitions variant_definitions
   in
@@ -113,9 +113,9 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
 
 
 let generate_tag_match
-    ~(matched_identifier   : Ast.Identifier.t                                                 )
-    ~(variant_definitions  : Ast.Definition.Type.Variant.t list                               )
-    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> (PP.document * PP.document) GC.t) : PP.document GC.t
+    ~(matched_identifier   : Ast.Identifier.t                                   )
+    ~(variant_definitions  : Ast.Definition.Type.Variant.t list                 )
+    ~(variant_case_handler : Ast.Definition.Type.Variant.t -> (PP.t * PP.t) GC.t) : PP.t GC.t
   =
   let* cases = GC.map ~f:variant_case_handler variant_definitions
   in
@@ -123,9 +123,9 @@ let generate_tag_match
 
 
 let generate_constructor_match
-    ~(matched_identifier       : Ast.Identifier.t                                                      )
-    ~(variant_definition       : Ast.Definition.Type.Variant.t                                         )
-    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.document * PP.document) GC.t) : PP.document GC.t
+    ~(matched_identifier       : Ast.Identifier.t                                        )
+    ~(variant_definition       : Ast.Definition.Type.Variant.t                           )
+    ~(constructor_case_handler : Ast.Identifier.t * Ast.Type.t list -> (PP.t * PP.t) GC.t) : PP.t GC.t
   =
   let* cases = GC.map ~f:constructor_case_handler variant_definition.constructors
   in
@@ -163,7 +163,7 @@ let extra_no_confusion_identifiers () =
   [ variants_inductive_type_identifier ]
 
 
-let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) : PP.document =
+let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) : PP.t =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and type_name  = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and values     = List.map ~f:Identifier.pp @@ derive_constructor_tags variant_definition

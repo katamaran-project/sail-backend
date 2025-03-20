@@ -8,7 +8,7 @@ let genblock loc label doc =
   GC.generation_block loc label doc
 
 
-let pp_require_imports () : PP.document =
+let pp_require_imports () : PP.t =
   let coq_imports =
     List.build_list (fun { add; _ } ->
         if Configuration.(get pretty_print_lists) then add "Lists.List";
@@ -25,7 +25,7 @@ let pp_require_imports () : PP.document =
     ])
 
 
-let pp_imports () : PP.document =
+let pp_imports () : PP.t =
   let imports =
     List.build_list (fun { add; _ } ->
         add "ctx.notations";
@@ -38,7 +38,7 @@ let pp_imports () : PP.document =
   PP.annotate [%here] @@ Coq.pp_imports imports
 
 
-let pp_open_scopes () : PP.document =
+let pp_open_scopes () : PP.t =
   let scopes =
     List.build_list (fun { add; _ } ->
         add "string_scope";
@@ -48,11 +48,11 @@ let pp_open_scopes () : PP.document =
   PP.annotate [%here] @@ Coq.pp_open_scopes scopes
 
 
-let pp_import_base () : PP.document =
+let pp_import_base () : PP.t =
   PP.annotate [%here] @@ Coq.pp_imports [ Configuration.(get base_name) ]
 
 
-let generate_program_prelude () : PP.document GC.t =
+let generate_program_prelude () : PP.t GC.t =
   GC.return begin
       PP.annotate [%here] begin
           PP.paragraphs [
@@ -67,7 +67,7 @@ let generate_program_prelude () : PP.document GC.t =
 
 let pp_program_module
       (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
-      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document GC.t
+      (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.t GC.t
   =
   genblock [%here] "Program Module" begin
     let flag            = Coq.Import

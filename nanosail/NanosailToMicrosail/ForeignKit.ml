@@ -4,7 +4,7 @@ open Monads.Notations.Star(GenerationContext)
 module GC = GenerationContext
 
 
-let pp_foreign_kit () : PP.document GC.t =
+let pp_foreign_kit () : PP.t GC.t =
   GC.generation_block [%here] "Foreign Kit" begin
     let title =
       PP.string "ForeignKit"

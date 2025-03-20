@@ -7,7 +7,7 @@ module GC = struct
 end
 
 
-let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.document GC.t =
+let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.t GC.t =
   match binary_operator with
   | Plus                                                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.addition
   | Minus                                                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.subtraction
@@ -33,8 +33,8 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.docu
   | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
 
 
-let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
-  let rec pp_value (value : Ast.Value.t) : PP.document GC.t =
+let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
+  let rec pp_value (value : Ast.Value.t) : PP.t GC.t =
     GC.pp_annotate [%here] begin
         match value with
         | Bool true        -> GC.return @@ MuSail.Expression.pp_true ()
@@ -67,7 +67,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_binary_operation
       (binary_operator : Ast.BinaryOperator.t)
       (left_operand    : Ast.Expression.t    )
-      (right_operand   : Ast.Expression.t    ) : PP.document GC.t
+      (right_operand   : Ast.Expression.t    ) : PP.t GC.t
     =
     let* pp_left_operand  =
       GC.pp_annotate [%here] begin
@@ -110,7 +110,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           end
       end
 
-  and pp_variable (identifier : Ast.Identifier.t) : PP.document GC.t =
+  and pp_variable (identifier : Ast.Identifier.t) : PP.t GC.t =
     GC.return begin
         PP.annotate [%here] begin
             MuSail.Expression.pp_variable @@ Identifier.pp identifier
@@ -119,13 +119,13 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   and pp_unary_operation
       (operator : Ast.UnaryOperator.t)
-      (operand  : Ast.Expression.t   ) : PP.document GC.t
+      (operand  : Ast.Expression.t   ) : PP.t GC.t
     =
     match operator with
     | Neg -> GC.pp_annotate [%here] @@ pp_negation operand
     | Not -> GC.pp_annotate [%here] @@ pp_logical_negation operand
 
-  and pp_negation (operand : Ast.Expression.t) : PP.document GC.t =
+  and pp_negation (operand : Ast.Expression.t) : PP.t GC.t =
     let* pp_operand =
       GC.pp_annotate [%here] begin
           GC.lift ~f:PP.(surround parens) @@ pp_expression operand
@@ -137,7 +137,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           end
       end
 
-  and pp_logical_negation (operand : Ast.Expression.t) : PP.document GC.t =
+  and pp_logical_negation (operand : Ast.Expression.t) : PP.t GC.t =
     let* pp_operand =
       GC.pp_annotate [%here] begin
           GC.lift ~f:PP.(surround parens) @@ pp_expression operand
@@ -149,7 +149,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
           end
       end
 
-  and pp_list (elements : Ast.Expression.t list) : PP.document GC.t =
+  and pp_list (elements : Ast.Expression.t list) : PP.t GC.t =
     let* pp_elements =
       GC.map ~f:pp_expression elements
     in
@@ -166,7 +166,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   and pp_record
       (type_identifier : Ast.Identifier.t     )
-      (fields          : Ast.Identifier.t list) : PP.document GC.t
+      (fields          : Ast.Identifier.t list) : PP.t GC.t
     =
     let pp_record_type =
       PP.annotate [%here] begin
@@ -198,7 +198,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
 
   and pp_enum
         (type_identifier : Ast.Identifier.t)
-        (constructor_identifier : Ast.Identifier.t) : PP.document GC.t
+        (constructor_identifier : Ast.Identifier.t) : PP.t GC.t
     =
     let enum_type =
       PP.annotate [%here] begin
@@ -222,7 +222,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
   and pp_variant
         (type_identifier        : Ast.Identifier.t     )
         (constructor_identifier : Ast.Identifier.t     )
-        (fields                 : Ast.Expression.t list) : PP.document GC.t
+        (fields                 : Ast.Expression.t list) : PP.t GC.t
     =
     let reified_variant_identifier =
       Identifier.reified_variant_name type_identifier
@@ -257,7 +257,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
         pp_fields
       ]
 
-  and pp_tuple (elements : Ast.Expression.t list) : PP.document GC.t =
+  and pp_tuple (elements : Ast.Expression.t list) : PP.t GC.t =
     let* pp_elements =
       GC.map ~f:pp_expression elements
     in
@@ -265,7 +265,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
       (PP.string "exp_tuple")
       [Coq.pp_list pp_elements]
 
-  and pp_bitvector (elements : Ast.Expression.t list) : PP.document GC.t =
+  and pp_bitvector (elements : Ast.Expression.t list) : PP.t GC.t =
     (*
        We currently one support bitvector expressions whose elements are all known at compile-time.
     *)

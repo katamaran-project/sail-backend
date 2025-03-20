@@ -17,7 +17,7 @@ let regname_tag =
 
 
 (* todo improve name *)
-let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.document GC.t =
+let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list) : PP.t GC.t =
   let identifier =
     PP.annotate [%here] @@ PP.string "Reg"
   and typ =
@@ -50,7 +50,7 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
   end
 
 
-let pp_no_confusion_for_reg () : PP.document GC.t =
+let pp_no_confusion_for_reg () : PP.t GC.t =
   GC.generation_block [%here] "No Confusion for Reg" begin
     GC.return begin
       Coq.pp_section (PP.string "TransparentObligations") (
@@ -63,7 +63,7 @@ let pp_no_confusion_for_reg () : PP.document GC.t =
   end
 
 
-let pp_reg_definition () : PP.document GC.t =
+let pp_reg_definition () : PP.t GC.t =
   GC.block begin
       GC.return @@ PP.annotate [%here] @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
     end
@@ -97,7 +97,7 @@ let translate_regname (register_identifier : Ast.Identifier.t) : Ast.Identifier.
   .
 
 *)
-let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
+let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.t GC.t =
   let register_names =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in
@@ -118,13 +118,13 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
       end
 
   and* initial_values =
-    let format_initial_value (initial_value : Ast.Definition.Register.initial_value) : PP.document GC.t =
+    let format_initial_value (initial_value : Ast.Definition.Register.initial_value) : PP.t GC.t =
       match initial_value with
       | NoneSpecified -> GC.return @@ PP.string "<no initial value specified>"
       | Specified value -> ValueDefinitions.pp_value value
       | RawSpecified raw_string -> GC.return @@ PP.horizontal [ PP.string "<raw> "; PP.string raw_string ]
     in
-    let format_register_definition (register_definition : Ast.Definition.Register.t) : (PP.document * PP.document) GC.t =
+    let format_register_definition (register_definition : Ast.Definition.Register.t) : (PP.t * PP.t) GC.t =
       let register_id =
         Identifier.pp register_definition.identifier
       in
@@ -157,7 +157,7 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   end
 
 
-let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.t =
+let pp_instance_reg_eq_dec (register_names : PP.t list) : PP.t GC.t =
   let cases =
     let cs =
       List.map ~f:(fun register_name ->
@@ -214,7 +214,7 @@ let pp_instance_reg_eq_dec (register_names : PP.document list) : PP.document GC.
   end
 
 
-let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
+let pp_reg_finite (register_names : PP.t list) : PP.t GC.t =
   let enum_values =
     let enum_value_of_register_name register_name =
       PP.annotate [%here] @@ Coq.pp_application
@@ -246,7 +246,7 @@ let pp_reg_finite (register_names : PP.document list) : PP.document GC.t =
   end
 
 
-let pp_obligation_tactic () : PP.document GC.t =
+let pp_obligation_tactic () : PP.t GC.t =
   GC.generation_block [%here] "Obligation Tactic" begin
     GC.return begin
       PP.vertical @@ List.map ~f:PP.string [
@@ -257,9 +257,9 @@ let pp_obligation_tactic () : PP.document GC.t =
   end
 
 
-let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
+let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.t GC.t =
   let register_names =
-    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.Register.t) : PP.document =
+    let extract_identifier (pair : Sail.sail_definition * Ast.Definition.Register.t) : PP.t =
       Identifier.pp (snd pair).identifier
     in
     List.map ~f:extract_identifier register_definitions
@@ -293,7 +293,7 @@ let extra_no_confusion_identifiers () : Ast.Identifier.t list =
   [ regname_inductive_type_identifier ]
 
 
-let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.document GC.t =
+let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.t GC.t =
   let register_identifiers =
     List.map ~f:(fun (_, def) -> def.identifier) register_definitions
   in

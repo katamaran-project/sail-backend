@@ -1310,7 +1310,7 @@ let rec build_empty_pattern_tree
         if
           node_count > 100
         then
-          let message : PP.document Lazy.t = lazy begin
+          let message : PP.t Lazy.t = lazy begin
             PP.format "Constructed pattern tree with %d nodes" node_count
           end
           in

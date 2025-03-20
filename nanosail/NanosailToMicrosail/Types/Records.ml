@@ -14,7 +14,7 @@ let derive_constructor_from_identifier identifier =
   Identifier.record_constructor_name identifier
 
 
-let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP.document GC.t =
+let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP.t GC.t =
   GC.generation_block [%here] "Record definition" begin
     let generate_field field_identifier field_type =
       let* field_type' = Nanotype.coq_type_of_nanotype field_type
@@ -56,10 +56,10 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
 
 
 let generate_tag_match
-    ?(scope               : string option                                                   = None)
-    ~(matched_identifier  : Ast.Identifier.t                                                      )
-    ~(record_definitions  : Ast.Definition.Type.Record.t list                                     )
-    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.document * PP.document) GC.t      ) () : PP.document GC.t
+    ?(scope               : string option                                      = None)
+    ~(matched_identifier  : Ast.Identifier.t                                         )
+    ~(record_definitions  : Ast.Definition.Type.Record.t list                        )
+    ~(record_case_handler : Ast.Definition.Type.Record.t -> (PP.t * PP.t) GC.t       ) () : PP.t GC.t
   =
   let scope = Option.map ~f:PP.string scope
   in

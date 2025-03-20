@@ -118,7 +118,7 @@ let rec equal
 
    if the list is empty.
 *)
-let pp_list (items : PP.document list) : PP.document =
+let pp_list (items : PP.t list) : PP.t =
   if
     List.is_empty items
   then
@@ -134,9 +134,9 @@ let pp_list (items : PP.document list) : PP.document =
 
 
 let pp_application
-    (head       : PP.document                     )
-    (positional : PP.document list                )
-    (keyword    : (PP.document * PP.document) list) : PP.document
+    (head       : PP.t              )
+    (positional : PP.t list         )
+    (keyword    : (PP.t * PP.t) list) : PP.t
   =
   if
     List.is_empty positional && List.is_empty keyword
@@ -158,7 +158,7 @@ let pp_application
 (*
    Pretty prints an f-expression.
 *)
-let rec pp (fexpr : t) : PP.document =
+let rec pp (fexpr : t) : PP.t =
   match fexpr with
   | Integer n        -> PP.string @@ Int.to_string n
   | Bool b           -> PP.string @@ if b then "True" else "False"
@@ -182,9 +182,9 @@ let rec pp (fexpr : t) : PP.document =
    are decorated using <highlight>.
 *)
 let rec pp_diff
-     (highlight      : PP.document -> PP.document)
-    ~(compared_with  : t                         )
-    ~(printed        : t                         ) : PP.document
+     (highlight      : PP.t -> PP.t)
+    ~(compared_with  : t           )
+    ~(printed        : t           ) : PP.t
   =
   if
     equal printed compared_with
@@ -221,7 +221,7 @@ let rec pp_diff
             let positional =
               let rec pp_positional
                   (printed_positional       : t list)
-                  (compared_with_positional : t list) : PP.document list
+                  (compared_with_positional : t list) : PP.t list
                 =
                 match printed_positional, compared_with_positional with
                 | []   , []    -> []
@@ -241,7 +241,7 @@ let rec pp_diff
             let keyword =
               let rec pp_keyword
                   (printed_keyword       : (string * t) list)
-                  (compared_with_keyword : (string * t) list) : (PP.document * PP.document) list
+                  (compared_with_keyword : (string * t) list) : (PP.t * PP.t) list
                 =
                 match printed_keyword, compared_with_keyword with
                 | []            , []             -> []

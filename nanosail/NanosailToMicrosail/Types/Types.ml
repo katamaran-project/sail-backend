@@ -11,7 +11,7 @@ module Records           = Records
 
 let pp_type_definition
       (original        : Sail.sail_definition )
-      (type_definition : Ast.Definition.Type.t) : PP.document GC.t
+      (type_definition : Ast.Definition.Type.t) : PP.t GC.t
   =
   let* pp_type_def =
     match type_definition with

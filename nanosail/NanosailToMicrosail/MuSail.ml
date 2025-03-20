@@ -2,11 +2,11 @@ open! ExtBase
 
 
 module Value = struct
-  let pp_bit (value : bool) : PP.document =
+  let pp_bit (value : bool) : PP.t =
     Coq.pp_bool value
 
 
-  let pp_bitvector (size : int) (value : Z.t) : PP.document =
+  let pp_bitvector (size : int) (value : Z.t) : PP.t =
     Coq.pp_explicit_application
       (PP.string "bv.mk")
       [
@@ -60,7 +60,7 @@ module Pattern = struct
 
     Consider using smart_pp instead
   *)
-  let pp_variable (identifier : PP.document) : PP.document =
+  let pp_variable (identifier : PP.t) : PP.t =
     PP.annotate [%here] begin
       Coq.pp_application
         (PP.string "pat_var")
@@ -74,8 +74,8 @@ module Pattern = struct
     Consider using smart_pp instead
   *)
   let pp_pair
-      (first_identifier  : PP.document)
-      (second_identifier : PP.document) : PP.document
+      (first_identifier  : PP.t)
+      (second_identifier : PP.t) : PP.t
     =
     PP.annotate [%here] begin
       Coq.pp_application
@@ -92,7 +92,7 @@ module Pattern = struct
 
     Consider using smart_pp instead
   *)
-  let pp_tuple (identifiers : PP.document list) : PP.document =
+  let pp_tuple (identifiers : PP.t list) : PP.t =
     PP.annotate [%here] begin
       let pp_variable_tuple =
         let quoted_identifiers =
@@ -115,7 +115,7 @@ module Pattern = struct
      Depending on the number of identifiers,
      picks the right way to represent the binding.
   *)
-  let smart_pp (identifiers : PP.document list) : PP.document =
+  let smart_pp (identifiers : PP.t list) : PP.t =
     match identifiers with
     | []     -> raise @@ Invalid_argument "smart_pp expects at least one identifier"
     | [x]    -> pp_variable x
@@ -142,7 +142,7 @@ module Expression = struct
   (*
      exp_int <value>
   *)
-  let pp_integer (value : PP.document) =
+  let pp_integer (value : PP.t) =
     PP.annotate [%here] begin
       Coq.pp_application
         (PP.string "exp_int")
@@ -155,7 +155,7 @@ module Expression = struct
   (*
      exp_string <str>
   *)
-  let pp_string (str : PP.document) =
+  let pp_string (str : PP.t) =
     PP.annotate [%here] begin
       Coq.pp_application
         (PP.string "exp_string")
@@ -169,8 +169,8 @@ module Expression = struct
      exp_val <typ> <value>
   *)
   let pp_value
-      ~(typ   : PP.document)
-      ~(value : PP.document)
+      ~(typ   : PP.t)
+      ~(value : PP.t)
     =
     PP.annotate [%here] begin
       Coq.pp_application
@@ -199,7 +199,7 @@ module Expression = struct
   (*
      exp_var "<identifier>"
   *)
-  let pp_variable (identifier : PP.document) =
+  let pp_variable (identifier : PP.t) =
     PP.annotate [%here] begin
       PP.separate_horizontally
         ~separator:PP.space
@@ -215,7 +215,7 @@ module Expression = struct
   *)
   let pp_bitvector
       ~(size  : int)
-      ~(value : Z.t) : PP.document
+      ~(value : Z.t) : PP.t
     =
     let pp_type =
       PP.separate_horizontally ~separator:PP.space [ PP.string "ty.bvec"; PP.string @@ Int.to_string size ]
@@ -235,7 +235,7 @@ module Expression = struct
   (*
     exp_val (ty.bvec 32) (@Bitvector.bv.zero 32)
   *)
-  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.document =
+  let pp_zero_bitvector_using_function (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       let typ =
         Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
@@ -249,7 +249,7 @@ module Expression = struct
   (*
      exp_val (ty.bvec 32) ([bv 0])
   *)
-  let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.document =
+  let pp_zero_bitvector_using_literal (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       pp_bitvector ~size:number_of_bits ~value:Z.zero
     end
@@ -258,7 +258,7 @@ module Expression = struct
   (*
     exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
   *)
-  let pp_ones_bitvector_using_function (number_of_bits : int) : PP.document =
+  let pp_ones_bitvector_using_function (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       let typ =
         Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
@@ -269,7 +269,7 @@ module Expression = struct
     end
 
 
-  let pp_ones_bitvector_using_literal (number_of_bits : int) : PP.document =
+  let pp_ones_bitvector_using_literal (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       let value = Z.sub (Z.shift_left Z.one number_of_bits) Z.one
       in
@@ -284,7 +284,7 @@ module Statement = struct
 
        stm_exp (<expression>)
   *)
-  let pp_expression (expression : PP.document) : PP.document =
+  let pp_expression (expression : PP.t) : PP.t =
     PP.annotate [%here] begin
         Coq.pp_application
           (PP.string "stm_exp")
@@ -292,13 +292,13 @@ module Statement = struct
       end
 
 
-  let pp_fail (typ : PP.document) (message : PP.document) : PP.document =
+  let pp_fail (typ : PP.t) (message : PP.t) : PP.t =
     Coq.pp_application (PP.string "stm_fail") [ PP.(surround parens) typ; message ]
 
 
   let pp_assert
-        ~(condition : PP.document)
-        ~(message   : PP.document) : PP.document
+        ~(condition : PP.t)
+        ~(message   : PP.t) : PP.t
     =
     Coq.pp_application
       (PP.string "stm_assert")
@@ -319,11 +319,11 @@ module Statement = struct
                       <when_cons>
     *)
     let pp_list
-        ~(matched_value   : PP.document)
-        ~(when_nil        : PP.document)
-        ~(head_identifier : PP.document)
-        ~(tail_identifier : PP.document)
-        ~(when_cons       : PP.document)
+        ~(matched_value   : PP.t)
+        ~(when_nil        : PP.t)
+        ~(head_identifier : PP.t)
+        ~(tail_identifier : PP.t)
+        ~(when_cons       : PP.t)
       =
       PP.annotate [%here] begin
         Coq.pp_hanging_application
@@ -347,15 +347,15 @@ module Statement = struct
                                ]
     *)
     let pp_variant
-        ~(matched_type  : PP.document                                        )
-        ~(matched_value : PP.document                                        )
-        ~(clauses       : (PP.document * PP.document list * PP.document) list) : PP.document
+        ~(matched_type  : PP.t                          )
+        ~(matched_value : PP.t                          )
+        ~(clauses       : (PP.t * PP.t list * PP.t) list) : PP.t
       =
       let pp_cases =
         let pp_case
-            (constructor : PP.document     )
-            (bindings    : PP.document list)
-            (body        : PP.document     ) : PP.document
+            (constructor : PP.t     )
+            (bindings    : PP.t list)
+            (body        : PP.t     ) : PP.t
           =
           let pattern =
             PP.annotate [%here] begin
@@ -399,10 +399,10 @@ module Statement = struct
                      <body>
     *)
     let pp_product
-          ~(matched_value  : PP.document)
-          ~(fst_identifier : PP.document)
-          ~(snd_identifier : PP.document)
-          ~(body           : PP.document) : PP.document
+          ~(matched_value  : PP.t)
+          ~(fst_identifier : PP.t)
+          ~(snd_identifier : PP.t)
+          ~(body           : PP.t) : PP.t
       =
       PP.annotate [%here] begin
           Coq.pp_hanging_application
@@ -417,9 +417,9 @@ module Statement = struct
 
 
     let pp_tuple
-        ~(matched_value : PP.document     )
-        ~(binders       : PP.document list)
-        ~(body          : PP.document     ) : PP.document
+        ~(matched_value : PP.t     )
+        ~(binders       : PP.t list)
+        ~(body          : PP.t     ) : PP.t
       =
       let binders =
         let rec build_binder_list elements =
@@ -446,10 +446,10 @@ module Statement = struct
 
 
     let pp_record
-          ~(matched_type  : PP.document                     )
-          ~(matched_value : PP.document                     )
-          ~(bindings      : (PP.document * PP.document) list)
-          ~(body          : PP.document                     ) : PP.document
+          ~(matched_type  : PP.t              )
+          ~(matched_value : PP.t              )
+          ~(bindings      : (PP.t * PP.t) list)
+          ~(body          : PP.t              ) : PP.t
       =
       let record_pattern =
         let build acc (field_identifier, binder) =
@@ -481,8 +481,8 @@ module Statement = struct
      (call <function_name> <arguments[0]> <arguments[1]> ...)%exp
   *)
   let pp_call_using_notation
-      (function_name : PP.document     )
-      (arguments     : PP.document list) : PP.document
+      (function_name : PP.t     )
+      (arguments     : PP.t list) : PP.t
     =
     PP.annotate [%here] begin
       Coq.pp_scope (PP.string "exp") begin
@@ -497,8 +497,8 @@ module Statement = struct
      stm_call <function_name> (env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3)
   *)
   let pp_call
-      (function_name : PP.document     )
-      (arguments     : PP.document list) : PP.document
+      (function_name : PP.t     )
+      (arguments     : PP.t list) : PP.t
     =
     let pp_arguments =
       let add_snoc tail argument =
@@ -531,9 +531,9 @@ module Statement = struct
            (<when_false>)
   *)
   let pp_conditional
-        ~(condition  : PP.document)
-        ~(when_true  : PP.document)
-        ~(when_false : PP.document) : PP.document
+        ~(condition  : PP.t)
+        ~(when_true  : PP.t)
+        ~(when_false : PP.t) : PP.t
     =
     PP.annotate [%here] @@ begin
         Coq.pp_hanging_application
@@ -550,8 +550,8 @@ module Statement = struct
             <right>
   *)
   let pp_sequence
-        (left  : PP.document)
-        (right : PP.document) : PP.document
+        (left  : PP.t)
+        (right : PP.t) : PP.t
     =
     PP.annotate [%here] begin
         Coq.pp_hanging_application
@@ -566,7 +566,7 @@ module Statement = struct
   (*
     stm_read_register <register_identifier>
   *)
-  let pp_read_register (register_identifier : PP.document) : PP.document =
+  let pp_read_register (register_identifier : PP.t) : PP.t =
     PP.annotate [%here] begin
         Coq.pp_application
           (PP.string "stm_read_register")
@@ -584,8 +584,8 @@ module Statement = struct
                        (exp_var "<value_identifier>")
   *)
   let pp_write_register
-        ~(register_identifier : PP.document)
-        ~(value_identifier    : PP.document) : PP.document
+        ~(register_identifier : PP.t)
+        ~(value_identifier    : PP.t) : PP.t
     =
     PP.annotate [%here] begin
         Coq.pp_application
@@ -606,10 +606,10 @@ module Statement = struct
             (<body>)
   *)
   let pp_let
-        ~(bound_identifier : PP.document)
-        ~(bound_value_type : PP.document)
-        ~(bound_value      : PP.document)
-        ~(body             : PP.document) : PP.document
+        ~(bound_identifier : PP.t)
+        ~(bound_value_type : PP.t)
+        ~(bound_value      : PP.t)
+        ~(body             : PP.t) : PP.t
     =
     PP.annotate [%here] begin
         Coq.pp_hanging_application
@@ -629,10 +629,10 @@ module Statement = struct
       <body>
   *)
   let pp_let_use_notation
-        ~(bound_identifier : PP.document)
-        ~(bound_value_type : PP.document)
-        ~(bound_value      : PP.document)
-        ~(body             : PP.document) : PP.document
+        ~(bound_identifier : PP.t)
+        ~(bound_value_type : PP.t)
+        ~(bound_value      : PP.t)
+        ~(body             : PP.t) : PP.t
     =
     PP.annotate [%here] begin
         PP.(
@@ -656,8 +656,8 @@ end
    "<argument>" ∷ <typ>
 *)
 let pp_bind
-    (argument : PP.document)
-    (typ      : PP.document) : PP.document
+    (argument : PP.t)
+    (typ      : PP.t) : PP.t
   =
   PP.annotate [%here] begin
       PP.separate_horizontally

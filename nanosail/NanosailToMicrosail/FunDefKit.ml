@@ -9,7 +9,7 @@ end
 
 let rec pp_function_definition
     ((sail_function_definition, function_definition) : Sail.sail_definition * Ast.Definition.Function.t                       )
-    (type_constraint                                 : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) option) : PP.document GC.t
+    (type_constraint                                 : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) option) : PP.t GC.t
   =
   if
     function_definition.polymorphic && not (List.is_empty function_definition.monomorphs)
@@ -57,10 +57,10 @@ let rec pp_function_definition
         let* coq_definition =
           let* pp_result_type =
             let* bindings =
-              let* parameters : (PP.document * PP.document) list =
+              let* parameters : (PP.t * PP.t) list =
                 let pp
                     (id  : Ast.Identifier.t)
-                    (typ : Ast.Type.t      ) : (PP.document * PP.document) GC.t
+                    (typ : Ast.Type.t      ) : (PP.t * PP.t) GC.t
                   =
                   let pp_id =
                     PP.annotate [%here] @@ Identifier.pp id
@@ -149,7 +149,7 @@ let rec pp_function_definition
 
 let pp_function_definitions
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
-    (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document list GC.t
+    (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.t list GC.t
   =
   let* () =
     GC.log [%here] Logging.debug @@ lazy (PP.string "Generating translations for all functions")
@@ -222,7 +222,7 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
 
 let pp_function_definition_kit
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )
-    (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.document GC.t
+    (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.t GC.t
   =
   GC.generation_block [%here] "FunDefKit" begin
     let* contents =

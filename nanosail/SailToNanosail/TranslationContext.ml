@@ -148,16 +148,16 @@ let run (f : 'a t) : ('a * Ast.Type.t list list Ast.Identifier.Map.t) result =
 
 
 let log
-    (ocaml_position : Lexing.position                                  )
-    (logger         : Lexing.position -> PP.document lazy_t -> unit)
-    (message        : PP.document lazy_t                           ) : unit t
+    (ocaml_position : Lexing.position                       )
+    (logger         : Lexing.position -> PP.t lazy_t -> unit)
+    (message        : PP.t lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
 
 
 let translation_block
     (ocaml_position : Lexing.position)
-    (label          : PP.document    )
+    (label          : PP.t           )
     (result         : 'a t           ) : 'a t
   =
   let* () =

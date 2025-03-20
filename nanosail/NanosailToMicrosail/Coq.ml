@@ -61,7 +61,7 @@ let pp_sentence (contents : PP.t) : PP.t =
 (*
    (* comment *)
 *)
-let pp_inline_comment (comment : PP.document) : PP.document =
+let pp_inline_comment (comment : PP.t) : PP.t =
   PP.surround comment_delimiters comment
 
 
@@ -70,7 +70,7 @@ let pp_inline_comment (comment : PP.document) : PP.document =
      comment
    *)
 *)
-let pp_multiline_comment (comment : PP.document) : PP.document =
+let pp_multiline_comment (comment : PP.t) : PP.t =
   PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent comment
 
 
@@ -85,7 +85,7 @@ let pp_multiline_comment (comment : PP.document) : PP.document =
         <comment>
      *)
 *)
-let pp_comment (comment : PP.document) : PP.document =
+let pp_comment (comment : PP.t) : PP.t =
   if PP.is_single_line comment
   then pp_inline_comment comment
   else pp_multiline_comment comment
@@ -98,8 +98,8 @@ let pp_comment (comment : PP.document) : PP.document =
    document
 *)
 let add_comments
-    ~(comments : PP.document)
-    ~(document : PP.document) : PP.document
+    ~(comments : PP.t)
+    ~(document : PP.t) : PP.t
   =
   PP.annotate [%here] begin
     PP.vertical [ pp_comment comments; document ]
@@ -107,15 +107,15 @@ let add_comments
 
 
 let pp_hanging_application
-    (func      : PP.document     )
-    (arguments : PP.document list) : PP.document
+    (func      : PP.t     )
+    (arguments : PP.t list) : PP.t
   =
   PP.annotate [%here] begin
     PP.(hanging @@ horizontal [ func; space ] :: arguments)
   end
 
 
-let pp_list_using_notation (items : PP.document list) : PP.document =
+let pp_list_using_notation (items : PP.t list) : PP.t =
   if
     List.is_empty items
   then
@@ -131,7 +131,7 @@ let pp_list_using_notation (items : PP.document list) : PP.document =
     end
 
 
-let pp_list_using_cons (items : PP.document list) : PP.document =
+let pp_list_using_cons (items : PP.t list) : PP.t =
   let rec pp items =
     match items with
     | []         -> PP.string "nil"
@@ -143,8 +143,8 @@ let pp_list_using_cons (items : PP.document list) : PP.document =
 
 
 let pp_list
-      ?(use_notation : bool = true     )
-      (items         : PP.document list) : PP.document
+      ?(use_notation : bool = true)
+      (items         : PP.t list  ) : PP.t
   =
   if use_notation
   then pp_list_using_notation items
@@ -155,8 +155,8 @@ let pp_list
   (v1, v2)
 *)
 let pp_product
-    (v1 : PP.document)
-    (v2 : PP.document) : PP.document
+    (v1 : PP.t)
+    (v2 : PP.t) : PP.t
   =
   PP.annotate [%here] begin
     PP.(surround tuple_delimiters @@ separate_horizontally ~separator:comma [v1; v2])
@@ -217,11 +217,11 @@ let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
 
 
 let pp_definition
-      ~(identifier          : PP.document                                   )
-      ?(implicit_parameters : (PP.document * PP.document option) list = []  )
-      ?(parameters          : (PP.document * PP.document option) list = []  )
-      ?(result_type         : PP.document option                      = None)
-       (body                : PP.document                                   ) : PP.document
+      ~(identifier          : PP.t                                 )
+      ?(implicit_parameters : (PP.t * PP.t option) list = []       )
+      ?(parameters          : (PP.t * PP.t option) list = []       )
+      ?(result_type         : PP.t option                    = None)
+       (body                : PP.t                                 ) : PP.t
   =
   let pp_parameters =
     let pp_implicit_parameters =
@@ -266,9 +266,9 @@ let pp_definition
 
 
 let pp_match
-    ?(scope     : PP.document option              = None)
-    (expression : PP.document                           )
-    (cases      : (PP.document * PP.document) list      ) : PP.document
+    ?(scope     : PP.t option        = None)
+    (expression : PP.t                     )
+    (cases      : (PP.t * PP.t) list       ) : PP.t
   =
   let match_line =
     PP.(
@@ -426,7 +426,7 @@ let pp_open_scopes scopes =
   end
 
 
-let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
+let pp_record_value (fields : (PP.t * PP.t) list) : PP.t =
   let items =
     let item_of_field (field_name, field_value) =
       PP.separate_horizontally ~separator:PP.space [
@@ -452,9 +452,9 @@ let pp_record_value (fields : (PP.document * PP.document) list) : PP.document =
 
  *)
 let pp_finite_instance
-      ~(identifier : PP.document     )
-      ~(type_name  : PP.document     )
-      ~(values     : PP.document list) : PP.document
+      ~(identifier : PP.t     )
+      ~(type_name  : PP.t     )
+      ~(values     : PP.t list) : PP.t
   =
   let enum_values =
     PP.delimited_list
@@ -491,10 +491,10 @@ let pp_finite_instance
 
 (* fields as (identifier, type) pairs *)
 let pp_record
-      ~(identifier  : PP.document                     )
-      ~(type_name   : PP.document                     )
-      ~(constructor : PP.document                     )
-      ~(fields      : (PP.document * PP.document) list) : PP.document
+      ~(identifier  : PP.t              )
+      ~(type_name   : PP.t              )
+      ~(constructor : PP.t              )
+      ~(fields      : (PP.t * PP.t) list) : PP.t
   =
   let first_line =
     PP.(
@@ -540,7 +540,7 @@ let pp_record
     end
 
 
-let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
+let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.t =
   let lines_of_code = [
       PP.annotate [%here] @@ PP.string "Local Obligation Tactic :=";
       PP.annotate [%here] @@ PP.(horizontal [ space; space; Identifier.pp identifier ])
@@ -551,7 +551,7 @@ let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.document =
 
 let pp_derive
       (class_identifier : Ast.Identifier.t)
-      (type_identifier  : Ast.Identifier.t) : PP.document =
+      (type_identifier  : Ast.Identifier.t) : PP.t =
   let str =
     Printf.sprintf
       "Derive %s for %s."
@@ -604,13 +604,13 @@ let pp_function_type parameter_types result_type =
   end
 
 
-let pp_canonical identifier =
+let pp_canonical (identifier : Ast.Identifier.t) : PP.t =
   PP.annotate [%here] begin
     pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; Identifier.pp identifier ])
   end
 
 
-let pp_include_module (name : PP.document) =
+let pp_include_module (name : PP.t) : PP.t =
   PP.annotate [%here] begin
     pp_sentence @@ PP.(separate_horizontally ~separator:space [ string "Include"; name ])
   end
@@ -651,7 +651,7 @@ let pp_scope scope_name scoped_expression =
     end
 
 
-let pp_bool (value : bool) : PP.document =
+let pp_bool (value : bool) : PP.t =
   PP.annotate [%here] begin
     if value
     then PP.string "true"

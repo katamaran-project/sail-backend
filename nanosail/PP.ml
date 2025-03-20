@@ -19,12 +19,10 @@ end
 module Doc = Document.Make(Annotation)
 include Doc
 
-type document  = Doc.t
-
 let annotate
     (ocaml_location : Lexing.position)
     ?(label         : string option  )
-    (document       : document       ) : document
+    (document       : t              ) : t
   =
   let { pos_fname; pos_lnum; _ } : Lexing.position = ocaml_location
   in

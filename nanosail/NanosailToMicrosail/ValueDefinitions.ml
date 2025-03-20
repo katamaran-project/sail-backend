@@ -8,7 +8,7 @@ module GC = struct
 end
 
 
-let pp_value (value : Ast.Value.t) : PP.document GC.t =
+let pp_value (value : Ast.Value.t) : PP.t GC.t =
   match value with
   | Unit         -> GC.return @@ PP.annotate [%here] @@ PP.(string "tt")
   | Int n        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_scope (PP.string "Z") @@ PP.(string @@ Z.to_string n)
@@ -19,7 +19,7 @@ let pp_value (value : Ast.Value.t) : PP.document GC.t =
   | Bitvector bv -> GC.return @@ PP.annotate [%here] @@ MuSail.Value.pp_bitvector (List.length bv) (Util.convert_bits_to_z bv)
 
 
-let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.document GC.t =
+let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.t GC.t =
   GC.block begin
       let { identifier; value } : Ast.Definition.Value.t = value_definition
       in
@@ -37,7 +37,7 @@ let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.documen
     end
 
 
-let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.document GC.t =
+let generate (definitions : (Sail.sail_definition * Ast.Definition.t) list) : PP.t GC.t =
   let* coq_lines =
     let value_definitions =
       Ast.Definition.Select.(select (without_sail_definition value_definition) definitions)

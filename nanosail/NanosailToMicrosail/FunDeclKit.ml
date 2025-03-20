@@ -8,7 +8,7 @@ module GC = struct
 end
 
 
-let genblock loc label (doc : PP.document GC.t) =
+let genblock loc label (doc : PP.t GC.t) =
   GC.generation_block loc label doc
 
 

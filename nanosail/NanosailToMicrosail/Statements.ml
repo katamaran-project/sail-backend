@@ -7,7 +7,7 @@ module GC = struct
 end
 
 
-let pp_expression (expression : Ast.Expression.t) : PP.document GC.t =
+let pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   let* pp_expression = Expressions.pp_expression expression
   in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_expression pp_expression
@@ -30,7 +30,7 @@ let parenthesize =
 let rec pp_match_list
     ~(matched   : Ast.Identifier.t                                     )
     ~(when_nil  : Ast.Statement.t                                      )
-    ~(when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.document GC.t
+    ~(when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.t GC.t
   =
   let id_head, id_tail, when_cons_body = when_cons
   in
@@ -61,7 +61,7 @@ and pp_match_product
     ~(matched : Ast.Identifier.t)
     ~(id_fst  : Ast.Identifier.t)
     ~(id_snd  : Ast.Identifier.t)
-    ~(body    : Ast.Statement.t ) : PP.document GC.t
+    ~(body    : Ast.Statement.t ) : PP.t GC.t
   =
   let* pp_matched =
     GC.return begin
@@ -87,7 +87,7 @@ and pp_match_product
 and pp_match_tuple
     ~(matched  : Ast.Identifier.t                    )
     ~(binders  : (Ast.Identifier.t * Ast.Type.t) list)
-    ~(body     : Ast.Statement.t                     ) : PP.document GC.t
+    ~(body     : Ast.Statement.t                     ) : PP.t GC.t
   =
   let* pp_matched =
     GC.return begin
@@ -98,7 +98,7 @@ and pp_match_tuple
   and* pp_body =
     parenthesize @@ pp_statement body
   in
-  let pp_binders : PP.document list =
+  let pp_binders : PP.t list =
     List.map binders ~f:(fun (id, _) -> PP.(surround dquotes) (Identifier.pp id))
   in
   GC.return begin
@@ -113,7 +113,7 @@ and pp_match_tuple
 and pp_match_bool
     ~(condition  : Ast.Identifier.t)
     ~(when_true  : Ast.Statement.t )
-    ~(when_false : Ast.Statement.t ) : PP.document GC.t
+    ~(when_false : Ast.Statement.t ) : PP.t GC.t
   =
   let* pp_condition =
     GC.return begin
@@ -144,7 +144,7 @@ and pp_match_bool
 and pp_match_enum
     ~(matched      : Ast.Identifier.t                    )
     ~(matched_type : Ast.Identifier.t                    )
-    ~(cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.document GC.t
+    ~(cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.t GC.t
   =
   if
     Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
@@ -159,7 +159,7 @@ and pp_match_enum
     (*
        Reified enum type
     *)
-    let pp_matched_type : PP.document =
+    let pp_matched_type : PP.t =
       PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_enum_name matched_type
 
     (*
@@ -168,7 +168,7 @@ and pp_match_enum
        so we start with an identifier, which we turn into an expression, which we
        turn into a statement.
     *)
-    and pp_matched_statement : PP.document =
+    and pp_matched_statement : PP.t =
       PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
     in
     (*
@@ -191,7 +191,7 @@ and pp_match_enum
 
     *)
     let pp_using_match_notation () =
-      let* pp_cases : PP.document list =
+      let* pp_cases : PP.t list =
         (*
            Converts a match case
 
@@ -203,7 +203,7 @@ and pp_match_enum
         *)
         let pp_case
             (constructor_identifier : Ast.Identifier.t)
-            (clause_statement       : Ast.Statement.t ) : PP.document GC.t
+            (clause_statement       : Ast.Statement.t ) : PP.t GC.t
           =
           let pp_pattern =
             Identifier.pp constructor_identifier
@@ -280,16 +280,16 @@ and pp_match_enum
       (*
          todo: should perhaps be a generated unique id
       *)
-      let pp_lambda_parameter : PP.document =
+      let pp_lambda_parameter : PP.t =
         PP.annotate [%here] @@ PP.string "K"
       in
-      let* pp_cases : PP.document =
+      let* pp_cases : PP.t =
         (*
-           Translates a match into a pair of PP.documents
+           Translates a match into a pair of PP's
         *)
         let pp_case
             (constructor_identifier : Ast.Identifier.t)
-            (clause_statement       : Ast.Statement.t ) : (PP.document * PP.document) GC.t
+            (clause_statement       : Ast.Statement.t ) : (PP.t * PP.t) GC.t
           =
           let pp_constructor =
             PP.annotate [%here] @@ Identifier.pp constructor_identifier
@@ -353,7 +353,7 @@ and pp_match_enum
 and pp_match_variant
     ~(matched      : Ast.Identifier.t                                              )
     ~(matched_type : Ast.Identifier.t                                              )
-    ~(cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.document GC.t
+    ~(cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.t GC.t
   =
   (*
      Reified union type
@@ -374,11 +374,11 @@ and pp_match_variant
   in
 
   (* List of match cases *)
-  let* pp_cases : (PP.document * PP.document list * PP.document) list =
+  let* pp_cases : (PP.t * PP.t list * PP.t) list =
     let pp_case
         (constructor_id : Ast.Identifier.t     )
         (bindings       : Ast.Identifier.t list)
-        (body           : Ast.Statement.t      ) : (PP.document * PP.document list * PP.document) GC.t
+        (body           : Ast.Statement.t      ) : (PP.t * PP.t list * PP.t) GC.t
       =
       let pp_constructor =
         PP.annotate [%here] begin
@@ -403,7 +403,7 @@ and pp_match_variant
   end
 
 
-and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
+and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.t GC.t =
   match match_pattern with
   | MatchList { matched; when_nil; when_cons; _ }     -> pp_match_list ~matched ~when_nil ~when_cons
   | MatchProduct { matched; id_fst; id_snd; body; _ } -> pp_match_product ~matched ~id_fst ~id_snd ~body
@@ -415,7 +415,7 @@ and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.document GC.t =
 
 and pp_call
       ~(function_identifier : Ast.Identifier.t     )
-      ~(arguments           : Ast.Expression.t list) : PP.document GC.t
+      ~(arguments           : Ast.Expression.t list) : PP.t GC.t
   =
   GC.pp_annotate [%here] begin
       FunctionCalls.translate function_identifier arguments
@@ -426,7 +426,7 @@ and pp_let
       ~(binder                 : Ast.Identifier.t)
       ~(binding_statement_type : Ast.Type.t      )
       ~(binding_statement      : Ast.Statement.t )
-      ~(body_statement         : Ast.Statement.t ) : PP.document GC.t
+      ~(body_statement         : Ast.Statement.t ) : PP.t GC.t
   =
   let  pp_binder                 = PP.annotate [%here] @@ Identifier.pp binder
   in
@@ -460,7 +460,7 @@ and pp_let
 
 and pp_sequence
       (left  : Ast.Statement.t)
-      (right : Ast.Statement.t) : PP.document GC.t
+      (right : Ast.Statement.t) : PP.t GC.t
   =
   let* pp_left  = parenthesize @@ pp_statement left
   and* pp_right = parenthesize @@ pp_statement right
@@ -472,7 +472,7 @@ and pp_sequence
     end
 
 
-and pp_read_register (register_identifier : Ast.Identifier.t) : PP.document GC.t =
+and pp_read_register (register_identifier : Ast.Identifier.t) : PP.t GC.t =
   GC.return begin
       PP.annotate [%here] begin
           MuSail.Statement.pp_read_register @@ Identifier.pp register_identifier
@@ -482,7 +482,7 @@ and pp_read_register (register_identifier : Ast.Identifier.t) : PP.document GC.t
 
 and pp_write_register_statement
       ~(register_identifier : Ast.Identifier.t)
-      ~(written_value       : Ast.Identifier.t) : PP.document GC.t
+      ~(written_value       : Ast.Identifier.t) : PP.t GC.t
   =
   let pp_register_identifier = Identifier.pp register_identifier
   and pp_written_value = Identifier.pp written_value
@@ -501,7 +501,7 @@ and pp_destructure_record
       ~(field_identifiers      : Ast.Identifier.t list)
       ~(binders                : Ast.Identifier.t list)
       ~(destructured_record    : Ast.Statement.t      )
-      ~(body                   : Ast.Statement.t      ) : PP.document GC.t
+      ~(body                   : Ast.Statement.t      ) : PP.t GC.t
   =
   let pp_matched_type =
     Identifier.pp @@ Identifier.reified_record_name record_type_identifier
@@ -533,7 +533,7 @@ and pp_destructure_record
 
 and pp_cast
     (statement_to_be_cast : Ast.Statement.t)
-    (_target_type         : Ast.Type.t     ) : PP.document GC.t
+    (_target_type         : Ast.Type.t     ) : PP.t GC.t
   =
   let* () = GC.log [%here] Logging.warning @@ lazy (PP.string "Ignored cast")
   in
@@ -542,7 +542,7 @@ and pp_cast
 
 and pp_fail
     (typ     : Ast.Type.t)
-    (message : string    ) : PP.document GC.t
+    (message : string    ) : PP.t GC.t
   =
   let pp_message = Coq.pp_string message
   in
@@ -551,7 +551,7 @@ and pp_fail
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
-and pp_statement (statement : Ast.Statement.t) : PP.document GC.t =
+and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
   GC.pp_annotate [%here] begin
     match statement with
     | Expression expression                     -> pp_expression expression

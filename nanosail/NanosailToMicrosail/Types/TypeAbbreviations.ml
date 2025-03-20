@@ -4,7 +4,7 @@ open Monads.Notations.Star(GenerationContext)
 module GC = GenerationContext
 
 
-let pp_type_abbreviation (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.document GC.t =
+let pp_type_abbreviation (type_abbreviation : Ast.Definition.Type.Abbreviation.t) : PP.t GC.t =
   GC.generation_block [%here] "Type Abbreviation" begin
     let { identifier; abbreviation } : Ast.Definition.Type.Abbreviation.t = type_abbreviation
     in

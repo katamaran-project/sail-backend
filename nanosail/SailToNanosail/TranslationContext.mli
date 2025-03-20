@@ -48,8 +48,8 @@ val lift                           : f:('a -> 'b) -> 'a t -> 'b t
 val lift_option                    : 'a t option -> 'a option t
 val repeat                         : int -> f:('a t) -> 'a list t
 
-val log                            : Lexing.position -> (Lexing.position -> PP.document lazy_t -> unit) -> PP.document lazy_t -> unit t
-val translation_block              : Lexing.position -> PP.document -> 'a t -> 'a t
+val log                            : Lexing.position -> (Lexing.position -> PP.t lazy_t -> unit) -> PP.t lazy_t -> unit t
+val translation_block              : Lexing.position -> PP.t -> 'a t -> 'a t
 
 
 val register_polymorphic_function_call_type_arguments : Ast.Identifier.t -> Ast.Type.t list -> unit t

@@ -1,7 +1,7 @@
 open! ExtBase
 
 
-let pp_sail_definition (sail_definition : Libsail.Type_check.typed_def) : PP.document =
+let pp_sail_definition (sail_definition : Libsail.Type_check.typed_def) : PP.t =
   let str =
     StringOf.Sail.definition sail_definition
   in

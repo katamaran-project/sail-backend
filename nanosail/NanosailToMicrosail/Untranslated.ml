@@ -6,7 +6,7 @@ module GC = GenerationContext
 (* todo rename for consistency *)
 let generate
     (sail_definition         : Sail.sail_definition         )
-    (untranslated_definition : Ast.Definition.Untranslated.t) : PP.document
+    (untranslated_definition : Ast.Definition.Untranslated.t) : PP.t
   =
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with

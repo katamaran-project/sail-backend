@@ -5,8 +5,8 @@ module Error = struct
 end
 
 
-type annotation     = Annotation of PP.document
-type comment        = Comment of PP.document
+type annotation     = Annotation of PP.t
+type comment        = Comment of PP.t
 type frame          = annotation list * comment list
 type state          = frame list * int * Ast.Program.t
 
@@ -49,9 +49,9 @@ let mk_initial_state (program : Ast.Program.t) : state = ([], 0, program)
 
 
 let log
-    (ocaml_position : Lexing.position                                  )
-    (logger         : Lexing.position -> PP.document lazy_t -> unit)
-    (message        : PP.document lazy_t                           ) : unit t
+    (ocaml_position : Lexing.position                       )
+    (logger         : Lexing.position -> PP.t lazy_t -> unit)
+    (message        : PP.t lazy_t                           ) : unit t
   =
   act (fun () -> logger ocaml_position message)
 
@@ -145,7 +145,7 @@ let convert_frame_to_document (frame : frame) =
    Computes f and gathers all comments/annotations during its execution.
    Produces the result of f and prepends all comments/annotations
 *)
-let block (f : PP.document t) : PP.document t =
+let block (f : PP.t t) : PP.t t =
   let* (document, frame) = with_fresh_frame f
   in
   if is_empty_frame frame
@@ -159,7 +159,7 @@ let block (f : PP.document t) : PP.document t =
 
 
 (* Adds annotation to the current frame *)
-let add_annotation (annotation : PP.document) : int t =
+let add_annotation (annotation : PP.t) : int t =
   let* () = assert_inside_frame
   and* () = update annotations @@ fun xs -> List.append xs [Annotation annotation]
   in
@@ -167,7 +167,7 @@ let add_annotation (annotation : PP.document) : int t =
 
 
 (* Adds comment to the current frame *)
-let add_comment (comment : PP.document) : unit t =
+let add_comment (comment : PP.t) : unit t =
   let* () = assert_inside_frame
   in
   let comment = Comment comment
@@ -175,7 +175,7 @@ let add_comment (comment : PP.document) : unit t =
   update comments (fun cs -> comment :: cs)
 
 
-let not_yet_implemented ?(message : string option) (position : Lexing.position) : PP.document t =
+let not_yet_implemented ?(message : string option) (position : Lexing.position) : PP.t t =
   let annotation_document =
     let message_suffix =
       match message with
@@ -207,7 +207,7 @@ let not_yet_implemented ?(message : string option) (position : Lexing.position) 
 let generation_block
     (position : Lexing.position)
     (label    : string         )
-    (contents : PP.document t  ) : PP.document t
+    (contents : PP.t t         ) : PP.t t
   =
   let* contents =
     let* () = log position Logging.debug @@ lazy (PP.format "Entering %s" label)
@@ -254,7 +254,7 @@ let generation_block
 (* Computes the document described by f *)
 let generate
     (program : Ast.Program.t)
-    (f       : PP.document t) : PP.document
+    (f       : PP.t t       ) : PP.t
   =
   let result, _ =
     (* Add an extra check to f to ensure there are no open frames left *)
@@ -276,18 +276,18 @@ include Monads.Util.Make(Monad)
 
 (* todo probably best moved elsewhere *)
 let pp_inductive_type
-     (identifier : PP.document                          )
-    ?(parameters : (PP.document * PP.document) list = [])
-     (typ        : PP.document                          )
-      constructor_generator                               : PP.document t
+     (identifier : PP.t                   )
+    ?(parameters : (PP.t * PP.t) list = [])
+     (typ        : PP.t                   )
+      constructor_generator                 : PP.t t
   =
   let* constructors =
     let result = ref []
     in
     let generate_case
-          ?(parameters  : PP.document = PP.empty)
-          ?(typ         : PP.document = PP.empty)
-           (identifier  : PP.document           ) =
+          ?(parameters  : PP.t = PP.empty)
+          ?(typ         : PP.t = PP.empty)
+           (identifier  : PP.t           ) =
       result := (identifier, parameters, typ) :: !result;
       return ()
     in
@@ -389,7 +389,7 @@ let add_original_definition (original : Sail.sail_definition) : unit t =
 *)
 let pp_annotate
     (location        : Lexing.position)
-    (to_be_annotated : PP.document t  ) : PP.document t
+    (to_be_annotated : PP.t t         ) : PP.t t
   =
   lift ~f:(PP.annotate location) to_be_annotated
 
@@ -397,7 +397,7 @@ let pp_annotate
 let pp_annotate'
     (location  : Lexing.position)
     (label     : string         )
-    (annotated : PP.document t  ) : PP.document t
+    (annotated : PP.t t         ) : PP.t t
   =
   lift ~f:(PP.annotate location ~label) annotated
 

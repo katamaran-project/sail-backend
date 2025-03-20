@@ -6,10 +6,10 @@ module GC = GenerationContext
 
 
 module rec Expression : sig
-  val pp : Ast.Numeric.Expression.t -> PP.document GC.t
+  val pp : Ast.Numeric.Expression.t -> PP.t GC.t
 end = struct
-  let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.document GC.t =
-    let rec pp level (numexp : Ast.Numeric.Expression.t) : PP.document =
+  let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.t GC.t =
+    let rec pp level (numexp : Ast.Numeric.Expression.t) : PP.t =
       let parens_if lvl doc =
         if level <= lvl
         then doc
@@ -72,7 +72,7 @@ end = struct
 end
 
 and Constraint : sig
-  val pp : Ast.Numeric.Constraint.t -> PP.document GC.t
+  val pp : Ast.Numeric.Constraint.t -> PP.t GC.t
 end = struct
  let pp (numeric_constraint : Ast.Numeric.Constraint.t) =
    match numeric_constraint with

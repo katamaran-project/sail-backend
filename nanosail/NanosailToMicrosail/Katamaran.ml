@@ -31,28 +31,28 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
   method function_definitions                  = function_definitions
   method top_level_type_constraint_definitions = top_level_type_constraint_definitions    
 
-  method pp_base_prelude : PP.document GC.t =
+  method pp_base_prelude : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Prelude" @@ begin
           BaseModule.generate_base_prelude ()
         end
       end
 
-  method pp_program_prelude : PP.document GC.t =
+  method pp_program_prelude : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Prelude" @@ begin
           ProgramModule.generate_program_prelude ()
         end
       end
 
-  method pp_register_definitions : PP.document GC.t =
+  method pp_register_definitions : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Register Definitions" @@ begin
           Registers.pp_regname_inductive_type register_definitions
         end
       end
 
-  method pp_translated_type_definitions : PP.document GC.t =
+  method pp_translated_type_definitions : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Translated Type Definitions" @@ begin
           let* type_definitions' =
@@ -62,35 +62,35 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
         end
       end
 
-  method pp_enum_tags : PP.document GC.t =
+  method pp_enum_tags : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Enum Tags" @@ begin
           Types.Enums.generate_tags enum_definitions
         end
       end
 
-  method pp_record_tags : PP.document GC.t =
+  method pp_record_tags : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Record Tags" begin
           Types.Records.generate_tags record_definitions
         end
       end
 
-  method pp_variant_tags : PP.document GC.t =
+  method pp_variant_tags : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Variant Tags" begin
             Types.Variants.generate_tags variant_definitions;
           end
       end
 
-  method pp_base_module : PP.document GC.t =
+  method pp_base_module : PP.t GC.t =
     GC.block begin
         GC.generation_block [%here] "Base Module" begin
             BaseModule.pp_base_module all_definitions
           end
       end
 
-  method pp_program_module : PP.document GC.t =
+  method pp_program_module : PP.t GC.t =
     let* program_module =
       ProgramModule.pp_program_module
         function_definitions
@@ -98,7 +98,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
     in
     GC.return @@ program_module
 
-  method pp_finite : PP.document GC.t =
+  method pp_finite : PP.t GC.t =
     let* finite_definitions =
       let finite_enums =
         List.map ~f:(PP.annotate [%here]) @@ Types.Enums.generate_finiteness enum_definitions
@@ -132,7 +132,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       end
     end
 
-  method pp_no_confusion : PP.document GC.t =
+  method pp_no_confusion : PP.t GC.t =
     let section_identifier : PP.t =
       PP.string "TransparentObligations"
     in
@@ -173,7 +173,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
         end
       end
 
-  method pp_eqdecs : PP.document GC.t =
+  method pp_eqdecs : PP.t GC.t =
     (*
       Collect identifiers for which to declare EqDec
       Note: order is important
@@ -209,10 +209,10 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       end
     end
 
-  method pp_value_definitions : PP.document GC.t =
+  method pp_value_definitions : PP.t GC.t =
     ValueDefinitions.generate all_definitions
 
-  method pp_base : PP.document GC.t =
+  method pp_base : PP.t GC.t =
     let* sections = GC.sequence [
       self#pp_base_prelude;
       self#pp_register_definitions;
@@ -229,7 +229,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
     in
     GC.return @@ PP.(paragraphs sections)
 
-  method pp_program : PP.document GC.t =
+  method pp_program : PP.t GC.t =
     let* sections = GC.sequence [
         self#pp_program_prelude;
         self#pp_program_module;
@@ -237,20 +237,20 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
     in
     GC.return @@ PP.annotate [%here] @@ PP.(paragraphs sections)
 
-  method pp_argument_types_of_polymorphic_function_calls : PP.document GC.t =
+  method pp_argument_types_of_polymorphic_function_calls : PP.t GC.t =
     let pairs : (Ast.Identifier.t * Ast.Type.t list list) list =
       Ast.Identifier.Map.to_alist intermediate_representation.polymorphic_argtypes
     in
     let* entries =
       let build_entry
           (function_identifier : Ast.Identifier.t    )
-          (argument_types_list : Ast.Type.t list list) : (PP.document * PP.document) GC.t
+          (argument_types_list : Ast.Type.t list list) : (PP.t * PP.t) GC.t
         =
         let pp_function_identifier =
           Identifier.pp function_identifier
         in
-        let* pp_argument_types_list : PP.document =
-          let pp_argument_types (argument_types : Ast.Type.t list) : PP.document GC.t =
+        let* pp_argument_types_list : PP.t =
+          let pp_argument_types (argument_types : Ast.Type.t list) : PP.t GC.t =
             let* pp_argument_types =
               GC.map ~f:Nanotype.pp_nanotype argument_types
             in
