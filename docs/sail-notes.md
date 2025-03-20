@@ -2,9 +2,22 @@
 
 Below are a few notes regarding Sail and its inner working.
 
-## Atoms, `itself` and `Int`
+## Singleton types
+
+```sail
+val index : forall 'n 'i, 0 <= 'i & 'i < 'n. (bits('n), int('i)) -> bit
+function index(bv, idx) = bv[idx]
+```
+`'i` is a type-level variable with kind `Int`.
+Its value is required at runtime, so the function `index` has a parameter `idx`.
+To force with parameter to receive the same value as `'i`,
+`idx` is given the type `int('i)`, which is a singleton type:
+its only inhabitant is the value `'i` itself.
+
+Internally, the type `int('i)` is actually named `itself('i)`.
 
 
+## Atoms
 
 ## `exit()` Return Type
 
