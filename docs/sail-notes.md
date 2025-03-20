@@ -14,10 +14,53 @@ To force with parameter to receive the same value as `'i`,
 `idx` is given the type `int('i)`, which is a singleton type:
 its only inhabitant is the value `'i` itself.
 
-Internally, the type `int('i)` is actually named `itself('i)`.
+Internally, Sail uses the name `itself('i)` instead of `int('i)`.
+In nanosail, we represent these types using `Ast.Type.Int`.
 
+For example, the code above gets translated into the nanosail ASTs shown below:
+
+```text
+Def:TopLevelTypeConstraint[Identifier["index"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'i"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'i"]]]
+                                                              ],
+                                              result_type=Type:Bit],
+                           polymorphic=True,
+                           monomorphs=[]]
+
+Def:Function[name=Identifier["index"],
+             type=Def:FunctionType[parameters=[
+                                                Parameter[Identifier["bv"],
+                                                          Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                                                Parameter[Identifier["idx"],
+                                                          Type:Int[NumExpr:Var[Identifier["'i"]]]]
+                                              ],
+                                   return_type=Type:Bit],
+             extended_type="TODO",
+             body=Stm:Call[function_id=Identifier["bitvector_access"],
+                           arguments=[
+                                       Var[Identifier["bv"],
+                                           Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                                       Var[Identifier["idx"],
+                                           Type:Int[NumExpr:Var[Identifier["'i"]]]]
+                                     ]],
+             polymorphic=True,
+             monomorphs=[]]
+```
 
 ## Atoms
+
+`atom` and `atom_bool` are types that Sail internally uses as replacement for `int` and `bool`.
+Both receive type arguments.
 
 ## `exit()` Return Type
 
@@ -97,3 +140,5 @@ The translation of expressions to statements
 ## Full Type of Functions
 
 To be found in top level type constraints, but apparently not in functions themselves
+
+## Implicit
