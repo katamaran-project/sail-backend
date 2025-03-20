@@ -209,7 +209,12 @@ type module_flag =
   | NoFlag
 
 
-let pp_module ?(flag = NoFlag) ?(includes = []) identifier contents =
+let pp_module
+    ?(flag      : module_flag = NoFlag)
+    ?(includes  : string list = []    )
+    (identifier : string              )
+    (contents   : PP.t                ) : PP.t
+  =
   let first_line =
     PP.annotate [%here] @@ PP.(
       pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
