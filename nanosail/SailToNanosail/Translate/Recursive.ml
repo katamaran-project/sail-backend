@@ -32,12 +32,13 @@ end = struct
         let id_as_string = Ast.Identifier.to_string identifier'
         in
         match id_as_string with
-        | "bool"      -> TC.return @@ Ast.Type.Bool
+        | "bool"      -> TC.return Ast.Type.Bool
         | "int"       -> TC.return @@ Ast.Type.Int None
-        | "unit"      -> TC.return @@ Ast.Type.Unit
-        | "string"    -> TC.return @@ Ast.Type.String
-        | "bit"       -> TC.return @@ Ast.Type.Bit
-        | "nat"       -> TC.return @@ Ast.Type.Nat
+        | "unit"      -> TC.return Ast.Type.Unit
+        | "string"    -> TC.return Ast.Type.String
+        | "bit"       -> TC.return Ast.Type.Bit
+        | "nat"       -> TC.return Ast.Type.Nat
+        (* The types below receive arguments and should be dealt with in nanotype_of_application *)
         | "atom"      -> TC.fail [%here] "Type atom should be intercepted higher up"
         | "atom_bool" -> TC.fail [%here] "Type atom_bool should be intercepted higher up"
         | "bits"      -> TC.fail [%here] "Type bits should be intercepted higher up"
