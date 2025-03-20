@@ -487,7 +487,13 @@ let pp_open_scope (scope : string) : PP.t =
   end
 
 
-let pp_open_scopes scopes =
+(*
+   Local Open Scope scope_1.
+   Local Open Scope scope_2.
+   ...
+   Local Open Scope scope_n.
+*)
+let pp_open_scopes (scopes : string list) : PP.t =
   PP.(vertical @@ List.map ~f:pp_open_scope scopes)
 
 
