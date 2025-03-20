@@ -27,10 +27,10 @@ let genblock loc label doc =
 let generate_base_prelude () : PP.t GC.t =
   genblock [%here] "Base Prelude" begin
       GC.return @@ PP.paragraphs [
-                       Coq.pp_require ~from:(Some "Coq"      ) ~import:true  [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
-                       Coq.pp_require ~from:(Some "stdpp"    ) ~import:false [ "finite" ];
-                       Coq.pp_require ~from:(Some "Equations") ~import:true  [ "Equations" ];
-                       Coq.pp_require ~from:(Some "Katamaran") ~import:true  [ "Base"; "Bitvector" ];
+                       Coq.pp_require ~from:(Some "Coq"      ) ~mode:(Some Coq.Import) [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
+                       Coq.pp_require ~from:(Some "stdpp"    ) ~mode:None [ "finite" ];
+                       Coq.pp_require ~from:(Some "Equations") ~mode:(Some Coq.Import) [ "Equations" ];
+                       Coq.pp_require ~from:(Some "Katamaran") ~mode:(Some Coq.Import) [ "Base"; "Bitvector" ];
                      ]
     end
 
@@ -1082,7 +1082,7 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
   in
   begin
     let base_module_name = Configuration.(get base_name)
-    and flag             = Coq.Export
+    and mode             = Some Coq.Export
     and module_types     = [ PP.string "Base" ]
     in
     let* contents =
@@ -1114,6 +1114,6 @@ let pp_base_module (definitions : (Sail.sail_definition * Ast.Definition.t) list
       GC.return @@ PP.paragraphs sections
     in
     GC.pp_annotate [%here] begin
-      GC.return @@ Coq.pp_module ~flag ~module_types base_module_name contents
+      GC.return @@ Coq.pp_module ~mode ~module_types base_module_name contents
     end
   end

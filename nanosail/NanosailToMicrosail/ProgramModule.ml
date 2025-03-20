@@ -18,10 +18,10 @@ let pp_require_imports () : PP.t =
       )
   in
   PP.(paragraphs [
-      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~import:true coq_imports;
-      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~import:true [ "Semantics.Registers"; "Bitvector"; "Program" ];
-      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~import:true [ "finite" ];
-      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~import:true [ "Equations" ];
+      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~mode:(Some Coq.Import) coq_imports;
+      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~mode:(Some Coq.Import) [ "Semantics.Registers"; "Bitvector"; "Program" ];
+      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~mode:(Some Coq.Import) [ "finite" ];
+      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~mode:(Some Coq.Import) [ "Equations" ];
     ])
 
 
@@ -70,7 +70,7 @@ let pp_program_module
       (top_level_type_constraint_definitions : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) list) : PP.t GC.t
   =
   genblock [%here] "Program Module" begin
-    let flag            = Coq.Import
+    let mode            = Some Coq.Import
     and identifier      = Configuration.(get program_name)
     and base_identifier = Configuration.(get base_name)
     in
@@ -103,7 +103,7 @@ let pp_program_module
       ]
     in
     GC.return @@ PP.annotate [%here] @@ Coq.pp_module
-      ~flag
+      ~mode
       ~module_types
       identifier
       contents

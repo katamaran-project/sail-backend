@@ -203,10 +203,9 @@ let pp_section
     end
 
 
-type module_flag =
+type module_mode =
   | Import
   | Export
-  | NoFlag
 
 
 (*
@@ -215,10 +214,10 @@ type module_flag =
    End identifier.
 *)
 let pp_module
-    ?(flag         : module_flag = NoFlag)
-    ?(module_types : PP.t list   = []    )
-    (identifier    : string              )
-    (contents      : PP.t                ) : PP.t
+    ?(mode         : module_mode option = None)
+    ?(module_types : PP.t list          = []  )
+    (identifier    : string                   )
+    (contents      : PP.t                     ) : PP.t
   =
   let pp_module_type (module_type : PP.t) : PP.t =
     PP.separate_horizontally ~separator:PP.space [ PP.string "<:"; module_type ]
@@ -228,10 +227,10 @@ let pp_module
       pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
-            match flag with
-            | Import -> add @@ string "Import"
-            | Export -> add @@ string "Export"
-            | NoFlag -> ()
+            match mode with
+            | Some Import -> add @@ string "Import"
+            | Some Export -> add @@ string "Export"
+            | None        -> ()
           end;
           add @@ string identifier;
           addall @@ List.map ~f:pp_module_type module_types;
@@ -432,9 +431,9 @@ let pp_string (value : string) =
                                   library_n.
 *)
 let pp_require
-    ?(from     : string option = None )
-    ?(import   : bool          = false)
-    (libraries : string list          )
+    ?(from     : string option      = None)
+    ?(mode     : module_mode option = None)
+    (libraries : string list              )
   =
   let from_words =
     match from with
@@ -448,12 +447,13 @@ let pp_require
     [
       PP.string "Require"
     ]
-  and import_words =
-    if import
-    then [ PP.annotate [%here] @@ PP.string "Import" ]
-    else []
+  and mode_words =
+    match mode with
+    | Some Import -> [ PP.string "Import" ]
+    | Some Export -> [ PP.string "Export" ]
+    | None        -> []
   in
-  let words     = List.concat [ from_words; require_words; import_words ]
+  let words     = List.concat [ from_words; require_words; mode_words ]
   and libraries = List.map ~f:PP.string libraries
   in
   PP.annotate [%here] begin
