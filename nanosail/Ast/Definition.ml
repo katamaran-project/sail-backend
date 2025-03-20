@@ -72,11 +72,11 @@ module Function = struct
     in
     let keyword =
       [
-        ("name"         , function_name'         );
-        ("type"         , function_type'         );
-        ("body"         , function_body'         );
-        ("polymorphic"  , polymorphic'           );
-        ("monomorphs"   , monomorphs'            );
+        ("name"         , function_name');
+        ("type"         , function_type');
+        ("body"         , function_body');
+        ("polymorphic"  , polymorphic'  );
+        ("monomorphs"   , monomorphs'   );
       ]
     in
     FExpr.mk_application ~keyword "Def:Function"
