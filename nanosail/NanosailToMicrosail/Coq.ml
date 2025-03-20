@@ -425,6 +425,12 @@ let pp_string (value : string) =
   end
 
 
+(*
+   [From from]? Require [Import]? library_1
+                                  library_2
+                                  ...
+                                  library_n.
+*)
 let pp_require
     ?(from     : string option = None )
     ?(import   : bool          = false)
