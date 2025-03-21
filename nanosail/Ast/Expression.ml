@@ -34,7 +34,8 @@ let rec equal
     (expression_2 : t) : bool
   =
   match expression_1, expression_2 with
-  | Variable (identifier_1, type_1), Variable (identifier_2, type_2) -> begin
+  | Variable (identifier_1, type_1),
+    Variable (identifier_2, type_2) -> begin
       Identifier.equal
         identifier_1
         identifier_2
@@ -44,25 +45,29 @@ let rec equal
         type_2
     end
 
-  | List subexpressions_1, List subexpressions_2 -> begin
+  | List subexpressions_1,
+    List subexpressions_2 -> begin
       List.equal equal
         subexpressions_1
         subexpressions_2
     end
 
-  | Tuple subexpressions_1, Tuple subexpressions_2 -> begin
+  | Tuple subexpressions_1,
+    Tuple subexpressions_2 -> begin
       List.equal equal
         subexpressions_1
         subexpressions_2
     end
 
-  | Value value_1, Value value_2 -> begin
+  | Value value_1,
+    Value value_2 -> begin
       Value.equal
         value_1
         value_2
     end
 
-  | UnaryOperation (operator_1, operand_1), UnaryOperation (operator_2, operand_2) -> begin
+  | UnaryOperation (operator_1, operand_1),
+    UnaryOperation (operator_2, operand_2) -> begin
       UnaryOperator.equal
         operator_1
         operator_2
@@ -72,7 +77,8 @@ let rec equal
         operand_2
     end
 
-  | BinaryOperation (operator_1, left_operand_1, right_operand_1), BinaryOperation (operator_2, left_operand_2, right_operand_2) -> begin
+  | BinaryOperation (operator_1, left_operand_1, right_operand_1),
+    BinaryOperation (operator_2, left_operand_2, right_operand_2) -> begin
       BinaryOperator.equal
         operator_1
         operator_2
@@ -86,7 +92,8 @@ let rec equal
         right_operand_2
     end
 
-  | Record { type_identifier = type_identifier_1; fields = fields_1 }, Record { type_identifier = type_identifier_2; fields = fields_2 } -> begin
+  | Record { type_identifier = type_identifier_1; fields = fields_1 },
+    Record { type_identifier = type_identifier_2; fields = fields_2 } -> begin
       Identifier.equal
         type_identifier_1
         type_identifier_2
@@ -96,7 +103,8 @@ let rec equal
         fields_2
     end
 
-  | Enum { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1 }, Enum { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2 } -> begin
+  | Enum { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1 },
+    Enum { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2 } -> begin
       Identifier.equal
         type_identifier_1
         type_identifier_2
@@ -106,7 +114,8 @@ let rec equal
         constructor_identifier_2
     end
 
-  | Variant { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1; fields = fields_1 }, Variant { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2; fields = fields_2 } -> begin
+  | Variant { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1; fields = fields_1 },
+    Variant { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2; fields = fields_2 } -> begin
       Identifier.equal
         type_identifier_1
         type_identifier_2
@@ -119,7 +128,7 @@ let rec equal
         fields_1
         fields_2
     end
-    
+
   | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
 
   | Variable _, _                                        -> false
