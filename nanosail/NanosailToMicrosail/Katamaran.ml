@@ -199,7 +199,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       ]
     in
     let coq_lines =
-      List.map ~f:Coq.pp_derive_eqdec_for eqdec_identifiers
+      List.map ~f:Coq.pp_derive_eqdec_for (List.map ~f:Identifier.pp eqdec_identifiers)
     in
     GC.block begin
       GC.generation_block [%here] "EqDec" begin
