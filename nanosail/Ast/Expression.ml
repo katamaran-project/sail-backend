@@ -132,16 +132,16 @@ let rec equal
         elements_2
     end
 
-  | Variable _, _                                        -> false
-  | Value _, _                                           -> false
-  | List _, _                                            -> false
-  | UnaryOperation _, _                                  -> false
-  | BinaryOperation (_, _, _), _                         -> false
-  | Record _, _                                          -> false
-  | Enum _, _                                            -> false
-  | Variant _, _                                         -> false
-  | Tuple _, _                                           -> false
-  | Bitvector _, _                                       -> false
+  | Variable _, _                -> false
+  | Value _, _                   -> false
+  | List _, _                    -> false
+  | UnaryOperation _, _          -> false
+  | BinaryOperation (_, _, _), _ -> false
+  | Record _, _                  -> false
+  | Enum _, _                    -> false
+  | Variant _, _                 -> false
+  | Tuple _, _                   -> false
+  | Bitvector _, _               -> false
 
 
 exception UnimplementedTypeInference
