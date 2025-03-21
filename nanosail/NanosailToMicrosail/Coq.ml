@@ -618,10 +618,12 @@ let pp_record
 let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.t =
   let lines_of_code = [
     PP.string "Local Obligation Tactic :=";
-    PP.(indent @@ Identifier.pp identifier)
+    PP.indent @@ Identifier.pp identifier;
   ]
   in
-  PP.annotate [%here] @@ pp_sentence @@ PP.vertical lines_of_code
+  PP.annotate [%here] begin
+    pp_sentence @@ PP.vertical lines_of_code
+  end
 
 
 let pp_derive
