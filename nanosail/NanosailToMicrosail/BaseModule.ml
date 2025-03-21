@@ -978,7 +978,7 @@ let pp_canonicals () : PP.t GC.t =
     List.map ~f:Ast.Identifier.mk [ "typedeclkit"; "typedenotekit"; "typedefkit" ]
   in
   genblock [%here] "Canonicals" begin
-    GC.return @@ PP.vertical @@ List.map ~f:(Fn.compose Coq.pp_canonical Identifier.pp) identifiers
+    GC.return @@ PP.vertical @@ List.map ~f:(Coq.pp_canonical <. Identifier.pp) identifiers
   end
 
 

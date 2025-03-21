@@ -65,7 +65,7 @@ module Implementation = struct
        $ VERBOSE=4 sail ...        # Enable all logging
     *)
     let verbosity_level_environment_variable = "VERBOSE"
-    let verbosity_level = environment_variable verbosity_level_environment_variable LogLib.VerbosityLevel.default (Fn.compose LogLib.VerbosityLevel.of_int Int.of_string)
+    let verbosity_level = environment_variable verbosity_level_environment_variable LogLib.VerbosityLevel.default (LogLib.VerbosityLevel.of_int <. Int.of_string)
 
     (*
        The translation of match expressions can lead to an explosion in code generation.

@@ -221,7 +221,7 @@ end = struct
                 (
                   PP.string "Function parameter types",
                   PP.numbered_list begin
-                    List.map ~f:(Fn.compose PP.string StringOf.Sail.typ) parameter_types
+                    List.map ~f:(PP.string <. StringOf.Sail.typ) parameter_types
                   end
                 );
                 (

@@ -64,7 +64,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
     let* pp_constructor =
       GC.pp_annotate [%here] @@ pp_nanotype constructor
     and* pp_type_arguments =
-      GC.map ~f:(GC.(compose (Fn.compose return PP.(surround parens)) pp_type_argument)) type_arguments
+      GC.map ~f:(GC.(compose (return <. PP.(surround parens)) pp_type_argument)) type_arguments
     in
     GC.return begin
       PP.annotate [%here] begin

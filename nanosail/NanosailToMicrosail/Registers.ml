@@ -134,7 +134,7 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
       GC.return @@ (register_id, initial_value)
     in
     let* description_pairs =
-      GC.map ~f:(Fn.compose format_register_definition snd) register_definitions
+      GC.map ~f:(format_register_definition <. snd) register_definitions
     in
     GC.return @@ PP.description_list description_pairs
 

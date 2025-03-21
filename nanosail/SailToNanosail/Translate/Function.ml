@@ -798,7 +798,7 @@ let rec statement_of_aexp
                     PP.string "Argument types",
                     PP.indent begin
                       PP.numbered_list begin
-                        List.map ~f:(Fn.compose FExpr.pp Ast.Type.to_fexpr) argument_expression_types
+                        List.map ~f:(FExpr.pp <. Ast.Type.to_fexpr) argument_expression_types
                       end
                     end
                   );

@@ -82,7 +82,7 @@ let any =
     in
     let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
-    EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.exists ~f:predicate items
+    EC.lift ~f:(Option.some <. Value.Mk.bool) @@ EC.exists ~f:predicate items
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 
@@ -97,7 +97,7 @@ let all =
     in
     let predicate arg = EC.lift ~f:Value.truthy @@ predicate [ arg ]
     in
-    EC.lift ~f:(Fn.compose Option.some Value.Mk.bool) @@ EC.forall ~f:predicate items
+    EC.lift ~f:(Option.some <. Value.Mk.bool) @@ EC.forall ~f:predicate items
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
 

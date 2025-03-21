@@ -2245,7 +2245,7 @@ let rec translate_pattern
           let* variant_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
           in
-          match List.find variant_definition.constructors ~f:(Fn.compose (Ast.Identifier.equal head_identifier) fst) with (* todo create separate function *)
+          match List.find variant_definition.constructors ~f:(Ast.Identifier.equal head_identifier <. fst) with (* todo create separate function *)
           | Some (constructor_identifier, field_types) -> begin
               let field_type : Ast.Type.t =
                 match field_types with
@@ -2651,7 +2651,7 @@ let translate_tuple_match
         let* () =
           let message = lazy begin
             let tree_sizes =
-              String.concat ~sep:", " @@ List.map ~f:(Fn.compose Int.to_string Tuple.Triple.second) triples_of_tree_size_permuter
+              String.concat ~sep:", " @@ List.map ~f:(Int.to_string <. Tuple.Triple.second) triples_of_tree_size_permuter
             in
             PP.format "Pattern tree sizes: [%s], smallest is %d" tree_sizes smallest_size
           end

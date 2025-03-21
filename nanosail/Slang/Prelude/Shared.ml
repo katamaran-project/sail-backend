@@ -46,4 +46,4 @@ let error identifier args =
 let return (value : Value.t) = EC.return @@ Some value
 
 (* Helper function to define functions using Slang code *)
-let define = Fn.compose EC.ignore Evaluation.parse_and_evaluate_string
+let define = EC.ignore <. Evaluation.parse_and_evaluate_string

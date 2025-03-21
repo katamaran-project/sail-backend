@@ -15,3 +15,6 @@ module Bool       = Base.Bool
 module Char       = Base.Char
 module Comparator = Base.Comparator
 module Printf     = Base.Printf
+
+
+let (<.) = Fn.compose

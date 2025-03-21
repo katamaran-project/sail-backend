@@ -1,4 +1,4 @@
-open! ExtBase
+open ExtBase
 open Monads.Notations.Star(Slang.EvaluationContext)
 open Slang.Prelude.Shared
 
@@ -13,7 +13,7 @@ end
 
 
 let string_of_document =
-  Fn.compose PP.to_string PP.undecorate
+  PP.to_string <. PP.undecorate
 
 
 let html_of_document =
