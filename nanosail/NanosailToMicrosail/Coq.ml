@@ -792,6 +792,13 @@ let pp_scope
     end
 
 
+(*
+     true
+
+   or
+
+     false
+*)
 let pp_bool (value : bool) : PP.t =
   PP.annotate [%here] begin
     if value
