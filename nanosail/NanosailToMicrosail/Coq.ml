@@ -691,6 +691,9 @@ let pp_application f args =
   end
 
 
+(*
+   @f arg1 arg2 ... argn
+*)
 let pp_explicit_application f args =
   PP.annotate [%here] begin
     PP.(separate_horizontally ~separator:space @@ horizontal [ PP.at; f ] :: args)
