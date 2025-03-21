@@ -697,7 +697,10 @@ let pp_application
 (*
    @f arg1 arg2 ... argn
 *)
-let pp_explicit_application f args =
+let pp_explicit_application
+    (f    : PP.t     )
+    (args : PP.t list) : PP.t
+  =
   PP.annotate [%here] begin
     PP.(separate_horizontally ~separator:space @@ horizontal [ PP.at; f ] :: args)
   end
