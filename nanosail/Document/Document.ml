@@ -84,6 +84,13 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     ]
 
 
+  (*
+     item1_fst
+       item1_snd
+     item2_fst
+       item2_snd
+     ...
+  *)
   let description_list (items : (t * t) list) : t =
     let render_item entry description =
       vertical [
