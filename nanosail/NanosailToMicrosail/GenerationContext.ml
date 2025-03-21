@@ -182,7 +182,9 @@ let block (f : PP.t t) : PP.t t =
   end
 
 
-(* Adds annotation to the current frame *)
+(*
+   Adds the given annotation to the current frame
+*)
 let add_annotation (annotation : PP.t) : int t =
   let* () = assert_inside_frame
   and* () = update annotations @@ fun xs -> List.append xs [Annotation annotation]
