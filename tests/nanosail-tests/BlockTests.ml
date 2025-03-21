@@ -6,7 +6,7 @@ open Nanosail.Templates
 let create_input (lines : string list) : (module Blocks.INPUT) =
   let lines = ref lines
   in
-  let module Result = struct    
+  let module Result = struct
     let next_line () =
       match !lines with
       | line::remaining -> begin
@@ -34,12 +34,12 @@ module Output = struct
         | OutOfBlockLine s2 -> String.equal s1 s2
         | _                 -> false
       end
-      
+
     | Block lines_1 -> begin
         match y with
         | Block lines_2 -> List.equal String.equal lines_1 lines_2
         | _             -> false
-      end          
+      end
 end
 
 
@@ -110,15 +110,15 @@ let test_process_lines =
     ] [
       Block ["a"; "b"];
       Block ["c"; "d"];
-    ];   
-    
+    ];
+
     test [
       "a";
       "<<";
       "b";
       "c";
       ">>";
-      "d";          
+      "d";
     ] [
       OutOfBlockLine "a";
       Block [ "b"; "c" ];

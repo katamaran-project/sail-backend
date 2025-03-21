@@ -47,7 +47,7 @@ let create_if_statement
   let* condition_variable =
     TC.generate_unique_identifier ()
   in
-  let body_statement : Ast.Statement.t = 
+  let body_statement : Ast.Statement.t =
     Match begin
       MatchBool {
         condition = condition_variable;
@@ -704,11 +704,11 @@ let rec statement_of_aexp
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
       | _      -> TC.fail [%here] "binary operation should have exactly two arguments"
     in
-    
+
     let statement_of_comparison (comparison : Ast.BinaryOperator.Comparison.t) : Ast.Statement.t TC.t =
       statement_of_binary_operation @@ StandardComparison comparison
     in
-    
+
     let statement_of_function_call () =
       (*
         Sail translates the construction of a variant type to a function call.
@@ -835,7 +835,7 @@ let rec statement_of_aexp
                 TC.return @@ wrap @@ Call (receiver_identifier', argument_expressions)
               end
           in
-          
+
           let call_statement : Ast.Statement.t =
             Call (receiver_identifier', argument_expressions)
           in
@@ -857,7 +857,7 @@ let rec statement_of_aexp
           | None -> begin
               let* () = log_no_type_constraint_found ()
               in
-              TC.return @@ wrap call_statement                
+              TC.return @@ wrap call_statement
             end
         end
     in
@@ -888,7 +888,7 @@ let rec statement_of_aexp
     and* binding_statement      = statement_of_aexp (Some expression_type) expression
     and* body_statement         = statement_of_aexp (Some body_type) body
     in
-    let translation : Ast.Statement.t =    
+    let translation : Ast.Statement.t =
       Let {
         binder;
         binding_statement_type;
@@ -1249,9 +1249,9 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
       <=ˢ   <=ᵘ
       >ˢ    >ᵘ
       >=ˢ   >=ᵘ
-   
+
    Our goal is to translate
-   
+
       signed(bv1) < signed(bv2)
 
    into

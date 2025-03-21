@@ -33,7 +33,7 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.t GC
     | Cons                                                 -> GC.not_yet_implemented [%here] (* Should not occur *)
     | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
   end
-    
+
 
 let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   let rec pp_value (value : Ast.Value.t) : PP.t GC.t =

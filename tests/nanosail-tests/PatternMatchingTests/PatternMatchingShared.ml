@@ -111,7 +111,7 @@ module TC = struct
     in
     return @@ Ast.Type.Variant identifier
 
-  
+
   let run_expecting_success (tc : 'a t) : 'a =
     let result = run tc
     in

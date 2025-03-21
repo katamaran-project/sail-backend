@@ -66,7 +66,7 @@ end
 let to_escape_sequence (decorations : Decoration.t list) : string =
   let build_escape_sequence (commands : string list) : string =
     Printf.sprintf "\027[%sm" @@ String.concat ~sep:";" commands
-  in    
+  in
   if
     List.is_empty decorations
   then

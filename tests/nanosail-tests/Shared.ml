@@ -40,7 +40,7 @@ let pp_diff
         FExpr.pp_diff highlight ~compared_with:actual_fexpr ~printed:expected_fexpr
       ]
     ]
-  in  
+  in
   Stdlib.Format.pp_print_string formatter @@ PP.to_string document
 
 

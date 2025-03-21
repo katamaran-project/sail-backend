@@ -35,5 +35,5 @@ module Triple = struct
     in
     fst_equal x1 y1 &&
     snd_equal x2 y2 &&
-    trd_equal x3 y3      
+    trd_equal x3 y3
 end

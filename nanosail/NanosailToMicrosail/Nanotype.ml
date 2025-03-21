@@ -154,7 +154,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
       GC.not_yet_implemented [%here]
     end
 
-    
+
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
     let* n' =

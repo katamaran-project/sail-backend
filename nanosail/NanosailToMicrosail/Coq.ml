@@ -221,7 +221,7 @@ let pp_module
   =
   let pp_module_type (module_type : PP.t) : PP.t =
     PP.separate_horizontally ~separator:PP.space [ PP.string "<:"; module_type ]
-  in  
+  in
   let first_line =
     PP.(
       pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
@@ -629,7 +629,7 @@ let pp_local_obligation_tactic (tactic : PP.t) : PP.t =
 
 
 (*
-  Derive class for type. 
+  Derive class for type.
 *)
 let pp_derive
     (pp_class : PP.t)

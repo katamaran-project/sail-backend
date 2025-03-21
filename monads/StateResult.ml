@@ -1,7 +1,7 @@
 (*
-   
+
    Monad that combines the component state monad and result monad.
-   
+
 *)
 
 module type S = sig

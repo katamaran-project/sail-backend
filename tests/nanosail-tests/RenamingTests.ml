@@ -266,11 +266,11 @@ let test_rename_expression_var_1 =
   in
   {|
       x
-    
+
     Renaming a -> renamed gives
 
       x
-    
+
   |} >:: test
 
 
@@ -293,11 +293,11 @@ let test_rename_expression_var_2 =
   in
   {|
       x
-    
+
     Renaming x -> renamed gives
 
       y
-    
+
   |} >:: test
 
 
@@ -335,7 +335,7 @@ let test_rename_match_bool_1 =
         true  => x,
         false => y
       }
-    
+
     Renaming cond -> renamed gives
 
       match renamed {
@@ -379,7 +379,7 @@ let test_rename_match_bool_2 =
         true  => x,
         false => y
       }
-    
+
     Renaming a -> renamed gives
 
       match cond {
@@ -423,7 +423,7 @@ let test_rename_match_bool_3 =
         true  => x,
         false => y
       }
-    
+
     Renaming a -> renamed gives
 
       match cond {
@@ -467,7 +467,7 @@ let test_rename_match_bool_4 =
         true  => x,
         false => y
       }
-    
+
     Renaming a -> renamed gives
 
       match cond {
@@ -508,7 +508,7 @@ let test_rename_let_1 =
       let x = (x, y)
       in
       (x, z)
-    
+
     Renaming a -> renamed gives
 
       let x = (x, y)
@@ -548,7 +548,7 @@ let test_rename_let_2 =
       let x = (x, y)
       in
       (x, z)
-    
+
     Renaming x -> renamed gives
 
       let x = (renamed, y)
@@ -588,7 +588,7 @@ let test_rename_let_3 =
       let x = (x, y)
       in
       (x, z)
-    
+
     Renaming y -> renamed gives
 
       let x = (x, renamed)
@@ -628,7 +628,7 @@ let test_rename_let_4 =
       let x = (x, y)
       in
       (x, z)
-    
+
     Renaming z -> renamed gives
 
       let x = (x, y)
@@ -668,7 +668,7 @@ let test_rename_let_5 =
       let x = (x, x)
       in
       (x, x)
-    
+
     Renaming x -> renamed gives
 
       let x = (renamed, renamed)

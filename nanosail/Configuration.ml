@@ -57,7 +57,7 @@ module Implementation = struct
        This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
        the desired verbosity level.
        To see which values are valid and which verbosity levels they represent, see LogLib.VerbosityLevel.of_int.
-       
+
 
        Example Usage
        -------------
@@ -75,13 +75,13 @@ module Implementation = struct
        i.e., there is a superexponential growth in the number of possibilities to consider.
 
        This setting imposes an upper limit on this number of permutations.
-       
+
        For more detailed information, see the SailToNanosail.Translate.Match module.
-       
-       
+
+
        Example Usage
        -------------
-       
+
          (pattern-tree-max-permutations 10000)
     *)
     let pattern_tree_maximum_permutations = integer "pattern-tree-max-permutations" 1000
@@ -102,7 +102,7 @@ module Implementation = struct
 
          (*
            Original Sail code
-           
+
              val double : int -> int
              $[complete]
              function double x = $[overloaded { "name" = "*", "is_infix" = true }] mult_atom(2, x)
@@ -112,7 +112,7 @@ module Implementation = struct
                                      ]
                                      (ty.int) :=
            stm_exp (((exp_int 2%Z))*((exp_var "x"))).
-       
+
 
        Example Usage
        -------------
@@ -120,7 +120,7 @@ module Implementation = struct
          (include-original-code #t)
          (include-original-code #f)
          (include-original-code)    ; Same as (include-original-code #t)
-       
+
     *)
     let include_original_code = bool "include-original-code" false
 
@@ -134,7 +134,7 @@ module Implementation = struct
     let ignore_default_order = bool "ignore-default-order" true
 
     (*
-       
+
        Plain printing produces
 
           (cons (exp_int 1%Z)
@@ -149,19 +149,19 @@ module Implementation = struct
             exp_int 2%Z;
             exp_int 3%Z
           ]
-         
+
     *)
     let pretty_print_lists = bool "pretty-print-lists" false
 
     (*
-       
+
        Plain printing produces
 
         stm_let "x"
                 (ty.int)
                 (stm_exp (exp_int 5%Z))
                 (stm_exp (exp_var "x"))
-         
+
 
        Pretty printing produces
 
@@ -175,7 +175,7 @@ module Implementation = struct
          (pretty-print-let #t)
          (pretty-print-let #f)
          (pretty-print-let)        ; Same as (pretty-print-let #t)
-       
+
     *)
     let pretty_print_let = bool "pretty-print-let" false
 
@@ -189,7 +189,7 @@ module Implementation = struct
                                    | y => stm_exp (exp_int 2%Z)
                                    | z => stm_exp (exp_int 3%Z)
                                    end)
-       
+
        Pretty printing produces
 
           match: (stm_exp (exp_var "ж0")) in Emyenum with
@@ -197,12 +197,12 @@ module Implementation = struct
            | y  =>  stm_exp (exp_int 2%Z)
            | z  =>  stm_exp (exp_int 3%Z)
           end
-       
+
     *)
     let pretty_print_match_enum = bool"pretty-print-match-enum" false
 
     (*
-       
+
        Plain printing produces
 
         stm_exp (exp_binop bop.bvadd (exp_var "x") (exp_var "y")).
@@ -210,7 +210,7 @@ module Implementation = struct
        Pretty printing produces
 
          stm_exp (((exp_var "x") +ᵇ (exp_var "y"))).
-       
+
     *)
     let pretty_print_binary_operators = bool "pretty-print-binary-operators" false
 
@@ -219,7 +219,7 @@ module Implementation = struct
        Plain printing produces
 
          stm_call foo (env.snoc (env.snoc (env.snoc (env.nil) (_::_) ((exp_int 1%Z))%exp) (_::_) ((exp_false))%exp) (_::_) ((exp_val (ty.bvec 4) ([bv 1])))%exp).
-         
+
 
        Pretty printing produces
 
@@ -240,7 +240,7 @@ module Implementation = struct
     let bitvectors_zeros_ones_as_literal = bool "literal-zeros-and-ones" false
 
     (*
-       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.   
+       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.
     *)
     let inline_definitions_in_notations = bool "inline-definitions-in-notations" true
 
@@ -248,7 +248,7 @@ module Implementation = struct
        Annotates functions with the nanosail AST in F-Expression form.
     *)
     let annotate_functions_with_ast = bool "annotate-functions-with-ast" false
-    
+
     let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
     let ignore_value_definition_predicate          = string_predicate "ignore-value-definition-predicate"          (Fn.const false)
@@ -306,7 +306,7 @@ module Implementation = struct
     let handler_function =
       (*
          Deals with
-         
+
           (template input)
       *)
       let unary_version evaluated_arguments =
@@ -321,7 +321,7 @@ module Implementation = struct
         | None -> EC.return None
       (*
          Deals with
-         
+
           (template input output)
       *)
       and binary_version evaluated_arguments =
@@ -334,7 +334,7 @@ module Implementation = struct
       in
       Slang.Functions.mk_multimethod [ unary_version; binary_version ]
     in
-    export_callable exported_function_name handler_function  
+    export_callable exported_function_name handler_function
 
   (* helper function template-block-delimiters that allows setting both template block delimiters in one step *)
   let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
@@ -343,7 +343,7 @@ module Implementation = struct
       ConfigLib.Setting.set Exported.template_block_left_delimiter left;
       ConfigLib.Setting.set Exported.template_block_right_delimiter right
     end
- 
+
 
   let () =
     let exported_function_name =
@@ -379,11 +379,11 @@ module Implementation = struct
      Multiple calls are allowed.
 
      For example, take the following polymorphic function:
-     
+
        val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
 
      It can be monomorphized for n=1 and m=2 with
-     
+
        (monomorphize "foo"
                      "foo_1_2"
                      '(

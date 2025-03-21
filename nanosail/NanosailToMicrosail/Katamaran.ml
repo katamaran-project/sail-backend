@@ -29,7 +29,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
   method ignored_definitions                   = ignored_definitions
   method untranslated_definitions              = untranslated_definitions
   method function_definitions                  = function_definitions
-  method top_level_type_constraint_definitions = top_level_type_constraint_definitions    
+  method top_level_type_constraint_definitions = top_level_type_constraint_definitions
 
   method pp_base_prelude : PP.t GC.t =
     GC.block begin
@@ -265,7 +265,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
                 end
               ]
             end
-          in            
+          in
           let* pp_argument_types_list =
             GC.map argument_types_list ~f:pp_argument_types
           in

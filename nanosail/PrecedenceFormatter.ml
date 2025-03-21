@@ -1,9 +1,9 @@
 (*
-   
+
    Module to help format expressions involving infix notations
    where operators have certain precedences and parenthesizing
    may be a necessity.
-   
+
 *)
 
 

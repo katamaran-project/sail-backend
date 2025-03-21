@@ -16,7 +16,7 @@ module Make (_ : sig end) = struct
     let _, state = EC.run Slang.Prelude.initialize
     in
     ref state
-  
+
 
   (*
      Run f using the configuration interpreter
@@ -42,7 +42,7 @@ module Make (_ : sig end) = struct
     =
     run (EC.add_binding identifier value)
 
-  
+
   let export_callable
       (identifier : string              )
       (callable   : Slang.Value.callable) : unit
@@ -287,7 +287,7 @@ module Make (_ : sig end) = struct
       EC.return @@ Value.Nil
     in
     export_callable export_as script_function
-  
+
 
   let string_predicate
       (export_as : string        )
@@ -311,8 +311,8 @@ module Make (_ : sig end) = struct
       | Some value -> Setting.set setting (converter value)
       | None       -> ()
     end;
-    setting                    
-  
+    setting
+
 
   (*
      Creates a constant function that takes <arity> arguments and always returns <return_value>.

@@ -10,7 +10,7 @@ include LogLib.Make(
       Configuration.(get verbosity_level)
 
     let print = Stdio.print_endline
-    
+
     let flush () =
       (* %! forces a flush *)
       Stdio.printf "%!"

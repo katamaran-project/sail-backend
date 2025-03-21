@@ -118,7 +118,7 @@ module NumericExpression = struct
          | Mod -> Some (Z.rem left_operand right_operand)
        end
 
-  
+
   let rec simplify (numeric_expression : t) : t =
     match numeric_expression with
     | Constant _ -> numeric_expression
@@ -150,7 +150,7 @@ module NumericExpression = struct
         | simplified_left_operand, simplified_right_operand -> BinaryOperation (operator, simplified_left_operand, simplified_right_operand)
       end
 
-                    
+
   let rec to_string (numeric_expression : t) =
     let string_of_binop op e1 e2 =
       let op_string =
@@ -363,7 +363,7 @@ end = struct
       | Variant _                                 -> typ
       | Record _                                  -> typ
       | TypeVariable _                            -> typ
-      | Nat                                       -> typ       
+      | Nat                                       -> typ
       | Implicit _                                -> typ (* todo it would make sense to remove implicits after substitution *)
       | Int numeric_expression                    -> Int (Option.map numeric_expression ~f:(NumericExpression.substitute substitution))
       | List element_type                         -> List (subst element_type)
@@ -644,7 +644,7 @@ end = struct
               identifier_2
           end
         | _ -> false
-      end              
+      end
 end
 
 and TypeArgument : sig
@@ -681,8 +681,8 @@ end = struct
     | Type typ                             -> Type (Type.simplify typ)
     | NumericExpression numeric_expression -> NumericExpression (NumericExpression.simplify numeric_expression)
     | Bool numeric_constraint              -> Bool (NumericConstraint.evaluate_numeric_expressions numeric_constraint)
-  
-  
+
+
   let to_string (type_argument : t) : string =
     match type_argument with
     | Type t                   -> Type.to_string t
@@ -850,8 +850,8 @@ end = struct
     | Var _                              -> numeric_constraint
     | True                               -> numeric_constraint
     | False                              -> numeric_constraint
-  
-  
+
+
   let rec to_string (numeric_constraint : t) =
     let binop e1 op e2 =
       Printf.sprintf "(%s %s %s)" (NumericExpression.to_string e1) op (NumericExpression.to_string e2)

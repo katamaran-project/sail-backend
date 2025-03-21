@@ -2,7 +2,7 @@
 
    A program consists of a list of definitions.
    See type t for a list of which kinds of definitions are supported.
-   
+
 *)
 
 open ExtBase

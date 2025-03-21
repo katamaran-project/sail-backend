@@ -17,7 +17,7 @@
     An application is formatted as Head[pos1, pos2, ..., kw1=val1, kw2=val2, ...]
 
    F-Expressions can be pretty printed and diffed.
-   
+
 *)
 open! ExtBase
 
@@ -45,7 +45,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Bool bool_1 -> begin
       match fexpr_2 with
       | Bool bool_2 -> begin
@@ -55,7 +55,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | String string_1 -> begin
       match fexpr_2 with
       | String string_2 -> begin
@@ -65,7 +65,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Application { head = head_1; positional = positional_1; keyword = keyword_1 } -> begin
       match fexpr_2 with
       | Application { head = head_2; positional = positional_2; keyword = keyword_2 } -> begin
@@ -83,7 +83,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | List elements_1 -> begin
       match fexpr_2 with
       | List elements_2 -> begin
@@ -94,7 +94,7 @@ let rec equal
         end
       | _ -> false
     end
-    
+
   | Nil -> begin
       match fexpr_2 with
       | Nil -> true
@@ -260,7 +260,7 @@ let rec pp_diff
                     and value =
                       pp_diff highlight ~compared_with:v2 ~printed:v1
                     in
-                    (keyword, value) :: pp_keyword xs ys                      
+                    (keyword, value) :: pp_keyword xs ys
                   end
               in
               pp_keyword printed_keyword compared_with_keyword
@@ -269,8 +269,8 @@ let rec pp_diff
           end
         | _ -> highlight @@ pp printed
       end
-  end    
-  
+  end
+
 
 let to_string (fexpr : t) : string =
   PP.to_string @@ pp fexpr

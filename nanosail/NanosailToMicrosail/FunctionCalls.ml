@@ -20,7 +20,7 @@ let pp_function_call_using_configured_syntax
     MuSail.Statement.pp_call_using_notation function_name arguments
   else
     MuSail.Statement.pp_call function_name arguments
-      
+
 
 let report_incorrect_argument_count
     (original_function_name : Ast.Identifier.t )

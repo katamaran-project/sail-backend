@@ -22,7 +22,7 @@ module Context = struct
          Definitions are stored in reversed order, i.e., new definitions are added to the front of the list.
       *)
       definitions          : Ast.Definition.t list;
-      
+
       (* Counter used to generate unique identifiers *)
       next_id_index        : int;
 
@@ -33,7 +33,7 @@ module Context = struct
          Example
          -------
          We have a function
-         
+
            val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
 
          and calls
@@ -51,7 +51,7 @@ module Context = struct
 
          The actual order of the lists of parameter types is left unspecified.
       *)
-      polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;  
+      polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;
     }
 
   let empty : t =
@@ -95,7 +95,7 @@ module Context = struct
       =
       { context with polymorphic_argtypes }
     in
-    (get, set)        
+    (get, set)
 end
 
 

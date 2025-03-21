@@ -18,7 +18,7 @@ open TypeDefinition
 let translate_top_level_type_constraint
     (_definition_annotation    : Sail.definition_annotation     )
     (top_level_type_constraint : Sail.type_annotation S.val_spec) : Ast.Definition.t TC.t
-  =  
+  =
   TC.translation_block [%here] (PP.string "Translating top level type constraint") begin
     let VS_aux (unwrapped_top_level_type_constraint, _vspec_annotation) = top_level_type_constraint
     in

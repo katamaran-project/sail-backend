@@ -84,7 +84,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
         "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
         "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
       ]
-    in      
+    in
     let contents =
       PP.vertical [
         pp_fun_inductive_type;

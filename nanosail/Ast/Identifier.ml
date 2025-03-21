@@ -38,7 +38,7 @@ module Implementation = struct
     mk @@ generated_symbol ^ name
 
   let is_generated (Id name) =
-    String.is_substring ~substring:generated_symbol name 
+    String.is_substring ~substring:generated_symbol name
 
   let to_string (Id x) = x
 

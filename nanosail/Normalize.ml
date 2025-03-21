@@ -21,7 +21,7 @@
    Our approach to implement this is to normalize ASTs, which consists
    of renumbering the generated identifiers in the order they are encountered by the algorithms in this module:
    ast_1 =_alpha ast_2 iff normalize(ast_1) = normalize(ast_2).
-   
+
 *)
 
 open ExtBase

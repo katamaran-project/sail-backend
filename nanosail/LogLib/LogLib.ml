@@ -17,7 +17,7 @@ module Make(Configuration : CONFIGURATION) : sig
   val debug   : Lexing.position -> PP.t lazy_t -> unit
 end = struct
   include Configuration
-  
+
   let log
       (level          : VerbosityLevel.t)
       (ocaml_position : Lexing.position )

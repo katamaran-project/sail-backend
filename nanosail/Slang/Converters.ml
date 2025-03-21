@@ -2,7 +2,7 @@
 
    Module containing functionality related to converting Slang values into their
    corresponding OCaml values, e.g., Int n to n.
-   
+
 *)
 open ExtBase
 module EC = EvaluationContext
@@ -13,7 +13,7 @@ open Monads.OptionNotation
 (*
    An 'a converter is a function that checks if a given Slang value
    can be converted into an OCaml value of type a.
-   If so, it produces it as in a Some, otherwise a None is returned.   
+   If so, it produces it as in a Some, otherwise a None is returned.
 *)
 type 'a converter = Value.t -> 'a option
 
@@ -146,7 +146,7 @@ let callable (value : Value.t) : Value.callable option =
 (*
    Expects values to contain exactly 1 item that satisfy the given pattern
 
-   
+
    Example Usage
    -------------
 
@@ -154,7 +154,7 @@ let callable (value : Value.t) : Value.callable option =
        let=? n : int = map1 integer arguments
        in
        return @@ ...
-       
+
 *)
 let map1
     (f      : 'a converter)
@@ -172,7 +172,7 @@ let map1
 (*
    Expects values to contain exactly 2 items that satisfy the given patterns
 
-   
+
    Example Usage
    -------------
 

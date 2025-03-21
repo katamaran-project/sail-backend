@@ -6,7 +6,7 @@ end
 
 class ['a] variable_setting (initial : 'a) = object
   inherit ['a] setting
-      
+
   val mutable value = initial
 
   method get = value

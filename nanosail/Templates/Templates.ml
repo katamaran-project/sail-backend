@@ -42,13 +42,13 @@ let process_template_streams
   let module Input = struct
     let next_line () =
       Stdio.In_channel.input_line input_channel
-        
+
     let is_block_entry line =
       let left_delimiter =
         Configuration.(get template_block_left_delimiter)
       in
       String.equal (String.rstrip line) left_delimiter
-        
+
     let is_block_exit line =
       let right_delimiter =
         Configuration.(get template_block_right_delimiter)

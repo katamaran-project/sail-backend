@@ -1,7 +1,7 @@
 (*
 
    Module providing HTML generation functionality.
-   
+
 *)
 
 open! ExtBase

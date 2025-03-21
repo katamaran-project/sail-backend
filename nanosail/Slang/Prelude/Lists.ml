@@ -24,7 +24,7 @@ let cons =
 
 (*
     (list x y z)
-   
+
   is equivalent to
 
     (cons x (cons y (cons z nil)))
@@ -187,7 +187,7 @@ let range =
     EC.return @@ Option.some @@ Value.list_to_cons @@ List.map ~f:Value.Mk.integer @@ List.range ~start:`inclusive ~stop:`exclusive start stop
   in
   bind_callable id @@ Functions.mk_multimethod [ impl; error id ]
-  
+
 
 let initialize =
   let definitions = [

@@ -216,7 +216,7 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
     in
     GC.return @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
   end
-    
+
 
 let pp_function_definition_kit
     (function_definitions                  : (Sail.sail_definition * Ast.Definition.Function.t) list              )

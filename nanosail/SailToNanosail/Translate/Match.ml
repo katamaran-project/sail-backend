@@ -40,7 +40,7 @@
                               | z => stm_exp (exp_int 3%Z)
                               end)
 
-   
+
    ISSUE 1 : Statements vs Expressions
    -----------------------------------
    A first small issue is the fact that muSail match statements operate on *expressions*, whereas
@@ -235,7 +235,7 @@
    (Disclaimer: this explanation is a gradual one. It does not detail the final implementation
    in one go but instead starts off with a simplified version which is then refined upon.
    In other words, white lies lie ahead.)
-   
+
    As a working example, we'll use the following enums:
 
      enum A { A1, A2 }
@@ -251,7 +251,7 @@
        (A2, B1) => S21
        (A2, B2) => S22
      }
-   
+
    We can represent this by a tree:
 
 
@@ -315,7 +315,7 @@
                }
        }
 
-   
+
    Binders and Wildcards
    ---------------------
    Patterns can also contain binders and/or wildcards:
@@ -367,7 +367,7 @@
        match snd {
            B1 => Sx1,
            B2 => Sx2
-       }   
+       }
 
    since the value of fst does not matter.
    Such a simplification can also dramatically decrease the tree's size
@@ -388,7 +388,7 @@
            |         |
           Sx1       Sx2
 
-   
+
    Pattern Tree Construction (revisited)
    -------------------------------------
    Instead of starting off with a fully expanded tree, i.e.,
@@ -442,7 +442,7 @@
    Expansion happens as soon as a pattern mentions a specific case, but as long as wildcards/binders are
    used to match against a particular value, the corresponding node will remain a Binder and no duplication will occur,
    keeping the tree small.
-   
+
    In normal circumstances, this optimization should not be very effective: if a value is matched against,
    one would expect that its value actually matters and that node expansion is bound to happen for every node.
    However,
@@ -475,10 +475,10 @@
        scattered function foo
        function clause foo(A1, b) { ... }
        function clause foo(A2, b) { ... }
-    
+
      The b-value is not matched against, so the corresponding node does not need expansion.
 
-   
+
    Further Optimization
    --------------------
    The order in which the values of a tuple are matched against affects the size of the pattern tree.
@@ -533,7 +533,7 @@
      |       |
      |       |
      S      None
-   
+
 
    This tree counts only 8 nodes.
 
@@ -542,14 +542,14 @@
 
    To find the smallest tree, all permutations (up to a certain number,
    determined by Configuration.pattern_tree_maximum_permutations)
-   are tried out and the smallest tree is picked.   
+   are tried out and the smallest tree is picked.
 
-   
+
    Possible Sail-Level Code Optimizations
    ======================================
    Below we discuss a number of ways to limit the amount of generated code.
 
-   
+
    Helper functions
    ----------------
    Since upon expansion of a Binder node its subtree is copied N times,
@@ -586,7 +586,7 @@
        A3 => helper(arguments),
        ...,
        An => helper(arguments)
-     }  
+     }
 
    Partitioning
    ------------
@@ -616,8 +616,8 @@
 
    A large match statement will still exist in is_A1, but all other matches distinguishing between
    A1 and all other values will only need two clauses.
-   
-   
+
+
    TODOs
    =====
    * Generalized support for nested patterns
@@ -879,7 +879,7 @@ module PatternTree = struct
     | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
 
-  
+
   let rec equal
       (node_1 : t)
       (node_2 : t) : bool
@@ -1727,7 +1727,7 @@ let rec adorn_pattern_tree
     | VariantCase (constructor_identifier, field_pattern) -> begin
         (*
            Example context:
-           
+
               match ??? {
                <constructor_identifier>(<field_pattern>) => ...
              }

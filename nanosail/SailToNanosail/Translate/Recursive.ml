@@ -176,7 +176,7 @@ end = struct
             TC.return @@ Ast.Type.Implicit identifier
           end
         | _ -> TC.fail [%here] "implicit expected to have single type variable argument"
-      
+
       and nanotype_of_existential
           (ids         : Libsail.Ast.kinded_id list)
           (constraints : Libsail.Ast.n_constraint  )

@@ -26,7 +26,7 @@ let translate_identifier
       (ocaml_location : Lexing.position)
       (identifier     : S.id           ) : Ast.Identifier.t TC.t
   =
-  
+
   TC.translation_block [%here] (PP.string @@ "Translating identifier " ^ StringOf.Sail.id identifier) begin
     let S.Id_aux (unwrapped_identifier, sail_location) = identifier
     in

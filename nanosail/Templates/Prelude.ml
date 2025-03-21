@@ -113,14 +113,14 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
 
     export object
       inherit string_of_document_exported_function "base-translation" translation#program
-          
+
       method document =
         translation#pp_base
     end;
 
     export object
       inherit html_of_document_exported_function "base-html-translation" translation#program
-          
+
       method document =
         translation#pp_base
     end;
@@ -171,7 +171,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
           PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
         in
         GC.return formatted_untranslated_definitions
-    end;    
+    end;
 
     export object
       inherit exported_nullary_boolean_function "untranslated-definitions?"

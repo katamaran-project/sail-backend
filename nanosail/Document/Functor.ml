@@ -16,11 +16,11 @@ module type DOCUMENT = sig
 
   val is_empty : t -> bool
   val is_single_line : t -> bool
-    
+
   val measure : t -> int * int
   val decorate : AnsiColor.Decoration.t list -> t -> t
   val undecorate : t -> t
-    
+
   val to_string : t -> string
   val to_html : t -> Html.t
 
@@ -53,7 +53,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     match document with
      | Empty              -> true
      | String _           -> false
-     | Horizontal (_, _)  -> false 
+     | Horizontal (_, _)  -> false
      | Vertical (_, _)    -> false
      | Annotated (doc, _) -> is_empty doc
      | Decorated (doc, _) -> is_empty doc
@@ -88,7 +88,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
       =
       match document with
       | Empty -> []
-                 
+
       | String string -> begin
           [
             AnnotatedString {
@@ -98,7 +98,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
             }
           ]
         end
-                         
+
       | Horizontal (left, right) -> begin
           let left'  = to_annotated_strings accumulated_annotation current_decoration left
           and right' = to_annotated_strings accumulated_annotation current_decoration right
@@ -124,14 +124,14 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
             end
           | None -> failwith "TODO"
         end
-        
+
       | Vertical (top, bottom) -> begin
           List.concat [
             to_annotated_strings accumulated_annotation current_decoration top;
             to_annotated_strings accumulated_annotation current_decoration bottom
           ]
         end
-        
+
       | Decorated (subdocument, decorations) -> begin
           let subresults =
             to_annotated_strings accumulated_annotation decorations subdocument
@@ -156,7 +156,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
           in
           List.map ~f:decorate_annotated_string subresults
         end
-        
+
       | Annotated (doc, annotation) -> begin
           to_annotated_strings
             (Annotation.combine accumulated_annotation annotation)
@@ -215,7 +215,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     | Vertical (document_1, document_2)   -> Vertical (undecorate document_1, undecorate document_2)
     | Annotated (document, annotation)    -> Annotated (undecorate document, annotation)
     | Decorated (document, _)             -> document
-  
+
 
   let to_string (document : t) : string =
     String.concat ~sep:"\n" @@ to_strings document
@@ -260,7 +260,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
 
 
   let empty      = Empty
-  
+
 
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
@@ -299,7 +299,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     | [ s ] -> String s
     | lines -> vertical @@ List.map ~f:(fun s -> String s) lines
 
-  
+
   let annotate
       (annotation : Annotation.t)
       (document   : t           ) : t
