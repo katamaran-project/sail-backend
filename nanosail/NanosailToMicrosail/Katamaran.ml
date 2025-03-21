@@ -120,7 +120,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       List.build_list @@
       fun { add; addall; _ } -> begin
         add    @@ PP.annotate [%here] @@ Coq.pp_imports [ "stdpp.finite" ];
-        add    @@ PP.annotate [%here] @@ Coq.pp_local_obligation_tactic (Ast.Identifier.mk "finite_from_eqdec");
+        add    @@ PP.annotate [%here] @@ Coq.pp_local_obligation_tactic (PP.string "finite_from_eqdec");
         addall @@ finite_definitions;
       end
     in
