@@ -8,30 +8,32 @@ end
 
 
 let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.t GC.t =
-  match binary_operator with
-  | Plus                                                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.addition
-  | Minus                                                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.subtraction
-  | Times                                                -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.multiplication
-  | And                                                  -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.conjunction
-  | Or                                                   -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.disjunction
-  | EqualTo                                              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.equality
-  | NotEqualTo                                           -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.inequality
-  | StandardComparison LessThan                          -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than
-  | StandardComparison GreaterThan                       -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than
-  | StandardComparison LessThanOrEqualTo                 -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.less_than_or_equal_to
-  | StandardComparison GreaterThanOrEqualTo              -> GC.pp_annotate [%here] @@ GC.return Coq.Operator.greater_than_or_equals_to
-  | BitvectorComparison (Signed, LessThan)               -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_less_than
-  | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
-  | BitvectorComparison (Signed, GreaterThan)            -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
-  | BitvectorComparison (Signed, GreaterThanOrEqualTo)   -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
-  | BitvectorComparison (Unsigned, LessThan)             -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_less_than
-  | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
-  | BitvectorComparison (Unsigned, GreaterThan)          -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
-  | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.pp_annotate [%here] @@ GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
-  | Pair                                                 -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
-  | Cons                                                 -> GC.not_yet_implemented [%here] (* Should not occur *)
-  | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
-
+  GC.pp_annotate [%here] begin
+    match binary_operator with
+    | Plus                                                 -> GC.return Coq.Operator.addition
+    | Minus                                                -> GC.return Coq.Operator.subtraction
+    | Times                                                -> GC.return Coq.Operator.multiplication
+    | And                                                  -> GC.return Coq.Operator.conjunction
+    | Or                                                   -> GC.return Coq.Operator.disjunction
+    | EqualTo                                              -> GC.return Coq.Operator.equality
+    | NotEqualTo                                           -> GC.return Coq.Operator.inequality
+    | StandardComparison LessThan                          -> GC.return Coq.Operator.less_than
+    | StandardComparison GreaterThan                       -> GC.return Coq.Operator.greater_than
+    | StandardComparison LessThanOrEqualTo                 -> GC.return Coq.Operator.less_than_or_equal_to
+    | StandardComparison GreaterThanOrEqualTo              -> GC.return Coq.Operator.greater_than_or_equals_to
+    | BitvectorComparison (Signed, LessThan)               -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than
+    | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
+    | BitvectorComparison (Signed, GreaterThan)            -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
+    | BitvectorComparison (Signed, GreaterThanOrEqualTo)   -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
+    | BitvectorComparison (Unsigned, LessThan)             -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than
+    | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
+    | BitvectorComparison (Unsigned, GreaterThan)          -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
+    | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
+    | Pair                                                 -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
+    | Cons                                                 -> GC.not_yet_implemented [%here] (* Should not occur *)
+    | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
+  end
+    
 
 let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   let rec pp_value (value : Ast.Value.t) : PP.t GC.t =
@@ -44,14 +46,12 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
         | Unit             -> GC.return @@ MuSail.Expression.pp_unit ()
         | Prod (_, _) as v -> begin
             let* pp_tuple_type =
-              GC.pp_annotate [%here] @@ Nanotype.pp_nanotype (Ast.Value.type_of_value v)
+              Nanotype.pp_nanotype (Ast.Value.type_of_value v)
             and* pp_value' =
-              GC.pp_annotate [%here] @@ pp_value v
+              pp_value v
             in
             GC.return begin
-              PP.annotate [%here] begin
-                MuSail.Expression.pp_value ~typ:pp_tuple_type ~value:pp_value'
-              end
+              MuSail.Expression.pp_value ~typ:pp_tuple_type ~value:pp_value'
             end
           end
         | Bit b -> begin
@@ -70,24 +70,18 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
       (right_operand   : Ast.Expression.t    ) : PP.t GC.t
     =
     let* pp_left_operand  =
-      GC.pp_annotate [%here] begin
-          GC.lift ~f:PP.(surround parens) @@ pp_expression left_operand
-        end
+      GC.lift ~f:PP.(surround parens) @@ pp_expression left_operand
     and* pp_right_operand =
-      GC.pp_annotate [%here] begin
-          GC.lift ~f:PP.(surround parens) @@ pp_expression right_operand
-        end
+      GC.lift ~f:PP.(surround parens) @@ pp_expression right_operand
     in
     let pp id =
       GC.return begin
-          PP.annotate [%here] begin
-              Coq.pp_application (PP.string "exp_binop") [
-                  PP.string id;
-                  pp_left_operand;
-                  pp_right_operand
-                ]
-            end
-        end
+        Coq.pp_application (PP.string "exp_binop") [
+          PP.string id;
+          pp_left_operand;
+          pp_right_operand
+        ]
+      end
     in
     GC.pp_annotate [%here] begin
         match binary_operator with
@@ -96,17 +90,15 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
         | Append -> pp "bop.append"
         | _      -> begin
             let* binop' =
-              GC.pp_annotate [%here] @@ pp_infix_binary_operation binary_operator
+              pp_infix_binary_operation binary_operator
             in
             GC.return begin
-                PP.annotate [%here] begin
-                    PP.horizontal [
-                        PP.(surround parens) pp_left_operand;
-                        binop';
-                        PP.(surround parens) pp_right_operand;
-                      ]
-                  end
-              end
+              PP.horizontal [
+                PP.(surround parens) pp_left_operand;
+                binop';
+                PP.(surround parens) pp_right_operand;
+              ]
+            end
           end
       end
 
@@ -121,15 +113,15 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
       (operator : Ast.UnaryOperator.t)
       (operand  : Ast.Expression.t   ) : PP.t GC.t
     =
-    match operator with
-    | Neg -> GC.pp_annotate [%here] @@ pp_negation operand
-    | Not -> GC.pp_annotate [%here] @@ pp_logical_negation operand
+    GC.pp_annotate [%here] begin
+      match operator with
+      | Neg -> pp_negation operand
+      | Not -> pp_logical_negation operand
+    end
 
   and pp_negation (operand : Ast.Expression.t) : PP.t GC.t =
     let* pp_operand =
-      GC.pp_annotate [%here] begin
-          GC.lift ~f:PP.(surround parens) @@ pp_expression operand
-        end
+      GC.lift ~f:PP.(surround parens) @@ pp_expression operand
     in
     GC.return begin
         PP.annotate [%here] begin
@@ -139,77 +131,63 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
 
   and pp_logical_negation (operand : Ast.Expression.t) : PP.t GC.t =
     let* pp_operand =
-      GC.pp_annotate [%here] begin
-          GC.lift ~f:PP.(surround parens) @@ pp_expression operand
-        end
+      GC.lift ~f:PP.(surround parens) @@ pp_expression operand
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application (PP.string "exp_not") [ pp_operand ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application (PP.string "exp_not") [ pp_operand ]
       end
+    end
 
   and pp_list (elements : Ast.Expression.t list) : PP.t GC.t =
     let* pp_elements =
       GC.map ~f:pp_expression elements
     in
     let pp_list =
-      PP.annotate [%here] begin
-          Coq.pp_list ~use_notation:Configuration.(get pretty_print_lists) pp_elements
-        end
+      Coq.pp_list ~use_notation:Configuration.(get pretty_print_lists) pp_elements
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application (PP.string "exp_list") [ pp_list ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application (PP.string "exp_list") [ pp_list ]
       end
+    end
 
   and pp_record
       (type_identifier : Ast.Identifier.t     )
       (fields          : Ast.Identifier.t list) : PP.t GC.t
     =
     let pp_record_type =
-      PP.annotate [%here] begin
-          Identifier.pp @@ Identifier.reified_record_name type_identifier;
-        end
-
+      Identifier.pp @@ Identifier.reified_record_name type_identifier;
     and pp_record_fields =
-      PP.annotate [%here] begin
-        Coq.pp_list_using_notation begin
-          List.map
-            fields
-            ~f:(fun id -> begin
-                  PP.annotate [%here] begin
-                    MuSail.Expression.pp_variable (Identifier.pp id)
-                  end
-                end)
-        end
+      Coq.pp_list_using_notation begin
+        List.map
+          fields
+          ~f:(fun id -> begin
+                PP.annotate [%here] begin
+                  MuSail.Expression.pp_variable (Identifier.pp id)
+                end
+              end)
       end
-
     in
     GC.return begin
-        PP.annotate [%here] begin
-            Coq.pp_application (PP.string "exp_record") [
-                pp_record_type;
-                pp_record_fields;
-              ]
-          end
+      PP.annotate [%here] begin
+        Coq.pp_application (PP.string "exp_record") [
+          pp_record_type;
+          pp_record_fields;
+        ]
       end
+    end
 
   and pp_enum
         (type_identifier : Ast.Identifier.t)
         (constructor_identifier : Ast.Identifier.t) : PP.t GC.t
     =
     let enum_type =
-      PP.annotate [%here] begin
-          Coq.pp_application
-            (PP.string "ty.enum")
-            [ Identifier.pp @@ Identifier.reified_enum_name type_identifier ]
-        end
-
+      Coq.pp_application
+        (PP.string "ty.enum")
+        [ Identifier.pp @@ Identifier.reified_enum_name type_identifier ]
     and enum_constructor =
-      PP.annotate [%here] @@ Identifier.pp constructor_identifier
-
+      Identifier.pp constructor_identifier
     in
     GC.return begin
         PP.annotate [%here] begin
@@ -244,18 +222,22 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
            (x, y, ...) : tuple of x y ...
       *)
       match fields with
-      | []     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Value Ast.Value.Unit
-      | [x]    -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression x
-      | [x; y] -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
-      | xs     -> GC.pp_annotate [%here] @@ GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs
+      | []     -> GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Value Ast.Value.Unit
+      | [x]    -> GC.lift ~f:PP.(surround parens) @@ pp_expression x
+      | [x; y] -> GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.BinaryOperation (Ast.BinaryOperator.Pair, x, y)
+      | xs     -> GC.lift ~f:PP.(surround parens) @@ pp_expression @@ Ast.Expression.Tuple xs
     in
-    GC.return @@ Coq.pp_application
-      (PP.string "exp_union")
-      [
-        pp_variant_identifier;
-        pp_constructor_identifier;
-        pp_fields
-      ]
+    GC.return begin
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "exp_union")
+          [
+            pp_variant_identifier;
+            pp_constructor_identifier;
+            pp_fields
+          ]
+      end
+    end
 
   and pp_tuple (elements : Ast.Expression.t list) : PP.t GC.t =
     let* pp_elements =
