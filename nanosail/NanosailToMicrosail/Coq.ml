@@ -707,10 +707,12 @@ let pp_explicit_application
 
 
 let pp_function_type parameter_types result_type =
+  let separator =
+    PP.(horizontal [ space; arrow; space ])
+  in
   PP.annotate [%here] begin
-    PP.separate_horizontally ~separator:PP.space @@ List.build_list @@ fun { addall; add; _ } -> begin
+    PP.separate_horizontally ~separator @@ List.build_list @@ fun { addall; add; _ } -> begin
       addall parameter_types;
-      add arrow;
       add result_type
     end
   end
