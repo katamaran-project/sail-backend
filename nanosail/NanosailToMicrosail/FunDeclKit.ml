@@ -8,10 +8,6 @@ module GC = struct
 end
 
 
-let genblock loc label (doc : PP.t GC.t) =
-  GC.generation_block loc label doc
-
-
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t) GC.t =
     let name =
@@ -79,7 +75,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
 
 
 let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
-  genblock [%here] "FunDeclKit" begin
+  GC.generation_block [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
     in
     let pp_definitions : PP.t =
