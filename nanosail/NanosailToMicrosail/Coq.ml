@@ -727,9 +727,9 @@ let pp_function_type
 (*
    Canonical identifier.
 *)
-let pp_canonical (identifier : Ast.Identifier.t) : PP.t =
+let pp_canonical (pp_identifier : PP.t) : PP.t =
   PP.annotate [%here] begin
-    pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; Identifier.pp identifier ])
+    pp_sentence @@ PP.(separate_horizontally ~separator:space [ PP.string "Canonical"; pp_identifier ])
   end
 
 
