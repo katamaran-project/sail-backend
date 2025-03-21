@@ -774,13 +774,16 @@ let pp_notation
     end
 
 
-let pp_scope scope_name scoped_expression =
+(*
+   (expression)%scope
+*)
+let pp_scope scope expression =
   PP.annotate [%here] begin
       PP.(
       horizontal [
-          surround parens scoped_expression;
+          surround parens expression;
           string "%";
-          scope_name
+          scope
         ]
       )
     end
