@@ -493,11 +493,14 @@ module Statement = struct
       (arguments     : PP.t list) : PP.t
     =
     PP.annotate [%here] begin
-      Coq.pp_scope (PP.string "exp") begin
+      let scope =
+        PP.string "exp"
+      and expression =
         Coq.pp_application
           (PP.string "call")
           (function_name :: arguments)
-      end
+      in
+      Coq.pp_scope ~scope ~expression
     end
 
 
@@ -515,7 +518,7 @@ module Statement = struct
           [
             PP.(surround parens) tail;
             PP.string "(_::_)";
-            Coq.pp_scope (PP.string "exp") argument
+            Coq.pp_scope ~scope:(PP.string "exp") ~expression:argument
           ]
       in
       List.fold_left
