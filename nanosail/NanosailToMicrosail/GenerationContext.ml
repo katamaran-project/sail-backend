@@ -170,8 +170,10 @@ let convert_frame_to_document (frame : frame) : PP.t =
 let block (f : PP.t t) : PP.t t =
   let* (document, frame) = with_fresh_frame f
   in
-  if is_empty_frame frame
-  then return document
+  if
+    is_empty_frame frame
+  then
+    return document
   else begin
     let comments =
       convert_frame_to_document frame
