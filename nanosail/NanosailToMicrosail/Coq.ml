@@ -733,6 +733,9 @@ let pp_canonical (pp_identifier : PP.t) : PP.t =
   end
 
 
+(*
+   Include name.
+*)
 let pp_include_module (name : PP.t) : PP.t =
   PP.annotate [%here] begin
     pp_sentence @@ PP.(separate_horizontally ~separator:space [ string "Include"; name ])
