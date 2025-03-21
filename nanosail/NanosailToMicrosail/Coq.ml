@@ -682,6 +682,9 @@ let pp_lambda
     end
 
 
+(*
+   f arg1 arg2 ... argn
+*)
 let pp_application f args =
   PP.annotate [%here] begin
     PP.(separate_horizontally ~separator:space @@ f :: args)
