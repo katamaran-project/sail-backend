@@ -193,8 +193,8 @@ let rec to_fexpr (expression : t) : FExpr.t =
     =
     let keyword =
       [
-        ("record_type", Identifier.to_fexpr type_identifier);
-        ("variables", FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr variables)
+        ("record_type", Identifier.to_fexpr type_identifier                       );
+        ("variables"  , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr variables)
       ]
     in
     FExpr.mk_application ~keyword "Record"
