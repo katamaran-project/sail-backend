@@ -129,7 +129,12 @@ let rec equal
         fields_2
     end
 
-  | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
+  | Bitvector elements_1,
+    Bitvector elements_2 -> begin
+      List.equal equal
+        elements_1
+        elements_2
+    end
 
   | Variable _, _                                        -> false
   | Value _, _                                           -> false
