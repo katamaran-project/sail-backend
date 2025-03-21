@@ -336,7 +336,8 @@ let pp_inductive_type
     let generate_case
           ?(parameters  : PP.t = PP.empty)
           ?(typ         : PP.t = PP.empty)
-           (identifier  : PP.t           ) =
+           (identifier  : PP.t           )
+      =
       result := (identifier, parameters, typ) :: !result;
       return ()
     in
