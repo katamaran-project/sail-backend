@@ -751,6 +751,9 @@ let pp_tuple_type (ts : PP.t list) : PP.t =
   end
 
 
+(*
+   Notation "notation" := (expression).
+*)
 let pp_notation
     (notation   : PP.t)
     (expression : PP.t) : PP.t
