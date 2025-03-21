@@ -52,7 +52,7 @@ let rec pp_function_definition
           end
         in
         let pp_identifier =
-          PP.annotate [%here] @@ Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+          Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
         in
         let* coq_definition =
           let* pp_result_type =
@@ -63,10 +63,10 @@ let rec pp_function_definition
                     (typ : Ast.Type.t      ) : (PP.t * PP.t) GC.t
                   =
                   let pp_id =
-                    PP.annotate [%here] @@ Identifier.pp id
+                    Identifier.pp id
                   in
                   let* pp_typ =
-                    GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
+                    Nanotype.pp_nanotype typ
                   in
                   GC.return (pp_id, pp_typ)
                 in
@@ -78,9 +78,7 @@ let rec pp_function_definition
               GC.return @@ PP.annotate [%here] @@ Coq.pp_list docs
             in
             let* pp_result_type =
-              GC.pp_annotate [%here] begin
-                Nanotype.pp_nanotype function_definition.function_type.return_type
-              end
+              Nanotype.pp_nanotype function_definition.function_type.return_type
             in
             GC.return begin
               Some begin
@@ -141,7 +139,7 @@ let rec pp_function_definition
         in
         let* () = GC.add_original_definitions original_sail_code
         in
-        GC.return @@ PP.annotate [%here] @@ coq_definition
+        GC.return coq_definition
       end
     end
   end
@@ -214,7 +212,7 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
         in
         List.map ~f:case_of_function_definition function_definitions
       in
-      PP.annotate [%here] @@ Coq.pp_match matched_expression cases
+      Coq.pp_match matched_expression cases
     in
     GC.return @@ Coq.pp_definition ~identifier ~implicit_parameters ~parameters ~result_type body
   end
@@ -232,18 +230,16 @@ let pp_function_definition_kit
         pp_fundef_inductive_type @@ Ast.Definition.Select.drop_sail_definitions function_definitions
       in
       GC.return begin
-        PP.annotate [%here] begin
-          PP.paragraphs begin
-            List.build_list (fun { add; addall; _ } ->
-                addall pp_function_definitions;
-                add    pp_fundef
-              )
-          end
+        PP.paragraphs begin
+          List.build_list (fun { add; addall; _ } ->
+              addall pp_function_definitions;
+              add    pp_fundef
+            )
         end
       end
     in
     let section =
-      PP.annotate [%here] @@ Coq.pp_section (PP.string "FunDefKit") contents
+      Coq.pp_section (PP.string "FunDefKit") contents
     in
     GC.return @@ PP.annotate [%here] @@ section
   end
