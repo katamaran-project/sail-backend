@@ -233,6 +233,8 @@ let select_definitions (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.
 
 (*
    Returns definition satisfying selector. Causes failure if there are none or multiple.
+
+   See Ast.Definition.Select.
 *)
 let lookup_definition (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a t =
   let* definitions = select_definitions selector
@@ -245,6 +247,8 @@ let lookup_definition (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.s
 
 (*
    Returns definition satisfying selector. Causes failure if there are multiple matches.
+
+   See Ast.Definition.Select.
 *)
 let lookup_definition_opt (selector : (Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a option t =
   let* definitions = select_definitions selector
