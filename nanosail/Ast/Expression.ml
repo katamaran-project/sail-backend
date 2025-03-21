@@ -43,25 +43,25 @@ let rec equal
         type_1
         type_2
     end
-    
+
   | List subexpressions_1, List subexpressions_2 -> begin
       List.equal equal
         subexpressions_1
         subexpressions_2
     end
-    
+
   | Tuple subexpressions_1, Tuple subexpressions_2 -> begin
       List.equal equal
         subexpressions_1
         subexpressions_2
     end
-    
+
   | Value value_1, Value value_2 -> begin
       Value.equal
         value_1
         value_2
     end
-    
+
   | UnaryOperation (operator_1, operand_1), UnaryOperation (operator_2, operand_2) -> begin
       UnaryOperator.equal
         operator_1
@@ -71,7 +71,7 @@ let rec equal
         operand_1
         operand_2
     end
-    
+
   | BinaryOperation (operator_1, left_operand_1, right_operand_1), BinaryOperation (operator_2, left_operand_2, right_operand_2) -> begin
       BinaryOperator.equal
         operator_1
@@ -95,8 +95,17 @@ let rec equal
         fields_1
         fields_2
     end
+
+  | Enum { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1 }, Enum { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2 } -> begin
+      Identifier.equal
+        type_identifier_1
+        type_identifier_2
+      &&
+      Identifier.equal
+        constructor_identifier_1
+        constructor_identifier_2
+    end
     
-  | Enum _, Enum _                                       -> raise UnimplementedExpressionEquality
   | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
   | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
 
