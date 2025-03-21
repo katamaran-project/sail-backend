@@ -146,7 +146,7 @@ let assert_outside_frame : unit t =
 
      [m] annotation_m
 *)
-let convert_frame_to_document (frame : frame) =
+let convert_frame_to_document (frame : frame) : PP.t =
   let annotations, comments = frame
   in
   let pp_annotations =
