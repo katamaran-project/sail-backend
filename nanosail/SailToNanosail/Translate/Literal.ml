@@ -19,7 +19,7 @@ let value_of_literal (literal : S.lit) : Ast.Value.t TC.t =
   let label =
     PP.horizontal [
       PP.string "Translating literal ";
-      PP.from_multiline_string @@ StringOf.Sail.lit literal
+      PP.string @@ StringOf.Sail.lit literal
     ]
   in
   TC.translation_block [%here] label begin

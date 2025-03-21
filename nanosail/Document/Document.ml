@@ -305,14 +305,4 @@ module Make(Annotation : Functor.ANNOTATION) = struct
       separate_vertically ~separator arguments;
       right_delimiter
     ]
-
-
-  (*
-     Takes a string that contains multiple lines (i.e., contains \n characters),
-     and turns them into vertically arranged one-line strings.
-  *)
-  let from_multiline_string (str : string) =
-    let lines = String.split_lines str
-    in
-    vertical @@ List.map ~f:string lines
 end

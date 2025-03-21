@@ -1551,7 +1551,7 @@ let translate_function_definition
                 );
                 (
                   PP.string "Original",
-                  PP.from_multiline_string @@ StringOf.Sail.definition full_sail_definition
+                  PP.string @@ StringOf.Sail.definition full_sail_definition
                 );
                 (
                   PP.string "Parameter bindings",

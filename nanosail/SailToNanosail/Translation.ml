@@ -62,7 +62,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let pp_sail_definition : PP.t =
-    PP.from_multiline_string @@ StringOf.Sail.definition sail_definition
+    PP.string @@ StringOf.Sail.definition sail_definition
   in
   let label =
     let open PP
@@ -133,7 +133,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
             let location_string =
               Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
             and pretty_printed_sail_code =
-              PP.from_multiline_string @@ StringOf.Sail.definition sail_definition
+              PP.string @@ StringOf.Sail.definition sail_definition
             in
             let* () =
               let message = lazy begin
