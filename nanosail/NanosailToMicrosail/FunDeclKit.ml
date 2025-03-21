@@ -15,17 +15,17 @@ let genblock loc label (doc : PP.t GC.t) =
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t) GC.t =
     let name =
-      PP.annotate [%here] @@ Identifier.pp function_definition.function_name
+      Identifier.pp function_definition.function_name
     in
     let* function_type =
       let* parameter_bindings =
         let* pp_parameter_bindings =
           let pp (id : Ast.Identifier.t) (typ : Ast.Type.t) =
             let pp_id =
-              PP.annotate [%here] @@ Identifier.pp id
+              Identifier.pp id
             in
             let* pp_typ =
-              GC.pp_annotate [%here] @@ Nanotype.pp_nanotype typ
+              Nanotype.pp_nanotype typ
             in
             GC.return (pp_id, pp_typ)
           in
@@ -34,24 +34,25 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
         let ps =
           List.map ~f:(Fn.uncurry MuSail.pp_bind) pp_parameter_bindings
         in
-        GC.return @@ PP.annotate [%here] @@ Coq.pp_list ps
+        GC.return @@ Coq.pp_list ps
       in
       let* return_type =
-        GC.pp_annotate [%here] @@ Nanotype.pp_nanotype function_definition.function_type.return_type
+        Nanotype.pp_nanotype function_definition.function_type.return_type
       in
       GC.return begin
-        PP.annotate [%here] begin
-          PP.(
-            horizontal
-              [
-                string "Fun";
-                horizontal [ parameter_bindings; surround parens return_type ] (* todo check this *)
-              ]
-          )
-        end
+        PP.(
+          horizontal
+            [
+              string "Fun";
+              horizontal [ parameter_bindings; surround parens return_type ] (* todo check this *)
+            ]
+        )
       end
     in
-    GC.return (name, function_type)
+    GC.return (
+      PP.annotate [%here] name,
+      PP.annotate [%here] function_type
+    )
   in
   GC.block begin
     let name = PP.string "Fun"
@@ -89,12 +90,10 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
       ]
     in      
     let contents =
-      PP.annotate [%here] begin
-          PP.vertical [
-            pp_fun_inductive_type;
-            pp_definitions
-          ]
-        end
+      PP.vertical [
+        pp_fun_inductive_type;
+        pp_definitions
+      ]
     in
     GC.return begin
       Coq.pp_section (PP.string "FunDeclKit") contents
