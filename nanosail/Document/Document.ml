@@ -190,7 +190,7 @@ module Make(Annotation : Functor.ANNOTATION) = struct
   *)
   let separate_vertically
       ~(separator : t     )
-      (items     : t list) : t
+       (items     : t list) : t
     =
     let rec build (items : t list) : t list =
       match items with
