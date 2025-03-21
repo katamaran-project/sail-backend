@@ -192,7 +192,9 @@ let add_annotation (annotation : PP.t) : int t =
   fresh_index
 
 
-(* Adds comment to the current frame *)
+(*
+   Adds the given comment to the current frame
+*)
 let add_comment (comment : PP.t) : unit t =
   let* () = assert_inside_frame
   in
