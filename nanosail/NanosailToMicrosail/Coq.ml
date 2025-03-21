@@ -663,7 +663,13 @@ let pp_derive_no_confusion_for (pp_type : PP.t) : PP.t =
   end
 
 
-let pp_lambda parameter body =
+(*
+   fun parameter => body
+*)
+let pp_lambda
+    (parameter : PP.t)
+    (body      : PP.t) : PP.t
+  =
   PP.annotate [%here] begin
       PP.(
       separate_horizontally ~separator:space [
