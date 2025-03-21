@@ -201,6 +201,13 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     vertical @@ build items
 
 
+  (*
+       surround parens foo
+
+     gives
+
+       (foo)
+  *)
   let surround
       ?(layout                           : t list -> t = horizontal)
       ((left_delimiter, right_delimiter) : (t * t)                 )
