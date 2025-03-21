@@ -25,7 +25,13 @@ This top level logic resides in the `sail_plugin` project.
 ## `Ast` Module
 
 The `Ast` module contains all definitions related to the nanosail intermediate language.
+When Sail and muSail disagree in their representations, nanosail tends to side with muSail.
 
+* Nanosail makes the distinction between expressions and statements the same way muSail does.
+* Nanosail keeps track of some extra information that cannot be directly translated to muSail,
+  such as numeric expressions and constraints.
+* Similarly to Sail, a nanosail program consists of a series of definitions.
+  See `Ast.Definition` for which types of definitions exist.
 
 ## Sail to Nanosail
 
