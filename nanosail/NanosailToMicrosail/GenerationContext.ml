@@ -127,6 +127,25 @@ let assert_outside_frame : unit t =
   else return ()
 
 
+(*
+   Arranges the comments and annotations stored in the given frame in a pretty printed document as follows:
+
+     comment_1
+
+     comment_2
+
+     ...
+
+     comment_3
+
+     [1] annotation_1
+
+     [2] annotation_2
+
+     ...
+
+     [m] annotation_m
+*)
 let convert_frame_to_document (frame : frame) =
   let annotations, comments = frame
   in
