@@ -685,7 +685,10 @@ let pp_lambda
 (*
    f arg1 arg2 ... argn
 *)
-let pp_application f args =
+let pp_application
+    (f    : PP.t     )
+    (args : PP.t list) : PP.t
+  =
   PP.annotate [%here] begin
     PP.(separate_horizontally ~separator:space @@ f :: args)
   end
