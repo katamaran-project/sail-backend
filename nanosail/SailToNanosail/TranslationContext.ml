@@ -21,10 +21,10 @@ module Context = struct
          New definitions are added to this list as translation proceeds.
          Definitions are stored in reversed order, i.e., new definitions are added to the front of the list.
       *)
-      definitions          : Ast.Definition.t list;
+      definitions : Ast.Definition.t list;
 
       (* Counter used to generate unique identifiers *)
-      next_id_index        : int;
+      next_id_index : int;
 
       (*
          Collects the types of the arguments used in calls to polymorphic functions.
