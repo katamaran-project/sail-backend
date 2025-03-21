@@ -226,6 +226,9 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     layout @@ List.repeat n document
 
 
+  (*
+     Adds spaces to the right of document until it reaches a target_width.
+  *)
   let pad_right
       (target_width : int)
       (document     : t  ) : t
