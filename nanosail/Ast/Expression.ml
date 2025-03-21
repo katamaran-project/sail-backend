@@ -24,7 +24,6 @@ type t =
   | Bitvector       of t list
 
 
-
 let rec equal
     (expression_1 : t)
     (expression_2 : t) : bool
