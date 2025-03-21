@@ -11,7 +11,7 @@ end
 let pp_value (value : Ast.Value.t) : PP.t GC.t =
   match value with
   | Unit         -> GC.return @@ PP.annotate [%here] @@ PP.(string "tt")
-  | Int n        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_scope ~scope:(PP.string "Z") ~expression:PP.(string @@ Z.to_string n)
+  | Int n        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_scope ~scope:(PP.string "Z") PP.(string @@ Z.to_string n)
   | Bool b       -> GC.return @@ PP.annotate [%here] @@ PP.string @@ if b then "true" else "false"
   | String s     -> GC.return @@ PP.annotate [%here] @@ Coq.pp_string s
   | Prod (_, _)  -> GC.not_yet_implemented [%here]

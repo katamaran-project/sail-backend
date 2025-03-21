@@ -779,7 +779,7 @@ let pp_notation
 *)
 let pp_scope
     ~(scope      : PP.t)
-    ~(expression : PP.t) : PP.t
+     (expression : PP.t) : PP.t
   =
   PP.annotate [%here] begin
       PP.(
