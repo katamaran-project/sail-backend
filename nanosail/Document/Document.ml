@@ -307,6 +307,10 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     ]
 
 
+  (*
+     Takes a string that contains multiple lines (i.e., contains \n characters),
+     and turns them into vertically arranged one-line strings.
+  *)
   let from_multiline_string (str : string) =
     let lines = String.split_lines str
     in
