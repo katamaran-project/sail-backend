@@ -259,11 +259,8 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     Html.concat html_lines
 
 
-  let string s =
-    String s
-
   let empty      = Empty
-
+  
 
   let rec horizontal (documents : t list) : t =
     let group d1 d2 =
@@ -293,6 +290,16 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     | d::ds    -> group d @@ vertical ds
 
 
+  (*
+     If given a multiline string, splits it up in lines and arranges them vertically.
+  *)
+  let string (string : string) : t =
+    match String.split_lines string with
+    | []    -> Empty
+    | [ s ] -> String s
+    | lines -> vertical @@ List.map ~f:(fun s -> String s) lines
+
+  
   let annotate
       (annotation : Annotation.t)
       (document   : t           ) : t
