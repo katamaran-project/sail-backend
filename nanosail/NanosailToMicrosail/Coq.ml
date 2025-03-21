@@ -709,7 +709,10 @@ let pp_explicit_application
 (*
    ptype1 -> ptype2 -> ... -> ptypen -> return_type
 *)
-let pp_function_type parameter_types result_type =
+let pp_function_type
+    (parameter_types : PP.t list)
+    (result_type     : PP.t     ) : PP.t
+  =
   let separator =
     PP.(horizontal [ space; arrow; space ])
   in
