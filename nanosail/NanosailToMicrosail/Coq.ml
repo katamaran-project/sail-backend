@@ -223,7 +223,7 @@ let pp_module
     PP.separate_horizontally ~separator:PP.space [ PP.string "<:"; module_type ]
   in  
   let first_line =
-    PP.annotate [%here] @@ PP.(
+    PP.(
       pp_sentence @@ separate_horizontally ~separator:space @@ List.build_list (fun { add; addall; _ } ->
           add @@ string "Module";
           begin
@@ -557,7 +557,9 @@ let pp_finite_instance
       ]
     )
   in
-  PP.annotate [%here] @@ pp_sentence declaration
+  PP.annotate [%here] begin
+    pp_sentence declaration
+  end
 
 
 (* fields as (identifier, type) pairs *)

@@ -366,25 +366,21 @@ module Statement = struct
             (body        : PP.t     ) : PP.t
           =
           let pattern =
-            PP.annotate [%here] begin
-              PP.(surround parens) begin
-                Pattern.smart_pp bindings
-              end
+            PP.(surround parens) begin
+              Pattern.smart_pp bindings
             end
           in
-          PP.annotate [%here] begin
-            Coq.pp_application
-              (PP.string "existT")
-              [
-                constructor;
-                PP.(surround parens) begin
-                  Coq.pp_application (PP.string "MkAlt") [
-                    pattern;
-                    PP.(surround parens) body;
-                  ]
-                end
-              ]
-          end
+          Coq.pp_application
+            (PP.string "existT")
+            [
+              constructor;
+              PP.(surround parens) begin
+                Coq.pp_application (PP.string "MkAlt") [
+                  pattern;
+                  PP.(surround parens) body;
+                ]
+              end
+            ]
         in
         Coq.pp_list @@ List.map ~f:(fun (constructor, pattern_ids, body) -> pp_case constructor pattern_ids body) clauses
       in
@@ -463,11 +459,11 @@ module Statement = struct
         let build acc (field_identifier, binder) =
           PP.(surround parens) begin
               Coq.pp_application
-                (PP.annotate [%here] @@ PP.string "recordpat_snoc")
+                (PP.string "recordpat_snoc")
                 [
-                  PP.annotate [%here] @@ acc;
-                  PP.annotate [%here] @@ PP.(surround dquotes) field_identifier;
-                  PP.annotate [%here] @@ PP.(surround dquotes) binder;
+                  acc;
+                  PP.(surround dquotes) field_identifier;
+                  PP.(surround dquotes) binder;
                 ]
             end
         in
