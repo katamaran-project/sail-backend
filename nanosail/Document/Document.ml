@@ -72,6 +72,11 @@ module Make(Annotation : Functor.ANNOTATION) = struct
     | first :: rest -> horizontal [first; vertical rest]
 
 
+  (*
+     "  document"
+
+     (without the quotes)
+  *)
   let indent ?(level = 2) (document : t) : t =
     horizontal [
       string @@ String.repeat " " level;
