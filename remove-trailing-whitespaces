@@ -3,16 +3,21 @@
 require 'pathname'
 require 'find'
 
+dirty = false
 
 Find.find('.') do |path|
   unless path =~ %r{^./_build}
     path = Pathname.new path
 
     if [ '.ml', '.mli', '.sail' ].include? path.extname
-      path
-        .read
-        .gsub(%r{ +\n}, "\n")
-        .then { |contents| path.write contents }
+      contents = path.read
+      updated_contents = contents.gsub(%r{ +\n}, "\n")
+
+      dirty ||= contents != updated_contents
+      
+      path.write updated_contents
     end
   end
 end
+
+exit (dirty ? 1 : 0)
