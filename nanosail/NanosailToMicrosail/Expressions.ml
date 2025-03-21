@@ -275,7 +275,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             ~value
         end
       end
-    | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown digits not supported yet" [%here]
+    | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown elements not supported yet" [%here]
 
   in
   match expression with
