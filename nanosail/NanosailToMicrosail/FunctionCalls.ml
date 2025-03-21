@@ -28,7 +28,7 @@ let report_incorrect_argument_count
     (operands               : PP.t list        ) : PP.t GC.t
   =
   let message =
-    PP.annotate [%here] @@ PP.string @@ Printf.sprintf
+    PP.string @@ Printf.sprintf
       "%s should receive %d argument(s) but instead received %d; falling back on default translation for function calls"
       (Ast.Identifier.to_string original_function_name)
       expected_operand_count
@@ -38,9 +38,7 @@ let report_incorrect_argument_count
     GC.add_annotation message
   in
   let translation =
-    PP.annotate [%here] begin
-      pp_function_call_using_configured_syntax (Identifier.pp original_function_name) operands
-    end
+    pp_function_call_using_configured_syntax (Identifier.pp original_function_name) operands
   in
   GC.return begin
     PP.annotate [%here] begin
@@ -195,15 +193,13 @@ let extract_compile_time_string (expression : Ast.Expression.t) : string option 
 
 let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.t GC.t =
   let pp_zeros (number_of_bits : int) : PP.t GC.t =
-    GC.pp_annotate [%here] begin
-      GC.return begin
-        if
-          Configuration.(get bitvectors_zeros_ones_as_literal)
-        then
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_zero_bitvector_using_literal number_of_bits
-        else
-          MuSail.Statement.pp_expression @@ MuSail.Expression.pp_zero_bitvector_using_function number_of_bits
-      end
+    GC.return begin
+      if
+        Configuration.(get bitvectors_zeros_ones_as_literal)
+      then
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_zero_bitvector_using_literal number_of_bits
+      else
+        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_zero_bitvector_using_function number_of_bits
     end
   in
   match arguments with
@@ -379,14 +375,18 @@ let translate_shift_left (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name   = "sail_shiftleft"
   and musail_name = PP.string "bop.shiftl"
   in
-  GC.pp_annotate [%here] @@ translate_shift ~sail_name ~musail_name ~arguments
+  GC.pp_annotate [%here] begin
+    translate_shift ~sail_name ~musail_name ~arguments
+  end
 
 
 let translate_shift_right (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name   = "sail_shiftright"
   and musail_name = PP.string "bop.shiftr"
   in
-  GC.pp_annotate [%here] @@ translate_shift ~sail_name ~musail_name ~arguments
+  GC.pp_annotate [%here] begin
+    translate_shift ~sail_name ~musail_name ~arguments
+  end
 
 
 let translate_extend
@@ -646,169 +646,119 @@ let translate
   let* pp_arguments =
     GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
   in
-  match Ast.Identifier.to_string function_identifier with
-  | "not_bool" -> begin
-      GC.pp_annotate [%here] begin
+  GC.pp_annotate [%here] begin
+    match Ast.Identifier.to_string function_identifier with
+    | "not_bool" -> begin
         translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
       end
-    end
-  | "not_vec" -> begin
-    GC.pp_annotate [%here] begin
+    | "not_vec" -> begin
         translate_unary_operator function_identifier (PP.string "uop.bvnot") pp_arguments
       end
-    end
-  | "signed" -> begin
-      GC.pp_annotate [%here] begin
+    | "signed" -> begin
         translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
       end
-    end
-  | "unsigned" -> begin
-      GC.pp_annotate [%here] begin
+    | "unsigned" -> begin
         translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
       end
-    end
-  | "eq_bit" -> begin
-      GC.pp_annotate [%here] begin
+    | "eq_bit" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.bit_equality)
           pp_arguments
       end
-    end
-  | "eq_bits" -> begin
-      GC.pp_annotate [%here] begin
+    | "eq_bits" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.Bitvector.equality)
           pp_arguments
       end
-    end
-  | "add_bits" -> begin
-      GC.pp_annotate [%here] begin
+    | "add_bits" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.Bitvector.addition)
           ~name:(Some MuSail.Operator.Name.bitvector_addition)
           pp_arguments
       end
-    end
-  | "sub_bits" -> begin
-      GC.pp_annotate [%here] begin
+    | "sub_bits" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.Bitvector.subtraction)
           ~name:(Some MuSail.Operator.Name.bitvector_subtraction)
           pp_arguments
       end
-    end
-  | "and_vec" -> begin
-      GC.pp_annotate [%here] begin
+    | "and_vec" -> begin
         translate_binary_operator
           function_identifier
           ~name:(Some MuSail.Operator.Name.bitvector_conjunction)
           pp_arguments
       end
-    end
-  | "or_vec" -> begin
-      GC.pp_annotate [%here] begin
+    | "or_vec" -> begin
         translate_binary_operator
           function_identifier
           ~name:(Some MuSail.Operator.Name.bitvector_disjunction)
           pp_arguments
       end
-    end
-  | "xor_vec" -> begin
-      GC.pp_annotate [%here] begin
+    | "xor_vec" -> begin
         translate_binary_operator
           function_identifier
           ~name:(Some MuSail.Operator.Name.bitvector_xor)
           pp_arguments
       end
-    end
-  | "eq_bool" -> begin
-      GC.pp_annotate [%here] begin
+    | "eq_bool" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.bool_equality)
           ~name:(Some MuSail.Operator.Name.bool_equality)
           pp_arguments
       end
-    end
-  | "neq_bool" -> begin
-      GC.pp_annotate [%here] begin
+    | "neq_bool" -> begin
         translate_binary_operator
           function_identifier
           ~infix:(Some MuSail.Operator.Infix.bool_equality)
           ~name:(Some MuSail.Operator.Name.bool_inequality)
           pp_arguments
       end
-    end
-  | "eq_unit" -> begin
-      GC.pp_annotate [%here] begin
-        translate_unit_equality ()
+    | "eq_unit" -> begin
+          translate_unit_equality ()
       end
-    end
-  | "add_bits_int" -> begin
-      GC.pp_annotate [%here] begin
+    | "add_bits_int" -> begin
         translate_add_bits_int arguments
       end
-    end
-  | "sail_zeros" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_zeros" -> begin
         translate_sail_zeros arguments
       end
-    end
-  | "sail_ones" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_ones" -> begin
         translate_sail_ones arguments
       end
-    end
-  | "sail_shiftleft" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_shiftleft" -> begin
         translate_shift_left arguments
       end
-    end
-  | "sail_shiftright" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_shiftright" -> begin
         translate_shift_right arguments
       end
-    end
-  | "sail_zero_extend" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_zero_extend" -> begin
         translate_zero_extend arguments
       end
-    end
-  | "sail_sign_extend" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_sign_extend" -> begin
         translate_sign_extend arguments
       end
-    end
-  | "sail_assert" -> begin
-      GC.pp_annotate [%here] begin
+    | "sail_assert" -> begin
         translate_assertion arguments
       end
-    end
-  | "bitvector_concat" -> begin
-      GC.pp_annotate [%here] begin
+    | "bitvector_concat" -> begin
         translate_bitvector_concatenation arguments
       end
-    end
-  | "subrange_bits" -> begin
-      GC.pp_annotate [%here] begin
+    | "subrange_bits" -> begin
         translate_bitvector_slicing arguments
       end
-    end
-  | "update_subrange_bits" -> begin
-      GC.pp_annotate [%here] begin
+    | "update_subrange_bits" -> begin
         translate_bitvector_update_subrange arguments
       end
-    end
-  | _ -> begin
-      GC.pp_annotate [%here] begin
+    | _ -> begin
         GC.return begin
           pp_function_call_using_configured_syntax
             (Identifier.pp function_identifier)
             pp_arguments
         end
       end
-    end
+  end
