@@ -652,8 +652,11 @@ let pp_derive_eqdec_for (pp_type : PP.t) : PP.t =
   PP.annotate [%here] @@ pp_derive (PP.string "EqDec") pp_type
 
 
-let pp_derive_no_confusion_for (identifier : Ast.Identifier.t) =
-  PP.annotate [%here] @@ pp_derive (PP.string "NoConfusion") (Identifier.pp identifier)
+(*
+   Derive NoConfusion for type.
+*)
+let pp_derive_no_confusion_for (pp_type : PP.t) : PP.t =
+  PP.annotate [%here] @@ pp_derive (PP.string "NoConfusion") pp_type
 
 
 let pp_lambda parameter body =

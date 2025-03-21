@@ -163,7 +163,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       let transparent_obligations =
         PP.annotate [%here] @@ PP.string "Local Set Transparent Obligations."
       and no_confusion_lines =
-        PP.annotate [%here] @@ PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for no_confusion_identifiers
+        PP.annotate [%here] @@ PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for (List.map ~f:Identifier.pp no_confusion_identifiers)
       in
       PP.annotate [%here] @@ PP.paragraphs [ transparent_obligations; no_confusion_lines ]
     in
