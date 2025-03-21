@@ -719,7 +719,7 @@ let pp_function_type
   PP.annotate [%here] begin
     PP.separate_horizontally ~separator @@ List.build_list @@ fun { addall; add; _ } -> begin
       addall parameter_types;
-      add result_type
+      add    result_type
     end
   end
 
