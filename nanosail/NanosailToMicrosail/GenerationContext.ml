@@ -227,7 +227,7 @@ let not_yet_implemented ?(message : string option) (position : Lexing.position) 
       | None         -> ""
       | Some message -> Printf.sprintf " (%s)" message
     in
-    PP.string @@ Printf.sprintf "Not yet implemented; see %s line %d%s" position.pos_fname position.pos_lnum message_suffix
+    PP.format "Not yet implemented; see %s line %d%s" position.pos_fname position.pos_lnum message_suffix
   in
   let* id = add_annotation annotation_document
   in
