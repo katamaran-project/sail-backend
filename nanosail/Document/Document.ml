@@ -58,7 +58,13 @@ module Make(Annotation : Functor.ANNOTATION) = struct
   let format fmt =
     Printf.ksprintf string fmt
 
-  
+
+  (*
+     doc_1doc_2
+          doc_3
+          ...
+          doc_n
+  *)
   let hanging (documents : t list) : t =
     match documents with
     | []            -> empty
