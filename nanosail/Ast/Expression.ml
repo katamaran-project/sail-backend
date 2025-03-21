@@ -105,8 +105,21 @@ let rec equal
         constructor_identifier_1
         constructor_identifier_2
     end
+
+  | Variant { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1; fields = fields_1 }, Variant { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2; fields = fields_2 } -> begin
+      Identifier.equal
+        type_identifier_1
+        type_identifier_2
+      &&
+      Identifier.equal
+        constructor_identifier_1
+        constructor_identifier_2
+      &&
+      List.equal equal
+        fields_1
+        fields_2
+    end
     
-  | Variant _, Variant _                                 -> raise UnimplementedExpressionEquality
   | Bitvector _, Bitvector _                             -> raise UnimplementedExpressionEquality
 
   | Variable _, _                                        -> false
