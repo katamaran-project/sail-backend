@@ -57,7 +57,24 @@ a `Ast.Definition.UntranslatedDefinition` gets registered and the translation pr
 
 ## Nanosail to muSail
 
-GenerationContext
+All nanosail to muSail functionality can be found in the `NanosailToSail` module.
+Similary to the first translation phase, we defined a monad to provide us with some useful functionality:
+
+* It holds a list of all definitions gathered during the first phase.
+  These can be looked up with helper functions such as `select_definitions` and `lookup_definition_opt`.
+* Translations can be grouped into blocks, which are discussed later.
+* 
+
+### Blocks and Frames
+
+Frames can be opened (= new frame pushed onto the stack) and closed (= last frame popped from the stack).
+
+During the translation it is possible to create comments and annotations (= numbered comments),
+  which are stored in the frame at the top of the stack.
+  Whenever a frame is closed, 
+
+What's a generation block?
+Check `pp_annotate'`.
 
 ## Not Yet Implemented
 
@@ -69,7 +86,12 @@ GenerationContext
 
 ## F-Expressions
 
+More robust than `string_of`.
+Allows for diffs.
+
 ## Document/PP
+
+Annotations
 
 ## Coding Style
 
