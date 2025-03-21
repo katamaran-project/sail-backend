@@ -278,16 +278,18 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
     | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown elements not supported yet" [%here]
 
   in
-  match expression with
-  | Variable (identifier, _typ)                       -> GC.pp_annotate [%here] @@ pp_variable identifier
-  | Value value                                       -> GC.pp_annotate [%here] @@ pp_value value
-  | UnaryOperation (operator, operand)                -> GC.pp_annotate [%here] @@ pp_unary_operation operator operand
-  | BinaryOperation (op, e1, e2)                      -> GC.pp_annotate [%here] @@ pp_binary_operation op e1 e2
-  | List elements                                     -> GC.pp_annotate [%here] @@ pp_list elements
-  | Record { type_identifier; fields }                -> GC.pp_annotate [%here] @@ pp_record type_identifier fields
-  | Enum { type_identifier; constructor_identifier }  -> GC.pp_annotate [%here] @@ pp_enum type_identifier constructor_identifier
-  | Variant { type_identifier;
-              constructor_identifier;
-              fields    }                             -> GC.pp_annotate [%here] @@ pp_variant type_identifier constructor_identifier fields
-  | Tuple elements                                    -> GC.pp_annotate [%here] @@ pp_tuple elements
-  | Bitvector elements                                -> GC.pp_annotate [%here] @@ pp_bitvector elements
+  GC.pp_annotate [%here] begin
+    match expression with
+    | Variable (identifier, _typ)                       -> pp_variable identifier
+    | Value value                                       -> pp_value value
+    | UnaryOperation (operator, operand)                -> pp_unary_operation operator operand
+    | BinaryOperation (op, e1, e2)                      -> pp_binary_operation op e1 e2
+    | List elements                                     -> pp_list elements
+    | Record { type_identifier; fields }                -> pp_record type_identifier fields
+    | Enum { type_identifier; constructor_identifier }  -> pp_enum type_identifier constructor_identifier
+    | Variant { type_identifier;
+                constructor_identifier;
+                fields    }                             -> pp_variant type_identifier constructor_identifier fields
+    | Tuple elements                                    -> pp_tuple elements
+    | Bitvector elements                                -> pp_bitvector elements
+  end
