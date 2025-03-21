@@ -78,7 +78,9 @@ let pop_frame =
   return frame
 
 
-(* Evaluates f inside a fresh frame *)
+(*
+   Evaluates f inside a fresh frame
+*)
 let with_fresh_frame f =
   let* ()     = push_new_frame
   and* result = f
