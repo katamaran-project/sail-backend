@@ -611,6 +611,10 @@ let pp_record
     end
 
 
+(*
+   Local Obligation Tactic :=
+     identifier.
+*)
 let pp_local_obligation_tactic (identifier : Ast.Identifier.t) : PP.t =
   let lines_of_code = [
       PP.annotate [%here] @@ PP.string "Local Obligation Tactic :=";
