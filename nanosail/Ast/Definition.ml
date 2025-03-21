@@ -1,3 +1,10 @@
+(*
+
+   A program consists of a list of definitions.
+   See type t for a list of which kinds of definitions are supported.
+   
+*)
+
 open ExtBase
 include Recursive
 
@@ -373,6 +380,9 @@ module Value = struct
 end
 
 
+(*
+   All different types of definitions supported by nanosail
+*)
 type t =
   | TopLevelTypeConstraintDefinition of TopLevelTypeConstraint.t
   | FunctionDefinition               of Function.t
