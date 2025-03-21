@@ -648,18 +648,6 @@ let translate
   in
   GC.pp_annotate [%here] begin
     match Ast.Identifier.to_string function_identifier with
-    | "not_bool" -> begin
-        translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
-      end
-    | "not_vec" -> begin
-        translate_unary_operator function_identifier (PP.string "uop.bvnot") pp_arguments
-      end
-    | "signed" -> begin
-        translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
-      end
-    | "unsigned" -> begin
-        translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
-      end
     | "eq_bit" -> begin
         translate_binary_operator
           function_identifier
@@ -718,42 +706,22 @@ let translate
           ~name:(Some MuSail.Operator.Name.bool_inequality)
           pp_arguments
       end
-    | "eq_unit" -> begin
-          translate_unit_equality ()
-      end
-    | "add_bits_int" -> begin
-        translate_add_bits_int arguments
-      end
-    | "sail_zeros" -> begin
-        translate_sail_zeros arguments
-      end
-    | "sail_ones" -> begin
-        translate_sail_ones arguments
-      end
-    | "sail_shiftleft" -> begin
-        translate_shift_left arguments
-      end
-    | "sail_shiftright" -> begin
-        translate_shift_right arguments
-      end
-    | "sail_zero_extend" -> begin
-        translate_zero_extend arguments
-      end
-    | "sail_sign_extend" -> begin
-        translate_sign_extend arguments
-      end
-    | "sail_assert" -> begin
-        translate_assertion arguments
-      end
-    | "bitvector_concat" -> begin
-        translate_bitvector_concatenation arguments
-      end
-    | "subrange_bits" -> begin
-        translate_bitvector_slicing arguments
-      end
-    | "update_subrange_bits" -> begin
-        translate_bitvector_update_subrange arguments
-      end
+    | "not_bool"             -> translate_unary_operator function_identifier (PP.string "uop.not") pp_arguments
+    | "not_vec"              -> translate_unary_operator function_identifier (PP.string "uop.bvnot") pp_arguments
+    | "signed"               -> translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
+    | "unsigned"             -> translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
+    | "eq_unit"              -> translate_unit_equality ()
+    | "add_bits_int"         -> translate_add_bits_int arguments
+    | "sail_zeros"           -> translate_sail_zeros arguments
+    | "sail_ones"            -> translate_sail_ones arguments
+    | "sail_shiftleft"       -> translate_shift_left arguments
+    | "sail_shiftright"      -> translate_shift_right arguments
+    | "sail_zero_extend"     -> translate_zero_extend arguments
+    | "sail_sign_extend"     -> translate_sign_extend arguments
+    | "sail_assert"          -> translate_assertion arguments
+    | "bitvector_concat"     -> translate_bitvector_concatenation arguments
+    | "subrange_bits"        -> translate_bitvector_slicing arguments
+    | "update_subrange_bits" -> translate_bitvector_update_subrange arguments
     | _ -> begin
         GC.return begin
           pp_function_call_using_configured_syntax
