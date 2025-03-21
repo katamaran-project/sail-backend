@@ -412,6 +412,13 @@ let select_definitions (selector : (Sail.sail_definition * Ast.Definition.t, 'a)
   return @@ Ast.Definition.Select.select selector program.definitions
 
 
+(*
+   Looks up a definition that satisfies the given predicate.
+   See Ast.Definition.Ast for a list of useful predicates.
+
+   If no definition satisfying the predicate can be found, None is returned.
+   If more than one definition satisfies the predicate, failure ensues.
+*)
 let lookup_definition_opt (selector : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a option t =
   let* matches = select_definitions selector
   in
