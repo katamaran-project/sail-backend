@@ -30,14 +30,30 @@ When Sail and muSail disagree in their representations, nanosail tends to side w
 * Nanosail makes the distinction between expressions and statements the same way muSail does.
 * Nanosail keeps track of some extra information that cannot be directly translated to muSail,
   such as numeric expressions and constraints, which come in handy for monomorphization.
-* Similarly to Sail, a nanosail program consists of a series of definitions.
+* Similarly to Sail, a nanosail program (see `Ast.Program.t`) consists of a series of definitions.
   See `Ast.Definition` for which types of definitions exist.
 
 ## Sail to Nanosail
 
+All Sail to nanosail translation logic is grouped in the `SailToNanosail` module.
+To assist in the translation, we defined a monad `TranslationContext`, which is basically a combination of the State and the Result monads.
+It provides the following functionality:
 
+* It can generate unique identifiers using `generate_unique_identifier` and `generate_unique_identifiers`.
+* It keeps track of all translated definitions.
+  * `store_definition` adds a new definition to the list.
+  * `lookup_definition`/`lookup_definition_opt` looks for a definition that satisfies a predicate.
+    Useful predicates are readily available in `Ast.Definition.Select`.
+  * Other helper functions such as `lookup_register_type`, `is_register`, `lookup_variant_by_constructor` are also available.
+* It keeps track of calls made to polymorphic functions (`register_polymorphic_function_call_type_arguments`), which is useful for reporting them to the user
+  so that they know which monomorphizations to ask for.
+* There are two types of failures: `NotYetImplemented` and `Failure`
 
-TranslationContext
+A `Failure` causes the translation to be halted and should be used sparingly.
+
+Each Sail definition is translated in turn.
+When a `NotYetImplemented` is signaled, the current definition being translated is given up on:
+a `Ast.Definition.UntranslatedDefinition` gets registered and the translation process moves on to the next definition.
 
 ## Nanosail to muSail
 
