@@ -89,13 +89,18 @@ let with_fresh_frame f =
   return (result, frame)
 
 
+(*
+   Checks if the frame is empty
+*)
 let is_empty_frame frame =
   match frame with
   | ([], []) -> true
   | _        -> false
 
 
-(* Returns a fresh index *)
+(*
+   Returns a fresh index
+*)
 let fresh_index =
   let* i  = get index
   in
@@ -104,14 +109,18 @@ let fresh_index =
   return i
 
 
-(* Checks whether there are any frames on the stack *)
+(*
+   Checks whether there are any frames on the stack
+*)
 let inside_frame : bool t =
   let* frame_stack = get frames
   in
   return @@ not @@ List.is_empty frame_stack
 
 
-(* Ensures that there is a frame on the frame stack *)
+(*
+   Ensures that there is a frame on the frame stack
+*)
 let assert_inside_frame : unit t =
   let* result = inside_frame
   in
@@ -120,13 +129,18 @@ let assert_inside_frame : unit t =
   else return ()
 
 
-(* Ensures that there is no frame on the frame stack *)
+(*
+   Ensures that there is no frame on the frame stack
+*)
 let assert_outside_frame : unit t =
   let* result = inside_frame
   in
-  if result
-  then raise @@ FrameException "should only be executed while there are no frames on the frame stack"
-  else return ()
+  if
+    result
+  then
+    raise @@ FrameException "should only be executed while there are no frames on the frame stack"
+  else
+    return ()
 
 
 (*
