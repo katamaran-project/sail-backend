@@ -61,4 +61,4 @@ clean:
 
 .PHONY: ws
 ws:
-	ruby remove-trailing-whitespace.rb
+	remove-trailing-whitespace
