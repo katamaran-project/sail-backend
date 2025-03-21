@@ -184,6 +184,7 @@ let block (f : PP.t t) : PP.t t =
 
 (*
    Adds the given annotation to the current frame
+   and returns its index
 *)
 let add_annotation (annotation : PP.t) : int t =
   let* () = assert_inside_frame
