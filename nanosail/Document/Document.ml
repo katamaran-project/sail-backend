@@ -207,6 +207,8 @@ module Make(Annotation : Functor.ANNOTATION) = struct
      gives
 
        (foo)
+
+     Arranges parts horizontally by default, but can be overriden by specifying a layout.
   *)
   let surround
       ?(layout                           : t list -> t = horizontal)
