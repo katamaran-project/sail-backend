@@ -25,10 +25,6 @@ type t =
 
 
 
-exception UnimplementedExpressionEquality
-
-
-(* Still incomplete, raises UnimplementedExpressionEquality in unimplemented cases, todo complete this *)
 let rec equal
     (expression_1 : t)
     (expression_2 : t) : bool
