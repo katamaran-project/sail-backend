@@ -751,7 +751,10 @@ let pp_tuple_type (ts : PP.t list) : PP.t =
   end
 
 
-let pp_notation notation expression =
+let pp_notation
+    (notation   : PP.t)
+    (expression : PP.t) : PP.t
+  =
   PP.annotate [%here] begin
       pp_sentence begin
           PP.(
