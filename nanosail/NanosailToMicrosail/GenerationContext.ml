@@ -1,4 +1,5 @@
-open! ExtBase
+open ExtBase
+
 
 module Error = struct
   type t = string
@@ -17,8 +18,8 @@ let return          = Monad.return
 let bind            = Monad.bind
 
 let fail
-      (ocaml_position : Lexing.position)
-      (message        : string         ) : 'a t
+    (ocaml_position : Lexing.position)
+    (message        : string         ) : 'a t
   =
   Monad.fail @@ Printf.sprintf "(%s:%d) %s" ocaml_position.pos_fname ocaml_position.pos_lnum message
 
@@ -37,7 +38,9 @@ let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Ac
 let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Triple.second id            )
 let program     : (state, Ast.Program.t  ) Monads.Accessors.accessor = Monads.Accessors.(Triple.third id             )
 
+
 exception FrameException of string
+
 
 open Monads.Notations.Star(Monad)
 
