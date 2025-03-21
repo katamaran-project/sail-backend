@@ -706,6 +706,9 @@ let pp_explicit_application
   end
 
 
+(*
+   ptype1 -> ptype2 -> ... -> ptypen -> return_type
+*)
 let pp_function_type parameter_types result_type =
   let separator =
     PP.(horizontal [ space; arrow; space ])
