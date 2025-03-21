@@ -47,11 +47,9 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
 
   type annotation = Annotation.t
 
-  (*
-     Note: documents should be built using factory functions, which automatically remove empty subdocuments.
-     E.g., Horizontal (Empty, Empty) should never occur.
-  *)
+
   let rec is_empty (document : t) : bool =
+    (* relies on the fact that document values are always created using the factory functions and therefore normalized *)
     match document with
      | Empty              -> true
      | String _           -> false
