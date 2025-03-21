@@ -119,24 +119,6 @@ let translate_binary_operator
   | _                                                  -> failwith "bug! this really shouldn't happen"
 
 
-(* todo check if this function is used anywhere *)
-(*
-  Looks for a value definition for <identifier>.
-  This function expects the value to be an integer; if not, it causes failure.
-*)
-let lookup_integer_value_bound_to (identifier : Ast.Identifier.t) : Z.t GC.t =
-  let* program = GC.get_program
-  in
-  match Ast.Definition.Select.(select (value_definition_named identifier) (drop_sail_definitions program.definitions)) with
-  | [ value_definition ] -> begin
-      match value_definition.value with
-      | Int n -> GC.return @@ n
-      | _     -> GC.fail [%here] @@ Printf.sprintf "identifier %s should be bound to integer" (Ast.Identifier.to_string identifier)
-    end
-  | []        -> GC.fail [%here] @@ Printf.sprintf "%s is not bound to compile time value" (Ast.Identifier.to_string identifier)
-  | _         -> GC.fail [%here] @@ Printf.sprintf "bug? multiple matches found for %s" (Ast.Identifier.to_string identifier)
-
-
 (*
   Looks for a value definition for <identifier>.
   This function expects the value to be an integer; if not, it returns none.
