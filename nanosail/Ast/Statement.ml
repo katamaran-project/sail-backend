@@ -1,4 +1,12 @@
-open! ExtBase
+(*
+   
+   Unlike muSail, Sail does not make the distinction
+   between statemens and expressions.
+
+   Nanosail follows the same design as muSail.
+   
+*)
+open ExtBase
 
 module Type = Recursive.Type
 
