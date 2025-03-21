@@ -52,8 +52,12 @@ module Make(Annotation : Functor.ANNOTATION) = struct
 
   let at         = string "@"
 
+  (*
+     Allows to use printf-like functionality to produce strings.
+  *)
   let format fmt =
     Printf.ksprintf string fmt
+
   
   let hanging (documents : t list) : t =
     match documents with
