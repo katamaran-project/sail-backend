@@ -220,6 +220,10 @@ let add_comment (comment : PP.t) : unit t =
   update comments (fun cs -> comment :: cs)
 
 
+(*
+   Adds an annotation to the current frame and returns a document formatted "NYI[k]"
+   where k is the index of the annotation.
+*)
 let not_yet_implemented ?(message : string option) (position : Lexing.position) : PP.t t =
   let annotation_document =
     let message_suffix =
