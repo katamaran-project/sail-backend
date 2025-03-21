@@ -155,6 +155,13 @@ let log
   act (fun () -> logger ocaml_position message)
 
 
+(*
+   For debugging purposes.
+
+   Logs a debug "Entering <label>" message,
+   performs the computation represented by result,
+   then logs a "Exiting <label>" message.
+*)
 let translation_block
     (ocaml_position : Lexing.position)
     (label          : PP.t           )
