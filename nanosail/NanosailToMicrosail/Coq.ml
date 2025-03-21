@@ -626,24 +626,31 @@ let pp_local_obligation_tactic (tactic : PP.t) : PP.t =
   end
 
 
+(*
+  Derive class for type. 
+*)
 let pp_derive
-      (class_identifier : Ast.Identifier.t)
-      (type_identifier  : Ast.Identifier.t) : PP.t =
-  let str =
-    Printf.sprintf
-      "Derive %s for %s."
-      (Ast.Identifier.to_string class_identifier)
-      (Ast.Identifier.to_string type_identifier)
-  in
-  PP.annotate [%here] @@ PP.string str
+    (pp_class : PP.t)
+    (pp_type  : PP.t) : PP.t
+  =
+  PP.annotate [%here] begin
+    pp_sentence begin
+      PP.separate_horizontally ~separator:PP.space [
+        PP.string "Derive";
+        pp_class;
+        PP.string "for";
+        pp_type;
+      ]
+    end
+  end
 
 
 let pp_derive_eqdec_for (identifier : Ast.Identifier.t) =
-  PP.annotate [%here] @@ pp_derive (Ast.Identifier.mk "EqDec") identifier
+  PP.annotate [%here] @@ pp_derive (PP.string "EqDec") (Identifier.pp identifier)
 
 
 let pp_derive_no_confusion_for (identifier : Ast.Identifier.t) =
-  PP.annotate [%here] @@ pp_derive (Ast.Identifier.mk "NoConfusion") identifier
+  PP.annotate [%here] @@ pp_derive (PP.string "NoConfusion") (Identifier.pp identifier)
 
 
 let pp_lambda parameter body =
