@@ -742,7 +742,7 @@ let pp_include_module (name : PP.t) : PP.t =
   end
 
 
-let pp_tuple_type ts =
+let pp_tuple_type (ts : PP.t list) : PP.t =
   PP.annotate [%here] begin
     PP.separate_horizontally ~separator:(PP.string " * ") ts
   end
