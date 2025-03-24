@@ -871,3 +871,133 @@ let rec simplify (statement : t) : t =
   | WriteRegister _            -> statement
   | Cast (statement, typ)      -> Cast (simplify statement, Type.simplify typ)
   | Fail _                     -> statement
+
+
+class rewriter =
+  object(self)
+    method rewrite (statement : t) : t =
+      match statement with
+      | Match pattern -> self#rewrite_match ~pattern
+      | Expression expression -> self#rewrite_expression ~expression
+      | Call (receiver, arguments) -> self#rewrite_call ~receiver ~arguments
+      | Let { binder; binding_statement_type; binding_statement; body_statement } -> self#rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement
+      | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> self#rewrite_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body
+      | Seq (left, right) -> self#rewrite_seq ~left ~right
+      | ReadRegister register -> self#rewrite_read_register ~register
+      | WriteRegister { register_identifier; written_value } -> self#rewrite_write_register ~register_identifier ~written_value
+      | Cast (statement, cast_to) -> self#rewrite_cast ~statement ~cast_to
+      | Fail (typ, message) -> self#rewrite_fail ~typ ~message
+    
+    method rewrite_match ~(pattern : match_pattern) : t =
+      match pattern with
+      | MatchList { matched; element_type; when_cons; when_nil } -> self#rewrite_match_list ~matched ~element_type ~when_cons ~when_nil
+      | MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body } -> self#rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body
+      | MatchTuple { matched; binders; body } -> self#rewrite_match_tuple ~matched ~binders ~body
+      | MatchBool { condition; when_true; when_false } -> self#rewrite_match_bool ~condition ~when_true ~when_false
+      | MatchEnum { matched; matched_type; cases } -> self#rewrite_match_enum ~matched ~matched_type ~cases
+      | MatchVariant { matched; matched_type; cases } -> self#rewrite_match_variant ~matched ~matched_type ~cases
+
+    method rewrite_match_list ~matched ~element_type ~when_cons ~when_nil =
+      let (id_head, id_tail, when_cons) = when_cons
+      in
+      Match begin
+        MatchList {
+          matched;
+          element_type;
+          when_cons = (id_head, id_tail, self#rewrite when_cons);
+          when_nil = self#rewrite when_nil
+        }
+      end
+
+    method rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body =
+      Match begin
+        MatchProduct {
+          matched;
+          type_fst;
+          type_snd;
+          id_fst;
+          id_snd;
+          body = self#rewrite body;
+        }
+      end
+
+    method rewrite_match_tuple ~matched ~binders ~body =
+      Match begin
+        MatchTuple {
+          matched;
+          binders;
+          body = self#rewrite body;
+        }
+      end
+
+    method rewrite_match_bool ~condition ~when_true ~when_false =
+      Match begin
+        MatchBool {
+          condition;
+          when_true = self#rewrite when_true;
+          when_false = self#rewrite when_false;
+        }
+      end
+
+    method rewrite_match_enum ~matched ~matched_type ~cases =
+      Match begin
+        MatchEnum {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map ~f:self#rewrite cases
+        }
+      end
+
+    method rewrite_match_variant ~matched ~matched_type ~cases =
+      Match begin
+        MatchVariant {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map_values ~f:(fun (id, stm) -> (id, self#rewrite stm)) cases
+        }
+      end
+
+    method rewrite_expression ~expression =
+      Expression (self#rewrite_expr expression)
+
+    method rewrite_call ~receiver ~arguments =
+      Call (receiver, List.map ~f:self#rewrite_expr arguments)
+
+    method rewrite_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body =
+      DestructureRecord {
+        record_type_identifier;
+        field_identifiers;
+        binders;
+        destructured_record = self#rewrite destructured_record;
+        body = self#rewrite body;
+      }        
+
+    method rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+      Let {
+        binder;
+        binding_statement_type;
+        binding_statement = self#rewrite binding_statement;
+        body_statement = self#rewrite body_statement;
+      }
+
+    method rewrite_seq ~left ~right =
+      Seq (self#rewrite left, self#rewrite right)
+
+    method rewrite_read_register ~register =
+      ReadRegister register
+
+    method rewrite_write_register ~register_identifier ~written_value =
+      WriteRegister {
+        register_identifier;
+        written_value
+      }
+
+    method rewrite_cast ~statement ~cast_to =
+      Cast (self#rewrite statement, cast_to)
+
+    method rewrite_fail ~typ ~message =
+      Fail (typ, message)
+
+    method private rewrite_expr expression : Expression.t =
+      failwith "not yet implemented" (* todo!! *)
+  end
