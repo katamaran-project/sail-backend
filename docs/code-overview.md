@@ -150,11 +150,19 @@ See the `FExpr` module for more details.
 
 We defined `to_fexpr` functions for most types, which can be helpful for debugging.
 A `FExpr.pp_diff` function is available to highlight differences
-between to F-expressions, which is useful while testing.
+between two F-expressions, which is useful while testing.
 
-## Document/PP
+## `PP`
 
-Annotations
+The `PP` module offers limited pretty print functionality.
+Originally, the more powerful `PPrint` module was used, but we wanted to be able
+to annotate each generated piece of text with information about which
+functions were responsible for its generation.
+Later, we also added support for decoration: foreground/background colors, bold, underline, ...
+
+```ocaml
+
+```
 
 ## `StringOf` Module
 

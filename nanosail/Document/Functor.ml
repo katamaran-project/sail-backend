@@ -14,21 +14,21 @@ module type DOCUMENT = sig
   type t
   type annotation
 
-  val is_empty : t -> bool
+  val is_empty       : t -> bool
   val is_single_line : t -> bool
 
-  val measure : t -> int * int
-  val decorate : AnsiColor.Decoration.t list -> t -> t
-  val undecorate : t -> t
+  val measure        : t -> int * int
+  val decorate       : AnsiColor.Decoration.t list -> t -> t
+  val undecorate     : t -> t
 
-  val to_string : t -> string
-  val to_html : t -> Html.t
+  val to_string      : t -> string
+  val to_html        : t -> Html.t
 
-  val empty  : t
-  val string : string -> t
-  val horizontal : t list -> t
-  val vertical : t list -> t
-  val annotate : annotation -> t -> t
+  val empty          : t
+  val string         : string -> t
+  val horizontal     : t list -> t
+  val vertical       : t list -> t
+  val annotate       : annotation -> t -> t
 end
 
 
