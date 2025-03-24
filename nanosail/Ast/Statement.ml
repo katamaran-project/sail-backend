@@ -873,7 +873,8 @@ let rec simplify (statement : t) : t =
   | Fail _                     -> statement
 
 
-class rewriter =
+
+class identity_rewriter =
   object(self)
     method rewrite (statement : t) : t =
       match statement with
@@ -1001,3 +1002,4 @@ class rewriter =
     method private rewrite_expr expression : Expression.t =
       failwith "not yet implemented" (* todo!! *)
   end
+
