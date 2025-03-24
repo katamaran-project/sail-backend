@@ -950,7 +950,7 @@ let simplify_unused_let_binder (statement : t) : t =
     end
   in
   rewriter#rewrite statement
-  
+
 
 let simplify (statement : t) : t =
   let rewriter =
