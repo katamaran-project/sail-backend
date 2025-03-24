@@ -925,12 +925,6 @@ let simplify_unused_let_binder (statement : t) : t =
     object(self)
       inherit identity_rewriter
 
-      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
-        Expression.simplify expression
-
-      method! foreign_rewrite_type (typ : Type.t) : Type.t =
-        Type.simplify typ
-
       method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         let binding_statement_type = Type.simplify binding_statement_type
         and binding_statement      = self#rewrite binding_statement
@@ -952,33 +946,49 @@ let simplify_unused_let_binder (statement : t) : t =
   rewriter#rewrite statement
 
 
-let simplify (statement : t) : t =
+(*
+   Simplifies types that appear in statements.
+*)
+let simplify_types (statement : t) : t =
   let rewriter =
-    object(self)
+    object
+      inherit identity_rewriter
+
+      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+        Type.simplify typ
+    end
+  in
+  rewriter#rewrite statement
+
+
+(*
+   Simplifies expressions that appear in statements.
+*)
+let simplify_expressions (statement : t) : t =
+  let rewriter =
+    object
       inherit identity_rewriter
 
       method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
         Expression.simplify expression
+    end
+  in
+  rewriter#rewrite statement
 
-      method! foreign_rewrite_type (typ : Type.t) : Type.t =
-        Type.simplify typ
 
-      method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
-        let binding_statement_type = Type.simplify binding_statement_type
-        and binding_statement      = self#rewrite binding_statement
-        and body_statement         = self#rewrite body_statement
-        in
-        if
-          Identifier.Set.mem (free_variables body_statement) binder
-        then
-          Let {
-            binder;
-            binding_statement_type;
-            binding_statement;
-            body_statement;
-          }
-        else
-          self#rewrite @@ Seq (binding_statement, body_statement)
+(*
+   Simplifies
+
+     (); statement
+
+   to
+
+     statement
+*)
+let simplify_seq_unit (statement : t) : t =
+  let rewriter =
+    object(self)
+      inherit identity_rewriter
 
       method! rewrite_seq ~left ~right =
         let left  = self#rewrite left
@@ -991,3 +1001,10 @@ let simplify (statement : t) : t =
     end
   in
   rewriter#rewrite statement
+
+
+let simplify (statement : t) : t =
+  let pass =
+    simplify_expressions <. simplify_unused_let_binder <. simplify_types <. simplify_expressions
+  in
+  Fn.fixed_point ~f:pass ~equal:equal statement
