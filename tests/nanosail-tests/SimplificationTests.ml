@@ -41,6 +41,33 @@ let test_simplify_unused_let_binder =
   |} >:: test
 
 
+let test_simplify_seq_unit =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Seq (
+        Expression (Value Ast.Value.Unit),
+        Expression (Value (Ast.Value.mk_int 5))
+      )
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_seq_unit statement
+    and expected : Ast.Statement.t =
+      Expression (Value (Ast.Value.mk_int 5))
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      (); 5
+
+    should become
+
+      5
+  |} >:: test
+
 
 let test_simplify_statement_1 =
   let test _ =
@@ -110,6 +137,7 @@ let test_simplify_statement_2 =
 let test_suite =
   "simplification" >::: [
     test_simplify_unused_let_binder;
+    test_simplify_seq_unit;
     test_simplify_statement_1;
     test_simplify_statement_2;
   ]
