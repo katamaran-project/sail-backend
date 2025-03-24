@@ -126,16 +126,48 @@ let translate_bool (b : bool) : PP.t GenerationContext.t =
 
 ## Logging
 
+The `Logging` module can be used to log messages.
+We currently support four levels (error, warning, info, debug).
+Using the environment variable `VERBOSE` one can choose
+up to which level log messages should be shown:
 
+* `VERBOSE=0`: quiet mode, no logging takes place.
+* `VERBOSE=1`: only errors are shown.
+* ...
+* `VERBOSE=4`: all messages are printed.
 
 ## F-Expressions
 
-More robust than `string_of`.
-Allows for diffs.
+OCaml does not provide a standard way of converting values to strings.
+Originally we intended to implement all kinds of `string_of_` functions
+but the one dimensional nature of strings impeded readability.
+
+F-Expressions are more structured than plain strings and allow for better pretty printing.
+Apart from integers, booleans, strings and lists,
+F-expressions have function application written
+`Head[pos1, pos2, ..., keyword1=val1, keyword2=val2], ...`.
+See the `FExpr` module for more details.
+
+We defined `to_fexpr` functions for most types, which can be helpful for debugging.
+A `FExpr.pp_diff` function is available to highlight differences
+between to F-expressions, which is useful while testing.
 
 ## Document/PP
 
 Annotations
+
+## `StringOf` Module
+
+This module was originally meant to group all `string_of_` functionality
+but ultimately ended up only providing this functionality for Sail types.
+
+Most of the functionality has been taken straight from `Libsail`.
+Having our own module, however, allowed us to add string conversions
+for types neglected by `Libsail` (e.g. `aval`) and customize the conversion
+if we felt the `Libsail` implementation fell short.
+
+For our own types, we preferred defining `to_fexpr` functions in their respective modules,
+e.g., `Ast.Type.to_fexpr` for nanosail types.
 
 ## Coding Style
 

@@ -3,7 +3,7 @@
   F-Expressions are used for debugging: they provide a simple way to convert
   data structures to text.
 
-  An F-expression is
+  An F-expression has the form
 
   - an integer (1, 2, 3, ...)
   - a boolean (True/False)
@@ -19,7 +19,7 @@
    F-Expressions can be pretty printed and diffed.
 
 *)
-open! ExtBase
+open ExtBase
 
 
 type t =
