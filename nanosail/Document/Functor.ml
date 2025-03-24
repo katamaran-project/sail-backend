@@ -295,7 +295,7 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
   *)
   let string (string : string) : t =
     match String.split_lines string with
-    | []    -> Empty
+    | []    -> String ""
     | [ s ] -> String s
     | lines -> vertical @@ List.map ~f:(fun s -> String s) lines
 
