@@ -881,7 +881,6 @@ class virtual rewriter =
     method virtual rewrite_call : receiver : Identifier.t -> arguments : Expression.t list -> t
     method virtual rewrite_cast : statement : t -> cast_to : Type.t -> t
     method virtual rewrite_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> t
-    method virtual private rewrite_expr : Expression.t -> Expression.t
     method virtual rewrite_expression : expression : Expression.t -> t
     method virtual rewrite_fail : typ : Type.t -> message : string -> t
     method virtual rewrite_let : binder : Identifier.t -> binding_statement_type : Type.t -> binding_statement : t -> body_statement : t -> t
@@ -1015,13 +1014,13 @@ class identity_rewriter (expression_rewriter : Expression.rewriter) =
     method rewrite_expression
         ~(expression : Expression.t) : t
       =
-      Expression (self#rewrite_expr expression)
+      Expression (expression_rewriter#rewrite expression expression)
 
     method rewrite_call
         ~(receiver  : Identifier.t     )
         ~(arguments : Expression.t list) : t
       =
-      Call (receiver, List.map ~f:self#rewrite_expr arguments)
+      Call (receiver, List.map ~f:expression_rewriter#rewrite arguments)
 
     method rewrite_destructure_record
         ~(record_type_identifier : Identifier.t     )
@@ -1080,8 +1079,4 @@ class identity_rewriter (expression_rewriter : Expression.rewriter) =
         ~(message : string) : t
       =
       Fail (typ, message)
-
-    method private rewrite_expr expression : Expression.t =
-      expression_rewriter#rewrite expression
   end
-
