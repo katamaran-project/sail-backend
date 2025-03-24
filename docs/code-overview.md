@@ -161,7 +161,18 @@ functions were responsible for its generation.
 Later, we also added support for decoration: foreground/background colors, bold, underline, ...
 
 ```ocaml
+horizontal [
+  string "Charles";
+  space;
+  vertical [ string "Jason"; string "Henry" ]  
+]
+```
 
+gives
+
+```text
+Charles Jason
+        Henri
 ```
 
 ## `StringOf` Module

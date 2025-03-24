@@ -59,8 +59,11 @@ Def:Function[name=Identifier["index"],
 
 ## Atoms
 
-`atom` and `atom_bool` are types that Sail internally uses as replacement for `int` and `bool`.
-Both receive type arguments.
+Sail supports refinement types.
+When an `int` needs to be accompanied by a predicate constraining the values it can take on,
+the type `atom` is used, which expects a type argument (see `Libsail.Ast.typ_arg` and `Ast.TypeArgument.t`)
+that represents the constraint.
+
 
 ## `exit()` Return Type
 
