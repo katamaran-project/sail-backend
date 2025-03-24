@@ -909,6 +909,49 @@ let substitute_numeric_expression_identifier
   rewriter#rewrite statement
 
 
+(*
+   Simplifies
+
+     let x = statement
+     in
+     does_not_use_x
+
+   to
+
+     statement; does_not_use_x
+*)
+let simplify_unused_let_binder (statement : t) : t =
+  let rewriter =
+    object(self)
+      inherit identity_rewriter
+
+      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+        Expression.simplify expression
+
+      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+        Type.simplify typ
+
+      method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+        let binding_statement_type = Type.simplify binding_statement_type
+        and binding_statement      = self#rewrite binding_statement
+        and body_statement         = self#rewrite body_statement
+        in
+        if
+          Identifier.Set.mem (free_variables body_statement) binder
+        then
+          Let {
+            binder;
+            binding_statement_type;
+            binding_statement;
+            body_statement;
+          }
+        else
+          self#rewrite @@ Seq (binding_statement, body_statement)
+    end
+  in
+  rewriter#rewrite statement
+  
+
 let simplify (statement : t) : t =
   let rewriter =
     object(self)
