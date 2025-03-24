@@ -177,14 +177,14 @@ module Make(Annotation : ANNOTATION) : (DOCUMENT with type annotation = Annotati
     List.map ~f:strip_annotation @@ to_annotated_strings document
 
 
-  (* todo improve implementation *)
   let measure_width (document : t) : int =
     let strings = to_strings document
     in
-    List.fold_left ~f:Int.max ~init:0 @@ List.map ~f:String.length strings
+    Option.value ~default:0 begin
+      List.max_elt ~compare:Int.compare @@ List.map ~f:String.length strings
+    end
 
 
-  (* todo improve implementation *)
   let measure_height (document : t) : int =
     let strings = to_strings document
     in
