@@ -802,6 +802,12 @@ class virtual rewriter =
   end
 
 
+(*
+   This rewriter does nothing: equal (rewrite expr) expr.
+   Its purpose is to allow to easily define new rewriters that
+   only need to deal with specific cases and therefore only need to
+   override the corresponding methods.
+*)
 class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
   object(self)
     inherit rewriter
