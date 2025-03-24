@@ -341,15 +341,14 @@ class identity_rewriter =
 
     method rewrite_variable
         ~(identifier : Identifier.t)
-        ~(typ : Type.t) : t =
+        ~(typ : Type.t) : t
+      =
       Variable (identifier, typ)
 
-    method rewrite_value ~(value : Value.t) : t
-      =
+    method rewrite_value ~(value : Value.t) : t =
       Value value
 
-    method rewrite_list ~(elements : t list) : t
-      =
+    method rewrite_list ~(elements : t list) : t =
       List (List.map ~f:self#rewrite elements)
 
     method rewrite_unary_operation
