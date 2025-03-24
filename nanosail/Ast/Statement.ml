@@ -904,25 +904,25 @@ class identity_rewriter =
 
     method rewrite (statement : t) : t =
       match statement with
-      | Match pattern -> self#rewrite_match ~pattern
-      | Expression expression -> self#rewrite_expression ~expression
-      | Call (receiver, arguments) -> self#rewrite_call ~receiver ~arguments
-      | Let { binder; binding_statement_type; binding_statement; body_statement } -> self#rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement
+      | Match pattern                                                                                       -> self#rewrite_match ~pattern
+      | Expression expression                                                                               -> self#rewrite_expression ~expression
+      | Call (receiver, arguments)                                                                          -> self#rewrite_call ~receiver ~arguments
+      | Let { binder; binding_statement_type; binding_statement; body_statement }                           -> self#rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement
       | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> self#rewrite_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body
-      | Seq (left, right) -> self#rewrite_seq ~left ~right
-      | ReadRegister register -> self#rewrite_read_register ~register
-      | WriteRegister { register_identifier; written_value } -> self#rewrite_write_register ~register_identifier ~written_value
-      | Cast (statement, cast_to) -> self#rewrite_cast ~statement ~cast_to
-      | Fail (typ, message) -> self#rewrite_fail ~typ ~message
+      | Seq (left, right)                                                                                   -> self#rewrite_seq ~left ~right
+      | ReadRegister register                                                                               -> self#rewrite_read_register ~register
+      | WriteRegister { register_identifier; written_value }                                                -> self#rewrite_write_register ~register_identifier ~written_value
+      | Cast (statement, cast_to)                                                                           -> self#rewrite_cast ~statement ~cast_to
+      | Fail (typ, message)                                                                                 -> self#rewrite_fail ~typ ~message
 
     method rewrite_match ~(pattern : match_pattern) : t =
       match pattern with
-      | MatchList { matched; element_type; when_cons; when_nil } -> self#rewrite_match_list ~matched ~element_type ~when_cons ~when_nil
+      | MatchList { matched; element_type; when_cons; when_nil }           -> self#rewrite_match_list ~matched ~element_type ~when_cons ~when_nil
       | MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body } -> self#rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body
-      | MatchTuple { matched; binders; body } -> self#rewrite_match_tuple ~matched ~binders ~body
-      | MatchBool { condition; when_true; when_false } -> self#rewrite_match_bool ~condition ~when_true ~when_false
-      | MatchEnum { matched; matched_type; cases } -> self#rewrite_match_enum ~matched ~matched_type ~cases
-      | MatchVariant { matched; matched_type; cases } -> self#rewrite_match_variant ~matched ~matched_type ~cases
+      | MatchTuple { matched; binders; body }                              -> self#rewrite_match_tuple ~matched ~binders ~body
+      | MatchBool { condition; when_true; when_false }                     -> self#rewrite_match_bool ~condition ~when_true ~when_false
+      | MatchEnum { matched; matched_type; cases }                         -> self#rewrite_match_enum ~matched ~matched_type ~cases
+      | MatchVariant { matched; matched_type; cases }                      -> self#rewrite_match_variant ~matched ~matched_type ~cases
 
     method rewrite_match_list
         ~(matched : Identifier.t)
