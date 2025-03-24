@@ -7,6 +7,41 @@ let mkid  = Ast.Identifier.mk
 let mkgid = Fn.compose Ast.Identifier.mk_generated Int.to_string
 
 
+
+let test_simplify_unused_let_binder =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = Ast.Identifier.mk_generated "a";
+        binding_statement_type = Int None;
+        binding_statement      = Expression (Value (Ast.Value.mk_int 5));
+        body_statement         = Expression (Value (Ast.Value.mk_int 6));
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_unused_let_binder statement
+    and expected : Ast.Statement.t =
+      Seq (
+        Expression (Value (Ast.Value.mk_int 5)),
+        Expression (Value (Ast.Value.mk_int 6))
+      )
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = 5 in 6
+
+    should become
+
+      5; 6
+  |} >:: test
+
+
+
 let test_simplify_statement_1 =
   let test _ =
     let statement : Ast.Statement.t =
@@ -17,7 +52,8 @@ let test_simplify_statement_1 =
         body_statement         = Expression (Variable (Ast.Identifier.mk "x", Unit))
       }
     in
-    let actual = Ast.Statement.simplify statement
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify statement
     and expected : Ast.Statement.t =
       Expression (Variable (Ast.Identifier.mk "x", Unit))
     in
@@ -73,6 +109,7 @@ let test_simplify_statement_2 =
 
 let test_suite =
   "simplification" >::: [
+    test_simplify_unused_let_binder;
     test_simplify_statement_1;
     test_simplify_statement_2;
   ]
