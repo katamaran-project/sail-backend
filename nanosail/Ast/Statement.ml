@@ -860,9 +860,9 @@ let rec simplify (statement : t) : t =
       and right = simplify right
       in
       match left, right with
-      | Expression (Value Unit)                 , _ -> right
+      | Expression (Value Unit)             , _ -> right
       | Expression (Variable (_, Type.Unit)), _ -> right
-      | _                                           -> Seq (left, right)
+      | _                                       -> Seq (left, right)
     end
 
   | Expression expression      -> Expression (Expression.simplify expression)
