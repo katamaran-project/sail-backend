@@ -294,13 +294,13 @@ let substitute_numeric_expression_identifier
 
 let rec simplify (expression : t) : t =
   match expression with
-  | Variable (identifier, typ) -> Variable (identifier, Type.simplify typ)
-  | Value _ -> expression
-  | List elements -> List (List.map ~f:simplify elements)
-  | UnaryOperation (operator, operand) -> UnaryOperation (operator, simplify operand)
+  | Variable (identifier, typ)                              -> Variable (identifier, Type.simplify typ)
+  | Value _                                                 -> expression
+  | List elements                                           -> List (List.map ~f:simplify elements)
+  | UnaryOperation (operator, operand)                      -> UnaryOperation (operator, simplify operand)
   | BinaryOperation (operator, left_operand, right_operand) -> BinaryOperation (operator, simplify left_operand, simplify right_operand)
-  | Record _ -> expression
-  | Enum _ -> expression
-  | Variant _ -> expression
-  | Tuple elements -> Tuple (List.map ~f:simplify elements)
-  | Bitvector elements -> Bitvector (List.map ~f:simplify elements)
+  | Record _                                                -> expression
+  | Enum _                                                  -> expression
+  | Variant _                                               -> expression
+  | Tuple elements                                          -> Tuple (List.map ~f:simplify elements)
+  | Bitvector elements                                      -> Bitvector (List.map ~f:simplify elements)
