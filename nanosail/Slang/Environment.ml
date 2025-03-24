@@ -2,7 +2,7 @@
    Environments keep track of bindings:
    they map identifiers (strings) to values (Value.t).
 
-   To prevent cyclical dependencies, the environment
+   To prevent circular dependencies, the environment
    does not know about values and instead uses some 'a type.
    This is an acceptable solution since environments
    never need to interact with values and are happy
@@ -14,7 +14,7 @@
 *)
 open ExtBase
 
-(* Polymorphic so as to prevent cyclic dependencies *)
+(* Polymorphic so as to prevent circular dependencies *)
 type 'a t = (string, 'a, String.comparator_witness) Map.t
 
 

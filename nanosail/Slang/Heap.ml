@@ -1,7 +1,7 @@
 open ExtBase
 
 
-(* Polymorphic so as to prevent cyclic dependencies *)
+(* Polymorphic so as to prevent circular dependencies *)
 type 'a t = Heap of (Int.t, 'a, Int.comparator_witness) Map.t * int
 
 let empty : 'a t = Heap (Map.empty (module Int), 0)
