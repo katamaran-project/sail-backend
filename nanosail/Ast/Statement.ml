@@ -1005,6 +1005,6 @@ let simplify_seq_unit (statement : t) : t =
 
 let simplify (statement : t) : t =
   let pass =
-    simplify_expressions <. simplify_unused_let_binder <. simplify_types <. simplify_expressions
+    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
