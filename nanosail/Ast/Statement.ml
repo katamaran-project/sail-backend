@@ -1014,7 +1014,7 @@ class identity_rewriter (expression_rewriter : Expression.rewriter) =
     method rewrite_expression
         ~(expression : Expression.t) : t
       =
-      Expression (expression_rewriter#rewrite expression expression)
+      Expression (expression_rewriter#rewrite expression)
 
     method rewrite_call
         ~(receiver  : Identifier.t     )
