@@ -696,7 +696,7 @@ class virtual rewriter =
    only need to deal with specific cases and therefore only need to
    override the corresponding methods.
 *)
-class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
+class identity_rewriter =
   object(self)
     inherit rewriter
 
@@ -733,7 +733,7 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
       Match begin
         MatchList {
           matched;
-          element_type;
+          element_type = self#foreign_rewrite_type element_type;
           when_cons = (id_head, id_tail, self#rewrite when_cons);
           when_nil = self#rewrite when_nil
         }
@@ -750,11 +750,11 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
       Match begin
         MatchProduct {
           matched;
-          type_fst;
-          type_snd;
+          type_fst = self#foreign_rewrite_type type_fst;
+          type_snd = self#foreign_rewrite_type type_snd;
           id_fst;
           id_snd;
-          body = self#rewrite body;
+          body     = self#rewrite body;
         }
       end
 
@@ -766,7 +766,7 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
       Match begin
         MatchTuple {
           matched;
-          binders;
+          binders = List.map ~f:(fun (id, t) -> (id, self#foreign_rewrite_type t)) binders;
           body = self#rewrite body;
         }
       end
@@ -779,7 +779,7 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
       Match begin
         MatchBool {
           condition;
-          when_true = self#rewrite when_true;
+          when_true  = self#rewrite when_true;
           when_false = self#rewrite when_false;
         }
       end
@@ -813,13 +813,13 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
     method rewrite_expression
         ~(expression : Expression.t) : t
       =
-      Expression (rewrite_expression expression)
+      Expression (self#foreign_rewrite_expression expression)
 
     method rewrite_call
         ~(receiver  : Identifier.t     )
         ~(arguments : Expression.t list) : t
       =
-      Call (receiver, List.map ~f:rewrite_expression arguments)
+      Call (receiver, List.map ~f:self#foreign_rewrite_expression arguments)
 
     method rewrite_destructure_record
         ~(record_type_identifier : Identifier.t     )
@@ -833,7 +833,7 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
         field_identifiers;
         binders;
         destructured_record = self#rewrite destructured_record;
-        body = self#rewrite body;
+        body                = self#rewrite body;
       }
 
     method rewrite_let
@@ -844,9 +844,9 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
       =
       Let {
         binder;
-        binding_statement_type;
-        binding_statement = self#rewrite binding_statement;
-        body_statement = self#rewrite body_statement;
+        binding_statement_type = self#foreign_rewrite_type binding_statement_type;
+        binding_statement      = self#rewrite binding_statement;
+        body_statement         = self#rewrite body_statement;
       }
 
     method rewrite_seq
@@ -871,13 +871,23 @@ class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
         ~(statement : t     )
         ~(cast_to   : Type.t) : t
       =
-      Cast (self#rewrite statement, cast_to)
+      Cast (self#rewrite statement, self#foreign_rewrite_type cast_to)
 
     method rewrite_fail
         ~(typ     : Type.t)
         ~(message : string) : t
       =
-      Fail (typ, message)
+      Fail (self#foreign_rewrite_type typ, message)
+
+    (*
+       The method rewrite_expression operates on Statement values.
+       This method operates on Expression values.
+    *)
+    method foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+      expression
+
+    method foreign_rewrite_type (typ : Type.t) : Type.t =
+      typ
   end
 
 
@@ -885,96 +895,30 @@ let substitute_numeric_expression_identifier
     (substitution : Identifier.t -> Numeric.Expression.t)
     (statement    : t                                   ) : t
   =
-  let typsubst  = Type.substitute_numeric_expression_identifier substitution
-  and exprsubst = Expression.substitute_numeric_expression_identifier substitution
-  in
   let rewriter =
-    object(self)
-      inherit (identity_rewriter exprsubst)
+    object
+      inherit identity_rewriter
 
-      method! rewrite_match_list ~matched ~element_type ~when_cons ~when_nil =
-        let head, tail, when_cons = when_cons
-        in
-        Match begin
-          MatchList {
-            matched;
-            element_type = typsubst element_type;
-            when_cons    = (head, tail, self#rewrite when_cons);
-            when_nil     = self#rewrite when_nil
-          }
-        end
+      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+        Expression.substitute_numeric_expression_identifier substitution expression
 
-      method! rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body =
-        Match begin
-          MatchProduct {
-            matched;
-            type_fst = typsubst type_fst;
-            type_snd = typsubst type_snd;
-            id_fst;
-            id_snd;
-            body     = self#rewrite body;
-          }
-        end
-
-      method! rewrite_match_tuple ~matched ~binders ~body =
-        Match begin
-          MatchTuple {
-            matched;
-            binders = List.map ~f:(fun (id, t) -> (id, typsubst t)) binders;
-            body    = self#rewrite body;
-          }
-        end
-
-      method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
-        Let {
-          binder;
-          binding_statement_type = typsubst binding_statement_type;
-          binding_statement      = self#rewrite binding_statement;
-          body_statement         = self#rewrite body_statement
-        }
-
+      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+        Type.substitute_numeric_expression_identifier substitution typ
     end
   in
   rewriter#rewrite statement
 
 
-let rec simplify (statement : t) : t =
+let simplify (statement : t) : t =
   let rewriter =
     object(self)
-      inherit identity_rewriter Expression.simplify
+      inherit identity_rewriter
 
-      method! rewrite_match_list ~matched ~element_type ~when_cons ~when_nil =
-        let head_identifier, tail_identifier, when_cons = when_cons
-        in
-        Match begin
-          MatchList {
-            matched;
-            element_type = Type.simplify element_type;
-            when_cons    = (head_identifier, tail_identifier, simplify when_cons);
-            when_nil     = self#rewrite when_nil;
-          }
-        end
+      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+        Expression.simplify expression
 
-      method! rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body =
-        Match begin
-          MatchProduct {
-            matched;
-            type_fst = Type.simplify type_fst;
-            type_snd = Type.simplify type_snd;
-            id_fst;
-            id_snd;
-            body     = self#rewrite body;
-          }
-        end
-
-      method! rewrite_match_tuple ~matched ~binders ~body =
-        Match begin
-          MatchTuple {
-            matched;
-            binders = List.map ~f:(fun (id, t) -> (id, Type.simplify t)) binders;
-            body    = self#rewrite body;
-          }
-        end
+      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+        Type.simplify typ
 
       method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         let binding_statement_type = Type.simplify binding_statement_type
@@ -1001,9 +945,6 @@ let rec simplify (statement : t) : t =
         | Expression (Value Unit)             , _ -> right
         | Expression (Variable (_, Type.Unit)), _ -> right
         | _                                       -> Seq (left, right)
-
-      method! rewrite_cast ~statement ~cast_to =
-        Cast (self#rewrite statement, Type.simplify cast_to)
     end
   in
   rewriter#rewrite statement
