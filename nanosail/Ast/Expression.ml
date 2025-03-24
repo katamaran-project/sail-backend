@@ -299,7 +299,7 @@ class identity_rewriter =
 
     method rewrite_variable
         ~(identifier : Identifier.t)
-        ~(typ : Type.t) : t
+        ~(typ        : Type.t      ) : t
       =
       Variable (identifier, typ)
 
