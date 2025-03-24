@@ -304,3 +304,58 @@ let rec simplify (expression : t) : t =
   | Variant _                                               -> expression
   | Tuple elements                                          -> Tuple (List.map ~f:simplify elements)
   | Bitvector elements                                      -> Bitvector (List.map ~f:simplify elements)
+
+
+class virtual rewriter =
+  object
+    method virtual rewrite : t -> t
+  end
+
+
+class identity_rewriter =
+  object(self)
+    inherit rewriter
+
+    method rewrite (expression : t) : t =
+      match expression with
+      | Variable (identifier, typ)                                  -> self#rewrite_variable ~identifier ~typ
+      | Value value                                                 -> self#rewrite_value ~value
+      | List elements                                               -> self#rewrite_list ~elements
+      | UnaryOperation (operator, operand)                          -> self#rewrite_unary_operation ~operator ~operand
+      | BinaryOperation (operator, left_operand, right_operand)     -> self#rewrite_binary_operator ~operator ~left_operand ~right_operand
+      | Record { type_identifier; fields }                          -> self#rewrite_record ~type_identifier ~fields
+      | Enum { type_identifier; constructor_identifier }            -> self#rewrite_enum ~type_identifier ~constructor_identifier
+      | Variant { type_identifier; constructor_identifier; fields } -> self#rewrite_variant ~type_identifier ~constructor_identifier ~fields
+      | Tuple elements                                              -> self#rewrite_tuple ~elements
+      | Bitvector elements                                          -> self#rewrite_bitvector ~elements
+
+    method rewrite_variable ~(identifier : Identifier.t) ~(typ : Type.t) : t =
+      Variable (identifier, typ)
+
+    method rewrite_value ~(value : Value.t) : t =
+      Value value
+
+    method rewrite_list ~(elements : t list) : t =
+      List (List.map ~f:self#rewrite elements)
+
+    method rewrite_unary_operation ~(operator : UnaryOperator.t) ~(operand : t) : t =
+      UnaryOperation (operator, self#rewrite operand)
+
+    method rewrite_binary_operator ~(operator : BinaryOperator.t) ~(left_operand : t) ~(right_operand : t) : t =
+      BinaryOperation (operator, self#rewrite left_operand, self#rewrite right_operand)
+
+    method rewrite_record ~(type_identifier : Identifier.t) ~(fields : Identifier.t list) : t =
+      Record { type_identifier; fields }
+
+    method rewrite_enum ~(type_identifier : Identifier.t) ~(constructor_identifier : Identifier.t) : t =
+      Enum { type_identifier; constructor_identifier }
+
+    method rewrite_variant ~(type_identifier : Identifier.t) ~(constructor_identifier : Identifier.t) ~(fields : t list) : t =
+      Variant { type_identifier; constructor_identifier; fields = List.map ~f:self#rewrite fields }
+
+    method rewrite_tuple ~(elements : t list) : t =
+      Tuple (List.map ~f:self#rewrite elements)
+
+    method rewrite_bitvector ~(elements : t list) : t =
+      Bitvector (List.map ~f:self#rewrite elements)
+  end

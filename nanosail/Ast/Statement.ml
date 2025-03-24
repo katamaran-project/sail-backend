@@ -914,7 +914,7 @@ class identity_rewriter =
       | WriteRegister { register_identifier; written_value } -> self#rewrite_write_register ~register_identifier ~written_value
       | Cast (statement, cast_to) -> self#rewrite_cast ~statement ~cast_to
       | Fail (typ, message) -> self#rewrite_fail ~typ ~message
-    
+
     method rewrite_match ~(pattern : match_pattern) : t =
       match pattern with
       | MatchList { matched; element_type; when_cons; when_nil } -> self#rewrite_match_list ~matched ~element_type ~when_cons ~when_nil
@@ -1002,7 +1002,7 @@ class identity_rewriter =
         binders;
         destructured_record = self#rewrite destructured_record;
         body = self#rewrite body;
-      }        
+      }
 
     method rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
       Let {
