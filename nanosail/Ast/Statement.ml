@@ -994,19 +994,23 @@ let substitute_numeric_expression_identifier
   let typsubst  = Type.substitute_numeric_expression_identifier substitution
   and exprsubst = Expression.substitute_numeric_expression_identifier substitution
   in
-  let rec subst (statement : t) : t =
-    match statement with
-    | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin
+  let rewriter =
+    object(self)
+      inherit (identity_rewriter exprsubst)
+
+      method! rewrite_match_list ~matched ~element_type ~when_cons ~when_nil =
+        let head, tail, when_cons = when_cons
+        in
         Match begin
           MatchList {
             matched;
             element_type = typsubst element_type;
-            when_cons    = (head, tail, subst when_cons);
-            when_nil     = subst when_nil
+            when_cons    = (head, tail, self#rewrite when_cons);
+            when_nil     = self#rewrite when_nil
           }
         end
-      end
-    | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
+
+      method! rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body =
         Match begin
           MatchProduct {
             matched;
@@ -1014,69 +1018,27 @@ let substitute_numeric_expression_identifier
             type_snd = typsubst type_snd;
             id_fst;
             id_snd;
-            body     = subst body;
+            body     = self#rewrite body;
           }
         end
-      end
-    | Match (MatchTuple { matched; binders; body }) -> begin
+
+      method! rewrite_match_tuple ~matched ~binders ~body =
         Match begin
           MatchTuple {
             matched;
             binders = List.map ~f:(fun (id, t) -> (id, typsubst t)) binders;
-            body    = subst body;
+            body    = self#rewrite body;
           }
         end
-      end
-    | Match (MatchBool { condition; when_true; when_false }) -> begin
-        Match begin
-          MatchBool {
-            condition;
-            when_true  = subst when_true;
-            when_false = subst when_false;
-          }
-        end
-      end
-    | Match (MatchEnum { matched; matched_type; cases }) -> begin
-        Match begin
-          MatchEnum {
-            matched;
-            matched_type;
-            cases = Identifier.Map.map_values cases ~f:subst
-          }
-        end
-      end
-    | Match (MatchVariant { matched; matched_type; cases }) -> begin
-        Match begin
-          MatchVariant {
-            matched;
-            matched_type;
-            cases = Identifier.Map.map_values cases ~f:(fun (ids, body) -> (ids, subst body))
-          }
-        end
-      end
-    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+
+      method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         Let {
           binder;
           binding_statement_type = typsubst binding_statement_type;
-          binding_statement = subst binding_statement;
-          body_statement = subst body_statement
+          binding_statement      = self#rewrite binding_statement;
+          body_statement         = self#rewrite body_statement
         }
-      end
-    | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
-        DestructureRecord {
-          record_type_identifier;
-          field_identifiers;
-          binders;
-          destructured_record = subst destructured_record;
-          body = subst body;
-        }
-      end
-    | Expression expression      -> Expression (exprsubst expression)
-    | Call (receiver, arguments) -> Call (receiver, List.map ~f:exprsubst arguments)
-    | Seq (left, right)          -> Seq (subst left, subst right)
-    | Cast (statement, typ)      -> Cast (subst statement, typsubst typ)
-    | ReadRegister _             -> statement
-    | WriteRegister _            -> statement
-    | Fail _                     -> statement
+
+    end
   in
-  subst statement
+  rewriter#rewrite statement
