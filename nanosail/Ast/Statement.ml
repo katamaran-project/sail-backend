@@ -666,101 +666,6 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Fail _                                               -> Identifier.Set.empty
 
 
-let substitute_numeric_expression_identifier
-    (substitution : Identifier.t -> Numeric.Expression.t)
-    (statement    : t                                   ) : t
-  =
-  let typsubst  = Type.substitute_numeric_expression_identifier substitution
-  and exprsubst = Expression.substitute_numeric_expression_identifier substitution
-  in
-  let rec subst (statement : t) : t =
-    match statement with
-    | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin
-        Match begin
-          MatchList {
-            matched;
-            element_type = typsubst element_type;
-            when_cons    = (head, tail, subst when_cons);
-            when_nil     = subst when_nil
-          }
-        end
-      end
-    | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
-        Match begin
-          MatchProduct {
-            matched;
-            type_fst = typsubst type_fst;
-            type_snd = typsubst type_snd;
-            id_fst;
-            id_snd;
-            body     = subst body;
-          }
-        end
-      end
-    | Match (MatchTuple { matched; binders; body }) -> begin
-        Match begin
-          MatchTuple {
-            matched;
-            binders = List.map ~f:(fun (id, t) -> (id, typsubst t)) binders;
-            body    = subst body;
-          }
-        end
-      end
-    | Match (MatchBool { condition; when_true; when_false }) -> begin
-        Match begin
-          MatchBool {
-            condition;
-            when_true  = subst when_true;
-            when_false = subst when_false;
-          }
-        end
-      end
-    | Match (MatchEnum { matched; matched_type; cases }) -> begin
-        Match begin
-          MatchEnum {
-            matched;
-            matched_type;
-            cases = Identifier.Map.map_values cases ~f:subst
-          }
-        end
-      end
-    | Match (MatchVariant { matched; matched_type; cases }) -> begin
-        Match begin
-          MatchVariant {
-            matched;
-            matched_type;
-            cases = Identifier.Map.map_values cases ~f:(fun (ids, body) -> (ids, subst body))
-          }
-        end
-      end
-    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
-        Let {
-          binder;
-          binding_statement_type = typsubst binding_statement_type;
-          binding_statement = subst binding_statement;
-          body_statement = subst body_statement
-        }
-      end
-    | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
-        DestructureRecord {
-          record_type_identifier;
-          field_identifiers;
-          binders;
-          destructured_record = subst destructured_record;
-          body = subst body;
-        }
-      end
-    | Expression expression      -> Expression (exprsubst expression)
-    | Call (receiver, arguments) -> Call (receiver, List.map ~f:exprsubst arguments)
-    | Seq (left, right)          -> Seq (subst left, subst right)
-    | Cast (statement, typ)      -> Cast (subst statement, typsubst typ)
-    | ReadRegister _             -> statement
-    | WriteRegister _            -> statement
-    | Fail _                     -> statement
-  in
-  subst statement
-
-
 let rec simplify (statement : t) : t =
   match (statement : t) with
   | Match (MatchList { matched; element_type; when_cons = (head_identifier, tail_identifier, when_cons); when_nil }) -> begin
@@ -1080,3 +985,98 @@ class identity_rewriter (expression_rewriter : Expression.rewriter) =
       =
       Fail (typ, message)
   end
+
+
+let substitute_numeric_expression_identifier
+    (substitution : Identifier.t -> Numeric.Expression.t)
+    (statement    : t                                   ) : t
+  =
+  let typsubst  = Type.substitute_numeric_expression_identifier substitution
+  and exprsubst = Expression.substitute_numeric_expression_identifier substitution
+  in
+  let rec subst (statement : t) : t =
+    match statement with
+    | Match (MatchList { matched; element_type; when_cons = (head, tail, when_cons); when_nil }) -> begin
+        Match begin
+          MatchList {
+            matched;
+            element_type = typsubst element_type;
+            when_cons    = (head, tail, subst when_cons);
+            when_nil     = subst when_nil
+          }
+        end
+      end
+    | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
+        Match begin
+          MatchProduct {
+            matched;
+            type_fst = typsubst type_fst;
+            type_snd = typsubst type_snd;
+            id_fst;
+            id_snd;
+            body     = subst body;
+          }
+        end
+      end
+    | Match (MatchTuple { matched; binders; body }) -> begin
+        Match begin
+          MatchTuple {
+            matched;
+            binders = List.map ~f:(fun (id, t) -> (id, typsubst t)) binders;
+            body    = subst body;
+          }
+        end
+      end
+    | Match (MatchBool { condition; when_true; when_false }) -> begin
+        Match begin
+          MatchBool {
+            condition;
+            when_true  = subst when_true;
+            when_false = subst when_false;
+          }
+        end
+      end
+    | Match (MatchEnum { matched; matched_type; cases }) -> begin
+        Match begin
+          MatchEnum {
+            matched;
+            matched_type;
+            cases = Identifier.Map.map_values cases ~f:subst
+          }
+        end
+      end
+    | Match (MatchVariant { matched; matched_type; cases }) -> begin
+        Match begin
+          MatchVariant {
+            matched;
+            matched_type;
+            cases = Identifier.Map.map_values cases ~f:(fun (ids, body) -> (ids, subst body))
+          }
+        end
+      end
+    | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+        Let {
+          binder;
+          binding_statement_type = typsubst binding_statement_type;
+          binding_statement = subst binding_statement;
+          body_statement = subst body_statement
+        }
+      end
+    | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
+        DestructureRecord {
+          record_type_identifier;
+          field_identifiers;
+          binders;
+          destructured_record = subst destructured_record;
+          body = subst body;
+        }
+      end
+    | Expression expression      -> Expression (exprsubst expression)
+    | Call (receiver, arguments) -> Call (receiver, List.map ~f:exprsubst arguments)
+    | Seq (left, right)          -> Seq (subst left, subst right)
+    | Cast (statement, typ)      -> Cast (subst statement, typsubst typ)
+    | ReadRegister _             -> statement
+    | WriteRegister _            -> statement
+    | Fail _                     -> statement
+  in
+  subst statement
