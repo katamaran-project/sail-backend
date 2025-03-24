@@ -898,7 +898,7 @@ class virtual rewriter =
   end
 
 
-class identity_rewriter =
+class identity_rewriter (expression_rewriter : Expression.rewriter) =
   object(self)
     inherit rewriter
 
@@ -1082,6 +1082,6 @@ class identity_rewriter =
       Fail (typ, message)
 
     method private rewrite_expr expression : Expression.t =
-      failwith "not yet implemented" (* todo!! *)
+      expression_rewriter#rewrite expression
   end
 
