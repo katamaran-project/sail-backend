@@ -369,23 +369,12 @@ let substitute_numeric_expression_identifier
   =
   let typsubst = Type.substitute_numeric_expression_identifier substitution
   in
-  let rec subst (expression : t) : t =
-    match expression with
-    | Variable (identifier, typ)                                  -> Variable (identifier, typsubst typ)
-    | Value _                                                     -> expression
-    | List elements                                               -> List (List.map ~f:subst elements)
-    | UnaryOperation (operator, operand)                          -> UnaryOperation (operator, subst operand)
-    | BinaryOperation (operator, left_operand, right_operand)     -> BinaryOperation (operator, left_operand, right_operand)
-    | Record _                                                    -> expression
-    | Enum _                                                      -> expression
-    | Tuple elements                                              -> Tuple (List.map ~f:subst elements)
-    | Bitvector elements                                          -> Bitvector (List.map ~f:subst elements)
-    | Variant { type_identifier; constructor_identifier; fields } -> begin
-        Variant {
-          type_identifier;
-          constructor_identifier;
-          fields = List.map ~f:subst fields
-        }
-      end
+  let rewriter =
+    object
+      inherit identity_rewriter
+
+      method! rewrite_variable ~identifier ~typ =
+        Variable (identifier, typsubst typ)
+    end
   in
-  subst expression
+  rewriter#rewrite expression
