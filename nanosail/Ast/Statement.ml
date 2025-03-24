@@ -873,9 +873,35 @@ let rec simplify (statement : t) : t =
   | Fail _                     -> statement
 
 
+class virtual rewriter =
+  object
+    method virtual rewrite : t -> t
+    method virtual rewrite_match : pattern : match_pattern -> t
+    method virtual rewrite_match_list : matched : Identifier.t -> element_type : Type.t -> when_cons : (Identifier.t * Identifier.t * t) -> when_nil : t -> t
+    method virtual rewrite_call : receiver : Identifier.t -> arguments : Expression.t list -> t
+    method virtual rewrite_cast : statement : t -> cast_to : Type.t -> t
+    method virtual rewrite_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> t
+    method virtual private rewrite_expr : Expression.t -> Expression.t
+    method virtual rewrite_expression : expression : Expression.t -> t
+    method virtual rewrite_fail : typ : Type.t -> message : string -> t
+    method virtual rewrite_let : binder : Identifier.t -> binding_statement_type : Type.t -> binding_statement : t -> body_statement : t -> t
+    method virtual rewrite_match : pattern : match_pattern -> t
+    method virtual rewrite_match_bool : condition : Identifier.t -> when_true : t -> when_false : t -> t
+    method virtual rewrite_match_enum : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> t
+    method virtual rewrite_match_list : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> t
+    method virtual rewrite_match_product : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> t
+    method virtual rewrite_match_tuple : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> t
+    method virtual rewrite_match_variant : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> t
+    method virtual rewrite_read_register : register : Identifier.t -> t
+    method virtual rewrite_seq : left : t -> right : t -> t
+    method virtual rewrite_write_register : register_identifier : Identifier.t -> written_value : Identifier.t -> t
+  end
+
 
 class identity_rewriter =
   object(self)
+    inherit rewriter
+
     method rewrite (statement : t) : t =
       match statement with
       | Match pattern -> self#rewrite_match ~pattern
@@ -898,7 +924,12 @@ class identity_rewriter =
       | MatchEnum { matched; matched_type; cases } -> self#rewrite_match_enum ~matched ~matched_type ~cases
       | MatchVariant { matched; matched_type; cases } -> self#rewrite_match_variant ~matched ~matched_type ~cases
 
-    method rewrite_match_list ~matched ~element_type ~when_cons ~when_nil =
+    method rewrite_match_list
+        ~(matched : Identifier.t)
+        ~(element_type : Type.t)
+        ~(when_cons : Identifier.t * Identifier.t * t)
+        ~(when_nil : t) : t
+      =
       let (id_head, id_tail, when_cons) = when_cons
       in
       Match begin
