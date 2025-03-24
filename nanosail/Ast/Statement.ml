@@ -802,7 +802,7 @@ class virtual rewriter =
   end
 
 
-class identity_rewriter (expression_rewriter : Expression.rewriter) =
+class identity_rewriter (rewrite_expression : Expression.t -> Expression.t) =
   object(self)
     inherit rewriter
 
@@ -919,13 +919,13 @@ class identity_rewriter (expression_rewriter : Expression.rewriter) =
     method rewrite_expression
         ~(expression : Expression.t) : t
       =
-      Expression (expression_rewriter#rewrite expression)
+      Expression (rewrite_expression expression)
 
     method rewrite_call
         ~(receiver  : Identifier.t     )
         ~(arguments : Expression.t list) : t
       =
-      Call (receiver, List.map ~f:expression_rewriter#rewrite arguments)
+      Call (receiver, List.map ~f:rewrite_expression arguments)
 
     method rewrite_destructure_record
         ~(record_type_identifier : Identifier.t     )
