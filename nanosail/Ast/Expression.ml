@@ -308,17 +308,17 @@ let rec simplify (expression : t) : t =
 
 class virtual rewriter =
   object
-      method virtual rewrite : t -> t
+      method virtual rewrite                 : t -> t
       method virtual rewrite_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> t
-      method virtual rewrite_bitvector : elements : t list -> t
-      method virtual rewrite_enum : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> t
-      method virtual rewrite_list : elements : t list -> t
-      method virtual rewrite_record : type_identifier : Identifier.t -> fields : Identifier.t list -> t
-      method virtual rewrite_tuple : elements : t list -> t
+      method virtual rewrite_bitvector       : elements : t list -> t
+      method virtual rewrite_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> t
+      method virtual rewrite_list            : elements : t list -> t
+      method virtual rewrite_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> t
+      method virtual rewrite_tuple           : elements : t list -> t
       method virtual rewrite_unary_operation : operator : UnaryOperator.t -> operand : t -> t
-      method virtual rewrite_value : value : Value.t -> t
-      method virtual rewrite_variable : identifier : Identifier.t -> typ : Type.t -> t
-      method virtual rewrite_variant : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> t
+      method virtual rewrite_value           : value : Value.t -> t
+      method virtual rewrite_variable        : identifier : Identifier.t -> typ : Type.t -> t
+      method virtual rewrite_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> t
   end
 
 
@@ -339,28 +339,49 @@ class identity_rewriter =
       | Tuple elements                                              -> self#rewrite_tuple ~elements
       | Bitvector elements                                          -> self#rewrite_bitvector ~elements
 
-    method rewrite_variable ~(identifier : Identifier.t) ~(typ : Type.t) : t =
+    method rewrite_variable
+        ~(identifier : Identifier.t)
+        ~(typ : Type.t) : t =
       Variable (identifier, typ)
 
-    method rewrite_value ~(value : Value.t) : t =
+    method rewrite_value ~(value : Value.t) : t
+      =
       Value value
 
-    method rewrite_list ~(elements : t list) : t =
+    method rewrite_list ~(elements : t list) : t
+      =
       List (List.map ~f:self#rewrite elements)
 
-    method rewrite_unary_operation ~(operator : UnaryOperator.t) ~(operand : t) : t =
+    method rewrite_unary_operation
+        ~(operator : UnaryOperator.t)
+        ~(operand  : t              ) : t
+      =
       UnaryOperation (operator, self#rewrite operand)
 
-    method rewrite_binary_operator ~(operator : BinaryOperator.t) ~(left_operand : t) ~(right_operand : t) : t =
+    method rewrite_binary_operator
+        ~(operator      : BinaryOperator.t)
+        ~(left_operand  : t               )
+        ~(right_operand : t               ) : t
+      =
       BinaryOperation (operator, self#rewrite left_operand, self#rewrite right_operand)
 
-    method rewrite_record ~(type_identifier : Identifier.t) ~(fields : Identifier.t list) : t =
+    method rewrite_record
+        ~(type_identifier : Identifier.t     )
+        ~(fields          : Identifier.t list) : t
+      =
       Record { type_identifier; fields }
 
-    method rewrite_enum ~(type_identifier : Identifier.t) ~(constructor_identifier : Identifier.t) : t =
+    method rewrite_enum
+        ~(type_identifier        : Identifier.t)
+        ~(constructor_identifier : Identifier.t) : t
+      =
       Enum { type_identifier; constructor_identifier }
 
-    method rewrite_variant ~(type_identifier : Identifier.t) ~(constructor_identifier : Identifier.t) ~(fields : t list) : t =
+    method rewrite_variant
+        ~(type_identifier        : Identifier.t)
+        ~(constructor_identifier : Identifier.t)
+        ~(fields                 : t list      ) : t
+      =
       Variant { type_identifier; constructor_identifier; fields = List.map ~f:self#rewrite fields }
 
     method rewrite_tuple ~(elements : t list) : t =
