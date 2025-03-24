@@ -666,118 +666,6 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Fail _                                               -> Identifier.Set.empty
 
 
-let rec simplify (statement : t) : t =
-  match (statement : t) with
-  | Match (MatchList { matched; element_type; when_cons = (head_identifier, tail_identifier, when_cons); when_nil }) -> begin
-      Match begin
-        MatchList {
-          matched;
-          element_type = Type.simplify element_type;
-          when_cons    = (head_identifier, tail_identifier, simplify when_cons);
-          when_nil     = simplify when_nil;
-        }
-      end
-    end
-
-  | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
-      Match begin
-        MatchProduct {
-          matched;
-          type_fst = Type.simplify type_fst;
-          type_snd = Type.simplify type_snd;
-          id_fst;
-          id_snd;
-          body     = simplify body;
-        }
-      end
-    end
-
-  | Match (MatchTuple { matched; binders; body }) -> begin
-      Match begin
-        MatchTuple {
-          matched;
-          binders = List.map ~f:(fun (id, t) -> (id, Type.simplify t)) binders;
-          body    = simplify body;
-        }
-      end
-    end
-
-  | Match (MatchBool { condition; when_true; when_false }) -> begin
-      Match begin
-        MatchBool {
-          condition;
-          when_true  = simplify when_true;
-          when_false = simplify when_false;
-        }
-      end
-    end
-
-  | Match (MatchEnum { matched; matched_type; cases }) -> begin
-      Match begin
-        MatchEnum {
-          matched;
-          matched_type;
-          cases = Identifier.Map.map_values ~f:simplify cases;
-        }
-      end
-    end
-
-  | Match (MatchVariant { matched; matched_type; cases }) -> begin
-      Match begin
-        MatchVariant {
-          matched;
-          matched_type;
-          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, simplify stm)) cases;
-        }
-      end
-    end
-
-  | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
-      let binding_statement_type = Type.simplify binding_statement_type
-      and binding_statement      = simplify binding_statement
-      and body_statement         = simplify body_statement
-      in
-      if
-        Identifier.Set.mem (free_variables body_statement) binder
-      then
-        Let {
-          binder;
-          binding_statement_type;
-          binding_statement;
-          body_statement;
-        }
-      else
-        simplify @@ Seq (binding_statement, body_statement)
-    end
-
-  | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
-      DestructureRecord {
-        record_type_identifier;
-        field_identifiers;
-        binders;
-        destructured_record = simplify destructured_record;
-        body                = simplify body;
-      }
-    end
-
-  | Seq (left, right) -> begin
-      let left  = simplify left
-      and right = simplify right
-      in
-      match left, right with
-      | Expression (Value Unit)             , _ -> right
-      | Expression (Variable (_, Type.Unit)), _ -> right
-      | _                                       -> Seq (left, right)
-    end
-
-  | Expression expression      -> Expression (Expression.simplify expression)
-  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
-  | ReadRegister _             -> statement
-  | WriteRegister _            -> statement
-  | Cast (statement, typ)      -> Cast (simplify statement, Type.simplify typ)
-  | Fail _                     -> statement
-
-
 class virtual rewriter =
   object
     method virtual rewrite : t -> t
@@ -1048,3 +936,115 @@ let substitute_numeric_expression_identifier
     end
   in
   rewriter#rewrite statement
+
+
+let rec simplify (statement : t) : t =
+  match (statement : t) with
+  | Match (MatchList { matched; element_type; when_cons = (head_identifier, tail_identifier, when_cons); when_nil }) -> begin
+      Match begin
+        MatchList {
+          matched;
+          element_type = Type.simplify element_type;
+          when_cons    = (head_identifier, tail_identifier, simplify when_cons);
+          when_nil     = simplify when_nil;
+        }
+      end
+    end
+
+  | Match (MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }) -> begin
+      Match begin
+        MatchProduct {
+          matched;
+          type_fst = Type.simplify type_fst;
+          type_snd = Type.simplify type_snd;
+          id_fst;
+          id_snd;
+          body     = simplify body;
+        }
+      end
+    end
+
+  | Match (MatchTuple { matched; binders; body }) -> begin
+      Match begin
+        MatchTuple {
+          matched;
+          binders = List.map ~f:(fun (id, t) -> (id, Type.simplify t)) binders;
+          body    = simplify body;
+        }
+      end
+    end
+
+  | Match (MatchBool { condition; when_true; when_false }) -> begin
+      Match begin
+        MatchBool {
+          condition;
+          when_true  = simplify when_true;
+          when_false = simplify when_false;
+        }
+      end
+    end
+
+  | Match (MatchEnum { matched; matched_type; cases }) -> begin
+      Match begin
+        MatchEnum {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map_values ~f:simplify cases;
+        }
+      end
+    end
+
+  | Match (MatchVariant { matched; matched_type; cases }) -> begin
+      Match begin
+        MatchVariant {
+          matched;
+          matched_type;
+          cases = Identifier.Map.map_values ~f:(fun (ids, stm) -> (ids, simplify stm)) cases;
+        }
+      end
+    end
+
+  | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
+      let binding_statement_type = Type.simplify binding_statement_type
+      and binding_statement      = simplify binding_statement
+      and body_statement         = simplify body_statement
+      in
+      if
+        Identifier.Set.mem (free_variables body_statement) binder
+      then
+        Let {
+          binder;
+          binding_statement_type;
+          binding_statement;
+          body_statement;
+        }
+      else
+        simplify @@ Seq (binding_statement, body_statement)
+    end
+
+  | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> begin
+      DestructureRecord {
+        record_type_identifier;
+        field_identifiers;
+        binders;
+        destructured_record = simplify destructured_record;
+        body                = simplify body;
+      }
+    end
+
+  | Seq (left, right) -> begin
+      let left  = simplify left
+      and right = simplify right
+      in
+      match left, right with
+      | Expression (Value Unit)             , _ -> right
+      | Expression (Variable (_, Type.Unit)), _ -> right
+      | _                                       -> Seq (left, right)
+    end
+
+  | Expression expression      -> Expression (Expression.simplify expression)
+  | Call (receiver, arguments) -> Call (receiver, List.map ~f:Expression.simplify arguments)
+  | ReadRegister _             -> statement
+  | WriteRegister _            -> statement
+  | Cast (statement, typ)      -> Cast (simplify statement, Type.simplify typ)
+  | Fail _                     -> statement
