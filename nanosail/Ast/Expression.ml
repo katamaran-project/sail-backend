@@ -367,14 +367,15 @@ let substitute_numeric_expression_identifier
     (substitution : Identifier.t -> Numeric.Expression.t)
     (expression   : t                                   ) : t
   =
-  let typsubst = Type.substitute_numeric_expression_identifier substitution
+  let substitute_in_type =
+    Type.substitute_numeric_expression_identifier substitution
   in
   let rewriter =
     object
       inherit identity_rewriter
 
       method! rewrite_variable ~identifier ~typ =
-        Variable (identifier, typsubst typ)
+        Variable (identifier, substitute_in_type typ)
     end
   in
   rewriter#rewrite expression
