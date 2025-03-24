@@ -301,7 +301,7 @@ class identity_rewriter =
         ~(identifier : Identifier.t)
         ~(typ        : Type.t      ) : t
       =
-      Variable (identifier, typ)
+      Variable (identifier, self#foreign_rewrite_type typ)
 
     method rewrite_value ~(value : Value.t) : t =
       Value value
@@ -346,6 +346,9 @@ class identity_rewriter =
 
     method rewrite_bitvector ~(elements : t list) : t =
       Bitvector (List.map ~f:self#rewrite elements)
+
+    method foreign_rewrite_type (typ : Type.t) : Type.t =
+      typ
   end
 
 
@@ -372,8 +375,8 @@ let simplify (expression : t) : t =
     object
       inherit identity_rewriter
 
-      method! rewrite_variable ~identifier ~typ =
-        Variable (identifier, Type.simplify typ)
+      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+        Type.simplify typ
     end
   in
   rewriter#rewrite expression
