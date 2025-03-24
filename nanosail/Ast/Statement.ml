@@ -925,10 +925,10 @@ class identity_rewriter =
       | MatchVariant { matched; matched_type; cases }                      -> self#rewrite_match_variant ~matched ~matched_type ~cases
 
     method rewrite_match_list
-        ~(matched : Identifier.t)
-        ~(element_type : Type.t)
-        ~(when_cons : Identifier.t * Identifier.t * t)
-        ~(when_nil : t) : t
+        ~(matched      : Identifier.t                   )
+        ~(element_type : Type.t                         )
+        ~(when_cons    : Identifier.t * Identifier.t * t)
+        ~(when_nil     : t                              ) : t
       =
       let (id_head, id_tail, when_cons) = when_cons
       in
@@ -941,7 +941,14 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_match_product ~(matched : Identifier.t) ~(type_fst : Type.t) ~(type_snd : Type.t) ~(id_fst : Identifier.t) ~(id_snd : Identifier.t) ~(body : t) : t =
+    method rewrite_match_product
+        ~(matched  : Identifier.t)
+        ~(type_fst : Type.t      )
+        ~(type_snd : Type.t      )
+        ~(id_fst   : Identifier.t)
+        ~(id_snd   : Identifier.t)
+        ~(body     : t           ) : t
+      =
       Match begin
         MatchProduct {
           matched;
@@ -953,7 +960,11 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_match_tuple ~(matched : Identifier.t) ~(binders : (Identifier.t * Type.t) list) ~(body : t) : t =
+    method rewrite_match_tuple
+        ~(matched : Identifier.t                )
+        ~(binders : (Identifier.t * Type.t) list)
+        ~(body    : t                           ) : t
+      =
       Match begin
         MatchTuple {
           matched;
@@ -962,7 +973,11 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_match_bool ~(condition : Identifier.t) ~(when_true : t) ~(when_false : t) : t =
+    method rewrite_match_bool
+        ~(condition  : Identifier.t)
+        ~(when_true  : t           )
+        ~(when_false : t           ) : t
+      =
       Match begin
         MatchBool {
           condition;
@@ -971,7 +986,11 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_match_enum ~(matched : Identifier.t) ~(matched_type : Identifier.t) ~(cases : t Identifier.Map.t) : t =
+    method rewrite_match_enum
+        ~(matched      : Identifier.t      )
+        ~(matched_type : Identifier.t      )
+        ~(cases        : t Identifier.Map.t) : t
+      =
       Match begin
         MatchEnum {
           matched;
@@ -980,7 +999,11 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_match_variant ~(matched : Identifier.t) ~(matched_type : Identifier.t) ~(cases : (Identifier.t list * t) Identifier.Map.t) : t =
+    method rewrite_match_variant
+        ~(matched      : Identifier.t                            )
+        ~(matched_type : Identifier.t                            )
+        ~(cases        : (Identifier.t list * t) Identifier.Map.t) : t
+      =
       Match begin
         MatchVariant {
           matched;
@@ -989,13 +1012,24 @@ class identity_rewriter =
         }
       end
 
-    method rewrite_expression ~(expression : Expression.t) : t =
+    method rewrite_expression
+        ~(expression : Expression.t) : t
+      =
       Expression (self#rewrite_expr expression)
 
-    method rewrite_call ~(receiver : Identifier.t) ~(arguments : Expression.t list) : t =
+    method rewrite_call
+        ~(receiver  : Identifier.t     )
+        ~(arguments : Expression.t list) : t
+      =
       Call (receiver, List.map ~f:self#rewrite_expr arguments)
 
-    method rewrite_destructure_record ~(record_type_identifier : Identifier.t) ~(field_identifiers : Identifier.t list) ~(binders : Identifier.t list) ~(destructured_record : t) ~(body : t) : t =
+    method rewrite_destructure_record
+        ~(record_type_identifier : Identifier.t     )
+        ~(field_identifiers      : Identifier.t list)
+        ~(binders                : Identifier.t list)
+        ~(destructured_record    : t                )
+        ~(body                   : t                ) : t
+      =
       DestructureRecord {
         record_type_identifier;
         field_identifiers;
@@ -1004,7 +1038,12 @@ class identity_rewriter =
         body = self#rewrite body;
       }
 
-    method rewrite_let ~(binder : Identifier.t) ~(binding_statement_type : Type.t) ~(binding_statement : t) ~(body_statement : t) : t =
+    method rewrite_let
+        ~(binder                 : Identifier.t)
+        ~(binding_statement_type : Type.t      )
+        ~(binding_statement      : t           )
+        ~(body_statement         : t           ) : t
+      =
       Let {
         binder;
         binding_statement_type;
@@ -1012,22 +1051,34 @@ class identity_rewriter =
         body_statement = self#rewrite body_statement;
       }
 
-    method rewrite_seq ~(left : t) ~(right : t) : t =
+    method rewrite_seq
+        ~(left  : t)
+        ~(right : t) : t
+      =
       Seq (self#rewrite left, self#rewrite right)
 
     method rewrite_read_register ~(register : Identifier.t) : t =
       ReadRegister register
 
-    method rewrite_write_register ~(register_identifier : Identifier.t) ~(written_value : Identifier.t) : t =
+    method rewrite_write_register
+        ~(register_identifier : Identifier.t)
+        ~(written_value       : Identifier.t) : t
+      =
       WriteRegister {
         register_identifier;
         written_value
       }
 
-    method rewrite_cast ~(statement : t) ~(cast_to : Type.t) : t =
+    method rewrite_cast
+        ~(statement : t     )
+        ~(cast_to   : Type.t) : t
+      =
       Cast (self#rewrite statement, cast_to)
 
-    method rewrite_fail ~(typ : Type.t) ~(message : string) : t =
+    method rewrite_fail
+        ~(typ     : Type.t)
+        ~(message : string) : t
+      =
       Fail (typ, message)
 
     method private rewrite_expr expression : Expression.t =
