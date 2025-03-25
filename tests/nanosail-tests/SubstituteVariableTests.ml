@@ -6,7 +6,7 @@ open Nanosail
 let mkid  = Ast.Identifier.mk
 
 
-let test_1 =
+let test_variable =
   let test _ =
     let statement : Ast.Statement.t =
       Expression (Variable (mkid "x", Int None))
@@ -38,5 +38,5 @@ let test_1 =
 
 let test_suite =
   "substitute variables" >::: [
-    test_1
+    test_variable
   ]
