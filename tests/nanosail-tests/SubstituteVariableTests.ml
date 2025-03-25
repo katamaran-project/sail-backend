@@ -36,7 +36,38 @@ let test_variable =
   |} >:: test
 
 
+let test_variable_2 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Expression (Variable (mkid "y", Int None))
+    in
+    let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
+      match Ast.Identifier.to_string id with
+      | "x" -> Some (Value (Ast.Value.mk_int 1))
+      | _   -> None
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.substitute_variable substitution statement
+    and expected : Ast.Statement.t =
+      Expression (Variable (mkid "y", Int None))
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      y [1/x]
+
+    should become
+
+      y
+  |} >:: test
+
+
 let test_suite =
   "substitute variables" >::: [
-    test_variable
+    test_variable;
+    test_variable_2;
   ]
