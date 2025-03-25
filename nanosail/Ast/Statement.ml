@@ -1093,7 +1093,7 @@ let simplify_aliases (statement : t) : t =
     end
   in
   (rewriter @@ Fn.const None)#visit statement
-  
+
 
 (*
    Performs all simplifications repeatedly until a fixed point is found.
@@ -1140,7 +1140,7 @@ let substitute_variable
           binding_statement = self#visit binding_statement;
           body_statement = (rewriter updated_substitution)#visit body_statement;
         }
-          
+
       method! visit_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body =
         (*
            Similarly to lets, a record destructuring involves binders that can shadow identifiers.

@@ -5,7 +5,7 @@ open Nanosail
 
 let mkid    = Ast.Identifier.mk
 let evar id = Ast.Expression.Variable (id, Int None)
-let svar id = Ast.Statement.Expression (evar id)                
+let svar id = Ast.Statement.Expression (evar id)
 let eval n  = Ast.Expression.Value (Ast.Value.mk_int n)
 
 
