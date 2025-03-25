@@ -184,7 +184,38 @@ let rec equal
           end
         | _ -> false
       end
-    | MatchList _    -> raise UnimplementedStatementEquality
+    | MatchList data_1 -> begin
+        match pattern_2 with
+        | MatchList data_2 -> begin
+            let id_head_1, id_tail_1, when_cons_1 = data_1.when_cons
+            and id_head_2, id_tail_2, when_cons_2 = data_2.when_cons
+            in
+            Identifier.equal
+              data_1.matched
+              data_2.matched
+            &&
+            Type.equal
+              data_1.element_type
+              data_2.element_type
+            &&
+            Identifier.equal
+              id_head_1
+              id_head_2
+            &&
+            Identifier.equal
+              id_tail_1
+              id_tail_2
+            &&
+            equal
+              when_cons_1
+              when_cons_2
+            &&
+            equal
+              data_1.when_nil
+              data_2.when_nil
+          end
+        | _ -> false
+      end
   in
 
   match statement_1 with
