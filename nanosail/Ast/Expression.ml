@@ -264,7 +264,7 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | Bitvector elements                                                  -> Identifier.Set.unions @@ List.map ~f:free_variables elements
 
 
-class virtual rewriter =
+class virtual ['a] rewriter =
   object
       method virtual rewrite                 : t -> t
       method virtual rewrite_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> t
@@ -282,7 +282,7 @@ class virtual rewriter =
 
 class identity_rewriter =
   object(self)
-    inherit rewriter
+    inherit [t] rewriter
 
     method rewrite (expression : t) : t =
       match expression with
