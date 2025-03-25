@@ -6,6 +6,7 @@ open Nanosail
 let mkid    = Ast.Identifier.mk
 let evar id = Ast.Expression.Variable (id, Int None)
 let svar id = Ast.Statement.Expression (evar id)                
+let eval n  = Ast.Expression.Value (Ast.Value.mk_int n)
 
 
 let test_variable =
@@ -21,7 +22,7 @@ let test_variable =
     let actual : Ast.Statement.t =
       Ast.Statement.substitute_variable substitution statement
     and expected : Ast.Statement.t =
-      Expression (Value (Ast.Value.mk_int 1))
+      Expression (eval 1)
     in
     assert_equal
       ~cmp:Ast.Statement.equal
@@ -45,7 +46,7 @@ let test_variable_2 =
     in
     let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
       match Ast.Identifier.to_string id with
-      | "x" -> Some (Value (Ast.Value.mk_int 1))
+      | "x" -> Some (eval 1)
       | _   -> None
     in
     let actual : Ast.Statement.t =
@@ -75,7 +76,7 @@ let test_binary_operation =
     in
     let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
       match Ast.Identifier.to_string id with
-      | "x" -> Some (Value (Ast.Value.mk_int 1))
+      | "x" -> Some (eval 1)
       | _   -> None
     in
     let actual : Ast.Statement.t =
@@ -105,7 +106,7 @@ let test_binary_operation_2 =
     in
     let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
       match Ast.Identifier.to_string id with
-      | "y" -> Some (Value (Ast.Value.mk_int 1))
+      | "y" -> Some (eval 1)
       | _   -> None
     in
     let actual : Ast.Statement.t =
@@ -135,8 +136,8 @@ let test_binary_operation_3 =
     in
     let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
       match Ast.Identifier.to_string id with
-      | "x" -> Some (Value (Ast.Value.mk_int 1))
-      | "y" -> Some (Value (Ast.Value.mk_int 2))
+      | "x" -> Some (eval 1)
+      | "y" -> Some (eval 2)
       | _   -> None
     in
     let actual : Ast.Statement.t =
@@ -159,6 +160,46 @@ let test_binary_operation_3 =
   |} >:: test
 
 
+let test_let =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = svar (mkid "y");
+        body_statement         = svar (mkid "z");
+      }
+    in
+    let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
+      match Ast.Identifier.to_string id with
+      | "x" -> Some (eval 1)
+      | _   -> None
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.substitute_variable substitution statement
+    and expected : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = svar (mkid "y");
+        body_statement         = svar (mkid "z");
+      }
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      (let x = y in z) [1/x]
+
+    should become
+
+      let x = y in z
+  |} >:: test
+
+
 let test_suite =
   "substitute variables" >::: [
     test_variable;
@@ -166,4 +207,5 @@ let test_suite =
     test_binary_operation;
     test_binary_operation_2;
     test_binary_operation_3;
+    test_let;
   ]
