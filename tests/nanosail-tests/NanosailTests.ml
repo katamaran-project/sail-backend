@@ -18,6 +18,7 @@ let tests =
     SequenceTests.test_suite;
     RenamingTests.test_suite;
     BlockTests.test_suite;
+    SubstituteVariableTests.test_suite;
   ]
 
 
