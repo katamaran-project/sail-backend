@@ -264,19 +264,19 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | Bitvector elements                                                  -> Identifier.Set.unions @@ List.map ~f:free_variables elements
 
 
-class virtual ['a] rewriter =
+class virtual ['a] visitor =
   object
-      method virtual rewrite                 : t -> 'a
-      method virtual rewrite_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> 'a
-      method virtual rewrite_bitvector       : elements : t list -> 'a
-      method virtual rewrite_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> 'a
-      method virtual rewrite_list            : elements : t list -> 'a
-      method virtual rewrite_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> 'a
-      method virtual rewrite_tuple           : elements : t list -> 'a
-      method virtual rewrite_unary_operation : operator : UnaryOperator.t -> operand : t -> 'a
-      method virtual rewrite_value           : value : Value.t -> 'a
-      method virtual rewrite_variable        : identifier : Identifier.t -> typ : Type.t -> 'a
-      method virtual rewrite_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> 'a
+      method virtual visit                 : t -> 'a
+      method virtual visit_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> 'a
+      method virtual visit_bitvector       : elements : t list -> 'a
+      method virtual visit_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> 'a
+      method virtual visit_list            : elements : t list -> 'a
+      method virtual visit_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> 'a
+      method virtual visit_tuple           : elements : t list -> 'a
+      method virtual visit_unary_operation : operator : UnaryOperator.t -> operand : t -> 'a
+      method virtual visit_value           : value : Value.t -> 'a
+      method virtual visit_variable        : identifier : Identifier.t -> typ : Type.t -> 'a
+      method virtual visit_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> 'a
   end
 
 
@@ -288,72 +288,72 @@ class virtual ['a] rewriter =
 *)
 class identity_rewriter =
   object(self)
-    inherit [t] rewriter
+    inherit [t] visitor
 
-    method rewrite (expression : t) : t =
+    method visit (expression : t) : t =
       match expression with
-      | Variable (identifier, typ)                                  -> self#rewrite_variable ~identifier ~typ
-      | Value value                                                 -> self#rewrite_value ~value
-      | List elements                                               -> self#rewrite_list ~elements
-      | UnaryOperation (operator, operand)                          -> self#rewrite_unary_operation ~operator ~operand
-      | BinaryOperation (operator, left_operand, right_operand)     -> self#rewrite_binary_operator ~operator ~left_operand ~right_operand
-      | Record { type_identifier; fields }                          -> self#rewrite_record ~type_identifier ~fields
-      | Enum { type_identifier; constructor_identifier }            -> self#rewrite_enum ~type_identifier ~constructor_identifier
-      | Variant { type_identifier; constructor_identifier; fields } -> self#rewrite_variant ~type_identifier ~constructor_identifier ~fields
-      | Tuple elements                                              -> self#rewrite_tuple ~elements
-      | Bitvector elements                                          -> self#rewrite_bitvector ~elements
+      | Variable (identifier, typ)                                  -> self#visit_variable ~identifier ~typ
+      | Value value                                                 -> self#visit_value ~value
+      | List elements                                               -> self#visit_list ~elements
+      | UnaryOperation (operator, operand)                          -> self#visit_unary_operation ~operator ~operand
+      | BinaryOperation (operator, left_operand, right_operand)     -> self#visit_binary_operator ~operator ~left_operand ~right_operand
+      | Record { type_identifier; fields }                          -> self#visit_record ~type_identifier ~fields
+      | Enum { type_identifier; constructor_identifier }            -> self#visit_enum ~type_identifier ~constructor_identifier
+      | Variant { type_identifier; constructor_identifier; fields } -> self#visit_variant ~type_identifier ~constructor_identifier ~fields
+      | Tuple elements                                              -> self#visit_tuple ~elements
+      | Bitvector elements                                          -> self#visit_bitvector ~elements
 
-    method rewrite_variable
+    method visit_variable
         ~(identifier : Identifier.t)
         ~(typ        : Type.t      ) : t
       =
-      Variable (identifier, self#foreign_rewrite_type typ)
+      Variable (identifier, self#foreign_visit_type typ)
 
-    method rewrite_value ~(value : Value.t) : t =
+    method visit_value ~(value : Value.t) : t =
       Value value
 
-    method rewrite_list ~(elements : t list) : t =
-      List (List.map ~f:self#rewrite elements)
+    method visit_list ~(elements : t list) : t =
+      List (List.map ~f:self#visit elements)
 
-    method rewrite_unary_operation
+    method visit_unary_operation
         ~(operator : UnaryOperator.t)
         ~(operand  : t              ) : t
       =
-      UnaryOperation (operator, self#rewrite operand)
+      UnaryOperation (operator, self#visit operand)
 
-    method rewrite_binary_operator
+    method visit_binary_operator
         ~(operator      : BinaryOperator.t)
         ~(left_operand  : t               )
         ~(right_operand : t               ) : t
       =
-      BinaryOperation (operator, self#rewrite left_operand, self#rewrite right_operand)
+      BinaryOperation (operator, self#visit left_operand, self#visit right_operand)
 
-    method rewrite_record
+    method visit_record
         ~(type_identifier : Identifier.t     )
         ~(fields          : Identifier.t list) : t
       =
       Record { type_identifier; fields }
 
-    method rewrite_enum
+    method visit_enum
         ~(type_identifier        : Identifier.t)
         ~(constructor_identifier : Identifier.t) : t
       =
       Enum { type_identifier; constructor_identifier }
 
-    method rewrite_variant
+    method visit_variant
         ~(type_identifier        : Identifier.t)
         ~(constructor_identifier : Identifier.t)
         ~(fields                 : t list      ) : t
       =
-      Variant { type_identifier; constructor_identifier; fields = List.map ~f:self#rewrite fields }
+      Variant { type_identifier; constructor_identifier; fields = List.map ~f:self#visit fields }
 
-    method rewrite_tuple ~(elements : t list) : t =
-      Tuple (List.map ~f:self#rewrite elements)
+    method visit_tuple ~(elements : t list) : t =
+      Tuple (List.map ~f:self#visit elements)
 
-    method rewrite_bitvector ~(elements : t list) : t =
-      Bitvector (List.map ~f:self#rewrite elements)
+    method visit_bitvector ~(elements : t list) : t =
+      Bitvector (List.map ~f:self#visit elements)
 
-    method foreign_rewrite_type (typ : Type.t) : Type.t =
+    method foreign_visit_type (typ : Type.t) : Type.t =
       typ
   end
 
@@ -369,11 +369,11 @@ let substitute_numeric_expression_identifier
     object
       inherit identity_rewriter
 
-      method! rewrite_variable ~identifier ~typ =
+      method! visit_variable ~identifier ~typ =
         Variable (identifier, substitute_in_type typ)
     end
   in
-  rewriter#rewrite expression
+  rewriter#visit expression
 
 
 let simplify (expression : t) : t =
@@ -381,8 +381,8 @@ let simplify (expression : t) : t =
     object
       inherit identity_rewriter
 
-      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+      method! foreign_visit_type (typ : Type.t) : Type.t =
         Type.simplify typ
     end
   in
-  rewriter#rewrite expression
+  rewriter#visit expression
