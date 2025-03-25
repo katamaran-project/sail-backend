@@ -1109,12 +1109,29 @@ let substitute_variable
     (substitution : Identifier.t -> Expression.t option)
     (statement    : t                                  ) : t
   =
-  let rewriter =
-    object
+  let rec rewriter (substitution : Identifier.t -> Expression.t option) =
+    object(self)
       inherit identity_rewriter
+
+      method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+        let updated_substitution id =
+          if
+            Identifier.equal id binder
+          then
+            None
+          else
+            substitution id
+        in
+        Let {
+          binder;
+          binding_statement_type;
+          binding_statement = self#visit binding_statement;
+          body_statement = (rewriter updated_substitution)#visit body_statement;
+        }
+        
 
       method! foreign_visit_expression expression =
         Expression.substitute_variable substitution expression
     end
   in
-  rewriter#visit statement
+  (rewriter substitution)#visit statement
