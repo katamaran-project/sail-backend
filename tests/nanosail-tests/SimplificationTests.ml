@@ -178,7 +178,7 @@ let test_simplify_aliases =
       y
   |} >:: test
 
-let test_simplify_statement_1 =
+let test_simplify_statement =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
@@ -250,6 +250,6 @@ let test_suite =
     test_simplify_unused_let_binder_3;
     test_simplify_seq_unit;
     test_simplify_aliases;
-    test_simplify_statement_1;
+    test_simplify_statement;
     test_simplify_statement_2;
   ]
