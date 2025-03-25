@@ -1105,6 +1105,13 @@ let simplify (statement : t) : t =
   Fn.fixed_point ~f:pass ~equal:equal statement
 
 
+(*
+   Looks for occurrences of a specific variables and replaces them by corresponding expressions.
+
+   A variable has the form Ast.Statement.Expression (Ast.Expression.Variable (identifier, type)).
+   The substitution parameter specifies which variables (based on identifier) need to be
+   replaced by which expressions.
+*)
 let substitute_variable
     (substitution : Identifier.t -> Expression.t option)
     (statement    : t                                  ) : t
@@ -1114,6 +1121,11 @@ let substitute_variable
       inherit identity_rewriter
 
       method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+        (*
+           We need to check if the let binder shadows identifiers that are expected to be substituted.
+           For example, when dealing with "let x = 5 in x" and substitution [y/x], the variable
+           inside the let's body should remain untouched.
+        *)
         let updated_substitution id =
           if
             Identifier.equal id binder
@@ -1130,6 +1142,9 @@ let substitute_variable
         }
           
       method! visit_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body =
+        (*
+           Similarly to lets, a record destructuring involves binders that can shadow identifiers.
+        *)
         let updated_substitution id =
           if
             List.mem ~equal:Identifier.equal binders id
