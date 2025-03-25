@@ -280,6 +280,46 @@ let test_let_3 =
   |} >:: test
 
 
+let test_let_4 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = svar (mkid "x");
+        body_statement         = svar (mkid "x");
+      }
+    in
+    let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
+      match Ast.Identifier.to_string id with
+      | "x" -> Some (eval 1)
+      | _   -> None
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.substitute_variable substitution statement
+    and expected : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = Expression (eval 1);
+        body_statement         = svar (mkid "x")
+      }
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      (let x = x in x) [1/x]
+
+    should become
+
+      let x = 1 in x
+  |} >:: test
+
+
 let test_suite =
   "substitute variables" >::: [
     test_variable;
@@ -290,4 +330,5 @@ let test_suite =
     test_let;
     test_let_2;
     test_let_3;
+    test_let_4;
   ]
