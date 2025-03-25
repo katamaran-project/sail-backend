@@ -1003,6 +1003,9 @@ let simplify_seq_unit (statement : t) : t =
   rewriter#rewrite statement
 
 
+(*
+   Performs all simplifications repeatedly until a fixed point is found.
+*)
 let simplify (statement : t) : t =
   let pass =
     simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
