@@ -514,7 +514,7 @@ and pp_destructure_record
       List.zip_exn field_identifiers binders
     in
     List.map
-      ~f:(fun (field, var) -> (Identifier.pp field, Identifier.pp var))
+      ~f:(fun (field, binder) -> (Identifier.pp field, Identifier.pp binder))
       pairs
   in
   let* pp_body =
