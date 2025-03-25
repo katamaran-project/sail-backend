@@ -73,6 +73,52 @@ let test_simplify_unused_let_binder_2 =
   |} >:: test
 
 
+let test_simplify_unused_let_binder_3 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = Ast.Identifier.mk "x";
+        binding_statement_type = Int None;
+        binding_statement      = Let {
+            binder                 = Ast.Identifier.mk "y";
+            binding_statement_type = Int None;
+            binding_statement      = Expression (Value (Ast.Value.mk_int 1));
+            body_statement         = Expression (Value (Ast.Value.mk_int 2));
+          };
+        body_statement         = Expression (Value (Ast.Value.mk_int 3));
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_unused_let_binder statement
+    and expected : Ast.Statement.t =
+      Seq (
+        Seq (
+          Expression (Value (Ast.Value.mk_int 1)),
+          Expression (Value (Ast.Value.mk_int 2))
+        ),
+        Expression (Value (Ast.Value.mk_int 3))
+      )
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x =
+        let y = 1
+        in
+        2
+      in
+      3
+
+    should become
+
+      (1; 2); 3
+  |} >:: test
+
+
 let test_simplify_seq_unit =
   let test _ =
     let statement : Ast.Statement.t =
@@ -201,6 +247,7 @@ let test_suite =
   "simplification" >::: [
     test_simplify_unused_let_binder;
     test_simplify_unused_let_binder_2;
+    test_simplify_unused_let_binder_3;
     test_simplify_seq_unit;
     test_simplify_aliases;
     test_simplify_statement_1;
