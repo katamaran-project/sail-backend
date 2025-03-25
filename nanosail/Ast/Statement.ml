@@ -233,7 +233,19 @@ let rec equal
 
   | Call (_, _) -> begin
       match statement_2 with
-      | Call (_, _) -> raise UnimplementedStatementEquality
+      | Call (identifier_1, arguments_1) -> begin
+          match statement_2 with
+          | Call (identifier_2, arguments_2) -> begin
+              Identifier.equal
+                identifier_1
+                identifier_2
+              &&
+              List.equal Expression.equal
+                arguments_1
+                arguments_2
+            end
+          | _ -> false
+        end
       | _           -> false
     end
 
