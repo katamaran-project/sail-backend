@@ -691,7 +691,7 @@ class virtual ['a] rewriter =
 
 
 (*
-   This rewriter does nothing: equal (rewrite expr) expr.
+   This rewriter does nothing: equal (rewrite statement) statement.
    Its purpose is to allow to easily define new rewriters that
    only need to deal with specific cases and therefore only need to
    override the corresponding methods.
