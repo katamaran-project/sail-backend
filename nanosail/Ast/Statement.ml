@@ -61,10 +61,6 @@ and match_pattern =
                       cases        : (Identifier.t list * t) Identifier.Map.t }
 
 
-(* todo get rid of this exception once all equality rules have been implemented *)
-exception UnimplementedStatementEquality
-
-(* todo complete implementation; this partially implemented equality is used in tests *)
 let rec equal
     (statement_1 : t)
     (statement_2 : t) : bool
@@ -221,13 +217,21 @@ let rec equal
   match statement_1 with
   | Match match_pattern_1 -> begin
       match statement_2 with
-      | Match match_pattern_2 -> equal_match_patterns match_pattern_1 match_pattern_2
+      | Match match_pattern_2 -> begin
+          equal_match_patterns
+            match_pattern_1
+            match_pattern_2
+        end
       | _                     -> false
     end
 
   | Expression expression_1 -> begin
       match statement_2 with
-      | Expression expression_2 -> Expression.equal expression_1 expression_2
+      | Expression expression_2 -> begin
+          Expression.equal
+            expression_1
+            expression_2
+        end
       | _                       -> false
     end
 
@@ -299,13 +303,25 @@ let rec equal
 
   | Seq (left_1, right_1) -> begin
       match statement_2 with
-      | Seq (left_2, right_2) -> equal left_1 left_2 && equal right_1 right_2
+      | Seq (left_2, right_2) -> begin
+          equal
+            left_1
+            left_2
+          &&
+          equal
+            right_1
+            right_2
+        end
       | _                     -> false
     end
 
   | ReadRegister register_identifier_1 -> begin
       match statement_2 with
-      | ReadRegister register_identifier_2 -> Identifier.equal register_identifier_1 register_identifier_2
+      | ReadRegister register_identifier_2 -> begin
+          Identifier.equal
+            register_identifier_1
+            register_identifier_2
+        end
       | _                                  -> false
     end
 
