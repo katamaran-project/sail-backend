@@ -1,13 +1,15 @@
-(use-list-notations)
+(pretty-print-lists)
 
 ;(annotate-functions-with-ast)
 
 (ignore-all-overloads)
-(ignore-pragmas "include_start"
-                "include_end"
-                "file_start"
-                "file_end"
-                "sail_internal")
+(ignore-pragmas (lambda (identifier)
+                  (contains? '("include_start"
+                               "include_end"
+                               "file_start"
+                               "file_end"
+                               "sail_internal")
+                             identifier)))
 
 (ignore-function-definition-predicate (lambda (identifier)
                                         (or
