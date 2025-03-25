@@ -236,7 +236,8 @@ let test_let_2 =
 
     should become
 
-      let x = y in z
+      let x = 1 in z
+  |} >:: test
   |} >:: test
 
 
