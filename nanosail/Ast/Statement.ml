@@ -1061,10 +1061,45 @@ let simplify_seq_unit (statement : t) : t =
 
 
 (*
+   Simplifies
+
+     let x = y
+     in
+     x
+
+   to
+
+     y
+*)
+let simplify_aliases (statement : t) : t =
+  let rec rewriter (substitution : Identifier.t -> Expression.t option) =
+    object
+      inherit identity_rewriter as super
+
+      method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+        match super#visit binding_statement with
+        | Expression (Variable _ as variable) -> begin
+            let updated_substitution (id : Identifier.t) : Expression.t option =
+              if Identifier.equal id binder
+              then Some variable
+              else substitution id
+            in
+            (rewriter updated_substitution)#visit body_statement
+          end
+        | _ -> super#visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement
+
+      method! foreign_visit_expression expression =
+        Expression.substitute_variable substitution expression
+    end
+  in
+  (rewriter @@ Fn.const None)#visit statement
+  
+
+(*
    Performs all simplifications repeatedly until a fixed point is found.
 *)
 let simplify (statement : t) : t =
   let pass =
-    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
+    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
