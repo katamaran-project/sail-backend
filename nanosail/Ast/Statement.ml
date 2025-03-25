@@ -1103,3 +1103,18 @@ let simplify (statement : t) : t =
     simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
+
+
+let substitute_variable
+    (substitution : Identifier.t -> Expression.t option)
+    (statement    : t                                  ) : t
+  =
+  let rewriter =
+    object
+      inherit identity_rewriter
+
+      method! foreign_visit_expression expression =
+        Expression.substitute_variable substitution expression
+    end
+  in
+  rewriter#visit statement
