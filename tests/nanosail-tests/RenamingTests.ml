@@ -6,6 +6,14 @@ open Shared
 let mkid = Ast.Identifier.mk
 let evar id = Ast.Expression.Variable (mkid id, Ast.Type.Int None)
 
+let create_renamer to_rename expression id =
+  if
+    Ast.Identifier.equal to_rename id
+  then
+    Some expression
+  else
+    None
+
 
 let test_rename_match_product_1 =
   let test _ =
@@ -22,12 +30,12 @@ let test_rename_match_product_1 =
       end
     in
     let renamer =
-      Ast.Renaming.create_renamer
+      create_renamer
         (mkid "a")
-        (mkid "b")
+        (evar "b")
     in
     let actual =
-      Ast.Renaming.rename_in_statement renamer statement
+      Ast.Statement.substitute_variable renamer statement
     and expected : Ast.Statement.t =
       Match begin
         MatchProduct {
