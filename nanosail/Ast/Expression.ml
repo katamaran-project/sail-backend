@@ -266,17 +266,17 @@ let rec free_variables (expression : t) : Identifier.Set.t =
 
 class virtual ['a] rewriter =
   object
-      method virtual rewrite                 : t -> t
-      method virtual rewrite_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> t
-      method virtual rewrite_bitvector       : elements : t list -> t
-      method virtual rewrite_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> t
-      method virtual rewrite_list            : elements : t list -> t
-      method virtual rewrite_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> t
-      method virtual rewrite_tuple           : elements : t list -> t
-      method virtual rewrite_unary_operation : operator : UnaryOperator.t -> operand : t -> t
-      method virtual rewrite_value           : value : Value.t -> t
-      method virtual rewrite_variable        : identifier : Identifier.t -> typ : Type.t -> t
-      method virtual rewrite_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> t
+      method virtual rewrite                 : t -> 'a
+      method virtual rewrite_binary_operator : operator : BinaryOperator.t -> left_operand : t -> right_operand : t -> 'a
+      method virtual rewrite_bitvector       : elements : t list -> 'a
+      method virtual rewrite_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> 'a
+      method virtual rewrite_list            : elements : t list -> 'a
+      method virtual rewrite_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> 'a
+      method virtual rewrite_tuple           : elements : t list -> 'a
+      method virtual rewrite_unary_operation : operator : UnaryOperator.t -> operand : t -> 'a
+      method virtual rewrite_value           : value : Value.t -> 'a
+      method virtual rewrite_variable        : identifier : Identifier.t -> typ : Type.t -> 'a
+      method virtual rewrite_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> 'a
   end
 
 
