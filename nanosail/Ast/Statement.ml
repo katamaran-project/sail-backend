@@ -1128,7 +1128,23 @@ let substitute_variable
           binding_statement = self#visit binding_statement;
           body_statement = (rewriter updated_substitution)#visit body_statement;
         }
-        
+          
+      method! visit_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body =
+        let updated_substitution id =
+          if
+            List.mem ~equal:Identifier.equal binders id
+          then
+            None
+          else
+            substitution id
+        in
+        DestructureRecord {
+          record_type_identifier;
+          field_identifiers;
+          binders;
+          destructured_record = self#visit destructured_record;
+          body                = (rewriter updated_substitution)#visit body;
+        }
 
       method! foreign_visit_expression expression =
         Expression.substitute_variable substitution expression
