@@ -11,7 +11,7 @@ let test_simplify_unused_let_binder =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
-        binder                 = Ast.Identifier.mk_generated "a";
+        binder                 = Ast.Identifier.mk "x";
         binding_statement_type = Int None;
         binding_statement      = Expression (Value (Ast.Value.mk_int 5));
         body_statement         = Expression (Value (Ast.Value.mk_int 6));
