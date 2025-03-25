@@ -666,27 +666,27 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Fail _                                               -> Identifier.Set.empty
 
 
-class virtual ['a] rewriter =
+class virtual ['a] visitor =
   object
-    method virtual rewrite                    : t -> t
-    method virtual rewrite_match              : pattern : match_pattern -> 'a
-    method virtual rewrite_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : (Identifier.t * Identifier.t * t) -> when_nil : t -> 'a
-    method virtual rewrite_call               : receiver : Identifier.t -> arguments : Expression.t list -> 'a
-    method virtual rewrite_cast               : statement : t -> cast_to : Type.t -> 'a
-    method virtual rewrite_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> 'a
-    method virtual rewrite_expression         : expression : Expression.t -> 'a
-    method virtual rewrite_fail               : typ : Type.t -> message : string -> 'a
-    method virtual rewrite_let                : binder : Identifier.t -> binding_statement_type : Type.t -> binding_statement : t -> body_statement : t -> 'a
-    method virtual rewrite_match              : pattern : match_pattern -> 'a
-    method virtual rewrite_match_bool         : condition : Identifier.t -> when_true : t -> when_false : t -> 'a
-    method virtual rewrite_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a
-    method virtual rewrite_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> 'a
-    method virtual rewrite_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a
-    method virtual rewrite_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a
-    method virtual rewrite_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a
-    method virtual rewrite_read_register      : register : Identifier.t -> 'a
-    method virtual rewrite_seq                : left : t -> right : t -> 'a
-    method virtual rewrite_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
+    method virtual visit                    : t -> t
+    method virtual visit_match              : pattern : match_pattern -> 'a
+    method virtual visit_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : (Identifier.t * Identifier.t * t) -> when_nil : t -> 'a
+    method virtual visit_call               : receiver : Identifier.t -> arguments : Expression.t list -> 'a
+    method virtual visit_cast               : statement : t -> cast_to : Type.t -> 'a
+    method virtual visit_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> 'a
+    method virtual visit_expression         : expression : Expression.t -> 'a
+    method virtual visit_fail               : typ : Type.t -> message : string -> 'a
+    method virtual visit_let                : binder : Identifier.t -> binding_statement_type : Type.t -> binding_statement : t -> body_statement : t -> 'a
+    method virtual visit_match              : pattern : match_pattern -> 'a
+    method virtual visit_match_bool         : condition : Identifier.t -> when_true : t -> when_false : t -> 'a
+    method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a
+    method virtual visit_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> 'a
+    method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a
+    method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a
+    method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a
+    method virtual visit_read_register      : register : Identifier.t -> 'a
+    method virtual visit_seq                : left : t -> right : t -> 'a
+    method virtual visit_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
   end
 
 
@@ -698,31 +698,31 @@ class virtual ['a] rewriter =
 *)
 class identity_rewriter =
   object(self)
-    inherit [t] rewriter
+    inherit [t] visitor
 
-    method rewrite (statement : t) : t =
+    method visit (statement : t) : t =
       match statement with
-      | Match pattern                                                                                       -> self#rewrite_match ~pattern
-      | Expression expression                                                                               -> self#rewrite_expression ~expression
-      | Call (receiver, arguments)                                                                          -> self#rewrite_call ~receiver ~arguments
-      | Let { binder; binding_statement_type; binding_statement; body_statement }                           -> self#rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement
-      | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> self#rewrite_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body
-      | Seq (left, right)                                                                                   -> self#rewrite_seq ~left ~right
-      | ReadRegister register                                                                               -> self#rewrite_read_register ~register
-      | WriteRegister { register_identifier; written_value }                                                -> self#rewrite_write_register ~register_identifier ~written_value
-      | Cast (statement, cast_to)                                                                           -> self#rewrite_cast ~statement ~cast_to
-      | Fail (typ, message)                                                                                 -> self#rewrite_fail ~typ ~message
+      | Match pattern                                                                                       -> self#visit_match ~pattern
+      | Expression expression                                                                               -> self#visit_expression ~expression
+      | Call (receiver, arguments)                                                                          -> self#visit_call ~receiver ~arguments
+      | Let { binder; binding_statement_type; binding_statement; body_statement }                           -> self#visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement
+      | DestructureRecord { record_type_identifier; field_identifiers; binders; destructured_record; body } -> self#visit_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body
+      | Seq (left, right)                                                                                   -> self#visit_seq ~left ~right
+      | ReadRegister register                                                                               -> self#visit_read_register ~register
+      | WriteRegister { register_identifier; written_value }                                                -> self#visit_write_register ~register_identifier ~written_value
+      | Cast (statement, cast_to)                                                                           -> self#visit_cast ~statement ~cast_to
+      | Fail (typ, message)                                                                                 -> self#visit_fail ~typ ~message
 
-    method rewrite_match ~(pattern : match_pattern) : t =
+    method visit_match ~(pattern : match_pattern) : t =
       match pattern with
-      | MatchList { matched; element_type; when_cons; when_nil }           -> self#rewrite_match_list ~matched ~element_type ~when_cons ~when_nil
-      | MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body } -> self#rewrite_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body
-      | MatchTuple { matched; binders; body }                              -> self#rewrite_match_tuple ~matched ~binders ~body
-      | MatchBool { condition; when_true; when_false }                     -> self#rewrite_match_bool ~condition ~when_true ~when_false
-      | MatchEnum { matched; matched_type; cases }                         -> self#rewrite_match_enum ~matched ~matched_type ~cases
-      | MatchVariant { matched; matched_type; cases }                      -> self#rewrite_match_variant ~matched ~matched_type ~cases
+      | MatchList { matched; element_type; when_cons; when_nil }           -> self#visit_match_list ~matched ~element_type ~when_cons ~when_nil
+      | MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body } -> self#visit_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body
+      | MatchTuple { matched; binders; body }                              -> self#visit_match_tuple ~matched ~binders ~body
+      | MatchBool { condition; when_true; when_false }                     -> self#visit_match_bool ~condition ~when_true ~when_false
+      | MatchEnum { matched; matched_type; cases }                         -> self#visit_match_enum ~matched ~matched_type ~cases
+      | MatchVariant { matched; matched_type; cases }                      -> self#visit_match_variant ~matched ~matched_type ~cases
 
-    method rewrite_match_list
+    method visit_match_list
         ~(matched      : Identifier.t                   )
         ~(element_type : Type.t                         )
         ~(when_cons    : Identifier.t * Identifier.t * t)
@@ -733,13 +733,13 @@ class identity_rewriter =
       Match begin
         MatchList {
           matched;
-          element_type = self#foreign_rewrite_type element_type;
-          when_cons = (id_head, id_tail, self#rewrite when_cons);
-          when_nil = self#rewrite when_nil
+          element_type = self#foreign_visit_type element_type;
+          when_cons = (id_head, id_tail, self#visit when_cons);
+          when_nil = self#visit when_nil
         }
       end
 
-    method rewrite_match_product
+    method visit_match_product
         ~(matched  : Identifier.t)
         ~(type_fst : Type.t      )
         ~(type_snd : Type.t      )
@@ -750,15 +750,15 @@ class identity_rewriter =
       Match begin
         MatchProduct {
           matched;
-          type_fst = self#foreign_rewrite_type type_fst;
-          type_snd = self#foreign_rewrite_type type_snd;
+          type_fst = self#foreign_visit_type type_fst;
+          type_snd = self#foreign_visit_type type_snd;
           id_fst;
           id_snd;
-          body     = self#rewrite body;
+          body     = self#visit body;
         }
       end
 
-    method rewrite_match_tuple
+    method visit_match_tuple
         ~(matched : Identifier.t                )
         ~(binders : (Identifier.t * Type.t) list)
         ~(body    : t                           ) : t
@@ -766,12 +766,12 @@ class identity_rewriter =
       Match begin
         MatchTuple {
           matched;
-          binders = List.map ~f:(fun (id, t) -> (id, self#foreign_rewrite_type t)) binders;
-          body = self#rewrite body;
+          binders = List.map ~f:(fun (id, t) -> (id, self#foreign_visit_type t)) binders;
+          body = self#visit body;
         }
       end
 
-    method rewrite_match_bool
+    method visit_match_bool
         ~(condition  : Identifier.t)
         ~(when_true  : t           )
         ~(when_false : t           ) : t
@@ -779,12 +779,12 @@ class identity_rewriter =
       Match begin
         MatchBool {
           condition;
-          when_true  = self#rewrite when_true;
-          when_false = self#rewrite when_false;
+          when_true  = self#visit when_true;
+          when_false = self#visit when_false;
         }
       end
 
-    method rewrite_match_enum
+    method visit_match_enum
         ~(matched      : Identifier.t      )
         ~(matched_type : Identifier.t      )
         ~(cases        : t Identifier.Map.t) : t
@@ -793,11 +793,11 @@ class identity_rewriter =
         MatchEnum {
           matched;
           matched_type;
-          cases = Identifier.Map.map ~f:self#rewrite cases
+          cases = Identifier.Map.map ~f:self#visit cases
         }
       end
 
-    method rewrite_match_variant
+    method visit_match_variant
         ~(matched      : Identifier.t                            )
         ~(matched_type : Identifier.t                            )
         ~(cases        : (Identifier.t list * t) Identifier.Map.t) : t
@@ -806,22 +806,20 @@ class identity_rewriter =
         MatchVariant {
           matched;
           matched_type;
-          cases = Identifier.Map.map_values ~f:(fun (id, stm) -> (id, self#rewrite stm)) cases
+          cases = Identifier.Map.map_values ~f:(fun (id, stm) -> (id, self#visit stm)) cases
         }
       end
 
-    method rewrite_expression
-        ~(expression : Expression.t) : t
-      =
-      Expression (self#foreign_rewrite_expression expression)
+    method visit_expression ~(expression : Expression.t) : t =
+      Expression (self#foreign_visit_expression expression)
 
-    method rewrite_call
+    method visit_call
         ~(receiver  : Identifier.t     )
         ~(arguments : Expression.t list) : t
       =
-      Call (receiver, List.map ~f:self#foreign_rewrite_expression arguments)
+      Call (receiver, List.map ~f:self#foreign_visit_expression arguments)
 
-    method rewrite_destructure_record
+    method visit_destructure_record
         ~(record_type_identifier : Identifier.t     )
         ~(field_identifiers      : Identifier.t list)
         ~(binders                : Identifier.t list)
@@ -832,11 +830,11 @@ class identity_rewriter =
         record_type_identifier;
         field_identifiers;
         binders;
-        destructured_record = self#rewrite destructured_record;
-        body                = self#rewrite body;
+        destructured_record = self#visit destructured_record;
+        body                = self#visit body;
       }
 
-    method rewrite_let
+    method visit_let
         ~(binder                 : Identifier.t)
         ~(binding_statement_type : Type.t      )
         ~(binding_statement      : t           )
@@ -844,21 +842,21 @@ class identity_rewriter =
       =
       Let {
         binder;
-        binding_statement_type = self#foreign_rewrite_type binding_statement_type;
-        binding_statement      = self#rewrite binding_statement;
-        body_statement         = self#rewrite body_statement;
+        binding_statement_type = self#foreign_visit_type binding_statement_type;
+        binding_statement      = self#visit binding_statement;
+        body_statement         = self#visit body_statement;
       }
 
-    method rewrite_seq
+    method visit_seq
         ~(left  : t)
         ~(right : t) : t
       =
-      Seq (self#rewrite left, self#rewrite right)
+      Seq (self#visit left, self#visit right)
 
-    method rewrite_read_register ~(register : Identifier.t) : t =
+    method visit_read_register ~(register : Identifier.t) : t =
       ReadRegister register
 
-    method rewrite_write_register
+    method visit_write_register
         ~(register_identifier : Identifier.t)
         ~(written_value       : Identifier.t) : t
       =
@@ -867,26 +865,26 @@ class identity_rewriter =
         written_value
       }
 
-    method rewrite_cast
+    method visit_cast
         ~(statement : t     )
         ~(cast_to   : Type.t) : t
       =
-      Cast (self#rewrite statement, self#foreign_rewrite_type cast_to)
+      Cast (self#visit statement, self#foreign_visit_type cast_to)
 
-    method rewrite_fail
+    method visit_fail
         ~(typ     : Type.t)
         ~(message : string) : t
       =
-      Fail (self#foreign_rewrite_type typ, message)
+      Fail (self#foreign_visit_type typ, message)
 
     (*
-       The method rewrite_expression operates on Statement values.
+       The method visit_expression operates on Statement values.
        This method operates on Expression values.
     *)
-    method foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+    method foreign_visit_expression (expression : Expression.t) : Expression.t =
       expression
 
-    method foreign_rewrite_type (typ : Type.t) : Type.t =
+    method foreign_visit_type (typ : Type.t) : Type.t =
       typ
   end
 
@@ -899,14 +897,14 @@ let substitute_numeric_expression_identifier
     object
       inherit identity_rewriter
 
-      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+      method! foreign_visit_expression (expression : Expression.t) : Expression.t =
         Expression.substitute_numeric_expression_identifier substitution expression
 
-      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+      method! foreign_visit_type (typ : Type.t) : Type.t =
         Type.substitute_numeric_expression_identifier substitution typ
     end
   in
-  rewriter#rewrite statement
+  rewriter#visit statement
 
 
 (*
@@ -925,10 +923,10 @@ let simplify_unused_let_binder (statement : t) : t =
     object(self)
       inherit identity_rewriter
 
-      method! rewrite_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
+      method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         let binding_statement_type = Type.simplify binding_statement_type
-        and binding_statement      = self#rewrite binding_statement
-        and body_statement         = self#rewrite body_statement
+        and binding_statement      = self#visit binding_statement
+        and body_statement         = self#visit body_statement
         in
         if
           Identifier.Set.mem (free_variables body_statement) binder
@@ -940,10 +938,10 @@ let simplify_unused_let_binder (statement : t) : t =
             body_statement;
           }
         else
-          self#rewrite @@ Seq (binding_statement, body_statement)
+          self#visit @@ Seq (binding_statement, body_statement)
     end
   in
-  rewriter#rewrite statement
+  rewriter#visit statement
 
 
 (*
@@ -954,11 +952,11 @@ let simplify_types (statement : t) : t =
     object
       inherit identity_rewriter
 
-      method! foreign_rewrite_type (typ : Type.t) : Type.t =
+      method! foreign_visit_type (typ : Type.t) : Type.t =
         Type.simplify typ
     end
   in
-  rewriter#rewrite statement
+  rewriter#visit statement
 
 
 (*
@@ -969,11 +967,11 @@ let simplify_expressions (statement : t) : t =
     object
       inherit identity_rewriter
 
-      method! foreign_rewrite_expression (expression : Expression.t) : Expression.t =
+      method! foreign_visit_expression (expression : Expression.t) : Expression.t =
         Expression.simplify expression
     end
   in
-  rewriter#rewrite statement
+  rewriter#visit statement
 
 
 (*
@@ -990,9 +988,9 @@ let simplify_seq_unit (statement : t) : t =
     object(self)
       inherit identity_rewriter
 
-      method! rewrite_seq ~left ~right =
-        let left  = self#rewrite left
-        and right = self#rewrite right
+      method! visit_seq ~left ~right =
+        let left  = self#visit left
+        and right = self#visit right
         in
         match left, right with
         | Expression (Value Unit)             , _ -> right
@@ -1000,7 +998,7 @@ let simplify_seq_unit (statement : t) : t =
         | _                                       -> Seq (left, right)
     end
   in
-  rewriter#rewrite statement
+  rewriter#visit statement
 
 
 (*
