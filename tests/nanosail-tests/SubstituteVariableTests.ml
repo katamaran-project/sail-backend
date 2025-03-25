@@ -238,6 +238,45 @@ let test_let_2 =
 
       let x = 1 in z
   |} >:: test
+
+
+let test_let_3 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = svar (mkid "y");
+        body_statement         = svar (mkid "z");
+      }
+    in
+    let substitution (id : Ast.Identifier.t) : Ast.Expression.t option =
+      match Ast.Identifier.to_string id with
+      | "z" -> Some (eval 1)
+      | _   -> None
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.substitute_variable substitution statement
+    and expected : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Int None;
+        binding_statement      = svar (mkid "y");
+        body_statement         = Expression (eval 1);
+      }
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      (let x = y in z) [1/z]
+
+    should become
+
+      let x = y in 1
   |} >:: test
 
 
@@ -250,4 +289,5 @@ let test_suite =
     test_binary_operation_3;
     test_let;
     test_let_2;
+    test_let_3;
   ]
