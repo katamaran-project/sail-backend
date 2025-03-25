@@ -1,0 +1,17 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{pxfonts}
+
+\usetikzlibrary{shadows, calc}
+
+\begin{document}
+
+\begin{tikzpicture}[project/.style={minimum width=2cm,minimum height=8mm,draw,fill=white,drop shadow,font=\ttfamily\Huge,ultra thick},
+                    dependency/.style={-latex, ultra thick}]
+  \node[project] (monads) at (0, 0) {monads};
+  \node[project] (nanosail) at (10, 0) {nanosail};
+  \node[project] (plugin) at (20, 0) {sail\textunderscore plugin};
+
+\end{tikzpicture}
+
+\end{document}
