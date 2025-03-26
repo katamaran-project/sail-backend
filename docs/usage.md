@@ -185,7 +185,48 @@ This directive works like C's `#include` preprocessor directive.
 
 ## Template Files
 
+The `configuration.lisp` file specifies a number of template files and corresponding output files.
 
+A possible template file would be
+
+```text
+O tempora
+
+(*<
+  (generate "some generated text")
+>*)
+
+O mores
+```
+
+After processing, the corresponding output file will contain
+
+```text
+O tempora
+
+some generated text
+
+O mores
+```
+
+Template files are processed line by line.
+By default, lines are simply copied from template to output file.
+However, lines inside a block are interpreted as Slang code,
+the output of which replaces the block.
+A block starts with a line containing `(*<` and ends with a line containing `>*)`.
+(These delimiters can be customized in the `configuration.lisp` file.)
+
+The following Slang-functions can prove useful:
+
+* `(generate string)` causes `string` to be generated.
+* `(untranslated-definitions?)` returns `#t` if there were any untranslated definitions.
+* `(untranslated-definitions)` returns a string containing all untranslated definitions.
+* `(base-translation)` returns a string with translation of the base module.
+* `(program-translation)` returns a string with the translation of the program module.
+
+In its current state, there are only two big chunks of code that can be generate (`base` and `program`).
+It might be useful to have more fine-grained control over the generation of Coq code.
+This can be achieved by adding the necessary Slang function definitions to `Templates.Prelude`.
 
 ## Verbosity Level
 
