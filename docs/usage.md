@@ -144,14 +144,36 @@ For more details, see `tests/coq-tests/no-confusion-hom`.
 
 ### `monomorphize`
 
+Consider the following Sail function:
+
+```sail
+val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
+```
+
+This function is polymorphic and should probably be monomorphized.
+This can be achieved using
+
 ```lisp
 (monomorphize "foo" "foo_8_8" '(
                                 ("'n" 8)
                                 ("'m" 8)
                                 ))
+
+(monomorphize "foo" "foo_4_1" '(
+                                ("'n" 4)
+                                ("'m" 1)
+                                ))
+
+(monomorphize "foo" "foo_1_2" '(
+                                ("'n" 1)
+                                ("'m" 2)
+                                ))
 ```
 
-This causes the function `foo` to 
+This causes `foo` to be monomorphized three times into `foo_8_8`, `foo_4_1` and `foo_1_2`.
+See `tests/coq-tests/monomorphize-two-ints`.
+
+For now, only type-level variables of kind `Int` can be specified.
 
 ### `$include`
 
@@ -162,6 +184,7 @@ $include ../shared-configuration.lisp
 This directive works like C's `#include` preprocessor directive.
 
 ## Template Files
+
 
 
 ## Verbosity Level
