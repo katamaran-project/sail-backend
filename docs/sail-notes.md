@@ -64,15 +64,35 @@ When an `int` needs to be accompanied by a predicate constraining the values it 
 the type `atom` is used, which expects a type argument (see `Libsail.Ast.typ_arg` and `Ast.TypeArgument.t`)
 that represents the constraint.
 
-
 ## `exit()` Return Type
+
+Typically, all branches of execution are expected to yield a value of the same type.
+However, there seems to be an exception to this rule in Sail:
+the `exit` function returns `unit`, and is allowed to be used in a context where another type is expected.
+This is of course sound since `exit` never returns, but it is a corner case that requires specialized handling.
 
 ## `Ast.Type.Implicit`
 
+```sail
+val bvlen : forall 'n, 'n >= 0. (implicit('n), bits('n)) -> int('n)
+function bvlen(r, _) = r
+```
+
+`implicit` allows arguments to be omitted when calling a function.
+The function shown above uses `implicit` to determine the size of a bitvector.
+
+`implicit` is not important for the translation to muSail, but nanosail nonetheless includes it in its AST.
+The reason its inclusion is laziness: adding it required the fewest changes to existing code.
+A possible improvement would be to remove it and adapt the functions related to it.
+
 ## Rewrites
 
-TODO DUMP
-TODO where to enable/disable
+Sail performs a number of rewrites on the program's AST before handing it over to the muSail backend.
+It is possible to have these rewrites written to disk using Sail's `--dump-rewrite-ast` flag.
+We also have a Ruby script `process-rewrites.rb` that generates diffs of consecutive rewrites,
+which can be helpful when trying to find out what each rewrite does.
+
+Changing which rewrites are active is done by editing `Rewrite.ml` in the `sail_plugin` project.
 
 ## Expressions vs Statements
 
