@@ -67,10 +67,10 @@ let all_rewrites =
   ]
 
 
-(**
-   List of rewrites applied to the sail ast after type checking and before
+(*
+   List of rewrites applied to the sail AST after type checking and before
    any translation to intermediate representation language.
- *)
+*)
 let katamaran_rewrites =
   [
     ("instantiate_outcomes", [R.String_arg "coq"]);
