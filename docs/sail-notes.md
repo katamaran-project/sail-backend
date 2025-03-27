@@ -1,6 +1,6 @@
 # Notes on Sail
 
-Below are a few notes regarding Sail and its inner working.
+Below are a few notes regarding Sail and its inner working and its differences with muSail.
 
 ## Singleton types
 
@@ -188,7 +188,7 @@ stm_seq (stm_write_register r1 (exp_var "x"))
 
 To be found in top level type constraints, but apparently not in functions themselves
 
-## Function Peculiarities
+## Functions and Bindings
 
 ```sail
 val foo : int -> int
@@ -221,3 +221,44 @@ function bar(x) = {
 ```
 
 Here, Sail complains that `foo` is already bound.
+
+## Registers
+
+In Sail, registers are used the same way as regular variables:
+
+```sail
+register r1 : int
+
+val foo : int -> int
+function foo(x) = r1 + x
+```
+
+In muSail, registers are special objects that need to be interacted
+with using specialized commands `stm_read_register` and `stm_write_register`.
+During translation it is therefore important to check
+whether an identifier is bound to a register or not.
+
+## Shadowing Registers
+
+``` sail
+register r1 : int
+
+val foo : int -> int
+function foo(x) = {
+  let r1 = x            // <-- error
+  in
+  r1
+}
+```
+
+```sail
+register r1 : int
+
+val foo : int -> int
+function foo(r1) = {     // <-- error
+  r1
+}
+```
+
+Sail does not allow to introduce variable names that clash with registers.
+This restriction makes it easier to distinguish regular variables from registers.
