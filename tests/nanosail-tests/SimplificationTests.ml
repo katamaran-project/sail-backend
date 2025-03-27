@@ -1537,6 +1537,142 @@ let test_simplify_match_enum_4 =
   |} >:: test
 
 
+let test_simplify_match_variant =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchVariant {
+              matched          = mkid "value";
+              matched_type     = mkid "MyVariant";
+              cases            = Ast.Identifier.Map.of_alist_exn [
+                  (
+                    mkid "Foo",
+                    ([mkid "f1"], svar "a")
+                  );
+                  (
+                    mkid "Bar",
+                    ([mkid "f1"; mkid "f2"], svar "b")
+                  );
+                ];
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchVariant {
+          matched          = mkid "value";
+          matched_type     = mkid "MyVariant";
+          cases            = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "Foo",
+                ([mkid "f1"], svar "a")
+              );
+              (
+                mkid "Bar",
+                ([mkid "f1"; mkid "f2"], svar "b")
+              );
+            ];
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match value {
+        Foo(f1) => a,
+        Bar(f1, f2) => b,
+      }
+    
+    should become
+
+      match value {
+        Foo(f1) => a,
+        Bar(f1, f2) => b,
+      }
+  |} >:: test
+
+
+let test_simplify_match_variant_2 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchVariant {
+              matched          = mkid "x";
+              matched_type     = mkid "MyVariant";
+              cases            = Ast.Identifier.Map.of_alist_exn [
+                  (
+                    mkid "Foo",
+                    ([mkid "f1"], svar "a")
+                  );
+                  (
+                    mkid "Bar",
+                    ([mkid "f1"; mkid "f2"], svar "b")
+                  );
+                ];
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchVariant {
+          matched          = mkid "y";
+          matched_type     = mkid "MyVariant";
+          cases            = Ast.Identifier.Map.of_alist_exn [
+              (
+                mkid "Foo",
+                ([mkid "f1"], svar "a")
+              );
+              (
+                mkid "Bar",
+                ([mkid "f1"; mkid "f2"], svar "b")
+              );
+            ];
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match x {
+        Foo(f1) => a,
+        Bar(f1, f2) => b,
+      }
+    
+    should become
+
+      match y {
+        Foo(f1) => a,
+        Bar(f1, f2) => b,
+      }
+  |} >:: test
+
+
 let test_suite =
   "simplification" >::: [
     test_simplify_unused_let_binder;
@@ -1569,6 +1705,8 @@ let test_suite =
     test_simplify_match_enum_2;
     test_simplify_match_enum_3;
     test_simplify_match_enum_4;
+    test_simplify_match_variant;
+    test_simplify_match_variant_2;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
