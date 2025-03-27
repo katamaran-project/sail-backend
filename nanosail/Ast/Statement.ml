@@ -1110,7 +1110,24 @@ let simplify_aliases (statement : t) : t =
             when_nil      = self#visit when_nil;
           }
         end
-        
+
+      method! visit_match_bool ~condition ~when_true ~when_false =
+        Match begin
+          MatchBool {
+            condition  = substitution condition;
+            when_true  = self#visit when_true;
+            when_false = self#visit when_false;
+          }
+        end
+      
+      (* method virtual visit_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> 'a *)
+      (* method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a *)
+      (* method virtual visit_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> 'a *)
+      (* method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a *)
+      (* method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a *)
+      (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
+
+
       method! visit_write_register ~register_identifier ~written_value =
         WriteRegister {
           register_identifier;
