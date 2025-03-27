@@ -4,22 +4,28 @@ open Nanosail
 include Shared
 
 
+let evar (id : string) : Ast.Expression.t = Variable (mkid id, Int None)
+let svar (id : string) : Ast.Statement.t  = Expression (evar id)
+
+let eval (n : int) : Ast.Expression.t = Value (Ast.Value.mk_int n)
+let sval (n : int) : Ast.Statement.t  = Expression (eval n)
+
 let test_simplify_unused_let_binder =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
         binder                 = Ast.Identifier.mk "x";
         binding_statement_type = Int None;
-        binding_statement      = Expression (Value (Ast.Value.mk_int 5));
-        body_statement         = Expression (Value (Ast.Value.mk_int 6));
+        binding_statement      = sval 5;
+        body_statement         = sval 6;
       }
     in
     let actual : Ast.Statement.t =
       Ast.Statement.simplify_unused_let_binder statement
     and expected : Ast.Statement.t =
       Seq (
-        Expression (Value (Ast.Value.mk_int 5)),
-        Expression (Value (Ast.Value.mk_int 6))
+        sval 5,
+        sval 6
       )
     in
     assert_equal
@@ -79,10 +85,10 @@ let test_simplify_unused_let_binder_3 =
         binding_statement      = Let {
             binder                 = Ast.Identifier.mk "y";
             binding_statement_type = Int None;
-            binding_statement      = Expression (Value (Ast.Value.mk_int 1));
-            body_statement         = Expression (Value (Ast.Value.mk_int 2));
+            binding_statement      = sval 1;
+            body_statement         = sval 2;
           };
-        body_statement         = Expression (Value (Ast.Value.mk_int 3));
+        body_statement         = sval 3;
       }
     in
     let actual : Ast.Statement.t =
@@ -90,10 +96,10 @@ let test_simplify_unused_let_binder_3 =
     and expected : Ast.Statement.t =
       Seq (
         Seq (
-          Expression (Value (Ast.Value.mk_int 1)),
-          Expression (Value (Ast.Value.mk_int 2))
+          sval 1,
+          sval 2
         ),
-        Expression (Value (Ast.Value.mk_int 3))
+        sval 3
       )
     in
     assert_equal
@@ -121,7 +127,7 @@ let test_simplify_seq_unit =
     let statement : Ast.Statement.t =
       Seq (
         Expression (Value Ast.Value.Unit),
-        Expression (Value (Ast.Value.mk_int 5))
+        sval 5
       )
     in
     let actual : Ast.Statement.t =
@@ -150,14 +156,14 @@ let test_simplify_aliases =
       Let {
         binder                 = Ast.Identifier.mk "x";
         binding_statement_type = Unit;
-        binding_statement      = Expression (Variable (Ast.Identifier.mk "y", String));
-        body_statement         = Expression (Variable (Ast.Identifier.mk "x", String))
+        binding_statement      = svar "y";
+        body_statement         = svar "x";
       }
     in
     let actual : Ast.Statement.t =
       Ast.Statement.simplify_aliases statement
     and expected : Ast.Statement.t =
-      Expression (Variable (Ast.Identifier.mk "y", String));
+      svar "y"
     in
     assert_equal
       ~cmp:Ast.Statement.equal
@@ -176,13 +182,13 @@ let test_simplify_aliases =
   |} >:: test
 
 
-let test_simplify_aliases_2 =
+let test_simplify_aliases_write_register =
   let test _ =
     let statement : Ast.Statement.t =
       Let {
         binder                 = mkid "x";
         binding_statement_type = Unit;
-        binding_statement      = Expression (Variable (mkid "y", String));
+        binding_statement      = svar "y";
         body_statement         = WriteRegister { register_identifier = mkid "reg" ; written_value = mkid "x" }
       }
     in
@@ -200,11 +206,13 @@ let test_simplify_aliases_2 =
   {|
       let x = y
       in
-      reg = x
+      write_register(reg, x)
 
     should become
 
-      reg = y
+      write_register(reg, y)
+  |} >:: test
+
   |} >:: test
 
 
@@ -280,7 +288,7 @@ let test_suite =
     test_simplify_unused_let_binder_3;
     test_simplify_seq_unit;
     test_simplify_aliases;
-    test_simplify_aliases_2;
+    test_simplify_aliases_write_register;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
