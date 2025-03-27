@@ -1168,6 +1168,15 @@ let simplify_aliases (statement : t) : t =
           written_value = substitution written_value
         }
 
+      method! visit_match_tuple ~matched ~binders ~body =
+        Match begin
+          MatchTuple {
+            matched = substitution matched;
+            binders;
+            body = (rewriter @@ forget_substitutions substitution @@ List.map ~f:fst binders)#visit body;
+          }
+        end
+
       method! foreign_visit_expression expression =
         Expression.substitute_variable substitution expression
     end
@@ -1180,6 +1189,6 @@ let simplify_aliases (statement : t) : t =
 *)
 let simplify (statement : t) : t =
   let pass =
-    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
+    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
