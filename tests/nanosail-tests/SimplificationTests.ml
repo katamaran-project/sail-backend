@@ -178,6 +178,7 @@ let test_simplify_aliases =
       y
   |} >:: test
 
+
 let test_simplify_statement =
   let test _ =
     let statement : Ast.Statement.t =
