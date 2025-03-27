@@ -1,10 +1,7 @@
 open Base
 open OUnit2
 open Nanosail
-
-
-let mkid  = Ast.Identifier.mk
-let mkgid = Fn.compose Ast.Identifier.mk_generated Int.to_string
+include Shared
 
 
 let test_simplify_unused_let_binder =
@@ -196,7 +193,7 @@ let test_simplify_aliases_2 =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
