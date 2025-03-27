@@ -179,6 +179,38 @@ let test_simplify_aliases =
   |} >:: test
 
 
+let test_simplify_aliases_2 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = Expression (Variable (mkid "y", String));
+        body_statement         = WriteRegister { register_identifier = mkid "reg" ; written_value = mkid "x" }
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      WriteRegister { register_identifier = mkid "reg" ; written_value = mkid "y" }
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      reg = x
+
+    should become
+
+      reg = y
+  |} >:: test
+
+
 let test_simplify_statement =
   let test _ =
     let statement : Ast.Statement.t =
@@ -251,6 +283,7 @@ let test_suite =
     test_simplify_unused_let_binder_3;
     test_simplify_seq_unit;
     test_simplify_aliases;
+    test_simplify_aliases_2;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
