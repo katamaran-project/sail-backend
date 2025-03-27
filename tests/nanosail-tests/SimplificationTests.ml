@@ -266,6 +266,370 @@ let test_simplify_aliases_match_list =
   |} >:: test
 
 
+let test_simplify_aliases_match_list_2 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "x";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "tl", svar "a");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "y";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "tl", svar "a");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match x {
+        hd::tl => a,
+        []     => b
+      }
+
+    should become
+
+      match y {
+        hd::tl => a,
+        []     => b
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_3 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "tl", svar "x");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "tl", svar "y");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        hd::tl => x,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        hd::tl => y,
+        []     => b
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_4 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "tl", svar "a");
+              when_nil         = svar "x"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "tl", svar "a");
+          when_nil         = svar "y"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        hd::tl => a,
+        []     => x
+      }
+
+    should become
+
+      match lst {
+        hd::tl => a,
+        []     => y
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_5 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "x", mkid "tl", svar "a");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "x", mkid "tl", svar "a");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        x::tl  => a,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        x::tl  => a,
+        []     => b
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_6 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "tl", svar "a");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "tl", svar "a");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        x::tl  => x,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        x::tl  => x,
+        []     => b
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_7 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "x", svar "a");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "x", svar "a");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        hd::x  => a,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        hd::x  => a,
+        []     => b
+      }
+  |} >:: test
+
+
+let test_simplify_aliases_match_list_8 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "x", svar "x");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "x", svar "x");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        hd::x  => x,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        hd::x  => x,
+        []     => b
+      }
+  |} >:: test
+
+
 let test_simplify_statement =
   let test _ =
     let statement : Ast.Statement.t =
@@ -340,6 +704,13 @@ let test_suite =
     test_simplify_aliases;
     test_simplify_aliases_write_register;
     test_simplify_aliases_match_list;
+    test_simplify_aliases_match_list_2;
+    test_simplify_aliases_match_list_3;
+    test_simplify_aliases_match_list_4;
+    test_simplify_aliases_match_list_5;
+    test_simplify_aliases_match_list_6;
+    test_simplify_aliases_match_list_7;
+    test_simplify_aliases_match_list_8;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
