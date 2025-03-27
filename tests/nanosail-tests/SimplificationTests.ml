@@ -989,6 +989,60 @@ let test_simplify_aliases_product =
   |} >:: test
 
 
+let test_simplify_aliases_product_2 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchProduct {
+              matched          = mkid "x";
+              type_fst         = Int None;
+              type_snd         = Int None;
+              id_fst           = mkid "fst";
+              id_snd           = mkid "snd";
+              body             = svar "result";
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchProduct {
+          matched          = mkid "y";
+          type_fst         = Int None;
+          type_snd         = Int None;
+          id_fst           = mkid "fst";
+          id_snd           = mkid "snd";
+          body             = svar "result";
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match x {
+        (fst, snd) => result
+      }
+    
+    should become
+
+      match y {
+        (fst, snd) => result
+      }
+  |} >:: test
+
+
 let test_suite =
   "simplification" >::: [
     test_simplify_unused_let_binder;
@@ -1011,6 +1065,7 @@ let test_suite =
     test_simplify_aliases_destructure_record_4;
     test_simplify_aliases_destructure_record_5;
     test_simplify_aliases_product;
+    test_simplify_aliases_product_2;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
