@@ -1100,7 +1100,7 @@ let simplify_aliases (statement : t) : t =
 *)
 let simplify (statement : t) : t =
   let pass =
-    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
+    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
 
