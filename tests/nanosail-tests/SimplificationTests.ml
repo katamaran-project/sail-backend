@@ -822,6 +822,54 @@ let test_simplify_aliases_destructure_record_4 =
   |} >:: test
 
 
+let test_simplify_aliases_destructure_record_5 =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = DestructureRecord {
+            record_type_identifier = (mkid "foo");
+            field_identifiers      = [ mkid "field1"; mkid "field2" ];
+            binders                = [ mkid "x"; mkid "b" ];
+            destructured_record    = svar "record";
+            body                   = svar "x";
+          }
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      DestructureRecord {
+        record_type_identifier = (mkid "foo");
+        field_identifiers      = [ mkid "field1"; mkid "field2" ];
+        binders                = [ mkid "x"; mkid "b" ];
+        destructured_record    = svar "record";
+        body                   = svar "x";
+      }
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      let { field1 = x; field2 = b } = record
+      in
+      x
+
+    should become
+
+      let { field1 = x; field2 = b } = record
+      in
+      x
+  |} >:: test
+
+
 let test_simplify_statement =
   let test _ =
     let statement : Ast.Statement.t =
@@ -907,6 +955,7 @@ let test_suite =
     test_simplify_aliases_destructure_record_2;
     test_simplify_aliases_destructure_record_3;
     test_simplify_aliases_destructure_record_4;
+    test_simplify_aliases_destructure_record_5;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
