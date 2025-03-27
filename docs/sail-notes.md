@@ -188,4 +188,36 @@ stm_seq (stm_write_register r1 (exp_var "x"))
 
 To be found in top level type constraints, but apparently not in functions themselves
 
-## Implicit
+## Function Peculiarities
+
+```sail
+val foo : int -> int
+function foo(x) = x
+
+
+val bar : int -> int
+function bar(x) = {
+  let f = foo             // <-- error
+  in
+  f(x)
+}
+```
+
+The code above gets rejected: Sail complains `foo` is unbound.
+This seems to imply that, like in a Lisp-2, there are two separate namespaces at play.
+However, this is contradicted by
+
+```sail
+val foo : int -> int
+function foo(x) = x
+
+
+val bar : int -> int
+function bar(x) = {
+  let foo = 5            // <-- error
+  in
+  foo(foo)
+}
+```
+
+Here, Sail complains that `foo` is already bound.
