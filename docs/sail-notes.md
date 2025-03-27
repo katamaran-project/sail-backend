@@ -156,7 +156,31 @@ which lifts expression up into the statement world.
 
 The translation of expressions to statements 
 
-## Type of Assignment
+## Type of Register Write
+
+```sail
+register r1 : int = 0
+
+val foo : int -> unit
+function foo(x) = {
+  r1 = x
+}
+```
+
+In Sail, the assignment `r1 = x` has type `unit`, whereas
+in muSail, its equivalent would be typed `int`.
+For this reason, we translate the above code to
+
+```pseudo
+r1 = x; ()
+```
+
+or
+
+```coq
+stm_seq (stm_write_register r1 (exp_var "x"))
+        (stm_exp (exp_val (ty.unit) (tt))).
+```
 
 ## Generated Ast Module
 
