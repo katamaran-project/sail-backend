@@ -1728,14 +1728,14 @@ let test_simplify_match_variant_3 =
       let x = y
       in
       match value {
-        Foo(f1) => a,
+        Foo(f1) => x,
         Bar(f1, f2) => b,
       }
     
     should become
 
       match value {
-        Foo(f1) => a,
+        Foo(f1) => y,
         Bar(f1, f2) => b,
       }
   |} >:: test
