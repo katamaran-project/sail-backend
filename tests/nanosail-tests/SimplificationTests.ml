@@ -213,6 +213,56 @@ let test_simplify_aliases_write_register =
       write_register(reg, y)
   |} >:: test
 
+
+let test_simplify_aliases_match_list =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "x";
+        binding_statement_type = Unit;
+        binding_statement      = svar "y";
+        body_statement         = Match begin
+            MatchList {
+              matched          = mkid "lst";
+              element_type     = Int None;
+              when_cons        = (mkid "hd", mkid "tl", svar "a");
+              when_nil         = svar "b"
+            }
+          end
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Match begin
+        MatchList {
+          matched          = mkid "lst";
+          element_type     = Int None;
+          when_cons        = (mkid "hd", mkid "tl", svar "a");
+          when_nil         = svar "b"
+        }
+      end
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let x = y
+      in
+      match lst {
+        hd::tl => a,
+        []     => b
+      }
+
+    should become
+
+      match lst {
+        hd::tl => a,
+        []     => b
+      }
   |} >:: test
 
 
@@ -289,6 +339,7 @@ let test_suite =
     test_simplify_seq_unit;
     test_simplify_aliases;
     test_simplify_aliases_write_register;
+    test_simplify_aliases_match_list;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
