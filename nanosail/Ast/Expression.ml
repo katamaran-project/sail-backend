@@ -281,7 +281,7 @@ class virtual ['a] visitor =
 
 
 (*
-   This rewriter does nothing: equal (rewrite expr) expr.
+   This visitor makes a copy of the expression.
    Its purpose is to allow to easily define new rewriters that
    only need to deal with specific cases and therefore only need to
    override the corresponding methods.
