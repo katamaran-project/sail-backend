@@ -2013,6 +2013,53 @@ let test_simplify_match_variant_7 =
   |} >:: test
 
 
+let test_simplify_swap =
+  let test _ =
+    let statement : Ast.Statement.t =
+      Let {
+        binder                 = mkid "z";
+        binding_statement_type = Unit;
+        binding_statement      = svar "x";
+        body_statement         = Let {
+            binder                 = mkid "x";
+            binding_statement_type = Unit;
+            binding_statement      = svar "y";
+            body_statement         = Let {
+                binder                 = mkid "y";
+                binding_statement_type = Unit;
+                binding_statement      = svar "z";
+                body_statement         = Expression (BinaryOperation (Ast.BinaryOperator.Plus, evar "x", evar "y"))
+              }
+          }
+      }
+    in
+    let actual : Ast.Statement.t =
+      Ast.Statement.simplify_aliases statement
+    and expected : Ast.Statement.t =
+      Expression (BinaryOperation (Ast.BinaryOperator.Plus, evar "y", evar "x"))
+    in
+    assert_equal
+      ~cmp:Ast.Statement.equal
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
+      expected
+      actual
+  in
+  {|
+      let z = x
+      in
+      let x = y
+      in
+      let y = z
+      in
+      x + y
+    
+    should become
+
+      y + x
+    
+  |} >:: test
+
+
 let test_suite =
   "simplification" >::: [
     test_simplify_unused_let_binder;
@@ -2052,6 +2099,7 @@ let test_suite =
     test_simplify_match_variant_5;
     test_simplify_match_variant_6;
     test_simplify_match_variant_7;
+    test_simplify_swap;
     test_simplify_statement;
     test_simplify_statement_2;
   ]
