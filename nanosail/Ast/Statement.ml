@@ -1130,7 +1130,6 @@ let simplify_aliases (statement : t) : t =
         }
         
       (* method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a *)
-      (* method virtual visit_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> 'a *)
       (* method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a *)
       (* method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a *)
       (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
