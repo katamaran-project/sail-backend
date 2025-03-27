@@ -1141,9 +1141,16 @@ let simplify_aliases (statement : t) : t =
           }
         end
       
-      (* method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a *)
+      method! visit_match_enum ~matched ~matched_type ~cases =
+        Match begin
+          MatchEnum {
+            matched = substitution matched;
+            matched_type;
+            cases = Identifier.Map.map_values ~f:self#visit cases
+          }
+        end
+        
       (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
-
 
       method! visit_write_register ~register_identifier ~written_value =
         WriteRegister {
