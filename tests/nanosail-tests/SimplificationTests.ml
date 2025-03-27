@@ -24,7 +24,7 @@ let test_simplify_unused_let_binder =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
@@ -57,7 +57,7 @@ let test_simplify_unused_let_binder_2 =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
@@ -98,7 +98,7 @@ let test_simplify_unused_let_binder_3 =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
@@ -131,7 +131,7 @@ let test_simplify_seq_unit =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
@@ -161,7 +161,7 @@ let test_simplify_aliases =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
@@ -260,7 +260,7 @@ let test_simplify_statement_2 =
     in
     assert_equal
       ~cmp:Ast.Statement.equal
-      ~printer:(Fn.compose FExpr.to_string Ast.Statement.to_fexpr)
+      ~pp_diff:(pp_diff Ast.Statement.to_fexpr)
       expected
       actual
   in
