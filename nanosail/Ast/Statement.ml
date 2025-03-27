@@ -1072,8 +1072,19 @@ let simplify_seq_unit (statement : t) : t =
      y
 *)
 let simplify_aliases (statement : t) : t =
+  let update_substitution substitution x y id =
+    if Identifier.equal x id
+    then y
+    else substitution id
+  in
+  let forget_substitution substitution id =
+    update_substitution substitution id id
+  in
+  let forget_substitutions substitution ids =
+    List.fold ids ~init:substitution ~f:forget_substitution
+  in
   let rec rewriter (substitution : Identifier.t -> Identifier.t) =
-    object
+    object(self)
       inherit identity_rewriter as super
 
       method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
@@ -1088,20 +1099,18 @@ let simplify_aliases (statement : t) : t =
           end
         | _ -> super#visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement
 
-      (* method! visit_match_list ~matched ~element_type ~when_cons ~when_nil = *)
-      (*   let (id_head, id_tail, when_cons) = when_cons = *)
-      (*   in *)
+      method! visit_match_list ~matched ~element_type ~when_cons ~when_nil =
+        let (id_head, id_tail, when_cons) = when_cons
+        in
+        Match begin
+          MatchList {
+            matched       = substitution matched;
+            element_type;
+            when_cons     = (id_head, id_tail, (rewriter @@ forget_substitutions substitution [id_head; id_tail])#visit when_cons);
+            when_nil      = self#visit when_nil;
+          }
+        end
         
-        
-      (* method virtual visit_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> 'a *)
-      (* method virtual visit_match_bool         : condition : Identifier.t -> when_true : t -> when_false : t -> 'a *)
-      (* method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a *)
-      (* method virtual visit_match_list         : matched : Identifier.t -> element_type : Type.t -> when_cons : Identifier.t * Identifier.t * t -> when_nil : t -> 'a *)
-      (* method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a *)
-      (* method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a *)
-      (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
-
-
       method! visit_write_register ~register_identifier ~written_value =
         WriteRegister {
           register_identifier;
