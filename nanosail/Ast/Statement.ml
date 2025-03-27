@@ -1150,7 +1150,17 @@ let simplify_aliases (statement : t) : t =
           }
         end
         
-      (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
+      method! visit_match_variant ~matched ~matched_type ~cases =
+        let process_case (binders, body) =
+          (rewriter @@ forget_substitutions substitution binders)#visit body
+        in
+        Match begin
+          MatchEnum {
+            matched = substitution matched;
+            matched_type;
+            cases = Identifier.Map.map_values ~f:process_case cases
+          }
+        end
 
       method! visit_write_register ~register_identifier ~written_value =
         WriteRegister {
