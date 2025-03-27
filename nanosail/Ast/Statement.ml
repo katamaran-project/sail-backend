@@ -1152,10 +1152,10 @@ let simplify_aliases (statement : t) : t =
         
       method! visit_match_variant ~matched ~matched_type ~cases =
         let process_case (binders, body) =
-          (rewriter @@ forget_substitutions substitution binders)#visit body
+          (binders, (rewriter @@ forget_substitutions substitution binders)#visit body)
         in
         Match begin
-          MatchEnum {
+          MatchVariant {
             matched = substitution matched;
             matched_type;
             cases = Identifier.Map.map_values ~f:process_case cases
