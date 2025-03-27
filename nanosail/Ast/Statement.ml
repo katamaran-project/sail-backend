@@ -750,7 +750,7 @@ class virtual ['a] visitor =
 
 
 (*
-   This rewriter does nothing: equal (rewrite statement) statement.
+   This visitor does makes a copy of the statement.
    Its purpose is to allow to easily define new rewriters that
    only need to deal with specific cases and therefore only need to
    override the corresponding methods.
