@@ -1128,9 +1128,20 @@ let simplify_aliases (statement : t) : t =
           destructured_record = self#visit destructured_record;
           body = (rewriter @@ forget_substitutions substitution binders)#visit body;
         }
-        
+
+      method! visit_match_product ~matched ~type_fst ~type_snd ~id_fst ~id_snd ~body =
+        Match begin
+          MatchProduct {
+            matched = substitution matched;
+            type_fst;
+            type_snd;
+            id_fst;
+            id_snd;
+            body = (rewriter @@ forget_substitutions substitution [ id_fst; id_snd ])#visit body;
+          }
+        end
+      
       (* method virtual visit_match_enum         : matched : Identifier.t -> matched_type : Identifier.t -> cases : t Identifier.Map.t -> 'a *)
-      (* method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a *)
       (* method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a *)
       (* method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a *)
 
