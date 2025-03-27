@@ -1072,27 +1072,33 @@ let simplify_seq_unit (statement : t) : t =
      y
 *)
 let simplify_aliases (statement : t) : t =
-  let rec rewriter (substitution : Identifier.t -> Expression.t option) =
+  let rec rewriter (substitution : Identifier.t -> Identifier.t) =
     object
       inherit identity_rewriter as super
 
       method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         match super#visit binding_statement with
-        | Expression (Variable _ as variable) -> begin
-            let updated_substitution (id : Identifier.t) : Expression.t option =
+        | Expression (Variable (identifier, _typ)) -> begin
+            let updated_substitution (id : Identifier.t) : Identifier.t =
               if Identifier.equal id binder
-              then Some variable
+              then identifier
               else substitution id
             in
             (rewriter updated_substitution)#visit body_statement
           end
         | _ -> super#visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement
 
+      method! visit_write_register ~register_identifier ~written_value =
+        WriteRegister {
+          register_identifier;
+          written_value = substitution written_value
+        }
+
       method! foreign_visit_expression expression =
         Expression.substitute_variable substitution expression
     end
   in
-  (rewriter @@ Fn.const None)#visit statement
+  (rewriter @@ Fn.id)#visit statement
 
 
 (*
@@ -1100,6 +1106,6 @@ let simplify_aliases (statement : t) : t =
 *)
 let simplify (statement : t) : t =
   let pass =
-    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit
+    simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
   in
   Fn.fixed_point ~f:pass ~equal:equal statement

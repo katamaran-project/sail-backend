@@ -377,17 +377,15 @@ let substitute_numeric_expression_identifier
 
 
 let substitute_variable
-    (substitution : Identifier.t -> t option)
-    (expression   : t                       ) : t
+    (substitution : Identifier.t -> Identifier.t)
+    (expression   : t                           ) : t
   =
   let rewriter =
     object
       inherit identity_rewriter
 
       method! visit_variable ~identifier ~typ =
-        Option.value ~default:(Variable (identifier, typ)) begin
-          substitution identifier
-        end
+        Variable (substitution identifier, typ)
     end
   in
   rewriter#visit expression
