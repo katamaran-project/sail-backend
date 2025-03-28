@@ -202,7 +202,7 @@ let katamaran_rewrites =
               assert(false, "Pattern match failure at model.sail:10.18-12.1");
               exit(())
           }
-}
+        }
 
     *)
     ("guarded_pats", []);
