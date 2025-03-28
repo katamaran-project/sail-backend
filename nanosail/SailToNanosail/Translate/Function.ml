@@ -1173,7 +1173,7 @@ let rec statement_of_aexp
         in
         TC.return @@ Ast.Statement.Fail (translated_type, "failure")
       end
-    | None -> TC.fail [%here] "Unknown output type" (* todo keep optional type in Fail so that we can generate a _ and hope for the best *)
+    | None -> TC.fail [%here] "Unknown output type" (* todo keep optional type in Fail so that we can generate a _ and hope that Coq can infer it *)
 
   in
   match unwrapped_expression with
