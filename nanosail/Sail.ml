@@ -1,4 +1,10 @@
-open! ExtBase
+(*
+
+   Some Sail related auxiliary definitions
+
+*)
+
+open ExtBase
 open Libsail.Ast
 
 type type_annotation = Libsail.Type_check.tannot
@@ -13,7 +19,9 @@ type ast = (Libsail.Type_check.tannot, Libsail.Type_check.env) Libsail.Ast_defs.
 let string_of_location (location : Libsail.Parse_ast.l) = StringOf.Sail.location location
 
 
-(* extracts name as string; fails on operator name *) (* todo function already exists somewhere else *)
+(*
+   Extracts name as string; fails on operator name
+*) (* todo function already exists somewhere else *)
 let string_of_id (id : id) : string =
   let Id_aux (id, _loc) = id
   in
@@ -22,7 +30,9 @@ let string_of_id (id : id) : string =
   | Operator _ -> failwith "operator names not supported"
 
 
-(* determines the name of a function *)
+(*
+   Determines the name of a function
+*)
 let identifier_of_function_definition (function_definition : 'a fundef) : string =
   let FD_aux (FD_function (_, _, x), (_location, _)) = function_definition
   in
@@ -79,7 +89,7 @@ let rec identifier_of_pattern (pattern : 'a pat) : string =
   | P_struct (_, _)             -> not_supported [%here]
 
 
-let identifier_of_value_definition (value_definition : Libsail.Type_check.tannot letbind) =
+let identifier_of_value_definition (value_definition : Libsail.Type_check.tannot letbind) : string =
   let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
   in
   identifier_of_pattern pattern
