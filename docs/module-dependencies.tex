@@ -16,17 +16,18 @@
   id/.store in=\my@id,
   name/.store in=\my@name,
   at/.store in=\my@position,
-  box options/.store in=\my@boxoptions,
+  box/.style={},
+  tag/.style={},
   below/.code={\pgfkeysalso{/tikz/anchor=north west,at={($ (#1.south west) + (0,-0.5) $)}}},
   last module/.estore in=\lastmodule,
   below last/.style={below=\lastmodule},
-  submodule of/.code={\pgfkeys{/modules/#1/.append/.expanded=(\my@id)}},
+  submodule of/.code={\pgfkeysalso{/modules/#1/.append/.expanded=(\my@id)}},
 }
 
 \newcommand{\module}[2][1]{
-  \pgfkeys{/my/.cd,#1}
-  \node[module box,\my@boxoptions] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
-  \node[module tag,anchor=south west] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
+  \pgfkeys{/my/.cd,box/.style={},tag/.style={},#1}
+  \node[module box,/my/box] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
+  \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
   \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
   \pgfkeys{/my/last module=\my@id}
 }
@@ -34,8 +35,8 @@
 \newcommand{\supermodule}[1]{
   \pgfkeys{/my/.cd,#1}
   \pgfkeys{/modules/\my@id/.get=\submodules}
-  \node[module box,\my@boxoptions,fit=\submodules] (\my@id--box) {};
-  \node[module tag,anchor=south west] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
+  \node[module box,fit=\submodules,/my/box] (\my@id--box) {};
+  \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
   \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
   \pgfkeys{/my/last module=\my@id}
 }
@@ -56,46 +57,76 @@
 \begin{document}
 
 \begin{tikzpicture}[
-  module box/.style={thick,draw,minimum width=4.5cm,inner sep=2pt},
+    module box/.style={thick,draw,minimum width=4.5cm,inner sep=2pt,fill=gray,opacity=0.3,text opacity=1},
     module tag/.style={fill=gray!50,line width=0pt,inner sep=1pt},
-    module group/.style={inner sep=0mm,line width=0pt,dashed,red,draw},
+    module group/.style={inner sep=0mm,line width=0pt},
+    dependency/.style={-latex,thick},
+    bidirectional dependency/.style={dependency,latex-latex},
   ]
 
-  \module[id=ast-unaryoperator,name=UnaryOperator,at={(-2,0)}]{ }
-  \module[id=ast-binaryoperator,name=BinaryOperator,at={(2,0)}]{}
+  \module[id=ast-unaryoperator,name=UnaryOperator,at={(0,0)},submodule of=ast]{ }
+  \module[id=ast-binaryoperator,name=BinaryOperator,below last,submodule of=ast]{}
+  \module[id=ast-identifier,name=Identifier,below last,submodule of=ast]{}
+  \module[id=ast-value,name=Value,below last,submodule of=ast]{}
 
-  \module[id=ast-expression,name=Expression,at={(0,-1)}]{
+  \coordinate (midpoint) at ($ (ast-unaryoperator--box.east) ! 0.5 ! (ast-value--box.east) $);
+
+  \module[id=ast-expression,name=Expression,at={($ (midpoint) + (2,0) $)},box/.style={anchor=west},submodule of=ast]{
     \begin{itemize}
       \item nanosail expressions
       \item simplification
     \end{itemize}
   }
 
-  \module[id=ast-statement,name=Statement,below=ast-expression]{
+  \foreach \m in {ast-unaryoperator,ast-binaryoperator,ast-value,ast-identifier} {
+    \draw[dependency] (ast-expression--box.west) -- +(-1,0) |- (\m--box.east);
+  }
+
+  \module[id=ast-statement,name=Statement,below last,submodule of=ast]{
     \begin{itemize}
       \item nanosail statements
       \item simplification
     \end{itemize}
   }
 
-  \module[id=ast-definition-variant,name=Variant,below last,submodule of=ast-definition-type]{}
-  \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{}
-  \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition-type]{}
-  \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{}
-  \supermodule{id=ast-definition-type,name=Type}
+
+  \module[id=ast-numeric-expression,name=Expression,at={($ (ast-value.south west) + (0,-1) $)},submodule of=ast-numeric]{}
+  \module[id=ast-numeric-constraint,name=Constraint,at={($ (ast-numeric-expression.south west) + (0,-0.75) $)},submodule of=ast-numeric]{}
+  \draw[dependency] (ast-numeric-constraint--box) -- (ast-numeric-expression--box);
+  \supermodule{id=ast-numeric,name=Numeric,submodule of=ast}
+
+  \module[id=ast-typeargument,name=TypeArgument,at={($ (ast-numeric-expression--box.north east) + (1,0) $)},submodule of=ast]{}
+  \module[id=ast-type,name=Type,below last,submodule of=ast]{}
+  \draw[bidirectional dependency] (ast-type--box.north) -- (ast-typeargument--box.south);
+  \draw[dependency] (ast-typeargument--box.west) -- (ast-numeric-expression--box.east);
+  \draw[bidirectional dependency] (ast-typeargument--box.west) -- +(-0.5,0) |- (ast-numeric-constraint--box.east);
+
   
-  \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{}
-  \module[id=ast-definition-function,name=Function,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-untranslated,name=Untranslated,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-value,name=Value,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-select,name=Select,below last,submodule of=ast-definition]{}
-  \addsubmodule{ast-definition}{ast-definition-type}
+  % \module[id=ast-kind,name=Kind,submodule of=ast,below=ast-value]{}
+  %\module[id=ast-typequantifier,name=TypeQuantifier,below last,submodule of=ast]{}
+
+  
+  
+  %\module[id=ast-program,name=Program,below last,submodule of=ast]{}
+  %\module[id=ast-renaming,name=Renaming,below last,submodule of=ast]{}
+
+  % \module[id=ast-definition-variant,name=Variant,at={($ (ast-unaryoperator--box.north east) + (1,0) $)},submodule of=ast-definition-type]{} */
+  % \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{} */
+  % \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition-type]{} */
+  % \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{} */
+  % \supermodule{id=ast-definition-type,name=Type,submodule of=ast-definition} */
+  
+  % \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-function,name=Function,below last,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-untranslated,name=Untranslated,below last,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-value,name=Value,below last,submodule of=ast-definition]{} */
+  % \module[id=ast-definition-select,name=Select,below last,submodule of=ast-definition]{} */
+  % \supermodule{id=ast-definition,name=Definition,below=ast-statement,submodule of=ast} */
 
 
-  % \node[module group,fit=(ast-expression)(ast-statement)(ast-unaryoperator)(ast-binaryoperator)] { };
-  \supermodule{id=ast-definition,name=Definition}
+  \supermodule{id=ast,name=Ast}
 \end{tikzpicture}
 
 \end{document}

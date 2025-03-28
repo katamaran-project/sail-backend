@@ -3,7 +3,7 @@
   Modules defined in here are aliased and should only be referred to by their alias.
 *)
 
-open! ExtBase
+open ExtBase
 
 
 module NumericExpression = struct
