@@ -980,7 +980,7 @@ let test_simplify_aliases_product =
       match product {
         (fst, snd) => result
       }
-    
+
     should become
 
       match product {
@@ -1034,7 +1034,7 @@ let test_simplify_aliases_product_2 =
       match x {
         (fst, snd) => result
       }
-    
+
     should become
 
       match y {
@@ -1088,7 +1088,7 @@ let test_simplify_aliases_product_3 =
       match product {
         (fst, snd) => x
       }
-    
+
     should become
 
       match product {
@@ -1142,7 +1142,7 @@ let test_simplify_aliases_product_4 =
       match product {
         (x, snd) => result
       }
-    
+
     should become
 
       match product {
@@ -1196,7 +1196,7 @@ let test_simplify_aliases_product_5 =
       match product {
         (x, snd) => x
       }
-    
+
     should become
 
       match product {
@@ -1250,7 +1250,7 @@ let test_simplify_aliases_product_6 =
       match product {
         (fst, x) => result
       }
-    
+
     should become
 
       match product {
@@ -1304,7 +1304,7 @@ let test_simplify_aliases_product_7 =
       match product {
         (fst, x) => x
       }
-    
+
     should become
 
       match product {
@@ -1359,7 +1359,7 @@ let test_simplify_match_enum =
         Foo => a,
         Bar => b,
       }
-    
+
     should become
 
       match value {
@@ -1415,7 +1415,7 @@ let test_simplify_match_enum_2 =
         Foo => a,
         Bar => b,
       }
-    
+
     should become
 
       match y {
@@ -1471,7 +1471,7 @@ let test_simplify_match_enum_3 =
         Foo => x,
         Bar => b,
       }
-    
+
     should become
 
       match value {
@@ -1527,7 +1527,7 @@ let test_simplify_match_enum_4 =
         Foo => a,
         Bar => x,
       }
-    
+
     should become
 
       match value {
@@ -1595,7 +1595,7 @@ let test_simplify_match_variant =
         Foo(f1) => a,
         Bar(f1, f2) => b,
       }
-    
+
     should become
 
       match value {
@@ -1663,7 +1663,7 @@ let test_simplify_match_variant_2 =
         Foo(f1) => a,
         Bar(f1, f2) => b,
       }
-    
+
     should become
 
       match y {
@@ -1731,7 +1731,7 @@ let test_simplify_match_variant_3 =
         Foo(f1) => x,
         Bar(f1, f2) => b,
       }
-    
+
     should become
 
       match value {
@@ -1799,7 +1799,7 @@ let test_simplify_match_variant_4 =
         Foo(f1) => a,
         Bar(f1, f2) => x,
       }
-    
+
     should become
 
       match value {
@@ -1867,7 +1867,7 @@ let test_simplify_match_variant_5 =
         Foo(x) => a,
         Bar(f1, f2) => b,
       }
-    
+
     should become
 
       match value {
@@ -1935,7 +1935,7 @@ let test_simplify_match_variant_6 =
         Foo(x) => x,
         Bar(f1, f2) => b,
       }
-    
+
     should become
 
       match value {
@@ -2003,7 +2003,7 @@ let test_simplify_match_variant_7 =
         Foo(f1) => a,
         Bar(x, f2) => x,
       }
-    
+
     should become
 
       match value {
@@ -2052,11 +2052,11 @@ let test_simplify_swap =
       let y = z
       in
       x + y
-    
+
     should become
 
       y + x
-    
+
   |} >:: test
 
 

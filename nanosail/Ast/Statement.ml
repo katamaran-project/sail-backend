@@ -1119,7 +1119,7 @@ let simplify_aliases (statement : t) : t =
             when_false = self#visit when_false;
           }
         end
-      
+
       method! visit_destructure_record ~record_type_identifier ~field_identifiers ~binders ~destructured_record ~body =
         DestructureRecord {
           record_type_identifier;
@@ -1140,7 +1140,7 @@ let simplify_aliases (statement : t) : t =
             body = (rewriter @@ forget_substitutions substitution [ id_fst; id_snd ])#visit body;
           }
         end
-      
+
       method! visit_match_enum ~matched ~matched_type ~cases =
         Match begin
           MatchEnum {
@@ -1149,7 +1149,7 @@ let simplify_aliases (statement : t) : t =
             cases = Identifier.Map.map_values ~f:self#visit cases
           }
         end
-        
+
       method! visit_match_variant ~matched ~matched_type ~cases =
         let process_case (binders, body) =
           (binders, (rewriter @@ forget_substitutions substitution binders)#visit body)
