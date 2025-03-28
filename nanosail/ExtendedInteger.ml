@@ -21,7 +21,7 @@ let compare (x : t) (y : t) : int =
 
 
 let equal (x : t) (y : t) : bool =
-  compare x y = 0
+  Int.equal (compare x y) 0
 
 
 let to_string (x : t) : string =
