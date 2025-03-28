@@ -386,6 +386,12 @@ let substitute_variable
 
       method! visit_variable ~identifier ~typ =
         Variable (substitution identifier, typ)
+
+      method! visit_record ~type_identifier ~fields =
+        Record {
+          type_identifier;
+          fields = List.map ~f:substitution fields
+        }
     end
   in
   rewriter#visit expression
