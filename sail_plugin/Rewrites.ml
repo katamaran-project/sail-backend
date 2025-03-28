@@ -3,68 +3,66 @@ module R = Libsail.Rewrites
 
 (*
   List of all rewrites, copied from sail source code.
-  Note: some of these rewrites still need arguments; they can't be used as-is
+  Note: some of these rewrites still need arguments; they can't be used as-is.
+
+    recheck_defs
+    realize_mappings
+    remove_duplicate_valspecs
+    toplevel_string_append
+    pat_string_append
+    mapping_patterns
+    truncate_hex_literals
+    mono_rewrites
+    complete_record_params
+    toplevel_nexps
+    toplevel_consts
+    monomorphise
+    atoms_to_singletons
+    add_bitvector_casts
+    remove_impossible_int_cases
+    const_prop_mutrec
+    make_cases_exhaustive
+    undefined
+    vector_string_pats_to_bit_list
+    remove_not_pats
+    pattern_literals
+    vector_concat_assignments
+    tuple_assignments
+    simple_assignments
+    simple_struct_assignments
+    remove_vector_concat
+    remove_vector_subrange_pats
+    remove_bitvector_pats
+    remove_numeral_pats
+    guarded_pats
+    bit_lists_to_lits
+    exp_lift_assign
+    early_return
+    nexp_ids
+    remove_blocks
+    letbind_effects
+    remove_e_assign
+    internal_lets
+    remove_superfluous_letbinds
+    remove_superfluous_returns
+    merge_function_clauses
+    minimise_recursive_functions
+    move_termination_measures
+    rewrite_explicit_measure
+    rewrite_loops_with_escape_effect
+    simple_types
+    instantiate_outcomes
+    top_sort_defs
+    constant_fold
+    split
+    properties
+    infer_effects
+    attach_effects
+    prover_regstate
+    add_unspecified_rec
+    toplevel_let_patterns
+    remove_bitfield_records
 *)
-let all_rewrites =
-  [
-    (* ("recheck_defs", []); *)
-    (* ("realize_mappings" *\), []); *)
-    (* ("remove_duplicate_valspecs", []); *)
-    (* ("toplevel_string_append", []); *)
-    (* ("pat_string_append", []); *)
-    (* ("mapping_patterns", []); *)
-    (* ("truncate_hex_literals", []); *)
-    (* ("mono_rewrites", []); *)
-    ("complete_record_params", []);
-    (* ("toplevel_nexps", []); *)
-    ("toplevel_consts", []);
-    (* ("monomorphise", []); *)
-    (* ("atoms_to_singletons", []); *)
-    ("add_bitvector_casts", []);
-    (* ("remove_impossible_int_cases", []); *)
-    (* ("const_prop_mutrec", []); *)
-    (* ("make_cases_exhaustive", []); *)
-    (* ("undefined", []); *)
-    (* ("vector_string_pats_to_bit_list", []); *)
-    (* ("remove_not_pats", []); *)
-    (* ("pattern_literals", []); *)
-    (* ("vector_concat_assignments", []); *)
-    (* ("tuple_assignments", []); *)
-    (* ("simple_assignments", []); *)
-    (* ("simple_struct_assignments", []); *)
-    (* ("remove_vector_concat", []); *)
-    (* ("remove_vector_subrange_pats", []); *)
-    (* ("remove_bitvector_pats", []); *)
-    (* ("remove_numeral_pats", []); *)
-    (* ("guarded_pats", []); *)
-    (* ("bit_lists_to_lits", []); *)
-    (* ("exp_lift_assign", []); *)
-    (* ("early_return", []); *)
-    ("nexp_ids", []);
-    (* ("remove_blocks", []); *)
-    (* ("letbind_effects", []); *)
-    (* ("remove_e_assign", []); *)
-    (* ("internal_lets", []); *)
-    (* ("remove_superfluous_letbinds", []); *)
-    (* ("remove_superfluous_returns", []); *)
-    (* ("merge_function_clauses", []); *)
-    (* ("minimise_recursive_functions", []); *)
-    (* ("move_termination_measures", []); *)
-    (* ("rewrite_explicit_measure", []); *)
-    (* ("rewrite_loops_with_escape_effect", []); *)
-    ("simple_types", []);
-    (* ("instantiate_outcomes", []); *)
-    (* ("top_sort_defs", []); *)
-    (* ("constant_fold", []); *)
-    (* ("split", []); *)
-    ("properties", []);
-    ("infer_effects", []);
-    (* ("attach_effects", []); *)
-    ("prover_regstate", []);
-    (* ("add_unspecified_rec", []); *)
-    (* ("toplevel_let_patterns", []); *)
-    (* ("remove_bitfield_records", []); *)
-  ]
 
 
 (*
