@@ -257,6 +257,7 @@ PASS registers-zero
 PASS sequence-call-int
 PASS sequence-register-write
 PASS sequence-unit-int
+PASS simplification
 PASS smorgasbord-001
 PASS statements-conditional
 PASS statements-vs-expressions
@@ -296,4 +297,4 @@ PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
 FAIL vectors
-PASS:272 FAIL:26
+PASS:273 FAIL:26
