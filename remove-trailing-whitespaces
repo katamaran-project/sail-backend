@@ -3,20 +3,28 @@
 require 'pathname'
 require 'find'
 
+
+def needs_cleanup? path
+  path.to_s !~ %r{^./_build} && [ '.ml', '.mli', '.sail', '.template.v', '.template.html' ].include?(path.extname)
+end
+
+
+def cleanup path
+  contents = path.read
+  updated_contents = contents.gsub(%r{ +\n}, "\n")  
+  path.write updated_contents
+
+  contents != updated_contents
+end
+
+
 dirty = false
 
 Find.find('.') do |path|
-  unless path =~ %r{^./_build}
-    path = Pathname.new path
+  path = Pathname.new path
 
-    if [ '.ml', '.mli', '.sail' ].include? path.extname
-      contents = path.read
-      updated_contents = contents.gsub(%r{ +\n}, "\n")
-
-      dirty ||= contents != updated_contents
-      
-      path.write updated_contents
-    end
+  if needs_cleanup? path
+    dirty = cleanup(path) || dirty  # Be careful with order
   end
 end
 
