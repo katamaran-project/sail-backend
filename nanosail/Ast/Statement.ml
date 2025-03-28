@@ -605,6 +605,9 @@ let rec to_fexpr (statement : t) : FExpr.t =
     }                            -> write_register_to_fexpr register_identifier written_value
 
 
+(*
+  Collects all free variables in a given statement.
+*)
 let rec free_variables (statement : t) : Identifier.Set.t =
   match statement with
   | Match (MatchList { matched; element_type = _; when_cons; when_nil }) -> begin
