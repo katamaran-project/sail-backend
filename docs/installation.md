@@ -35,3 +35,9 @@ The plugin is installed correctly if the following command produces the output s
 $ sail --katamaran
 No configuration file specified; use --katamaran-config to specify one
 ```
+
+## Uninstalling
+
+```sh
+$ dune uninstall
+```

@@ -6,12 +6,14 @@
 
 \begin{document}
 
-\begin{tikzpicture}[project/.style={minimum width=2cm,minimum height=8mm,draw,fill=white,drop shadow,font=\ttfamily\Huge,ultra thick},
+\begin{tikzpicture}[project/.style={minimum width=4cm,minimum height=8mm,draw,fill=white,drop shadow,font=\ttfamily,ultra thick},
                     dependency/.style={-latex, ultra thick}]
   \node[project] (monads) at (0, 0) {monads};
-  \node[project] (nanosail) at (10, 0) {nanosail};
-  \node[project] (plugin) at (20, 0) {sail\textunderscore plugin};
+  \node[project] (nanosail) at (0, 2) {nanosail};
+  \node[project] (plugin) at (0, 4) {sail\textunderscore plugin};
 
+  \draw[dependency] (nanosail) -- (monads);
+  \draw[dependency] (plugin) -- (nanosail);
 \end{tikzpicture}
 
 \end{document}

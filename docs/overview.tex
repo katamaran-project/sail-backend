@@ -23,7 +23,7 @@
       Relies on monad \texttt{TranslationContext}
     }
   };
-  \draw[thin] (nanosail.north) -- ++(1,1) node[note,anchor=south] { defined in \texttt{Ast} module };
+  \draw[thin] (nanosail.north) -- ++(0,1) node[note,anchor=south] { defined in \texttt{Ast} module };
   \draw[thin] (phase-2) -- ++(0,-1) node[note,anchor=north] {
     \parbox{8cm}{
       Implementation in module \texttt{NanosailToMicrosail} \\
@@ -32,7 +32,7 @@
   };
   \draw[thin] (microsail) -- ++(0,1) node[anchor=south,note] {
     Generated using module \texttt{PP}
-  }
+  };
 \end{tikzpicture}
 
 \end{document}
