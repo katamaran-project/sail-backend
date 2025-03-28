@@ -602,7 +602,6 @@ let with_destructured_record
    The reason expression_type is "S.typ option" instead of just "S.typ":
    when dealing with a sequence "a; b; c", it is unclear
    what the expected types of a and b should be.
-   Our current implementation assumes unit.
 *)
 let rec statement_of_aexp
     (expression_type : S.typ option)
