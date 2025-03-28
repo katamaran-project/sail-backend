@@ -25,7 +25,7 @@
 
 \newcommand{\module}[2][1]{
   \pgfkeys{/my/.cd,#1}
-  \node[module box,\my@boxoptions] (\my@id--box) at \my@position {\parbox{2.5cm}{\tiny #2}};
+  \node[module box,\my@boxoptions] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
   \node[module tag,anchor=south west] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
   \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
   \pgfkeys{/my/last module=\my@id}
@@ -41,8 +41,8 @@
 }
 
 
-\newcommand{\declaremodule}[1]{
-  \pgfkeys{/modules/.initial={}}
+\newcommand{\addsubmodule}[2]{
+   \pgfkeys{/modules/#1/.append=(#2)}
 }
 
 \makeatother
@@ -56,7 +56,7 @@
 \begin{document}
 
 \begin{tikzpicture}[
-    module box/.style={thick,draw,minimum width=3cm,inner sep=2pt},
+  module box/.style={thick,draw,minimum width=4.5cm,inner sep=2pt},
     module tag/.style={fill=gray!50,line width=0pt,inner sep=1pt},
     module group/.style={inner sep=0mm,line width=0pt,dashed,red,draw},
   ]
@@ -78,15 +78,20 @@
     \end{itemize}
   }
 
-  \declaremodule{ast-definition}
-  \module[id=ast-definition-functiontype,name=FunctionType,at={(0,-5)},submodule of=ast-definition]{}
+  \module[id=ast-definition-variant,name=Variant,below last,submodule of=ast-definition-type]{}
+  \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{}
+  \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition-type]{}
+  \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{}
+  \supermodule{id=ast-definition-type,name=Type}
+  
+  \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{}
   \module[id=ast-definition-function,name=Function,below last,submodule of=ast-definition]{}
   \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-type,name=Type,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition]{}
-  \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition]{}
   \module[id=ast-definition-untranslated,name=Untranslated,below last,submodule of=ast-definition]{}
+  \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{}
+  \module[id=ast-definition-value,name=Value,below last,submodule of=ast-definition]{}
+  \module[id=ast-definition-select,name=Select,below last,submodule of=ast-definition]{}
+  \addsubmodule{ast-definition}{ast-definition-type}
 
 
   % \node[module group,fit=(ast-expression)(ast-statement)(ast-unaryoperator)(ast-binaryoperator)] { };
