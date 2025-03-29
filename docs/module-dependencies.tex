@@ -18,17 +18,24 @@
   at/.store in=\my@position,
   box/.style={},
   tag/.style={},
-  below/.code={\pgfkeysalso{/tikz/anchor=north west,at={($ (#1.south west) + (0,-0.5) $)}}},
+  below at/.code 2 args={\pgfkeysalso{/tikz/anchor=north west,at={($ (#1.south west) + (0,-#2) $)}}},
+  below/.code={\pgfkeysalso{/tikz/anchor=north west,at={($ (#1.south west) + (0,-0.5) $)}}},  
   last module/.estore in=\lastmodule,
-  below last/.style={below=\lastmodule},
+  below last/.default={0.5},
+  below last/.style={below at={\lastmodule}{#1}},
   submodule of/.code={\pgfkeysalso{/modules/#1/.append/.expanded=(\my@id)}},
+  layer/.initial=main,
+  layern/.style={layer=layer #1},
 }
 
 \newcommand{\module}[2][1]{
   \pgfkeys{/my/.cd,box/.style={},tag/.style={},#1}
-  \node[module box,/my/box] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
-  \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
-  \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
+  \pgfkeys{/my/layer/.get=\my@layer}
+  \pgfonlayer{\my@layer}
+    \node[module box,/my/box] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
+    \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
+    \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
+  \endpgfonlayer
   \pgfkeys{/my/last module=\my@id}
 }
 
@@ -52,7 +59,13 @@
 % Styling for itemize lists
 \setlist{nosep,leftmargin=-1em,label={}}
 
-
+% Unused as of yet, but meant to counteract the fact that inner modules are dimmer than their enclosing modules
+\pgfdeclarelayer{layer 1}
+\pgfdeclarelayer{layer 2}
+\pgfdeclarelayer{layer 3}
+\pgfdeclarelayer{layer 4}
+\pgfdeclarelayer{layer 5}
+\pgfsetlayers{main,layer 1,layer 2,layer 3,layer 4,layer 1,layer 5}
 
 \begin{document}
 
@@ -82,16 +95,21 @@
     \draw[dependency] (ast-expression--box.west) -- +(-1,0) |- (\m--box.east);
   }
 
-  \module[id=ast-statement,name=Statement,below last,submodule of=ast]{
+  \module[id=ast-statement,name=Statement,below last=0.75,submodule of=ast]{
     \begin{itemize}
       \item nanosail statements
       \item simplification
     \end{itemize}
   }
+  \draw[dependency] (ast-statement--box.north) -- (ast-expression--box.south);
 
 
   \module[id=ast-numeric-expression,name=Expression,at={($ (ast-value.south west) + (0,-1) $)},submodule of=ast-numeric]{}
-  \module[id=ast-numeric-constraint,name=Constraint,at={($ (ast-numeric-expression.south west) + (0,-0.75) $)},submodule of=ast-numeric]{}
+  \module[id=ast-numeric-constraint,name=Constraint,at={($ (ast-numeric-expression.south west) + (0,-0.75) $)},submodule of=ast-numeric]{
+    \begin{itemize}
+      \item used on type level (refinement types)
+    \end{itemize}
+  }
   \draw[dependency] (ast-numeric-constraint--box) -- (ast-numeric-expression--box);
   \supermodule{id=ast-numeric,name=Numeric,submodule of=ast}
 
@@ -102,28 +120,54 @@
   \draw[bidirectional dependency] (ast-typeargument--box.west) -- +(-0.5,0) |- (ast-numeric-constraint--box.east);
 
   
-  % \module[id=ast-kind,name=Kind,submodule of=ast,below=ast-value]{}
-  %\module[id=ast-typequantifier,name=TypeQuantifier,below last,submodule of=ast]{}
+  \module[id=ast-kind,name=Kind,submodule of=ast,below=ast-numeric-constraint]{}
+  \module[id=ast-typequantifier,name=TypeQuantifier,below last=0.75,submodule of=ast]{}
+  \draw[dependency] (ast-typequantifier--box.north) -- (ast-kind--box.south);
 
   
   
   %\module[id=ast-program,name=Program,below last,submodule of=ast]{}
   %\module[id=ast-renaming,name=Renaming,below last,submodule of=ast]{}
 
-  % \module[id=ast-definition-variant,name=Variant,at={($ (ast-unaryoperator--box.north east) + (1,0) $)},submodule of=ast-definition-type]{} */
-  % \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{} */
-  % \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition-type]{} */
-  % \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{} */
-  % \supermodule{id=ast-definition-type,name=Type,submodule of=ast-definition} */
+  \module[id=ast-definition-variant,name=Variant,at={($ (ast-expression--box.north east) + (1,0) $)},submodule of=ast-definition-type]{}
+  \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{}
+  \module[id=ast-definition-record,name=Record,below last,submodule of=ast-definition-type]{}
+  \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{}
+  \supermodule{id=ast-definition-type,name=Type,submodule of=ast-definition}
   
-  % \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-function,name=Function,below last,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-untranslated,name=Untranslated,below last,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-value,name=Value,below last,submodule of=ast-definition]{} */
-  % \module[id=ast-definition-select,name=Select,below last,submodule of=ast-definition]{} */
-  % \supermodule{id=ast-definition,name=Definition,below=ast-statement,submodule of=ast} */
+  \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Limited information about function types
+      \item More in corresponding top level type constraint
+    \end{itemize}
+  }
+  \module[id=ast-definition-function,name=Function,below last=0.75,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Function name, type (incomplete), body
+      \item Holds list of monomorphs
+    \end{itemize}
+  }
+  \draw[dependency] (ast-definition-function--box.north) -- (ast-definition-functiontype--box.south);
+  
+  \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{}
+  \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Corresponds to \texttt{val} declarations in Sail
+      \item Need to be consulted to access full typing information
+    \end{itemize}
+  }
+  \module[id=ast-definition-value,name=Value,below last,submodule of=ast-definition]{}
+  \module[id=ast-definition-untranslated,name=Untranslated,below last,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Represents Sail definitions that failed to be translated
+    \end{itemize}
+  }
+  \module[id=ast-definition-select,name=Select,below last,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Predicates aiding in lookup definitions
+    \end{itemize}
+  }
+  \supermodule{id=ast-definition,name=Definition,below=ast-statement,submodule of=ast}
 
 
   \supermodule{id=ast,name=Ast}
