@@ -1029,7 +1029,6 @@ let pp_regdeclkit register_definitions : PP.t GC.t =
    Definition Memory := Z -> Z. (* TODO *)
   End MemoryModel.
 
-
 *)
 let pp_memory_model () : PP.t GC.t =
   GC.generation_block [%here] "Memory Model" begin
