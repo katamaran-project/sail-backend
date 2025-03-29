@@ -252,7 +252,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
         let* pp_argument_types_list : PP.t =
           let pp_argument_types (argument_types : Ast.Type.t list) : PP.t GC.t =
             let* pp_argument_types =
-              GC.map ~f:Nanotype.pp_nanotype argument_types
+              GC.map ~f:Type.pp_nanotype argument_types
             in
             let index_formatter (index : int) : PP.t =
               PP.(horizontal [ string "arg #"; integer index; string ": " ])

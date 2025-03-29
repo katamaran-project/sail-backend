@@ -66,7 +66,7 @@ let rec pp_function_definition
                     Identifier.pp id
                   in
                   let* pp_typ =
-                    Nanotype.pp_nanotype typ
+                    Type.pp_nanotype typ
                   in
                   GC.return (pp_id, pp_typ)
                 in
@@ -78,7 +78,7 @@ let rec pp_function_definition
               GC.return @@ PP.annotate [%here] @@ Coq.pp_list docs
             in
             let* pp_result_type =
-              Nanotype.pp_nanotype function_definition.function_type.return_type
+              Type.pp_nanotype function_definition.function_type.return_type
             in
             GC.return begin
               Some begin

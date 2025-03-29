@@ -29,7 +29,7 @@ let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.t GC.t 
         let* body = pp_value value
         in
         let* result_type =
-          GC.lift_option (Some (Nanotype.coq_type_of_nanotype @@ Ast.Value.type_of_value value))
+          GC.lift_option (Some (Type.coq_type_of_nanotype @@ Ast.Value.type_of_value value))
         in
         GC.return @@ PP.annotate [%here] @@ Coq.pp_definition ~identifier ~result_type body
       in

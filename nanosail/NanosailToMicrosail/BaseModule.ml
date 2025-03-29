@@ -111,7 +111,7 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast
         *)
         let* expression =
           GC.pp_annotate [%here] begin
-            Nanotype.pp_nanotype typ
+            Type.pp_nanotype typ
           end
         in
         GC.block begin
@@ -417,7 +417,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
                     | [x]    -> x
                     | xs     -> Tuple xs
                   in
-                  GC.pp_annotate [%here] @@ Nanotype.pp_nanotype packed_type
+                  GC.pp_annotate [%here] @@ Type.pp_nanotype packed_type
                 in
                 GC.return @@ (pp_constructor_tag, pp_constructor_field_types)
               in
@@ -733,7 +733,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
             let pp_field (field_identifier, field_type) =
               let id = PP.annotate [%here] @@ Identifier.pp field_identifier
               in
-              let* t = GC.pp_annotate [%here] @@ Nanotype.pp_nanotype field_type
+              let* t = GC.pp_annotate [%here] @@ Type.pp_nanotype field_type
               in
               GC.return @@ PP.(annotate [%here] @@ separate_horizontally ~separator:space [ surround dquotes id; string "::"; t ])
             in
@@ -881,7 +881,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
               let* bindings =
                 let make_binding (field_identifier, field_type) =
                   let* pp_field_type =
-                    GC.pp_annotate [%here] @@ Nanotype.pp_nanotype field_type
+                    GC.pp_annotate [%here] @@ Type.pp_nanotype field_type
                   in
                   GC.return @@ PP.separate_horizontally ~separator:PP.space [
                       PP.string "►";

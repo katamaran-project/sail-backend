@@ -30,7 +30,7 @@ let pp_type_abbreviation (type_abbreviation : Ast.Definition.Type.Abbreviation.t
         let* pp_alias =
           let  identifier  = Identifier.pp identifier
           in
-          let* body        = Nanotype.coq_type_of_nanotype typ
+          let* body        = Type.coq_type_of_nanotype typ
           and* parameters  = TypeQuantifier.pp_type_quantifier quantifier
           in
           GC.return @@ Coq.pp_definition ~identifier ~parameters body;
