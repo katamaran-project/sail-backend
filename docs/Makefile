@@ -1,11 +1,8 @@
 IMAGEMAGICK=convert
 
-all: overview.png projects.png
+all: overview.png projects.png ast-module.png sail-to-nanosail-module.png nanosail-to-microsail-module.png
 
-overview.png: overview.pdf
-	${IMAGEMAGICK} -quality 200 -density 200 $< -trim $@
-
-projects.png: projects.pdf
+%.png: %.pdf
 	${IMAGEMAGICK} -quality 200 -density 200 $< -trim $@
 
 %.pdf: %.tex
