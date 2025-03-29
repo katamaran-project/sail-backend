@@ -32,7 +32,7 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
                 PP.annotate [%here] @@ Identifier.pp register_definition.identifier
               in
               let* register_type =
-                GC.pp_annotate [%here] @@ Type.pp_nanotype register_definition.typ
+                GC.pp_annotate [%here] @@ Type.pp_type register_definition.typ
               in
               let typ =
                 PP.annotate [%here] begin

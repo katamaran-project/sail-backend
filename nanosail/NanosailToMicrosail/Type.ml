@@ -7,7 +7,7 @@ module GC = struct
 end
 
 
-let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
+let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   (* Tuple of two elements get represented as products *)
   let pp_tuple (subtypes : Ast.Type.t list) =
     let pp_product
@@ -15,9 +15,9 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
         (t2 : Ast.Type.t) : PP.t GC.t
       =
       let* t1' =
-        GC.pp_annotate [%here] @@ pp_nanotype t1
+        GC.pp_annotate [%here] @@ pp_type t1
       and* t2' =
-        GC.pp_annotate [%here] @@ pp_nanotype t2
+        GC.pp_annotate [%here] @@ pp_type t2
       in
       GC.return begin
         PP.annotate [%here] begin
@@ -33,7 +33,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
     | [_]      -> GC.fail [%here] "should not occur"
     | [t1; t2] -> pp_product t1 t2
     | _        -> begin
-        let* pp_elts = GC.map ~f:pp_nanotype subtypes
+        let* pp_elts = GC.map ~f:pp_type subtypes
         in
         GC.return begin
           PP.annotate [%here] begin
@@ -45,7 +45,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
       end
 
   and pp_list element_type =
-    let* pp_element_type = pp_nanotype element_type
+    let* pp_element_type = pp_type element_type
     in
     GC.return begin
       PP.annotate [%here] begin
@@ -62,7 +62,7 @@ let rec pp_nanotype (typ : Ast.Type.t) : PP.t GC.t =
       (type_arguments : Ast.TypeArgument.t list) : PP.t GC.t
     =
     let* pp_constructor =
-      GC.pp_annotate [%here] @@ pp_nanotype constructor
+      GC.pp_annotate [%here] @@ pp_type constructor
     and* pp_type_arguments =
       GC.map ~f:(GC.(compose (return <. PP.(surround parens)) pp_type_argument)) type_arguments
     in
@@ -223,6 +223,6 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
 
 and pp_type_argument (type_argument : Ast.TypeArgument.t) : PP.t GC.t =
   match type_argument with
-  | Type t              -> GC.pp_annotate [%here] @@ pp_nanotype t
+  | Type t              -> GC.pp_annotate [%here] @@ pp_type t
   | NumericExpression e -> GC.pp_annotate [%here] @@ Numeric.Expression.pp e
   | Bool nc             -> GC.pp_annotate [%here] @@ Numeric.Constraint.pp nc

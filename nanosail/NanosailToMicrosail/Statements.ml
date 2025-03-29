@@ -431,7 +431,7 @@ and pp_let
   let  pp_binder                 = PP.annotate [%here] @@ Identifier.pp binder
   in
   let* pp_binding_statement      = pp_statement binding_statement
-  and* pp_binding_statement_type = Type.pp_nanotype binding_statement_type
+  and* pp_binding_statement_type = Type.pp_type binding_statement_type
   and* pp_body_statement         = pp_statement body_statement
   in
   if
@@ -546,7 +546,7 @@ and pp_fail
   =
   let pp_message = Coq.pp_string message
   in
-  let* pp_typ = Type.pp_nanotype typ
+  let* pp_typ = Type.pp_type typ
   in
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 

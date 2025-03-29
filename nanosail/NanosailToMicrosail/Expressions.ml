@@ -46,7 +46,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
         | Unit             -> GC.return @@ MuSail.Expression.pp_unit ()
         | Prod (_, _) as v -> begin
             let* pp_tuple_type =
-              Type.pp_nanotype (Ast.Value.type_of_value v)
+              Type.pp_type (Ast.Value.type_of_value v)
             and* pp_value' =
               pp_value v
             in

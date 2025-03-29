@@ -21,7 +21,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
               Identifier.pp id
             in
             let* pp_typ =
-              Type.pp_nanotype typ
+              Type.pp_type typ
             in
             GC.return (pp_id, pp_typ)
           in
@@ -33,7 +33,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
         GC.return @@ Coq.pp_list ps
       in
       let* return_type =
-        Type.pp_nanotype function_definition.function_type.return_type
+        Type.pp_type function_definition.function_type.return_type
       in
       GC.return begin
         PP.(
