@@ -58,10 +58,12 @@
   \module[id=n2m-untranslated,name=Untranslated,below last,submodule of=n2m]{}
 
   \module[id=n2m-basemodule,name=BaseModule,at={($ (n2m-types-enums--box.north east) + (1,0) $)},submodule of=n2m]{}
-  \module[id=n2m-foreignkit,name=ForeignKit,below last,submodule of=n2m]{}
-  \module[id=n2m-fundeclkit,name=FunDeclKit,below last,submodule of=n2m]{}
-  \module[id=n2m-fundefkit,name=FunDefKit,below last,submodule of=n2m]{}
-  \module[id=n2m-programmodule,name=ProgramModule,below last,submodule of=n2m]{}
+  
+  \module[id=n2m-foreignkit,name=ForeignKit,below last=1.5,submodule of=n2m-programmodule]{}
+  \module[id=n2m-fundeclkit,name=FunDeclKit,below last,submodule of=n2m-programmodule]{}
+  \module[id=n2m-fundefkit,name=FunDefKit,below last,submodule of=n2m-programmodule]{}
+  \supermodule{id=n2m-programmodule,name=ProgramModule,below last,submodule of=n2m}
+  
   \module[id=n2m-katamaran,name=Katamaran,below last=1,submodule of=n2m]{
     \begin{itemize}
       \item Top level generation functionality
