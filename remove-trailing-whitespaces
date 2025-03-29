@@ -11,8 +11,9 @@ end
 
 def cleanup path
   contents = path.read
-  updated_contents = contents.gsub(%r{ +\n}, "\n")  
-  path.write updated_contents
+  updated_contents = contents.gsub(%r{ +\n}, "\n")
+
+  path.write updated_contents unless contents == updated_contents
 
   contents != updated_contents
 end
