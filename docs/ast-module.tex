@@ -11,17 +11,47 @@
     bidirectional dependency/.style={dependency,latex-latex},
   ]
 
-  \module[id=ast-unaryoperator,name=UnaryOperator,at={(0,0)},submodule of=ast]{ }
-  \module[id=ast-binaryoperator,name=BinaryOperator,below last,submodule of=ast]{}
+  \module[id=ast-unaryoperator,name=UnaryOperator,at={(0,0)},submodule of=ast]{
+    \begin{itemize}
+      \item Unary operators
+        \begin{itemize}
+          \item Neg
+          \item Not
+        \end{itemize}
+    \end{itemize}
+  }
+  \module[id=ast-binaryoperator,name=BinaryOperator,below last,submodule of=ast]{
+    \begin{itemize}
+      \item Binary operators
+        \begin{itemize}
+          \item \texttt{+}, \texttt{-}, \texttt{*}
+          \item \texttt{and}, \texttt{or}
+          \item Pairs
+          \item Cons
+          \item Append
+          \item Equality, Comparison
+        \end{itemize}
+    \end{itemize}
+  }
   \module[id=ast-identifier,name=Identifier,below last,submodule of=ast]{}
-  \module[id=ast-value,name=Value,below last,submodule of=ast]{}
+  \module[id=ast-value,name=Value,below last,submodule of=ast]{
+    \begin{itemize}
+      \item Unit
+      \item Bool
+      \item Int
+      \item String
+      \item Product
+      \item Bit
+      \item Bitvector
+    \end{itemize}
+  }
 
   \coordinate (midpoint) at ($ (ast-unaryoperator--box.east) ! 0.5 ! (ast-value--box.east) $);
 
   \module[id=ast-expression,name=Expression,at={($ (midpoint) + (2,0) $)},box/.style={anchor=west},submodule of=ast]{
     \begin{itemize}
-      \item nanosail expressions
-      \item simplification
+      \item Nanosail expressions
+      \item Simplification
     \end{itemize}
   }
 
@@ -31,8 +61,8 @@
 
   \module[id=ast-statement,name=Statement,below last=0.75,submodule of=ast]{
     \begin{itemize}
-      \item nanosail statements
-      \item simplification
+      \item Nanosail statements
+      \item Simplification
     \end{itemize}
   }
   \draw[dependency] (ast-statement--box.north) -- (ast-expression--box.south);
@@ -41,7 +71,7 @@
   \module[id=ast-numeric-expression,name=Expression,at={($ (ast-value.south west) + (0,-1) $)},submodule of=ast-numeric]{}
   \module[id=ast-numeric-constraint,name=Constraint,at={($ (ast-numeric-expression.south west) + (0,-0.75) $)},submodule of=ast-numeric]{
     \begin{itemize}
-      \item used on type level (refinement types)
+      \item Used on type level (refinement types)
     \end{itemize}
   }
   \draw[dependency] (ast-numeric-constraint--box) -- (ast-numeric-expression--box);
@@ -57,11 +87,20 @@
   \module[id=ast-kind,name=Kind,submodule of=ast,below at={ast-numeric-constraint}{0.75}]{
     \begin{itemize}
       \item Types of type-level variables
-      \item \texttt{Int}, \texttt{Bool} or \texttt{Type}
+        \begin{itemize}
+          \item \texttt{Int}
+          \item \texttt{Bool}
+          \item \texttt{Type}
+        \end{itemize}
     \end{itemize}
   }
-  \module[id=ast-typequantifier,name=TypeQuantifier,below last=0.75,submodule of=ast]{}
-  \draw[dependency] (ast-typequantifier--box.north) -- (ast-kind--box.south);
+  \module[id=ast-typequantifier,name=TypeQuantifier,below last=0.75,submodule of=ast]{
+    \begin{itemize}
+      \item $\forall (x_1 : \mathrm{kind}) (x_2 : \mathrm{kind})\dots (x_n : \mathrm{kind})$
+    \end{itemize}
+  }
+  \coordinate (temp) at ($ (ast-typequantifier--box.north west) ! 0.7 ! (ast-typequantifier--box.north east) $);
+  \draw[dependency] (temp) -- (temp |- ast-kind--box.south);
 
   \module[id=ast-definition-variant,name=Variant,at={($ (ast-expression--box.north east) + (1,0) $)},submodule of=ast-definition-type]{}
   \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{}
@@ -113,11 +152,9 @@
 
   \draw[dependency] (ast-program--box.east) -- (ast-program--box.east -| ast-definition.west);
   \draw[dependency] (ast-definition-function--box.west) -- +(-0.5,0) |- (ast-statement--box);
-  \draw[dependency] (ast-definition-functiontype--box.west) -| (ast-type--box.south);
+  \draw[dependency] (ast-definition-functiontype--box.west) -- +(-0.5,0) |- (ast-type--box.east);
   
   \supermodule{id=ast,name=Ast}
-
-
 \end{tikzpicture}
 
 \end{document}

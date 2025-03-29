@@ -58,7 +58,7 @@
 
 
 % Styling for itemize lists
-\setlist{nosep,leftmargin=-1em,label={}}
+\setlist{nosep,leftmargin=1em,label={$\bullet$}}
 
 % Unused as of yet, but meant to counteract the fact that inner modules are dimmer than their enclosing modules
 \pgfdeclarelayer{layer 1}
