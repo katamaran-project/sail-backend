@@ -1,0 +1,52 @@
+\documentclass{diagram}
+
+
+\begin{document}
+
+\begin{tikzpicture}[
+    module box/.style={thick,draw,minimum width=4.5cm,inner sep=2pt,fill=gray,opacity=0.3,text opacity=1},
+    module tag/.style={fill=gray!50,line width=0pt,inner sep=1pt},
+    module group/.style={inner sep=0mm,line width=0pt},
+    dependency/.style={-latex,thick},
+    bidirectional dependency/.style={dependency,latex-latex},
+  ]
+
+  \module[id=s2n-prelude,name=Prelude,box/.style={anchor=west},submodule of=s2n,at={(0,0)}]{
+    \begin{itemize}
+      \item Pre-existing definitions
+    \end{itemize}
+  }
+
+  \module[id=s2n-translationcontext,name=TranslationContext,below=s2n-prelude,submodule of=s2n]{
+    \begin{itemize}
+      \item Monad
+      \item Keeps track of definitions
+      \item Definition lookup functionality
+      \item Unique identifier generation
+    \end{itemize}
+  }
+
+  \module[id=s2n-translate-enum,name=Enum,at={($ (s2n-prelude--box.east) + (1,0) $)},submodule of=s2n-translate]{}
+  \module[id=s2n-translate-function,name=Function,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-identifier,name=Identifier,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-literal,name=Literal,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-match,name=Match,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-numeric,name=Numeric,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-record,name=Record,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-register,name=Register,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-type,name=Type,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-typeabbreviation,name=TypeAbbreviation,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-typedefinition,name=TypeDefinition,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-typequantifier,name=TypeQuantifier,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-valuedefinition,name=ValueDefinition,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-variant,name=Variant,below last,submodule of=s2n-translate]{}
+
+  \supermodule{id=s2n-translate,submodule of=s2n,name=Translate}
+  
+
+  \supermodule{id=s2n,name=SailToNanosail}
+  
+\end{tikzpicture}
+
+\end{document}
