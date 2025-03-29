@@ -1,0 +1,39 @@
+\documentclass{diagram}
+
+
+\begin{document}
+
+\begin{tikzpicture}[
+    module box/.style={thick,draw,minimum width=4.5cm,inner sep=2pt,fill=gray,opacity=0.3,text opacity=1},
+    module tag/.style={fill=gray!50,line width=0pt,inner sep=1pt},
+    module group/.style={inner sep=0mm,line width=0pt},
+    dependency/.style={-latex,thick},
+    bidirectional dependency/.style={dependency,latex-latex},
+  ]
+
+  \module[id=n2m-coq,name=Coq,box/.style={anchor=west},submodule of=n2m,at={(0,0)}]{
+    \begin{itemize}
+      \item Generation of Coq code
+    \end{itemize}
+  }
+
+  \module[id=n2m-generationcontext,name=GenerationContext,below=n2m-coq,submodule of=n2m]{
+    \begin{itemize}
+      \item Monad
+      \item Keeps track of definitions
+      \item Definition lookup functionality
+      \item Unique identifier generation
+    \end{itemize}
+  }
+
+  \module[id=n2m-types-enums,name=Enums,at={($ (n2m-coq--box.east) + (1,0) $)},submodule of=n2m-types]{}
+  \module[id=n2m-types-records,name=Records,below last,submodule of=n2m-types]{}
+  \module[id=n2m-types-typeabbreviations,name=TypeAbbreviations,below last,submodule of=n2m-types]{}
+  \module[id=n2m-types-variants,name=Variants,below last,submodule of=n2m-types]{}
+  \supermodule{id=n2m-types,submodule of=n2m,name=Types}
+
+  \supermodule{id=n2m,name=NanosailToMicrosail}
+  
+\end{tikzpicture}
+
+\end{document}
