@@ -35,6 +35,8 @@ When Sail and muSail disagree in their representations, nanosail tends to side w
 * Similarly to Sail, a nanosail program (see `Ast.Program.t`) consists of a series of definitions.
   See `Ast.Definition` for which types of definitions exist.
 
+![Ast Module](./ast-module.png)
+
 ## Sail to Nanosail
 
 All Sail to nanosail translation logic is grouped in the `SailToNanosail` module.
@@ -55,6 +57,8 @@ It provides the following functionality:
     When a `NotYetImplemented` is signaled, the current definition being translated is given up on:
     a `Ast.Definition.UntranslatedDefinition` gets registered and the translation process moves on to the next definition.
 
+![SailToNanosail Module](./sail-to-nanosail-module.png)
+
 ## Nanosail to muSail
 
 All nanosail to muSail functionality can be found in the `NanosailToSail` module.
@@ -68,6 +72,8 @@ Similarly to the first translation phase, we defined a monad, named `GenerationC
     This information is not inherent to `GenerationContext`, but is functionality provided by `Document`, see below.
   * Generated code can be grouped in blocks. A block can be annotated with comments and annotations.
     See section below.
+
+![NanosailToMicrosail Module](./nanosail-to-microsail-module.png)
 
 ### Blocks
 
