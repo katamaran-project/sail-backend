@@ -1,5 +1,7 @@
 # Code Overview
 
+Note: there are TeX files containing diagrams in the same directory as this file.
+
 ## Project Structure
 
 This repository contains three projects:
