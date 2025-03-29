@@ -4,6 +4,10 @@ open Monads.Notations.Star(GenerationContext)
 module GC = GenerationContext
 
 
+module ForeignKit = ForeignKit
+module FunDeclKit = FunDeclKit
+module FunDefKit  = FunDefKit
+
 let genblock loc label doc =
   GC.generation_block loc label doc
 
