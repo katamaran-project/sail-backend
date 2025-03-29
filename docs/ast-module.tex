@@ -1,4 +1,4 @@
-\documentclass{standalone}
+\documentclass[margin=5mm]{standalone}
 \usepackage{tikz}
 \usepackage{pxfonts}
 \usepackage{enumitem}
@@ -32,7 +32,7 @@
   \pgfkeys{/my/.cd,box/.style={},tag/.style={},#1}
   \pgfkeys{/my/layer/.get=\my@layer}
   \pgfonlayer{\my@layer}
-    \node[module box,/my/box] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
+    \node[module box,inner sep=1mm,/my/box] (\my@id--box) at \my@position {\parbox{4cm}{\tiny #2}};
     \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
     \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
   \endpgfonlayer
@@ -42,7 +42,7 @@
 \newcommand{\supermodule}[1]{
   \pgfkeys{/my/.cd,#1}
   \pgfkeys{/modules/\my@id/.get=\submodules}
-  \node[module box,fit=\submodules,/my/box] (\my@id--box) {};
+  \node[module box,fit=\submodules,inner sep=2mm,/my/box] (\my@id--box) {};
   \node[module tag,anchor=south west,/my/tag] (\my@id--tag) at (\my@id--box.north west) { \texttt{\my@name} };
   \node[module group,fit=(\my@id--box) (\my@id--tag)] (\my@id) {};
   \pgfkeys{/my/last module=\my@id}
@@ -120,14 +120,14 @@
   \draw[bidirectional dependency] (ast-typeargument--box.west) -- +(-0.5,0) |- (ast-numeric-constraint--box.east);
 
   
-  \module[id=ast-kind,name=Kind,submodule of=ast,below=ast-numeric-constraint]{}
+  \module[id=ast-kind,name=Kind,submodule of=ast,below at={ast-numeric-constraint}{0.75}]{
+    \begin{itemize}
+      \item Types of type-level variables
+      \item \texttt{Int}, \texttt{Bool} or \texttt{Type}
+    \end{itemize}
+  }
   \module[id=ast-typequantifier,name=TypeQuantifier,below last=0.75,submodule of=ast]{}
   \draw[dependency] (ast-typequantifier--box.north) -- (ast-kind--box.south);
-
-  
-  
-  %\module[id=ast-program,name=Program,below last,submodule of=ast]{}
-  %\module[id=ast-renaming,name=Renaming,below last,submodule of=ast]{}
 
   \module[id=ast-definition-variant,name=Variant,at={($ (ast-expression--box.north east) + (1,0) $)},submodule of=ast-definition-type]{}
   \module[id=ast-definition-enum,name=Enum,below last,submodule of=ast-definition-type]{}
@@ -135,19 +135,20 @@
   \module[id=ast-definition-abbreviation,name=Abbreviation,below last,submodule of=ast-definition-type]{}
   \supermodule{id=ast-definition-type,name=Type,submodule of=ast-definition}
   
-  \module[id=ast-definition-functiontype,name=FunctionType,below=ast-definition-type,submodule of=ast-definition]{
-    \begin{itemize}
-      \item Limited information about function types
-      \item More in corresponding top level type constraint
-    \end{itemize}
-  }
-  \module[id=ast-definition-function,name=Function,below last=0.75,submodule of=ast-definition]{
+  \module[id=ast-definition-function,name=Function,below=ast-definition-type,submodule of=ast-definition]{
     \begin{itemize}
       \item Function name, type (incomplete), body
       \item Holds list of monomorphs
     \end{itemize}
   }
-  \draw[dependency] (ast-definition-function--box.north) -- (ast-definition-functiontype--box.south);
+  \module[id=ast-definition-functiontype,name=FunctionType,below last=0.75,submodule of=ast-definition]{
+    \begin{itemize}
+      \item Limited information about function types
+      \item More in corresponding top level type constraint
+    \end{itemize}
+  }
+  \coordinate (temp) at ($ (ast-definition-function--box.south west) ! 0.6 ! (ast-definition-function--box.south east) $);
+  \draw[dependency] (temp) -- (temp |- ast-definition-functiontype--box.north);
   
   \module[id=ast-definition-register,name=Register,below last,submodule of=ast-definition]{}
   \module[id=ast-definition-topleveltypeconstraint,name=TopLevelTypeConstraint,below last,submodule of=ast-definition]{
@@ -168,9 +169,21 @@
     \end{itemize}
   }
   \supermodule{id=ast-definition,name=Definition,below=ast-statement,submodule of=ast}
+  
+  \module[id=ast-program,name=Program,below at={ast-type}{2},submodule of=ast]{
+    \begin{itemize}
+      \item Collection of definitions
+    \end{itemize}
+  }
+  \module[id=ast-renaming,name=Renaming,below last,submodule of=ast]{}
 
-
+  \draw[dependency] (ast-program--box.east) -- (ast-program--box.east -| ast-definition.west);
+  \draw[dependency] (ast-definition-function--box.west) -- +(-0.5,0) |- (ast-statement--box);
+  \draw[dependency] (ast-definition-functiontype--box.west) -| (ast-type--box.south);
+  
   \supermodule{id=ast,name=Ast}
+
+
 \end{tikzpicture}
 
 \end{document}
