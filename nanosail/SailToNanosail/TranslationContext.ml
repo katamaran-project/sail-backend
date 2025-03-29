@@ -7,7 +7,7 @@
    * It stores information about calls to polymorphic functions.
 *)
 
-open! ExtBase
+open ExtBase
 
 
 module Context = struct
