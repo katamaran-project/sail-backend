@@ -11,13 +11,25 @@
     bidirectional dependency/.style={dependency,latex-latex},
   ]
 
+
   \module[id=n2m-coq,name=Coq,box/.style={anchor=west},submodule of=n2m,at={(0,0)}]{
     \begin{itemize}
       \item Generation of Coq code
     \end{itemize}
   }
+  \module[id=n2m-musail,name=MuSail,below last,submodule of=n2m]{
+    \begin{itemize}
+      \item Generation of $\mu$Sail code
+    \end{itemize}
+  }
+  \module[id=n2m-ppsail,name=PPSail,below last,submodule of=n2m]{
+    \begin{itemize}
+      \item Outputting Sail code
+    \end{itemize}
+  }    
+  
 
-  \module[id=n2m-generationcontext,name=GenerationContext,below=n2m-coq,submodule of=n2m]{
+  \module[id=n2m-generationcontext,name=GenerationContext,below last=1,submodule of=n2m]{
     \begin{itemize}
       \item Monad
       \item Keeps track of definitions
@@ -26,14 +38,38 @@
     \end{itemize}
   }
 
-  \module[id=n2m-types-enums,name=Enums,at={($ (n2m-coq--box.east) + (1,0) $)},submodule of=n2m-types]{}
+  \module[id=n2m-types-enums,name=Enums,at={($ (n2m-coq--box.north east) + (1,0) $)},submodule of=n2m-types]{}
   \module[id=n2m-types-records,name=Records,below last,submodule of=n2m-types]{}
   \module[id=n2m-types-typeabbreviations,name=TypeAbbreviations,below last,submodule of=n2m-types]{}
   \module[id=n2m-types-variants,name=Variants,below last,submodule of=n2m-types]{}
   \supermodule{id=n2m-types,submodule of=n2m,name=Types}
 
+  \module[id=n2m-numeric,name=Numeric,below last=1,submodule of=n2m]{}
+  \module[id=n2m-kind,name=Kind,below last,submodule of=n2m]{}
+  \module[id=n2m-identifier,name=Identifier,below last,submodule of=n2m]{}
+  \module[id=n2m-expressions,name=Expressions,below last,submodule of=n2m]{}
+  \module[id=n2m-registers,name=Registers,below last,submodule of=n2m]{}
+  \module[id=n2m-statements,name=Statements,below last,submodule of=n2m]{}
+  \module[id=n2m-type,name=Type,below last,submodule of=n2m]{}
+  \module[id=n2m-typequantifier,name=TypeQuantifier,below last,submodule of=n2m]{}
+  \module[id=n2m-valuedefinitions,name=ValueDefinitions,below last,submodule of=n2m]{}
+
+  \module[id=n2m-ignored,name=Ignored,below last,submodule of=n2m]{}
+  \module[id=n2m-untranslated,name=Untranslated,below last,submodule of=n2m]{}
+
+  \module[id=n2m-basemodule,name=BaseModule,at={($ (n2m-types-enums--box.north east) + (1,0) $)},submodule of=n2m]{}
+  \module[id=n2m-foreignkit,name=ForeignKit,below last,submodule of=n2m]{}
+  \module[id=n2m-fundeclkit,name=FunDeclKit,below last,submodule of=n2m]{}
+  \module[id=n2m-fundefkit,name=FunDefKit,below last,submodule of=n2m]{}
+  \module[id=n2m-programmodule,name=ProgramModule,below last,submodule of=n2m]{}
+  \module[id=n2m-katamaran,name=Katamaran,below last=1,submodule of=n2m]{
+    \begin{itemize}
+      \item Top level generation functionality
+    \end{itemize}
+  }
+
+    
   \supermodule{id=n2m,name=NanosailToMicrosail}
-  
 \end{tikzpicture}
 
 \end{document}
