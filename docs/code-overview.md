@@ -1,7 +1,5 @@
 # Code Overview
 
-Note: there are TeX files containing diagrams in the same directory as this file.
-
 ## Project Structure
 
 This repository contains three projects:
@@ -14,6 +12,8 @@ This repository contains three projects:
 When Sail loads the plugin, it does not automatically also load the dependencies needed by this plugin.
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
+
+![Project structure](./projects.png)
 
 ## Translation Overview
 
