@@ -3,7 +3,7 @@
    This module serves as globally accessible source of configuration settings.
 
 *)
-open! ExtBase
+open ExtBase
 
 
 type monomorphization_request =

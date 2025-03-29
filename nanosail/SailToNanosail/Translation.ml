@@ -9,7 +9,7 @@ module Big_int = Nat_big_num
 module TC = TranslationContext
 
 open Monads.Notations.Star(TC)
-open! ExtBase
+open ExtBase
 
 
 let should_ignore_definition (definition : Sail.sail_definition) : bool =

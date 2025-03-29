@@ -2,7 +2,7 @@
    Convenience module. Groups all sail_value_to_string functionality in one place.
 *)
 
-open! ExtBase
+open ExtBase
 
 
 module Sail = struct

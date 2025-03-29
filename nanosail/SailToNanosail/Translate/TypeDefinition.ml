@@ -1,11 +1,3 @@
-(*
-   Base contains its own Variant module, which we are not interested in
-   We want Variant to refer to our own module
-*)
-module V = Variant
-open! ExtBase
-module Variant = V
-
 module Big_int = Nat_big_num
 
 module S = struct

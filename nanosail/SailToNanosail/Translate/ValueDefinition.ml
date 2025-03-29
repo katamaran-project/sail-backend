@@ -1,5 +1,3 @@
-open! ExtBase
-
 module Big_int = Nat_big_num
 
 module S = struct

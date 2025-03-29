@@ -1,4 +1,4 @@
-open! ExtBase
+open ExtBase
 
 module GC = GenerationContext
 

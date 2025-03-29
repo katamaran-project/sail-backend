@@ -627,7 +627,7 @@
       * Put duplicated code in a function
 *)
 
-open! ExtBase
+open ExtBase
 
 module S = struct
   include Libsail
