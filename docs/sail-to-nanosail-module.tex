@@ -27,7 +27,16 @@
   }
 
   \module[id=s2n-translate-enum,name=Enum,at={($ (s2n-prelude--box.east) + (1,0) $)},submodule of=s2n-translate]{}
-  \module[id=s2n-translate-function,name=Function,below last,submodule of=s2n-translate]{}
+  \module[id=s2n-translate-function,name=Function,below last,submodule of=s2n-translate]{
+    \begin{itemize}
+      \item Translation logic for
+        \begin{itemize}
+          \item Functions
+          \item Expressions
+          \item Statements
+        \end{itemize}
+    \end{itemize}
+  }
   \module[id=s2n-translate-identifier,name=Identifier,below last,submodule of=s2n-translate]{}
   \module[id=s2n-translate-literal,name=Literal,below last,submodule of=s2n-translate]{}
   \module[id=s2n-translate-numeric,name=Numeric,below last,submodule of=s2n-translate]{}
@@ -48,10 +57,7 @@
   }
 
   \supermodule{id=s2n-translate,submodule of=s2n,name=Translate}
-  
-
   \supermodule{id=s2n,name=SailToNanosail}
-  
 \end{tikzpicture}
 
 \end{document}

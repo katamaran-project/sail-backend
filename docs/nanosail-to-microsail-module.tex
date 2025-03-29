@@ -22,7 +22,7 @@
   }
   \module[id=n2m-musail,name=MuSail,below last,submodule of=n2m]{
     \begin{itemize}
-      \item Generation of $\mu$Sail code
+      \item Generation of \microsail~code
     \end{itemize}
   }
   \module[id=n2m-ppsail,name=PPSail,below last,submodule of=n2m]{
@@ -51,6 +51,16 @@
   \module[id=n2m-kind,name=Kind,below last,submodule of=n2m]{}
   \module[id=n2m-identifier,name=Identifier,below last,submodule of=n2m]{}
   \module[id=n2m-expressions,name=Expressions,below last,submodule of=n2m]{}
+  \module[id=n2m-functioncalls,name=FunctionCalls,below last,submodule of=n2m]{
+    \begin{itemize}
+      \item Maps Sail functions to \microsail
+        \begin{itemize}
+          \item \texttt{not\textunderscore bool} $\rightarrow$ \texttt{uop.not}
+          \item \texttt{not\textunderscore vec} $\rightarrow$ \texttt{uop.bvnot}
+          \item \dots
+        \end{itemize}
+    \end{itemize}
+  }
   \module[id=n2m-registers,name=Registers,below last,submodule of=n2m]{}
   \module[id=n2m-statements,name=Statements,below last,submodule of=n2m]{}
   \module[id=n2m-type,name=Type,below last,submodule of=n2m]{}

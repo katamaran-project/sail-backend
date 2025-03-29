@@ -67,3 +67,5 @@
 \pgfdeclarelayer{layer 4}
 \pgfdeclarelayer{layer 5}
 \pgfsetlayers{main,layer 1,layer 2,layer 3,layer 4,layer 1,layer 5}
+
+\newcommand{\microsail}{$\mu$Sail}
