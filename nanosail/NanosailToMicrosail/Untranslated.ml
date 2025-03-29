@@ -3,7 +3,10 @@ open ExtBase
 module GC = GenerationContext
 
 
-(* todo rename for consistency *)
+(*
+   Generates information about an untranslated Sail function.
+   Includes the Sail source code and its location in the Sail source files.
+*)
 let generate
     (sail_definition         : Sail.sail_definition         )
     (untranslated_definition : Ast.Definition.Untranslated.t) : PP.t
@@ -48,14 +51,13 @@ let generate
     | None         -> Printf.sprintf "No message"
   in
   PP.(
-    surround
-      ~layout:vertical
-      (PP.string "----", PP.string "----")
-      (vertical [
-           indent @@ PPSail.pp_sail_definition sail_definition;
-           string "";
-           string ocaml_location_string;
-           string sail_location_string;
-           string message_string
-         ])
+    surround ~layout:vertical (string "----", string "----") begin
+      vertical [
+        indent @@ PPSail.pp_sail_definition sail_definition;
+        string "";
+        string ocaml_location_string;
+        string sail_location_string;
+        string message_string
+      ]
+    end
   )
