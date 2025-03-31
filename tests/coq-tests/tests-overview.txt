@@ -114,7 +114,7 @@ FAIL feature-types-and-literals-3
 PASS feature-types-and-literals-4
 FAIL feature-types-and-literals-5
 PASS functions-binary
-FAIL functions-bool-to-bit
+PASS functions-bool-to-bit
 PASS functions-call
 PASS functions-call-as-parameter
 PASS functions-call-binary
@@ -131,6 +131,7 @@ PASS functions-polymorphic
 PASS functions-polymorphic-2
 PASS functions-sign
 PASS functions-ternary
+FAIL functions-ternary-scattered
 PASS functions-triple
 PASS functions-unary
 PASS int-addition
@@ -159,6 +160,7 @@ PASS lists-return-empty-int-list
 PASS lists-return-multiple-items
 PASS lists-return-singleton-bool-list
 PASS lists-return-singleton-int-list
+PASS mapping-bitvector
 PASS mapping-enum-int
 PASS mapping-int-bool
 PASS mapping-usage
@@ -190,6 +192,7 @@ PASS match-register
 PASS match-triple-of-enums
 PASS match-tuple-of-enums-scattered
 PASS match-tuple-triple
+FAIL match-tuple-triple-2
 PASS match-union
 PASS match-union-binder
 PASS match-union-incomplete
@@ -297,4 +300,4 @@ PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
 FAIL vectors
-PASS:273 FAIL:26
+PASS:275 FAIL:27
