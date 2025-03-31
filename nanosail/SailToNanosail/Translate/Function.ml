@@ -88,55 +88,66 @@ let translate_return_type (sail_type : Libsail.Ast.typ) : Ast.Type.t TC.t =
   TC.return @@ Ast.Type.simplify translation
 
 
-let rec translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t  =
-  let S.P_aux (unwrapped_pattern, ((location, _annotation) as annotation)) = pattern
+let translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t =
+  let rec translate
+      (recurse : bool                           )
+      (pattern : Libsail.Type_check.tannot S.pat) : (Ast.Identifier.t * Ast.Type.t) list TC.t
+    =
+    let S.P_aux (unwrapped_pattern, ((location, _annotation) as annotation)) = pattern
+    in
+    match unwrapped_pattern with
+    | P_lit (L_aux (lit, _loc)) ->
+      begin
+        match lit with
+        | L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Unit)] (* todo rather ugly *)
+        | L_zero     -> TC.not_yet_implemented [%here] location
+        | L_one      -> TC.not_yet_implemented [%here] location
+        | L_true     -> TC.not_yet_implemented [%here] location
+        | L_false    -> TC.not_yet_implemented [%here] location
+        | L_num _    -> TC.not_yet_implemented [%here] location
+        | L_hex _    -> TC.not_yet_implemented [%here] location
+        | L_bin _    -> TC.not_yet_implemented [%here] location
+        | L_string _ -> TC.not_yet_implemented [%here] location
+        | L_undef    -> TC.not_yet_implemented [%here] location
+        | L_real _   -> TC.not_yet_implemented [%here] location
+      end
+    | P_id id -> begin
+        let* identifier = Identifier.translate_identifier [%here] id in
+        let* typ = Type.translate_type @@ Libsail.Type_check.typ_of_annot annotation
+        in
+        TC.return [(identifier, Ast.Type.simplify typ)]
+      end
+    | P_tuple pats -> begin
+        if
+          recurse
+        then
+          let* pats' = TC.map ~f:(translate false) pats
+          in
+          TC.return @@ List.concat pats'
+        else
+          TC.not_yet_implemented [%here] location
+      end
+    | P_wild -> begin
+        let* typ = Type.translate_type @@ Libsail.Type_check.typ_of_annot annotation
+        and* id  = TC.generate_unique_identifier ~underscore:true ()
+        in
+        TC.return [(id, Ast.Type.simplify typ)]
+      end
+    | P_typ (_typ, pattern)       -> translate recurse pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
+    | P_or (_, _)                 -> TC.not_yet_implemented [%here] location
+    | P_not _                     -> TC.not_yet_implemented [%here] location
+    | P_as (_, _)                 -> TC.not_yet_implemented [%here] location
+    | P_var (_, _)                -> TC.not_yet_implemented [%here] location
+    | P_app (_, _)                -> TC.not_yet_implemented [%here] location
+    | P_vector _                  -> TC.not_yet_implemented [%here] location
+    | P_vector_concat _           -> TC.not_yet_implemented [%here] location
+    | P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] location
+    | P_list _                    -> TC.not_yet_implemented [%here] location
+    | P_cons (_, _)               -> TC.not_yet_implemented [%here] location
+    | P_string_append _           -> TC.not_yet_implemented [%here] location
+    | P_struct (_, _)             -> TC.not_yet_implemented [%here] location
   in
-  match unwrapped_pattern with
-  | P_lit (L_aux (lit, _loc)) ->
-     begin
-       match lit with
-       | L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Unit)] (* todo rather ugly *)
-       | L_zero     -> TC.not_yet_implemented [%here] location
-       | L_one      -> TC.not_yet_implemented [%here] location
-       | L_true     -> TC.not_yet_implemented [%here] location
-       | L_false    -> TC.not_yet_implemented [%here] location
-       | L_num _    -> TC.not_yet_implemented [%here] location
-       | L_hex _    -> TC.not_yet_implemented [%here] location
-       | L_bin _    -> TC.not_yet_implemented [%here] location
-       | L_string _ -> TC.not_yet_implemented [%here] location
-       | L_undef    -> TC.not_yet_implemented [%here] location
-       | L_real _   -> TC.not_yet_implemented [%here] location
-     end
-  | P_id id -> begin
-      let* identifier = Identifier.translate_identifier [%here] id in
-      let* typ = Type.translate_type @@ Libsail.Type_check.typ_of_annot annotation
-      in
-      TC.return [(identifier, Ast.Type.simplify typ)]
-    end
-  | P_tuple pats -> begin (* todo correction: only top level tuple should be turned into a list *)
-      let* pats' = TC.map ~f:translate_parameter_bindings pats
-      in
-      TC.return @@ List.concat pats'
-    end
-  | P_wild -> begin
-      let* typ = Type.translate_type @@ Libsail.Type_check.typ_of_annot annotation
-      and* id  = TC.generate_unique_identifier ~underscore:true ()
-      in
-      TC.return [(id, Ast.Type.simplify typ)]
-    end
-  | P_typ (_typ, pattern)       -> translate_parameter_bindings pattern (* parameter is annotated with type, e.g., function foo(x : int) = { } *)
-  | P_or (_, _)                 -> TC.not_yet_implemented [%here] location
-  | P_not _                     -> TC.not_yet_implemented [%here] location
-  | P_as (_, _)                 -> TC.not_yet_implemented [%here] location
-  | P_var (_, _)                -> TC.not_yet_implemented [%here] location
-  | P_app (_, _)                -> TC.not_yet_implemented [%here] location
-  | P_vector _                  -> TC.not_yet_implemented [%here] location
-  | P_vector_concat _           -> TC.not_yet_implemented [%here] location
-  | P_vector_subrange (_, _, _) -> TC.not_yet_implemented [%here] location
-  | P_list _                    -> TC.not_yet_implemented [%here] location
-  | P_cons (_, _)               -> TC.not_yet_implemented [%here] location
-  | P_string_append _           -> TC.not_yet_implemented [%here] location
-  | P_struct (_, _)             -> TC.not_yet_implemented [%here] location
+  translate true pattern
 
 
 
