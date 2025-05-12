@@ -1001,7 +1001,7 @@ let pp_varkit_instance () : PP.t GC.t =
 
     Section TransparentObligations.
       Local Set Transparent Obligations.
-      Derive Signature NoConfusion NoConfusionHom EqDec for Reg.
+      Derive Signature NoConfusion for Reg.
     End TransparentObligations.
 
     Definition 𝑹𝑬𝑮 : Ty -> Set := Reg.

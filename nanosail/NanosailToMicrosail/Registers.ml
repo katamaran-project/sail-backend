@@ -56,7 +56,7 @@ let pp_no_confusion_for_reg () : PP.t GC.t =
       Coq.pp_section (PP.string "TransparentObligations") (
         PP.(vertical [
             string "Local Set Transparent Obligations.";
-            string "Derive Signature NoConfusion NoConfusionHom EqDec for Reg."
+            string "Derive Signature NoConfusion for Reg."
           ])
       )
     end
