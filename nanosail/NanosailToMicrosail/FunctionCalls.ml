@@ -492,8 +492,8 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.t
               (PP.string "bop.bvapp")
               [
                 PP.string "_";
-                pp_bv1_length;
                 pp_bv2_length;
+                pp_bv1_length;
               ]
           end
       in
@@ -501,8 +501,8 @@ let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.t
         (Ast.Identifier.mk sail_name)
         ~name:(Some binop_name)
         [
-          PP.(surround parens) pp_bv1;
-          PP.(surround parens) pp_bv2
+          PP.(surround parens) pp_bv2;
+          PP.(surround parens) pp_bv1
         ]
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive two bitvector arguments" sail_name
