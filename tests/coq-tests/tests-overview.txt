@@ -54,7 +54,7 @@ PASS bitvectors-sign-extend
 PASS bitvectors-slicing
 PASS bitvectors-subtraction
 PASS bitvectors-subtraction-infix
-FAIL bitvectors-update-subrange
+PASS bitvectors-update-subrange
 PASS bitvectors-xor
 PASS bitvectors-zero-extend
 PASS bitvectors-zeros-with-literal-formatting
@@ -300,4 +300,4 @@ PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
 FAIL vectors
-PASS:275 FAIL:27
+PASS:276 FAIL:26
