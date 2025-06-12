@@ -34,11 +34,11 @@ let string_of_id (id : id) : string =
    Determines the name of a function
 *)
 let identifier_of_function_definition (function_definition : 'a fundef) : string =
-  let FD_aux (FD_function (_, _, x), (_location, _)) = function_definition
+  let FD_aux (FD_function (_, _, x), (location, _)) = function_definition
   in
   match x with
   | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
-  | _ -> failwith "wanted to extract function name from function definition; failed because I didn't recognize structure"
+  | _ -> failwith (Printf.sprintf "wanted to extract function name from function definition; failed because I didn't recognize structure, at %s" (string_of_location location))
 
 
 let identifier_of_top_level_type_constraint (top_level_type_constraint : 'a val_spec) : string =
