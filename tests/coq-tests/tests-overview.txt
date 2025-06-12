@@ -7,6 +7,7 @@ PASS base-module-name
 PASS bit-equality
 PASS bit-returning-one
 PASS bit-returning-zero
+FAIL bitfield-assign
 PASS bitvectors-128-bit-binary-literal
 FAIL bitvectors-128-ones
 PASS bitvectors-add-to-int-infix
@@ -300,4 +301,4 @@ PASS value-definition-int
 PASS value-definition-string
 PASS value-definition-two-ints
 FAIL vectors
-PASS:276 FAIL:26
+PASS:276 FAIL:27

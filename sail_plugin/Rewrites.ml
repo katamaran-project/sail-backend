@@ -79,11 +79,16 @@ let katamaran_rewrites =
 
     ("remove_vector_subrange_pats", []);
     ("remove_duplicate_valspecs", []);
-    ("remove_bitfield_records", []);
     ("toplevel_string_append", []);
     ("pat_string_append", []);
     ("mapping_patterns", []);
+    ("recheck_defs", []);
+    ("simple_assignments", []);
+    ("remove_bitvector_pats", []);
+    ("remove_bitfield_records", []);
+    ("recheck_defs", []);
     ("truncate_hex_literals", []);
+    ("recheck_defs", []);
     ("mono_rewrites", []);
     ("recheck_defs", []);
 
