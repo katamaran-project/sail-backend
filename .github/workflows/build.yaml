@@ -38,7 +38,7 @@ jobs:
           opam update -y
           opam pin -y add sail 0.18
           opam install . --deps-only -y
-          opam install ounit2
+          opam install ounit2 -y
 
       - name: Update opam cache
         if: steps.cache-opam-restore.outputs.cache-hit != 'true'
