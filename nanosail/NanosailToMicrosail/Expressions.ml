@@ -25,10 +25,10 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.t GC
     | BitvectorComparison (Signed, LessThanOrEqualTo)      -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
     | BitvectorComparison (Signed, GreaterThan)            -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
     | BitvectorComparison (Signed, GreaterThanOrEqualTo)   -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
-    | BitvectorComparison (Unsigned, LessThan)             -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than
-    | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.return MuSail.Operator.Infix.Bitvector.signed_less_than_or_equal_to
-    | BitvectorComparison (Unsigned, GreaterThan)          -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than
-    | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.return MuSail.Operator.Infix.Bitvector.signed_greater_than_or_equal_to
+    | BitvectorComparison (Unsigned, LessThan)             -> GC.return MuSail.Operator.Infix.Bitvector.unsigned_less_than
+    | BitvectorComparison (Unsigned, LessThanOrEqualTo)    -> GC.return MuSail.Operator.Infix.Bitvector.unsigned_less_than_or_equal_to
+    | BitvectorComparison (Unsigned, GreaterThan)          -> GC.return MuSail.Operator.Infix.Bitvector.unsigned_greater_than
+    | BitvectorComparison (Unsigned, GreaterThanOrEqualTo) -> GC.return MuSail.Operator.Infix.Bitvector.unsigned_greater_than_or_equal_to
     | Pair                                                 -> GC.not_yet_implemented [%here] (* Should not occur *) (* use fail *)
     | Cons                                                 -> GC.not_yet_implemented [%here] (* Should not occur *)
     | Append                                               -> GC.not_yet_implemented [%here] (* Should not occur *)
