@@ -31,5 +31,5 @@ let translate_identifier
     in
     match unwrapped_identifier with
     | Id id       -> TC.return @@ Ast.Identifier.mk id
-    | Operator op -> TC.not_yet_implemented ~message:(Printf.sprintf "Operator %s" op) ocaml_location sail_location
+    | Operator op -> TC.return @@ Ast.Identifier.mk (Sail.mangle_sail_operator_name op)
   end

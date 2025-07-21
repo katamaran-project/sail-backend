@@ -18,6 +18,26 @@ type ast = (Libsail.Type_check.tannot, Libsail.Type_check.env) Libsail.Ast_defs.
 
 let string_of_location (location : Libsail.Parse_ast.l) = StringOf.Sail.location location
 
+let mangle_sail_operator_name s =
+  "operator_" ^
+  Str.global_replace (Str.regexp "\\!") "excl" (
+  Str.global_replace (Str.regexp "\\%") "pct" (
+  Str.global_replace (Str.regexp "\\&") "amp" (
+  Str.global_replace (Str.regexp "\\*") "star" (
+  Str.global_replace (Str.regexp "\\+") "plus" (
+  Str.global_replace (Str.regexp "\\-") "min" (
+  Str.global_replace (Str.regexp "\\.") "dot" (
+  Str.global_replace (Str.regexp "\\/") "slash" (
+  Str.global_replace (Str.regexp "\\:") "colon" (
+  Str.global_replace (Str.regexp "\\<") "lt" (
+  Str.global_replace (Str.regexp "\\>") "gt" (
+  Str.global_replace (Str.regexp "\\=") "eq" (
+  Str.global_replace (Str.regexp "\\@") "at" (
+  Str.global_replace (Str.regexp "\\^") "caret" (
+  Str.global_replace (Str.regexp "\\|") "bar" (
+  Str.global_replace (Str.regexp "\\#") "hash" (
+  s
+  ))))))))))))))))
 
 (*
    Extracts name as string; fails on operator name
@@ -27,7 +47,7 @@ let string_of_id (id : id) : string =
   in
   match id with
   | Id s       -> s
-  | Operator _ -> failwith "operator names not supported"
+  | Operator op -> mangle_sail_operator_name op
 
 
 (*
@@ -38,6 +58,7 @@ let identifier_of_function_definition (function_definition : 'a fundef) : string
   in
   match x with
   | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Id identifier, _), _), _) ] -> identifier
+  | [ FCL_aux (Libsail.Ast.FCL_funcl (Libsail.Ast.Id_aux (Operator op, _), _), _) ] -> mangle_sail_operator_name op
   | _ -> failwith (Printf.sprintf "wanted to extract function name from function definition; failed because I didn't recognize structure, at %s" (string_of_location location))
 
 
