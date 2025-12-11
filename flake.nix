@@ -1,10 +1,16 @@
 {
+  nixConfig = {
+    extra-substituters = [ "https://katamaran.cachix.org" ];
+    extra-trusted-public-keys = [ "katamaran.cachix.org-1:6oOkbLd/LRTGiixl0cVyWC2/OXo5A0l1e84jqZf+dCE=" ];
+  };
+
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     # https://github.com/NixOS/nixpkgs/pull/387197
     nixpkgs.url = "github:NixOS/nixpkgs/b6fd4a67122a1477291b4c3e4fb8f6794ac982b3";
     katamaran = {
-      url = "github:katamaran-project/katamaran";
+      # Pinned to before callgraph were introduced.
+      url = "github:katamaran-project/katamaran/d744bdc78e9660e4a2776cb2516469bc7dd4d4ce";
       inputs = {
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
@@ -15,6 +21,9 @@
   outputs = inputs: inputs.flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import inputs.nixpkgs { inherit system; };
+      rocqPackages = pkgs.coqPackages_8_20.overrideScope (self: super:
+        { katamaran = self.callPackage inputs.katamaran { }; }
+      );
     in
     rec {
       packages = rec {
@@ -31,7 +40,8 @@
         buildInputs = [
           packages.wrapper
           pkgs.z3
-          inputs.katamaran.packages.${system}.coq819
+          rocqPackages.coq
+          rocqPackages.katamaran
         ];
         packages = [
           (pkgs.python3.withPackages (python-pkgs: [

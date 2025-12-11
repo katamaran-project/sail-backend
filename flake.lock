@@ -28,16 +28,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1741288940,
-        "narHash": "sha256-vDc/NNktop1GQ4w4hYJpmB3bNoZHmzpjHGH3eApjpRM=",
+        "lastModified": 1753282843,
+        "narHash": "sha256-ZaneIg8pgW5RfUaFGfsM92bVNvb1UQ3t4BRJWyzLj1Q=",
         "owner": "katamaran-project",
         "repo": "katamaran",
-        "rev": "99e6e07e84eb904a06f429a501aeb27127a0aabb",
+        "rev": "d744bdc78e9660e4a2776cb2516469bc7dd4d4ce",
         "type": "github"
       },
       "original": {
         "owner": "katamaran-project",
         "repo": "katamaran",
+        "rev": "d744bdc78e9660e4a2776cb2516469bc7dd4d4ce",
         "type": "github"
       }
     },
