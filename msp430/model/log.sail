@@ -98,9 +98,10 @@ function jumpName(op) = {
 }
 
 
+/* [not used]
 val log_bits : forall 'n. (string, bits('n)) -> unit
 function log_bits(s, b) =
- if verbosity[0..0] == 0b1 then  print_bits(s,b)
+  if verbosity[0] == bitone then print_bits(s, b) */
 
 val logWithVerbosity: forall 'n, 'n < 64 & 'n >= 0. (int('n),string) -> unit
 function logWithVerbosity(n,s) = {

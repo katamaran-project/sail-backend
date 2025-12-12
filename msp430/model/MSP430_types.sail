@@ -23,11 +23,11 @@ type address_size : Int = 16 //CHECK IF FAIL: note in example says this can not 
 type Address = bits(address_size)
 
 
-type AddressingModeSourceLen : Int = 2
-type AddressingModeSourceBits = bits(AddressingModeSourceLen)
+type addressingModeSourceLen : Int = 2
+type addressingModeSourceBits = bits(addressingModeSourceLen)
 
-type AddressingModeDestinationLen : Int = 1
-type AddressingModeDestinationBits = bits(AddressingModeDestinationLen)
+type addressingModeDestinationLen : Int = 1
+type addressingModeDestinationBits = bits(addressingModeDestinationLen)
 
 enum Register = {
   PC,

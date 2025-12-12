@@ -9,8 +9,6 @@ function clause execute(DOESNOTUNDERSTAND(a)) = {
   throw(undefindedInstruction(a))
 }
 
-
-
 end ast
 end encdec
 end execute

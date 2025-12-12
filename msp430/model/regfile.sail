@@ -1,5 +1,7 @@
+/* [not used]
 //zero value for our registers so we can zero them out
-let zero_reg : wordBits = zero_extend(0x0)
+let zero_reg : wordBits = 0b0000000000000000
+*/
 
 register    PC_reg  : wordBits /* program counter    */
 register    SP_reg  : wordBits /* stack pointer      */
@@ -39,7 +41,8 @@ mapping RegisterMapping: Register <-> registerAddressBits  = {
 
 val init_base_regs: unit -> unit
 function init_base_regs() = {
-    PC_reg     = undefined; /* needs to be the Address located at 0FFFEh */
+    // [previously undefined]
+    PC_reg     = undefined; /* needs to be the address located at 0FFFEh */
     SP_reg     = undefined; /* needs to be initialized by the user */
     SRCG1_reg  = undefined;
     CG2_reg    = undefined;

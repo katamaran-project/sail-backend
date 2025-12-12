@@ -20,6 +20,12 @@ function fetch_and_execute () =
   }
 }
 
+val elf_entry = pure {
+  ocaml: "Elf_loader.elf_entry",
+  lem: "elf_entry",
+  c: "elf_entry"
+} : unit -> int
+
 function main() : unit -> unit = {
   verbosity = __GetVerbosity();
   //print_bits("verbosity: =", verbosity);

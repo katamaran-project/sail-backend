@@ -39,6 +39,7 @@
       devShell = pkgs.mkShell {
         buildInputs = [
           packages.wrapper
+          pkgs.gcc # for cpp
           pkgs.z3
           rocqPackages.coq
           rocqPackages.katamaran
