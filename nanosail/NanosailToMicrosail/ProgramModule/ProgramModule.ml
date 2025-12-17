@@ -100,6 +100,18 @@ let pp_program_module
         PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@"Include DefaultRegStoreKit " ^ base_identifier;
         PP.annotate [%here] @@ foreign_kit;
         PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@ "Include ProgramMixin " ^ base_identifier;
+        PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@ "Import callgraph.
+
+  Lemma fundef_bindfree (Δ : PCtx) (τ : Ty) (f : Fun Δ τ) :
+    stm_bindfree (FunDef f).
+  Proof. destruct f; now vm_compute. Qed.
+
+  Definition 𝑭_call_graph := generic_call_graph.
+  Lemma 𝑭_call_graph_wellformed : CallGraphWellFormed 𝑭_call_graph.
+  Proof. apply generic_call_graph_wellformed, fundef_bindfree. Qed.
+
+  Definition 𝑭_accessible {Δ τ} (f : 𝑭 Δ τ) : option (Accessible 𝑭_call_graph f) :=
+    None";
       ]
     in
     GC.return @@ PP.annotate [%here] @@ Coq.pp_module
