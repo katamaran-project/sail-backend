@@ -39,7 +39,7 @@ Three reports are generated:
 
 * `tests-output.txt`: contains all `STDOUT` output generated while running the tests.
   This file is ignored by Git.
-* `tests-history.txt`: each run, the number of failed and passed tests is appended to this file.
+* `tests-history.csv`: each run, the number of failed and passed tests is appended to this file, along with the timestamp, the commit whence it was run, and whether any files were changed relatively to the commit.
 * `tests-overview.txt`: overwritten each run with a PASS/FAIL for each tests.
 
 The tests are run by a Python script named `run-tests.py`, the main reason being that we wanted

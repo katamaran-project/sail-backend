@@ -6,7 +6,14 @@ import subprocess
 import psutil
 import time
 import sys
-from datetime import date
+from datetime import datetime
+
+# use git as an optional dependency
+try:
+    import git
+    git_available=True
+except:
+    git_available=False
 
 
 # Determines the number of tests that can run in parallel
@@ -75,10 +82,30 @@ for directory_name in directory_names:
 for directory, path, process in queue:
     wait_for_test(directory, path, process)
 
-with open('tests-history.txt', 'a') as file:
-    today = date.today()
-    formatted_today = today.strftime('%Y-%m-%d')
-    print(f"{formatted_today} PASS:{pass_count} FAIL:{fail_count}", file=file)
+with open('tests-history.csv', 'a') as file:
+
+    # get the current timestamp
+    now = datetime.now()
+    formatted_now = now.strftime('%Y-%m-%dT%H:%M:%S+%Z')
+
+    # find the git information, if we have git available
+    if git_available:
+        # get the current commit hash
+        try:
+            repo = git.Repo(search_parent_directories=True)
+        except git.exc.InvalidGitRepositoryError:
+            printf(f"We appear not to be in a git repository. Panicking.")
+
+        sha_prefix = repo.head.object.hexsha[0:7]
+
+        # determine if any files have been changed
+        changed_files = bool(repo.index.diff(None))
+    else:
+        sha_prefix = "unknown"
+        changed_files = "unknown"
+
+    # report the number of passes and fails
+    print(f"{formatted_now},{sha_prefix},{changed_files},{pass_count},{fail_count}", file=file)
 
 print(f"PASS:{pass_count} FAIL:{fail_count}")
 
