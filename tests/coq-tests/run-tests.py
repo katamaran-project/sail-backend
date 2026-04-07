@@ -43,16 +43,19 @@ def wait_for_test(directory_name, path, process):
     stdout, stderr = process.communicate()
     result = process.returncode
 
-    log_message = f"""Test {directory_name}
+    log_message = f"""BEGIN test {directory_name}
 Exit code={result}
 Path={path}
     
-STDOUT
+BEGIN STDOUT
 #{stdout}
+END STDOUT
     
-STDERR
+BEGIN STDERR
 #{stderr}
+END STDERR
 
+END test
 --------------------------------------------------
 """
 
@@ -104,7 +107,8 @@ with open('tests-history.csv', 'a') as file:
         sha_prefix = "unknown"
         changed_files = "unknown"
 
-    # report the number of passes and fails
+    # report the number of passes and fails, the git commit's hash, the
+    # timestamp, and whether files have changed relative to the git commit.
     print(f"{formatted_now},{sha_prefix},{changed_files},{pass_count},{fail_count}", file=file)
 
 print(f"PASS:{pass_count} FAIL:{fail_count}")
