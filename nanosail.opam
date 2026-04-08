@@ -10,7 +10,7 @@ bug-reports: "https://github.com/katamaran-project/sail-backend/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.8"}
-  "sail"
+  "sail" {= "0.18"}
   "ppx_here"
   "pprint"
   "base"
