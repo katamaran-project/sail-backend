@@ -162,14 +162,31 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     end
   end
 
+(* turn a given Sail ast into a Nanosail program, which is a list of
+   sail definition - ast definition tuples together with a list of
+   function monomorphizations. *)
 let translate (ast : Sail.ast) : Ast.Program.t =
+  (* a translation context with a list of sail definition - ast
+     definition tuples *)
   let translate =
+    (* store the definitions from the prelude in the translation
+      context *)
     let* () = Prelude.register_types ()
     in
-    TC.translation_block [%here] (PP.string "Translating Sail to Nanosail") begin
-      TC.map ~f:translate_definition ast.defs
-    end
+    (* the translation block just adds "entering" and "exiting" lines in
+       the log. *)
+    TC.translation_block
+      [%here]
+      (PP.string "Translating Sail to Nanosail")
+      (* pair up each sail definition in the list with its nanosail
+         definition.  thread the list of these computations monadically
+         into one translation context. *)
+      (TC.map ~f:translate_definition ast.defs)
   in
+  (* run the context we built. it's a monadic Result with
+     - a list of sail definition - nanosail definition pairs
+     - a list of monomorphs
+   *)
   let result = TC.run translate
   in
   match result with

@@ -76,7 +76,9 @@ let pp_program_module
     in
     let module_types    = [ PP.separate_horizontally ~separator:PP.space [ PP.string "Program"; PP.string base_identifier ] ]
     in
+    (* bind `contents` monadically to a PP.t value in the GC.t monad *)
     let* contents =
+      (* bind all these kits monadically to PP.t values in the GC.t monad *)
       let* function_declaration_kit =
         GC.pp_annotate [%here] begin
             FunDeclKit.generate @@ Ast.Definition.Select.drop_sail_definitions function_definitions;
@@ -93,6 +95,11 @@ let pp_program_module
           end
 
       in
+      (*
+        combine the PP.t terms that are the different kits with some
+        text into a big PP.t. wrap this in GC and monadically bind it
+        to `contents`.
+      *)
       GC.return @@ PP.paragraphs [
         PP.annotate [%here] @@ function_declaration_kit;
         PP.annotate [%here] @@ Coq.pp_sentence @@ PP.string @@ "Include FunDeclMixin " ^ base_identifier;
@@ -114,6 +121,11 @@ let pp_program_module
     None";
       ]
     in
+    (* 
+      the function as a whole must return a (PP.t GC.t).
+      have the `contents` pretty-printed by `Coq.pp_module` and wrap
+      that in a GC.
+     *)
     GC.return @@ PP.annotate [%here] @@ Coq.pp_module
       ~mode
       ~module_types
