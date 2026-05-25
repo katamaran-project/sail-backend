@@ -27,7 +27,7 @@ then
     OPT+="$EXTRA_OPT"
 fi
 
-echo "All flags to sail: $OPT"
+echo "Full sail call: $SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES"
 $SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES
 
 
