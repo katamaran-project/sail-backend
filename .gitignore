@@ -3,3 +3,15 @@ _build
 *#
 test-results.txt
 z3_problems
+msp430/_compilation
+intermediate_rewrite_*
+*.vo
+*.vok
+*.vos
+out.v
+out_types.v
+.vscode
+tests/**/base.v
+tests/**/base.html
+tests/**/machine.v
+tests/**/machine.html
