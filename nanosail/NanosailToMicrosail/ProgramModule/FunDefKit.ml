@@ -7,30 +7,54 @@ module GC = struct
 end
 
 
+(*
+   Wraps a generation computation so that, if it fails, the resulting error
+   message is augmented with the location of the given Sail definition.
+*)
+let augment_failure_with_sail_location
+    (sail_definition : Sail.sail_definition)
+    (computation     : PP.t GC.t           ) : PP.t GC.t
+  =
+  GC.recover computation begin fun error_message ->
+    let Libsail.Ast.DEF_aux (_, annotation) = sail_definition in
+    let location_string = Sail.string_of_location annotation.loc in
+    GC.fail [%here] @@
+      Printf.sprintf "%s\n  (while generating Sail code at %s)" error_message location_string
+  end
+
+
 let rec pp_function_definition
     ((sail_function_definition, function_definition) : Sail.sail_definition * Ast.Definition.Function.t                       )
     (type_constraint                                 : (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) option) : PP.t GC.t
   =
+  augment_failure_with_sail_location sail_function_definition begin
   if
+    (* if the function definition is polymorphic, break up into
+      function monomorphs and recall this function on each. if not,
+      generate Rocq code. *)
     function_definition.polymorphic && not (List.is_empty function_definition.monomorphs)
   then
-    let pairs : (Ast.Definition.Function.t * (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) option) list =
+    (* pair up each function monomorph with the sail constraint and
+      the corresponding Nanosail constraint monomorph. *)
+    let function_monomorphs_with_constraints : (Ast.Definition.Function.t * (Sail.sail_definition * Ast.Definition.TopLevelTypeConstraint.t) option) list =
       match type_constraint with
       | Some (sail_top_level_type_constraint, top_level_type_constraint) -> begin
-          let pairs =
+          let monomorph_pairs =
             (*
                todo we're assuming that the monomorphs in function_definition and type_constraint match.
                This ought to be the case, but maybe we want to add some sanity checks.
             *)
             List.zip_exn function_definition.monomorphs top_level_type_constraint.monomorphs
           in
-          List.map ~f:(fun (fundef, constr) -> (fundef, Some (sail_top_level_type_constraint, constr))) pairs
+          List.map ~f:(fun (fundef, constr) -> (fundef, Some (sail_top_level_type_constraint, constr))) monomorph_pairs
         end
+      (* if no type constraint was given, pair up each function
+        monomorph with None instead. *)
       | None -> List.map ~f:(fun fundef -> (fundef, None)) function_definition.monomorphs
     in
     let* pp_monomorphs =
       GC.map
-        pairs
+        function_monomorphs_with_constraints
         ~f:(fun (fundef, constr) -> pp_function_definition (sail_function_definition, fundef) constr)
     in
     GC.return @@ PP.paragraphs pp_monomorphs
@@ -142,6 +166,7 @@ let rec pp_function_definition
         GC.return coq_definition
       end
     end
+  end
   end
 
 
