@@ -59,8 +59,11 @@ let rec pp_function_definition
     in
     GC.return @@ PP.paragraphs pp_monomorphs
   else begin
+    (* in this branch, the function is monomorphic, so we generate the
+      rocq code. *)
     GC.generation_block [%here] (Printf.sprintf "Function Definition %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
       GC.block begin
+        (* log that we're generating code for the current function. *)
         let* () =
           GC.log [%here] Logging.debug begin
             lazy begin
@@ -75,10 +78,14 @@ let rec pp_function_definition
             end
           end
         in
+        (* create the identifier by which the function will be known in
+          the rocq code. *)
         let pp_identifier =
           Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
         in
         let* coq_definition =
+          (* a PP.t with the result type, as expressed in rocq, will be
+           one of the arguments passed to Coq.pp_definition. *)
           let* pp_result_type =
             let* bindings =
               let* parameters : (PP.t * PP.t) list =
@@ -115,11 +122,15 @@ let rec pp_function_definition
               end
             end
           in
+          (* the body is a statement and is pretty-printed by the code
+            for statements. it will be passed to Coq.pp_definition. *)
           let* pp_body =
             GC.pp_annotate [%here] begin
               Statements.pp_statement function_definition.function_body
             end
           in
+          (* if the config setting is set, annotate the rocq code for a
+            function with its sail ast. *)
           let* () =
             if
               Configuration.(get annotate_functions_with_ast)
@@ -142,6 +153,9 @@ let rec pp_function_definition
             else
               GC.return ()
           in
+          (* in the end we print the definition simply by passing the
+            identifier, result type and body (which are all PP.t) to
+            Coq.definition. *)
           GC.return begin
             PP.annotate [%here] begin
               Coq.pp_definition
@@ -151,6 +165,9 @@ let rec pp_function_definition
             end
           end
         in
+        (* we have now defined the rocq definition. *)
+        (* we now turn the Sail.sail_definition that was passed to us into a
+          list of such definitions and add it to the GC. *)
         let original_sail_code =
           List.build_list (fun { add; _ } ->
               (
@@ -163,6 +180,7 @@ let rec pp_function_definition
         in
         let* () = GC.add_original_definitions original_sail_code
         in
+        (* return the rocq definition  *)
         GC.return coq_definition
       end
     end
