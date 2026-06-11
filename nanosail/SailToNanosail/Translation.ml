@@ -91,7 +91,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
       let translation =
-        let* result =
+        let* result : Ast.Definition.t =
           match unwrapped_sail_definition with
           | DEF_type type_definition                 -> Translate.TypeDefinition.translate_type_definition annotation type_definition
           | DEF_let value_definition                 -> Translate.ValueDefinition.translate_value_definition annotation value_definition
@@ -113,6 +113,13 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
           | DEF_constraint _                         -> TC.not_yet_implemented [%here] annotation.loc
         in
         let* () = TC.store_definition result
+        in
+        (* print the function's nanosail ast if the configuration says
+          so. *)
+        let () =
+          if Configuration.(get dump_nanosail_ast)
+            then Stdio.printf "Nanosail AST of a Sail definition:\n%s\n" (FExpr.to_string (Ast.Definition.to_fexpr result))
+            else ()
         in
         TC.return (sail_definition, result)
       in

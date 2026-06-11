@@ -248,6 +248,12 @@ module Implementation = struct
        Annotates functions with the nanosail AST in F-Expression form.
     *)
     let annotate_functions_with_ast = bool "annotate-functions-with-ast" false
+    
+    (*
+       Dumps the entire nanosail AST to stdout once the
+       NanosailToMicrosoail step has been completed.
+    *)
+    let dump_nanosail_ast = bool "dump-nanosail-ast" false
 
     let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
     let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
