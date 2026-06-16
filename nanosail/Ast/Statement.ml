@@ -35,6 +35,12 @@ type t =
                            written_value       : Identifier.t }
   | Cast              of t * Type.t
   | Fail              of Type.t * string
+  (*
+    Wraps a statement with the location of the Sail source code it originates from.
+    This is purely informational (used to produce better error messages) and is
+    transparent to pretty printing.
+  *)
+  | Located           of Libsail.Parse_ast.l * t
 
 and match_pattern =
   | MatchList    of { matched      : Identifier.t                    ;
@@ -59,6 +65,18 @@ and match_pattern =
   | MatchVariant of { matched      : Identifier.t                             ;
                       matched_type : Identifier.t                             ;
                       cases        : (Identifier.t list * t) Identifier.Map.t }
+
+
+(*
+   Removes any top-level Located wrappers from a statement, exposing the
+   underlying statement. Useful when pattern matching on the structure of a
+   statement, where the (purely informational) location wrappers would
+   otherwise get in the way.
+*)
+let rec strip_location (statement : t) : t =
+  match statement with
+  | Located (_, inner) -> strip_location inner
+  | _                  -> statement
 
 
 let rec equal
@@ -214,6 +232,12 @@ let rec equal
       end
   in
 
+  (* Locations are purely informational; ignore them when comparing. *)
+  match statement_1, statement_2 with
+  | Located (_, inner_statement_1), _ -> equal inner_statement_1 statement_2
+  | _, Located (_, inner_statement_2) -> equal statement_1 inner_statement_2
+  | _, _ ->
+
   match statement_1 with
   | Match match_pattern_1 -> begin
       match statement_2 with
@@ -366,6 +390,9 @@ let rec equal
         end
       | _ -> false
     end
+
+  (* Unreachable: Located is stripped above. Handled correctly for safety. *)
+  | Located (_, inner_statement_1) -> equal inner_statement_1 statement_2
 
 
 let rec to_fexpr (statement : t) : FExpr.t =
@@ -577,6 +604,15 @@ let rec to_fexpr (statement : t) : FExpr.t =
     in
     FExpr.mk_application ~keyword "Stm:Fail"
 
+  and located_to_fexpr (location : Libsail.Parse_ast.l) (statement : t) : FExpr.t =
+    let keyword =
+      [
+        ("location" , FExpr.mk_string @@ Sail.string_of_location location);
+        ("statement", to_fexpr statement                                 );
+      ]
+    in
+    FExpr.mk_application ~keyword "Stm:Located"
+
   in
   match statement with
   | Match pattern                -> match_pattern_to_fexpr pattern
@@ -603,6 +639,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
       register_identifier;
       written_value
     }                            -> write_register_to_fexpr register_identifier written_value
+  | Located (location, statement) -> located_to_fexpr location statement
 
 
 (*
@@ -726,6 +763,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)
   | Cast (statement, _)                                  -> free_variables statement
   | Fail _                                               -> Identifier.Set.empty
+  | Located (_, statement)                               -> free_variables statement
 
 
 class virtual ['a] visitor =
@@ -774,6 +812,7 @@ class identity_rewriter =
       | WriteRegister { register_identifier; written_value }                                                -> self#visit_write_register ~register_identifier ~written_value
       | Cast (statement, cast_to)                                                                           -> self#visit_cast ~statement ~cast_to
       | Fail (typ, message)                                                                                 -> self#visit_fail ~typ ~message
+      | Located (location, statement)                                                                       -> Located (location, self#visit statement)
 
     method visit_match ~(pattern : match_pattern) : t =
       match pattern with

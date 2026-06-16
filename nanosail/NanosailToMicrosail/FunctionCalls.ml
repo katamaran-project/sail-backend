@@ -185,7 +185,7 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.t GC.t =
     end
   in
   match arguments with
-  | [ argument ] -> begin
+  | [ argument ] -> GC.with_context "argument 1" begin
       let* argument_value = extract_compile_time_integer argument
       in
       match argument_value with
@@ -216,7 +216,7 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.t GC.t =
       end
   in
   match arguments with
-  | [ argument ] -> begin
+  | [ argument ] -> GC.with_context "argument 1" begin
       let* argument_value = extract_compile_time_integer argument
       in
       match argument_value with

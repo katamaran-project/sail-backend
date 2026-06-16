@@ -8,18 +8,28 @@ end
 
 
 (*
-   Wraps a generation computation so that, if it fails, the resulting error
-   message is augmented with the location of the given Sail definition.
+   Coarse fallback: wraps a generation computation so that, if it fails *without*
+   already carrying a Sail source location (e.g. a failure during signature/type
+   generation, outside any located statement), the error message is augmented with
+   the location of the given Sail definition. Failures that are already located
+   (see GenerationContext.with_sail_location) are left untouched to avoid
+   duplicating location information.
 *)
 let augment_failure_with_sail_location
     (sail_definition : Sail.sail_definition)
     (computation     : PP.t GC.t           ) : PP.t GC.t
   =
   GC.recover computation begin fun error_message ->
-    let Libsail.Ast.DEF_aux (_, annotation) = sail_definition in
-    let location_string = Sail.string_of_location annotation.loc in
-    GC.fail [%here] @@
-      Printf.sprintf "%s\n  (while generating Sail code at %s)" error_message location_string
+    if
+      (* already annotated with a precise location further down the pipeline *)
+      String.is_substring error_message ~substring:"\n  at "
+    then
+      GC.fail_raw error_message
+    else
+      let Libsail.Ast.DEF_aux (_, annotation) = sail_definition in
+      let location_string = Sail.string_of_location annotation.loc in
+      GC.fail_raw @@
+        Printf.sprintf "%s\n  at %s" error_message location_string
   end
 
 
@@ -125,8 +135,10 @@ let rec pp_function_definition
           (* the body is a statement and is pretty-printed by the code
             for statements. it will be passed to Coq.pp_definition. *)
           let* pp_body =
-            GC.pp_annotate [%here] begin
-              Statements.pp_statement function_definition.function_body
+            GC.with_context (Printf.sprintf "body of function %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
+              GC.pp_annotate [%here] begin
+                Statements.pp_statement function_definition.function_body
+              end
             end
           in
           (* if the config setting is set, annotate the rocq code for a

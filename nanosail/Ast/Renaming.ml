@@ -361,6 +361,12 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
   | ReadRegister _ -> return statement
   | Fail _         -> return statement
 
+  | Located (location, statement) -> begin
+      let* statement = rename_in_statement statement
+      in
+      return @@ Statement.Located (location, statement)
+    end
+
 
 let rename_in_statement
     (renamer   : Identifier.t -> Identifier.t)

@@ -310,6 +310,12 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
       return @@ Ast.Statement.Cast (statement, typ)
     end
 
+  | Located (location, statement) -> begin
+      let* statement = normalize_statement statement
+      in
+      return @@ Ast.Statement.Located (location, statement)
+    end
+
   | Fail _ -> return statement
 
 

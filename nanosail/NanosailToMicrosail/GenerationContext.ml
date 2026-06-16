@@ -9,19 +9,24 @@ end
 type annotation     = Annotation of PP.t
 type comment        = Comment of PP.t
 type frame          = annotation list * comment list
-type state          = frame list * int * Ast.Program.t
+type state          = {
+  frames                : frame list                  ;
+  index                 : int                         ;
+  program               : Ast.Program.t               ;
+  (* Sail source location of the code currently being translated, if known.
+     Used to enrich error messages. *)
+  current_sail_location : Libsail.Parse_ast.l option  ;
+  (* Stack of human-readable descriptions of the structural context we are
+     currently translating, innermost first (e.g. "call to foo", "body of
+     function bar"). Used to enrich error messages. *)
+  sail_context          : string list                 ;
+}
 
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
 type   'a t         = 'a Monad.t
 
 let return          = Monad.return
 let bind            = Monad.bind
-
-let fail
-    (ocaml_position : Lexing.position)
-    (message        : string         ) : 'a t
-  =
-  Monad.fail @@ Printf.sprintf "(%s:%d) %s" ocaml_position.pos_fname ocaml_position.pos_lnum message
 
 let recover         = Monad.recover
 
@@ -31,12 +36,15 @@ let act             = Monad.act
 let update          = Monad.update
 
 
-let frames      : (state, frame list     ) Monads.Accessors.accessor = Monads.Accessors.(Triple.first id             )
-let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.(List.head @@ Triple.first id)
-let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.(Pair.first  top_frame       )
-let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.(Pair.second top_frame       )
-let index       : (state, int            ) Monads.Accessors.accessor = Monads.Accessors.(Triple.second id            )
-let program     : (state, Ast.Program.t  ) Monads.Accessors.accessor = Monads.Accessors.(Triple.third id             )
+let frames                : (state, frame list                ) Monads.Accessors.accessor = ((fun s -> s.frames               ), (fun s x -> { s with frames                = x }))
+let index                 : (state, int                       ) Monads.Accessors.accessor = ((fun s -> s.index                ), (fun s x -> { s with index                 = x }))
+let program               : (state, Ast.Program.t             ) Monads.Accessors.accessor = ((fun s -> s.program              ), (fun s x -> { s with program               = x }))
+let current_sail_location : (state, Libsail.Parse_ast.l option) Monads.Accessors.accessor = ((fun s -> s.current_sail_location), (fun s x -> { s with current_sail_location = x }))
+let sail_context          : (state, string list               ) Monads.Accessors.accessor = ((fun s -> s.sail_context         ), (fun s x -> { s with sail_context          = x }))
+
+let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.List.head   frames
+let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.Pair.first  top_frame
+let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.Pair.second top_frame
 
 
 exception FrameException of string
@@ -48,7 +56,87 @@ module MonadUtil = Monads.Util.Make(Monad)
 include MonadUtil
 
 
-let mk_initial_state (program : Ast.Program.t) : state = ([], 0, program)
+let mk_initial_state (program : Ast.Program.t) : state =
+  {
+    frames                = []     ;
+    index                 = 0      ;
+    program                        ;
+    current_sail_location = None   ;
+    sail_context          = []     ;
+  }
+
+
+(*
+   Fails generation with exactly the given message, without enriching it with
+   any location or context information. Useful when the message has already been
+   built up elsewhere (e.g. inside a recover handler).
+*)
+let fail_raw (message : string) : 'a t =
+  Monad.fail message
+
+
+(*
+   Fails generation with the given message, enriched with the Sail source
+   location and structural context recorded in the state (see current_sail_location
+   and sail_context).
+*)
+let fail
+    (ocaml_position : Lexing.position)
+    (message        : string         ) : 'a t
+  =
+  let* location_opt = get current_sail_location
+  and* context      = get sail_context
+  in
+  let header =
+    Printf.sprintf "(%s:%d) %s" ocaml_position.pos_fname ocaml_position.pos_lnum message
+  in
+  let location_lines =
+    match location_opt with
+    | Some location -> [ Printf.sprintf "  at %s" (Sail.string_of_location location) ]
+    | None          -> []
+  in
+  let context_lines =
+    List.map context ~f:(fun breadcrumb -> Printf.sprintf "  in %s" breadcrumb)
+  in
+  Monad.fail @@ String.concat ~sep:"\n" (List.concat [ [ header ]; location_lines; context_lines ])
+
+
+(*
+   Runs the given computation with the given Sail source location recorded as
+   the current location (restoring the previous one afterwards on success).
+*)
+let with_sail_location
+    (location    : Libsail.Parse_ast.l)
+    (computation : 'a t               ) : 'a t
+  =
+  let* previous = get current_sail_location
+  in
+  let* ()       = put current_sail_location (Some location)
+  in
+  let* result   = computation
+  in
+  let* ()       = put current_sail_location previous
+  in
+  return result
+
+
+(*
+   Runs the given computation with the given description pushed onto the
+   structural context stack (popping it afterwards on success).
+*)
+let with_context
+    (breadcrumb  : string)
+    (computation : 'a t  ) : 'a t
+  =
+  let* previous = get sail_context
+  in
+  let* ()       = put sail_context (breadcrumb :: previous)
+  in
+  let* result   = computation
+  in
+  let* ()       = put sail_context previous
+  in
+  return result
 
 
 let log

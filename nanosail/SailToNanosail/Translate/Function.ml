@@ -1187,24 +1187,29 @@ let rec statement_of_aexp
     | None -> TC.fail [%here] "Unknown output type" (* todo keep optional type in Fail so that we can generate a _ and hope that Coq can infer it *)
 
   in
-  match unwrapped_expression with
-  | AE_val value                                                  -> statement_of_value value
-  | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
-  | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
-  | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
-  | AE_match (aval, cases, output_type)                           -> statement_of_match aval cases output_type
-  | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
-  | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access aval field_identifier field_type
-  | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
-  | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
-  | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
-  | AE_typ (expression, target_type)                              -> statement_of_cast expression target_type
-  | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
-  | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
-  | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
-  | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
-  | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
-  | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
+  (* Record the Sail source location of this expression so that, further down
+     the pipeline, generation errors can point back to the original Sail code. *)
+  let* translated_statement =
+    match unwrapped_expression with
+    | AE_val value                                                  -> statement_of_value value
+    | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
+    | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
+    | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
+    | AE_match (aval, cases, output_type)                           -> statement_of_match aval cases output_type
+    | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
+    | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access aval field_identifier field_type
+    | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ
+    | AE_assign (lhs, rhs)                                          -> statement_of_assignment lhs rhs
+    | AE_short_circuit (logical_operator, lhs, rhs)                 -> statement_of_short_circuit logical_operator lhs rhs
+    | AE_typ (expression, target_type)                              -> statement_of_cast expression target_type
+    | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
+    | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
+    | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
+    | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
+    | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
+    | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
+  in
+  TC.return @@ Ast.Statement.Located (location, translated_statement)
 
 
 type sail_function_parts =
@@ -1318,15 +1323,20 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     match (statement : Ast.Statement.t) with
     | Let { binder; binding_statement_type; binding_statement; body_statement } -> begin
         let result : Ast.Statement.t option =
-          (* we found a let-construct in the AST; check if it is a bitvector comparison in A-normalized form *)
-          match binding_statement, body_statement with
+          (* we found a let-construct in the AST; check if it is a bitvector comparison in A-normalized form.
+             Statements may be wrapped in Located nodes (carrying Sail source locations);
+             we strip those before matching on structure. *)
+          match Ast.Statement.strip_location binding_statement, Ast.Statement.strip_location body_statement with
           | Call (f, f_arguments),
             Let {
               binder                 = binder2;
-              binding_statement      = Call (g, g_arguments);
+              binding_statement      = inner_binding_statement;
               binding_statement_type = _;
-              body_statement         = Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _)))
+              body_statement         = inner_body_statement;
             } -> begin
+              match Ast.Statement.strip_location inner_binding_statement, Ast.Statement.strip_location inner_body_statement with
+              | Call (g, g_arguments),
+                Expression (BinaryOperation (binary_operator, Variable (left_id, _), Variable (right_id, _))) -> begin
               (* multiple conditions need to be satisfied; relying on option monad to improve readability *)
               let open Monads.OptionNotation
               in
@@ -1399,6 +1409,8 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
                   Ast.Expression.BinaryOperation (Ast.BinaryOperator.BitvectorComparison (signedness, comparison), left_operand, right_operand)
                 end
               end
+                end
+              | _ -> None
             end
           | _ -> None
         in
@@ -1491,6 +1503,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | WriteRegister _       -> statement
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
+    | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement
 

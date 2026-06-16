@@ -4,7 +4,19 @@ val act     : (unit -> 'a) -> 'a t
 val return  : 'a -> 'a t
 val bind    : 'a t -> ('a -> 'b t) -> 'b t
 val fail    : Lexing.position -> string -> 'a t
+
+(* Fails with exactly the given message, without adding location/context info. *)
+val fail_raw : string -> 'a t
+
 val recover : 'a t -> (string -> 'a t) -> 'a t
+
+(* Runs a computation with the given Sail source location recorded, so that
+   failures occurring within it are annotated with that location. *)
+val with_sail_location : Libsail.Parse_ast.l -> 'a t -> 'a t
+
+(* Runs a computation with the given description pushed onto the structural
+   context stack, so that failures within it mention that context. *)
+val with_context : string -> 'a t -> 'a t
 val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
 val generate            : Ast.Program.t -> PP.t t -> PP.t

@@ -418,7 +418,9 @@ and pp_call
       ~(arguments           : Ast.Expression.t list) : PP.t GC.t
   =
   GC.pp_annotate [%here] begin
-      FunctionCalls.translate function_identifier arguments
+      GC.with_context (Printf.sprintf "call to %s" @@ Ast.Identifier.to_string function_identifier) begin
+          FunctionCalls.translate function_identifier arguments
+        end
     end
 
 
@@ -585,4 +587,5 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                                                      ~body
     | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
     | Fail (typ, message)                       -> pp_fail typ message
+    | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
   end
