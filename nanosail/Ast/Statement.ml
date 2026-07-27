@@ -36,9 +36,8 @@ type t =
   | Cast              of t * Type.t
   | Fail              of Type.t * string
   (*
-    Wraps a statement with the location of the Sail source code it originates from.
-    This is purely informational (used to produce better error messages) and is
-    transparent to pretty printing.
+    Embellish a statement with its Sail code location.
+    Used in error message production.
   *)
   | Located           of Libsail.Parse_ast.l * t
 
@@ -73,6 +72,7 @@ and match_pattern =
    statement, where the (purely informational) location wrappers would
    otherwise get in the way.
 *)
+(* TODO start using this function, or remove it *)
 let rec strip_location (statement : t) : t =
   match statement with
   | Located (_, inner) -> strip_location inner
@@ -232,7 +232,7 @@ let rec equal
       end
   in
 
-  (* Locations are purely informational; ignore them when comparing. *)
+  (* Statements' equality is modulo location information. *)
   match statement_1, statement_2 with
   | Located (_, inner_statement_1), _ -> equal inner_statement_1 statement_2
   | _, Located (_, inner_statement_2) -> equal statement_1 inner_statement_2

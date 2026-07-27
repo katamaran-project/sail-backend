@@ -8,6 +8,7 @@ intermediate_rewrite_*
 *.vo
 *.vok
 *.vos
+nanosail.opam
 out.v
 out_types.v
 .vscode

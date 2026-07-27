@@ -14,7 +14,7 @@ OPT=""
 if [[ -v DUMP ]]
 then
     echo "DUMP environment variable is recognized"
-    EXTRA_OPT="--ddump-rewrite-ast intermediate"
+    EXTRA_OPT=" --ddump-rewrite-ast intermediate"
     echo "Extra flags to sail: $EXTRA_OPT"
     OPT+="$EXTRA_OPT"
 fi
@@ -22,14 +22,18 @@ fi
 if [[ -v MONOMO ]]
 then
     echo "MONOMO environment variable is recognized"
-    EXTRA_OPT+=" --auto-mono --mono-rewrites"
+    EXTRA_OPT=" --auto-mono --mono-rewrites"
     echo "Extra flags to sail: $EXTRA_OPT"
     OPT+="$EXTRA_OPT"
 fi
 
 echo "Full sail call: $SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES"
-$SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES
+$SAIL $OPT --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES || sail_failed=1
 
+if [[ -v sail_failed ]]
+then
+    echo "Call to Sail failed, but we continue the script."
+fi
 
 if [[ -v DUMP ]]
 then

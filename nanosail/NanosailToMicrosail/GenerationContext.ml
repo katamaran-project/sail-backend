@@ -72,6 +72,8 @@ let mk_initial_state (program : Ast.Program.t) : state =
    built up elsewhere (e.g. inside a recover handler).
 *)
 let fail_raw (message : string) : 'a t =
+  (* TODO restore to previous behavior of GC.fail, with the Lexing position and
+     all. *)
   Monad.fail message
 
 

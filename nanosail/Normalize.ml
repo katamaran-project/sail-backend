@@ -311,9 +311,9 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
     end
 
   | Located (location, statement) -> begin
-      let* statement = normalize_statement statement
+      let* new_statement = normalize_statement statement
       in
-      return @@ Ast.Statement.Located (location, statement)
+      return @@ Ast.Statement.Located (location, new_statement)
     end
 
   | Fail _ -> return statement

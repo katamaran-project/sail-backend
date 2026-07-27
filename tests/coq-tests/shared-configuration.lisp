@@ -1,3 +1,5 @@
+(dump-nanosail-ast)
+
 (pretty-print-lists)
 
 (annotate-functions-with-ast)

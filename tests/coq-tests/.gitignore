@@ -10,7 +10,7 @@ rewrite-*
 *.aux
 base.html
 machine.html
-tests-*.txt
+# tests-*.txt
 *.lem
 *.thy
 temp/

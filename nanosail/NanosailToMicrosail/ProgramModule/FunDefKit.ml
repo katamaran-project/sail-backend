@@ -22,6 +22,7 @@ let augment_failure_with_sail_location
   GC.recover computation begin fun error_message ->
     if
       (* already annotated with a precise location further down the pipeline *)
+      (* TODO improve this test. *)
       String.is_substring error_message ~substring:"\n  at "
     then
       GC.fail_raw error_message
