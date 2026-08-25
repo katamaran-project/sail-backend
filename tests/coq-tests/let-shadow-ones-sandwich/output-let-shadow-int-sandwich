@@ -1,0 +1,1517 @@
+Removing .base.aux
+Removing .machine.aux
+Removing base.glob
+Removing base.html
+Removing base.v
+Removing base.vo
+Removing base.vok
+Removing base.vos
+Removing delta-01-instantiate_outcomes.diff
+Removing delta-02-realize_mappings.diff
+Removing delta-03-remove_vector_subrange_pats.diff
+Removing delta-04-remove_duplicate_valspecs.diff
+Removing delta-05-toplevel_string_append.diff
+Removing delta-06-pat_string_append.diff
+Removing delta-07-mapping_patterns.diff
+Removing delta-08-recheck_defs.diff
+Removing delta-09-simple_assignments.diff
+Removing delta-10-remove_bitvector_pats.diff
+Removing delta-11-remove_bitfield_records.diff
+Removing delta-12-recheck_defs.diff
+Removing delta-13-truncate_hex_literals.diff
+Removing delta-14-recheck_defs.diff
+Removing delta-15-mono_rewrites.diff
+Removing delta-16-recheck_defs.diff
+Removing delta-17-toplevel_nexps.diff
+Removing delta-18-monomorphise.diff
+Removing delta-19-atoms_to_singletons.diff
+Removing delta-20-recheck_defs.diff
+Removing delta-21-add_unspecified_rec.diff
+Removing delta-22-undefined.diff
+Removing delta-23-vector_string_pats_to_bit_list.diff
+Removing delta-24-remove_not_pats.diff
+Removing delta-25-remove_impossible_int_cases.diff
+Removing delta-26-tuple_assignments.diff
+Removing delta-27-vector_concat_assignments.diff
+Removing delta-28-simple_struct_assignments.diff
+Removing delta-29-simple_assignments.diff
+Removing delta-30-remove_vector_concat.diff
+Removing delta-31-remove_bitvector_pats.diff
+Removing delta-32-remove_numeral_pats.diff
+Removing delta-33-pattern_literals.diff
+Removing delta-34-guarded_pats.diff
+Removing delta-35-split.diff
+Removing delta-36-minimise_recursive_functions.diff
+Removing delta-37-recheck_defs.diff
+Removing delta-38-move_termination_measures.diff
+Removing delta-39-const_prop_mutrec.diff
+Removing delta-40-exp_lift_assign.diff
+Removing delta-41-recheck_defs.diff
+Removing delta-42-make_cases_exhaustive.diff
+Removing delta-43-merge_function_clauses.diff
+Removing delta-44-constant_fold.diff
+Removing delta-45-recheck_defs.diff
+Removing delta-46-rewrite_loops_with_escape_effect.diff
+Removing delta-47-recheck_defs.diff
+Removing delta-48-remove_blocks.diff
+Removing delta-49-attach_effects.diff
+Removing delta-50-toplevel_let_patterns.diff
+Removing delta-51-recheck_defs.diff
+Removing delta-52-attach_effects.diff
+Removing machine.glob
+Removing machine.html
+Removing machine.v
+Removing machine.vo
+Removing machine.vok
+Removing machine.vos
+Removing rewrite-00-initial.sail
+Removing rewrite-01-instantiate_outcomes.sail
+Removing rewrite-02-realize_mappings.sail
+Removing rewrite-03-remove_vector_subrange_pats.sail
+Removing rewrite-04-remove_duplicate_valspecs.sail
+Removing rewrite-05-toplevel_string_append.sail
+Removing rewrite-06-pat_string_append.sail
+Removing rewrite-07-mapping_patterns.sail
+Removing rewrite-08-recheck_defs.sail
+Removing rewrite-09-simple_assignments.sail
+Removing rewrite-10-remove_bitvector_pats.sail
+Removing rewrite-11-remove_bitfield_records.sail
+Removing rewrite-12-recheck_defs.sail
+Removing rewrite-13-truncate_hex_literals.sail
+Removing rewrite-14-recheck_defs.sail
+Removing rewrite-15-mono_rewrites.sail
+Removing rewrite-16-recheck_defs.sail
+Removing rewrite-17-toplevel_nexps.sail
+Removing rewrite-18-monomorphise.sail
+Removing rewrite-19-atoms_to_singletons.sail
+Removing rewrite-20-recheck_defs.sail
+Removing rewrite-21-add_unspecified_rec.sail
+Removing rewrite-22-undefined.sail
+Removing rewrite-23-vector_string_pats_to_bit_list.sail
+Removing rewrite-24-remove_not_pats.sail
+Removing rewrite-25-remove_impossible_int_cases.sail
+Removing rewrite-26-tuple_assignments.sail
+Removing rewrite-27-vector_concat_assignments.sail
+Removing rewrite-28-simple_struct_assignments.sail
+Removing rewrite-29-simple_assignments.sail
+Removing rewrite-30-remove_vector_concat.sail
+Removing rewrite-31-remove_bitvector_pats.sail
+Removing rewrite-32-remove_numeral_pats.sail
+Removing rewrite-33-pattern_literals.sail
+Removing rewrite-34-guarded_pats.sail
+Removing rewrite-35-split.sail
+Removing rewrite-36-minimise_recursive_functions.sail
+Removing rewrite-37-recheck_defs.sail
+Removing rewrite-38-move_termination_measures.sail
+Removing rewrite-39-const_prop_mutrec.sail
+Removing rewrite-40-exp_lift_assign.sail
+Removing rewrite-41-recheck_defs.sail
+Removing rewrite-42-make_cases_exhaustive.sail
+Removing rewrite-43-merge_function_clauses.sail
+Removing rewrite-44-constant_fold.sail
+Removing rewrite-45-recheck_defs.sail
+Removing rewrite-46-rewrite_loops_with_escape_effect.sail
+Removing rewrite-47-recheck_defs.sail
+Removing rewrite-48-remove_blocks.sail
+Removing rewrite-49-attach_effects.sail
+Removing rewrite-50-toplevel_let_patterns.sail
+Removing rewrite-51-recheck_defs.sail
+Removing rewrite-52-attach_effects.sail
+Removing z3_problems
+DUMP environment variable is recognized
+Extra flags to sail:  --ddump-rewrite-ast intermediate
+Full sail call: sail  --ddump-rewrite-ast intermediate --katamaran --katamaran-config configuration.lisp model.sail
+Starting translation from Sail to nanoSail
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint internal_pick without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["internal_pick"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'a"],
+                                                            Kind:Type
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:List[Type:TypeVariable[Identifier["'a"]]]
+                                                              ],
+                                              result_type=Type:TypeVariable[Identifier["'a"]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["eq_bit"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bit,
+                                                                Type:Bit
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint not_bool without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["not_bool"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'p"],
+                                                            Kind:Bool
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bool
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint and_bool without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["and_bool"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'p"],
+                                                            Kind:Bool
+                                                          ],
+                                                          [
+                                                            Identifier["'q"],
+                                                            Kind:Bool
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bool,
+                                                                Type:Bool
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["and_bool_no_flow"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bool,
+                                                                Type:Bool
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint or_bool without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["or_bool"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'p"],
+                                                            Kind:Bool
+                                                          ],
+                                                          [
+                                                            Identifier["'q"],
+                                                            Kind:Bool
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bool,
+                                                                Type:Bool
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint eq_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["eq_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["eq_bool"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bool,
+                                                                Type:Bool
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint lteq_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["lteq_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint gteq_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["gteq_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint lt_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["lt_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint gt_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["gt_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint eq_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["eq_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint bitvector_length without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["bitvector_length"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint vector_length without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["vector_length"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'a"],
+                                                            Kind:Type
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Vector[Type:TypeVariable[Identifier["'a"]],
+                                                                            NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint vector_init without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["vector_init"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'a"],
+                                                            Kind:Type
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Implicit[Identifier["'n"]],
+                                                                Type:TypeVariable[Identifier["'a"]]
+                                                              ],
+                                              result_type=Type:Vector[Type:TypeVariable[Identifier["'a"]],
+                                                                      NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('n : Int)
+          Numeric constraint: (0 <= 'n & 'n <= 'N)
+          Type: int('n)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint count_leading_zeros without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["count_leading_zeros"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'N"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'N"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint print_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["print_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint prerr_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["prerr_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_sign_extend without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_sign_extend"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_zero_extend without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_zero_extend"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint truncate without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["truncate"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint truncateLSB without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["truncateLSB"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint bitvector_concat without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["bitvector_concat"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_plus_m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n_plus_m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint append_64 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["append_64"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_plus_p64"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[64]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n_plus_p64"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint bitvector_access without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["bitvector_access"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bit],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint plain_vector_access without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["plain_vector_access"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'a"],
+                                                            Kind:Type
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Vector[Type:TypeVariable[Identifier["'a"]],
+                                                                            NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:TypeVariable[Identifier["'a"]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint bitvector_update without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["bitvector_update"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:Bit
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint plain_vector_update without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["plain_vector_update"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'a"],
+                                                            Kind:Type
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Vector[Type:TypeVariable[Identifier["'a"]],
+                                                                            NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:TypeVariable[Identifier["'a"]]
+                                                              ],
+                                              result_type=Type:Vector[Type:TypeVariable[Identifier["'a"]],
+                                                                      NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint add_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["add_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint add_bits_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["add_bits_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sub_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sub_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint not_vec without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["not_vec"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint and_vec without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["and_vec"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint or_vec without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["or_vec"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint xor_vec without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["xor_vec"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint subrange_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["subrange_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'o"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m_minus_o_plus_p1"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'o"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'m_minus_o_plus_p1"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint update_subrange_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["update_subrange_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'o"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m_minus_o_minus_p1"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'o"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'m_minus_o_minus_p1"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_shiftleft without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_shiftleft"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_shiftright without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_shiftright"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_arith_shiftright without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_arith_shiftright"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sail_zeros without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sail_zeros"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint slice without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["slice"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'o"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'o"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint replicate_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["replicate_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_times_m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n_times_m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint get_slice_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["get_slice_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'w"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'w"]]],
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'w"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint set_slice_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["set_slice_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'w"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'w"]]],
+                                                                Type:Int,
+                                                                Type:Int,
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'w"]]]
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint set_slice_bits without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["set_slice_bits"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Implicit[Identifier["'n"]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]],
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int,
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Bitvector[NumExpr:Var[Identifier["'n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint unsigned without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["unsigned"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'exp_n_minus_p1"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Range[0,
+                                                                     NumExpr:Var[Identifier["'exp_n_minus_p1"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint signed without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["signed"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'neg_exp_n_minus_p1"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'exp_n_minus_p1_minus_p1"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Range[NumExpr:Var[Identifier["'neg_exp_n_minus_p1"]],
+                                                                     NumExpr:Var[Identifier["'exp_n_minus_p1_minus_p1"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint add_atom without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["add_atom"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_plus_m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n_plus_m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["add_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint sub_atom without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sub_atom"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_minus_m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n_minus_m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sub_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["sub_nat"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Nat,
+                                                                Type:Nat
+                                                              ],
+                                              result_type=Type:Nat],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint negate_atom without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["negate_atom"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'neg_n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'neg_n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["negate_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint mult_atom without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["mult_atom"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'m"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'n_times_m"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'m"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'n_times_m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["mult_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["print_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["prerr_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint pow2 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["pow2"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'exp_n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'exp_n"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('m : Int)
+          Numeric constraint: 'm in {8, 16, 32, 64}
+          Type: int('m)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shl8 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shl8"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[8],
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('m : Int)
+          Numeric constraint: 'm in {32, 64}
+          Type: int('m)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shl32 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shl32"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[32],
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('m : Int)
+          Numeric constraint: 'm in {1, 2, 4, 8}
+          Type: int('m)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shl1 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shl1"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[1],
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shl_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shl_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('m : Int)
+          Numeric constraint: (0 <= 'm & 'm <= 15)
+          Type: int('m)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shr32 without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shr32"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]],
+                                                                Type:Int[1]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'m"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _shr_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_shr_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["tdiv_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_tmod_int"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint _tmod_int_positive without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["_tmod_int_positive"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int,
+                                                                Type:Int[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:Nat],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["abs_int_plain"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('z : Int)
+          Numeric constraint: (('x >= 'y & 'z == 'x) | ('x < 'y & 'z == 'y))
+          Type: int('z)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint max_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["max_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'x"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'y"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'x"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'y"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'z"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/Recursive.ml:199
+          Encountered Typ_exist
+          Kinded ids: ('z : Int)
+          Numeric constraint: (('x < 'y & 'z == 'x) | ('x >= 'y & 'z == 'y))
+          Type: int('z)
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint min_int without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["min_int"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'x"],
+                                                            Kind:Int
+                                                          ],
+                                                          [
+                                                            Identifier["'y"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int[NumExpr:Var[Identifier["'x"]]],
+                                                                Type:Int[NumExpr:Var[Identifier["'y"]]]
+                                                              ],
+                                              result_type=Type:Int[NumExpr:Var[Identifier["'z"]]]],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["eq_string"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:Bool],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["concat_str"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String,
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:String],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["dec_str"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:String],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["hex_str"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:String],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["hex_str_upper"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Int
+                                                              ],
+                                              result_type=Type:String],
+                           polymorphic=False,
+                           monomorphs=[]]
+[[31mWARNING[0m] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint bits_str without requests for monomorphization
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["bits_str"],
+                           type_quantifier=TypeQuantifier[[
+                                                            Identifier["'n"],
+                                                            Kind:Int
+                                                          ]],
+                           type=Type:Function[parameter_types=[
+                                                                Type:Bitvector[NumExpr:Var[Identifier["'n"]]]
+                                                              ],
+                                              result_type=Type:String],
+                           polymorphic=True,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["print_endline"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["prerr_endline"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["print"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["prerr"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:String
+                                                              ],
+                                              result_type=Type:Unit],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:TopLevelTypeConstraint[Identifier["foo"],
+                           type_quantifier=TypeQuantifier,
+                           type=Type:Function[parameter_types=[
+                                                                Type:Unit
+                                                              ],
+                                              result_type=Type:Int],
+                           polymorphic=False,
+                           monomorphs=[]]
+Nanosail AST of a Sail definition:
+Def:Function[name=Identifier["foo"],
+             type=Def:FunctionType[parameters=[
+                                                Parameter[Identifier["ж_0"],
+                                                          Type:Unit]
+                                              ],
+                                   return_type=Type:Int],
+             body=Stm:Located[location="model.sail:8",
+                              statement=Sequence[Stm:Located[location="model.sail:8",
+                                                             statement=Stm:Expression[Val[1]]],
+                                                 Stm:Located[location="GeneratedLocation(model.sail:9)",
+                                                             statement=Sequence[Stm:Located[location="model.sail:9",
+                                                                                            statement=Stm:Expression[Val[2]]],
+                                                                                Stm:Located[location="GeneratedLocation(model.sail:10)",
+                                                                                            statement=Stm:Let[binder=Identifier["x"],
+                                                                                                              bound_type=Type:Int[10],
+                                                                                                              bound_value=Stm:Located[location="model.sail:10",
+                                                                                                                                      statement=Stm:Expression[Val[10]]],
+                                                                                                              body=Stm:Located[location="GeneratedLocation(model.sail:11)",
+                                                                                                                               statement=Stm:Expression[Var[Identifier["x"],
+                                                                                                                                                            Type:Int[10]]]]]]]]]],
+             polymorphic=False,
+             monomorphs=[]]
+Done with translation from Sail to nanoSail
+Starting translation from nanoSail to muSail
+Done with translation from nanoSail to muSail
+Starting process-rewrites.rb
+Finished process-rewrites.rb
+Starting Rocq compiler on base.v
+Finished Rocq compiler on base.v
+Starting Rocq compiler on machine.v
+Finished Rocq compiler on machine.v

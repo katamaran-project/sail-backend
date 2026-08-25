@@ -1,0 +1,12 @@
+default Order dec
+
+$include <prelude.sail>
+
+
+val foo : unit -> bits(10)
+function foo() = {
+  let x = 1 in
+  let y = 2 in
+  let x = 10 in
+  sail_ones(x)
+}
