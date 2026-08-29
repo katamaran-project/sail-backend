@@ -19,3 +19,4 @@ tests/**/machine.html
 katamaran
 .claude
 ocamldoc.out
+tests/coq-tests/test-output/

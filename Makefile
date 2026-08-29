@@ -30,7 +30,7 @@ tt: template-tests
 
 .PHONY: end-to-end-tests e2e
 end-to-end-tests: build install
-	make -C tests/coq-tests | tee test-results.txt
+	tests/coq-tests/run-tests.py
 
 e2e: end-to-end-tests
 
