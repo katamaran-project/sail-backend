@@ -16,3 +16,6 @@ tests/**/base.v
 tests/**/base.html
 tests/**/machine.v
 tests/**/machine.html
+katamaran
+.claude
+ocamldoc.out
