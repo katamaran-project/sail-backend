@@ -18,6 +18,42 @@ let parenthesize =
 
 
 (*
+   Attempts to determine, at generation time, the integer value a statement
+   evaluates to.
+
+   Sail's rewrites wrap the interesting expression in layers of Located, Cast and
+   calls to make_the_value, and may introduce intermediate let bindings of their
+   own; this function looks through all of them.
+   Anything else yields None, which simply means "not known at compile time".
+*)
+let rec extract_compile_time_integer_from_statement (statement : Ast.Statement.t) : Z.t option GC.t =
+  match statement with
+  | Located (_, inner)    -> extract_compile_time_integer_from_statement inner
+  | Cast (inner, _typ)    -> extract_compile_time_integer_from_statement inner
+  | Expression expression -> FunctionCalls.extract_compile_time_integer expression
+  (*
+     make_the_value is introduced by Sail's atoms_to_singletons rewrite;
+     as far as the value is concerned, it is the identity.
+  *)
+  | Call (function_identifier, [ argument ])
+    when Ast.Identifier.equal function_identifier (Ast.Identifier.mk "make_the_value") -> begin
+      FunctionCalls.extract_compile_time_integer argument
+    end
+  (*
+     A nested let: evaluate the bound value in the current scope, bind the binder,
+     and evaluate the body in the extended scope.
+  *)
+  | Let { binder; binding_statement; body_statement; _ } -> begin
+      let* value = extract_compile_time_integer_from_statement binding_statement
+      in
+      GC.with_compile_time_integer binder value begin
+        extract_compile_time_integer_from_statement body_statement
+      end
+    end
+  | _ -> GC.return None
+
+
+(*
 
    Converts the following Sail code
 
@@ -41,7 +77,11 @@ let rec pp_match_list
       end
     end
   and* pp_when_nil  = parenthesize @@ pp_statement when_nil
-  and* pp_when_cons = parenthesize @@ pp_statement when_cons_body
+  (* the head and tail binders shadow any outer binding of the same name *)
+  and* pp_when_cons =
+    GC.with_compile_time_integers [ (id_head, None); (id_tail, None) ] begin
+      parenthesize @@ pp_statement when_cons_body
+    end
   in
   let pp_id_head = Identifier.pp id_head
   and pp_id_tail = Identifier.pp id_tail
@@ -69,7 +109,11 @@ and pp_match_product
         MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
       end
     end
-  and* pp_body = parenthesize @@ pp_statement body
+  (* the binders shadow any outer binding of the same name *)
+  and* pp_body =
+    GC.with_compile_time_integers [ (id_fst, None); (id_snd, None) ] begin
+      parenthesize @@ pp_statement body
+    end
   in
   let pp_id_fst = PP.(surround dquotes) (Identifier.pp id_fst)
   and pp_id_snd = PP.(surround dquotes) (Identifier.pp id_snd)
@@ -95,8 +139,11 @@ and pp_match_tuple
         MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
       end
     end
+  (* the binders shadow any outer binding of the same name *)
   and* pp_body =
-    parenthesize @@ pp_statement body
+    GC.with_compile_time_integers (List.map binders ~f:(fun (id, _) -> (id, None))) begin
+      parenthesize @@ pp_statement body
+    end
   in
   let pp_binders : PP.t list =
     List.map binders ~f:(fun (id, _) -> PP.(surround dquotes) (Identifier.pp id))
@@ -387,7 +434,15 @@ and pp_match_variant
       and pp_bindings =
         List.map ~f:Identifier.pp bindings
       in
-      let* pp_body = pp_statement body
+      (*
+         The bindings shadow whatever was in scope; since their values are not
+         known at compile time, bind them to None so that an outer binding of the
+         same name cannot leak into the body.
+      *)
+      let* pp_body =
+        GC.with_compile_time_integers (List.map bindings ~f:(fun id -> (id, None))) begin
+          pp_statement body
+        end
       in
       GC.return (pp_constructor, pp_bindings, pp_body)
     in
@@ -432,9 +487,27 @@ and pp_let
   =
   let  pp_binder                 = PP.annotate [%here] @@ Identifier.pp binder
   in
+  (*
+     The bound value and its type belong to the enclosing scope: the binder is not
+     yet visible while they are being processed. This is what makes
+
+       let x = 1 in let x = x in ...
+
+     resolve the right hand x to the outer one.
+  *)
   let* pp_binding_statement      = pp_statement binding_statement
   and* pp_binding_statement_type = Type.pp_type binding_statement_type
-  and* pp_body_statement         = pp_statement body_statement
+  and* compile_time_value        = extract_compile_time_integer_from_statement binding_statement
+  in
+  (*
+     The body, on the other hand, does see the binder. Binding it to None when its
+     value is unknown is deliberate: doing so shadows any outer binding of the same
+     name, which would otherwise leak a stale value into the body.
+  *)
+  let* pp_body_statement =
+    GC.with_compile_time_integer binder compile_time_value begin
+      pp_statement body_statement
+    end
   in
   if
     Configuration.(get pretty_print_let)
@@ -519,8 +592,11 @@ and pp_destructure_record
       ~f:(fun (field, binder) -> (Identifier.pp field, Identifier.pp binder))
       pairs
   in
+  (* the binders shadow any outer binding of the same name *)
   let* pp_body =
-    pp_statement body
+    GC.with_compile_time_integers (List.map binders ~f:(fun id -> (id, None))) begin
+      pp_statement body
+    end
   in
   GC.return begin
       PP.annotate [%here] begin

@@ -152,14 +152,49 @@ let try_lookup_string_value_bound_to (identifier : Ast.Identifier.t) : string op
 
 
 (*
-   Checks if the expression represents a compile time known integer.
-   This can take the form of either a literal or a constant variable.
+   Attempts to determine the value of the expression at generation time.
+
+   Supported are integer literals, arithmetic over such literals, local variables
+   whose value is known (see GenerationContext.with_compile_time_integer) and
+   top level value definitions.
+
+   Returns None if the value cannot be determined.
 *)
-let extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC.t =
+let rec extract_compile_time_integer (expression : Ast.Expression.t) : Z.t option GC.t =
+  let extract_binary
+      (operator : Z.t -> Z.t -> Z.t)
+      (left     : Ast.Expression.t )
+      (right    : Ast.Expression.t ) : Z.t option GC.t
+    =
+    let* left = extract_compile_time_integer left
+    in
+    (* only bother with the right operand if the left one worked out *)
+    match left with
+    | None      -> GC.return None
+    | Some left -> begin
+        let* right = extract_compile_time_integer right
+        in
+        match right with
+        | None       -> GC.return None
+        | Some right -> GC.return @@ Some (operator left right)
+      end
+  in
   match expression with
-  | Value (Ast.Value.Int value) -> GC.return @@ Some value
-  | Variable (identifier, _typ) -> try_lookup_integer_value_bound_to identifier
-  | _                           -> GC.return None
+  | Value (Ast.Value.Int value)          -> GC.return @@ Some value
+  | UnaryOperation (Neg, operand)        -> GC.lift ~f:(Option.map ~f:Z.neg) @@ extract_compile_time_integer operand
+  | BinaryOperation (Plus , left, right) -> extract_binary Z.add left right
+  | BinaryOperation (Minus, left, right) -> extract_binary Z.sub left right
+  | BinaryOperation (Times, left, right) -> extract_binary Z.mul left right
+  | Variable (identifier, _typ)          -> begin
+      let* local = GC.lookup_compile_time_integer identifier
+      in
+      match local with
+      (* locally bound: the local binding decides, even when it is unknown *)
+      | Some value -> GC.return value
+      (* not locally bound: fall back on the top level value definitions *)
+      | None       -> try_lookup_integer_value_bound_to identifier
+    end
+  | _                                    -> GC.return None
 
 
 (*
@@ -230,6 +265,35 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.t GC.t =
   | _ -> begin
       let message =
         Printf.sprintf "expected sail_ones to receive exactly one argument; instead got %d" (List.length arguments)
+      in
+      GC.fail [%here] message
+    end
+
+
+(*
+   Sail's atoms_to_singletons rewrite wraps an integer n in make_the_value(n) to
+   turn it into a value of the singleton type itself('n). muSail has no counterpart
+   for this, and none is needed: the wrapper does not change the value, so we
+   translate a call to make_the_value as its argument.
+*)
+let translate_make_the_value (arguments : Ast.Expression.t list) : PP.t GC.t =
+  match arguments with
+  | [ argument ] -> begin
+      GC.pp_annotate [%here] begin
+        let* value = extract_compile_time_integer argument
+        in
+        match value with
+        (*
+           Prefer the compile time value when we know it: the argument may well be
+           a top level Sail variable, which has no muSail counterpart to refer to.
+        *)
+        | Some value -> GC.return @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_integer @@ MuSail.Value.pp_integer value
+        | None       -> GC.lift ~f:MuSail.Statement.pp_expression @@ Expressions.pp_expression argument
+      end
+    end
+  | _ -> begin
+      let message =
+        Printf.sprintf "expected make_the_value to receive exactly one argument; instead got %d" (List.length arguments)
       in
       GC.fail [%here] message
     end
@@ -693,6 +757,7 @@ let translate
     | "signed"               -> translate_unary_operator function_identifier (PP.string "uop.signed") pp_arguments
     | "unsigned"             -> translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
     | "eq_unit"              -> translate_unit_equality ()
+    | "make_the_value"       -> translate_make_the_value arguments
     | "add_bits_int"         -> translate_add_bits_int arguments
     | "sail_zeros"           -> translate_sail_zeros arguments
     | "sail_ones"            -> translate_sail_ones arguments

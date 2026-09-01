@@ -17,6 +17,19 @@ val with_sail_location : Libsail.Parse_ast.l -> 'a t -> 'a t
 (* Runs a computation with the given description pushed onto the structural
    context stack, so that failures within it mention that context. *)
 val with_context : string -> 'a t -> 'a t
+
+(* Runs a computation in a fresh scope binding the given identifiers to their
+   compile time known integer values, None meaning "in scope but unknown", which
+   shadows any outer binding of the same name. *)
+val with_compile_time_integers : (Ast.Identifier.t * Z.t option) list -> 'a t -> 'a t
+val with_compile_time_integer  : Ast.Identifier.t -> Z.t option -> 'a t -> 'a t
+
+(* Looks up a local variable's compile time known integer value.
+     None          : not bound locally at all
+     Some None     : bound locally, but its value is not known at compile time
+     Some (Some n) : bound locally to n *)
+val lookup_compile_time_integer : Ast.Identifier.t -> Z.t option option t
+
 val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
 val generate            : Ast.Program.t -> PP.t t -> PP.t

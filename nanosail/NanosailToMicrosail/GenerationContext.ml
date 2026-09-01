@@ -20,6 +20,11 @@ type state          = {
      currently translating, innermost first (e.g. "call to foo", "body of
      function bar"). Used to enrich error messages. *)
   sail_context          : string list                 ;
+  (* Stack of scopes, innermost first, recording which local variables are bound
+     to compile time known integers. A binding to None means the variable is in
+     scope but its value is unknown; this shadows any outer binding of the same
+     name, so that a stale value can never leak through. *)
+  compile_time_integers : Z.t option Ast.Identifier.Map.t list ;
 }
 
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
@@ -42,6 +47,9 @@ let program               : (state, Ast.Program.t             ) Monads.Accessors
 let current_sail_location : (state, Libsail.Parse_ast.l option) Monads.Accessors.accessor = ((fun s -> s.current_sail_location), (fun s x -> { s with current_sail_location = x }))
 let sail_context          : (state, string list               ) Monads.Accessors.accessor = ((fun s -> s.sail_context         ), (fun s x -> { s with sail_context          = x }))
 
+let compile_time_integers : (state, Z.t option Ast.Identifier.Map.t list) Monads.Accessors.accessor =
+  ((fun s -> s.compile_time_integers), (fun s x -> { s with compile_time_integers = x }))
+
 let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.List.head   frames
 let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.Pair.first  top_frame
 let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.Pair.second top_frame
@@ -63,6 +71,7 @@ let mk_initial_state (program : Ast.Program.t) : state =
     program                        ;
     current_sail_location = None   ;
     sail_context          = []     ;
+    compile_time_integers = []     ;
   }
 
 
@@ -139,6 +148,74 @@ let with_context
   let* ()       = put sail_context previous
   in
   return result
+
+
+(*
+   Runs the given computation in a fresh scope in which the given identifiers are
+   bound to the given (possibly unknown) compile time integer values.
+   The scope is popped afterwards, so that bindings it shadowed become visible again.
+*)
+let with_compile_time_integers
+    (bindings    : (Ast.Identifier.t * Z.t option) list)
+    (computation : 'a t                                ) : 'a t
+  =
+  let frame =
+    List.fold bindings
+      ~init:Ast.Identifier.Map.empty
+      ~f:(fun frame (identifier, value) -> Ast.Identifier.Map.overwrite frame ~key:identifier ~data:value)
+  in
+  let* previous = get compile_time_integers
+  in
+  let* ()       = put compile_time_integers (frame :: previous)
+  in
+  let* result   = computation
+  in
+  (*
+     Restore the entire previous stack rather than popping a single frame, so that
+     a nested computation which left frames behind cannot corrupt it.
+  *)
+  let* ()       = put compile_time_integers previous
+  in
+  return result
+
+
+(*
+   Same as with_compile_time_integers, for a single binder.
+*)
+let with_compile_time_integer
+    (identifier  : Ast.Identifier.t)
+    (value       : Z.t option      )
+    (computation : 'a t            ) : 'a t
+  =
+  with_compile_time_integers [ (identifier, value) ] computation
+
+
+(*
+   Looks up a local variable's compile time known integer value.
+   Scopes are searched innermost first; the innermost scope that mentions the
+   identifier decides, even when it binds it to an unknown value.
+
+     None          : not bound locally at all
+     Some None     : bound locally, but its value is not known at compile time
+     Some (Some n) : bound locally to n
+
+   The two levels of option matter: the outer one separates "not a local variable,
+   so fall back on the top level value definitions" from "local but unknown, so
+   stop looking".
+*)
+let lookup_compile_time_integer (identifier : Ast.Identifier.t) : Z.t option option t =
+  let* scopes = get compile_time_integers
+  in
+  let rec search scopes =
+    match scopes with
+    | []              -> None
+    | scope :: scopes -> begin
+        match Ast.Identifier.Map.find scope identifier with
+        | Some value -> Some value
+        | None       -> search scopes
+      end
+  in
+  return @@ search scopes
 
 
 let log
