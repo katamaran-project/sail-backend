@@ -245,11 +245,7 @@ end = struct
         end
 
       and nanotype_of_type_variable (kid : S.kid) : Ast.Type.t TC.t =
-        let Kid_aux (unwrapped_kid, _kid_location) = kid
-        in
-        let Var identifier = unwrapped_kid
-        in
-        TC.return @@ Ast.Type.TypeVariable (Ast.Identifier.mk identifier)
+        TC.return @@ Ast.Type.TypeVariable (Identifier.translate_kind_identifier kid)
 
       in
       match unwrapped_type with
@@ -312,9 +308,7 @@ end = struct
       TC.return @@ Ast.Numeric.Expression.Constant constant
 
     and translate_variable (id : S.kid) : Ast.Numeric.Expression.t TC.t =
-      let Kid_aux (Var string, _location) = id
-      in
-      TC.return @@ Ast.Numeric.Expression.Var (Ast.Identifier.mk string)
+      TC.return @@ Ast.Numeric.Expression.Var (Identifier.translate_kind_identifier id)
 
     and translate_negation (numeric_expression : S.nexp) =
       let* numeric_expression' = translate_numeric_expression numeric_expression
@@ -422,7 +416,7 @@ end = struct
       | S.NC_or (x, y)                             -> translate_or        x y
       | S.NC_and (x, y)                            -> translate_and       x y
       | S.NC_app (function_id, arguments)          -> translate_application function_id arguments
-      | S.NC_var (Kid_aux (Var kind_id, _loc))     -> TC.return @@ Ast.Numeric.Constraint.Var (Ast.Identifier.mk kind_id)
+      | S.NC_var kind_id                           -> TC.return @@ Ast.Numeric.Constraint.Var (Identifier.translate_kind_identifier kind_id)
       | S.NC_true                                  -> TC.return @@ Ast.Numeric.Constraint.True
       | S.NC_false                                 -> TC.return @@ Ast.Numeric.Constraint.False
       | S.NC_set (_, _)                            -> TC.not_yet_implemented [%here] location

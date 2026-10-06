@@ -21,9 +21,7 @@ let translate_kind (kind : S.kind) : Ast.Kind.t TC.t =
 
 
 let translate_kind_id (kid : S.kid) : Ast.Identifier.t TC.t =
-  let S.Kid_aux (Var unwappred_kid, _id_loc) = kid
-  in
-  TC.return @@ Ast.Identifier.mk unwappred_kid
+  TC.return @@ Identifier.translate_kind_identifier kid
 
 
 let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(Ast.Identifier.t * Ast.Kind.t) option TC.t =

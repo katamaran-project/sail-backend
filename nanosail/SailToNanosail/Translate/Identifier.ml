@@ -33,3 +33,14 @@ let translate_identifier
     | Id id       -> TC.return @@ Ast.Identifier.mk id
     | Operator op -> TC.return @@ Ast.Identifier.mk (Sail.mangle_sail_operator_name op)
   end
+
+
+(*
+   Sail stores kinded identifiers (type variables) with their leading
+   apostrophe, e.g., 'a. Rocq does not accept identifiers starting with
+   an apostrophe, so we drop it.
+*)
+let translate_kind_identifier (kid : S.kid) : Ast.Identifier.t =
+  let S.Kid_aux (Var unwrapped_kid, _location) = kid
+  in
+  Ast.Identifier.mk @@ "kid__" ^ String.chop_prefix_if_exists unwrapped_kid ~prefix:"'"
