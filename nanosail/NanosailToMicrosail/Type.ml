@@ -142,7 +142,7 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
   | TypeVariable id                  -> GC.pp_annotate [%here] @@ pp_type_variable id
   | Range (_, _)                     -> GC.pp_annotate [%here] @@ ty "int"
-  | Nat                              -> GC.not_yet_implemented [%here]
+  | Nat                              -> GC.pp_annotate [%here] @@ ty "int"
   | Vector _                         -> GC.not_yet_implemented [%here]
   | Implicit _                       -> GC.not_yet_implemented [%here]
   | Function _                       -> begin
@@ -217,7 +217,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Range (_, _)        -> GC.not_yet_implemented [%here]
   | Function _          -> GC.not_yet_implemented [%here]
   | TypeVariable _      -> GC.not_yet_implemented [%here]
-  | Nat                 -> GC.not_yet_implemented [%here]
+  | Nat                 -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"
   | Vector _            -> GC.not_yet_implemented [%here]
   | Implicit _          -> GC.not_yet_implemented [%here]
 
