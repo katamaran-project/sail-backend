@@ -110,10 +110,25 @@ let pp_alias_notations (pairs : (Sail.sail_definition * (Ast.Identifier.t * (Ast
             Type.pp_type typ
           end
         in
+        (*
+           Coq cannot infer the level of a notation that takes parameters,
+           so we specify it explicitly: the notation behaves like function application
+           (level 10) and its parameters must be atomic or parenthesized (level 9).
+        *)
+        let modifiers =
+          if List.is_empty quantifiers
+          then []
+          else begin
+            let pp_parameter_level id =
+              PP.(separate_horizontally ~separator:space [ Identifier.pp id; string "at level 9" ])
+            in
+            PP.string "at level 10" :: List.map ~f:pp_parameter_level quantifiers
+          end
+        in
         GC.block begin
           let* () = GC.add_original_definition sail_definition
           in
-          GC.return @@ Coq.pp_notation notation expression
+          GC.return @@ Coq.pp_notation ~modifiers notation expression
         end
       end
     in

@@ -755,22 +755,32 @@ let pp_tuple_type (ts : PP.t list) : PP.t =
 
 (*
    Notation "notation" := (expression).
+
+   or, if modifiers are given,
+
+   Notation "notation" := (expression) (modifier1, modifier2, ...).
 *)
 let pp_notation
+    ?(modifiers : PP.t list = [])
     (notation   : PP.t)
     (expression : PP.t) : PP.t
   =
   PP.annotate [%here] begin
+      let pp_modifiers =
+        if List.is_empty modifiers
+        then []
+        else [ PP.(surround parens @@ separate_horizontally ~separator:(string ", ") modifiers) ]
+      in
       pp_sentence begin
           PP.(
           separate_horizontally
             ~separator:PP.space
-            [
+            ([
               string "Notation";
               surround dquotes notation;
               string ":=";
               surround parens expression
-            ]
+            ] @ pp_modifiers)
           )
         end
     end
