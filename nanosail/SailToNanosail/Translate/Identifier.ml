@@ -20,6 +20,8 @@ let unwrap_identifier
   match unwrapped_id with
   | S.Id string -> TC.return string
   | S.Operator _ -> TC.not_yet_implemented ocaml_location id_location
+  | S.And_bool   -> TC.return "and_bool"
+  | S.Or_bool    -> TC.return "or_bool"
 
 
 let translate_identifier
@@ -32,6 +34,8 @@ let translate_identifier
     match unwrapped_identifier with
     | Id id       -> TC.return @@ Ast.Identifier.mk id
     | Operator op -> TC.return @@ Ast.Identifier.mk (Sail.mangle_sail_operator_name op)
+    | And_bool    -> TC.return @@ Ast.Identifier.mk "and_bool"
+    | Or_bool     -> TC.return @@ Ast.Identifier.mk "or_bool"
   end
 
 

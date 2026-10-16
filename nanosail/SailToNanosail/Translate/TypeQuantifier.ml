@@ -47,12 +47,6 @@ let translate_type_quantifier_item (quantifier_item : Libsail.Ast.quant_item) :(
 
 
 let translate_type_quantifier (type_quantifier : Libsail.Ast.typquant) : Ast.TypeQuantifier.t TC.t =
-  let S.TypQ_aux (unwrapped_type_quantifier, _location) = type_quantifier
+  let* items = TC.filter_map ~f:translate_type_quantifier_item type_quantifier
   in
-  match unwrapped_type_quantifier with
-  | TypQ_tq items  -> begin
-      let* items = TC.filter_map ~f:translate_type_quantifier_item items
-      in
-      TC.return @@ Ast.TypeQuantifier.TypeQuantifier items
-    end
-  | TypQ_no_forall -> TC.return @@ Ast.TypeQuantifier.TypeQuantifier []
+  TC.return @@ Ast.TypeQuantifier.TypeQuantifier items

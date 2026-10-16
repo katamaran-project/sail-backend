@@ -18,6 +18,33 @@ type ast = (Libsail.Type_check.tannot, Libsail.Type_check.env) Libsail.Ast_defs.
 
 let string_of_location (location : Libsail.Parse_ast.l) = StringOf.Sail.location location
 
+
+(*
+   Since Sail 0.20, ANF uses Jib names instead of identifiers.
+   Names generated during ANF translation (Gen) are converted to
+   identifiers of the form ga#N, as was the case in earlier Sail versions.
+*)
+let id_of_name (name : Libsail.Jib.name) : id =
+  match name with
+  | Name (id, _)       -> id
+  | Abstract id        -> id
+  | Gen (_, counter, _) -> Libsail.Ast_util.mk_id @@ "ga#" ^ Int.to_string counter
+  | _                  -> Libsail.Ast_util.mk_id @@ Libsail.Jib_util.string_of_name ~zencode:false name
+
+
+let id_of_function_id (function_id : Libsail.Anf.function_id) : id =
+  match function_id with
+  | Sail_function id    -> id
+  | Newtype_wrapper id  -> id
+  | Pure_extern (id, _) -> id
+  | Extern (id, _)      -> id
+
+
+let id_of_constructor_id (constructor_id : Libsail.Anf.constructor_id) : id =
+  match constructor_id with
+  | Constructor id     -> id
+  | Newtype_wrapper id -> id
+
 let mangle_sail_operator_name s =
   "operator_" ^
   Str.global_replace (Str.regexp "\\!") "excl" (
@@ -48,6 +75,8 @@ let string_of_id (id : id) : string =
   match id with
   | Id s       -> s
   | Operator op -> mangle_sail_operator_name op
+  | And_bool    -> "and_bool"
+  | Or_bool     -> "or_bool"
 
 
 (*
@@ -70,6 +99,8 @@ let identifier_of_top_level_type_constraint (top_level_type_constraint : 'a val_
   match identifier with
   | Id_aux (Id name, _)       -> name
   | Id_aux (Operator name, _) -> name
+  | Id_aux (And_bool, _)      -> "and_bool"
+  | Id_aux (Or_bool, _)       -> "or_bool"
 
 
 let identifier_of_type_definition (TD_aux (definition, (_location, _))) =
@@ -79,7 +110,7 @@ let identifier_of_type_definition (TD_aux (definition, (_location, _))) =
   | TD_variant (id, _, _, _) -> string_of_id id
   | TD_enum (id, _, _)       -> string_of_id id
   | TD_bitfield (id, _, _)   -> string_of_id id
-  | TD_abstract (id, _)      -> string_of_id id
+  | TD_abstract (id, _, _)   -> string_of_id id
 
 
 let rec identifier_of_pattern (pattern : 'a pat) : string =
@@ -107,12 +138,10 @@ let rec identifier_of_pattern (pattern : 'a pat) : string =
   | P_list _                    -> not_supported [%here]
   | P_cons (_, _)               -> not_supported [%here]
   | P_string_append _           -> not_supported [%here]
-  | P_struct (_, _)             -> not_supported [%here]
+  | P_struct (_, _, _)          -> not_supported [%here]
 
 
-let identifier_of_value_definition (value_definition : Libsail.Type_check.tannot letbind) : string =
-  let LB_aux (LB_val (pattern, E_aux (_, _)), (_location2, _type_annotation)) = value_definition
-  in
+let identifier_of_value_definition (pattern : Libsail.Type_check.tannot pat) : string =
   identifier_of_pattern pattern
 
 
@@ -126,3 +155,5 @@ let is_named_wildcard (sail_identifier : id) : bool =
   match unwrapped_sail_identifier with
   | Id name -> String.is_prefix name ~prefix:"g__"
   | Operator _ -> false
+  | And_bool   -> false
+  | Or_bool    -> false

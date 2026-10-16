@@ -14,18 +14,18 @@ let generate
   let pp_sail_location (location : Libsail.Parse_ast.l) =
     match location with
     | Libsail.Parse_ast.Range (start, stop) -> begin
-        if String.equal start.pos_fname stop.pos_fname
+        if Libsail.Sail_file.handle_equal start.pos_fname stop.pos_fname
         then (
           if start.pos_lnum = stop.pos_lnum
           then
             Printf.sprintf "File \"%s\" line %d chars %d-%d"
-              start.pos_fname
+              (StringOf.Sail.filename_of_handle start.pos_fname)
               start.pos_lnum
               (start.pos_cnum - start.pos_bol)
               (stop.pos_cnum - stop.pos_bol)
           else
             Printf.sprintf "File \"%s\" from line %d:%d to line %d:%d"
-              start.pos_fname
+              (StringOf.Sail.filename_of_handle start.pos_fname)
               start.pos_lnum
               (start.pos_cnum - start.pos_bol)
               stop.pos_lnum

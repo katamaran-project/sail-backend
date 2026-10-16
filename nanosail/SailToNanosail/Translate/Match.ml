@@ -2143,11 +2143,11 @@ let rec translate_pattern
     (matched_type : Ast.Type.t  )
     (sail_pattern : S.typ S.apat) : Pattern.t TC.t
   =
-  let S.AP_aux (unwrapped_sail_pattern, _type_environment, _location) = sail_pattern
+  let S.AP_aux (unwrapped_sail_pattern, _annotation) = sail_pattern
   in
 
-  let translate_variable_pattern (sail_identifier : S.id) : Pattern.t TC.t =
-    let* identifier = Identifier.translate_identifier [%here] sail_identifier
+  let translate_variable_pattern (sail_name : S.Jib.name) : Pattern.t TC.t =
+    let* identifier = Identifier.translate_identifier [%here] @@ Sail.id_of_name sail_name
     in
     TC.return @@ Pattern.Binder { identifier; wildcard = false }
 
@@ -2205,7 +2205,7 @@ let rec translate_pattern
       match unwrapped_sail_pattern with
       | AP_id (sail_identifier, _sail_type) -> begin
           let* identifier =
-            Identifier.translate_identifier [%here] sail_identifier
+            Identifier.translate_identifier [%here] @@ Sail.id_of_name sail_identifier
           in
           let* enum_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_enum_named enum_identifier)
@@ -2240,7 +2240,7 @@ let rec translate_pattern
       match unwrapped_sail_pattern with
       | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
           let* head_identifier =
-            Identifier.translate_identifier [%here] head_sail_identifier
+            Identifier.translate_identifier [%here] @@ Sail.id_of_constructor_id head_sail_identifier
           in
           let* variant_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
@@ -2321,15 +2321,12 @@ let translate_case
             in
             match unwrapped_literal with
             | L_unit             -> TC.not_yet_implemented [%here] location
-            | L_zero             -> TC.not_yet_implemented [%here] location
-            | L_one              -> TC.not_yet_implemented [%here] location
             | L_true             -> TC.return ()
             | L_false            -> TC.not_yet_implemented [%here] location
             | L_num _            -> TC.not_yet_implemented [%here] location
             | L_hex _            -> TC.not_yet_implemented [%here] location
             | L_bin _            -> TC.not_yet_implemented [%here] location
             | L_string _         -> TC.not_yet_implemented [%here] location
-            | L_undef            -> TC.not_yet_implemented [%here] location
             | L_real _           -> TC.not_yet_implemented [%here] location
           end
         | AV_id (_, _)           -> TC.not_yet_implemented [%here] location
@@ -2339,6 +2336,8 @@ let translate_case
         | AV_vector (_, _)       -> TC.not_yet_implemented [%here] location
         | AV_record (_, _)       -> TC.not_yet_implemented [%here] location
         | AV_cval (_, _)         -> TC.not_yet_implemented [%here] location
+        | AV_abstract (_, _)     -> TC.not_yet_implemented [%here] location
+        | AV_undef _             -> TC.not_yet_implemented [%here] location
       end
     | AE_app (_, _, _)           -> TC.not_yet_implemented [%here] location
     | AE_typ (_, _)              -> TC.not_yet_implemented [%here] location

@@ -11,7 +11,8 @@
                                "include_end"
                                "file_start"
                                "file_end"
-                               "sail_internal")
+                               "sail_internal"
+                               "c_reserved")
                              identifier)))
 
 (ignore-function-definition-and-top-level-type-constraints-predicate
@@ -40,7 +41,9 @@
                  "concat_str_bits"
                  "concat_str_dec"
                  "initialize_registers"
-                 "__deref")
+                 "__deref"
+                 "to_bytes_le"
+                 "from_bytes_le")
                identifier))))
                                         
 

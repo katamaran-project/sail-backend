@@ -20,9 +20,8 @@ module R = Libsail.Rewrites
     add_bitvector_casts
     remove_impossible_int_cases
     const_prop_mutrec
-    make_cases_exhaustive
+    pattern_exhaustivity_redundancy
     undefined
-    vector_string_pats_to_bit_list
     remove_not_pats
     pattern_literals
     vector_concat_assignments
@@ -70,7 +69,11 @@ module R = Libsail.Rewrites
 *)
 let katamaran_rewrites =
   [
-    ("instantiate_outcomes", [R.String_arg "coq"]);
+    (*
+      Since Sail 0.20, this rewrite takes an extra argument keep_original_defs.
+      Previous versions behaved as if it were false.
+    *)
+    ("instantiate_outcomes", [R.String_arg "coq"; R.Bool_arg false]);
 
     (*
       Rewrites mappings as two functions.
@@ -133,10 +136,9 @@ let katamaran_rewrites =
     ("undefined", [R.Bool_arg true]);
 
     (*
-       Translates 0b010 into [bitzero, bitone, bitzero]
-       Required
+       vector_string_pats_to_bit_list (translates 0b010 into [bitzero, bitone, bitzero])
+       was removed in Sail 0.20; the Coq backend dropped it without replacement.
     *)
-    ("vector_string_pats_to_bit_list", []);
 
     ("remove_not_pats", []);
 
@@ -245,7 +247,10 @@ let katamaran_rewrites =
         }
 
     *)
-    ("make_cases_exhaustive", []);
+    (*
+      make_cases_exhaustive was replaced by pattern_exhaustivity_redundancy in Sail 0.20.
+    *)
+    ("pattern_exhaustivity_redundancy", []);
 
     (*
       Joins function clauses into one function.

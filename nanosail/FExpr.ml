@@ -310,10 +310,10 @@ let mk_option (fexpr : t option) =
   | None       -> mk_symbol "None"
 
 
-let mk_ocaml_location (location : Lexing.position) =
+let mk_ocaml_location (location : Libsail.Sail_file.position) =
   let keyword =
     [
-      ("pos_fname", mk_string location.pos_fname);
+      ("pos_fname", mk_string @@ Libsail.Sail_file.Path.to_string @@ Libsail.Sail_file.to_path location.pos_fname);
       ("pos_lnum" , mk_int    location.pos_lnum );
       ("pos_bol"  , mk_int    location.pos_bol  );
       ("pos_cnum" , mk_int    location.pos_cnum );

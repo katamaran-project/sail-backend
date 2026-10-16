@@ -19,10 +19,14 @@ let rewrites () =
 
 module CLI = struct
   module Arg = struct
+    (*
+       Flag.create would join the prefix and key using an underscore;
+       we use override to keep the option name -katamaran-config
+    *)
     let mk_option s =
       let words = String.split s ~on:' '
       in
-      String.concat ~sep:"-" ("-katamaran" :: words)
+      Libsail.Flag.create ~override:(String.concat ~sep:"-" ("katamaran" :: words)) s
 
     let config_file = mk_option "config"
   end

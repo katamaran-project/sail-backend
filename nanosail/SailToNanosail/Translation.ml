@@ -26,8 +26,8 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   and should_ignore_type_definition (type_definition : 'a type_def) : bool =
     Configuration.(get ignore_type_definition_predicate) (Sail.identifier_of_type_definition type_definition)
 
-  and should_ignore_value_definition (value_definition : Libsail.Type_check.tannot letbind) : bool =
-    Configuration.(get ignore_value_definition_predicate) (Sail.identifier_of_value_definition value_definition)
+  and should_ignore_value_definition (pattern : Libsail.Type_check.tannot pat) : bool =
+    Configuration.(get ignore_value_definition_predicate) (Sail.identifier_of_value_definition pattern)
 
   and should_ignore_top_level_type_constraint (top_level_type_constraint : Sail.type_annotation val_spec) =
     Configuration.(get ignore_top_level_type_constraint_predicate) (Sail.identifier_of_top_level_type_constraint top_level_type_constraint)
@@ -44,7 +44,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_fundef function_definition    -> should_ignore_function_definition function_definition
   | DEF_mapdef _                      -> false
   | DEF_impl _                        -> false
-  | DEF_let value_definition          -> should_ignore_value_definition value_definition
+  | DEF_let (pattern, _)              -> should_ignore_value_definition pattern
   | DEF_val top_level_type_constraint -> should_ignore_top_level_type_constraint top_level_type_constraint
   | DEF_outcome (_, _)                -> false
   | DEF_instantiation (_, _)          -> false
@@ -57,7 +57,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_register _                    -> false
   | DEF_internal_mutrec _             -> false
   | DEF_constraint _                  -> false
-  | DEF_pragma (identifier, _, _)     -> should_ignore_pragma identifier
+  | DEF_pragma (identifier, _)        -> should_ignore_pragma identifier
 
 
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
@@ -94,11 +94,11 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
         let* result : Ast.Definition.t =
           match unwrapped_sail_definition with
           | DEF_type type_definition                 -> Translate.TypeDefinition.translate_type_definition annotation type_definition
-          | DEF_let value_definition                 -> Translate.ValueDefinition.translate_value_definition annotation value_definition
+          | DEF_let (pattern, expression)            -> Translate.ValueDefinition.translate_value_definition annotation pattern expression
           | DEF_val value_specification              -> Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
           | DEF_register specification               -> Translate.Register.translate_register annotation specification
           | DEF_fundef function_definition           -> Translate.Function.translate_function_definition sail_definition annotation function_definition
-          | DEF_pragma (pragma, _argument, location) -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] location
+          | DEF_pragma (pragma, _argument)           -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] annotation.loc
           | DEF_fixity (_, _, _)                     -> TC.return Ast.Definition.IgnoredDefinition
           | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
           | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc

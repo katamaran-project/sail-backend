@@ -13,5 +13,5 @@ val mk_symbol         : string -> t
 val mk_list           : t list -> t
 val mk_nil            : t
 val mk_option         : t option -> t
-val mk_ocaml_location : Lexing.position -> t
+val mk_ocaml_location : Libsail.Sail_file.position -> t
 val mk_sail_location  : Libsail.Parse_ast.l -> t

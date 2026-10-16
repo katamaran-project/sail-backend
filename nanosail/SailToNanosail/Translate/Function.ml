@@ -11,7 +11,7 @@ module S = struct
 end
 
 module TC        = TranslationContext
-module Bindings  = Libsail.Ast_util.Bindings
+module Bindings  = Libsail.Ast_compare.Bindings
 
 open Monads.Notations.Star(TC)
 
@@ -100,15 +100,12 @@ let translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (
       begin
         match lit with
         | L_unit     -> TC.return @@ [(Ast.Identifier.mk "()", Ast.Type.Unit)] (* todo rather ugly *)
-        | L_zero     -> TC.not_yet_implemented [%here] location
-        | L_one      -> TC.not_yet_implemented [%here] location
         | L_true     -> TC.not_yet_implemented [%here] location
         | L_false    -> TC.not_yet_implemented [%here] location
         | L_num _    -> TC.not_yet_implemented [%here] location
         | L_hex _    -> TC.not_yet_implemented [%here] location
         | L_bin _    -> TC.not_yet_implemented [%here] location
         | L_string _ -> TC.not_yet_implemented [%here] location
-        | L_undef    -> TC.not_yet_implemented [%here] location
         | L_real _   -> TC.not_yet_implemented [%here] location
       end
     | P_id id -> begin
@@ -145,7 +142,7 @@ let translate_parameter_bindings (pattern : Libsail.Type_check.tannot S.pat) : (
     | P_list _                    -> TC.not_yet_implemented [%here] location
     | P_cons (_, _)               -> TC.not_yet_implemented [%here] location
     | P_string_append _           -> TC.not_yet_implemented [%here] location
-    | P_struct (_, _)             -> TC.not_yet_implemented [%here] location
+    | P_struct (_, _, _)          -> TC.not_yet_implemented [%here] location
   in
   translate true pattern
 
@@ -236,10 +233,23 @@ let rec expression_of_aval
         (literal : S.lit)
         (typ     : S.typ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
-    let* lit' = Literal.value_of_literal literal
-    and* typ' = Type.translate_type typ
+    let* typ' = Type.translate_type typ
     in
-    TC.return @@ (Ast.Expression.Value lit', typ', [])
+    match Literal.bits_of_literal literal with
+    | Some bits when not (S.is_bit_typ typ) -> begin
+        (*
+           Bitvector literals used to be rewritten by Sail into vectors of bits.
+           We produce the same translation as for such vectors (see expression_of_vector).
+        *)
+        let bit_expression (bit : bool) = Ast.Expression.Value (Ast.Value.Bit bit)
+        in
+        TC.return @@ (Ast.Expression.Bitvector (List.map ~f:bit_expression bits), typ', [])
+      end
+    | _ -> begin
+        let* lit' = Literal.value_of_literal literal typ
+        in
+        TC.return @@ (Ast.Expression.Value lit', typ', [])
+      end
 
   and expression_of_identifier
         (identifier : S.id                       )
@@ -393,12 +403,14 @@ let rec expression_of_aval
   match value with
   | AV_tuple elements         -> expression_of_tuple elements
   | AV_lit (literal, typ)     -> expression_of_literal literal typ
-  | AV_id (id, lvar)          -> expression_of_identifier id lvar
+  | AV_id (name, lvar)        -> expression_of_identifier (Sail.id_of_name name) lvar
   | AV_list (list, typ)       -> expression_of_list list typ
   | AV_record (bindings, typ) -> expression_of_record bindings typ
   | AV_vector (values, typ)   -> expression_of_vector values typ
   | AV_ref (_, _)             -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)            -> TC.not_yet_implemented [%here] location
+  | AV_abstract (_, _)        -> TC.not_yet_implemented [%here] location
+  | AV_undef _                -> TC.not_yet_implemented [%here] location
 
 
 and translate_bindings
@@ -529,7 +541,7 @@ let with_destructured_record
   match value with
   | AV_id (record_identifier, lvar) -> begin
       let* record_identifier =
-        Identifier.translate_identifier [%here] record_identifier
+        Identifier.translate_identifier [%here] @@ Sail.id_of_name record_identifier
       and* S.Typ_aux (t, _loc) =
         sail_type_of_lvar lvar location
       in
@@ -586,6 +598,8 @@ let with_destructured_record
   | AV_vector (_, _)   -> TC.not_yet_implemented [%here] location
   | AV_record (_, _)   -> TC.not_yet_implemented [%here] location
   | AV_cval (_, _)     -> TC.not_yet_implemented [%here] location
+  | AV_abstract (_, _) -> TC.not_yet_implemented [%here] location
+  | AV_undef _         -> TC.not_yet_implemented [%here] location
 
 
 (*
@@ -713,6 +727,12 @@ let rec statement_of_aexp
       match argument_expressions with
       | [x; y] -> TC.return @@ wrap @@ Ast.Statement.Expression (BinaryOperation (operator, x, y))
       | _      -> TC.fail [%here] "binary operation should have exactly two arguments"
+    in
+
+    let statement_of_unary_operation (operator : Ast.UnaryOperator.t) : Ast.Statement.t TC.t =
+      match argument_expressions with
+      | [x] -> TC.return @@ wrap @@ Ast.Statement.Expression (UnaryOperation (operator, x))
+      | _   -> TC.fail [%here] "unary operation should have exactly one argument"
     in
 
     let statement_of_comparison (comparison : Ast.BinaryOperator.Comparison.t) : Ast.Statement.t TC.t =
@@ -877,6 +897,8 @@ let rec statement_of_aexp
     | "add_atom"  -> statement_of_binary_operation Plus
     | "sub_atom"  -> statement_of_binary_operation Minus
     | "mult_atom" -> statement_of_binary_operation Times
+    | "negate_atom"                                                  (* Since Sail 0.20, -1 is parsed as negate_atom(1) *)
+    | "negate_int" -> statement_of_unary_operation Neg
     | "lt_int"    -> statement_of_comparison LessThan
     | "lteq_int"  -> statement_of_comparison LessThanOrEqualTo
     | "gt_int"    -> statement_of_comparison GreaterThan
@@ -1029,7 +1051,7 @@ let rec statement_of_aexp
     =
     match lhs with
     | AL_id (id, lhs_type) -> begin
-        let* id_in_lhs = Identifier.translate_identifier [%here] id
+        let* id_in_lhs = Identifier.translate_identifier [%here] @@ Sail.id_of_name id
         in
         let* is_register = TC.is_register id_in_lhs
         in
@@ -1192,10 +1214,10 @@ let rec statement_of_aexp
   let* translated_statement =
     match unwrapped_expression with
     | AE_val value                                                  -> statement_of_value value
-    | AE_app (id, avals, typ)                                       -> statement_of_application id avals typ
-    | AE_let (mutability, identifier, typ1, expression, body, typ2) -> statement_of_let mutability identifier typ1 expression body typ2
+    | AE_app (id, avals, typ)                                       -> statement_of_application (Sail.id_of_function_id id) avals typ
+    | AE_let (mutability, name, typ1, expression, body, typ2)       -> statement_of_let mutability (Sail.id_of_name name) typ1 expression body typ2
     | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
-    | AE_match (aval, cases, output_type)                           -> statement_of_match aval cases output_type
+    | AE_match (aval, cases, output_type)                           -> statement_of_match aval (List.map cases ~f:(fun (pattern, guard, body, _uannot) -> (pattern, guard, body))) output_type
     | AE_block (statements, last_statement, typ)                    -> statement_of_block statements last_statement typ
     | AE_field (aval, field_identifier, field_type)                 -> statement_of_field_access aval field_identifier field_type
     | AE_struct_update (aval, bindings, typ)                        -> statement_of_struct_update aval bindings typ

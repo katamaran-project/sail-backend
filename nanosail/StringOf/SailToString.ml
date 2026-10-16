@@ -33,21 +33,41 @@ let exp             = Sail.string_of_exp
 let pexp            = Sail.string_of_pexp
 let lexp            = Sail.string_of_lexp
 let mpat            = Sail.string_of_mpat
-let letbind         = Sail.string_of_letbind
 let index_range     = Sail.string_of_index_range
 let type_annotation = Sail.string_of_tannot
+let name            = Sail.Jib_util.string_of_name ~zencode:false
+
+
+let function_id (function_id : Sail.function_id) =
+  match function_id with
+  | Sail_function id      -> id
+  | Newtype_wrapper id    -> id
+  | Pure_extern (id, _)   -> id
+  | Extern (id, _)        -> id
+
+
+let constructor_id (constructor_id : Sail.constructor_id) =
+  match constructor_id with
+  | Constructor id     -> id
+  | Newtype_wrapper id -> id
+
+
+let filename_of_handle (handle : Sail.Sail_file.handle) : string =
+  Sail.Sail_file.Path.to_string @@ Sail.Sail_file.to_path handle
 
 
 let aval (aval : 'a Sail.aval) =
   match aval with
   | AV_lit (x, _)      -> Printf.sprintf "AV_lit(%s)" (lit x)
-  | AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (id x)
+  | AV_id (x, _)       -> Printf.sprintf "AV_id(%s,_)" (name x)
   | AV_ref (_, _)      -> Printf.sprintf "AV_ref(_,_)"
   | AV_tuple _         -> Printf.sprintf "AV_tuple(_)"
   | AV_list (_, _)     -> Printf.sprintf "AV_list(_, _)"
   | AV_vector (_, _)   -> Printf.sprintf "AV_vector(_, _)"
   | AV_record (_, _)   -> Printf.sprintf "AV_record(_, _)"
   | AV_cval (_, _)     -> Printf.sprintf "AV_cval(_, _)"
+  | AV_abstract (x, _) -> Printf.sprintf "AV_abstract(%s,_)" (id x)
+  | AV_undef _         -> Printf.sprintf "AV_undef(_)"
 
 
 let list ~(f:'a -> string) (xs : 'a list) =
@@ -62,11 +82,11 @@ let alexp (location_expression : 'a Sail.alexp) =
 
 
 let rec apat (pattern : 'a Sail.apat) =
-  let AP_aux (pattern, _env, _location) = pattern
+  let AP_aux (pattern, _annotation) = pattern
   in
   match pattern with
   | AP_app (identifier, subpattern, _) -> begin
-      Printf.sprintf "AP_app (%s, %s, _)" (id identifier) (apat subpattern)
+      Printf.sprintf "AP_app (%s, %s, _)" (id @@ constructor_id identifier) (apat subpattern)
     end
   | AP_tuple _       -> Printf.sprintf "AP_tuple _"
   | AP_id (_, _)     -> Printf.sprintf "AP_id (_, _)"
@@ -76,6 +96,7 @@ let rec apat (pattern : 'a Sail.apat) =
   | AP_struct (_, _) -> Printf.sprintf "AP_struct (_, _)"
   | AP_nil _         -> Printf.sprintf "AP_nil _"
   | AP_wild _        -> Printf.sprintf "AP_wild _"
+  | AP_vector_concat _ -> Printf.sprintf "AP_vector_concat _"
 
 
 let rec aexp (expression : 'a Sail.aexp) =
@@ -83,7 +104,7 @@ let rec aexp (expression : 'a Sail.aexp) =
   in
   match expression with
   | AE_val value                   -> Printf.sprintf "AE_val(%s)" (aval value)
-  | AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id identifier) (list ~f:aval values)
+  | AE_app (identifier, values, _) -> Printf.sprintf "AE_app(%s, %s, ?)" (id @@ function_id identifier) (list ~f:aval values)
   | AE_typ (expression, _)         -> Printf.sprintf "AE_typ(%s, ?)" (aexp expression)
   | AE_assign (_, _)               -> Printf.sprintf "AE_assign(%s, %s)" "?" "?"
   | AE_let (_, _, _, _, _, _)      -> Printf.sprintf "AE_let (_, _, _, _, _, _)"
@@ -110,8 +131,8 @@ let pat (pattern : Sail.tannot Libsail.Ast.pat) : string =
 
 
 let location (location : Libsail.Parse_ast.l) : string =
-  let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol = _; pos_cnum = _ } : Lexing.position) =
-    Printf.sprintf "%s:%d" pos_fname pos_lnum
+  let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol = _; pos_cnum = _ } : Sail.Sail_file.position) =
+    Printf.sprintf "%s:%d" (filename_of_handle pos_fname) pos_lnum
   in
   let rec string_of_location (location : Libsail.Parse_ast.l) =
     match location with
@@ -125,8 +146,8 @@ let location (location : Libsail.Parse_ast.l) : string =
 
 
 let location_full (location : Libsail.Parse_ast.l) : string =
-  let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Lexing.position) =
-    Printf.sprintf "Pos(%s:%d:%d:%d)" pos_fname pos_lnum pos_bol pos_cnum
+  let string_of_ocaml_position ({ pos_fname; pos_lnum; pos_bol; pos_cnum } : Sail.Sail_file.position) =
+    Printf.sprintf "Pos(%s:%d:%d:%d)" (filename_of_handle pos_fname) pos_lnum pos_bol pos_cnum
   in
   let rec string_of_location (location : Libsail.Parse_ast.l) =
     match location with
