@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Run sail with the katamaran plugin built in this checkout (dune build)
+# instead of the one installed in the opam switch (dune install).
+#
+# Each worktree has its own copy of this script, which loads that worktree's
+# plugin, so pointing a build at a worktree only requires replacing `sail`
+# with the path to this script, e.g.
+#
+#     make -C .../katamaran/case_study/Cheriot sail SAIL=$PWD/bin/sail-local
+#
+# All other installed plugins (the c, ocaml, coq, ... backends) are still
+# loaded, so the script is a drop-in replacement for sail in other builds too.
+#
+# Set SAIL_REAL to use a sail binary other than the one on PATH.
+
+set -euo pipefail
+
+real_sail="${SAIL_REAL:-sail}"
+checkout="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.." && pwd)"
+plugin="$checkout/_build/default/sail_plugin/sail_plugin_katamaran.cmxs"
+
+if [[ ! -f "$plugin" ]]; then
+    echo "sail-local: $plugin does not exist; run 'dune build' in $checkout" >&2
+    exit 1
+fi
+
+# SAIL_NO_PLUGINS stops sail from auto-loading the installed plugins, which
+# would include the installed katamaran plugin, whose options would shadow
+# this one's.  The others are loaded again explicitly below.
+installed_plugins="$("$real_sail" --dir)/../libsail/plugins"
+plugin_arguments=()
+for installed in "$installed_plugins"/*.cmxs; do
+    if [[ "$(basename "$installed")" != sail_plugin_katamaran.cmxs ]]; then
+        plugin_arguments+=(--plugin "$installed")
+    fi
+done
+plugin_arguments+=(--plugin "$plugin")
+
+SAIL_NO_PLUGINS=1 exec "$real_sail" "${plugin_arguments[@]}" "$@"

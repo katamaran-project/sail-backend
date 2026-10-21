@@ -13,6 +13,9 @@ it still describes the old `test.sh` workflow. Use the `run-tests.py` instructio
   If you use opam instead, see `docs/installation.md`.
 - `make build` runs `dune build`. `make install` runs `dune install`. **The plugin must be installed before Sail can load it.**
   The end-to-end tests call the `sail` on `PATH`, so they test the last *installed* plugin. Run `make install` after every change before you run them.
+  To test a checkout or worktree without installing it, run `dune build` and then either pass `--plugin` to `run-tests.py`, or use `bin/sail-local` as a drop-in `sail`.
+  `bin/sail-local` loads that checkout's built plugin in place of the installed one. Example: `make -C ~/d/software/katamaran/case_study/Cheriot sail SAIL=$PWD/bin/sail-local`.
+  The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used.
 - The project currently targets Sail 0.20.3. The CI workflow in `.github/workflows` still pins 0.18.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.
