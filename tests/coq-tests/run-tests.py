@@ -20,6 +20,8 @@ Usage:
     ./run-tests.py --include 'let-shadow-'           # run everything matching
     ./run-tests.py --include-file failures.txt       # run the tests listed
     ./run-tests.py --list                            # show the selection only
+    ./run-tests.py --plugin ../../_build/default/sail_plugin/sail_plugin_katamaran.cmxs
+                                                     # test an uninstalled build
 """
 
 import argparse
@@ -191,17 +193,20 @@ def populate_sandbox(source, sandbox):
         shutil.copy2(source / entry, sandbox / entry)
 
 
-def capture(command, sandbox, log):
+def capture(command, sandbox, log, environment=None):
     """Run a command in the sandbox, appending its output to log.
 
     stdout and stderr are merged so that the interleaving is preserved, which
-    matters when reading a failure after the fact.
+    matters when reading a failure after the fact.  environment, if given,
+    holds variables to set on top of the inherited environment.
     """
-    log.append(f'$ {" ".join(command)}\n')
+    assignments = ''.join(f'{key}={value} ' for key, value in (environment or {}).items())
+    log.append(f'$ {assignments}{" ".join(command)}\n')
 
     try:
         completed = subprocess.run(
             command, cwd=sandbox,
+            env={**os.environ, **environment} if environment else None,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, errors='replace',
         )
@@ -284,6 +289,12 @@ def run_test(name, run_directory, arguments):
     populate_sandbox(HERE / name, sandbox)
 
     sail_command = [arguments.sail]
+    sail_environment = None
+    if arguments.plugin is not None:
+        # SAIL_NO_PLUGINS stops sail from also auto-loading the katamaran plugin
+        # installed in the opam switch, whose options would shadow this one's.
+        sail_command += ['--plugin', str(arguments.plugin)]
+        sail_environment = {'SAIL_NO_PLUGINS': '1'}
     if arguments.dump:
         sail_command += ['--ddump-rewrite-ast', 'intermediate']
     if arguments.monomorphise:
@@ -294,7 +305,7 @@ def run_test(name, run_directory, arguments):
 
     # A sail failure is recorded but does not stop the test: the Coq stage is
     # what decides pass or fail, as it did when this was a shell script.
-    sail_exit = capture(sail_command, sandbox, log)
+    sail_exit = capture(sail_command, sandbox, log, sail_environment)
 
     if arguments.dump:
         process_rewrites(sandbox)
@@ -437,8 +448,18 @@ def parse_arguments(argv):
     tools = parser.add_argument_group('tools')
     tools.add_argument('--sail', default='sail', help='the sail binary (default: %(default)s)')
     tools.add_argument('--coqc', default='coqc', help='the Coq compiler (default: %(default)s)')
+    tools.add_argument('--plugin', type=Path, default=None, metavar='CMXS',
+                       help='load this katamaran plugin instead of the one installed in the '
+                            'opam switch, e.g. ../../_build/default/sail_plugin/'
+                            'sail_plugin_katamaran.cmxs')
 
     arguments = parser.parse_args(argv)
+
+    if arguments.plugin is not None:
+        # sail runs inside the sandbox, so a relative path would not resolve there.
+        arguments.plugin = arguments.plugin.resolve()
+        if not arguments.plugin.is_file():
+            parser.error(f'--plugin: no such file: {arguments.plugin}')
 
     arguments.dump = resolve(arguments.dump, 'DUMP', True)
     arguments.monomorphise = resolve(arguments.monomorphise, 'MONOMO', False)
