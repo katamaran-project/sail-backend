@@ -20,8 +20,13 @@ Usage:
     ./run-tests.py --include 'let-shadow-'           # run everything matching
     ./run-tests.py --include-file failures.txt       # run the tests listed
     ./run-tests.py --list                            # show the selection only
-    ./run-tests.py --plugin ../../_build/default/sail_plugin/sail_plugin_katamaran.cmxs
-                                                     # test an uninstalled build
+    ./run-tests.py --installed-plugin                # test the plugin installed in
+                                                     # the opam switch instead
+
+By default, the tests use the katamaran plugin built by `dune build` in this
+checkout, not the one installed in the opam switch, so that several checkouts
+or worktrees can be tested at the same time without overwriting each other's
+installed plugin.
 """
 
 import argparse
@@ -46,6 +51,7 @@ SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
 
 DEFAULT_JOBS = 20
 DEFAULT_OUTPUT_DIR = HERE / 'test-output'
+DEFAULT_PLUGIN = HERE.parent.parent / '_build' / 'default' / 'sail_plugin' / 'sail_plugin_katamaran.cmxs'
 
 # Files a previous in-place run may have left in a test directory.  These are
 # never copied into a sandbox: the sandbox must start from the inputs only.
@@ -448,10 +454,12 @@ def parse_arguments(argv):
     tools = parser.add_argument_group('tools')
     tools.add_argument('--sail', default='sail', help='the sail binary (default: %(default)s)')
     tools.add_argument('--coqc', default='coqc', help='the Coq compiler (default: %(default)s)')
-    tools.add_argument('--plugin', type=Path, default=None, metavar='CMXS',
-                       help='load this katamaran plugin instead of the one installed in the '
-                            'opam switch, e.g. ../../_build/default/sail_plugin/'
-                            'sail_plugin_katamaran.cmxs')
+    plugins = tools.add_mutually_exclusive_group()
+    plugins.add_argument('--plugin', type=Path, default=DEFAULT_PLUGIN, metavar='CMXS',
+                         help='the katamaran plugin to load (default: the one built by '
+                              'dune build in this checkout)')
+    plugins.add_argument('--installed-plugin', dest='plugin', action='store_const', const=None,
+                         help='use the katamaran plugin installed in the opam switch')
 
     arguments = parser.parse_args(argv)
 
@@ -459,7 +467,7 @@ def parse_arguments(argv):
         # sail runs inside the sandbox, so a relative path would not resolve there.
         arguments.plugin = arguments.plugin.resolve()
         if not arguments.plugin.is_file():
-            parser.error(f'--plugin: no such file: {arguments.plugin}')
+            parser.error(f'--plugin: no such file: {arguments.plugin} (run dune build first?)')
 
     arguments.dump = resolve(arguments.dump, 'DUMP', True)
     arguments.monomorphise = resolve(arguments.monomorphise, 'MONOMO', False)

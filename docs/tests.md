@@ -30,9 +30,10 @@ A test proceeds in two phases:
 A test passes if both files compile.
 When the Coq phase is disabled (see `--no-coq` below), a test passes if Sail exits successfully.
 
-The tests use whatever `sail` is on `PATH`, meaning they test the last *installed* version of the plugin.
-`make e2e` builds and installs the plugin first, but when running `run-tests.py` directly,
-make sure to run `make install` after every change.
+The tests use the `sail` on `PATH`, but load the katamaran plugin built by `dune build` in this checkout
+(`_build/default/sail_plugin/sail_plugin_katamaran.cmxs`) instead of the one installed in the opam switch.
+This way, several checkouts or worktrees can be tested at the same time without overwriting each other's installed plugin.
+Run `dune build` after every change; `make e2e` does this for you.
 
 ### Running All Tests
 
@@ -45,7 +46,7 @@ $ make end-to-end-tests
 $ make e2e
 ```
 
-This builds and installs the plugin, then calls `tests/coq-tests/run-tests.py`.
+This builds the plugin, then calls `tests/coq-tests/run-tests.py`.
 
 * Running all these tests takes several minutes.
 * Not all tests pass due to missing features in the Sail-Coq translation step.
@@ -90,6 +91,8 @@ $ tests/coq-tests/run-tests.py --include 'atoms-' --list
 * `--keep-vo` keeps the Coq build products (`.vo`, `.glob`, ...), which are otherwise deleted after each test (they take about 8MB per test).
 * `--output-dir DIR` changes where results are stored (default: `tests/coq-tests/test-output`).
 * `--sail` and `--coqc` select the binaries to use (default: `sail` and `coqc` from `PATH`).
+* `--plugin CMXS` selects the katamaran plugin to load (default: the one built in this checkout).
+  `--installed-plugin` uses the plugin installed in the opam switch instead.
 * Verbosity can be set using `VERBOSE=n`. See the `Configuration` module.
 * Command line flags take precedence over environment variables.
 

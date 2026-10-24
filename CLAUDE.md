@@ -11,11 +11,14 @@ it still describes the old `test.sh` workflow. Use the `run-tests.py` instructio
 
 - The dev environment comes from the Nix flake (`.envrc` runs `use flake`). It pins Sail, Rocq 8.20 and Katamaran.
   If you use opam instead, see `docs/installation.md`.
-- `make build` runs `dune build`. `make install` runs `dune install`. **The plugin must be installed before Sail can load it.**
-  The end-to-end tests call the `sail` on `PATH`, so they test the last *installed* plugin. Run `make install` after every change before you run them.
-  To test a checkout or worktree without installing it, run `dune build` and then either pass `--plugin` to `run-tests.py`, or use `bin/sail-local` as a drop-in `sail`.
-  `bin/sail-local` loads that checkout's built plugin in place of the installed one. Example: `make -C ~/d/software/katamaran/case_study/Cheriot sail SAIL=$PWD/bin/sail-local`.
+- `make build` runs `dune build`. `make install` runs `dune install`, which overwrites the plugin in the shared opam switch.
+  **Do not run `make install` unless the user asks for it**: other checkouts and worktrees, possibly worked on in parallel, use the same switch.
+  Instead, test this checkout's plugin as built by `dune build`:
+  - `run-tests.py` and the Makefile's test targets do this by default (`run-tests.py --installed-plugin` uses the installed plugin instead).
+  - Elsewhere, use `bin/sail-local` as a drop-in `sail`. It loads this checkout's built plugin in place of the installed one.
+    Example: `make -C ~/d/software/katamaran/case_study/Cheriot sail SAIL=$PWD/bin/sail-local`.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used.
+  Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
 - The project currently targets Sail 0.20.3. The CI workflow in `.github/workflows` still pins 0.18.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.

@@ -1,5 +1,11 @@
+# The test targets use the plugin built in this checkout (via bin/sail-local)
+# instead of installing it, so that several checkouts or worktrees can be
+# tested in parallel without overwriting each other's installed plugin.
+SAIL_LOCAL := $(CURDIR)/bin/sail-local
+
+
 .PHONY: all
-all: build install test template-tests end-to-end-tests
+all: build test template-tests end-to-end-tests
 
 
 .PHONY: full
@@ -22,34 +28,34 @@ test:
 
 
 .PHONY: template-tests tt
-template-tests: build install
-	make -C tests/template-tests
+template-tests: build
+	SAIL=$(SAIL_LOCAL) make -C tests/template-tests
 
 tt: template-tests
 
 
 .PHONY: end-to-end-tests e2e
-end-to-end-tests: build install
+end-to-end-tests: build
 	tests/coq-tests/run-tests.py
 
 e2e: end-to-end-tests
 
 
 .PHONY: msp430-tests msp
-msp430-tests: build install
-	make -C tests/msp430-tests | tee test-results.txt
+msp430-tests: build
+	SAIL=$(SAIL_LOCAL) make -C tests/msp430-tests | tee test-results.txt
 
 msp: msp430-tests
 
 
 .PHONY: example
-example: build install
-	make -C working-example
+example: build
+	make -C working-example SAIL=$(SAIL_LOCAL)
 
 
 .PHONY: minimal-caps mc
-minimal-caps: build install
-	make -C minimal-caps
+minimal-caps: build
+	make -C minimal-caps SAIL=$(SAIL_LOCAL)
 
 mc: minimal-caps
 
