@@ -23,6 +23,15 @@ it still describes the old `test.sh` workflow. Use the `run-tests.py` instructio
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.
 
+## Worktrees and feature workspaces
+
+- **Create worktrees only with `bin/new-feature <branch>`. Never run `git worktree add` directly.**
+  It creates `<root>/<branch>/` with a worktree of sail-backend and of each other repository configured for this user (for example katamaran), all on branch `<branch>`, plus a `CLAUDE.md` describing the workspace.
+  `bin/new-feature --config` shows the root and the repositories; `--dry-run` shows what it would do. The configuration is in sail-backend's local git config (`newFeature.root`, `newFeature.repo`); the header of the script explains it.
+  Do not change that configuration unless the user asks.
+- Inside a workspace, use the sibling worktrees, not the main checkouts. Makefile defaults may point at main checkouts, so pass the paths explicitly,
+  e.g. `CHERIOT_SAIL_DIR=<workspace>/cheriot-sail` and `SAIL=<workspace>/sail-backend/bin/sail-local`.
+
 ## Tests
 
 - **Unit tests** (OUnit2): run `make test` (`dune test`). They live in `tests/nanosail-tests` and `tests/monad-tests`.

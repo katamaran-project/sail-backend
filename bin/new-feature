@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# Create a feature workspace: one worktree per repository, all on the same
+# new branch, side by side in one directory:
+#
+#     <root>/<branch>/sail-backend
+#     <root>/<branch>/<repo>          for each configured repository
+#     <root>/<branch>/CLAUDE.md       describes the workspace
+#
+# Usage:
+#
+#     bin/new-feature [--dry-run] <branch>
+#     bin/new-feature --config
+#
+# Each worktree starts at the commit checked out in that repository's main
+# checkout.  If <branch> already exists in a repository, its worktree checks
+# out that branch instead of creating it.
+#
+# Which other repositories take part, and where workspaces go, differs from
+# person to person, so it is read from sail-backend's local git config.  That
+# config is not committed, and all worktrees of sail-backend share it.
+#
+#     newFeature.root   directory that holds the workspaces
+#                       (default: a directory worktrees next to the main
+#                       sail-backend checkout)
+#     newFeature.repo   path to the main checkout of another repository that
+#                       gets a worktree in each workspace; may be given more
+#                       than once; the worktree is named after the last
+#                       component of the path
+#
+# For example:
+#
+#     git config newFeature.root ~/d/software/worktrees
+#     git config --add newFeature.repo ~/d/software/katamaran
+#     git config --add newFeature.repo ~/d/software/cheriot-sail
+#     git config --unset newFeature.repo cheriot-sail       # stop including it
+#
+# Submodules are initialised in each new worktree, which clones them anew.
+
+set -euo pipefail
+
+usage() {
+    sed -n '/^# Usage:/,/^# Each worktree/p' "${BASH_SOURCE[0]}" | sed -e '$d' -e 's/^# \{0,1\}//' >&2
+    exit 2
+}
+
+fail() {
+    echo "new-feature: $*" >&2
+    exit 1
+}
+
+dry_run=false
+show_config=false
+branch=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run) dry_run=true ;;
+        --config) show_config=true ;;
+        -h|--help) usage ;;
+        -*) fail "unknown option $1" ;;
+        *)
+            [[ -z "$branch" ]] || usage
+            branch="$1"
+            ;;
+    esac
+    shift
+done
+
+# The main sail-backend checkout, also when this script runs in a worktree.
+script_checkout="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/.." && pwd)"
+common_dir="$(git -C "$script_checkout" rev-parse --path-format=absolute --git-common-dir)"
+main_checkout="$(dirname "$common_dir")"
+
+root="$(git -C "$main_checkout" config --path --get newFeature.root || true)"
+root="${root:-$(dirname "$main_checkout")/worktrees}"
+
+repositories=("$main_checkout")
+while IFS= read -r repository; do
+    [[ -n "$repository" ]] && repositories+=("$repository")
+done < <(git -C "$main_checkout" config --path --get-all newFeature.repo || true)
+
+if $show_config; then
+    echo "workspace root: $root"
+    for repository in "${repositories[@]}"; do
+        echo "repository:     $repository"
+    done
+    exit 0
+fi
+
+[[ -n "$branch" ]] || usage
+git check-ref-format --branch "$branch" >/dev/null 2>&1 || fail "invalid branch name: $branch"
+
+workspace="$root/$branch"
+
+# Check everything before creating anything, so that a problem does not
+# leave a half-made workspace behind.
+names=()
+for repository in "${repositories[@]}"; do
+    name="$(basename "$repository")"
+    git -C "$repository" rev-parse --git-dir >/dev/null 2>&1 \
+        || fail "$repository is not a git repository (see newFeature.repo)"
+    for other in "${names[@]}"; do
+        [[ "$other" != "$name" ]] || fail "two repositories are both named $name"
+    done
+    names+=("$name")
+    [[ ! -e "$workspace/$name" ]] || fail "$workspace/$name already exists"
+    if git -C "$repository" worktree list --porcelain | grep -qx "branch refs/heads/$branch"; then
+        fail "$branch is already checked out in a worktree of $repository"
+    fi
+done
+
+run() {
+    echo "+ $*"
+    $dry_run || "$@"
+}
+
+run mkdir -p "$workspace"
+for repository in "${repositories[@]}"; do
+    target="$workspace/$(basename "$repository")"
+    if git -C "$repository" show-ref --verify --quiet "refs/heads/$branch"; then
+        run git -C "$repository" worktree add "$target" "$branch"
+    else
+        run git -C "$repository" worktree add -b "$branch" "$target"
+    fi
+    if [[ -f "$repository/.gitmodules" ]]; then
+        run git -C "$target" submodule update --init --recursive
+    fi
+done
+
+claude_md="$workspace/CLAUDE.md"
+if [[ ! -e "$claude_md" ]]; then
+    echo "+ write $claude_md"
+    if ! $dry_run; then
+        {
+            echo "# Feature workspace: $branch"
+            echo
+            echo "This directory was made by sail-backend's \`bin/new-feature\`. Each subdirectory is a git worktree"
+            echo "of one repository, on branch \`$branch\`. Work in these worktrees, not in the main checkouts:"
+            echo
+            for repository in "${repositories[@]}"; do
+                echo "- \`$(basename "$repository")/\`: worktree of \`$repository\`"
+            done
+            echo
+            echo "@sail-backend/CLAUDE.md"
+        } > "$claude_md"
+    fi
+fi
