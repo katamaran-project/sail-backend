@@ -29,9 +29,9 @@
 #
 # For example:
 #
-#     git config newFeature.root ~/d/software/worktrees
-#     git config --add newFeature.repo ~/d/software/katamaran
-#     git config --add newFeature.repo ~/d/software/cheriot-sail
+#     git config newFeature.root /path/to/worktrees
+#     git config --add newFeature.repo /path/to/katamaran
+#     git config --add newFeature.repo /path/to/cheriot-sail
 #     git config --unset newFeature.repo cheriot-sail       # stop including it
 #
 # Submodules are initialised in each new worktree, which clones them anew.
@@ -137,8 +137,10 @@ if [[ ! -e "$claude_md" ]]; then
             echo "of one repository, on branch \`$branch\`. Work in these worktrees, not in the main checkouts:"
             echo
             for repository in "${repositories[@]}"; do
-                echo "- \`$(basename "$repository")/\`: worktree of \`$repository\`"
+                echo "- \`$(basename "$repository")/\`"
             done
+            echo
+            echo "\`git -C <subdirectory> worktree list\` shows where that repository's main checkout is."
             echo
             echo "@sail-backend/CLAUDE.md"
         } > "$claude_md"

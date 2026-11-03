@@ -16,8 +16,9 @@ it still describes the old `test.sh` workflow. Use the `run-tests.py` instructio
   Instead, test this checkout's plugin as built by `dune build`:
   - `run-tests.py` and the Makefile's test targets do this by default (`run-tests.py --installed-plugin` uses the installed plugin instead).
   - Elsewhere, use `bin/sail-local` as a drop-in `sail`. It loads this checkout's built plugin in place of the installed one.
-    Example: `make -C ~/d/software/katamaran/case_study/Cheriot sail SAIL=$PWD/bin/sail-local`.
-  The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used.
+    Example: `make -C <katamaran>/case_study/Cheriot sail SAIL=$PWD/bin/sail-local CHERIOT_SAIL_DIR=<cheriot-sail>`,
+    where `<katamaran>` and `<cheriot-sail>` are the paths of those checkouts.
+  The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
 - The project currently targets Sail 0.20.3. The CI workflow in `.github/workflows` still pins 0.18.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
