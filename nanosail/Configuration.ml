@@ -18,6 +18,17 @@ type template_translation =
     output_filename   : string;
   }
 
+(*
+   Requests that a union be translated to muSail's ty.sum.
+   See the translate-union-as-sum Slang function below.
+*)
+type sum_union =
+  {
+    union_identifier  : Ast.Identifier.t;
+    left_constructor  : Ast.Identifier.t;
+    right_constructor : Ast.Identifier.t;
+  }
+
 
 module Implementation = struct
   include ConfigLib.BuildContext.Make(struct end)
@@ -265,6 +276,8 @@ module Implementation = struct
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
     let template_translations                      = ConfigLib.Setting.mk ([] : template_translation list)
+
+    let sum_unions                                 = ConfigLib.Setting.mk ([] : sum_union list)
   end
 
   (*
@@ -361,6 +374,54 @@ module Implementation = struct
     export_string_predicate_setter exported_function_name setter
 
 
+  (*
+     Slang function to translate a union to muSail's ty.sum instead of to a ty.union of its own.
+     Multiple calls are allowed, one per union.
+
+       (translate-union-as-sum <union> <left constructor> <right constructor>)
+
+     The union must have exactly the two given constructors.
+     The left constructor becomes inl, the right one inr.
+     muSail's ty.sum is polymorphic, so all instances of a polymorphic union share the same representation:
+     option(int) and option(bits(3)) both become sums, instead of having to be monomorphized.
+
+     For example, with Sail's standard library
+
+       union option('a : Type) = {
+         Some : 'a,
+         None : unit
+       }
+
+       union result('a : Type, 'b : Type) = {
+         Ok  : 'a,
+         Err : 'b
+       }
+
+     the calls
+
+       (translate-union-as-sum "option" "Some" "None")
+       (translate-union-as-sum "result" "Ok" "Err")
+
+     translate option(T) to ty.sum T ty.unit, which is muSail's ty.option T,
+     and result(A, B) to ty.sum A B.
+     Some(x) becomes exp_inl x, None() becomes exp_inr (exp_val ty.unit tt),
+     and a match on either becomes stm_match_sum.
+  *)
+  let () =
+    export_strict_function "translate-union-as-sum" @@ fun evaluated_arguments -> begin
+      let=! union_identifier, left_constructor, right_constructor = Slang.Converters.(map3 string string string) evaluated_arguments
+      in
+      let sum_union =
+        {
+          union_identifier  = Ast.Identifier.mk union_identifier;
+          left_constructor  = Ast.Identifier.mk left_constructor;
+          right_constructor = Ast.Identifier.mk right_constructor;
+        }
+      in
+      ConfigLib.Setting.update Exported.sum_unions ~f:(fun sum_unions -> sum_union :: sum_unions)
+    end
+
+
   let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref =
     ref Ast.Identifier.Map.empty
 
@@ -431,6 +492,13 @@ include Implementation.Exported
 
 let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
   Ast.Identifier.Map.find !Implementation.monomorphization_requests function_identifier
+
+
+(*
+   Returns the translate-union-as-sum request for the union with the given name, if any.
+*)
+let sum_union_for (union_identifier : Ast.Identifier.t) : sum_union option =
+  List.find (ConfigLib.Setting.get sum_unions) ~f:(fun (sum_union : sum_union) -> Ast.Identifier.equal sum_union.union_identifier union_identifier)
 
 
 let load_configuration = Implementation.load_configuration

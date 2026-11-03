@@ -200,6 +200,131 @@ module Type = struct
       FExpr.mk_application ~keyword "Def:Type:Variant"
   end
 
+  (*
+     A union that is translated to muSail's ty.sum instead of to a ty.union.
+     See the translate-union-as-sum configuration setting.
+
+     For example,
+
+       union option('a : Type) = {
+         Some : 'a,
+         None : unit
+       }
+
+     configured with (translate-union-as-sum "option" "Some" "None") has
+     Some as left constructor with field type 'a, and None as right constructor
+     with field type unit, so that option(T) becomes ty.sum T ty.unit.
+  *)
+  module Sum = struct
+    type constructor =
+      {
+        constructor_identifier : Identifier.t;
+        field_type             : AstType.t   ;
+      }
+
+    type t =
+      {
+        identifier      : Identifier.t    ;
+        type_quantifier : TypeQuantifier.t;
+        left            : constructor     ;
+        right           : constructor     ;
+      }
+
+    let constructor
+        (definition : t         )
+        (side       : SumSide.t ) : constructor
+      =
+      match side with
+      | Left  -> definition.left
+      | Right -> definition.right
+
+    (*
+       Determines on which side the constructor with the given name lies,
+       or None if the sum has no such constructor.
+    *)
+    let side_of_constructor
+        (definition             : t           )
+        (constructor_identifier : Identifier.t) : SumSide.t option
+      =
+      if Identifier.equal definition.left.constructor_identifier constructor_identifier
+      then Some SumSide.Left
+      else if Identifier.equal definition.right.constructor_identifier constructor_identifier
+      then Some SumSide.Right
+      else None
+
+    (*
+       Computes the left and right types of the sum, given the type arguments.
+       For example, for option('a) with type argument int, this gives (int, unit).
+       Returns None if the number or the kinds of type arguments do not match the type quantifier.
+    *)
+    let instantiate
+        (definition     : t                 )
+        (type_arguments : TypeArgument.t list) : (AstType.t * AstType.t) option
+      =
+      let TypeQuantifier.TypeQuantifier items = definition.type_quantifier
+      in
+      match List.zip items type_arguments with
+      | Unequal_lengths -> None
+      | Ok pairs        -> begin
+          let check_pair
+              (((identifier, kind), type_argument) : (Identifier.t * Kind.t) * TypeArgument.t) : (Identifier.t * TypeArgument.t) option
+            =
+            match kind, type_argument with
+            | Type, Type _                           -> Some (identifier, type_argument)
+            | Int , NumericExpression _              -> Some (identifier, type_argument)
+            | Bool, Bool _                           -> Some (identifier, type_argument)
+            | Type, (NumericExpression _ | Bool _)   -> None
+            | Int , (Type _ | Bool _)                -> None
+            | Bool, (Type _ | NumericExpression _)   -> None
+          in
+          match Option.all @@ List.map ~f:check_pair pairs with
+          | None          -> None
+          | Some bindings -> begin
+              let find (identifier : Identifier.t) : TypeArgument.t option =
+                List.Assoc.find bindings identifier ~equal:Identifier.equal
+              in
+              let type_substitution (identifier : Identifier.t) : AstType.t option =
+                match find identifier with
+                | Some (Type t)              -> Some t
+                | Some (NumericExpression _) -> None
+                | Some (Bool _)              -> None
+                | None                       -> None
+              and numeric_substitution (identifier : Identifier.t) : NumericExpression.t =
+                match find identifier with
+                | Some (NumericExpression e) -> e
+                | Some (Type _)              -> NumericExpression.Var identifier
+                | Some (Bool _)              -> NumericExpression.Var identifier
+                | None                       -> NumericExpression.Var identifier
+              in
+              let instantiate_field_type (field_type : AstType.t) : AstType.t =
+                AstType.substitute_numeric_expression_identifier numeric_substitution @@
+                AstType.substitute_type_variable type_substitution field_type
+              in
+              Some (instantiate_field_type definition.left.field_type, instantiate_field_type definition.right.field_type)
+            end
+        end
+
+    let to_fexpr (sum_definition : t) : FExpr.t =
+      let constructor_to_fexpr (constructor : constructor) : FExpr.t =
+        let positional =
+          [
+            Identifier.to_fexpr constructor.constructor_identifier;
+            AstType.to_fexpr constructor.field_type;
+          ]
+        in
+        FExpr.mk_application ~positional "Constructor"
+      in
+      let keyword =
+        [
+          ("identifier"     , Identifier.to_fexpr sum_definition.identifier         );
+          ("type_quantifier", TypeQuantifier.to_fexpr sum_definition.type_quantifier);
+          ("left"           , constructor_to_fexpr sum_definition.left              );
+          ("right"          , constructor_to_fexpr sum_definition.right             );
+        ]
+      in
+      FExpr.mk_application ~keyword "Def:Type:Sum"
+  end
+
   module Enum = struct
     type t =
       {
@@ -302,6 +427,7 @@ module Type = struct
   type t =
     | Abbreviation of Abbreviation.t
     | Variant      of Variant.t
+    | Sum          of Sum.t
     | Enum         of Enum.t
     | Record       of Record.t
 
@@ -309,6 +435,7 @@ module Type = struct
     match type_definition with
     | Abbreviation x -> x.identifier
     | Variant x      -> x.identifier
+    | Sum x          -> x.identifier
     | Enum x         -> x.identifier
     | Record x       -> x.identifier
 
@@ -316,6 +443,7 @@ module Type = struct
     match type_definition with
     | Abbreviation abbreviation -> Abbreviation.to_fexpr abbreviation
     | Variant variant           -> Variant.to_fexpr variant
+    | Sum sum                   -> Sum.to_fexpr sum
     | Enum enum                 -> Enum.to_fexpr enum
     | Record record             -> Record.to_fexpr record
 end
@@ -489,6 +617,22 @@ module Select = struct
           self#fexpr_named_keywords
         in
         FExpr.mk_application ~keyword "Variant"
+    end
+
+
+    class sum_kind_selector (name : Identifier.t option) = object(self)
+      inherit [Type.Sum.t] kind_selector name
+
+      method select (type_definition : Type.t) : Type.Sum.t option =
+        match type_definition with
+        | Sum sum_definition when self#matching_name sum_definition.identifier -> Some sum_definition
+        | _                                                                    -> None
+
+      method to_fexpr : FExpr.t =
+        let keyword =
+          self#fexpr_named_keywords
+        in
+        FExpr.mk_application ~keyword "Sum"
     end
 
 
@@ -754,6 +898,12 @@ module Select = struct
 
   let of_variant_named (name : Identifier.t) : (Type.t, Type.Variant.t) selector =
     new Selectors.variant_kind_selector (Some name)
+
+  let of_sum : (Type.t, Type.Sum.t) selector =
+    new Selectors.sum_kind_selector None
+
+  let of_sum_named (name : Identifier.t) : (Type.t, Type.Sum.t) selector =
+    new Selectors.sum_kind_selector (Some name)
 
   let of_record : (Type.t, Type.Record.t) selector  =
     new Selectors.record_kind_selector None

@@ -64,6 +64,7 @@ end = struct
                   end
               end
             | Some (Variant _) -> TC.return @@ Ast.Type.Variant identifier'
+            | Some (Sum sum_definition) -> nanotype_of_sum sum_definition []
             | Some (Record _)  -> TC.return @@ Ast.Type.Record identifier'
             | Some (Enum _)    -> TC.return @@ Ast.Type.Enum identifier'
             | _                -> TC.not_yet_implemented ~message:(Printf.sprintf "unknown type %s" (Ast.Identifier.to_string identifier')) [%here] location
@@ -91,9 +92,34 @@ end = struct
         | "itself"    -> nanotype_of_itself type_arguments'
         | "implicit"  -> nanotype_of_implicit type_arguments'
         | _           -> begin
-            let* constructor = nanotype_of_identifier identifier
+            let* sum_definition : Ast.Definition.Type.Sum.t option =
+              TC.lookup_definition_opt Ast.Definition.Select.(type_definition @@ of_sum_named identifier')
             in
-            TC.return @@ Ast.Type.Application (constructor, type_arguments')
+            match sum_definition with
+            | Some sum_definition -> nanotype_of_sum sum_definition type_arguments'
+            | None                -> begin
+                let* constructor = nanotype_of_identifier identifier
+                in
+                TC.return @@ Ast.Type.Application (constructor, type_arguments')
+              end
+          end
+
+      (*
+        A union that is translated to a sum, e.g., option(int), becomes ty.sum (ty.int) (ty.unit).
+      *)
+      and nanotype_of_sum
+          (sum_definition : Ast.Definition.Type.Sum.t)
+          (type_arguments : Ast.TypeArgument.t list  ) : Ast.Type.t TC.t
+        =
+        match Ast.Definition.Type.Sum.instantiate sum_definition type_arguments with
+        | Some (left_type, right_type) -> TC.return @@ Ast.Type.Sum (left_type, right_type)
+        | None                         -> begin
+            let message =
+              Printf.sprintf
+                "type arguments do not match type parameters of %s"
+                (Ast.Identifier.to_string sum_definition.identifier)
+            in
+            TC.fail [%here] message
           end
 
       and nanotype_of_itself (args : Ast.TypeArgument.t list) : Ast.Type.t TC.t =

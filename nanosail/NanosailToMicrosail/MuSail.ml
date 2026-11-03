@@ -420,6 +420,33 @@ module Statement = struct
         end
 
 
+    (*
+      stm_match_sum <matched_value>
+                    <left_identifier>
+                    <when_left>
+                    <right_identifier>
+                    <when_right>
+    *)
+    let pp_sum
+        ~(matched_value    : PP.t)
+        ~(left_identifier  : PP.t)
+        ~(when_left        : PP.t)
+        ~(right_identifier : PP.t)
+        ~(when_right       : PP.t) : PP.t
+      =
+      PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_match_sum")
+          [
+            matched_value;
+            PP.(surround dquotes) left_identifier;
+            when_left;
+            PP.(surround dquotes) right_identifier;
+            when_right;
+          ]
+      end
+
+
     let pp_tuple
         ~(matched_value : PP.t     )
         ~(binders       : PP.t list)

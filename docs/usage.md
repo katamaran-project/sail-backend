@@ -175,6 +175,43 @@ See `tests/coq-tests/monomorphize-two-ints`.
 
 For now, only type-level variables of kind `Int` can be specified.
 
+### `translate-union-as-sum`
+
+Translates a union with two constructors to µSail's built-in `ty.sum`, instead of to a `ty.union` of its own.
+Because `ty.sum` is polymorphic, this also works for unions that are polymorphic in types,
+which µSail's `ty.union` cannot express.
+All instances share the same representation: there is no need to monomorphize `option(int)` and `option(bits(3))` separately.
+
+```lisp
+(translate-union-as-sum "option" "Some" "None")
+(translate-union-as-sum "result" "Ok" "Err")
+```
+
+The first argument names the union, the second the constructor that becomes `inl` and the third the constructor that becomes `inr`.
+Because the constructors are named explicitly, unions whose names or constructor order
+differ from Sail's `option` and `result` can be translated as well.
+
+With the configuration above, Sail's
+
+```sail
+union option('a : Type) = { Some : 'a, None : unit }
+union result('a : Type, 'b : Type) = { Ok : 'a, Err : 'b }
+```
+
+are translated as follows:
+
+| Sail               | µSail                                                         |
+|--------------------|---------------------------------------------------------------|
+| `option(T)`        | `ty.sum T ty.unit`, i.e., `ty.option T`                       |
+| `result(A, B)`     | `ty.sum A B`                                                  |
+| `Some(x)`, `Ok(x)` | `exp_inl x`, printed as `exp_unop (uop.inl (σ2 := ...)) x`    |
+| `None()`, `Err(x)` | `exp_inr` of `tt` or `x`, printed like `exp_inl`              |
+| `match`            | `stm_match_sum`                                               |
+
+Nested patterns inside the constructors (e.g., `Some(Foo(x))`) are not supported yet.
+Functions that are polymorphic in types, such as `is_some : forall ('a : Type). option('a) -> bool`, are not supported by µSail and still need to be ignored.
+See the `tests/coq-tests/sum-unions-*` tests.
+
 ### `$include`
 
 ```lisp

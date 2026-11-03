@@ -22,5 +22,6 @@ module Statement            = Statement
 module Expression           = Expression
 module Definition           = Definition
 module TypeQuantifier       = TypeQuantifier
+module SumSide              = SumSide
 module Renaming             = Renaming
 module Program              = Program

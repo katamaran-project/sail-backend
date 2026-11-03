@@ -33,6 +33,7 @@ val select_definitions             : (Ast.Definition.t, 'a) Ast.Definition.Selec
 val lookup_definition              : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a t
 val lookup_definition_opt          : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
+val lookup_sum_by_constructor      : Ast.Identifier.t -> (Ast.Definition.Type.Sum.t * Ast.SumSide.t) option t
 val lookup_register_type           : Ast.Identifier.t -> Ast.Type.t option t
 val is_register                    : Ast.Identifier.t -> bool t
 

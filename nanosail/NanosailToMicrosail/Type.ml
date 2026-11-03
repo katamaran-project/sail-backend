@@ -74,6 +74,29 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
       end
     end
 
+  (*
+     ty.sum <left_type> <right_type>
+  *)
+  and pp_sum
+      (left_type  : Ast.Type.t)
+      (right_type : Ast.Type.t) : PP.t GC.t
+    =
+    let* pp_left_type  = GC.pp_annotate [%here] @@ pp_type left_type
+    and* pp_right_type = GC.pp_annotate [%here] @@ pp_type right_type
+    in
+    GC.return begin
+      PP.annotate [%here] begin
+        PP.(surround parens) begin
+          Coq.pp_application
+            (Identifier.pp @@ Ast.Identifier.mk "ty.sum")
+            [
+              PP.(surround parens) pp_left_type;
+              PP.(surround parens) pp_right_type;
+            ]
+        end
+      end
+    end
+
   and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.t GC.t =
     let* pp_nexpr =
       GC.pp_annotate [%here] @@ Numeric.Expression.pp nexpr
@@ -138,6 +161,7 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
   | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ
   | Tuple ts                         -> GC.pp_annotate [%here] @@ pp_tuple ts
+  | Sum (left_type, right_type)      -> GC.pp_annotate [%here] @@ pp_sum left_type right_type
   | Bitvector nexpr                  -> GC.pp_annotate [%here] @@ pp_bitvector nexpr
   | Alias (id, typ)                  -> GC.pp_annotate [%here] @@ pp_alias id typ
   | TypeVariable id                  -> GC.pp_annotate [%here] @@ pp_type_variable id
@@ -199,6 +223,24 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
     | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
     | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
 
+  (*
+     The values of ty.sum σ τ are of type Val σ + Val τ.
+  *)
+  and coq_type_of_sum left_type right_type =
+    let* left_type'  = GC.pp_annotate [%here] @@ coq_type_of_nanotype left_type
+    and* right_type' = GC.pp_annotate [%here] @@ coq_type_of_nanotype right_type
+    in
+    GC.return begin
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "Datatypes.sum")
+          [
+            PP.(surround parens) left_type';
+            PP.(surround parens) right_type';
+          ]
+      end
+    end
+
   in
   match nanotype with
   | Unit                -> GC.return @@ PP.annotate [%here] @@ PP.string "Datatypes.unit"
@@ -213,6 +255,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | List t              -> GC.pp_annotate [%here] @@ coq_type_of_list_type t
   | Application (t, ts) -> GC.pp_annotate [%here] @@ coq_type_of_application t ts
   | Tuple ts            -> GC.pp_annotate [%here] @@ coq_type_of_tuple ts
+  | Sum (l, r)          -> GC.pp_annotate [%here] @@ coq_type_of_sum l r
   | Bit                 -> GC.not_yet_implemented [%here]
   | Range (_, _)        -> GC.not_yet_implemented [%here]
   | Function _          -> GC.not_yet_implemented [%here]

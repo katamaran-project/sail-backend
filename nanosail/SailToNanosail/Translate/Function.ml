@@ -709,7 +709,7 @@ let rec statement_of_aexp
   and statement_of_application
       (receiver_identifier : S.id             )
       (arguments           : S.typ S.aval list)
-      (_typ                : S.typ            ) : Ast.Statement.t TC.t
+      (typ                 : S.typ            ) : Ast.Statement.t TC.t
     =
     let* receiver_identifier' = Identifier.translate_identifier [%here] receiver_identifier
     and* translated_arguments = TC.map ~f:(expression_of_aval location) arguments
@@ -737,6 +737,36 @@ let rec statement_of_aexp
 
     let statement_of_comparison (comparison : Ast.BinaryOperator.Comparison.t) : Ast.Statement.t TC.t =
       statement_of_binary_operation @@ StandardComparison comparison
+    in
+
+    (*
+       Constructing a value of a union that is translated to a sum, e.g.,
+
+         Some(x)
+
+       becomes an injection into the sum (exp_inl x).
+       The type of the other side of the sum is taken from the type of the constructed value.
+    *)
+    let statement_of_injection
+        (sum_definition : Ast.Definition.Type.Sum.t)
+        (side           : Ast.SumSide.t            ) : Ast.Statement.t TC.t
+      =
+      let* translated_type = Type.translate_type typ
+      in
+      match translated_type, argument_expressions with
+      | Sum (left_type, right_type), [ value ] -> begin
+          TC.return @@ wrap @@ Ast.Statement.Expression (Injection { side; left_type; right_type; value })
+        end
+      | Sum (_, _), _ -> TC.fail [%here] "Should not happen: constructor fields are packed into one value"
+      | _, _ -> begin
+          let message =
+            Printf.sprintf
+              "expected constructor %s to produce a value of a sum type, got %s instead"
+              (Ast.Identifier.to_string (Ast.Definition.Type.Sum.constructor sum_definition side).constructor_identifier)
+              (Ast.Type.to_string translated_type)
+          in
+          TC.fail [%here] message
+        end
     in
 
     let statement_of_function_call () =
@@ -905,7 +935,13 @@ let rec statement_of_aexp
     | "gteq_int"  -> statement_of_comparison GreaterThanOrEqualTo
     | "eq_int"    -> statement_of_binary_operation EqualTo
     | "neq_int"   -> statement_of_binary_operation NotEqualTo
-    | _           -> statement_of_function_call ()
+    | _           -> begin
+        let* sum_constructor = TC.lookup_sum_by_constructor receiver_identifier'
+        in
+        match sum_constructor with
+        | Some (sum_definition, side) -> statement_of_injection sum_definition side
+        | None                        -> statement_of_function_call ()
+      end
 
   and statement_of_let
         (_mutability     : Libsail.Ast_util.mut)
@@ -1506,6 +1542,20 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
             matched;
             matched_type;
             cases = Ast.Identifier.Map.map_values ~f:(fun (ids, b) -> (ids, rewrite b)) cases;
+          }
+        end
+      end
+    | Match (MatchSum { matched; left_type; right_type; when_left; when_right }) -> begin
+        let rewrite_case ((binder, clause) : Ast.Identifier.t * Ast.Statement.t) : Ast.Identifier.t * Ast.Statement.t =
+          (binder, rewrite clause)
+        in
+        Match begin
+          MatchSum {
+            matched;
+            left_type;
+            right_type;
+            when_left  = rewrite_case when_left;
+            when_right = rewrite_case when_right;
           }
         end
       end

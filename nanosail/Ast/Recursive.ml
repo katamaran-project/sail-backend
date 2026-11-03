@@ -309,6 +309,7 @@ module rec Type : sig
     | Enum         of Identifier.t
     | Bitvector    of NumericExpression.t
     | Tuple        of t list
+    | Sum          of t * t          (* muSail's ty.sum; see the translate-union-as-sum setting *)
     | Variant      of Identifier.t
     | Record       of Identifier.t
     | Application  of t * TypeArgument.t list
@@ -325,6 +326,7 @@ module rec Type : sig
   val equal     : t -> t -> bool
 
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
+  val substitute_type_variable                 : (Identifier.t -> t option) -> t -> t
   val simplify                                 : t -> t
 end = struct
   type t =
@@ -337,6 +339,7 @@ end = struct
     | Enum         of Identifier.t
     | Bitvector    of NumericExpression.t
     | Tuple        of t list
+    | Sum          of t * t          (* muSail's ty.sum; see the translate-union-as-sum setting *)
     | Variant      of Identifier.t
     | Record       of Identifier.t
     | Application  of t * TypeArgument.t list
@@ -369,11 +372,52 @@ end = struct
       | List element_type                         -> List (subst element_type)
       | Bitvector numeric_expression              -> Bitvector (NumericExpression.substitute substitution numeric_expression)
       | Tuple element_types                       -> Tuple (List.map ~f:subst element_types)
+      | Sum (left_type, right_type)               -> Sum (subst left_type, subst right_type)
       | Application (receiver, type_arguments)    -> Application (subst receiver, List.map type_arguments ~f:(TypeArgument.substitute_numeric_expression_identifier substitution))
       | Alias (identifier, t)                     -> Alias (identifier, subst t)
       | Range (lower, upper)                      -> Range (NumericExpression.substitute substitution lower, NumericExpression.substitute substitution upper)
       | Function { parameter_types; result_type } -> Function { parameter_types = List.map parameter_types ~f:subst; result_type = subst result_type }
       | Vector (element_type, numeric_expression) -> Vector (subst element_type, NumericExpression.substitute substitution numeric_expression)
+    in
+    subst typ
+
+
+  (*
+     Replaces type variables by types.
+     The substitution returns None for type variables that should be left alone.
+  *)
+  let substitute_type_variable
+      (substitution : Identifier.t -> t option)
+      (typ          : t                       ) : t
+    =
+    let rec subst (typ : t) : t =
+      match (typ : t) with
+      | Bool                                      -> typ
+      | String                                    -> typ
+      | Bit                                       -> typ
+      | Unit                                      -> typ
+      | Enum _                                    -> typ
+      | Variant _                                 -> typ
+      | Record _                                  -> typ
+      | Nat                                       -> typ
+      | Implicit _                                -> typ
+      | Int _                                     -> typ
+      | Bitvector _                               -> typ
+      | Range (_, _)                              -> typ
+      | TypeVariable identifier                   -> Option.value (substitution identifier) ~default:typ
+      | List element_type                         -> List (subst element_type)
+      | Tuple element_types                       -> Tuple (List.map ~f:subst element_types)
+      | Sum (left_type, right_type)               -> Sum (subst left_type, subst right_type)
+      | Application (receiver, type_arguments)    -> Application (subst receiver, List.map type_arguments ~f:subst_type_argument)
+      | Alias (identifier, t)                     -> Alias (identifier, subst t)
+      | Function { parameter_types; result_type } -> Function { parameter_types = List.map parameter_types ~f:subst; result_type = subst result_type }
+      | Vector (element_type, numeric_expression) -> Vector (subst element_type, numeric_expression)
+
+    and subst_type_argument (type_argument : TypeArgument.t) : TypeArgument.t =
+      match type_argument with
+      | Type t              -> Type (subst t)
+      | NumericExpression _ -> type_argument
+      | Bool _              -> type_argument
     in
     subst typ
 
@@ -389,6 +433,7 @@ end = struct
     | Enum _                                    -> typ
     | Bitvector numeric_expression              -> Bitvector (NumericExpression.simplify numeric_expression)
     | Tuple element_types                       -> Tuple (List.map ~f:simplify element_types)
+    | Sum (left_type, right_type)               -> Sum (simplify left_type, simplify right_type)
     | Variant _                                 -> typ
     | Record _                                  -> typ
     | Application (receiver, type_arguments)    -> Application (simplify receiver, List.map ~f:TypeArgument.evaluate_numeric_expressions type_arguments)
@@ -435,6 +480,7 @@ end = struct
         in
         Printf.sprintf "(%s)" (String.concat ~sep:"," ts')
       end
+    | Sum (left_type, right_type) -> format "Sum(%s, %s)" (to_string left_type) (to_string right_type)
     | Function { parameter_types; result_type } -> begin
         let parameter_type_string =
           String.concat ~sep:" * " @@ List.map ~f:to_string parameter_types
@@ -462,6 +508,7 @@ end = struct
     | Bitvector numexpr     -> FExpr.mk_application ~positional:[NumericExpression.to_fexpr numexpr]               @@ prefix "Bitvector"
     | Vector (typ, numexpr) -> FExpr.mk_application ~positional:[to_fexpr typ; NumericExpression.to_fexpr numexpr] @@ prefix "Vector"
     | Tuple ts              -> FExpr.mk_application ~positional:(List.map ~f:to_fexpr ts)                          @@ prefix "Tuple"
+    | Sum (left, right)     -> FExpr.mk_application ~positional:[to_fexpr left; to_fexpr right]                    @@ prefix "Sum"
     | Variant id            -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Variant"
     | Record id             -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "Record"
     | TypeVariable id       -> FExpr.mk_application ~positional:[Identifier.to_fexpr id]                           @@ prefix "TypeVariable"
@@ -560,6 +607,12 @@ end = struct
         match t2 with
         | Tuple xs' -> List.equal equal xs xs'
         | _         -> false
+      end
+
+    | Sum (left_1, right_1) -> begin
+        match t2 with
+        | Sum (left_2, right_2) -> equal left_1 left_2 && equal right_1 right_2
+        | _                     -> false
       end
 
     | Variant x -> begin

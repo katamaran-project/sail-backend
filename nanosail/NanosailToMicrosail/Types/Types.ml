@@ -7,6 +7,7 @@ module Variants          = Variants
 module TypeAbbreviations = TypeAbbreviations
 module Enums             = Enums
 module Records           = Records
+module Sums              = Sums
 
 
 let pp_type_definition
@@ -18,6 +19,7 @@ let pp_type_definition
     | Abbreviation abbrev -> TypeAbbreviations.pp_type_abbreviation abbrev
     | Enum enum           -> Enums.pp_enum_definition enum
     | Variant variant     -> Variants.pp_variant_definition variant
+    | Sum sum             -> Sums.pp_sum_definition sum
     | Record record       -> Records.pp_record_definition record
   in
   GC.block begin

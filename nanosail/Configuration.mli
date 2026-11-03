@@ -6,6 +6,11 @@ type template_translation = {
   template_filename : string;
   output_filename : string;
 }
+type sum_union = {
+  union_identifier : Ast.Identifier.t;
+  left_constructor : Ast.Identifier.t;
+  right_constructor : Ast.Identifier.t;
+}
 module Implementation :
   sig
     val configuration_interpreter_state : Slang.State.t ref
@@ -70,6 +75,7 @@ module Implementation :
         val template_block_right_delimiter : string ConfigLib.Setting.t
         val template_translations :
           template_translation list ConfigLib.Setting.t
+        val sum_unions : sum_union list ConfigLib.Setting.t
       end
     val monomorphization_requests :
       monomorphization_request list Ast.Identifier.Map.t ref
@@ -104,8 +110,10 @@ val ignore_top_level_type_constraint_predicate :
 val template_block_left_delimiter : string ConfigLib.Setting.t
 val template_block_right_delimiter : string ConfigLib.Setting.t
 val template_translations : template_translation list ConfigLib.Setting.t
+val sum_unions : sum_union list ConfigLib.Setting.t
 val requested_monomorphizations_for :
   Ast.Identifier.t -> monomorphization_request list option
+val sum_union_for : Ast.Identifier.t -> sum_union option
 val load_configuration : string -> unit
 val get : 'a ConfigLib.Setting.t -> 'a
 val set : 'a ConfigLib.Setting.t -> 'a -> unit

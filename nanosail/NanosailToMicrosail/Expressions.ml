@@ -239,6 +239,59 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
       end
     end
 
+  (*
+     Injection into a sum:
+
+       exp_unop (uop.inl (σ2 := <right_type>)) (<value>)
+       exp_unop (uop.inr (σ1 := <left_type>)) (<value>)
+
+     This is exp_inl/exp_inr, except that we explicitly mention the type of the other side,
+     because Coq cannot always infer it from the context.
+  *)
+  and pp_injection
+      (side       : Ast.SumSide.t   )
+      (left_type  : Ast.Type.t      )
+      (right_type : Ast.Type.t      )
+      (value      : Ast.Expression.t) : PP.t GC.t
+    =
+    let* pp_value =
+      GC.lift ~f:PP.(surround parens) @@ pp_expression value
+    in
+    let* pp_operator =
+      let pp_operator
+          (operator        : string    )
+          (other_parameter : string    )
+          (other_type      : Ast.Type.t) : PP.t GC.t
+        =
+        let* pp_other_type = Type.pp_type other_type
+        in
+        GC.return begin
+          PP.(surround parens) begin
+            Coq.pp_application
+              (PP.string operator)
+              [
+                PP.(surround parens) begin
+                  PP.horizontal [ PP.string other_parameter; PP.string " := "; pp_other_type ]
+                end
+              ]
+          end
+        end
+      in
+      match side with
+      | Left  -> pp_operator "uop.inl" "σ2" right_type
+      | Right -> pp_operator "uop.inr" "σ1" left_type
+    in
+    GC.return begin
+      PP.annotate [%here] begin
+        Coq.pp_application
+          (PP.string "exp_unop")
+          [
+            pp_operator;
+            pp_value;
+          ]
+      end
+    end
+
   and pp_tuple (elements : Ast.Expression.t list) : PP.t GC.t =
     let* pp_elements =
       GC.map ~f:pp_expression elements
@@ -292,4 +345,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
                 fields    }                             -> pp_variant type_identifier constructor_identifier fields
     | Tuple elements                                    -> pp_tuple elements
     | Bitvector elements                                -> pp_bitvector elements
+    | Injection { side;
+                  left_type;
+                  right_type;
+                  value }                               -> pp_injection side left_type right_type value
   end

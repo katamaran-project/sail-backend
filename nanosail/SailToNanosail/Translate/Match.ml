@@ -750,6 +750,7 @@ module Pattern = struct
     | Tuple       of t list
     | EnumCase    of Ast.Identifier.t
     | VariantCase of Ast.Identifier.t * t
+    | SumCase     of Ast.SumSide.t * t          (* constructor of a union that is translated to a sum *)
     | BoolCase    of bool
     | Binder      of Binder.t
     | Unit
@@ -774,6 +775,7 @@ module Pattern = struct
       | Tuple subpatterns                       -> Tuple (List.map ~f:upgrade subpatterns)
       | EnumCase _                              -> pattern
       | VariantCase (field_binders, subpattern) -> VariantCase (field_binders, upgrade subpattern)
+      | SumCase (side, subpattern)              -> SumCase (side, upgrade subpattern)
       | BoolCase _                              -> pattern
       | Unit                                    -> pattern
     in
@@ -822,6 +824,15 @@ module Pattern = struct
         FExpr.mk_application ~positional @@ head "VariantCase"
       end
 
+    | SumCase (side, subpattern) -> begin
+        let positional = [
+          Ast.SumSide.to_fexpr side;
+          to_fexpr subpattern
+        ]
+        in
+        FExpr.mk_application ~positional @@ head "SumCase"
+      end
+
     | BoolCase value -> begin
         let positional = [
           FExpr.mk_bool value
@@ -863,6 +874,7 @@ module PatternTree = struct
   type t =
     | Enum       of { enum_identifier    : Ast.Identifier.t; table : (Binder.t * t) Ast.Identifier.Map.t }
     | Variant    of { variant_identifier : Ast.Identifier.t; table : (Binder.t * variant_binders * t) Ast.Identifier.Map.t }
+    | Sum        of { left_type : Ast.Type.t; right_type : Ast.Type.t; when_left : sum_branch; when_right : sum_branch }
     | Bool       of { when_true : t; when_false : t }
     | Binder     of { matched_type : Ast.Type.t; binder : Binder.t; subtree : t }
     | Leaf       of Ast.Statement.t option
@@ -878,6 +890,18 @@ module PatternTree = struct
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t
     | NAryConstructor    of Binder.t list    (* one binder per field *)
+
+  (*
+     One side of a sum. Each side holds exactly one value:
+     the field binder binds that value (stm_match_sum requires a name for it, even if it is unused),
+     the binder binds the matched sum as a whole.
+  *)
+  and sum_branch =
+    {
+      binder       : Binder.t;
+      field_binder : Binder.t;
+      subtree      : t;
+    }
 
 
   let rec equal
@@ -975,6 +999,44 @@ module PatternTree = struct
             Ast.Identifier.Map.equal variant_table_data_equality
               table_1
               table_2
+          end
+        | _ -> false
+      end
+
+    | Sum { left_type = left_type_1; right_type = right_type_1; when_left = when_left_1; when_right = when_right_1 } -> begin
+        match node_2 with
+        | Sum { left_type = left_type_2; right_type = right_type_2; when_left = when_left_2; when_right = when_right_2 } -> begin
+            let equal_branches
+                (branch_1 : sum_branch)
+                (branch_2 : sum_branch) : bool
+              =
+              Binder.equal
+                branch_1.binder
+                branch_2.binder
+              &&
+              Binder.equal
+                branch_1.field_binder
+                branch_2.field_binder
+              &&
+              equal
+                branch_1.subtree
+                branch_2.subtree
+            in
+            Ast.Type.equal
+              left_type_1
+              left_type_2
+            &&
+            Ast.Type.equal
+              right_type_1
+              right_type_2
+            &&
+            equal_branches
+              when_left_1
+              when_left_2
+            &&
+            equal_branches
+              when_right_1
+              when_right_2
           end
         | _ -> false
       end
@@ -1089,6 +1151,28 @@ module PatternTree = struct
         FExpr.mk_application ~keyword @@ mk_head "Variant"
       end
 
+    | Sum { left_type; right_type; when_left; when_right } -> begin
+        let fexpr_of_branch (branch : sum_branch) : FExpr.t =
+          let keyword =
+            [
+              ("binder"      , Binder.to_fexpr branch.binder      );
+              ("field_binder", Binder.to_fexpr branch.field_binder);
+              ("subtree"     , to_fexpr branch.subtree            );
+            ]
+          in
+          FExpr.mk_application ~keyword "Branch"
+        in
+        let keyword =
+          [
+            ("left_type" , Ast.Type.to_fexpr left_type );
+            ("right_type", Ast.Type.to_fexpr right_type);
+            ("when_left" , fexpr_of_branch when_left   );
+            ("when_right", fexpr_of_branch when_right  );
+          ]
+        in
+        FExpr.mk_application ~keyword @@ mk_head "Sum"
+      end
+
     | Binder { matched_type; binder; subtree } -> begin
         let keyword =
           [
@@ -1138,6 +1222,7 @@ module PatternTree = struct
           ~f:(fun (_, _, subtree) -> count_nodes subtree)
       end
 
+    | Sum { when_left; when_right; _ } -> 1 + count_nodes when_left.subtree + count_nodes when_right.subtree
     | Binder { subtree; _ }          -> 1 + count_nodes subtree
     | Bool { when_true; when_false } -> 1 + count_nodes when_true + count_nodes when_false
     | Leaf _                         -> 1
@@ -1160,6 +1245,18 @@ module PatternTree = struct
           Variant {
             variant_identifier;
             table = Ast.Identifier.Map.map_values ~f:(fun (binder, binders, subtree) -> (binder, binders, rename subtree)) table
+          }
+        end
+
+      | Sum { left_type; right_type; when_left; when_right } -> begin
+          let rename_branch (branch : sum_branch) : sum_branch =
+            { branch with subtree = rename branch.subtree }
+          in
+          Sum {
+            left_type;
+            right_type;
+            when_left  = rename_branch when_left;
+            when_right = rename_branch when_right;
           }
         end
 
@@ -1281,6 +1378,23 @@ let build_variant_node
   end
 
 
+let build_sum_node
+    (left_type  : Ast.Type.t   )
+    (right_type : Ast.Type.t   )
+    (subtree    : PatternTree.t) : PatternTree.t TC.t
+  =
+  let build_branch : PatternTree.sum_branch TC.t =
+    let* binder       = Binder.generate_wildcard
+    and* field_binder = Binder.generate_wildcard
+    in
+    TC.return ({ binder; field_binder; subtree } : PatternTree.sum_branch)
+  in
+  let* when_left  = build_branch
+  and* when_right = build_branch
+  in
+  TC.return @@ PatternTree.Sum { left_type; right_type; when_left; when_right }
+
+
 let build_binder_node
     (element_type : Ast.Type.t   )
     (subtree      : PatternTree.t) : PatternTree.t TC.t
@@ -1348,6 +1462,10 @@ let rec contains_gap (pattern_tree : PatternTree.t) : bool =
       List.exists subtrees ~f:contains_gap
     end
 
+  | Sum { when_left; when_right; _ } -> begin
+      contains_gap when_left.subtree || contains_gap when_right.subtree
+    end
+
   | Bool { when_true; when_false } -> begin
       contains_gap when_true || contains_gap when_false
     end
@@ -1380,6 +1498,7 @@ let rec adorn_pattern_tree
     | Bool { when_true; when_false }          , first_subpattern :: remaining_subpatterns -> adorn_bool_node when_true when_false first_subpattern remaining_subpatterns
     | Enum { enum_identifier; table }         , first_subpattern :: remaining_subpatterns -> adorn_enum_node enum_identifier table first_subpattern remaining_subpatterns
     | Variant { variant_identifier; table }   , first_subpattern :: remaining_subpatterns -> adorn_variant_node variant_identifier table first_subpattern remaining_subpatterns
+    | Sum { left_type; right_type; when_left; when_right }, first_subpattern :: remaining_subpatterns -> adorn_sum_node left_type right_type when_left when_right first_subpattern remaining_subpatterns
     | Binder { matched_type; binder; subtree }, first_subpattern :: remaining_subpatterns -> begin
         match first_subpattern with
         | EnumCase _ -> begin
@@ -1422,6 +1541,28 @@ let rec adorn_pattern_tree
                     gap_filling
                 end
               | _ -> TC.fail [%here] "expected enum type"
+            end
+          end
+        | SumCase (_, _) -> begin
+            if
+              not binder.wildcard
+            then
+              TC.not_yet_implemented [%here] location
+            else begin
+              match matched_type with
+              | Sum (left_type, right_type) -> begin
+                  let* expanded_node =
+                    build_sum_node
+                      left_type
+                      right_type
+                      subtree
+                  in
+                  adorn
+                    expanded_node
+                    tuple_subpatterns
+                    gap_filling
+                end
+              | _ -> TC.fail [%here] "expected sum type"
             end
           end
         | BoolCase _ -> begin
@@ -1639,6 +1780,7 @@ let rec adorn_pattern_tree
     | Tuple _            -> invalid_pattern [%here]
     | EnumCase _         -> invalid_pattern [%here]
     | VariantCase (_, _) -> invalid_pattern [%here]
+    | SumCase (_, _)     -> invalid_pattern [%here]
     | Unit               -> invalid_pattern [%here]
 
   and adorn_enum_node
@@ -1715,6 +1857,7 @@ let rec adorn_pattern_tree
     | ListNil            -> invalid_pattern [%here]
     | Tuple _            -> invalid_pattern [%here]
     | VariantCase (_, _) -> invalid_pattern [%here]
+    | SumCase (_, _)     -> invalid_pattern [%here]
     | BoolCase _         -> invalid_pattern [%here]
 
   and adorn_variant_node
@@ -1751,6 +1894,7 @@ let rec adorn_pattern_tree
                   | Tuple _               -> invalid_pattern [%here]
                   | EnumCase _            -> invalid_pattern [%here]
                   | VariantCase (_, _)    -> invalid_pattern [%here]
+                  | SumCase (_, _)        -> invalid_pattern [%here]
                   | BoolCase _            -> invalid_pattern [%here]
                 in
                 TC.return @@ PatternTree.NullaryConstructor new_field_binder
@@ -1765,6 +1909,7 @@ let rec adorn_pattern_tree
                   | Tuple _               -> invalid_pattern [%here]
                   | EnumCase _            -> invalid_pattern [%here]
                   | VariantCase (_, _)    -> invalid_pattern [%here]
+                  | SumCase (_, _)        -> invalid_pattern [%here]
                   | BoolCase _            -> invalid_pattern [%here]
                 in
                 TC.return @@ PatternTree.UnaryConstructor new_field_binder
@@ -1811,6 +1956,7 @@ let rec adorn_pattern_tree
                   | ListNil            -> invalid_pattern [%here]
                   | EnumCase _         -> invalid_pattern [%here]
                   | VariantCase (_, _) -> invalid_pattern [%here]
+                  | SumCase (_, _)     -> invalid_pattern [%here]
                   | Unit               -> invalid_pattern [%here]
                   | BoolCase _         -> invalid_pattern [%here]
                 in
@@ -1901,6 +2047,82 @@ let rec adorn_pattern_tree
     | ListCons (_, _)    -> invalid_pattern [%here]
     | ListNil            -> invalid_pattern [%here]
     | Tuple _            -> invalid_pattern [%here]
+    | SumCase (_, _)     -> invalid_pattern [%here]
+
+  and adorn_sum_node
+      (left_type          : Ast.Type.t            )
+      (right_type         : Ast.Type.t            )
+      (when_left          : PatternTree.sum_branch)
+      (when_right         : PatternTree.sum_branch)
+      (pattern            : Pattern.t             )
+      (remaining_patterns : Pattern.t list        ) : PatternTree.t TC.t
+    =
+    match pattern with
+    | SumCase (side, field_pattern) -> begin
+        (*
+           Example context:
+
+             match ??? {
+               Some(<field_pattern>) => ...
+             }
+
+           Only the branch for the given side is updated.
+        *)
+        let update_branch (branch : PatternTree.sum_branch) : PatternTree.sum_branch TC.t =
+          let nested_pattern_not_supported (ocaml_location : Lexing.position) =
+            TC.not_yet_implemented ~message:"only binder patterns supported in sum constructors" ocaml_location location
+          in
+          let* field_binder =
+            match field_pattern with
+            | Binder pattern_binder -> Binder.unify branch.field_binder pattern_binder
+            | Unit                  -> TC.return branch.field_binder
+            | ListCons (_, _)       -> nested_pattern_not_supported [%here]
+            | ListNil               -> nested_pattern_not_supported [%here]
+            | Tuple _               -> nested_pattern_not_supported [%here]
+            | EnumCase _            -> nested_pattern_not_supported [%here]
+            | VariantCase (_, _)    -> nested_pattern_not_supported [%here]
+            | SumCase (_, _)        -> nested_pattern_not_supported [%here]
+            | BoolCase _            -> nested_pattern_not_supported [%here]
+          and* subtree =
+            adorn branch.subtree remaining_patterns gap_filling
+          in
+          TC.return ({ branch with field_binder; subtree } : PatternTree.sum_branch)
+        in
+        let* when_left, when_right =
+          match side with
+          | Left  -> let* when_left  = update_branch when_left  in TC.return (when_left, when_right)
+          | Right -> let* when_right = update_branch when_right in TC.return (when_left, when_right)
+        in
+        TC.return @@ PatternTree.Sum { left_type; right_type; when_left; when_right }
+      end
+    | Binder pattern_binder -> begin
+        (*
+           Example context:
+
+             match ??? {
+               x => ...
+             }
+
+           Both branches are affected.
+        *)
+        let update_branch (branch : PatternTree.sum_branch) : PatternTree.sum_branch TC.t =
+          let* binder  = Binder.unify branch.binder pattern_binder
+          and* subtree = adorn branch.subtree remaining_patterns true
+          in
+          TC.return ({ branch with binder; subtree } : PatternTree.sum_branch)
+        in
+        let* when_left  = update_branch when_left
+        and* when_right = update_branch when_right
+        in
+        TC.return @@ PatternTree.Sum { left_type; right_type; when_left; when_right }
+      end
+    | EnumCase _         -> invalid_pattern [%here]
+    | BoolCase _         -> invalid_pattern [%here]
+    | Unit               -> invalid_pattern [%here]
+    | ListCons (_, _)    -> invalid_pattern [%here]
+    | ListNil            -> invalid_pattern [%here]
+    | Tuple _            -> invalid_pattern [%here]
+    | VariantCase (_, _) -> invalid_pattern [%here]
 
   in
   adorn pattern_tree tuple_subpatterns gap_filling
@@ -2103,6 +2325,48 @@ let rec build_leveled_match_statements
         end
     end
 
+  | Sum { left_type; right_type; when_left; when_right } -> begin
+      match matched_identifiers with
+      | [] -> invalid_number_of_tuple_elements [%here]
+      | first_matched_identifier :: remaining_matched_identifiers -> begin
+          let sum_type = Ast.Type.Sum (left_type, right_type)
+          in
+          let build_case (branch : PatternTree.sum_branch) : (Ast.Identifier.t * Ast.Statement.t) TC.t =
+            let* substatement =
+              build_leveled_match_statements remaining_matched_identifiers branch.subtree output_type
+            in
+            let statement =
+              if
+                branch.binder.wildcard
+              then
+                substatement
+              else
+                Ast.Statement.Let {
+                  binder                 = branch.binder.identifier;
+                  binding_statement_type = sum_type;
+                  binding_statement      = Expression (Variable (first_matched_identifier, sum_type));
+                  body_statement         = substatement
+                }
+            in
+            TC.return (branch.field_binder.identifier, statement)
+          in
+          let* when_left  = build_case when_left
+          and* when_right = build_case when_right
+          in
+          TC.return begin
+            Ast.Statement.Match begin
+              MatchSum {
+                matched = first_matched_identifier;
+                left_type;
+                right_type;
+                when_left;
+                when_right;
+              }
+            end
+          end
+        end
+    end
+
   | Binder { matched_type = element_type; binder; subtree } -> begin
       match matched_identifiers with
       | [] -> invalid_number_of_tuple_elements [%here]
@@ -2274,6 +2538,41 @@ let rec translate_pattern
       | _                                   -> unexpected_pattern [%here]
     end
 
+  | Sum (left_type, right_type) -> begin
+      match unwrapped_sail_pattern with
+      | AP_app (head_sail_identifier, sail_subpattern, _sail_type) -> begin
+          let* head_identifier =
+            Identifier.translate_identifier [%here] @@ Sail.id_of_constructor_id head_sail_identifier
+          in
+          let* sum_constructor =
+            TC.lookup_sum_by_constructor head_identifier
+          in
+          match sum_constructor with
+          | Some (_sum_definition, side) -> begin
+              let field_type : Ast.Type.t =
+                match side with
+                | Left  -> left_type
+                | Right -> right_type
+              in
+              let* subpattern =
+                translate_pattern field_type sail_subpattern
+              in
+              TC.return @@ Pattern.SumCase (side, subpattern)
+            end
+          | None -> begin
+              let error_message =
+                Printf.sprintf
+                  "%s is not a constructor of a union translated to a sum"
+                  (Ast.Identifier.to_string head_identifier)
+              in
+              TC.fail [%here] error_message
+            end
+        end
+      | AP_id (sail_identifier, _sail_type) -> translate_variable_pattern sail_identifier
+      | AP_wild _sail_type                  -> translate_wildcard_pattern ()
+      | _                                   -> unexpected_pattern [%here]
+    end
+
   | Int _              -> translate_pattern_for_atomic_type ()
   | Bool               -> translate_pattern_for_atomic_type ()
   | String             -> translate_pattern_for_atomic_type ()
@@ -2417,6 +2716,7 @@ let translate_list_match
       | EnumCase _         -> fail ()
       | BoolCase _         -> fail ()
       | VariantCase (_, _) -> fail ()
+      | SumCase (_, _)     -> fail ()
       | Unit               -> fail ()
 
     in
@@ -2518,6 +2818,28 @@ let translate_variant_match
   let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
   in
   TC.return result
+
+
+let translate_sum_match
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (left_type          : Ast.Type.t                        )
+    (right_type         : Ast.Type.t                        )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
+  =
+  let* empty_pattern_tree =
+    build_empty_pattern_tree
+      location
+      [ Ast.Type.Sum (left_type, right_type) ]
+  in
+  let* pattern_tree =
+    TC.fold_left
+      cases
+      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
+      ~init:empty_pattern_tree
+  in
+  build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
 
 
 (*
@@ -2741,6 +3063,7 @@ let translate
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases output_type
   | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases output_type
   | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases output_type
+  | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type translated_cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location

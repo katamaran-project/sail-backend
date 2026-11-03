@@ -146,6 +146,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
           match type_definitions with
           | Abbreviation _                  -> []
           | Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
+          | Sum          _                  -> []
           | Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
           | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
         in
@@ -184,6 +185,7 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
         match type_definition with
         | Abbreviation _                  -> [ ]
         | Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
+        | Sum          _                  -> []
         | Enum         enum_definition    -> Types.Enums.eqdec_identifiers_for enum_definition
         | Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
       in

@@ -64,6 +64,17 @@ and match_pattern =
   | MatchVariant of { matched      : Identifier.t                             ;
                       matched_type : Identifier.t                             ;
                       cases        : (Identifier.t list * t) Identifier.Map.t }
+  (*
+    match <matched> {
+      inl <fst when_left>  => <snd when_left>,
+      inr <fst when_right> => <snd when_right>
+    }
+  *)
+  | MatchSum     of { matched      : Identifier.t     ;
+                      left_type    : Type.t           ;
+                      right_type   : Type.t           ;
+                      when_left    : Identifier.t * t ;
+                      when_right   : Identifier.t * t }
 
 
 (*
@@ -102,6 +113,43 @@ let rec equal
             Identifier.Map.equal equal
               cases_1
               cases_2
+          end
+        | _ -> false
+      end
+    | MatchSum data_1 -> begin
+        match pattern_2 with
+        | MatchSum data_2 -> begin
+            let equal_case
+                ((binder_1, statement_1) : Identifier.t * t)
+                ((binder_2, statement_2) : Identifier.t * t) : bool
+              =
+              Identifier.equal
+                binder_1
+                binder_2
+              &&
+              equal
+                statement_1
+                statement_2
+            in
+            Identifier.equal
+              data_1.matched
+              data_2.matched
+            &&
+            Type.equal
+              data_1.left_type
+              data_2.left_type
+            &&
+            Type.equal
+              data_1.right_type
+              data_2.right_type
+            &&
+            equal_case
+              data_1.when_left
+              data_2.when_left
+            &&
+            equal_case
+              data_1.when_right
+              data_2.when_right
           end
         | _ -> false
       end
@@ -513,6 +561,28 @@ let rec to_fexpr (statement : t) : FExpr.t =
         FExpr.mk_application ~keyword "Stm:MatchVariant"
       end
 
+    | MatchSum { matched; left_type; right_type; when_left; when_right } -> begin
+        let case_to_fexpr ((binder, clause) : Identifier.t * t) : FExpr.t =
+          let keyword =
+            [
+              ("binder", Identifier.to_fexpr binder);
+              ("clause", to_fexpr clause           );
+            ]
+          in
+          FExpr.mk_application ~keyword "Case"
+        in
+        let keyword =
+          [
+            ("matched"   , Identifier.to_fexpr matched );
+            ("left_type" , Type.to_fexpr left_type     );
+            ("right_type", Type.to_fexpr right_type    );
+            ("when_left" , case_to_fexpr when_left     );
+            ("when_right", case_to_fexpr when_right    );
+          ]
+        in
+        FExpr.mk_application ~keyword "Stm:MatchSum"
+      end
+
   and expression_to_fexpr (expression : Expression.t) : FExpr.t =
     FExpr.mk_application ~positional:[Expression.to_fexpr expression] "Stm:Expression"
 
@@ -676,6 +746,17 @@ let rec free_variables (statement : t) : Identifier.Set.t =
         )
     end
 
+  | Match (MatchSum { matched; left_type = _; right_type = _; when_left; when_right }) -> begin
+      let free_variables_of_case ((binder, clause) : Identifier.t * t) : Identifier.Set.t =
+        Identifier.Set.remove (free_variables clause) binder
+      in
+      Identifier.Set.unions [
+        Identifier.Set.singleton matched;
+        free_variables_of_case when_left;
+        free_variables_of_case when_right;
+      ]
+    end
+
   | Match (MatchTuple { matched; binders; body }) -> begin
       let binder_free_variables =
         Identifier.Set.of_list @@ List.map ~f:fst binders
@@ -784,6 +865,7 @@ class virtual ['a] visitor =
     method virtual visit_match_product      : matched : Identifier.t -> type_fst : Type.t -> type_snd : Type.t -> id_fst : Identifier.t -> id_snd : Identifier.t -> body : t -> 'a
     method virtual visit_match_tuple        : matched : Identifier.t -> binders : (Identifier.t * Type.t) list -> body : t -> 'a
     method virtual visit_match_variant      : matched : Identifier.t -> matched_type : Identifier.t -> cases : (Identifier.t list * t) Identifier.Map.t -> 'a
+    method virtual visit_match_sum          : matched : Identifier.t -> left_type : Type.t -> right_type : Type.t -> when_left : Identifier.t * t -> when_right : Identifier.t * t -> 'a
     method virtual visit_read_register      : register : Identifier.t -> 'a
     method virtual visit_seq                : left : t -> right : t -> 'a
     method virtual visit_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
@@ -822,6 +904,7 @@ class identity_rewriter =
       | MatchBool { condition; when_true; when_false }                     -> self#visit_match_bool ~condition ~when_true ~when_false
       | MatchEnum { matched; matched_type; cases }                         -> self#visit_match_enum ~matched ~matched_type ~cases
       | MatchVariant { matched; matched_type; cases }                      -> self#visit_match_variant ~matched ~matched_type ~cases
+      | MatchSum { matched; left_type; right_type; when_left; when_right } -> self#visit_match_sum ~matched ~left_type ~right_type ~when_left ~when_right
 
     method visit_match_list
         ~(matched      : Identifier.t                   )
@@ -908,6 +991,26 @@ class identity_rewriter =
           matched;
           matched_type;
           cases = Identifier.Map.map_values ~f:(fun (id, stm) -> (id, self#visit stm)) cases
+        }
+      end
+
+    method visit_match_sum
+        ~(matched    : Identifier.t    )
+        ~(left_type  : Type.t          )
+        ~(right_type : Type.t          )
+        ~(when_left  : Identifier.t * t)
+        ~(when_right : Identifier.t * t) : t
+      =
+      let visit_case ((binder, clause) : Identifier.t * t) : Identifier.t * t =
+        (binder, self#visit clause)
+      in
+      Match begin
+        MatchSum {
+          matched;
+          left_type  = self#foreign_visit_type left_type;
+          right_type = self#foreign_visit_type right_type;
+          when_left  = visit_case when_left;
+          when_right = visit_case when_right;
         }
       end
 
@@ -1201,6 +1304,20 @@ let simplify_aliases (statement : t) : t =
             matched = substitution matched;
             matched_type;
             cases = Identifier.Map.map_values ~f:process_case cases
+          }
+        end
+
+      method! visit_match_sum ~matched ~left_type ~right_type ~when_left ~when_right =
+        let process_case (binder, body) =
+          (binder, (rewriter @@ forget_substitution substitution binder)#visit body)
+        in
+        Match begin
+          MatchSum {
+            matched    = substitution matched;
+            left_type;
+            right_type;
+            when_left  = process_case when_left;
+            when_right = process_case when_right;
           }
         end
 

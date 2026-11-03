@@ -458,6 +458,40 @@ and pp_match_variant
   end
 
 
+and pp_match_sum
+    ~(matched    : Ast.Identifier.t                   )
+    ~(when_left  : Ast.Identifier.t * Ast.Statement.t)
+    ~(when_right : Ast.Identifier.t * Ast.Statement.t) : PP.t GC.t
+  =
+  let pp_matched_statement =
+    PP.annotate [%here] begin
+      PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+    end
+  in
+  let pp_case ((binder, clause) : Ast.Identifier.t * Ast.Statement.t) : (PP.t * PP.t) GC.t =
+    (* the binder shadows any outer binding of the same name *)
+    let* pp_clause =
+      GC.with_compile_time_integers [ (binder, None) ] begin
+        parenthesize @@ pp_statement clause
+      end
+    in
+    GC.return (Identifier.pp binder, pp_clause)
+  in
+  let* pp_left_identifier,  pp_when_left  = pp_case when_left
+  and* pp_right_identifier, pp_when_right = pp_case when_right
+  in
+  GC.return begin
+    PP.annotate [%here] begin
+      MuSail.Statement.Match.pp_sum
+        ~matched_value:pp_matched_statement
+        ~left_identifier:pp_left_identifier
+        ~when_left:pp_when_left
+        ~right_identifier:pp_right_identifier
+        ~when_right:pp_when_right
+    end
+  end
+
+
 and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.t GC.t =
   match match_pattern with
   | MatchList { matched; when_nil; when_cons; _ }     -> pp_match_list ~matched ~when_nil ~when_cons
@@ -466,6 +500,7 @@ and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.t GC.t =
   | MatchEnum { matched; matched_type; cases }        -> pp_match_enum ~matched ~matched_type ~cases
   | MatchVariant { matched; matched_type; cases }     -> pp_match_variant ~matched ~matched_type ~cases
   | MatchTuple { matched; binders; body }             -> pp_match_tuple ~matched ~binders ~body
+  | MatchSum { matched; when_left; when_right; _ }    -> pp_match_sum ~matched ~when_left ~when_right
 
 
 and pp_call

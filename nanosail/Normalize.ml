@@ -147,6 +147,12 @@ let rec normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t 
       return @@ Ast.Expression.List elements
     end
 
+  | Injection { side; left_type; right_type; value } -> begin
+      let* value = normalize_expression value
+      in
+      return @@ Ast.Expression.Injection { side; left_type; right_type; value }
+    end
+
 
 let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Monad.t =
   match statement with
@@ -173,6 +179,24 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
       return begin
         Ast.Statement.Match begin
           MatchProduct { matched; type_fst; type_snd; id_fst; id_snd; body }
+        end
+      end
+    end
+
+  | Match (MatchSum { matched; left_type; right_type; when_left; when_right }) -> begin
+      let normalize_case ((binder, clause) : Ast.Identifier.t * Ast.Statement.t) : (Ast.Identifier.t * Ast.Statement.t) Monad.t =
+        let* binder = substitute_identifier binder
+        and* clause = normalize_statement clause
+        in
+        return (binder, clause)
+      in
+      let* matched    = substitute_identifier matched
+      and* when_left  = normalize_case when_left
+      and* when_right = normalize_case when_right
+      in
+      return begin
+        Ast.Statement.Match begin
+          MatchSum { matched; left_type; right_type; when_left; when_right }
         end
       end
     end
@@ -400,6 +424,20 @@ let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTre
         return @@ Ast.Identifier.Map.of_alist_exn normalized_pairs
       in
       return @@ PatternTree.Variant { variant_identifier; table }
+    end
+
+  | Sum { left_type; right_type; when_left; when_right } -> begin
+      let normalize_branch (branch : PatternTree.sum_branch) : PatternTree.sum_branch Monad.t =
+        let* binder       = normalize_binder branch.binder
+        and* field_binder = normalize_binder branch.field_binder
+        and* subtree      = normalize_pattern_tree branch.subtree
+        in
+        return ({ binder; field_binder; subtree } : PatternTree.sum_branch)
+      in
+      let* when_left  = normalize_branch when_left
+      and* when_right = normalize_branch when_right
+      in
+      return @@ PatternTree.Sum { left_type; right_type; when_left; when_right }
     end
 
   | Binder { matched_type; binder; subtree } -> begin

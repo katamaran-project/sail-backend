@@ -22,6 +22,14 @@ type t =
   | Variant         of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t;
                          fields                 : t list }
+  (*
+     Injection into a sum type (exp_inl or exp_inr in muSail).
+     The types of both sides are kept so that the type of the sum is known.
+  *)
+  | Injection       of { side                   : SumSide.t;
+                         left_type              : Type.t;
+                         right_type             : Type.t;
+                         value                  : t }
   | Tuple           of t list
   | Bitvector       of t list
 
@@ -133,6 +141,25 @@ let rec equal
         elements_2
     end
 
+  | Injection { side = side_1; left_type = left_type_1; right_type = right_type_1; value = value_1 },
+    Injection { side = side_2; left_type = left_type_2; right_type = right_type_2; value = value_2 } -> begin
+      SumSide.equal
+        side_1
+        side_2
+      &&
+      Type.equal
+        left_type_1
+        left_type_2
+      &&
+      Type.equal
+        right_type_1
+        right_type_2
+      &&
+      equal
+        value_1
+        value_2
+    end
+
   | Variable _, _                -> false
   | Value _, _                   -> false
   | List _, _                    -> false
@@ -143,6 +170,7 @@ let rec equal
   | Variant _, _                 -> false
   | Tuple _, _                   -> false
   | Bitvector _, _               -> false
+  | Injection _, _               -> false
 
 
 exception UnimplementedTypeInference
@@ -160,6 +188,9 @@ let infer_type (expression : t) : Type.t =
    | Variant _                 -> raise UnimplementedTypeInference
    | Tuple _                   -> raise UnimplementedTypeInference
    | Bitvector bits            -> Type.Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bits))
+   | Injection { left_type;
+                 right_type;
+                 _ }           -> Type.Sum (left_type, right_type)
 
 
 let rec to_fexpr (expression : t) : FExpr.t =
@@ -232,6 +263,22 @@ let rec to_fexpr (expression : t) : FExpr.t =
     in
     FExpr.mk_application ~positional "Bitvector"
 
+  and injection_to_fexpr
+      (side       : SumSide.t)
+      (left_type  : Type.t   )
+      (right_type : Type.t   )
+      (value      : t        ) : FExpr.t
+    =
+    let keyword =
+      [
+        ("side"      , SumSide.to_fexpr side   );
+        ("left_type" , Type.to_fexpr left_type );
+        ("right_type", Type.to_fexpr right_type);
+        ("value"     , to_fexpr value          );
+      ]
+    in
+    FExpr.mk_application ~keyword "Injection"
+
   in
   match expression with
    | Variable (identifier, typ)                              -> variable_to_fexpr identifier typ
@@ -248,6 +295,10 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Variant { type_identifier;
                constructor_identifier;
                fields    }                                   -> variant_to_fexpr type_identifier constructor_identifier fields
+   | Injection { side;
+                 left_type;
+                 right_type;
+                 value }                                     -> injection_to_fexpr side left_type right_type value
 
 
 let rec free_variables (expression : t) : Identifier.Set.t =
@@ -262,6 +313,7 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | Variant { type_identifier = _; constructor_identifier = _; fields } -> Identifier.Set.unions @@ List.map ~f:free_variables fields
    | Tuple elements                                                      -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | Bitvector elements                                                  -> Identifier.Set.unions @@ List.map ~f:free_variables elements
+   | Injection { value; _ }                                              -> free_variables value
 
 
 class virtual ['a] visitor =
@@ -277,6 +329,7 @@ class virtual ['a] visitor =
       method virtual visit_value           : value : Value.t -> 'a
       method virtual visit_variable        : identifier : Identifier.t -> typ : Type.t -> 'a
       method virtual visit_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> 'a
+      method virtual visit_injection       : side : SumSide.t -> left_type : Type.t -> right_type : Type.t -> value : t -> 'a
   end
 
 
@@ -302,6 +355,7 @@ class identity_rewriter =
       | Variant { type_identifier; constructor_identifier; fields } -> self#visit_variant ~type_identifier ~constructor_identifier ~fields
       | Tuple elements                                              -> self#visit_tuple ~elements
       | Bitvector elements                                          -> self#visit_bitvector ~elements
+      | Injection { side; left_type; right_type; value }            -> self#visit_injection ~side ~left_type ~right_type ~value
 
     method visit_variable
         ~(identifier : Identifier.t)
@@ -353,6 +407,19 @@ class identity_rewriter =
     method visit_bitvector ~(elements : t list) : t =
       Bitvector (List.map ~f:self#visit elements)
 
+    method visit_injection
+        ~(side       : SumSide.t)
+        ~(left_type  : Type.t   )
+        ~(right_type : Type.t   )
+        ~(value      : t        ) : t
+      =
+      Injection {
+        side;
+        left_type  = self#foreign_visit_type left_type;
+        right_type = self#foreign_visit_type right_type;
+        value      = self#visit value;
+      }
+
     method foreign_visit_type (typ : Type.t) : Type.t =
       typ
   end
@@ -371,6 +438,9 @@ let substitute_numeric_expression_identifier
 
       method! visit_variable ~identifier ~typ =
         Variable (identifier, substitute_in_type typ)
+
+      method! foreign_visit_type (typ : Type.t) : Type.t =
+        substitute_in_type typ
     end
   in
   rewriter#visit expression

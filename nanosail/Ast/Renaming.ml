@@ -141,6 +141,12 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t 
       return @@ Expression.Bitvector elements
     end
 
+  | Injection { side; left_type; right_type; value } -> begin
+      let* value = rename_in_expression value
+      in
+      return @@ Expression.Injection { side; left_type; right_type; value }
+    end
+
   | Value _ -> return expression
   | Enum _  -> return expression
 
@@ -181,6 +187,29 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
             id_fst;
             id_snd;
             body
+          }
+        end
+      end
+    end
+
+  | Match (MatchSum { matched; left_type; right_type; when_left; when_right }) -> begin
+      let rename_in_case ((binder, clause) : Identifier.t * Statement.t) : (Identifier.t * Statement.t) Monad.t =
+        let* clause = with_binders [binder] @@ rename_in_statement clause
+        in
+        return (binder, clause)
+      in
+      let* matched    = rename matched
+      and* when_left  = rename_in_case when_left
+      and* when_right = rename_in_case when_right
+      in
+      return begin
+        Statement.Match begin
+          Statement.MatchSum {
+            matched;
+            left_type;
+            right_type;
+            when_left;
+            when_right;
           }
         end
       end
