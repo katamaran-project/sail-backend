@@ -10,7 +10,7 @@
 (source
 	(github katamaran-project/sail-backend))
 
-(authors "Marius Goyet" "Frederic Vogels")
+(authors "Marius Goyet" "Frederic Vogels" "Tex Schönlank")
 
 (maintainers "Frederic Vogels")
 
