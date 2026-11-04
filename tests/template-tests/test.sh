@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-SAIL=sail
+SAIL=${SAIL:-sail}
 
 SAIL_SOURCES=model.sail
 TESTED_FILE=microsail.v

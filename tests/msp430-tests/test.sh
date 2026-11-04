@@ -2,7 +2,7 @@
 
 set -e
 
-SAIL=sail
+SAIL=${SAIL:-sail}
 COQ=coqc
 
 SAIL_SOURCES=model.sail
