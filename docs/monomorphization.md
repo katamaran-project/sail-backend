@@ -223,8 +223,8 @@ val foo : forall 'n 'm 'n_plus_m, ('n > 0 & 'm > 0 & 'n_plus_m == 'n + 'm). (bit
 In other words, an extra type level variable `'n_plus_m` was introduced and a new constraint relates it to `'n` and `'m`.
 
 The transformation from 2 to 3+constraint takes place in the `toplevel_nexps` Sail rewrite.
-(To see the effects of each rewrite, run the test in an environment in which the variable `DUMP` exists,
-e.g., run `DUMP= ../test.sh` in `tests/coq-tests/monomorphization-constraint`.)
+(To see the effects of each rewrite, run the test with `tests/coq-tests/run-tests.py --test monomorphize-constraint`
+and look at `rewrite-NN-toplevel_nexps.sail` in `tests/coq-tests/test-output/latest/monomorphize-constraint/`.)
 A simple possible solution would be to disable this rewrite, but it could also complicate other things.
 See the [Sail note on rewrites](./sail-notes.md) for information about disabling rewrites.
 

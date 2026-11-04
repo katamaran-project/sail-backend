@@ -2,10 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-A Sail plugin (`sail --katamaran`) that translates Sail ISA models into µSail (muSail, usail), the Coq/Rocq
-embedding used by Katamaran. Longer documentation is in `docs/` (`code-overview.md`, `usage.md`,
-`tests.md`, `sail-notes.md`, `monomorphization.md`, `slang.md`). Parts of `docs/tests.md` are outdated:
-it still describes the old `test.sh` workflow. Use the `run-tests.py` instructions below instead.
+A Sail plugin (`sail --katamaran`) that translates Sail ISA models into Microsail (µSail, muSail, usail), the Coq/Rocq embedding used by Katamaran.
+Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, `sail-notes.md`, `monomorphization.md`, `slang.md`).
 
 ## Environment and build
 
@@ -20,7 +18,7 @@ it still describes the old `test.sh` workflow. Use the `run-tests.py` instructio
     where `<katamaran>` and `<cheriot-sail>` are the paths of those checkouts.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
-- The project currently targets Sail 0.20.3. The CI workflow in `.github/workflows` still pins 0.18.
+- The project currently targets Sail 0.20.3 on OCaml 5.1.0. The CI workflow (`.github/workflows/build.yaml`) pins the same versions; keep them in sync.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.
 
@@ -58,14 +56,14 @@ There are three dune projects, layered as follows:
 - `nanosail/`: all of the translation logic. This is a wrapped library, so modules are reached as `Nanosail.X`.
 - `sail_plugin/`: a thin layer that registers the `--katamaran` options with libsail, selects which Sail rewrites run (`Rewrites.ml`), and calls into `nanosail`.
 
-The translation pipeline is Sail AST (after Sail's rewrites) → **nanosail** IR → µSail Rocq text:
+The translation pipeline is Sail AST (after Sail's rewrites) → **nanosail** IR → MicroSail Rocq text:
 
 1. `nanosail/SailToNanosail/` translates each Sail definition inside the `TranslationContext` monad (a State+Result monad).
    This monad generates unique identifiers, stores and looks up definitions that are already translated, and records calls to polymorphic functions.
    - A `NotYetImplemented` failure gives up on the current definition only: it is recorded as `Ast.Definition.UntranslatedDefinition` and translation continues with the next definition.
    - A `Failure` halts the whole translation.
-   - The per-construct translators are in `Translate/`. The largest is `Function.ml`, which turns Sail expressions into µSail statements and carries the expected type through the translation.
-2. `nanosail/Ast/` defines the IR. Where Sail and µSail differ, the IR follows µSail: expressions and statements are separate.
+   - The per-construct translators are in `Translate/`. The largest is `Function.ml`, which turns Sail expressions into Microsail statements and carries the expected type through the translation.
+2. `nanosail/Ast/` defines the IR. Where Sail and Microsail differ, the IR follows Microsail: expressions and statements are separate.
    The IR also keeps numeric expressions and constraints, which monomorphization needs.
 3. `nanosail/NanosailToMicrosail/` turns the IR into pretty-printed Rocq inside the `GenerationContext` monad.
    This monad supports comment and annotation *blocks* and `not_yet_implemented [%here]` holes.

@@ -177,9 +177,9 @@ For now, only type-level variables of kind `Int` can be specified.
 
 ### `translate-union-as-sum`
 
-Translates a union with two constructors to µSail's built-in `ty.sum`, instead of to a `ty.union` of its own.
+Translates a union with two constructors to Microsail's built-in `ty.sum`, instead of to a `ty.union` of its own.
 Because `ty.sum` is polymorphic, this also works for unions that are polymorphic in types,
-which µSail's `ty.union` cannot express.
+which Microsail's `ty.union` cannot express.
 All instances share the same representation: there is no need to monomorphize `option(int)` and `option(bits(3))` separately.
 
 ```lisp
@@ -209,7 +209,7 @@ are translated as follows:
 | `match`            | `stm_match_sum`                                               |
 
 Nested patterns inside the constructors (e.g., `Some(Foo(x))`) are not supported yet.
-Functions that are polymorphic in types, such as `is_some : forall ('a : Type). option('a) -> bool`, are not supported by µSail and still need to be ignored.
+Functions that are polymorphic in types, such as `is_some : forall ('a : Type). option('a) -> bool`, are not supported by Microsail.
 See the `tests/coq-tests/sum-unions-*` tests.
 
 ### `$include`

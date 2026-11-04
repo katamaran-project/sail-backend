@@ -1,5 +1,7 @@
 # Sail Katamaran Backend
 
+![](docs/katamaran_logo.svg)
+
 * [Installation](docs/installation.md)
 * [Usage](docs/usage.md)
   * [HTML Generation](docs/html-generation.md)

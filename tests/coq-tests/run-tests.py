@@ -437,7 +437,7 @@ def parse_arguments(argv):
 
     behaviour = parser.add_argument_group('what to run')
     behaviour.add_argument('--dump', action=argparse.BooleanOptionalAction, default=None,
-                           help='dump the intermediate rewrite ASTs (default: on; env DUMP)')
+                           help='dump the intermediate rewrite ASTs (default: on)')
     behaviour.add_argument('--monomorphise', action=argparse.BooleanOptionalAction, default=None,
                            help='pass --auto-mono --mono-rewrites (default: off; env MONOMO)')
     behaviour.add_argument('--coq', action=argparse.BooleanOptionalAction, default=None,
