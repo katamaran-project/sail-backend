@@ -8,7 +8,9 @@ intermediate_rewrite_*
 *.vo
 *.vok
 *.vos
+monads.opam
 nanosail.opam
+sail_katamaran_backend.opam
 out.v
 out_types.v
 .vscode
