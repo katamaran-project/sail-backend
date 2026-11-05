@@ -4,50 +4,62 @@ on:
   push:
   pull_request:
 
+env:
+  # Keep these in sync with the opam switch used for development.
+  OCAML_VERSION: "5.1.0"
+  SAIL_VERSION: "0.20.3"
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # Sail's system dependencies (see docs/installation.md).
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libgmp-dev z3 cvc4 opam pkg-config zlib1g-dev
+          sudo apt-get install -y build-essential libgmp-dev z3 opam pkg-config zlib1g-dev
 
+      # The cache holds the whole opam root (compiler, Sail and all other dependencies).
+      # Its key changes whenever the OCaml or Sail version, dune-project or this workflow changes,
+      # so a stale cache is never reused. There are no fallback keys on purpose:
+      # either the cache matches exactly, or everything is installed from scratch.
       - name: Restore opam cache
-        id: cache-opam-restore
-        uses: actions/cache@v3
+        id: opam-cache
+        uses: actions/cache/restore@v4
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-${{ hashFiles('**/dune-project') }}
-          restore-keys: |
-            ${{ runner.os }}-opam-
-              
-      - name: Setup opam
-        if: steps.cache-opam-restore.outputs.cache-hit != 'true'
-        run: |
-          opam init --yes --no-setup --shell=sh --compiler=5.1.0
+          key: ${{ runner.os }}-opam-ocaml${{ env.OCAML_VERSION }}-sail${{ env.SAIL_VERSION }}-${{ hashFiles('dune-project', '.github/workflows/build.yaml') }}
 
+      - name: Set up opam
+        if: steps.opam-cache.outputs.cache-hit != 'true'
+        run: |
+          opam init --yes --no-setup --disable-sandboxing --shell=sh --compiler=${OCAML_VERSION}
+
+      # The .opam files are not tracked in git; dune generates them from dune-project.
+      # They are needed by `opam install . --deps-only`, so generate them first.
       - name: Install dependencies
-        if: steps.cache-opam-restore.outputs.cache-hit != 'true'
+        if: steps.opam-cache.outputs.cache-hit != 'true'
         run: |
-          eval $(opam env)
           opam update -y
-          opam pin -y add sail 0.18
-          opam install . --deps-only -y
-          opam install ounit2 -y
+          opam pin add -y sail ${SAIL_VERSION}
+          opam install -y dune
+          opam exec -- dune build monads.opam nanosail.opam sail_katamaran_backend.opam
+          opam install -y . --deps-only
+          opam install -y ounit2
 
-      - name: Update opam cache
-        if: steps.cache-opam-restore.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+      - name: Save opam cache
+        if: steps.opam-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-${{ hashFiles('**/dune-project') }}
-          
+          key: ${{ steps.opam-cache.outputs.cache-primary-key }}
+
       - name: Build project
-        run: |
-          eval $(opam env)
-          opam exec -- dune build
+        run: opam exec -- dune build
+
+      - name: Run unit tests
+        run: opam exec -- dune test

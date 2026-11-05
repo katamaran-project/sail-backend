@@ -8,7 +8,6 @@ This document is for whoever continues the sail-backend work. It covers:
 2. What I did, grouped by topic, with commit hashes,
 3. The state at handover,
 4. What was planned next, roughly by priority.
-5. The unmerged branches that might get us further towards the goal.
 
 How to build, test and run things, I explain in [`HACKING.md`](../HACKING.md), and further details are in [`CLAUDE.md`](../CLAUDE.md) and [`tests.md`](tests.md).
 
