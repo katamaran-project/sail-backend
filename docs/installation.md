@@ -1,7 +1,7 @@
 # Installation
 
 These are the same steps the GitHub workflow (`.github/workflows/build.yaml`) runs.
-The project targets OCaml 5.1.0 and Sail 0.20.3.
+The project targets OCaml 5.2.1 and Sail 0.20.3.
 
 ```sh
 # Install Sail's system dependencies
@@ -10,7 +10,7 @@ $ sudo apt install build-essential libgmp-dev z3 opam pkg-config zlib1g-dev
 
 # Create new switch (optional)
 # "katamaran" is the name of the switch and can be chosen freely
-$ opam switch create katamaran ocaml.5.1.0
+$ opam switch create katamaran ocaml.5.2.1
 
 # Install Sail, pinned to the version this project targets
 $ opam pin add sail 0.20.3
@@ -56,9 +56,22 @@ No configuration file specified; use --katamaran-config to specify one
 
 The steps above suffice to build the plugin and run the unit tests.
 The end-to-end tests (`make e2e`, see `docs/tests.md`) also compile the generated Rocq code with `coqc`,
-so they additionally need Rocq/Coq and the Katamaran library in the same switch.
-See the [Katamaran README](https://github.com/katamaran-project/katamaran) for how to install them with opam.
-A known working combination is Coq 8.19.2, Iris 4.3.0 and `coq-katamaran` (dev version).
+so they additionally need Rocq and the Katamaran library in the same switch.
+Katamaran main needs Rocq 9.2, rocq-iris 4.5, rocq-stdpp 1.13 and rocq-equations 1.3.2+9.2
+(see the [Katamaran README](https://github.com/katamaran-project/katamaran)).
+The generated code imports `From Stdlib`, so it no longer compiles with Coq 8.x.
+
+```sh
+$ opam repo add rocq-released https://rocq-prover.org/opam/released
+$ opam pin add rocq-core 9.2.0
+$ opam pin add rocq-iris 4.5.0
+$ opam pin add rocq-equations 1.3.2+9.2
+$ opam install rocq-core rocq-iris rocq-equations   # also installs rocq-stdpp and coq-core, which provides coqc
+
+# Katamaran has no .opam file; build and install it from a checkout with its Makefile
+# (not with dune, which also builds files that _CoqProject leaves out)
+$ make -C <katamaran> && make -C <katamaran> install
+```
 
 ## Uninstalling
 

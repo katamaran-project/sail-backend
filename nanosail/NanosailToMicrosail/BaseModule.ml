@@ -9,7 +9,7 @@ end
 
 (*
 
-    From Coq Require Import Classes.EquivDec
+    From Stdlib Require Import Classes.EquivDec
                             Strings.String.
 
     From stdpp Require finite.
@@ -23,7 +23,7 @@ end
 let generate_base_prelude () : PP.t GC.t =
   GC.generation_block [%here] "Base Prelude" begin
       GC.return @@ PP.paragraphs [
-                       Coq.pp_require ~from:(Some "Coq"      ) ~mode:(Some Coq.Import) [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
+                       Coq.pp_require ~from:(Some "Stdlib"   ) ~mode:(Some Coq.Import) [ "Classes.EquivDec"; "Strings.String"; "ZArith" ];
                        Coq.pp_require ~from:(Some "stdpp"    ) ~mode:None [ "finite" ];
                        Coq.pp_require ~from:(Some "Equations") ~mode:(Some Coq.Import) [ "Equations" ];
                        Coq.pp_require ~from:(Some "Katamaran") ~mode:(Some Coq.Import) [ "Base"; "Bitvector" ];

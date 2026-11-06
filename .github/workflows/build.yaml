@@ -5,8 +5,8 @@ on:
   pull_request:
 
 env:
-  # Keep these in sync with the opam switch used for development.
-  OCAML_VERSION: "5.1.0"
+  # Keep these in sync with the opam switch used for development and with flake.nix.
+  OCAML_VERSION: "5.2.1"
   SAIL_VERSION: "0.20.3"
 
 jobs:

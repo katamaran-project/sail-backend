@@ -23,38 +23,36 @@
         "flake-utils": [
           "flake-utils"
         ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
+        "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1753282843,
-        "narHash": "sha256-ZaneIg8pgW5RfUaFGfsM92bVNvb1UQ3t4BRJWyzLj1Q=",
+        "lastModified": 1793951130,
+        "narHash": "sha256-NjccQx6cgvuKXpDClRwwgH6NLIuIX3Jevqjj18m5hzo=",
         "owner": "katamaran-project",
         "repo": "katamaran",
-        "rev": "d744bdc78e9660e4a2776cb2516469bc7dd4d4ce",
+        "rev": "4f7cef1e8e10d5a0d244c64ffd8e26c9137ea40a",
         "type": "github"
       },
       "original": {
         "owner": "katamaran-project",
         "repo": "katamaran",
-        "rev": "d744bdc78e9660e4a2776cb2516469bc7dd4d4ce",
+        "rev": "4f7cef1e8e10d5a0d244c64ffd8e26c9137ea40a",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1741191083,
-        "narHash": "sha256-4ORnlUJ9jCKTgjlUtz+biLyJLopm8mRgqFaouhMTY3g=",
-        "owner": "NixOS",
+        "lastModified": 1792657723,
+        "narHash": "sha256-JK7jng/nu00z8uxjdUYzXHeIZbnn987zfQnV55TuMRM=",
+        "owner": "Zimmi48",
         "repo": "nixpkgs",
-        "rev": "b6fd4a67122a1477291b4c3e4fb8f6794ac982b3",
+        "rev": "15aabc6e8d56a08f7d2f8dcc94c9b0a251aa1e45",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
+        "owner": "Zimmi48",
         "repo": "nixpkgs",
-        "rev": "b6fd4a67122a1477291b4c3e4fb8f6794ac982b3",
+        "rev": "15aabc6e8d56a08f7d2f8dcc94c9b0a251aa1e45",
         "type": "github"
       }
     },
@@ -62,7 +60,10 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "katamaran": "katamaran",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": [
+          "katamaran",
+          "nixpkgs"
+        ]
       }
     },
     "systems": {

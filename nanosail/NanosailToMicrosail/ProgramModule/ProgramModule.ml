@@ -18,7 +18,7 @@ let pp_require_imports () : PP.t =
       )
   in
   PP.(paragraphs [
-      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Coq"      ) ~mode:(Some Coq.Import) coq_imports;
+      PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Stdlib"   ) ~mode:(Some Coq.Import) coq_imports;
       PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Katamaran") ~mode:(Some Coq.Import) [ "Semantics.Registers"; "Bitvector"; "Program" ];
       PP.annotate [%here] @@ Coq.pp_require ~from:(Some "stdpp"    ) ~mode:(Some Coq.Import) [ "finite" ];
       PP.annotate [%here] @@ Coq.pp_require ~from:(Some "Equations") ~mode:(Some Coq.Import) [ "Equations" ];

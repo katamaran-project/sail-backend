@@ -7,7 +7,7 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
 
 ## Environment and build
 
-- The dev environment comes from the Nix flake (`.envrc` runs `use flake`). It pins Sail, Rocq 8.20 and Katamaran.
+- The dev environment comes from the Nix flake (`.envrc` runs `use flake`). It pins OCaml 5.2.1, Sail 0.20.3, Rocq 9.2 and Katamaran (main, via its `rocq920` package and its nixpkgs).
   If you use opam instead, see `docs/installation.md`.
 - `make build` runs `dune build`. `make install` runs `dune install`, which overwrites the plugin in the shared opam switch.
   **Do not run `make install` unless the user asks for it**: other checkouts and worktrees, possibly worked on in parallel, use the same switch.
@@ -18,7 +18,7 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
     where `<katamaran>` and `<cheriot-sail>` are the paths of those checkouts.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
-- The project currently targets Sail 0.20.3 on OCaml 5.1.0. The CI workflow (`.github/workflows/build.yaml`) pins the same versions; keep them in sync.
+- The project currently targets Sail 0.20.3 on OCaml 5.2.1, with Rocq 9.2 and Katamaran main. The CI workflow (`.github/workflows/build.yaml`) and `flake.nix` pin the same OCaml and Sail versions; keep them in sync.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.
 
