@@ -1,0 +1,23 @@
+# Generated output of the inventory runs (about 790 MB). The scripts in this
+# directory regenerate it from a cheriot-sail checkout; see INVENTORY.md.
+
+# Generated Rocq, and Rocq's build output.
+*.v
+*.glob
+.*.aux
+# *.v above also covers the *.template.v copies, which are identical to
+# Katamaran's case_study/Cheriot templates.
+
+# Sail's logs and cache.
+log.txt
+prelude.log
+sail_smt_cache
+
+# Tables produced by extract.py and piles.py.
+items.csv
+items-reachable.csv
+items.json
+piles-*.csv
+
+# Sail's AST dumps after each rewrite.
+bisect/rewrite-dump/

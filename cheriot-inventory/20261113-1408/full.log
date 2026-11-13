@@ -1,0 +1,570 @@
+gmake: Entering directory '/Users/denis/phd/PROJECTS/katamaran-tex-cheriot/case_study/Cheriot'
+# Enter the output directory if necessary.
+mkdir -p /Users/denis/phd/PROJECTS/sail-backend/cheriot-inventory/20261113-1408/full && cd /Users/denis/phd/PROJECTS/sail-backend/cheriot-inventory/20261113-1408/full && cp /Users/denis/phd/PROJECTS/katamaran-tex-cheriot/case_study/Cheriot/configuration.lisp /Users/denis/phd/PROJECTS/katamaran-tex-cheriot/case_study/Cheriot/base.template.v /Users/denis/phd/PROJECTS/katamaran-tex-cheriot/case_study/Cheriot/machine.template.v . && /Users/denis/phd/PROJECTS/sail-backend/bin/sail-local --katamaran --katamaran-config configuration.lisp  /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/prelude.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_xlen32.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_flen_D.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vlen.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_prelude.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_types.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_cap_common.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem_metadata.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/prelude_mem.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_types_common.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_riscv_types.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_types.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_reg_type.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_csr_map.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_scr_map.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_vmem_types.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_pmp_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_pmp_control.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_pc_access.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vreg_type.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vext_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_next_regs.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sync_exception.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_next_control.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_csr_ext.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_control.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_addr_checks_common.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_misa_ext.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_platform.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_pte.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_ptw.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_common.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_tlb.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_rv32.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_begin.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_base.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_cext.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_mext.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zicsr.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zba.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbb.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbc.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbs.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbkb.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbkx.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_insts_begin.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_insts.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_insts_cext.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_insts_end.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_jalr_seq.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_end.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_step_common.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_step_ext.sail /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_decode_ext.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_fetch.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_step.sail /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/main.sail
+[93mWarning[0m: Deprecated
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/prelude.sail[0m:43.16-100:
+43[96m |[0mval int_power = {ocaml: "int_power", interpreter: "int_power", lem: "pow", coq: "pow", c: "pow_int"} : (int, int) -> int
+  [91m |[0m                [91m^----------------------------------------------------------------------------------^[0m
+  [91m |[0m All external bindings should be marked as either pure or impure
+
+[93mWarning[0m: Deprecated
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vlen.sail[0m:11.27-35:
+11[96m |[0mval get_elen_pow : unit -> {|5, 6|}
+  [91m |[0m                           [91m^------^[0m
+  [91m |[0m Old set syntax, {|1, 2, 3|} can now be written as {1, 2, 3}.
+
+[93mWarning[0m: Deprecated
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_pmp_regs.sail[0m:71.19-34:
+71[96m |[0m  let match_type = pmpcfg_n[n].A();
+  [91m |[0m                   [91m^-------------^[0m
+  [91m |[0m Old bitfield syntax, use '<bitfield>[A]' instead
+
+[93mWarning[0m: Cannot generate num_of_ext_exc_type for enum
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_riscv_types.sail[0m:140.4-23:
+140[96m |[0mval num_of_ext_exc_type : ext_exc_type -> {'n, (0 <= 'n < xlen). int('n)}
+   [92m |[0m    [92m^-----------------^[0m [92mFunction with the same name defined here[0m
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_riscv_types.sail[0m:124.0-128.1:
+124[96m |[0menum ext_exc_type = {
+   [91m |[0m[91m^--------------------[0m
+128[96m |[0m}
+   [91m |[0m[91m^[0m
+   [91m |[0m Could not generate an automatic conversion function for enum ext_exc_type, as a function with the same name (num_of_ext_exc_type) already exists.
+   [91m |[0m Use the $[no_enum_number_conversions] attribute to suppress the automatic generation, or rename one of the functions.
+
+[93mWarning[0m: Duplicate function type definition for min_int
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/prelude.sail[0m:59.4-11:
+59[96m |[0mval min_int = {ocaml: "min_int", interpreter: "min_int", lem: "min", coq: "min_atom", c: "min_int"} : forall 'x 'y.
+  [91m |[0m    [91m^-----^[0m
+  [91m |[0m This duplicate definition is being ignored!
+  [91m |[0m [96m/Users/denis/.opam/sail-backend/share/sail/lib/arith.sail[0m:234.4-11:
+  [91m |[0m 234[96m |[0mval min_int = pure {
+  [91m |[0m    [91m |[0m    [91m^-----^[0m [91mprevious definition here[0m
+
+[93mWarning[0m: No default value
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:97.0-36:
+97[96m |[0mregister tlb32 : option(TLB32_Entry)
+  [91m |[0m[91m^----------------------------------^[0m
+  [91m |[0m Registers of type option should explicitly be given a default value
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_cap_common.sail[0m:255.6-12:
+255[96m |[0m  var global                 : bool = bit_to_bool(c.cperms[5]);
+   [91m |[0m      [91m^----^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_cap_common.sail[0m:486.2-21:
+486[96m |[0m  lostSignificantBase = unsigned(ext_base & maskLo) != 0;
+   [91m |[0m  [91m^-----------------^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_cap_common.sail[0m:854.6-7:
+854[96m |[0m  var e = unsigned(c.E);
+   [91m |[0m      [91m^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:225.4-11:
+225[96m |[0m    paddr16 = legalize_mshwm(paddr);
+   [91m |[0m    [91m^-----^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:146.16-21:
+146[96m |[0m                n_pte = update_BITS(pte, pbits.bits);
+   [91m |[0m                [91m^---^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:178.20-25:
+178[96m |[0m                var w_pte : SV32_PTE = update_BITS(pte, pbits.bits);
+   [91m |[0m                    [91m^---^[0m
+   [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unnecessary mutability
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_fetch.sail[0m:39.16-21:
+39[96m |[0m                PC_hi : xlenbits = PC + 2;
+  [91m |[0m                [91m^---^[0m
+  [91m |[0m This variable is mutable, but it is never modified. It could be declared as immutable using 'let'.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/hex_bits.sail[0m:83.35-37:
+83[96m |[0mfunction hex_bits_forwards_matches(bv) = true
+  [91m |[0m                                   [91m^^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem_metadata.sail[0m:97.30-35:
+97[96m |[0mfunction __ReadRAM_Meta(addr, width) = {
+  [91m |[0m                              [91m^---^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_regs.sail[0m:69.18-19:
+69[96m |[0mfunction rvfi_wX (r,v) = ()
+  [91m |[0m                  [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_regs.sail[0m:69.20-21:
+69[96m |[0mfunction rvfi_wX (r,v) = ()
+  [91m |[0m                    [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail[0m:362.26-27:
+362[96m |[0mfunction legalize_mideleg(o : Minterrupts, v : xlenbits) -> Minterrupts = {
+   [91m |[0m                          [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail[0m:388.26-27:
+388[96m |[0mfunction legalize_medeleg(o : Medeleg, v : xlenbits) -> Medeleg = {
+   [91m |[0m                          [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail[0m:600.26-27:
+600[96m |[0mfunction legalize_sedeleg(s : Sedeleg, v : xlenbits) -> Sedeleg = {
+   [91m |[0m                          [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail[0m:708.25-26:
+708[96m |[0mfunction legalize_satp32(a : Architecture, o : bits(32), v : bits(32)) -> bits(32) = {
+   [91m |[0m                         [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_regs.sail[0m:708.43-44:
+708[96m |[0mfunction legalize_satp32(a : Architecture, o : bits(32), v : bits(32)) -> bits(32) = {
+   [91m |[0m                                           [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_pmp_regs.sail[0m:98.21-22:
+98[96m |[0mfunction pmpWriteCfg(n: range(0, 63), cfg: Pmpcfg_ent, v: bits(8)) -> Pmpcfg_ent =
+  [91m |[0m                     [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_regs.sail[0m:121.43-44:
+121[96m |[0mfunction clause ext_is_CSR_defined (0x8C0, p) = haveUsrMode()  // uccsr
+   [91m |[0m                                           [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:71.61-62:
+71[96m |[0mfunction handle_trap_extension(p : Privilege, pc : xlenbits, u : option(unit)) -> unit = {
+  [91m |[0m                                                             [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:85.44-45:
+85[96m |[0mfunction prepare_trap_vector(p : Privilege, c : Mcause) -> xlenbits = {
+  [91m |[0m                                            [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:116.25-26:
+116[96m |[0mfunction set_xret_target(p, value) = {
+   [91m |[0m                         [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:116.28-33:
+116[96m |[0mfunction set_xret_target(p, value) = {
+   [91m |[0m                            [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:143.19-24:
+143[96m |[0mfunction set_mtvec(value : xlenbits) -> xlenbits = {
+   [91m |[0m                   [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:148.19-24:
+148[96m |[0mfunction set_stvec(value : xlenbits) -> xlenbits = {
+   [91m |[0m                   [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_sys_exceptions.sail[0m:153.19-24:
+153[96m |[0mfunction set_utvec(value : xlenbits) -> xlenbits = {
+   [91m |[0m                   [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_sys_control.sail[0m:579.14-15:
+579[96m |[0m  MemValue(v, m)  => MemValue(v),
+   [91m |[0m              [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:174.40-43:
+174[96m |[0mfunction ext_handle_control_check_error(err : ext_control_addr_error) -> unit = {
+   [91m |[0m                                        [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.34-45:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                  [91m^---------^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.60-66:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                                            [91m^----^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.47-52:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                               [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.87-96:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                                                                       [91m^-------^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.68-75:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                                                    [91m^-----^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.77-85:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                                                             [91m^------^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:219.54-58:
+219[96m |[0mfunction ext_check_phys_mem_read (access_type, paddr, size, aquire, release, reserved, read_meta) =
+   [91m |[0m                                                      [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:222.59-63:
+222[96m |[0mfunction ext_check_phys_mem_write(write_kind, paddr, size, data, metadata) = {
+   [91m |[0m                                                           [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:222.65-73:
+222[96m |[0mfunction ext_check_phys_mem_write(write_kind, paddr, size, data, metadata) = {
+   [91m |[0m                                                                 [91m^------^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:222.53-57:
+222[96m |[0mfunction ext_check_phys_mem_write(write_kind, paddr, size, data, metadata) = {
+   [91m |[0m                                                     [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:222.34-44:
+222[96m |[0mfunction ext_check_phys_mem_write(write_kind, paddr, size, data, metadata) = {
+   [91m |[0m                                  [91m^--------^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:234.30-31:
+234[96m |[0mfunction ext_check_xret_priv (p : Privilege) : Privilege -> bool =
+   [91m |[0m                              [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_addr_checks.sail[0m:241.42-43:
+241[96m |[0mfunction ext_check_CSR (csrno : bits(12), p : Privilege, isWrite : bool) -> bool = 
+   [91m |[0m                                          [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_platform.sail[0m:389.6-7:
+389[96m |[0m      d => print("htif-???? cmd: " ^ BitStr(data))
+   [91m |[0m      [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:112.20-24:
+112[96m |[0mfunction rvfi_read (addr, width, result) = ()
+   [91m |[0m                    [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:112.33-39:
+112[96m |[0mfunction rvfi_read (addr, width, result) = ()
+   [91m |[0m                                 [91m^----^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:112.26-31:
+112[96m |[0mfunction rvfi_read (addr, width, result) = ()
+   [91m |[0m                          [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:189.21-25:
+189[96m |[0mfunction rvfi_write (addr, width, value, meta, result) = ()
+   [91m |[0m                     [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:189.41-45:
+189[96m |[0mfunction rvfi_write (addr, width, value, meta, result) = ()
+   [91m |[0m                                         [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:189.47-53:
+189[96m |[0mfunction rvfi_write (addr, width, value, meta, result) = ()
+   [91m |[0m                                               [91m^----^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:189.34-39:
+189[96m |[0mfunction rvfi_write (addr, width, value, meta, result) = ()
+   [91m |[0m                                  [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_mem.sail[0m:189.27-32:
+189[96m |[0mfunction rvfi_write (addr, width, value, meta, result) = ()
+   [91m |[0m                           [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem.sail[0m:120.32-34:
+120[96m |[0mfunction mem_write_ea_cap(addr, aq, rl, con) = {
+   [91m |[0m                                [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem.sail[0m:120.40-43:
+120[96m |[0mfunction mem_write_ea_cap(addr, aq, rl, con) = {
+   [91m |[0m                                        [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem.sail[0m:120.36-38:
+120[96m |[0mfunction mem_write_ea_cap(addr, aq, rl, con) = {
+   [91m |[0m                                    [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_pte.sail[0m:99.34-37:
+99[96m |[0mfunction isPTEPtr(p : pteAttribs, ext : extPte) -> bool = {
+  [91m |[0m                                  [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_pte.sail[0m:104.38-41:
+104[96m |[0mfunction isInvalidPTE(p : pteAttribs, ext : extPte) -> bool = {
+   [91m |[0m                                      [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_ptw.sail[0m:84.18-19:
+84[96m |[0m    PTW_Ext_Error(e)     => "extension-error"
+  [91m |[0m                  [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:112.21-24:
+112[96m |[0mfunction write_TLB32(idx : nat, ent : TLB32_Entry) -> unit =
+   [91m |[0m                     [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:154.31-32:
+154[96m |[0m                  MemException(e) => internal_error(__FILE__, __LINE__, "invalid physical address in TLB")
+   [91m |[0m                               [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:139.24-27:
+139[96m |[0m            Some(pbits, ext) => {
+   [91m |[0m                        [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:185.31-32:
+185[96m |[0m                  MemException(e) => {
+   [91m |[0m                               [91m^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vmem_sv32.sail[0m:172.24-27:
+172[96m |[0m            Some(pbits, ext) =>
+   [91m |[0m                        [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:21.35-38:
+21[96m |[0mfunction clause execute C_NOP_HINT(imm) = RETIRE_SUCCESS
+  [91m |[0m                                   [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:33.37-40:
+33[96m |[0mfunction clause execute (C_ADDI_HINT(rsd)) = RETIRE_SUCCESS
+  [91m |[0m                                     [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:46.35-38:
+46[96m |[0mfunction clause execute (C_LI_HINT(imm)) = RETIRE_SUCCESS
+  [91m |[0m                                   [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:59.36-39:
+59[96m |[0mfunction clause execute (C_LUI_HINT(imm)) = RETIRE_SUCCESS
+  [91m |[0m                                    [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:74.35-38:
+74[96m |[0mfunction clause execute (C_MV_HINT(rs2)) = RETIRE_SUCCESS
+  [91m |[0m                                   [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:89.36-39:
+89[96m |[0mfunction clause execute (C_ADD_HINT(rs2)) = RETIRE_SUCCESS
+  [91m |[0m                                    [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:104.44-47:
+104[96m |[0mfunction clause execute (C_SLLI_HINT(shamt, rsd)) = RETIRE_SUCCESS
+   [91m |[0m                                            [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:104.37-42:
+104[96m |[0mfunction clause execute (C_SLLI_HINT(shamt, rsd)) = RETIRE_SUCCESS
+   [91m |[0m                                     [91m^---^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:117.37-40:
+117[96m |[0mfunction clause execute (C_SRLI_HINT(rsd)) = RETIRE_SUCCESS
+   [91m |[0m                                     [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:128.37-40:
+128[96m |[0mfunction clause execute (C_SRAI_HINT(rsd)) = RETIRE_SUCCESS
+   [91m |[0m                                     [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:145.40-42:
+145[96m |[0mfunction clause execute (FENCE_RESERVED(fm, pred, succ, rs, rd)) = RETIRE_SUCCESS
+   [91m |[0m                                        [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:145.44-48:
+145[96m |[0mfunction clause execute (FENCE_RESERVED(fm, pred, succ, rs, rd)) = RETIRE_SUCCESS
+   [91m |[0m                                            [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:145.60-62:
+145[96m |[0mfunction clause execute (FENCE_RESERVED(fm, pred, succ, rs, rd)) = RETIRE_SUCCESS
+   [91m |[0m                                                            [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:145.56-58:
+145[96m |[0mfunction clause execute (FENCE_RESERVED(fm, pred, succ, rs, rd)) = RETIRE_SUCCESS
+   [91m |[0m                                                        [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:145.50-54:
+145[96m |[0mfunction clause execute (FENCE_RESERVED(fm, pred, succ, rs, rd)) = RETIRE_SUCCESS
+   [91m |[0m                                                  [91m^--^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:161.40-43:
+161[96m |[0mfunction clause execute FENCEI_RESERVED(imm, rs, rd) = RETIRE_SUCCESS
+   [91m |[0m                                        [91m^-^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:161.49-51:
+161[96m |[0mfunction clause execute FENCEI_RESERVED(imm, rs, rd) = RETIRE_SUCCESS
+   [91m |[0m                                                 [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_hints.sail[0m:161.45-47:
+161[96m |[0mfunction clause execute FENCEI_RESERVED(imm, rs, rd) = RETIRE_SUCCESS
+   [91m |[0m                                             [91m^^[0m
+   [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbkb.sail[0m:46.46-48:
+46[96m |[0mfunction clause execute (ZBKB_PACKW(rs2, rs1, rd)) = {
+  [91m |[0m                                              [91m^^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbkb.sail[0m:46.41-44:
+46[96m |[0mfunction clause execute (ZBKB_PACKW(rs2, rs1, rd)) = {
+  [91m |[0m                                         [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_zbkb.sail[0m:46.36-39:
+46[96m |[0mfunction clause execute (ZBKB_PACKW(rs2, rs1, rd)) = {
+  [91m |[0m                                    [91m^-^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_end.sail[0m:15.33-34:
+15[96m |[0mfunction clause execute (ILLEGAL(s)) = { handle_illegal(); RETIRE_FAIL }
+  [91m |[0m                                 [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: Unused variable
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_insts_end.sail[0m:23.34-35:
+23[96m |[0mfunction clause execute C_ILLEGAL(s) = { handle_illegal(); RETIRE_FAIL }
+  [91m |[0m                                  [91m^[0m
+  [91m |[0m This variable is defined but never used.
+
+[93mWarning[0m: 124 warnings have been automatically suppressed. Use --all-warnings to display them.
+Internal error: Unreachable code (at "src/lib/type_error.ml" line 577):
+[96m/Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_vext_regs.sail[0m:175.52-68:
+175[96m |[0m  then print_reg("v" ^ dec_str(r) ^ " <- " ^ BitStr(v[VLEN - 1 .. 0]));
+   [91m |[0m                                                    [91m^--------------^[0m
+   [91m |[0m During rewriting: Could not resolve quantifiers for subrange_bits
+   [91m |[0m [94m*[0m (0 <= 0 & (0 <= (('_#VLEN * 8) - 1) & (('_#VLEN * 8) - 1) < 65536))
+   [91m |[0m 
+   [91m |[0m 
+   [91m |[0m Raised by primitive operation at Libsail__Reporting.err_unreachable in file "src/lib/reporting.ml", line 223, characters 18-62
+   [91m |[0m Called from Libsail__Type_error.check in file "src/lib/type_error.ml", line 584, characters 66-100
+   [91m |[0m Called from Libsail__Rewrites.checking_rewriter.(fun) in file "src/lib/rewrites.ml", line 4455, characters 21-30
+   [91m |[0m Called from Libsail__Rewrites.rewrite_step in file "src/lib/rewrites.ml", line 4626, characters 35-67
+   [91m |[0m Called from Libsail__Rewrites.rewrite.(fun) in file "src/lib/rewrites.ml", line 4647, characters 40-70
+   [91m |[0m Called from Stdlib__List.fold_left in file "list.ml", line 123, characters 24-34
+   [91m |[0m Called from Libsail__Rewrites.rewrite in file "src/lib/rewrites.ml", lines 4646-4650, characters 6-7
+   [91m |[0m Called from Sail.run_sail in file "src/bin/sail.ml", line 532, characters 35-97
+   [91m |[0m Called from Sail.main in file "src/bin/sail.ml", line 646, characters 46-68
+   [91m |[0m Called from Libsail__Parmap.toplevel_handler in file "src/lib/parmap.ml" (inlined), line 79, characters 25-29
+   [91m |[0m Called from Sail in file "src/bin/sail.ml", line 683, characters 8-36
+   [91m |[0m 
+   [91m |[0m Please report this as an issue on GitHub at https://github.com/rems-project/sail/issues
+gmake: *** [Makefile:53: sail] Error 1
+gmake: Leaving directory '/Users/denis/phd/PROJECTS/katamaran-tex-cheriot/case_study/Cheriot'

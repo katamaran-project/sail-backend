@@ -1,0 +1,153 @@
+callee,calls,cls,binding
+string_append,798,extern,"coq: ""String.append"", c: ""concat_str"", _: ""string_append"""
+eq_string,402,extern,"lem: ""eq"", coq: ""generic_eq"", lean: ""_lean_beq"", _: ""eq_string"""
+concat_str,107,extern,"coq: ""String.append"", lem: ""stringAppend"", lean: ""HAppend.hAppend"", _: ""concat_str"""
+undefined_bitvector,95,extern,"_: ""undefined_bitvector"""
+bits_str,45,extern,"lean: ""BitVec.toFormatted"", _: ""string_of_bits"""
+bitvector_access,26,extern,"ocaml: ""access"", interpreter: ""access"", lem: ""access_vec_dec"", coq: ""access_vec_dec"", lean: ""BitVec.access"", _: ""vector_access"""
+eq_anything,22,extern,"ocaml: ""(fun x y -> x = y)"", lem: ""eq"", coq: ""generic_eq"", lean: ""_lean_beq"", _: ""eq_anything"""
+print_platform,19,extern,"ocaml: ""Platform.print_platform"", interpreter: ""print_endline"", c: ""print_platform"", lem: ""print_dbg"", _: ""print_endline"""
+shift_bits_left,11,extern,"_: ""shift_bits_left"""
+print_reg,11,extern,"ocaml: ""Platform.print_reg"", interpreter: ""print_endline"", c: ""print_reg"", lem: ""print_dbg"", _: ""print_endline"""
+plain_vector_access,9,extern,"ocaml: ""access_list"", interpreter: ""access"", lem: ""access_list_dec"", coq: ""vec_access_dec"", lean: ""GetElem?.getElem!"", _: ""vector_access"""
+bitvector_length,8,extern,"coq: ""length_mword"", lean: ""Sail.BitVec.length"", _: ""length"""
+shift_bits_right,8,extern,"_: ""shift_bits_right"""
+shiftl,8,extern,"_: ""shiftl"""
+sub_vec,7,extern,"c: ""sub_bits"", _: ""sub_vec"""
+min_int,6,extern,"ocaml: ""min_int"", interpreter: ""min_int"", lem: ""min"", coq: ""min_atom"", c: ""min_int"""
+shiftr,5,extern,"_: ""shiftr"""
+pow2,5,extern,"_: ""pow2"""
+sys_enable_zfinx,5,extern,"c: ""sys_enable_zfinx"", ocaml: ""Platform.enable_zfinx"", _: ""sys_enable_zfinx"""
+cancel_reservation,5,extern,"ocaml: ""Platform.cancel_reservation"", interpreter: ""Platform.cancel_reservation"", c: ""cancel_reservation"", lem: ""cancel_reservation"""
+dec_str,4,extern,"lean: ""Int.repr"", _: ""dec_str"""
+truncate,4,extern,"ocaml: ""vector_truncate"", interpreter: ""vector_truncate"", lem: ""vector_truncate"", coq: ""vector_truncate"", lean: ""Sail.BitVec.truncate"", _: ""sail_truncate"""
+sys_enable_rvc,4,extern,"c: ""sys_enable_rvc"", ocaml: ""Platform.enable_rvc"", _: ""sys_enable_rvc"""
+sys_enable_fdext,4,extern,"c: ""sys_enable_fdext"", ocaml: ""Platform.enable_fdext"", _: ""sys_enable_fdext"""
+tdiv_int,3,extern,"coq: ""Z.quot"", lean: ""Int.tdiv"", _: ""tdiv_int"""
+string_length,3,extern,"_: ""string_length"""
+sys_enable_writable_misa,3,extern,"c: ""sys_enable_writable_misa"", ocaml: ""Platform.enable_writable_misa"", _: ""sys_enable_writable_misa"""
+sys_enable_vext,3,extern,"c: ""sys_enable_vext"", ocaml: ""Platform.enable_vext"", _: ""sys_enable_vext"""
+plat_rom_base,3,extern,"ocaml: ""Platform.rom_base"", interpreter: ""Platform.rom_base"", c: ""plat_rom_base"", lem: ""plat_rom_base"""
+plat_rom_size,3,extern,"ocaml: ""Platform.rom_size"", interpreter: ""Platform.rom_size"", c: ""plat_rom_size"", lem: ""plat_rom_size"""
+plat_ram_base,3,extern,"c: ""plat_ram_base"", ocaml: ""Platform.dram_base"", interpreter: ""Platform.dram_base"", lem: ""plat_ram_base"""
+plat_ram_size,3,extern,"c: ""plat_ram_size"", ocaml: ""Platform.dram_size"", interpreter: ""Platform.dram_size"", lem: ""plat_ram_size"""
+_shl_int,2,extern,"lean: ""Int.shiftl"", _: ""shl_int"""
+_shr_int,2,extern,"lean: ""Int.shiftr"", _: ""shr_int"""
+truncateLSB,2,extern,"ocaml: ""vector_truncateLSB"", interpreter: ""vector_truncateLSB"", lem: ""vector_truncateLSB"", coq: ""vector_truncateLSB"", lean: ""Sail.BitVec.truncateLsb"", _: ""sail_truncateLSB"""
+emod_int,2,extern,"ocaml: ""modulus"", interpreter: ""modulus"", lem: ""integerMod"", coq: ""e_modulo"", lean: ""Int.emod"", _: ""emod_int"""
+print_mem,2,extern,"ocaml: ""Platform.print_mem_access"", interpreter: ""print_endline"", c: ""print_mem_access"", lem: ""print_dbg"", _: ""print_endline"""
+__write_mem_ea,2,extern,"ocaml: ""Platform.write_mem_ea"", c: ""platform_write_mem_ea"", cpp: ""platform_write_mem_ea"", _: ""write_mem_ea"""
+sys_pmp_grain,2,extern,"c: ""sys_pmp_grain"", ocaml: ""Platform.pmp_grain"", _: ""sys_pmp_grain"""
+plat_uart_base,2,extern,"ocaml: ""Platform.uart_base"", interpreter: ""Platform.uart_base"", c: ""plat_uart_base"", lem: ""plat_uart_base"""
+plat_term_write,2,extern,"ocaml: ""Platform.term_write"", c: ""plat_term_write"", lem: ""plat_term_write"""
+print,2,extern,"_: ""print_endline"""
+sys_pmp_count,2,extern,"c: ""sys_pmp_count"", ocaml: ""Platform.pmp_count"", _: ""sys_pmp_count"""
+max_int,2,extern,"ocaml: ""max_int"", interpreter: ""max_int"", lem: ""max"", coq: ""max_atom"", c: ""max_int"""
+rem_round_zero,2,extern,"ocaml: ""rem_round_zero"", interpreter: ""rem_round_zero"", lem: ""hardware_mod"", c: ""tmod_int"", coq: ""Z.rem"""
+quot_round_zero,2,extern,"ocaml: ""quot_round_zero"", interpreter: ""quot_round_zero"", lem: ""hardware_quot"", c: ""tdiv_int"", coq: ""Z.quot"""
+undefined_bool,2,extern,"_: ""undefined_bool"""
+undefined_vector,2,extern,"_: ""undefined_vector"""
+string_take,1,extern,"_: ""string_take"""
+string_drop,1,extern,"_: ""string_drop"""
+parse_hex_bits,1,extern,"_: ""parse_hex_bits"""
+valid_hex_bits,1,extern,"_: ""valid_hex_bits"""
+hex_str,1,extern,"lean: ""Int.toHex"", _: ""hex_str"""
+get_slice_int,1,extern,"_: ""get_slice_int"""
+count_leading_zeros,1,extern,"lean: ""BitVec.countLeadingZeros"", _: ""count_leading_zeros"""
+count_trailing_zeros,1,extern,"lean: ""BitVec.countTrailingZeros"", _: ""count_trailing_zeros"""
+sub_vec_int,1,extern,"c: ""sub_bits_int"", _: ""sub_vec_int"""
+MEMr_tag,1,extern,"_: ""read_tag_bool"""
+__write_mem,1,extern,"ocaml: ""Platform.write_mem"", c: ""platform_write_mem"", cpp: ""platform_write_mem"", _: ""write_mem"""
+__read_mem,1,extern,"ocaml: ""Platform.read_mem"", c: ""platform_read_mem"", cpp: ""platform_read_mem"", _: ""read_mem"""
+bitvector_update,1,extern,"ocaml: ""update"", interpreter: ""update"", lem: ""update_vec_dec"", coq: ""update_vec_dec"", lean: ""BitVec.update"", _: ""vector_update"""
+get_16_random_bits,1,extern,"ocaml: ""Platform.get_16_random_bits"", interpreter: ""Platform.get_16_random_bits"", c: ""plat_get_16_random_bits"", lem: ""plat_get_16_random_bits"""
+sys_enable_writable_fiom,1,extern,"c: ""sys_enable_writable_fiom"", ocaml: ""Platform.enable_writable_fiom"", _: ""sys_enable_writable_fiom"""
+plain_vector_update,1,extern,"ocaml: ""update_list"", interpreter: ""update"", lem: ""update_list_dec"", coq: ""vec_update_dec"", lean: ""vectorUpdate"", _: ""vector_update"""
+print_string,1,extern,"_: ""print_string"""
+elf_tohost,1,extern,"ocaml: ""Elf_loader.elf_tohost"", interpreter: ""Elf_loader.elf_tohost"", c: ""elf_tohost"""
+plat_clint_base,1,extern,"ocaml: ""Platform.clint_base"", interpreter: ""Platform.clint_base"", c: ""plat_clint_base"", lem: ""plat_clint_base"""
+plat_clint_size,1,extern,"ocaml: ""Platform.clint_size"", interpreter: ""Platform.clint_size"", c: ""plat_clint_size"", lem: ""plat_clint_size"""
+plat_uart_size,1,extern,"ocaml: ""Platform.uart_size"", interpreter: ""Platform.uart_size"", c: ""plat_uart_size"", lem: ""plat_uart_size"""
+plat_mtval_has_illegal_inst_bits,1,extern,"ocaml: ""Platform.mtval_has_illegal_inst_bits"", interpreter: ""Platform.mtval_has_illegal_inst_bits"", c: ""plat_mtval_has_illegal_inst_bits"", lem: ""plat_mtval_has_illegal_inst_bits"""
+plat_enable_misaligned_access,1,extern,"ocaml: ""Platform.enable_misaligned_access"", interpreter: ""Platform.enable_misaligned_access"", c: ""plat_enable_misaligned_access"", lem: ""plat_enable_misaligned_access"""
+internal_error,32,skipped by configuration,
+undefined_Capability,21,skipped by configuration,
+zeros_implicit,13,skipped by configuration,
+getCapBoundsBits,4,skipped by configuration,
+ones,4,skipped by configuration,
+__WriteRAM_Meta,1,skipped by configuration,
+pmpAddrRange,1,skipped by configuration,
+num_of_ExceptionType,1,skipped by configuration,
+undefined_Privilege,1,skipped by configuration,
+size_itself_int,4,unknown,
+hex_bits_6_forwards,21,untranslated,
+bool_to_bits,17,untranslated,
+hex_bits_12_forwards,14,untranslated,
+fence_bits_forwards,6,untranslated,
+hex_bits_10_forwards,5,untranslated,
+cap_creg_name_forwards,5,untranslated,
+execute_STORE,5,untranslated,
+execute_LOAD,5,untranslated,
+getCapPerms,5,untranslated,
+setCapBounds,4,untranslated,
+hex_bits_8_forwards,4,untranslated,
+hex_bits_20_forwards,3,untranslated,
+hex_bits_5_forwards,3,untranslated,
+pmpCheckRWX,3,untranslated,
+execute_RISCV_JALR,3,untranslated,
+execute_RISCV_JAL,3,untranslated,
+execute_StoreCapImm,3,untranslated,
+execute_LoadCapImm,3,untranslated,
+execute_CJALR,3,untranslated,
+execute_BTYPE,3,untranslated,
+encCapabilityToCapability,2,untranslated,
+capToEncCap,2,untranslated,
+hex_bits_21_forwards,2,untranslated,
+hex_bits_9_forwards,2,untranslated,
+hex_bits_7_forwards,2,untranslated,
+checked_mem_read,2,untranslated,
+pmpCheck,2,untranslated,
+hex_bits_13_forwards,1,untranslated,
+hex_bits_16_forwards,1,untranslated,
+hex_bits_11_forwards,1,untranslated,
+hex_bits_4_forwards,1,untranslated,
+hex_bits_32_forwards,1,untranslated,
+pmpMatchAddr,1,untranslated,
+is_CSR_defined,1,untranslated,
+init_pmp,1,untranslated,
+string_of_capreg_idx,1,untranslated,
+clint_store,1,untranslated,
+MemoryOpResult_drop_meta,1,untranslated,
+match_TLB_Entry,1,untranslated,
+make_TLB_Entry,1,untranslated,
+flush_TLB_Entry,1,untranslated,
+translateAddr_priv,1,untranslated,
+readCSR,1,untranslated,
+writeCSR,1,untranslated,
+execute_CGetLen,1,untranslated,
+execute_CGetTop,1,untranslated,
+execute_CSpecialRW,1,untranslated,
+execute_FENCE,1,untranslated,
+execute_FENCE_TSO,1,untranslated,
+execute_RISCV_BREV8,1,untranslated,
+execute_RISCV_CLMUL,1,untranslated,
+execute_RISCV_CLMULH,1,untranslated,
+execute_RISCV_CLMULR,1,untranslated,
+execute_RISCV_CLZ,1,untranslated,
+execute_RISCV_CLZW,1,untranslated,
+execute_RISCV_CPOP,1,untranslated,
+execute_RISCV_CPOPW,1,untranslated,
+execute_RISCV_CTZ,1,untranslated,
+execute_RISCV_CTZW,1,untranslated,
+execute_RISCV_ORCB,1,untranslated,
+execute_RISCV_REV8,1,untranslated,
+execute_RISCV_UNZIP,1,untranslated,
+execute_RISCV_XPERM4,1,untranslated,
+execute_RISCV_XPERM8,1,untranslated,
+execute_RISCV_ZIP,1,untranslated,
+encdec_compressed_capmode_backwards,1,untranslated,
+encdec_compressed_backwards,1,untranslated,
+encdec_capmode_backwards,1,untranslated,
+encdec_backwards,1,untranslated,
+ext_init,1,untranslated,
+ext_init_regs,1,untranslated,

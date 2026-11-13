@@ -1,0 +1,5 @@
+File "./base.v", line 593, characters 38-41:
+Error: The reference NYI was not found in the current environment.
+Did you mean NwI?
+
+coqc base.v  0.41s user 0.10s system 77% cpu 0.669 total

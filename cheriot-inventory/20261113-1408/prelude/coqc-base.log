@@ -1,0 +1,6 @@
+Warning: Deprecated environment variable COQPATH, use ROCQPATH instead.
+[deprecated-coq-env-var,deprecated-since-9.0,deprecated,default]
+File "./base.v", line 227, characters 38-41:
+Error: The reference NYI was not found in the current environment.
+Did you mean NwI?
+

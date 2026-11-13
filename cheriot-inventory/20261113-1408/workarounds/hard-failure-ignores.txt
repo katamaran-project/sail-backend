@@ -1,0 +1,5 @@
+getCapBoundsBits
+__WriteRAM_Meta
+internal_error
+report_invalid_width
+pmpAddrRange

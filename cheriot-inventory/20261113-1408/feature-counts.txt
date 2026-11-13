@@ -1,0 +1,26 @@
+foreach                            32 lines in   8 files
+while/repeat                        4 lines in   4 files
+return                             25 lines in  10 files
+try                                 3 lines in   3 files
+throw                              15 lines in   5 files
+mapping (def)                     563 lines in  23 files
+mapping clause                    520 lines in  18 files
+scattered                          12 lines in   4 files
+function clause                   191 lines in  19 files
+overload                           32 lines in  11 files
+union clause                      147 lines in  15 files
+bitfield                           33 lines in   8 files
+register                          122 lines in  10 files
+top-level let                      63 lines in  10 files
+Some/None                         202 lines in  20 files
+Ok(/Err(                            0 lines in   0 files
+MemValue/MemException             100 lines in   8 files
+struct                              7 lines in   5 files
+field assign x.f = e               25 lines in   5 files
+bitfield assign x[F] = e           42 lines in   3 files
+var                                28 lines in   4 files
+zero/sign_extend                  191 lines in  27 files
+match                             198 lines in  38 files
+assert(                            43 lines in   9 files
+forall (polymorphic val)           86 lines in  14 files
+type var 'a ('a : Type)            10 lines in   3 files

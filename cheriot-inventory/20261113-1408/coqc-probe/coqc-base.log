@@ -1,0 +1,9 @@
+File "./base.v", line 598, characters 42-53:
+Error:
+In environment
+Access_kind : NYI [0] -> Set
+kid__arch_ak : NYI [0]
+The term "Access_kind" has type "NYI [0] -> Set"
+which should be Set, Prop or Type.
+
+coqc base.v  0.39s user 0.07s system 98% cpu 0.464 total

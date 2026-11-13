@@ -1,0 +1,30 @@
+### getCapBoundsBits
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:358) only calls to add_bits_int supported where second argument's value is known at compile time
+  at /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_cap_common.sail:418
+  in call to add_bits_int
+  in body of function getCapBoundsBits
+
+### __WriteRAM_Meta
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:358) only calls to add_bits_int supported where second argument's value is known at compile time
+  at /Users/denis/phd/PROJECTS/cheriot-sail/src/cheri_mem_metadata.sail:87
+  in call to add_bits_int
+  in body of function __WriteRAM_Meta
+
+### internal_error
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:533) sail_assert should have its second argument known at compile time
+  at /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_types.sail:92
+  in call to sail_assert
+  in body of function internal_error
+
+### report_invalid_width
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:533) sail_assert should have its second argument known at compile time
+  at /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_types.sail:419
+  in call to sail_assert
+  in body of function report_invalid_width
+
+### pmpAddrRange
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:350) failed to determine bitvector size
+  at /Users/denis/phd/PROJECTS/cheriot-sail/sail-riscv/model/riscv_pmp_control.sail:29
+  in call to add_bits_int
+  in body of function pmpAddrRange
+
