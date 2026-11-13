@@ -1,5 +1,8 @@
 # NoConfusionHom
 
+*Historical note:* since commit `1639782a` (May 2025) the generated code derives only `Signature NoConfusion` for `Reg`;
+the `NoConfusionHom EqDec` derivation described below is no longer generated.
+
 When translated with `(inline-definitions-in-notations #f)` we get
 
 ```coq's

@@ -151,11 +151,13 @@ A possible improvement would be to remove it and adapt the functions related to 
 ## Rewrites
 
 Sail performs a number of rewrites on the program's AST before handing it over to the muSail backend.
-It is possible to have these rewrites written to disk using Sail's `--dump-rewrite-ast` flag.
-We also have a Ruby script `process-rewrites.rb` that generates diffs of consecutive rewrites,
-which can be helpful when trying to find out what each rewrite does.
+It is possible to have these rewrites written to disk using Sail's `--ddump-rewrite-ast` flag.
+The end-to-end test runner (`tests/coq-tests/run-tests.py`) does this for every test:
+it writes the AST after each rewrite (`rewrite-NN-*.sail`) and the diff between consecutive rewrites (`delta-NN-*.diff`)
+to the test's output directory, which can be helpful when trying to find out what each rewrite does.
+(The older Ruby script `process-rewrites.rb` that generated these diffs is kept in `archived_experiments/rewrites/`.)
 
-Changing which rewrites are active is done by editing `Rewrite.ml` in the `sail_plugin` project.
+Changing which rewrites are active is done by editing `Rewrites.ml` in the `sail_plugin` project.
 
 ## Expressions vs Statements
 

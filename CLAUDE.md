@@ -14,8 +14,9 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
   Instead, test this checkout's plugin as built by `dune build`:
   - `run-tests.py` and the Makefile's test targets do this by default (`run-tests.py --installed-plugin` uses the installed plugin instead).
   - Elsewhere, use `bin/sail-local` as a drop-in `sail`. It loads this checkout's built plugin in place of the installed one.
-    Example: `make -C <katamaran>/case_study/Cheriot sail SAIL=$PWD/bin/sail-local CHERIOT_SAIL_DIR=<cheriot-sail>`,
+    Example: `gmake -C <katamaran>/case_study/Cheriot sail SAIL=$PWD/bin/sail-local CHERIOT_SAIL_DIR=<cheriot-sail>`,
     where `<katamaran>` and `<cheriot-sail>` are the paths of those checkouts.
+    Always use GNU make 4 or later (`gmake` on macOS): the `make` 3.81 that ships with macOS cannot parse the Cheriot Makefile.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
 - The project currently targets Sail 0.20.3 on OCaml 5.2.1, with Rocq 9.2 and Katamaran main. The CI workflow (`.github/workflows/build.yaml`) and `flake.nix` pin the same OCaml and Sail versions; keep them in sync.
@@ -55,6 +56,11 @@ There are three dune projects, layered as follows:
 - `monads/`: a small, general monad library (State, Result, StateResult, Writer, and others).
 - `nanosail/`: all of the translation logic. This is a wrapped library, so modules are reached as `Nanosail.X`.
 - `sail_plugin/`: a thin layer that registers the `--katamaran` options with libsail, selects which Sail rewrites run (`Rewrites.ml`), and calls into `nanosail`.
+
+Other top-level directories (not dune projects):
+- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. The CHERIoT case study lives in katamaran's `case_study/Cheriot`.
+- `archived_experiments/`: old experiments kept for reference (`rewrites/`, `monomorphization-tests/`); not run by the build or the tests, and not maintained.
+- `cheriot-inventory/`: the CHERIoT failure inventory and the project status and history documents.
 
 The translation pipeline is Sail AST (after Sail's rewrites) → **nanosail** IR → MicroSail Rocq text:
 

@@ -31,7 +31,7 @@ function qux(x) = foo(0x12, 0x23)
 When translated as-is, the backend will emit warnings about calls to a polymorphic function:
 
 ```text
-[WARNING] nanosail/SailToNanosail/Translate/Function.ml:776
+[WARNING] nanosail/SailToNanosail/Translate/Function.ml:869
           Call to polymorphic function detected
           Function name
             foo
@@ -55,7 +55,7 @@ When translated as-is, the backend will emit warnings about calls to a polymorph
           Argument types
               1: Type:Bitvector[1]
               2: Type:Bitvector[2]
-[WARNING] nanosail/SailToNanosail/Translate/Function.ml:776
+[WARNING] nanosail/SailToNanosail/Translate/Function.ml:869
           Call to polymorphic function detected
           Function name
             foo
@@ -79,7 +79,7 @@ When translated as-is, the backend will emit warnings about calls to a polymorph
           Argument types
               1: Type:Bitvector[4]
               2: Type:Bitvector[1]
-[WARNING] nanosail/SailToNanosail/Translate/Function.ml:776
+[WARNING] nanosail/SailToNanosail/Translate/Function.ml:869
           Call to polymorphic function detected
           Function name
             foo
@@ -202,7 +202,8 @@ itself will be skipped and only the "monomorphs" will be translated.
 
 ## Examples
 
-See the `tests/coq-tests/monomorphization` tests.
+See the `tests/coq-tests/monomorphize-*` tests.
+(At the time of writing they all fail; see `docs/handover.md`.)
 
 ## Missing Features
 

@@ -51,8 +51,10 @@ It's just the Makefile of the CHERIoT case study sub-directory in the katamaran 
 Make sure to pass it (the wrapper around) the sail binary that is local to your worktree.
 And also pass it the location of the cheriot-sail repo, which contains all the relevant sail code that we aim to compile in this case study.
 
+This Makefile needs GNU make 4 or later; on macOS, use `gmake` (the `make` that ships with macOS is 3.81 and cannot parse it).
+
 ```sh
-make -C <katamaran>/case_study/Cheriot test \
+gmake -C <katamaran>/case_study/Cheriot test \
      SAIL=$PWD/bin/sail-local \
      CHERIOT_SAIL_DIR=<cheriot-sail> \
      OUT_DIR=/absolute/output/dir
