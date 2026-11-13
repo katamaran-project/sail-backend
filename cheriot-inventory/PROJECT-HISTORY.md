@@ -30,9 +30,10 @@ Commits per month: Frederic peaked in October 2024 (770) and February 2025 (808)
 | file | created | last change | written by | status |
 |---|---|---|---|---|
 | `README.md` | 2023-06-23 Marius | 2026-11-04 Tex | Marius (2023 versions), Frederic (current index), Tex | current; only an index of `docs/` |
-| `docker/readme.md` | 2024-11-12 Frederic | same | Frederic | probably stale (Docker setup untouched since Nov 2024) |
-| `tests/msp430-tests/tests-overview.txt`, `tests-history.txt` | 2024-11-25 Frederic | 2024-11-26 | Frederic | stale snapshot (Nov 2024) |
-| `rewrites/readme.md` | 2025-03-28 Frederic | same | Frederic | mostly current (refers to `rewrites.ml`; the file is `Rewrites.ml`) |
+| `docker/readme.md` | 2024-11-12 Frederic | 2026-11-13 removed | Frederic | **removed** with `docker/` in the cleanup (Docker setup pinned Sail 0.18 / Coq 8.18) |
+| `tests/msp430-tests/tests-overview.txt`, `tests-history.txt` | 2024-11-25 Frederic | 2026-11-13 removed | Frederic | **removed** in the cleanup (generated files, last updated Nov 2024) |
+| `rewrites/readme.md` → `archived_experiments/rewrites/readme.md` | 2025-03-28 Frederic | 2026-11-13 moved | Frederic | archived; path to `Rewrites.ml` corrected |
+| `case-studies/README.md`, `archived_experiments/README.md` | 2026-11-13 | same | Denis / Claude | new, written in the cleanup |
 | `docs/html-generation.md` | 2024-10-07 Frederic | 2025-03-15 | Frederic | current |
 | `docs/installation.md` | 2023-06-23 Marius | 2026-11-06 Tex | Marius → Frederic → Tex | current (Tex rewrote it for Sail 0.20.3 / Rocq 9.2) |
 | `docs/tests.md` | 2025-03-10 Frederic | 2026-10-24 Tex | Frederic, then mostly Tex | current |
@@ -40,9 +41,9 @@ Commits per month: Frederic peaked in October 2024 (770) and February 2025 (808)
 | `docs/slang.md` | 2025-03-12 Frederic | 2025-03-15 | Frederic | current, brief |
 | `docs/monomorphization.md` | 2025-03-13 Frederic | 2026-11-04 Tex | Frederic | partly stale (line numbers, test names); `monomorphize-*` tests now fail |
 | `tests/coq-tests/no-confusion-hom/readme.md` | 2025-03-13 Frederic | same | Frederic | historical (Steven later removed the derivation it explains) |
-| `docs/sail-notes.md` | 2025-03-14 Frederic | 2025-03-28 | Frederic | current knowledge; mentions the old `process-rewrites.rb` |
+| `docs/sail-notes.md` | 2025-03-14 Frederic | 2026-11-13 | Frederic | current knowledge; "Rewrites" section updated in the cleanup |
 | `docs/code-overview.md` (+ 5 `.tex`/`.png` diagrams) | 2025-03-10 Frederic | 2025-03-29 | Frederic | current; typo "`NanosailToSail` module" |
-| `tests/coq-tests/passfails_sorted_by_size.txt` | 2026-05-21 Tex | same | Tex | data snapshot (May 2026) |
+| `tests/coq-tests/passfails_sorted_by_size.txt` | 2026-05-21 Tex | 2026-11-13 removed | Tex | **removed** in the cleanup (stale data snapshot; its generating script stays) |
 | `CLAUDE.md` | 2026-10-21 Tex | 2026-11-06 | Tex | current |
 | `HACKING.md` | 2026-11-04 Tex | same | Tex | current (uses `make`; see note in §3) |
 | `docs/handover.md` | 2026-11-04 Tex | 2026-11-05 | Tex | current as of handover |
@@ -201,6 +202,11 @@ e2e: 276–277 / 27 throughout.
 - `cheriot-inventory/20261113-1408/INVENTORY.md`: the survey itself.
 - `cheriot-inventory/PROJECT-STATUS.md`: a plain-English status, with your scope decisions in its §1a.
 - This file.
+- **Cleanup** (branch `cleanup`):
+  - stale and unused files removed: `docker/`, accidentally committed test logs and result snapshots, unused scripts, the unused module `LexingPositionUtil`, the Makefile's `example` target;
+  - case studies moved to `case-studies/` (`msp430`, `minimal-caps`);
+  - old experiments moved to `archived_experiments/` (`rewrites`, `monomorphization-tests`);
+  - docs updated to match.
 
 ---
 
@@ -218,11 +224,11 @@ Created 2024-10-07; the current text is from **[2025-03-11 … 2025-03-15, Frede
 - How to use it: add a `*.template.html` file with a hover-tooltip stylesheet and `(generate (base-html-translation))`, and register it with `(template …)`.
 - Caveat: generated HTML files once grew past 500 MB, too big for Chrome. Annotations were reduced, and perhaps should be reduced further.
 
-### `docker/readme.md` [2024-11-12, Frederic]
+### `docker/readme.md` [2024-11-12, Frederic] (removed 2026-11-13)
 - `./build.sh`, `./run.sh`; inside the container, `source .venv/bin/activate; make`.
 - The Docker files have not changed since November 2024. Probably stale: they predate Sail 0.20.3 and Rocq 9.2.
 
-### `tests/msp430-tests/tests-overview.txt`, `tests-history.txt` [2024-11-25 … 11-26, Frederic]
+### `tests/msp430-tests/tests-overview.txt`, `tests-history.txt` [2024-11-25 … 11-26, Frederic] (removed 2026-11-13)
 A snapshot of the MSP430 case-study tests: `001-prelude`, `002-exceptions` and `003-types` pass, `004-regfile` fails, plus three smaller tests. The history shows the suite growing from 1/1 to 7/1 over two days. Not updated since.
 
 ### `docs/installation.md`
@@ -335,10 +341,10 @@ Why `inline-definitions-in-notations` exists: `Definition wordBits := bv len_wor
 - **Registers / shadowing registers** [03-27]: registers need `stm_read_register`/`stm_write_register`; Sail forbids variables that shadow registers, which makes them easy to recognise.
 - Stubs with no content: "Generated Ast Module", "Full Type of Functions", "`sizeof`".
 
-### `rewrites/readme.md` [2025-03-28, Frederic]
+### `rewrites/readme.md` [2025-03-28, Frederic] (now `archived_experiments/rewrites/readme.md`)
 The `rewrites/` directory holds small experiments showing what individual Sail rewrites do. Many rewrites had no visible effect on the models considered. The list of available and active rewrites is in `sail_plugin/rewrites.ml` (actually `Rewrites.ml`).
 
-### `tests/coq-tests/passfails_sorted_by_size.txt` [2026-05-21, Tex]
+### `tests/coq-tests/passfails_sorted_by_size.txt` [2026-05-21, Tex] (removed 2026-11-13)
 The pass/fail status of each e2e test, ordered by `model.sail` size, made with `sort_passfails_by_size.py`. A May 2026 snapshot.
 
 ### `CLAUDE.md` [2026-10-21 … 11-06, Tex]
@@ -392,9 +398,9 @@ The pass/fail status of each e2e test, ordered by `model.sail` size, made with `
   - `code-overview.md`: "`NanosailToSail` module" should be `NanosailToMicrosail`;
   - `usage.md`: the `include-original-code` description is inverted;
   - `monomorphization.md`: the log line number and the test directory name are out of date;
-  - `rewrites/readme.md`: the file is `Rewrites.ml`, not `rewrites.ml`;
-  - `sail-notes.md`: `process-rewrites.rb` has been superseded by `run-tests.py`'s diffs;
-  - `docker/readme.md` and the msp430 status files date from November 2024;
+  - ~~`rewrites/readme.md`: the file is `Rewrites.ml`, not `rewrites.ml`~~ (fixed in the cleanup);
+  - ~~`sail-notes.md`: `process-rewrites.rb` has been superseded by `run-tests.py`'s diffs~~ (fixed in the cleanup);
+  - ~~`docker/readme.md` and the msp430 status files date from November 2024~~ (removed in the cleanup);
   - `HACKING.md` uses `make`, which needs to be `gmake` on macOS;
   - the `no-confusion-hom` readme describes a derivation that has since been removed.
 

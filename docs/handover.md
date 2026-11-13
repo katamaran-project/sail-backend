@@ -45,6 +45,7 @@ These commits make it easier to find out *where* a translation fails:
   `... at vector.sail:326 in argument 1 in call to sail_zeros in body of function sail_ones`.
 - `c9b1cd02`: configuration flag `(dump-nanosail-ast)`, which prints the nanoSail AST of each definition.
 - `1fb309ca`: `LexingPositionUtil.lexing_position_to_string`.
+  (Removed on 13 Nov 2026: no other module used it.)
 - `796abee5`, `c107f1a2`: `tests/nanosail-logging-tests/`, small models for looking at the logs.
 - `6d673d8f`: [`tests/reindent-ast.py`](../tests/reindent-ast.py), which pretty-prints dumped ASTs so that they can be read and diffed.
 

@@ -56,6 +56,11 @@ There are three dune projects, layered as follows:
 - `nanosail/`: all of the translation logic. This is a wrapped library, so modules are reached as `Nanosail.X`.
 - `sail_plugin/`: a thin layer that registers the `--katamaran` options with libsail, selects which Sail rewrites run (`Rewrites.ml`), and calls into `nanosail`.
 
+Other top-level directories (not dune projects):
+- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. The CHERIoT case study lives in katamaran's `case_study/Cheriot`.
+- `archived_experiments/`: old experiments kept for reference (`rewrites/`, `monomorphization-tests/`); not run by the build or the tests, and not maintained.
+- `cheriot-inventory/`: the CHERIoT failure inventory and the project status and history documents.
+
 The translation pipeline is Sail AST (after Sail's rewrites) → **nanosail** IR → MicroSail Rocq text:
 
 1. `nanosail/SailToNanosail/` translates each Sail definition inside the `TranslationContext` monad (a State+Result monad).
