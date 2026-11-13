@@ -1276,6 +1276,108 @@ type sail_function_parts =
 
 
 (*
+   The message that replaces assert messages that are computed at run time,
+   see drop_run_time_assert_messages.
+*)
+let dropped_assert_message : string = "assertion failed (message computed at run time, dropped by the translation)"
+
+
+let is_string_literal (expression : Sail.type_annotation S.exp) : bool =
+  let S.E_aux (unwrapped_expression, _annotation) = expression
+  in
+  match unwrapped_expression with
+  | E_lit (L_aux (literal, _location)) -> begin
+      match literal with
+      | L_string _ -> true
+      | L_true     -> false
+      | L_false    -> false
+      | L_num _    -> false
+      | L_unit     -> false
+      | L_bin _    -> false
+      | L_hex _    -> false
+      | L_real _   -> false
+    end
+  | E_vector _                  -> false
+  | E_block _                   -> false
+  | E_id _                      -> false
+  | E_typ (_, _)                -> false
+  | E_app (_, _)                -> false
+  | E_tuple _                   -> false
+  | E_if (_, _, _)              -> false
+  | E_loop (_, _, _, _)         -> false
+  | E_for (_, _, _, _, _, _)    -> false
+  | E_vector_append (_, _)      -> false
+  | E_list _                    -> false
+  | E_cons (_, _)               -> false
+  | E_struct (_, _)             -> false
+  | E_struct_update (_, _)      -> false
+  | E_field (_, _)              -> false
+  | E_match (_, _)              -> false
+  | E_let (_, _, _)             -> false
+  | E_assign (_, _)             -> false
+  | E_sizeof _                  -> false
+  | E_return _                  -> false
+  | E_exit _                    -> false
+  | E_config _                  -> false
+  | E_ref _                     -> false
+  | E_throw _                   -> false
+  | E_try (_, _)                -> false
+  | E_assert (_, _)             -> false
+  | E_var (_, _, _)             -> false
+  | E_undef                     -> false
+  | E_internal_plet (_, _, _)   -> false
+  | E_internal_return _         -> false
+  | E_internal_value _          -> false
+  | E_internal_assume (_, _)    -> false
+  | E_constraint _              -> false
+
+
+(*
+   muSail needs the message of an assert to be a string literal, but in Sail it can be
+   any string expression, e.g., internal_error in sail-riscv's riscv_types.sail does
+
+     assert (false, file ^ ":" ^ dec_str(line) ^ ": " ^ s)
+
+   Messages have no meaning for verification, so we replace each message that is not
+   a string literal by the literal dropped_assert_message. This happens before the
+   conversion to ANF, so that the computation of the message (here calls to the string
+   functions dec_str and concat_str, which have no muSail counterpart) disappears too.
+
+   Sail evaluates the message even when the condition holds, so dropping it is only
+   exact if computing the message has no side effects. That is what one expects of a
+   message, but Sail cannot always tell: it considers every mapping possibly failing,
+   so report_invalid_width's message, which calls the mapping size_mnemonic, counts
+   as effectful. Messages are therefore dropped regardless, and the locations of the
+   ones Sail considers effectful are returned, so that the caller can warn about them.
+   This relies on the effect annotations made by the attach_effects rewrite,
+   which is the last one in sail_plugin/Rewrites.ml.
+*)
+let drop_run_time_assert_messages (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp * S.l list =
+  let effectful_message_locations : S.l list ref = ref []
+  in
+  let replace_message (message : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+    let S.E_aux (_unwrapped_message, (location, annotation)) = message
+    in
+    if is_string_literal message
+    then message
+    else begin
+      if Libsail.Ast_util.effectful (Libsail.Type_check.effect_of message)
+      then effectful_message_locations := location :: !effectful_message_locations;
+      S.E_aux (S.E_lit (S.L_aux (S.L_string dropped_assert_message, location)), (location, annotation))
+    end
+  in
+  let algebra =
+    {
+      Libsail.Rewriter.id_exp_alg with
+      e_assert = (fun (condition, message) -> S.E_assert (condition, replace_message message))
+    }
+  in
+  let result = Libsail.Rewriter.fold_exp algebra expression
+  in
+  (result, List.rev !effectful_message_locations)
+
+
+(*
    Helper function that extracts all relevant data from Sail's AST.
 *)
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
@@ -1286,7 +1388,23 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
   match unwrapped_clause with
    | Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
    | Pat_exp (parameter_bindings, raw_body) -> begin
-       let body        = S.anf raw_body
+       let body_without_messages, effectful_message_locations = drop_run_time_assert_messages raw_body
+       in
+       let* () =
+         let warn (message_location : S.l) : unit TC.t =
+           let warning_message = lazy begin
+             PP.string begin
+               Printf.sprintf
+                 "Dropped the message of an assert although Sail considers its computation effectful, at %s"
+                 (Sail.string_of_location message_location)
+             end
+           end
+           in
+           TC.log [%here] Logging.warning warning_message
+         in
+         TC.iter ~f:warn effectful_message_locations
+       in
+       let body        = S.anf body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        TC.return @@ {
