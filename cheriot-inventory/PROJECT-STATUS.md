@@ -81,7 +81,9 @@ The project has 334 small end-to-end test programs. Each one is translated and t
 - The crash is triggered by the translator's choice of passes, not by a bug in the CHERIoT specification. Sail itself accepts the specification without complaint.
 - **Fixed (13 November 2026, branch `e2e-loop`):** the translator no longer asks for `remove_blocks`. The full specification now gets through Sail and through the translation to nanosail without any substitution.
   Output generation then stopped at the first of the five functions mentioned below, `getCapBoundsBits`, because adding a run-time integer to a bitvector (`add_bits_int`) was not supported. **That is fixed too**, which brings back `getCapBoundsBits` and `__WriteRAM_Meta`.
-  Generation now stops at `internal_error`, whose `assert` has a message built at run time. That is next in line (inventory, P01). The fifth function, `pmpAddrRange`, is PMP, which is out of scope, so it should be excluded by configuration.
+  Asserts whose message is built at run time (`internal_error`, `report_invalid_width`) are fixed as well: the message is replaced by a fixed text.
+  The last one, `pmpAddrRange`, turned out not to need PMP support: the width of its bitvectors was hidden behind the type name `xlenbits`. That is fixed as well.
+  **The full specification now translates without any workaround.** Rocq stops at the first type of Sail's concurrency interface (`Access_kind`), which the inventory's configuration clean-up proposes to leave out. That clean-up is next in line.
 
 For this survey, the crash was avoided by substituting a few functions from an unused part of the specification (the RISC-V vector extension). Five further functions that stopped output generation completely were temporarily excluded.
 
@@ -171,7 +173,7 @@ Updated for the decisions in section 1a. The first phase builds the infrastructu
 
 1. **A reproducible CHERIoT run without workarounds.**
    - ~~Fix the Sail crash in the translator's rewrite list (S).~~ Done (13 November 2026).
-   - Fix the five functions that stop output generation (S each): `add_bits_int` (`getCapBoundsBits`, `__WriteRAM_Meta`) is done; the `assert` message (`internal_error`, `report_invalid_width`) is next; `pmpAddrRange` should be excluded by configuration.
+   - ~~Fix the five functions that stop output generation (S each).~~ Done (13 November 2026): `add_bits_int` (`getCapBoundsBits`, `__WriteRAM_Meta`, `pmpAddrRange`) and the `assert` message (`internal_error`, `report_invalid_width`).
    - Make the case-study build (`gmake`) the single entry point for translating the core and running Rocq on the result.
 2. **Configuration-driven scoping.** Exclude everything outside the core by configuration: printing and tracing, assembly syntax, strings, the deferred extensions, unused generated helpers.
    This probably needs one new configuration capability: removing a definition *and* replacing or dropping its calls. Also stop reporting overloads and directives as failures.
