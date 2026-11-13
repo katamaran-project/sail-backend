@@ -19,8 +19,12 @@ Nothing in the translator was changed. All numbers come from the scripts in this
   Tests: `assert-flow-typing-fixed-width` (passes; guards the fix), `assert-flow-typing-constrained-width` (fails until the code generator uses Sail's constraints for slice indices) and `assert-flow-typing-runtime-width` (fails until bitvectors with run-time widths are supported, P13).
 - The full model, **without the `-splice` workaround**, now gets through all Sail rewrites and the Sail → nanoSail translation.
   µSail generation then stops at the first hard failure, `add_bits_int` with a run-time integer in `getCapBoundsBits` (`FunctionCalls.ml:358`, §2b), so no `.v` file is written.
-- **Next in line: `add_bits_int`** (P01, option 1). It is the first thing the full model hits, it is small, and it also unblocks `__WriteRAM_Meta`.
-  The other hard failures of §2b (`sail_assert` messages, `pmpAddrRange`) are expected right behind it.
+- **`add_bits_int` with a run-time integer is fixed** (P01, option 1): it is generated as `bv +ᵇ exp_unop uop.get_slice_int i`, whose semantics is `bv.of_Z`, i.e. `i` modulo 2ⁿ, as in Sail.
+  Tests: `bitvectors-add-runtime-int`, `bitvectors-add-runtime-int-negative`.
+  `getCapBoundsBits` and `__WriteRAM_Meta` are now generated. `__WriteRAM_Meta` has no holes; `getCapBoundsBits` keeps 4 `NYI`s, all from `… @ zeros(E)` with a run-time `E` ("expected constant in bitvector type", P01 site 5 below).
+- **Next in line: the `sail_assert` message** (P01, option 2), now the first hard failure the full model hits: `internal_error` (called from 32 places) and `report_invalid_width`.
+  With those two and `pmpAddrRange` ignored by configuration, µSail generation completes (`base.v` 1.7 MB, `machine.v` 9.2 MB).
+  `pmpAddrRange` (`failed to determine bitvector size`) is PMP, which is out of scope, so it should be excluded by configuration rather than fixed.
 
 ---
 
@@ -140,7 +144,7 @@ Their callers still call them. That shows up in coqc and in §3's "calls to unde
 | P16 | Sail externs not mapped to µSail (no `stm_foreign` at all) | 1697 calls | 71 externs | — | **M** (+ decisions) | blocks coqc of most of `machine.v` |
 | P05 | `foreach`, `loop`, `try`, early `return` | 25 | 25 | 23 | **M** | — |
 | P04 | vector literal with `bits(1)` elements (`[bool_to_bit(x)]`) | 54 | 27 | 17 | **S** | **the decoders** (`encdec_backwards`, compressed) |
-| P01 | integer arguments that must be known at compile time | 59 | 13 | 10 | **M** | hard failures; `getCapBoundsBits` (CHERI bounds); **`add_bits_int` is next in line** |
+| P01 | integer arguments that must be known at compile time | 59 | 13 | 10 | **M** | hard failures; `getCapBoundsBits` (CHERI bounds); `add_bits_int` done, **the `sail_assert` message is next in line** |
 | P08 | top-level `let` with a computed value | 22 | 22 | 16 | **S–M** | `null_cap`, root caps, MMIO bases |
 | P06 | mutable local variables (`var x = …; x[i] = …`) | 4 | 4 | 4 | **M** | `setCapBounds`, `capToEncCap` (CHERI core) |
 | P07 | register references (`register('a)`, `ref r`, `r->F() = v`) | 430 | 217 | 9 | **S** (+S) | `execute_CJALR`, `ext_init_regs` |
@@ -368,8 +372,8 @@ function tag_addr_to_addr(tag_addr : tagaddrbits) -> xlenbits = tag_addr @ zeros
 13 definitions, 10 reachable, including **`getCapBoundsBits`, the core of CHERI bounds decoding**, and `internal_error`, which is called from 32 places.
 
 *Options, per site.*
-1. **Next in line.** `add_bits_int(v, i)` with a run-time `i`: translate as `v + to_bits(i)`. RiscvPmp has `to_bits (l : nat) : Fun [value ∷ ty.int] (ty.bvec l)`, and Katamaran may have a primitive int→bv conversion (to check). **S.**
-2. `sail_assert` with a non-literal message: drop the message (replace it with a fixed string). Messages have no verification meaning. **S.**
+1. **Done.** `add_bits_int(v, i)` with a run-time `i`: translate as `v + to_bits(i)`. RiscvPmp has `to_bits (l : nat) : Fun [value ∷ ty.int] (ty.bvec l)`, and Katamaran may have a primitive int→bv conversion (to check). **S.**
+2. **Next in line.** `sail_assert` with a non-literal message: drop the message (replace it with a fixed string). Messages have no verification meaning. **S.**
 3. Widths that are constant after constant folding (`log2_cap_size`, `cap_addr_width`, `sizeof(xlen)`): extend `extract_compile_time_integer` to look up top-level `let`s that P08 currently fails to translate, and to evaluate `log2`/`MAX`, or run Sail's `constant_fold` with more aggressive settings. **S–M.**
 4. Widths that really are polymorphic (`zero_extend`, `sign_extend`, `align_down` inside their own definitions): the same machinery as P13. Their *calls* are fine.
 
@@ -484,7 +488,7 @@ A cast is harmless if source and target µSail types agree. Assert that, or emit
 
 Aim: a `machine.v` that compiles for the RV32I + CHERIoT instruction subset, with the non-essential parts (assembly, printing, V, Zb*, Sv32) ignored by configuration rather than implemented.
 
-1. ~~**P00** (rewrite pipeline)~~ (done), **`add_bits_int`** (P01 option 1, next: the first hard failure the full model now hits, then the rest of §2b), and **P12** (overloads, pragmas): unblock the full model without workarounds and remove most of the noise. S + S + S.
+1. ~~**P00** (rewrite pipeline)~~ and ~~**`add_bits_int`**~~ (done), the **`sail_assert` message** (P01 option 2, next: the first hard failure the full model now hits), excluding `pmpAddrRange` by configuration, and **P12** (overloads, pragmas): unblock the full model without workarounds and remove most of the noise. S + S + S.
 2. **Configuration clean-up** (no translator change):
    - ignore P09 mappings and printing, the `_set_*` setters (P07 option 1), the concurrency-interface types (`Access_kind`, `Mem_*_request`), and V/Sv32/TLB if unused;
    - add the `translate-union-as-sum` lines from `workarounds/configuration-sum-variant.lisp` as a stopgap.
