@@ -532,11 +532,14 @@ At each step, rerun `hard-failure-loop.sh` and `extract.py` (see below) to measu
 | `coqc-probe/` | coqc with `NYI` axiomatised |
 | `bisect/` | `try.sh`, source lists, prefix runs, `rewrite-dump/` (AST after each rewrite), `loop/` |
 | `workarounds/` | `splice.sail`, `configuration.lisp` (+ `make-config.py`, `hard-failure-ignores.txt`, `hard-failures.log`, `hard-failure-loop.sh`), `configuration-sum-variant.lisp` |
-| `extract.py` | items 3–7 → `items.csv` / `items.json` (fields: run, stage, kind, name, sail_loc, ocaml_loc, message, construct, where, snippet) |
-| `reachability.py` | → `items-reachable.csv` (adds `reachable`) |
-| `piles.py` | → `piles-<run>.csv` and the pile table |
-| `dangling-calls.py` | → `<run>/dangling-calls.csv` |
+| `extract.py`¹ | items 3–7 → `items.csv` / `items.json` (fields: run, stage, kind, name, sail_loc, ocaml_loc, message, construct, where, snippet) |
+| `reachability.py`¹ | → `items-reachable.csv` (adds `reachable`) |
+| `piles.py`¹ | → `piles-<run>.csv` and the pile table |
+| `dangling-calls.py`¹ | → `<run>/dangling-calls.csv` |
 | `summarize.py`, `feature-counts.sh` / `feature-counts.txt` | per-construct summary; source-level feature counts |
+
+¹ Moved on 14 Nov 2026 to `tests/cheriot/lib/` (as `extract.py`, `callgraph.py`, `piles.py` and `dangling.py`), with unit tests; `git log --follow` shows their history.
+`tests/cheriot/inventory.py <run-dir>` now does the last two commands below in one go (see `docs/tests.md`).
 
 **To regenerate** (with `OPAMSWITCH=sail-backend`, `ROCQPATH` pointing at a Katamaran build, and `bin/sail-local` built):
 ```sh

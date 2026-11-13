@@ -52,8 +52,8 @@ It always uses the plugin built in *this* checkout (`bin/sail-local`), as `run-t
    - If Sail crashes, report the crash, the rewrite step and the source location; this is what P00 looks like.
    - If generation aborts with a hard failure, report the function and the message as the run's top blocker.
    - `--iterate-hard-failures` repeats the inventory's workaround: ignore the failing function, retry, and list every hard failure found.
-4. **Extract** the items (the inventory's `extract.py`, moved into `tests/cheriot/lib/`): untranslated definitions, `NYI` holes, hard failures, and warnings by kind.
-5. **Calls to missing functions** (`dangling-calls.py`): calls in `machine.v` to functions it never defines, classified as extern, untranslated or excluded.
+4. **Extract** the items (`tests/cheriot/lib/extract.py`, from the inventory): untranslated definitions, `NYI` holes, hard failures, and warnings by kind.
+5. **Calls to missing functions** (`lib/dangling.py`): calls in `machine.v` to functions it never defines, classified as extern, untranslated or excluded.
 6. **Rocq**, unless `--no-coq`:
    - `coqc base.v`, then `machine.v`, as the e2e tests do;
    - a **probe compile** of copies in which `NYI` is an axiom (`Axiom NYI : forall {A}, list nat -> A.`). It shows the first *real* error beyond the holes, mapped back to the definition that contains it.
@@ -86,7 +86,7 @@ policy-excluded = ["print_*", "*_forwards" , "assembly_*", "BitStr", "..."]
 
 ### 4.1 From the scope file to a configuration
 
-1. Build the call graph from the Sail AST after the last rewrite. Sail writes it with `--ddump-rewrite-ast`; the inventory's `reachability.py` does this.
+1. Build the call graph from the Sail AST after the last rewrite. Sail writes it with `--ddump-rewrite-ast`; `lib/callgraph.py` builds the graph from it.
    Since the rewrite pipeline runs anyway, the dump costs one extra file write. It is **cached**, keyed by the commits of cheriot-sail and sail-backend's `Rewrites.ml`.
 2. **In scope** = everything reachable from `roots` plus `execute_<C>` for each in-scope constructor `C`, through calls *and* through mentions of types.
 3. Everything else is **out of scope**. The runner writes it to a generated `scope-ignores.lisp`, which the case study's `configuration.lisp` includes with `$include`. The translator then skips it.
@@ -106,7 +106,7 @@ Until it exists, the runner reports policy-excluded definitions and their calls 
 | metric | meaning |
 |---|---|
 | `defs.in_scope` | in-scope definitions after rewrites (functions, `val`s, types, registers, top-level `let`s) |
-| `defs.translated` / `defs.untranslated` | per kind; untranslated split by pile (the inventory's `piles.py` rules) |
+| `defs.translated` / `defs.untranslated` | per kind; untranslated split by pile (the rules in `lib/piles.py`) |
 | `nyi.holes`, `nyi.defs` | `NYI` holes and the definitions that contain them |
 | `hard_failures` | 0, or the blocking function(s) |
 | `calls.missing` | in-scope calls to undefined functions, by class: extern, untranslated, excluded |
@@ -164,7 +164,10 @@ Workarounds for blockers that are not fixed yet, such as the `-splice` for the S
 
 Each step is small, has its own tests, and leaves the loop usable.
 
-1. Move the inventory scripts (`extract.py`, `reachability.py`, `dangling-calls.py`, `piles.py`) into `tests/cheriot/lib/`, with unit tests on small fixture files (a few `.v` excerpts and log excerpts).
+1. **Done** (14 Nov 2026). Move the inventory scripts (`extract.py`, `reachability.py`, `dangling-calls.py`, `piles.py`) into `tests/cheriot/lib/`, with unit tests on small fixture files (a few `.v` excerpts and log excerpts).
+   They are now `extract.py`, `callgraph.py`, `dangling.py` and `piles.py`, with `tests/cheriot/inventory.py` running all four on a run directory, and `make cheriot-lib-tests`.
+   On the full model they reproduce the inventory scripts' output exactly. Two changes: the nanosail source root is explicit
+   (a wrong root used to leave every construct empty and so most items outside their pile, silently), and a hard failure is also read from a plain log.
 2. `tests/cheriot/run.py` skeleton:
    - stages 1–5, the sandbox and `metrics.json`;
    - the `-splice` workaround wired in;

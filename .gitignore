@@ -18,7 +18,13 @@ tests/**/base.v
 tests/**/base.html
 tests/**/machine.v
 tests/**/machine.html
+# ... except the excerpts that the CHERIoT analysis library's tests read
+!tests/cheriot/tests/fixtures/run/base.v
+!tests/cheriot/tests/fixtures/run/machine.v
 katamaran
 .claude
 ocamldoc.out
 tests/coq-tests/test-output/
+
+# Python bytecode
+__pycache__/

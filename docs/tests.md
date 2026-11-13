@@ -16,6 +16,30 @@ $ make test
 * When running the tests, the verbosity level is set to quiet, thereby suppressing all logging.
   It is, however, possible to override this by setting the verbosity level explicitly using `VERBOSE`.
 
+## CHERIoT Analysis Library
+
+`tests/cheriot/lib` analyses one translation of the CHERIoT model.
+It is the basis of the progress loop described in `docs/cheriot-loop.md`, and uses only Python's standard library.
+
+* `extract.py` collects the *items* (untranslated definitions, `NYI` holes, warnings, hard failures, coqc errors)
+  from the generated `.v` files, the log and the coqc logs.
+* `callgraph.py` builds a call graph from a Sail AST dump after the rewrites and marks which items are reachable.
+* `dangling.py` classifies the calls in `machine.v` to functions it does not define.
+* `piles.py` sorts the items into the piles of the CHERIoT inventory.
+
+`tests/cheriot/inventory.py RUN-DIR` runs all of them on a directory in which the plugin translated the model,
+and writes `items.csv`, `dangling-calls.csv` and `piles.txt`.
+Reachability needs a dump: run Sail with `--ddump-rewrite-ast RUN-DIR/dump/rw`, or pass `--dump FILE`.
+
+Item constructs are read from the nanosail source at the line numbers the log gives,
+so the analysis must use the source of the plugin that made the run (`--source-root`, by default this checkout).
+
+To run the library's unit tests, which use the small fixture run in `tests/cheriot/tests/fixtures`:
+
+```bash
+$ make cheriot-lib-tests
+```
+
 ## End to End Tests
 
 These tests translate a Sail model into Coq code and have Coq check its validity.

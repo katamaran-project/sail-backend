@@ -1,38 +1,29 @@
-#!/usr/bin/env python3
 """
-Extract every translation-failure signal from one sail-backend run on CHERIoT.
+Extract every translation-failure signal from one run of the plugin on CHERIoT.
 
-Usage:
-    extract.py <run-dir> [<run-dir> ...] --out items.csv [--json items.json]
+A run directory is a directory in which `sail --katamaran` ran. It holds base.v,
+machine.v and the log, which is <run-dir>/log.txt or <run-dir>.log (the layout of
+`make -C <katamaran>/case_study/Cheriot ... OUT_DIR=<run-dir> > <run-dir>.log`).
+Optional extras in it:
 
-A <run-dir> is a directory in which `sail --katamaran` ran: it holds base.v,
-machine.v, and the log. The log is found as <run-dir>/log.txt or <run-dir>.log
-(the layout of `make -C <katamaran>/case_study/Cheriot ... OUT_DIR=<run-dir> > <run-dir>.log`).
-Optional extras in <run-dir>:
     coqc-base.log, coqc-machine.log   coqc output (first error is recorded)
-    hard-failures.log                 output of workarounds/hard-failure-loop.sh
+    hard-failures.log                 output of the inventory's workarounds/hard-failure-loop.sh
 
-Each extracted item has these fields:
-    run          the run directory's name
-    stage        untranslated | nyi | warning | error | skipped | hard-failure | coqc-error
-    kind         the kind of the Sail definition (function, val, type, ...), when known
-    name         the Sail definition (or µSail function) it belongs to, when known
-    sail_loc     Sail source location, when known
-    ocaml_loc    nanosail source location that raised it ("file line N")
-    message      the message
-    construct    the Sail construct involved, when it can be determined (heuristic)
-    where        where it was found (file:line of the .v file or the log)
-    snippet      first line(s) of the Sail code or µSail code involved
+The items are described in items.py.
 
-Only the standard library is used, so the inventory can be regenerated with any python3.
+Many items carry the nanosail source location that raised them ("file line N").
+The construct of an item (for example `Function.ml: AE_for`) is read from that
+line of the nanosail source, so the source must be the one that built the
+plugin of the run: see NanosailSource.
 """
 
-import argparse
-import csv
-import json
+from __future__ import annotations
+
 import re
-import sys
 from pathlib import Path
+from typing import Iterator, Optional
+
+from .items import Item
 
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 
@@ -64,7 +55,7 @@ SAIL_DEFINITION_HEADS = [
 ]
 
 
-def sail_kind_and_name(code_lines):
+def sail_kind_and_name(code_lines: list[str]) -> tuple[str, str]:
     """The kind and name of the first real definition line, skipping attributes and comments."""
     code = re.sub(r'/\*.*?\*/', ' ', '\n'.join(code_lines), flags=re.DOTALL)
     for line in code.splitlines():
@@ -91,7 +82,7 @@ def sail_kind_and_name(code_lines):
 
 # Heuristic: which Sail construct is involved, from the OCaml location and the message.
 # The OCaml location (which match arm) is the primary key; the message refines it.
-def guess_construct(ocaml_loc, message, snippet=''):
+def guess_construct(ocaml_loc: str, message: str, snippet: str = '') -> str:
     loc = ocaml_loc or ''
     msg = (message or '').lower()
     text = f'{loc} {msg}'
@@ -121,33 +112,53 @@ def guess_construct(ocaml_loc, message, snippet=''):
     return ''
 
 
-SOURCE_ROOT = Path(__file__).resolve().parents[2]      # the sail-backend checkout
-_source_cache = {}
+# The sail-backend checkout that this file is part of.
+THIS_CHECKOUT = Path(__file__).resolve().parents[3]
+
 ARM = re.compile(r'^\s*\|\s*([A-Za-z_][A-Za-z0-9_.]*)')
 
 
-def construct_from_source(ocaml_loc):
-    """The match arm (constructor) at the OCaml location, e.g. 'Function.ml: AE_for', if there is one."""
-    match = re.match(r'(\S+) line (\d+)', ocaml_loc or '')
-    if not match:
-        return ''
-    path = SOURCE_ROOT / match.group(1)
-    if path not in _source_cache:
-        _source_cache[path] = path.read_text(errors='replace').splitlines() if path.exists() else []
-    lines = _source_cache[path]
-    number = int(match.group(2))
-    if not 0 < number <= len(lines):
-        return ''
-    arm = ARM.match(lines[number - 1])
-    return f'{path.name}: {arm.group(1)}' if arm else ''
+class NanosailSource:
+    """
+    The nanosail source of the plugin that produced a run.
+
+    Item locations are line numbers in this source, so it must be the source the
+    plugin was built from. The loop always runs the plugin built in this checkout,
+    so THIS_CHECKOUT is the right root as long as the source is not edited between
+    the translation and the extraction.
+
+    A root without a nanosail directory is an error, so that a wrong root cannot
+    silently leave every construct empty (and every item outside its pile).
+    """
+
+    def __init__(self, root: Path = THIS_CHECKOUT):
+        self.root = Path(root)
+        if not (self.root / 'nanosail').is_dir():
+            raise ValueError(f'{self.root} is not a sail-backend checkout: it has no nanosail directory')
+        self._lines: dict[Path, list[str]] = {}
+
+    def construct_at(self, ocaml_loc: str) -> str:
+        """The match arm (constructor) at the OCaml location, e.g. 'Function.ml: AE_for', if there is one."""
+        match = re.match(r'(\S+) line (\d+)', ocaml_loc or '')
+        if not match:
+            return ''
+        path = self.root / match.group(1)
+        if path not in self._lines:
+            self._lines[path] = path.read_text(errors='replace').splitlines() if path.exists() else []
+        lines = self._lines[path]
+        number = int(match.group(2))
+        if not 0 < number <= len(lines):
+            return ''
+        arm = ARM.match(lines[number - 1])
+        return f'{path.name}: {arm.group(1)}' if arm else ''
 
 
-def item(run, stage, **fields):
+def item(source: NanosailSource, run: str, stage: str, **fields: Optional[str]) -> Item:
     record = dict(run=run, stage=stage, kind='', name='', sail_loc='', ocaml_loc='',
                   message='', construct='', where='', snippet='')
     record.update({key: (value if value is not None else '') for key, value in fields.items()})
     if not record['construct']:
-        record['construct'] = construct_from_source(record['ocaml_loc'])
+        record['construct'] = source.construct_at(record['ocaml_loc'])
     if not record['construct']:
         record['construct'] = guess_construct(record['ocaml_loc'], record['message'], record['snippet'])
     return record
@@ -156,7 +167,7 @@ def item(run, stage, **fields):
 # ---------------------------------------------------------------------------
 # Untranslated definitions: the ---- blocks in the generated .v files
 # ---------------------------------------------------------------------------
-def extract_untranslated(run, vfile):
+def extract_untranslated(source: NanosailSource, run: str, vfile: Path) -> list[Item]:
     lines = vfile.read_text(errors='replace').splitlines()
     items = []
     i = 0
@@ -175,7 +186,7 @@ def extract_untranslated(run, vfile):
                 message = next((l[len('Message: '):] for l in block if l.startswith('Message: ')), '')
                 kind, name = sail_kind_and_name(code)
                 snippet = ' '.join(l.strip() for l in code if l.strip())[:300]
-                items.append(item(run, 'untranslated', kind=kind, name=name, sail_loc=sail_loc,
+                items.append(item(source, run, 'untranslated', kind=kind, name=name, sail_loc=sail_loc,
                                   ocaml_loc=ocaml[len('OCaml location: '):], message=message,
                                   where=f'{vfile.name}:{i + 1}', snippet=snippet))
             i = j + 1
@@ -194,7 +205,7 @@ FUN_DEFINITION = re.compile(r'^fun_([A-Za-z0-9_#]+)$')
 NYI_USE = re.compile(r'NYI\[(\d+)\]')
 
 
-def extract_nyi(run, vfile):
+def extract_nyi(source: NanosailSource, run: str, vfile: Path) -> list[Item]:
     """
     One item per NYI[id] hole in the code.
 
@@ -247,7 +258,7 @@ def extract_nyi(run, vfile):
             message = annotation[2] if annotation else 'no annotation found'
             if message.endswith(')'):
                 message = message[:-1]
-            items.append(item(run, 'nyi', kind=f'µSail {coq_kind}', name=name, ocaml_loc=ocaml_loc,
+            items.append(item(source, run, 'nyi', kind=f'µSail {coq_kind}', name=name, ocaml_loc=ocaml_loc,
                               message=message, where=f'{vfile.name}:{number}', snippet=line.strip()[:200]))
     return items
 
@@ -258,7 +269,7 @@ def extract_nyi(run, vfile):
 LOG_ENTRY = re.compile(r'^\[(DEBUG|INFO|WARNING|ERROR)\] (\S+):(\d+)\s*$')
 
 
-def log_entries(logfile):
+def log_entries(logfile: Path) -> Iterator[tuple[str, str, int, list[str], int]]:
     """Yield (level, ocaml_file, ocaml_line, message_lines, log_line_number)."""
     current = None
     with open(logfile, errors='replace') as handle:
@@ -279,7 +290,7 @@ def log_entries(logfile):
         yield current
 
 
-def extract_log(run, logfile):
+def extract_log(source: NanosailSource, run: str, logfile: Path) -> list[Item]:
     items = []
     sail_definition = ('', '', '')         # kind, name, first code line, of the definition being translated
     generated = ''                         # µSail function being generated
@@ -302,7 +313,7 @@ def extract_log(run, logfile):
             if first == 'Skipping this definition':
                 code = text[1:]
                 kind, name = sail_kind_and_name(code)
-                items.append(item(run, 'skipped', kind=kind, name=name, ocaml_loc=ocaml_loc,
+                items.append(item(source, run, 'skipped', kind=kind, name=name, ocaml_loc=ocaml_loc,
                                   message='skipped by configuration', construct='ignored by configuration',
                                   where=f'{logfile.name}:{number}', snippet=' '.join(code)[:300]))
             continue
@@ -314,32 +325,66 @@ def extract_log(run, logfile):
             # a Failure that was recovered: the definition became untranslated
             failing = text[0][len('Assertion error at '):]
             msg = next((t[len('Message: '):] for t in text if t.startswith('Message: ')), message)
-            items.append(item(run, 'error', kind=kind, name=name, ocaml_loc=failing, message=msg,
+            items.append(item(source, run, 'error', kind=kind, name=name, ocaml_loc=failing, message=msg,
                               where=f'{logfile.name}:{number}', snippet=snippet))
             continue
-        items.append(item(run, level.lower(), kind=kind, name=name, ocaml_loc=ocaml_loc, message=message,
+        items.append(item(source, run, level.lower(), kind=kind, name=name, ocaml_loc=ocaml_loc, message=message,
                           where=f'{logfile.name}:{number}', snippet=snippet))
     return items
 
 
 # ---------------------------------------------------------------------------
-# Hard generation failures (from workarounds/hard-failure-loop.sh)
+# Hard generation failures: µSail generation stops at the first one.
+#
+#     Error occurred during generation: (nanosail/....ml:358) message
+#       at <Sail location>
+#       in call to add_bits_int
+#       in body of function getCapBoundsBits
+#
+# The log of a run contains at most one. The inventory's
+# workarounds/hard-failure-loop.sh collected several in hard-failures.log,
+# each block headed by "### <function>".
 # ---------------------------------------------------------------------------
-def extract_hard_failures(run, logfile):
+HARD_FAILURE = 'Error occurred during generation'
+
+
+def hard_failure_item(source: NanosailSource, run: str, lines: list[str], where: str, name: str = '') -> Item:
+    """The item for one hard failure; `lines` starts at the error line, stripped."""
+    error = lines[0]
+    match = re.search(r'\((\S+?):(\d+)\)\s*(.*)', error)
+    ocaml_loc = f'{match.group(1)} line {match.group(2)}' if match else ''
+    message = match.group(3) if match else error
+    sail_loc = next((l[3:] for l in lines if l.startswith('at ')), '')
+    context = [l for l in lines[1:] if l.startswith('in ')]
+    if not name:
+        name = next((l.split()[-1] for l in context if l.startswith('in body of function ')), '')
+    return item(source, run, 'hard-failure', kind='function', name=name, sail_loc=sail_loc,
+                ocaml_loc=ocaml_loc, message=f'{message} [{" | ".join(context)}]', where=where)
+
+
+def extract_hard_failures_from_log(source: NanosailSource, run: str, logfile: Path) -> list[Item]:
+    lines = [ANSI.sub('', l) for l in logfile.read_text(errors='replace').splitlines()]
+    items = []
+    for number, line in enumerate(lines, start=1):
+        if HARD_FAILURE in line:
+            block = [line.strip()]
+            for follow in lines[number:number + 10]:
+                stripped = follow.strip()
+                if not (stripped.startswith('at ') or stripped.startswith('in ')):
+                    break
+                block.append(stripped)
+            items.append(hard_failure_item(source, run, block, f'{logfile.name}:{number}'))
+    return items
+
+def extract_hard_failures(source: NanosailSource, run: str, logfile: Path) -> list[Item]:
     items = []
     blocks = logfile.read_text(errors='replace').split('### ')[1:]
     for block in blocks:
         lines = [l.strip() for l in block.splitlines() if l.strip()]
         name = lines[0]
-        error = next((l for l in lines if 'Error occurred during generation' in l), '')
-        match = re.search(r'\((\S+?):(\d+)\)\s*(.*)', error)
-        ocaml_loc = f'{match.group(1)} line {match.group(2)}' if match else ''
-        message = match.group(3) if match else error
-        sail_loc = next((l[3:] for l in lines if l.startswith('at ')), '')
-        context = ' | '.join(l for l in lines[1:] if l.startswith('in '))
-        items.append(item(run, 'hard-failure', kind='function', name=name, sail_loc=sail_loc,
-                          ocaml_loc=ocaml_loc, message=f'{message} [{context}]',
-                          where=logfile.name))
+        start = next((i for i, l in enumerate(lines) if HARD_FAILURE in l), None)
+        error_lines = lines[start:] if start is not None else ['']
+        items.append(hard_failure_item(source, run, error_lines, logfile.name, name=name))
     return items
 
 
@@ -349,7 +394,7 @@ def extract_hard_failures(run, logfile):
 COQ_FILE = re.compile(r'^File "\./?([^"]+)", line (\d+), characters (\d+)-(\d+):')
 
 
-def extract_coqc(run, logfile):
+def extract_coqc(source: NanosailSource, run: str, logfile: Path) -> list[Item]:
     lines = logfile.read_text(errors='replace').splitlines()
     items = []
     for i, line in enumerate(lines):
@@ -360,55 +405,37 @@ def extract_coqc(run, logfile):
                 if COQ_FILE.match(follow):
                     break
                 message.append(follow.strip())
-            items.append(item(run, 'coqc-error', ocaml_loc='', message=' '.join(m for m in message if m)[:400],
+            items.append(item(source, run, 'coqc-error', ocaml_loc='', message=' '.join(m for m in message if m)[:400],
                               construct='coqc', where=f'{match.group(1)}:{match.group(2)}'))
     return items
 
 
-def run_items(directory):
+def find_log(directory: Path) -> Optional[Path]:
+    for logfile in (directory / 'log.txt', directory.with_suffix('.log'), directory.parent / f'{directory.name}.log'):
+        if logfile.exists():
+            return logfile
+    return None
+
+
+def run_items(directory: Path, source: Optional[NanosailSource] = None) -> list[Item]:
+    """All items of one run directory; its name is the items' `run`."""
     directory = Path(directory)
+    source = source or NanosailSource()
     run = directory.name
     items = []
     for vname in ('base.v', 'machine.v'):
         vfile = directory / vname
         if vfile.exists():
-            items += extract_untranslated(run, vfile)
-            items += extract_nyi(run, vfile)
-    for logfile in (directory / 'log.txt', directory.with_suffix('.log'), directory.parent / f'{run}.log'):
-        if logfile.exists():
-            items += extract_log(run, logfile)
-            break
+            items += extract_untranslated(source, run, vfile)
+            items += extract_nyi(source, run, vfile)
+    logfile = find_log(directory)
+    if logfile is not None:
+        items += extract_log(source, run, logfile)
     hard = directory / 'hard-failures.log'
     if hard.exists():
-        items += extract_hard_failures(run, hard)
+        items += extract_hard_failures(source, run, hard)
+    elif logfile is not None:
+        items += extract_hard_failures_from_log(source, run, logfile)
     for coqlog in sorted(directory.glob('coqc-*.log')):
-        items += extract_coqc(run, coqlog)
+        items += extract_coqc(source, run, coqlog)
     return items
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('runs', nargs='+')
-    parser.add_argument('--out', required=True, help='CSV output')
-    parser.add_argument('--json', help='JSON output')
-    arguments = parser.parse_args()
-    items = []
-    for run in arguments.runs:
-        items += run_items(run)
-    fields = ['run', 'stage', 'kind', 'name', 'sail_loc', 'ocaml_loc', 'message', 'construct', 'where', 'snippet']
-    with open(arguments.out, 'w', newline='') as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(items)
-    if arguments.json:
-        Path(arguments.json).write_text(json.dumps(items, indent=1, ensure_ascii=False))
-    counts = {}
-    for record in items:
-        key = (record['run'], record['stage'])
-        counts[key] = counts.get(key, 0) + 1
-    for (run, stage), count in sorted(counts.items()):
-        print(f'{run:20} {stage:14} {count}', file=sys.stderr)
-
-
-if __name__ == '__main__':
-    main()

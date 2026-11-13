@@ -5,7 +5,7 @@ SAIL_LOCAL := $(CURDIR)/bin/sail-local
 
 
 .PHONY: all
-all: build test template-tests end-to-end-tests
+all: build test cheriot-lib-tests template-tests end-to-end-tests
 
 
 .PHONY: full
@@ -25,6 +25,11 @@ install: build
 .PHONY: test
 test:
 	dune test
+
+
+.PHONY: cheriot-lib-tests
+cheriot-lib-tests:
+	python3 -m unittest discover -s tests/cheriot/tests -t tests/cheriot
 
 
 .PHONY: template-tests tt

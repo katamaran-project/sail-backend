@@ -1,23 +1,17 @@
-#!/usr/bin/env python3
 """
-Sort the extracted items into piles (root cause / missing feature) and print the pile table.
+Sort items into piles: root causes or missing features, as in the CHERIoT inventory
+(cheriot-inventory/20261113-1408/INVENTORY.md, which describes each pile).
 
-Usage: piles.py [run] [items-reachable.csv]      (default run: full-workaround)
-Writes piles-<run>.csv (one row per item, with its pile) and prints, per pile:
-  items (sites), distinct definitions, definitions reachable from step/execute, examples.
-
-The rules are ordered; the first match wins. They key on the nanosail location (the match
-arm that raised the NYI) and the message, as described in INVENTORY.md.
+The rules are ordered; the first match wins. They key on the item's construct
+(the nanosail match arm that raised it, see extract.NanosailSource) and on its message.
 """
-import csv
-import re
-import sys
+
+from __future__ import annotations
+
 from collections import defaultdict
-from pathlib import Path
+from dataclasses import dataclass, field
 
-here = Path(__file__).resolve().parent
-run = sys.argv[1] if len(sys.argv) > 1 else 'full-workaround'
-items_path = Path(sys.argv[2]) if len(sys.argv) > 2 else here / 'items-reachable.csv'
+from .items import Item
 
 SIZE_POLYMORPHIC_WARNING = 'Encountered polymorphic function'
 
@@ -60,49 +54,65 @@ RULES = [
 ]
 
 
-def pile_of(row):
+def pile_of(row: Item) -> str:
     for pile, predicate in RULES:
         if predicate(row):
             return pile
     return ''
 
 
-def main():
-    rows = [r for r in csv.DictReader(open(items_path)) if r['run'] == run]
-    for r in rows:
-        r['pile'] = pile_of(r)
-    out = here / f'piles-{run}.csv'
-    with open(out, 'w', newline='') as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(rows)
-    failing_stages = {'untranslated', 'nyi', 'hard-failure', 'error', 'skipped', 'warning'}
-    groups = defaultdict(lambda: [0, set(), set(), defaultdict(int)])
-    unassigned = defaultdict(int)
-    for r in rows:
-        if r['stage'] not in failing_stages:
+def assign_piles(items: list[Item]) -> None:
+    """Set the column `pile` of each item (in place); empty when no rule matches."""
+    for record in items:
+        record['pile'] = pile_of(record)
+
+
+# Stages that count in the pile table, and those of them that are failures in
+# their own right (an unassigned warning is not worth listing).
+COUNTED_STAGES = {'untranslated', 'nyi', 'hard-failure', 'error', 'skipped', 'warning'}
+FAILURE_STAGES = {'untranslated', 'nyi', 'hard-failure', 'error'}
+
+
+@dataclass
+class Pile:
+    items: int = 0
+    definitions: set[str] = field(default_factory=set)
+    reachable: set[str] = field(default_factory=set)     # definitions reachable from step or execute
+    stages: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+
+
+def pile_table(items: list[Item]) -> tuple[dict[str, Pile], dict[tuple[str, str, str], int]]:
+    """
+    Per pile, the items, distinct definitions and reachable definitions.
+    Also the failures that no rule matched, counted per (stage, construct, start of message).
+    Items need the columns `pile` (assign_piles) and `reachable` (callgraph.mark_reachable).
+    """
+    piles: dict[str, Pile] = defaultdict(Pile)
+    unassigned: dict[tuple[str, str, str], int] = defaultdict(int)
+    for record in items:
+        if record['stage'] not in COUNTED_STAGES:
             continue
-        if not r['pile']:
-            if r['stage'] in ('untranslated', 'nyi', 'hard-failure', 'error'):
-                unassigned[(r['stage'], r['construct'], r['message'][:60])] += 1
+        if not record['pile']:
+            if record['stage'] in FAILURE_STAGES:
+                unassigned[(record['stage'], record['construct'], record['message'][:60])] += 1
             continue
-        g = groups[r['pile']]
-        g[0] += 1
-        g[1].add(r['name'])
-        if r['reachable']:
-            g[2].add(r['name'])
-        g[3][r['stage']] += 1
-    print(f'run {run}')
-    print(f"{'pile':66} {'items':>6} {'defs':>5} {'reach':>5}  stages")
-    for pile in sorted(groups):
-        n, defs, reach, stages = groups[pile]
-        print(f'{pile:66} {n:6} {len(defs):5} {len(reach):5}  {dict(stages)}')
+        pile = piles[record['pile']]
+        pile.items += 1
+        pile.definitions.add(record['name'])
+        if record['reachable']:
+            pile.reachable.add(record['name'])
+        pile.stages[record['stage']] += 1
+    return dict(piles), dict(unassigned)
+
+
+def format_pile_table(piles: dict[str, Pile], unassigned: dict[tuple[str, str, str], int]) -> str:
+    lines = [f"{'pile':66} {'items':>6} {'defs':>5} {'reach':>5}  stages"]
+    for name in sorted(piles):
+        pile = piles[name]
+        lines.append(f'{name:66} {pile.items:6} {len(pile.definitions):5} {len(pile.reachable):5}  {dict(pile.stages)}')
     if unassigned:
-        print('\nnot assigned to a pile:')
-        for key, n in sorted(unassigned.items(), key=lambda kv: -kv[1]):
-            print(f'  {n:5}  {key}')
-    print(f'\nwrote {out}')
-
-
-if __name__ == '__main__':
-    main()
+        lines.append('')
+        lines.append('not assigned to a pile:')
+        for key, count in sorted(unassigned.items(), key=lambda kv: -kv[1]):
+            lines.append(f'  {count:5}  {key}')
+    return '\n'.join(lines)

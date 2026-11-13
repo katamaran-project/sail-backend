@@ -50,6 +50,9 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
   - Some tests are expected to fail because some features are not implemented yet.
   - Test configurations `$include ../shared-configuration.lisp`.
 - **Template tests**: `make template-tests`.
+- **CHERIoT analysis library** (`tests/cheriot/lib`, standard-library Python): analyses a translation of the CHERIoT model, for the progress loop of `docs/cheriot-loop.md`.
+  Run its unit tests with `make cheriot-lib-tests`; they use the small fixture run in `tests/cheriot/tests/fixtures`.
+  `tests/cheriot/inventory.py RUN-DIR` runs the whole analysis on a run directory.
 
 ## Architecture
 

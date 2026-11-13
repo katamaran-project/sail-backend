@@ -1,0 +1,12 @@
+### getCapBoundsBits
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:358) only calls to add_bits_int supported where second argument's value is known at compile time
+  at model.sail:418
+  in call to add_bits_int
+  in body of function getCapBoundsBits
+
+### __WriteRAM_Meta
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:358) only calls to add_bits_int supported where second argument's value is known at compile time
+  at model.sail:87
+  in call to add_bits_int
+  in body of function __WriteRAM_Meta
+

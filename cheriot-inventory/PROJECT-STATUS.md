@@ -215,7 +215,7 @@ Smaller issues found along the way, none fixed yet:
 
 **Where to find the details.**
 - `cheriot-inventory/20261113-1408/INVENTORY.md`: the full technical inventory, with code examples, counts, options and source locations for every item.
-- The same directory holds the scripts and data that regenerate it (`extract.py`, `piles.py` and the CSV files).
+- The same directory holds the inputs and workarounds of the inventory runs. The analysis scripts have since moved to `tests/cheriot/lib/` (see `docs/tests.md`).
 - `docs/handover.md` describes the state of the project at the previous handover.
 
 ## 9. Glossary
