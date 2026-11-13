@@ -48,14 +48,9 @@ msp430-tests: build
 msp: msp430-tests
 
 
-.PHONY: example
-example: build
-	make -C working-example SAIL=$(SAIL_LOCAL)
-
-
 .PHONY: minimal-caps mc
 minimal-caps: build
-	make -C minimal-caps SAIL=$(SAIL_LOCAL)
+	make -C case-studies/minimal-caps SAIL=$(SAIL_LOCAL)
 
 mc: minimal-caps
 
@@ -67,4 +62,4 @@ clean:
 
 .PHONY: ws
 ws:
-	remove-trailing-whitespace
+	./remove-trailing-whitespaces

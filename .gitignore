@@ -3,7 +3,7 @@ _build
 *#
 test-results.txt
 z3_problems
-msp430/_compilation
+case-studies/msp430/_compilation
 intermediate_rewrite_*
 *.vo
 *.vok
