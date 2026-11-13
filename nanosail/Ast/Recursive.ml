@@ -328,6 +328,7 @@ module rec Type : sig
   val substitute_numeric_expression_identifier : (Identifier.t -> NumericExpression.t) -> t -> t
   val substitute_type_variable                 : (Identifier.t -> t option) -> t -> t
   val simplify                                 : t -> t
+  val strip_aliases                            : t -> t
 end = struct
   type t =
     | Int          of NumericExpression.t option
@@ -445,6 +446,34 @@ end = struct
     | Nat                                       -> typ
     | Vector (typ, numeric_expression)          -> Vector (simplify typ, NumericExpression.simplify numeric_expression)
     | Implicit _                                -> typ
+
+
+  (*
+     Removes the aliases around a type, e.g., Alias (xlenbits, Bitvector 32) becomes Bitvector 32.
+     Only the outermost aliases are removed; aliases inside the type are kept.
+  *)
+  let rec strip_aliases (typ : t) : t =
+    match typ with
+    | Alias (_identifier, aliased_type) -> strip_aliases aliased_type
+    | Int _                             -> typ
+    | Bool                              -> typ
+    | String                            -> typ
+    | Bit                               -> typ
+    | List _                            -> typ
+    | Unit                              -> typ
+    | Enum _                            -> typ
+    | Bitvector _                       -> typ
+    | Tuple _                           -> typ
+    | Sum (_, _)                        -> typ
+    | Variant _                         -> typ
+    | Record _                          -> typ
+    | Application (_, _)                -> typ
+    | Range (_, _)                      -> typ
+    | Function _                        -> typ
+    | TypeVariable _                    -> typ
+    | Nat                               -> typ
+    | Vector (_, _)                     -> typ
+    | Implicit _                        -> typ
 
 
   let rec to_string (t : t) : string =

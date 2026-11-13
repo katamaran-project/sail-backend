@@ -311,12 +311,14 @@ let translate_unit_equality () : PP.t GC.t =
    so we translate bv + n as bv + bv' where bv' represents n, wrapped around modulo 2^'n,
    which is what Sail's add_bits_int does too.
 
-   * If n is known at compile time, bv' is a bitvector literal.
-     The width of the literal is taken from the type of bv, so that must be known.
+   * If n is known at compile time and the width of bv is a known constant (looking through
+     aliases such as xlenbits), bv' is a bitvector literal of that width.
      This also covers top level Sail constants, which have no muSail counterpart to refer to.
    * Otherwise, bv' is the run time conversion uop.get_slice_int n,
      whose semantics is bv.of_Z, i.e., n modulo 2^'n.
      Rocq infers its width from bv, so the width of bv need not be known here.
+     If n is known at compile time, it is passed as an integer literal, for the same reason
+     as above.
 *)
 let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "add_bits_int"
@@ -333,21 +335,36 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
         [ PP.(surround parens) pp_bitvector_argument; PP.(surround parens) pp_bitvector_addend ]
     end
   in
+  let pp_run_time_conversion (pp_integer : PP.t) : PP.t =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "exp_unop")
+        [
+          PP.string "uop.get_slice_int";
+          PP.(surround parens) pp_integer;
+        ]
+    end
+  in
   let pp_compile_time_addition
       (bitvector_argument : Ast.Expression.t)
       (integer_value      : Z.t             ) : PP.t GC.t
     =
+    let* pp_bitvector_argument = Expressions.pp_expression bitvector_argument
+    in
     (* We need the size of the left operand to build a literal of the same size *)
-    match Ast.Expression.infer_type bitvector_argument with
+    match Ast.Type.strip_aliases @@ Ast.Expression.infer_type bitvector_argument with
     | Bitvector (Constant bitvector_size) -> begin
-        let* pp_bitvector_argument = Expressions.pp_expression bitvector_argument
-        in
         let pp_bitvector_addend =
           MuSail.Expression.pp_bitvector ~size:(Z.to_int bitvector_size) ~value:integer_value
         in
         pp_bitvector_addition pp_bitvector_argument pp_bitvector_addend
       end
-    | _ -> GC.fail [%here] "failed to determine bitvector size"
+    | _ -> begin
+        let pp_integer_literal =
+          MuSail.Expression.pp_integer @@ MuSail.Value.pp_integer integer_value
+        in
+        pp_bitvector_addition pp_bitvector_argument (pp_run_time_conversion pp_integer_literal)
+      end
   in
   let pp_run_time_addition
       (bitvector_argument : Ast.Expression.t)
@@ -356,17 +373,7 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
     let* pp_bitvector_argument = Expressions.pp_expression bitvector_argument
     and* pp_integer_argument   = Expressions.pp_expression integer_argument
     in
-    let pp_bitvector_addend =
-      PP.annotate [%here] begin
-        Coq.pp_application
-          (PP.string "exp_unop")
-          [
-            PP.string "uop.get_slice_int";
-            PP.(surround parens) pp_integer_argument;
-          ]
-      end
-    in
-    pp_bitvector_addition pp_bitvector_argument pp_bitvector_addend
+    pp_bitvector_addition pp_bitvector_argument (pp_run_time_conversion pp_integer_argument)
   in
   match arguments with
   | [ bitvector_argument; integer_argument ] -> begin
