@@ -39,7 +39,9 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
   Logging is silenced unless `VERBOSE` is set.
 - **End-to-end tests** (`tests/coq-tests`): each directory that contains a `model.sail` is one test.
   The runner translates the model with Sail, then compiles the generated `.v` with `coqc`.
-  - Run all of them with `make e2e`, or directly with `tests/coq-tests/run-tests.py`. A full run takes several minutes and uses 20 parallel jobs by default (`-j N`).
+  - Run all of them with `make e2e`, or directly with `tests/coq-tests/run-tests.py`. A full run uses one job per CPU by default (`-j N`); more jobs than CPUs is slower, because each `coqc` needs about 650 MB.
+    `coqc` verdicts are cached in `~/.cache/sail-backend/coq-cache`, keyed by the generated `.v` files and the Coq installation, so only tests whose generated Rocq changed are recompiled (`--no-coq-cache` disables this).
+    The cache is shared by all checkouts and worktrees, so a new worktree needs no cold e2e run; a cold `dune build` takes only a few seconds.
   - Run a single test with `tests/coq-tests/run-tests.py --test <name>`. Other selection flags: `--include REGEX`, `--exclude REGEX`, `--include-file FILE`, `--list`.
   - Other useful flags: `--no-coq` (translation only, much faster; env `NO_COQ`), `--no-dump` (skip the rewrite dumps), `--monomorphise` (env `MONOMO`).
   - Each run happens in a sandbox: `tests/coq-tests/test-output/<timestamp>-<commit>[-dirty]/<test>/`, with `test-output/latest` pointing to it.

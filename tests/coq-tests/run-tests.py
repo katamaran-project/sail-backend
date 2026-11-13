@@ -27,6 +27,18 @@ By default, the tests use the katamaran plugin built by `dune build` in this
 checkout, not the one installed in the opam switch, so that several checkouts
 or worktrees can be tested at the same time without overwriting each other's
 installed plugin.
+
+Compiling the generated Coq is the slow part of a test.  Its verdict depends
+only on the generated base.v and machine.v and on the Coq installation, so it
+is cached, keyed by those files and by a fingerprint of coqc and the
+libraries it loads.  A test whose generated Coq did not change since an
+earlier run reuses that run's coqc exits and output instead of running coqc
+again.  --no-coq-cache turns this off.
+
+The cache does not depend on the checkout, so all checkouts and worktrees
+share one: by default $XDG_CACHE_HOME/sail-backend/coq-cache (that is,
+~/.cache/sail-backend/coq-cache), or $SAIL_BACKEND_COQ_CACHE if set, or
+--coq-cache-dir.  A new worktree therefore starts with a warm cache.
 """
 
 import argparse
@@ -35,6 +47,7 @@ import csv
 import datetime
 import difflib
 import fnmatch
+import hashlib
 import json
 import os
 import re
@@ -49,8 +62,15 @@ HERE = Path(__file__).resolve().parent
 REINDENT_AST = HERE.parent / 'reindent-ast.py'
 SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
 
-DEFAULT_JOBS = 20
+# One job per CPU.  Each coqc loads Katamaran and peaks at about 650 MB, so
+# running many more jobs than CPUs only adds contention and memory pressure:
+# on an 8-CPU, 16 GB machine, 20 jobs took 94 s for 80 tests and 8 jobs 54 s.
+DEFAULT_JOBS = os.cpu_count() or 4
 DEFAULT_OUTPUT_DIR = HERE / 'test-output'
+DEFAULT_COQ_CACHE_DIR = Path(
+    os.environ.get('SAIL_BACKEND_COQ_CACHE')
+    or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'coq-cache'
+)
 DEFAULT_PLUGIN = HERE.parent.parent / '_build' / 'default' / 'sail_plugin' / 'sail_plugin_katamaran.cmxs'
 
 # Files a previous in-place run may have left in a test directory.  These are
@@ -280,6 +300,112 @@ def write_reindented_ast(sandbox):
         )
 
 
+# --------------------------------------------------------------------------
+# caching coqc verdicts
+# --------------------------------------------------------------------------
+
+COQ_SOURCES = ['base.v', 'machine.v']
+
+
+def coq_fingerprint(coqc):
+    """Identify the Coq installation that coqc compiles against.
+
+    It covers coqc's version and the path, size and modification time of
+    every compiled library (.vo) under `coqc -where` and the directories in
+    ROCQPATH and COQPATH, so that reinstalling Katamaran, or any other
+    library, invalidates the cache.  Returns None if coqc cannot be run.
+    """
+    try:
+        version = subprocess.run([coqc, '--version'], capture_output=True, text=True, check=True).stdout
+        where = subprocess.run([coqc, '-where'], capture_output=True, text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    digest = hashlib.sha256()
+    digest.update(f'{shutil.which(coqc) or coqc}\n{version}\n'.encode())
+    roots = [where]
+    for variable in ['ROCQPATH', 'COQPATH']:
+        value = os.environ.get(variable, '')
+        digest.update(f'{variable}={value}\n'.encode())
+        roots.extend(entry for entry in value.split(os.pathsep) if entry)
+    for root in roots:
+        for directory, subdirectories, files in os.walk(root):
+            subdirectories.sort()
+            for name in sorted(files):
+                if name.endswith('.vo'):
+                    path = os.path.join(directory, name)
+                    status = os.stat(path)
+                    digest.update(f'{path} {status.st_size} {status.st_mtime_ns}\n'.encode())
+    return digest.hexdigest()
+
+
+def coq_cache_path(sandbox, arguments):
+    """The cache entry for this sandbox's generated Coq, or None not to cache.
+
+    Nothing is cached when caching is off, when the .vo files are to be kept
+    (a cache hit produces none), or when sail produced no base.v.
+    """
+    if arguments.coq_fingerprint is None or arguments.keep_vo:
+        return None
+    if not (sandbox / 'base.v').is_file():
+        return None
+    digest = hashlib.sha256(arguments.coq_fingerprint.encode())
+    for source in COQ_SOURCES:
+        path = sandbox / source
+        contents = path.read_bytes() if path.is_file() else b''
+        digest.update(f'\n{source} {len(contents)}\n'.encode())
+        digest.update(contents)
+    return arguments.coq_cache_dir / f'{digest.hexdigest()}.json'
+
+
+def read_coq_cache(path):
+    if path is None:
+        return None
+    try:
+        entry = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(entry.get('coq_exits'), dict) or not isinstance(entry.get('log'), list):
+        return None
+    return entry
+
+
+def write_coq_cache(path, coq_exits, coq_log):
+    """Write the entry atomically, since tests run in parallel threads."""
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f'{path.name}.{os.getpid()}.{id(coq_log)}.tmp')
+    temporary.write_text(json.dumps({'coq_exits': coq_exits, 'log': coq_log}) + '\n')
+    os.replace(temporary, path)
+
+
+def run_coq(sandbox, arguments, log):
+    """Compile the generated Coq, or reuse an earlier verdict for identical files.
+
+    Returns the coqc exit code of each file it compiled, and whether the
+    verdict came from the cache.
+    """
+    cache_path = coq_cache_path(sandbox, arguments)
+    cached = read_coq_cache(cache_path)
+    if cached is not None:
+        log.append(f'(coqc not run: the generated Coq is identical to an earlier run\'s; '
+                   f'its output is reused from {cache_path})\n')
+        log.extend(cached['log'])
+        return cached['coq_exits'], True
+
+    coq_exits = {}
+    coq_log = []
+    # base.vo must exist before machine.v, which does `Require Export base`.
+    for source in COQ_SOURCES:
+        coq_exits[source] = capture([arguments.coqc, source], sandbox, coq_log)
+        if coq_exits[source] != 0:
+            break
+    log.extend(coq_log)
+    write_coq_cache(cache_path, coq_exits, coq_log)
+    return coq_exits, False
+
+
 def prune(sandbox):
     for entry in os.listdir(sandbox):
         if any(fnmatch.fnmatch(entry, pattern) for pattern in BULK_PATTERNS):
@@ -317,12 +443,9 @@ def run_test(name, run_directory, arguments):
         process_rewrites(sandbox)
 
     coq_exits = {}
+    coq_cached = False
     if arguments.coq:
-        # base.vo must exist before machine.v, which does `Require Export base`.
-        for source in ['base.v', 'machine.v']:
-            coq_exits[source] = capture([arguments.coqc, source], sandbox, log)
-            if coq_exits[source] != 0:
-                break
+        coq_exits, coq_cached = run_coq(sandbox, arguments, log)
 
         # Both must have run and succeeded; if sail died there is no base.v to
         # compile, and coqc reports that as a failure of its own.
@@ -340,6 +463,7 @@ def run_test(name, run_directory, arguments):
         'passed': passed,
         'sail_exit': sail_exit,
         'coq_exits': coq_exits,
+        'coq_cached': coq_cached,
         'duration_s': round(duration, 2),
         'command': ' '.join(sail_command),
     }
@@ -442,6 +566,12 @@ def parse_arguments(argv):
                            help='pass --auto-mono --mono-rewrites (default: off; env MONOMO)')
     behaviour.add_argument('--coq', action=argparse.BooleanOptionalAction, default=None,
                            help='compile the generated Coq (default: on; env NO_COQ disables)')
+    behaviour.add_argument('--coq-cache', action=argparse.BooleanOptionalAction, default=True,
+                           help='reuse the coqc verdict of an earlier run whose generated Coq '
+                                'was identical (default: on)')
+    behaviour.add_argument('--coq-cache-dir', type=Path, default=DEFAULT_COQ_CACHE_DIR, metavar='DIR',
+                           help='where the coqc verdicts are cached, shared by all checkouts '
+                                '(default: %(default)s; env SAIL_BACKEND_COQ_CACHE)')
 
     output = parser.add_argument_group('output')
     output.add_argument('-j', '--jobs', type=int, default=DEFAULT_JOBS, metavar='N',
@@ -477,6 +607,11 @@ def parse_arguments(argv):
 
     if arguments.jobs < 1:
         parser.error('--jobs must be at least 1')
+
+    arguments.coq_cache_dir = arguments.coq_cache_dir.expanduser().resolve()
+    arguments.coq_fingerprint = None
+    if arguments.coq and arguments.coq_cache:
+        arguments.coq_fingerprint = coq_fingerprint(arguments.coqc)
 
     return arguments
 
@@ -544,6 +679,7 @@ def main(argv=None):
 
     elapsed = time.monotonic() - started
     passes = sum(1 for r in results if r['passed'])
+    coq_cache_hits = sum(1 for r in results if r.get('coq_cached'))
 
     write_summary(run_directory, results)
     append_history(arguments.output_dir.resolve(), commit, dirty, results, identifier)
@@ -557,6 +693,7 @@ def main(argv=None):
         'dump': arguments.dump,
         'monomorphise': arguments.monomorphise,
         'coq': arguments.coq,
+        'coq_cache_hits': coq_cache_hits,
         'jobs': arguments.jobs,
         'selected': selected,
         'pass_count': passes,
@@ -565,6 +702,8 @@ def main(argv=None):
     }, indent=2) + '\n')
 
     print(f'PASS:{passes} FAIL:{len(results) - passes} in {elapsed:.1f}s')
+    if arguments.coq_fingerprint is not None:
+        print(f'coqc verdicts reused from the cache: {coq_cache_hits}/{len(results)}')
     print(f'output: {run_directory}')
 
     return 0 if passes == len(results) else 1
