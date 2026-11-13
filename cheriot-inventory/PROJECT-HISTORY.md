@@ -39,10 +39,10 @@ Commits per month: Frederic peaked in October 2024 (770) and February 2025 (808)
 | `docs/tests.md` | 2025-03-10 Frederic | 2026-10-24 Tex | Frederic, then mostly Tex | current |
 | `docs/usage.md` | 2025-03-11 Frederic | 2026-11-04 Tex | Frederic (+ Tex's `translate-union-as-sum`) | current |
 | `docs/slang.md` | 2025-03-12 Frederic | 2025-03-15 | Frederic | current, brief |
-| `docs/monomorphization.md` | 2025-03-13 Frederic | 2026-11-04 Tex | Frederic | partly stale (line numbers, test names); `monomorphize-*` tests now fail |
-| `tests/coq-tests/no-confusion-hom/readme.md` | 2025-03-13 Frederic | same | Frederic | historical (Steven later removed the derivation it explains) |
+| `docs/monomorphization.md` | 2025-03-13 Frederic | 2026-11-13 | Frederic | current (line numbers and test names fixed 2026-11-13); `monomorphize-*` tests now fail |
+| `tests/coq-tests/no-confusion-hom/readme.md` | 2025-03-13 Frederic | 2026-11-13 | Frederic | historical (Steven later removed the derivation it explains; a note now says so) |
 | `docs/sail-notes.md` | 2025-03-14 Frederic | 2026-11-13 | Frederic | current knowledge; "Rewrites" section updated in the cleanup |
-| `docs/code-overview.md` (+ 5 `.tex`/`.png` diagrams) | 2025-03-10 Frederic | 2025-03-29 | Frederic | current; typo "`NanosailToSail` module" |
+| `docs/code-overview.md` (+ 5 `.tex`/`.png` diagrams) | 2025-03-10 Frederic | 2026-11-13 | Frederic | current (typo "`NanosailToSail` module" fixed 2026-11-13) |
 | `tests/coq-tests/passfails_sorted_by_size.txt` | 2026-05-21 Tex | 2026-11-13 removed | Tex | **removed** in the cleanup (stale data snapshot; its generating script stays) |
 | `CLAUDE.md` | 2026-10-21 Tex | 2026-11-06 | Tex | current |
 | `HACKING.md` | 2026-11-04 Tex | same | Tex | current (uses `make`; see note in §3) |
@@ -395,14 +395,14 @@ The pass/fail status of each e2e test, ordered by `model.sail` size, made with `
 - **The rewrite pipeline has a history.** Frederic picked the rewrites partly from the Coq backend, and partly by experiment (`rewrites/`). Dominique realigned their order with the Coq plugin (Jun 2025). Today's CHERIoT crash comes from one of the Coq-backend rewrites (`remove_blocks`), and is now covered by the e2e test `assert-flow-typing`.
 - **Two ways of installing Katamaran exist in the docs.** `installation.md` says to use Katamaran's Makefile. Today's install used dune minus the files `_CoqProject` excludes, which gives the same set of files.
 - **Stale or incorrect details worth fixing when convenient:**
-  - `code-overview.md`: "`NanosailToSail` module" should be `NanosailToMicrosail`;
-  - `usage.md`: the `include-original-code` description is inverted;
-  - `monomorphization.md`: the log line number and the test directory name are out of date;
+  - ~~`code-overview.md`: "`NanosailToSail` module" should be `NanosailToMicrosail`~~ (fixed);
+  - ~~`usage.md`: the `include-original-code` description is inverted~~ (fixed; the option is actually *off* by default);
+  - ~~`monomorphization.md`: the log line number and the test directory name are out of date~~ (fixed);
   - ~~`rewrites/readme.md`: the file is `Rewrites.ml`, not `rewrites.ml`~~ (fixed in the cleanup);
   - ~~`sail-notes.md`: `process-rewrites.rb` has been superseded by `run-tests.py`'s diffs~~ (fixed in the cleanup);
   - ~~`docker/readme.md` and the msp430 status files date from November 2024~~ (removed in the cleanup);
-  - `HACKING.md` uses `make`, which needs to be `gmake` on macOS;
-  - the `no-confusion-hom` readme describes a derivation that has since been removed.
+  - ~~`HACKING.md` uses `make`, which needs to be `gmake` on macOS~~ (fixed, also in `CLAUDE.md`);
+  - ~~the `no-confusion-hom` readme describes a derivation that has since been removed~~ (historical note added).
 
 ## How this was compiled
 

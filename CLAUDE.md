@@ -14,8 +14,9 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
   Instead, test this checkout's plugin as built by `dune build`:
   - `run-tests.py` and the Makefile's test targets do this by default (`run-tests.py --installed-plugin` uses the installed plugin instead).
   - Elsewhere, use `bin/sail-local` as a drop-in `sail`. It loads this checkout's built plugin in place of the installed one.
-    Example: `make -C <katamaran>/case_study/Cheriot sail SAIL=$PWD/bin/sail-local CHERIOT_SAIL_DIR=<cheriot-sail>`,
+    Example: `gmake -C <katamaran>/case_study/Cheriot sail SAIL=$PWD/bin/sail-local CHERIOT_SAIL_DIR=<cheriot-sail>`,
     where `<katamaran>` and `<cheriot-sail>` are the paths of those checkouts.
+    Always use GNU make 4 or later (`gmake` on macOS): the `make` 3.81 that ships with macOS cannot parse the Cheriot Makefile.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
 - The project currently targets Sail 0.20.3 on OCaml 5.2.1, with Rocq 9.2 and Katamaran main. The CI workflow (`.github/workflows/build.yaml`) and `flake.nix` pin the same OCaml and Sail versions; keep them in sync.

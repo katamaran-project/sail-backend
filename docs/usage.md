@@ -71,8 +71,8 @@ If no call to `program-name` is made, the default name of `"ModelProgram"` will 
 (include-original-code #f) ; Turns option off
 ```
 
-This option is by default on.
-Turning it off causes the generated code to be annotated
+This option is off by default.
+Turning it on causes the generated code to be annotated
 with the original Sail code.
 
 For example,

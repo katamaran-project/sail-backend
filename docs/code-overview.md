@@ -61,7 +61,7 @@ It provides the following functionality:
 
 ## Nanosail to muSail
 
-All nanosail to muSail functionality can be found in the `NanosailToSail` module.
+All nanosail to muSail functionality can be found in the `NanosailToMicrosail` module.
 Similarly to the first translation phase, we defined a monad, named `GenerationContext`, which provide us with some useful functionality:
 
 * It holds a list of all definitions gathered during the first phase.
