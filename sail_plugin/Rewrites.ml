@@ -291,8 +291,14 @@ let katamaran_rewrites =
       becomes
 
         function neg x = neq_bool(x, true)
+
+      Not used: it turns "{ assert(c); e }" into "let _ : unit = assert(c) in e",
+      and Sail's type checker only adds c to the constraints for e when the assert
+      is a statement of a block. When e type-checks only thanks to c, the recheck_defs
+      below crashes Sail (see tests/coq-tests/assert-flow-typing-fixed-width).
+      The translator does not need this rewrite: it handles blocks itself (AE_block).
     *)
-    ("remove_blocks", []);                                             (* From Coq backend *)
+    (* ("remove_blocks", []);                                          (\* From Coq backend *\) *)
 
     ("attach_effects", []);                                            (* From Coq backend *)
     (* ("letbind_effects", []);                                           (\* From Coq backend *\) *)

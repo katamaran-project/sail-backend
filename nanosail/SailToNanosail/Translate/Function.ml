@@ -460,12 +460,6 @@ and translate_bindings
   result
 
 
-let make_sequence (statements : Ast.Statement.t list) : Ast.Statement.t =
-  match statements with
-  | [] -> failwith "Cannot build a sequence of zero statements"
-  | statement :: statements -> List.fold_right statements ~init:statement ~f:(fun statement sequence -> Ast.Statement.Seq (statement, sequence))
-
-
 let find_monomorphization
     (polymorphic_function_identifier : Ast.Identifier.t)
     (argument_types                  : Ast.Type.t list ) : Ast.Definition.Function.t option TC.t
@@ -625,8 +619,8 @@ let with_destructured_record
    the typing context ourselves.
 
    The reason expression_type is "S.typ option" instead of just "S.typ":
-   when dealing with a sequence "a; b; c", it is unclear
-   what the expected types of a and b should be.
+   it was once unclear what the expected types of a and b
+   in a sequence "a; b; c" should be (they are unit, see statement_of_block).
 *)
 let rec statement_of_aexp
     (expression_type : S.typ option)
@@ -1008,16 +1002,18 @@ let rec statement_of_aexp
     =
     let* translated_statements =
       (*
-         In a block "a; b; c", we assume a and b have types unit.
+         In a block "a; b; c", a and b have type unit: Sail's type checker
+         checks every statement of a block but the last against unit.
+         Passing it on matters for exit, see statement_of_exit.
       *)
       let* all_but_last =
-        TC.map ~f:(statement_of_aexp None) statements
+        TC.map ~f:(statement_of_aexp (Some Libsail.Ast_util.unit_typ)) statements
       and* last =
         statement_of_aexp (Some last_statement_type) last_statement
       in
       TC.return @@ List.concat [all_but_last; [last]]
     in
-    TC.return @@ make_sequence translated_statements
+    TC.return @@ Ast.Statement.make_sequence translated_statements
 
   and statement_of_struct_update
         (aval     : S.typ S.aval           )

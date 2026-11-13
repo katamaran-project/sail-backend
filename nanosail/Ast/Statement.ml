@@ -1351,3 +1351,14 @@ let simplify (statement : t) : t =
     simplify_expressions <. simplify_types <. simplify_unused_let_binder <. simplify_seq_unit <. simplify_aliases
   in
   Fn.fixed_point ~f:pass ~equal:equal statement
+
+
+(*
+   Builds a sequence that runs the given statements in list order:
+   [a; b; c] becomes Seq (a, Seq (b, c)).
+   Fails on an empty list.
+*)
+let make_sequence (statements : t list) : t =
+  match List.rev statements with
+  | []                          -> failwith "Cannot build a sequence of zero statements"
+  | last :: preceding_reversed -> List.fold_left preceding_reversed ~init:last ~f:(fun sequence statement -> Seq (statement, sequence))
