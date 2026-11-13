@@ -79,6 +79,8 @@ The project has 334 small end-to-end test programs. Each one is translated and t
 - The translator asks Sail to run a rewrite pass (`remove_blocks`), and then to re-check the result.
 - That rewrite discards information that the re-check needs. The information comes from an `assert` statement, which tells Sail that a value is within a certain range.
 - The crash is triggered by the translator's choice of passes, not by a bug in the CHERIoT specification. Sail itself accepts the specification without complaint.
+- **Fixed (13 November 2026, branch `e2e-loop`):** the translator no longer asks for `remove_blocks`. The full specification now gets through Sail and through the translation to nanosail without any substitution.
+  Output generation then stops at the first of the five functions mentioned below, `getCapBoundsBits`, because adding a run-time integer to a bitvector (`add_bits_int`) is not supported yet. That is next in line (inventory, P01).
 
 For this survey, the crash was avoided by substituting a few functions from an unused part of the specification (the RISC-V vector extension). Five further functions that stopped output generation completely were temporarily excluded.
 
@@ -167,7 +169,8 @@ Updated for the decisions in section 1a. The first phase builds the infrastructu
 **Phase 1: a working end-to-end setup with a tight, test-driven loop.**
 
 1. **A reproducible CHERIoT run without workarounds.**
-   - Fix the Sail crash in the translator's rewrite list (S).
+   - ~~Fix the Sail crash in the translator's rewrite list (S).~~ Done (13 November 2026).
+   - Fix the five functions that stop output generation, starting with `add_bits_int` in `getCapBoundsBits`, which is next in line (S each).
    - Make the case-study build (`gmake`) the single entry point for translating the core and running Rocq on the result.
 2. **Configuration-driven scoping.** Exclude everything outside the core by configuration: printing and tracing, assembly syntax, strings, the deferred extensions, unused generated helpers.
    This probably needs one new configuration capability: removing a definition *and* replacing or dropping its calls. Also stop reporting overloads and directives as failures.
@@ -199,7 +202,7 @@ The questions about scope, size-generic code, undefined values, exceptions and p
 Still open:
 - **Size-generic code.** Which design to use, once the code base is better understood. A Katamaran maintainer should confirm that its proof automation copes with translator-generated code as well as with hand-written code.
 - **Memory access in the meantime.** Load and store instructions are in scope, but they depend on the deferred size-generic code. They will have to be stubbed or excluded for now.
-- **Rewrite pass.** Can `remove_blocks` (the cause of the Sail crash) be dropped from the translator's list, or does something depend on it? A full test run will tell.
+- ~~**Rewrite pass.** Can `remove_blocks` (the cause of the Sail crash) be dropped from the translator's list, or does something depend on it? A full test run will tell.~~ Answered: it was dropped, and the full test run is unchanged.
 
 Smaller issues found along the way, none fixed yet:
 - The case-study build script needs GNU make 4.x. **Decision: always use `gmake`**; the old BSD make that ships with macOS is not supported.
