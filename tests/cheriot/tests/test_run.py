@@ -52,6 +52,18 @@ class MetricsTests(unittest.TestCase):
         self.assertIn('hard failures                1  (getCapBoundsBits)', text)
         self.assertIn('missing calls                5 calls to 4 functions', text)
 
+    def test_rocq_lines(self):
+        error = {'line': 593, 'message': 'The reference NYI was not found', 'definition': 'Access_kind',
+                 'kind': 'Inductive', 'before': 24, 'total': 555}
+        compilations = {'plain': [{'file': 'base.v', 'ok': False, 'exit': 1, 'seconds': 0.5, 'error': error}],
+                        'probe': [{'file': 'base.v', 'ok': True, 'exit': 0, 'seconds': 1.0, 'error': None},
+                                  {'file': 'machine.v', 'ok': True, 'exit': 0, 'seconds': 9.0, 'error': None}]}
+        lines = metrics.format_metrics({**self.metrics, 'rocq': compilations})
+        self.assertEqual(lines[-2], 'rocq plain               base.v:593 in Inductive Access_kind '
+                                    '(24 of 555 definitions before it): The reference NYI was not found')
+        self.assertEqual(lines[-1], 'rocq probe               base.v, machine.v compile')
+        self.assertFalse(any(l.startswith('rocq') for l in metrics.format_metrics(self.metrics)))
+
 
 class ClassifyTranslationTests(unittest.TestCase):
     def test_success(self):

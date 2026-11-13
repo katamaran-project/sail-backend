@@ -3,7 +3,7 @@
 The outer loop: translate the CHERIoT model with this checkout's plugin, and measure the result.
 
 Usage:
-    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--keep-dumps] [--output-dir DIR]
+    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--no-coq] [--coq-timeout S] [--keep-dumps] [--output-dir DIR]
 
 or `gmake cheriot CHERIOT_SAIL_DIR=... CHERIOT_CASE_STUDY=...`. See docs/cheriot-loop.md.
 
@@ -22,12 +22,16 @@ The run has these stages; a stage that fails ends the run.
     translate   the plugin translates the model, with VERBOSE=4: lower levels leave
                 out the skipped definitions and the definition each warning and
                 error belongs to, and save only about 10% of the time
+    rocq        unless --no-coq: coqc base.v and machine.v, as the end-to-end tests
+                do, and probe copies in which NYI is an axiom, whose first error is
+                the first problem beyond the NYI holes (lib/rocq.py). An error in
+                the generated Rocq is a measurement, not a failed stage.
     analyse     items, reachability, missing calls and piles (tests/cheriot/lib)
 
 Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
 with <output-dir>/latest pointing to it (default output dir: tests/cheriot/output):
 sources.txt, the logs, base.v and machine.v, dump/ (only the last Sail rewrite
-dump, unless --keep-dumps), items.csv, dangling-calls.csv, piles.txt,
+dump, unless --keep-dumps), coqc-*.log, probe/, items.csv, dangling-calls.csv, piles.txt,
 run.json (inputs and stages) and metrics.json.
 
 Exit status: 0 when every stage succeeded, 1 when a stage failed (the report
@@ -55,7 +59,7 @@ HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
 
-from lib import callgraph, dangling, extract, metrics, piles     # noqa: E402
+from lib import callgraph, dangling, extract, metrics, piles, rocq     # noqa: E402
 from lib.items import write_items                                  # noqa: E402
 
 SAIL_LOCAL = CHECKOUT / 'bin' / 'sail-local'
@@ -63,6 +67,8 @@ PLUGIN = CHECKOUT / '_build' / 'default' / 'sail_plugin' / 'sail_plugin_katamara
 DEFAULT_OUTPUT_DIR = HERE / 'output'
 PINS = HERE / 'inputs.toml'
 SAIL_VERSION = '0.20.3'
+COQC = 'coqc'
+DEFAULT_COQ_TIMEOUT = 1800
 VERBOSE = '4'
 CASE_STUDY_FILES = ['configuration.lisp', 'printvar.mak']
 
@@ -172,7 +178,7 @@ def pin_warnings(inputs: dict[str, Any], pins_file: Path) -> list[str]:
     return warnings
 
 
-def check_inputs(cheriot_sail: Path, case_study: Path) -> tuple[Stage, dict[str, Any], list[Path]]:
+def check_inputs(cheriot_sail: Path, case_study: Path, with_coq: bool) -> tuple[Stage, dict[str, Any], list[Path]]:
     stage = Stage('inputs')
     start = time.monotonic()
     if not PLUGIN.is_file():
@@ -186,6 +192,9 @@ def check_inputs(cheriot_sail: Path, case_study: Path) -> tuple[Stage, dict[str,
     if not (cheriot_sail / 'Makefile').is_file():
         raise InputError(f'{cheriot_sail} has no Makefile: is it a cheriot-sail checkout?')
     sources = sail_sources(cheriot_sail, case_study, gnu_make())
+    coqc_version = output_of([COQC, '--print-version']) if with_coq else 'not used (--no-coq)'
+    if coqc_version is None:
+        raise InputError(f'{COQC} cannot be run (pass --no-coq to skip the Rocq stage)')
 
     katamaran = 'unknown'
     coq_root = output_of(['coqc', '-where'])
@@ -201,6 +210,7 @@ def check_inputs(cheriot_sail: Path, case_study: Path) -> tuple[Stage, dict[str,
         'case-study': {**git_state(case_study, only_here=True), 'path': str(case_study)},
         'sail': sail_version,
         'katamaran': katamaran,
+        'coqc': coqc_version,
         'sources': len(sources),
     }
     stage.details = pin_warnings(inputs, PINS)
@@ -281,7 +291,20 @@ def last_dump(dump_directory: Path, keep_all: bool) -> Optional[Path]:
     return last
 
 
-def analyse(sandbox: Path, dump: Optional[Path]) -> tuple[Stage, Optional[metrics.Metrics]]:
+def compile_rocq(sandbox: Path, timeout: float) -> tuple[Stage, dict[str, Any]]:
+    stage = Stage('rocq')
+    start = time.monotonic()
+    plain = rocq.compile_all(COQC, sandbox, timeout)
+    probe = rocq.probe_all(COQC, sandbox, sandbox / 'probe', timeout)
+    stage.seconds = time.monotonic() - start
+    stage.ok = True
+    results = {'plain': [c.as_json() for c in plain], 'probe': [c.as_json() for c in probe]}
+    stage.summary = 'plain: ' + ('compiles' if all(c.ok for c in plain) else 'stops (see below)') + \
+                    '; probe: ' + ('compiles' if all(c.ok for c in probe) else 'stops (see below)')
+    return stage, results
+
+
+def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str, Any]]) -> tuple[Stage, Optional[metrics.Metrics]]:
     stage = Stage('analyse')
     start = time.monotonic()
     if dump is None:
@@ -299,7 +322,7 @@ def analyse(sandbox: Path, dump: Optional[Path]) -> tuple[Stage, Optional[metric
         writer.writeheader()
         writer.writerows(d.as_row() for d in calls)
     (sandbox / 'piles.txt').write_text(piles.format_pile_table(*piles.pile_table(items)) + '\n')
-    result = metrics.compute(items, machine_v, graph, calls)
+    result = metrics.compute(items, machine_v, graph, calls, rocq_results)
     stage.ok = True
     stage.seconds = time.monotonic() - start
     stage.summary = f'{len(items)} items'
@@ -357,6 +380,9 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--cheriot-sail', help='cheriot-sail checkout (default: $CHERIOT_SAIL_DIR)')
     parser.add_argument('--case-study', help='case study directory (default: $CHERIOT_CASE_STUDY)')
+    parser.add_argument('--no-coq', action='store_true', help='skip the Rocq stage')
+    parser.add_argument('--coq-timeout', type=float, default=DEFAULT_COQ_TIMEOUT,
+                        help=f'seconds per coqc call (default: {DEFAULT_COQ_TIMEOUT})')
     parser.add_argument('--keep-dumps', action='store_true', help='keep the Sail AST dump of every rewrite')
     parser.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args(argv)
@@ -372,7 +398,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
 
     try:
-        stage, inputs, sources = check_inputs(cheriot_sail, case_study)
+        stage, inputs, sources = check_inputs(cheriot_sail, case_study, not arguments.no_coq)
     except InputError as error:
         print(f'run.py: {error}', file=sys.stderr)
         return 2
@@ -390,7 +416,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         stages.append(translate(sources, case_study, sandbox))
         dump = last_dump(sandbox / 'dump', arguments.keep_dumps)
         if stages[-1].ok:
-            stage, result = analyse(sandbox, dump)
+            rocq_results = None
+            if not arguments.no_coq:
+                stage, rocq_results = compile_rocq(sandbox, arguments.coq_timeout)
+                stages.append(stage)
+            stage, result = analyse(sandbox, dump, rocq_results)
             stages.append(stage)
 
     (sandbox / 'run.json').write_text(json.dumps(

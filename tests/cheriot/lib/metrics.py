@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import Any
+from typing import Any, Optional
 
-from . import dangling, piles
+from . import dangling, piles, rocq
 from .callgraph import CallGraph
 from .items import Item
 
@@ -27,10 +27,12 @@ def generated_functions(machine_v: str) -> set[str]:
     return set(GENERATED_FUNCTION.findall(machine_v))
 
 
-def compute(items: list[Item], machine_v: str, graph: CallGraph, calls: list[dangling.DanglingCall]) -> Metrics:
+def compute(items: list[Item], machine_v: str, graph: CallGraph, calls: list[dangling.DanglingCall],
+            compilations: Optional[dict[str, Any]] = None) -> Metrics:
     """
     The metrics of a run. `items` need the columns `reachable` and `pile`;
-    `machine_v` is the text of machine.v ('' if there is none).
+    `machine_v` is the text of machine.v ('' if there is none); `compilations` holds the
+    plain and probe compilations (run.py's Rocq stage), or None if Rocq was skipped.
     """
     definitions: dict[str, set[tuple[str, str]]] = {}
     for record in items:
@@ -55,6 +57,7 @@ def compute(items: list[Item], machine_v: str, graph: CallGraph, calls: list[dan
         'piles': {name: {'items': pile.items, 'definitions': len(pile.definitions), 'reachable': len(pile.reachable)}
                   for name, pile in sorted(table.items())},
         'unassigned_failures': sum(unassigned.values()),
+        'rocq': compilations,
     }
 
 
@@ -75,4 +78,8 @@ def format_metrics(metrics: Metrics) -> list[str]:
         f'failing, reachable       {metrics["failing_reachable_definitions"]:5} definitions',
         f'missing calls            {total_calls:5} calls to {total_callees} functions ({by_class})',
     ]
+    if metrics.get('rocq'):
+        for kind in ('plain', 'probe'):
+            lines.append(f'rocq {kind:19} {rocq.describe(metrics["rocq"][kind])}')
     return lines
+
