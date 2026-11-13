@@ -392,7 +392,7 @@ The pass/fail status of each e2e test, ordered by `model.sail` size, made with `
   - `notes.org` (2024–25) planned a Foreign Function Kit and translating functions to foreign functions: inventory pile P16.
   - `monomorphization.md` (Mar 2025) lists numeric constraints from `toplevel_nexps`, vectors, and automatic monomorphisation as missing: piles P10 and P13.
   - `sail-notes.md` explains `exit`/`stm_fail` and the expected-type mechanism behind some of today's type-mismatch warnings.
-- **The rewrite pipeline has a history.** Frederic picked the rewrites partly from the Coq backend, and partly by experiment (`rewrites/`). Dominique realigned their order with the Coq plugin (Jun 2025). Today's CHERIoT crash comes from one of the Coq-backend rewrites (`remove_blocks`), and is now covered by the e2e test `assert-flow-typing`.
+- **The rewrite pipeline has a history.** Frederic picked the rewrites partly from the Coq backend, and partly by experiment (`rewrites/`). Dominique realigned their order with the Coq plugin (Jun 2025). Today's CHERIoT crash comes from one of the Coq-backend rewrites (`remove_blocks`), and is now covered by the e2e test `assert-flow-typing-fixed-width`.
 - **Two ways of installing Katamaran exist in the docs.** `installation.md` says to use Katamaran's Makefile. Today's install used dune minus the files `_CoqProject` excludes, which gives the same set of files.
 - **Stale or incorrect details worth fixing when convenient:**
   - ~~`code-overview.md`: "`NanosailToSail` module" should be `NanosailToMicrosail`~~ (fixed);

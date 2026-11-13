@@ -13,6 +13,25 @@ Nothing in the translator was changed. All numbers come from the scripts in this
 - On the main design question: Katamaran's own hand-written RiscvPmp model already handles size polymorphism (`mem_read (bytes : nat)`) and `MemoryOpResult` with **nat-indexed `Fun` constructors and union families**. Contracts and `ValidContract` lemmas are proven **once for all widths**.
   So we do not need Sail-level monomorphisation, or one lemma set per copy. This is the recommended direction for piles P13 and P02 (§5).
 
+**Status update (13 Nov 2026, branch `e2e-loop`).** The rest of this document is the snapshot taken before; its numbers were not regenerated.
+- **P00 is fixed.** `remove_blocks` is no longer in `Rewrites.ml` (option 1 below). The e2e suite is unchanged (303 pass, 32 fail).
+  Turning it off exposed two translator bugs that were fixed at the same time: `make_sequence` ran the statements of a block in the wrong order, and statements of a block were translated without their type `unit`, which `exit` needs.
+  Tests: `assert-flow-typing-fixed-width` (passes; guards the fix), `assert-flow-typing-constrained-width` (fails until the code generator uses Sail's constraints for slice indices) and `assert-flow-typing-runtime-width` (fails until bitvectors with run-time widths are supported, P13).
+- The full model, **without the `-splice` workaround**, now gets through all Sail rewrites and the Sail → nanoSail translation.
+  µSail generation then stops at the first hard failure, `add_bits_int` with a run-time integer in `getCapBoundsBits` (`FunctionCalls.ml:358`, §2b), so no `.v` file is written.
+- **`add_bits_int` with a run-time integer is fixed** (P01, option 1): it is generated as `bv +ᵇ exp_unop uop.get_slice_int i`, whose semantics is `bv.of_Z`, i.e. `i` modulo 2ⁿ, as in Sail.
+  Tests: `bitvectors-add-runtime-int`, `bitvectors-add-runtime-int-negative`.
+  `getCapBoundsBits` and `__WriteRAM_Meta` are now generated. `__WriteRAM_Meta` has no holes; `getCapBoundsBits` keeps 4 `NYI`s, all from `… @ zeros(E)` with a run-time `E` ("expected constant in bitvector type", P01 site 5 below).
+- **The `sail_assert` message is fixed** (P01, option 2): before the conversion to ANF, every assert message that is not a string literal is replaced by a fixed string, so its computation (`dec_str`, `concat_str`, …) disappears too.
+  Sail considers every mapping possibly failing, so a message that calls one (like `report_invalid_width`'s `size_mnemonic(w)`) counts as effectful; such messages are dropped as well, with a warning (decided 13 Nov 2026).
+  Tests: `assert-message-variable`, `assert-message-computed` (`internal_error`), `assert-message-mapping` (`report_invalid_width`).
+- **`pmpAddrRange` is fixed too, without excluding it.** Its failure was not about PMP: in `pmpaddr + 1`, `pmpaddr` has the type `xlenbits` (an alias of `bits(xlen)`, with `xlen` a type-level constant), so the width needed for a bitvector literal was not known. `add_bits_int` now looks through aliases and, if the width is still unknown, uses `uop.get_slice_int` on the integer literal. Test: `bitvectors-add-int-synonym-width`.
+- **Milestone: the full model translates with no workaround at all** — no splice, nothing ignored beyond the case study's own configuration (`base.v` 1.7 MB, `machine.v` 9.2 MB, 69 `NYI`s).
+  `coqc base.v` stops at line 593, the concurrency-interface type `Access_kind('arch_ak)`, whose parameter is a type (`Kind.ml:8`, `Type.ml:262`).
+- **Next in line: the configuration clean-up** (§6, item 2), which ignores exactly those concurrency-interface types (`Access_kind`, `Mem_*_request`), together with P12 (§6, item 1).
+- Found along the way, not fixed: `sail_shiftleft(v, 2)` generates the shift amount as `[bv 2]` of width 1, which Rocq rejects. sail-riscv's own `<<` uses `shift_bits_left`/`shiftl`, so CHERIoT may not be affected.
+- PMP support was estimated (13 Nov 2026) at 3–5 weeks of PMP-specific work (register arrays P10, loops P05, run-time-offset slices, platform parameters), on top of P02 and P13, which the memory path needs anyway; its checks only matter once the memory path translates. Deferred, as decided. Note that in-scope Zicsr calls the PMP CSR helpers and the initialisation calls `init_pmp`, so leaving PMP out needs the "remove a definition and stub its calls" configuration feature.
+
 ---
 
 ## 1. Environment and commits
@@ -124,14 +143,14 @@ Their callers still call them. That shows up in coqc and in §3's "calls to unde
 
 | # | pile | sites | defs | reach | size | blocks / blocked by |
 |---|---|---:|---:|---:|---|---|
-| P00 | Sail crash in the plugin's rewrite pipeline (`remove_blocks` + `recheck_defs`) | 1 (file) | 11 stubbed | 0 | **S** | blocks *everything* for the full model |
+| P00 | ~~Sail crash in the plugin's rewrite pipeline (`remove_blocks` + `recheck_defs`)~~ **fixed** | 1 (file) | 11 stubbed | 0 | **S** | blocked *everything* for the full model |
 | P13 | size-polymorphic functions (`bits('n)` in signatures): memory path | 87 warnings | 83 (54 with `kid__` left in µSail) | 52 | **L** (design) | blocks coqc of all loads/stores/fetch |
 | P02 | polymorphic unions other than option/result | 86 | 39 | 31 | **M** | needs P03; blocks `coqc base.v` (first real error) |
 | P03 | nested patterns inside sum constructors | 4 (11 after P02) | 4 → 11 | 3 → 10 | **M** | hidden behind P02 |
 | P16 | Sail externs not mapped to µSail (no `stm_foreign` at all) | 1697 calls | 71 externs | — | **M** (+ decisions) | blocks coqc of most of `machine.v` |
 | P05 | `foreach`, `loop`, `try`, early `return` | 25 | 25 | 23 | **M** | — |
 | P04 | vector literal with `bits(1)` elements (`[bool_to_bit(x)]`) | 54 | 27 | 17 | **S** | **the decoders** (`encdec_backwards`, compressed) |
-| P01 | integer arguments that must be known at compile time | 59 | 13 | 10 | **M** | hard failures; `getCapBoundsBits` (CHERI bounds) |
+| P01 | integer arguments that must be known at compile time | 59 | 13 | 10 | **M** | hard failures; `getCapBoundsBits` (CHERI bounds); `add_bits_int` (including widths behind aliases) and the `sail_assert` message done |
 | P08 | top-level `let` with a computed value | 22 | 22 | 16 | **S–M** | `null_cap`, root caps, MMIO bases |
 | P06 | mutable local variables (`var x = …; x[i] = …`) | 4 | 4 | 4 | **M** | `setCapBounds`, `capToEncCap` (CHERI core) |
 | P07 | register references (`register('a)`, `ref r`, `r->F() = v`) | 430 | 217 | 9 | **S** (+S) | `execute_CJALR`, `ext_init_regs` |
@@ -151,7 +170,9 @@ Size: **S** ≈ a few days including tests, **M** ≈ 1–2 weeks, **L** = needs
 Throughout: "usage in CHERIoT" counts come from the translation (`items.csv`) and from `feature-counts.txt`. The latter is a grep over the 67 sources, so it is approximate.
 Examples give the Sail location and the nanosail location that raised the failure.
 
-### P00. Sail crash caused by the rewrite pipeline — S, do first
+### P00. Sail crash caused by the rewrite pipeline — S, fixed
+
+*Status.* Fixed on branch `e2e-loop` with option 1 below; see the status update at the top.
 
 *What it is.* The plugin runs Sail's `remove_blocks` and then `recheck_defs`. `remove_blocks` destroys the flow typing that `assert` provides (§2a).
 ```sail
@@ -357,8 +378,8 @@ function tag_addr_to_addr(tag_addr : tagaddrbits) -> xlenbits = tag_addr @ zeros
 13 definitions, 10 reachable, including **`getCapBoundsBits`, the core of CHERI bounds decoding**, and `internal_error`, which is called from 32 places.
 
 *Options, per site.*
-1. `add_bits_int(v, i)` with a run-time `i`: translate as `v + to_bits(i)`. RiscvPmp has `to_bits (l : nat) : Fun [value ∷ ty.int] (ty.bvec l)`, and Katamaran may have a primitive int→bv conversion (to check). **S.**
-2. `sail_assert` with a non-literal message: drop the message (replace it with a fixed string). Messages have no verification meaning. **S.**
+1. **Done.** `add_bits_int(v, i)` with a run-time `i`: translate as `v + to_bits(i)`. RiscvPmp has `to_bits (l : nat) : Fun [value ∷ ty.int] (ty.bvec l)`, and Katamaran may have a primitive int→bv conversion (to check). **S.**
+2. **Done.** `sail_assert` with a non-literal message: drop the message (replace it with a fixed string). Messages have no verification meaning. **S.**
 3. Widths that are constant after constant folding (`log2_cap_size`, `cap_addr_width`, `sizeof(xlen)`): extend `extract_compile_time_integer` to look up top-level `let`s that P08 currently fails to translate, and to evaluate `log2`/`MAX`, or run Sail's `constant_fold` with more aggressive settings. **S–M.**
 4. Widths that really are polymorphic (`zero_extend`, `sign_extend`, `align_down` inside their own definitions): the same machinery as P13. Their *calls* are fine.
 
@@ -473,8 +494,8 @@ A cast is harmless if source and target µSail types agree. Assert that, or emit
 
 Aim: a `machine.v` that compiles for the RV32I + CHERIoT instruction subset, with the non-essential parts (assembly, printing, V, Zb*, Sv32) ignored by configuration rather than implemented.
 
-1. **P00** (rewrite pipeline) and **P12** (overloads, pragmas): unblock the full model without splices and remove most of the noise. S + S.
-2. **Configuration clean-up** (no translator change):
+1. ~~**P00** (rewrite pipeline)~~, ~~**`add_bits_int`**~~ and ~~the **`sail_assert` message**~~ (done: the full model now translates without workarounds), and **P12** (overloads, pragmas): unblock the full model without workarounds and remove most of the noise. S + S + S.
+2. **Configuration clean-up** (no translator change; **next in line**: `coqc base.v` now stops at `Access_kind`):
    - ignore P09 mappings and printing, the `_set_*` setters (P07 option 1), the concurrency-interface types (`Access_kind`, `Mem_*_request`), and V/Sv32/TLB if unused;
    - add the `translate-union-as-sum` lines from `workarounds/configuration-sum-variant.lisp` as a stopgap.
    This also makes the inventory much easier to read.
@@ -496,7 +517,7 @@ At each step, rerun `hard-failure-loop.sh` and `extract.py` (see below) to measu
 3. **`undefined` semantics.** Nondeterministic foreign function (sound, slightly more proof work), or a fixed default value (simpler, unsound in general)?
 4. **Exceptions.** Is translating `throw` to `stm_fail` and dropping `try` acceptable for the properties you plan to prove?
 5. **Printing and strings.** OK to drop all trace and printing code (the `get_config_print_*` branches) rather than model strings?
-6. **Rewrite pipeline.** May `remove_blocks` and the final `recheck_defs` be dropped from `Rewrites.ml`, or does something else depend on them? This needs a full e2e run to decide.
+6. ~~**Rewrite pipeline.** May `remove_blocks` and the final `recheck_defs` be dropped from `Rewrites.ml`, or does something else depend on them? This needs a full e2e run to decide.~~ Answered: `remove_blocks` was dropped; the full e2e run is unchanged. The final `recheck_defs` stays.
 7. **Housekeeping found along the way.** Fix the `sum-unions-*` templates, the NYI numbering, and the Makefile's `#` (GNU make ≥ 3.82 requirement)? Each is a few lines.
 8. **Environment.** The new `sail-backend` switch has no Katamaran install, because Katamaran `main`'s full dune build fails in `theories/Staging`. Should Katamaran be installed properly (for example via its `rocq920` package or the Makefile, which skips `Staging`)?
 
