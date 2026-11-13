@@ -1,6 +1,6 @@
 # Design: the CHERIoT progress loop
 
-*Status: proposal, 13 Nov 2026. Branch `e2e-loop`.*
+*Status: proposal, 13 Nov 2026; steps 1 and 2 of §8 implemented on 14 Nov 2026. Branch `e2e-loop`.*
 
 ## 1. Goal
 
@@ -27,6 +27,7 @@ The scope decisions in `cheriot-inventory/PROJECT-STATUS.md` §1a apply:
 | Sail parse + typecheck, 67 files (`--just-check`) | 7.6 s |
 | translation with the plugin, `VERBOSE=0`, no AST dumps | 39 s |
 | same at `VERBOSE=4` (needed to attribute warnings to definitions; 148 MB log) | 85 s |
+| `run.py` translation: `VERBOSE=2` / `VERBOSE=4`, with `--ddump-rewrite-ast` (14 Nov) | 80 s / 88 s |
 | `coqc base.v` (stops at the first `NYI`) | < 1 s |
 | `machine.v` | 9 MB; never compiled yet |
 
@@ -35,20 +36,24 @@ The budget for one outer iteration is therefore **about one minute**. Restrictin
 ## 3. One command
 
 ```sh
-gmake cheriot                    # from the sail-backend checkout or worktree
+gmake cheriot CHERIOT_SAIL_DIR=PATH CHERIOT_CASE_STUDY=PATH    # from the sail-backend checkout or worktree
 # or directly:
-tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH]
-                     [--detail] [--no-coq] [--iterate-hard-failures]
-                     [--update-baseline] [--compare RUN]
+tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--keep-dumps] [--output-dir DIR]
+# planned: [--no-coq] [--iterate-hard-failures] [--update-baseline] [--compare RUN]
 ```
 
 It always uses the plugin built in *this* checkout (`bin/sail-local`), as `run-tests.py` does.
+It takes the list of Sail files from cheriot-sail's Makefile (`SAIL_SRCS`, through the case study's `printvar.mak`, plus `main.sail`), as the case study's Makefile does.
+
+*Implemented (step 2):* stages 1–5 and the metrics in `metrics.json`. Exit status 0 when every stage succeeded, 1 when one failed, 2 for invalid arguments or inputs.
+The sandbox keeps only the last rewrite dump (all of them take 75 MB; `--keep-dumps` keeps them), but a run still takes about 160 MB, mostly the 140 MB log, so old runs in `tests/cheriot/output/` need deleting now and then.
 
 ### Stages
 
 1. **Check inputs** (§6). Record the commit of each one.
 2. **Typecheck** with plain Sail (8 s). On failure, stop: the problem is in the model or the inputs, not the plugin.
-3. **Translate** at `VERBOSE=2` (`--detail`: `VERBOSE=4`, which attributes warnings to definitions), with the scope configuration from §4.
+3. **Translate** at `VERBOSE=4`, with the scope configuration from §4.
+   (A first version used `VERBOSE=2`, with `VERBOSE=4` as an option. Measured, `VERBOSE=2` saves only 8 of 88 s, but its log lacks the skipped definitions and the definition each warning and error belongs to, so the analysis loses whole categories. So `VERBOSE=4` is always used.)
    - If Sail crashes, report the crash, the rewrite step and the source location; this is what P00 looks like.
    - If generation aborts with a hard failure, report the function and the message as the run's top blocker.
    - `--iterate-hard-failures` repeats the inventory's workaround: ignore the failing function, retry, and list every hard failure found.
@@ -151,7 +156,8 @@ result: PROGRESS (no regressions)
 | scope | `tests/cheriot/scope.toml` | hash |
 | Katamaran library | installed in the switch | revision from `INSTALLED-FROM.txt`; compared with `flake.lock`'s pin |
 
-Workarounds for blockers that are not fixed yet, such as the `-splice` for the Sail crash, live in `tests/cheriot/workarounds/`. Each names the e2e test that tracks its cause. The runner applies them, says so in the report, and **reports a workaround as removable** once its e2e test passes. Today that is one entry: `splice.sail` for P00, tracked by `assert-flow-typing-fixed-width`.
+Workarounds for blockers that are not fixed yet live in `tests/cheriot/workarounds/`. Each names the e2e test that tracks its cause. The runner applies them, says so in the report, and **reports a workaround as removable** once its e2e test passes.
+Today there are none: P00 and the hard failures were fixed in #65, so the full model translates without workarounds and step 2 did not build this mechanism. It gets built when the first workaround is needed.
 
 ## 7. The inner loop, and how the two connect
 
@@ -168,16 +174,17 @@ Each step is small, has its own tests, and leaves the loop usable.
    They are now `extract.py`, `callgraph.py`, `dangling.py` and `piles.py`, with `tests/cheriot/inventory.py` running all four on a run directory, and `make cheriot-lib-tests`.
    On the full model they reproduce the inventory scripts' output exactly. Two changes: the nanosail source root is explicit
    (a wrong root used to leave every construct empty and so most items outside their pile, silently), and a hard failure is also read from a plain log.
-2. `tests/cheriot/run.py` skeleton:
-   - stages 1–5, the sandbox and `metrics.json`;
-   - the `-splice` workaround wired in;
-   - `gmake cheriot`.
+2. **Done** (14 Nov 2026). `tests/cheriot/run.py` skeleton:
+   - stages 1–5, the sandbox and `metrics.json` (`lib/metrics.py`);
+   - ~~the `-splice` workaround wired in~~: no longer needed (§6);
+   - `gmake cheriot`;
+   - the cheriot-sail commit is pinned in `tests/cheriot/inputs.toml`, and a different commit gives a warning (the proposed answer to §9, question 2).
 3. Rocq stages: plain and probe compile, with the first error mapped to its definition.
 4. Scope: `scope.toml`, cached call graph, generated `scope-ignores.lisp`, and the in-scope filter on all metrics. Check that no in-scope call goes missing because of the exclusion.
 5. `instructions.clean` (call-cone check), history CSV, baseline and ratchet, and the report with per-definition changes.
 6. `run-tests.py`: expected failures (`XFAIL`/`XPASS`), plus `gmake loop`.
 
-Then the gap work starts, one pile at a time: first P00 (the `assert-flow-typing-fixed-width` test, which also removes the splice workaround), then the S items on the critical path.
+Then the gap work starts, one pile at a time, beginning with the S items on the critical path. (P00, planned as the first, was fixed in #65.)
 
 ## 9. Open questions
 

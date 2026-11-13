@@ -53,6 +53,8 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
 - **CHERIoT analysis library** (`tests/cheriot/lib`, standard-library Python): analyses a translation of the CHERIoT model, for the progress loop of `docs/cheriot-loop.md`.
   Run its unit tests with `make cheriot-lib-tests`; they use the small fixture run in `tests/cheriot/tests/fixtures`.
   `tests/cheriot/inventory.py RUN-DIR` runs the whole analysis on a run directory.
+- **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot` (`tests/cheriot/run.py`) translates the full model with this checkout's plugin (about 1.5 minutes) and reports metrics.
+  Output goes to `tests/cheriot/output/<timestamp>-<commit>[-dirty]/` (about 160 MB per run, mostly the log; `latest` points to the newest).
 
 ## Architecture
 

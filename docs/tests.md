@@ -34,7 +34,14 @@ Reachability needs a dump: run Sail with `--ddump-rewrite-ast RUN-DIR/dump/rw`, 
 Item constructs are read from the nanosail source at the line numbers the log gives,
 so the analysis must use the source of the plugin that made the run (`--source-root`, by default this checkout).
 
-To run the library's unit tests, which use the small fixture run in `tests/cheriot/tests/fixtures`:
+`tests/cheriot/run.py` (or `gmake cheriot`) is the loop itself: it translates the model with this checkout's plugin,
+runs the analysis and prints a report. See `docs/cheriot-loop.md` §3 for its inputs, stages and output.
+
+```bash
+$ gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail CHERIOT_CASE_STUDY=/path/to/katamaran/case_study/Cheriot
+```
+
+To run the unit tests of the library and of `run.py`'s helpers, which use the small fixture run in `tests/cheriot/tests/fixtures`:
 
 ```bash
 $ make cheriot-lib-tests

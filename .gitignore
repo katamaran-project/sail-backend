@@ -25,6 +25,7 @@ katamaran
 .claude
 ocamldoc.out
 tests/coq-tests/test-output/
+tests/cheriot/output/
 
 # Python bytecode
 __pycache__/
