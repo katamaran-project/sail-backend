@@ -194,6 +194,7 @@ let rec extract_compile_time_integer (expression : Ast.Expression.t) : Z.t optio
       (* not locally bound: fall back on the top level value definitions *)
       | None       -> try_lookup_integer_value_bound_to identifier
     end
+  | TopLevelValue (identifier, _typ)     -> try_lookup_integer_value_bound_to identifier
   | _                                    -> GC.return None
 
 
@@ -205,6 +206,7 @@ let extract_compile_time_string (expression : Ast.Expression.t) : string option 
   match expression with
   | Value (Ast.Value.String value) -> GC.return @@ Some value
   | Variable (identifier, _typ)    -> try_lookup_string_value_bound_to identifier
+  | TopLevelValue (identifier, _)  -> try_lookup_string_value_bound_to identifier
   | _                              -> GC.return None
 
 

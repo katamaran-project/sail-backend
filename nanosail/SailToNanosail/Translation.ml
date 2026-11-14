@@ -169,16 +169,108 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     end
   end
 
+(*
+   Evaluates all top-level lets with Sail's interpreter, which is what Sail's constant folding uses.
+   The interpreter evaluates the lets in order when it builds its initial state, so a let can refer
+   to earlier ones (e.g., let max_bounds_cap = { null_cap with ... }).
+
+   For each let, the result is its value, or why the interpreter could not compute it
+   (e.g., because it reads a register or calls an extern that the interpreter does not know).
+
+   Sail's rewrites turn implicit size arguments into make_the_value(n) and size_itself_int(n),
+   externs that the interpreter does not know; both are the identity on integers.
+*)
+let evaluate_top_level_lets
+    (ast : Sail.ast               )
+    (env : Libsail.Type_check.env) : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t
+  =
+  let module Bindings = Libsail.Ast_compare.Bindings
+  in
+  let module Interpreter = Libsail.Interpreter
+  in
+  let primops =
+    let identity (arguments : Libsail.Ast.value list) : Libsail.Ast.value =
+      match arguments with
+      | [ argument ] -> argument
+      | []           -> failwith "expected one argument"
+      | _ :: _ :: _  -> failwith "expected one argument"
+    in
+    Libsail.Constant_fold.safe_primops
+    |> Libsail.Value.StringMap.add "make_the_value"  identity
+    |> Libsail.Value.StringMap.add "size_itself_int" identity
+  in
+  match Interpreter.initial_state ~registers:false ast env primops with
+  | exception _ -> Bindings.empty
+  | (_local_state, global_state) -> begin
+      (* Runs the interpreter on the expression of a let it could not evaluate, to find out why *)
+      let explain_failure (expression : Sail.type_annotation Libsail.Ast.exp) : string =
+        let rec run (frame : Interpreter.frame) : string =
+          match frame with
+          | Done (_, _)                         -> "the interpreter's value does not match the let's pattern"
+          | Fail (_, _, _, _, message)          -> message
+          | Step (_, _, _, _)                   -> run (Interpreter.eval_frame frame)
+          | Break frame                         -> run (Interpreter.eval_frame frame)
+          | Effect_request (_, _, _, _)         -> "evaluation needs an effect (e.g., reading a register)"
+        in
+        try
+          run (Interpreter.Step (lazy "", ({ locals = Bindings.empty }, global_state), Interpreter.Monad.pure expression, []))
+        with exn -> Stdlib.Printexc.to_string exn
+      in
+      let add_let
+          (bindings   : (Libsail.Ast.value, string) Result.t Bindings.t)
+          (definition : Sail.sail_definition                            ) : (Libsail.Ast.value, string) Result.t Bindings.t
+        =
+        let Libsail.Ast.DEF_aux (unwrapped_definition, _) = definition
+        in
+        match unwrapped_definition with
+        | DEF_let (pattern, expression) -> begin
+            let add_identifier
+                (bindings   : (Libsail.Ast.value, string) Result.t Bindings.t)
+                (identifier : Libsail.Ast.id                                  ) : (Libsail.Ast.value, string) Result.t Bindings.t
+              =
+              match Bindings.find_opt identifier global_state.letbinds with
+              | Some value -> Bindings.add identifier (Result.Ok value) bindings
+              | None       -> Bindings.add identifier (Result.Error (explain_failure expression)) bindings
+            in
+            List.fold_left ~init:bindings ~f:add_identifier (Libsail.Ast_compare.IdSet.elements (Libsail.Ast_util.pat_ids pattern))
+          end
+        | DEF_type _                  -> bindings
+        | DEF_fundef _                -> bindings
+        | DEF_mapdef _                -> bindings
+        | DEF_impl _                  -> bindings
+        | DEF_val _                   -> bindings
+        | DEF_outcome (_, _)          -> bindings
+        | DEF_instantiation (_, _)    -> bindings
+        | DEF_fixity (_, _, _)        -> bindings
+        | DEF_overload (_, _)         -> bindings
+        | DEF_default _               -> bindings
+        | DEF_scattered _             -> bindings
+        | DEF_measure (_, _, _)       -> bindings
+        | DEF_loop_measures (_, _)    -> bindings
+        | DEF_register _              -> bindings
+        | DEF_internal_mutrec _       -> bindings
+        | DEF_constraint _            -> bindings
+        | DEF_pragma (_, _)           -> bindings
+      in
+      List.fold_left ~init:Bindings.empty ~f:add_let ast.defs
+    end
+
+
 (* turn a given Sail ast into a Nanosail program, which is a list of
    sail definition - ast definition tuples together with a list of
    function monomorphizations. *)
-let translate (ast : Sail.ast) : Ast.Program.t =
+let translate
+    (ast : Sail.ast               )
+    (env : Libsail.Type_check.env) : Ast.Program.t
+  =
   (* a translation context with a list of sail definition - ast
      definition tuples *)
   let translate =
     (* store the definitions from the prelude in the translation
       context *)
     let* () = Prelude.register_types ()
+    in
+    let* () = TC.set_evaluated_top_level_values (evaluate_top_level_lets ast env)
     in
     (* the translation block just adds "entering" and "exiting" lines in
        the log. *)

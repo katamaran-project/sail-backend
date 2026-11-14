@@ -32,6 +32,8 @@ Nothing in the translator was changed. All numbers come from the scripts in this
   The translator now parenthesises compound `bv` widths (`bv (8 * 8)`; test `type-alias-of-bitvector-arithmetic-width`).
   `coqc base.v` now stops at `Record Capability`: its fields clash with those of `EncCapability` (Rocq projections are global). See `case-studies/cheriot/PROGRESS.md`.
   Printing, mappings (P09) and the in-scope `_set_*` setters (P07) were *not* ignored: in-scope code calls them, so ignoring them would only turn them into missing calls; they wait for the policy exclusion of `docs/cheriot-loop.md` §4.2.
+- **P08 is fixed** (option 1, 14 Nov 2026): Sail's interpreter (the one Sail's constant folding uses) evaluates every top-level `let` before translation; the value becomes a Rocq `Definition` of its `Val` type (records with Rocq record syntax, enums as constructors) and each use becomes `exp_val ty name`, so contracts and proofs can mention and compute with `null_cap`, `root_cap_mem`, .... All 19 in the core translate. Test: `toplevel-let-computed`.
+  A local variable that shadows a top-level value makes the function untranslated (NYI), rather than guessing which one is meant. Not fixed: CHERIoT's `type X : Int = ...` / `let X = sizeof(X)` pairs give two Rocq definitions with the same name.
 - Found along the way, not fixed: `sail_shiftleft(v, 2)` generates the shift amount as `[bv 2]` of width 1, which Rocq rejects. sail-riscv's own `<<` uses `shift_bits_left`/`shiftl`, so CHERIoT may not be affected.
 - PMP support was estimated (13 Nov 2026) at 3–5 weeks of PMP-specific work (register arrays P10, loops P05, run-time-offset slices, platform parameters), on top of P02 and P13, which the memory path needs anyway; its checks only matter once the memory path translates. Deferred, as decided. Note that in-scope Zicsr calls the PMP CSR helpers and the initialisation calls `init_pmp`, so leaving PMP out needs the "remove a definition and stub its calls" configuration feature.
 
@@ -404,6 +406,8 @@ let zero_reg : regtype = null_cap                          // E_id
 2. Translate as nullary µSail functions. This always works, but every use becomes a call, and contracts must mention them.
 
 *Recommendation.* Option 1, falling back to option 2. *Tests.* `value-definition-*` cover literals only.
+
+*Status.* Fixed with option 1 (see the status update at the top); test `toplevel-let-computed`.
 
 ### P06. Mutable local variables — M
 

@@ -62,6 +62,13 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
               end
           end
         | Bitvector _ -> GC.not_yet_implemented [%here]
+        | Record _
+        | Enum _ as v -> begin
+            let* pp_value_type = Type.pp_type (Ast.Value.type_of_value v)
+            and* pp_value'     = ValueDefinitions.pp_value v
+            in
+            GC.return @@ MuSail.Expression.pp_value ~typ:pp_value_type ~value:pp_value'
+          end
       end
 
   and pp_binary_operation
@@ -108,6 +115,21 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             MuSail.Expression.pp_variable @@ Identifier.pp identifier
           end
       end
+
+  (*
+     exp_val <type> <identifier>, where <identifier> is the Rocq definition of the top-level value
+  *)
+  and pp_top_level_value
+      (identifier : Ast.Identifier.t)
+      (typ        : Ast.Type.t      ) : PP.t GC.t
+    =
+    let* pp_value_type = Type.pp_type typ
+    in
+    GC.return begin
+      PP.annotate [%here] begin
+        MuSail.Expression.pp_value ~typ:pp_value_type ~value:(Identifier.pp identifier)
+      end
+    end
 
   and pp_unary_operation
       (operator : Ast.UnaryOperator.t)
@@ -334,6 +356,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   GC.pp_annotate [%here] begin
     match expression with
     | Variable (identifier, _typ)                       -> pp_variable identifier
+    | TopLevelValue (identifier, typ)                   -> pp_top_level_value identifier typ
     | Value value                                       -> pp_value value
     | UnaryOperation (operator, operand)                -> pp_unary_operation operator operand
     | BinaryOperation (op, e1, e2)                      -> pp_binary_operation op e1 e2

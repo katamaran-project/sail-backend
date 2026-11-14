@@ -66,6 +66,31 @@ let create_if_statement
   end
 
 
+(*
+   Translates a reference to an identifier that Sail considers local (Local in lvar).
+   Sail also uses Local for references to top-level lets: those are translated
+   as references to the top-level value (exp_val <type> <identifier> in muSail).
+*)
+let expression_of_local_identifier
+    (identifier : Ast.Identifier.t)
+    (typ        : Ast.Type.t      )
+    (location   : S.l             ) : Ast.Expression.t TC.t
+  =
+  let* refers_to_top_level_value = TC.refers_to_top_level_value identifier
+  in
+  match refers_to_top_level_value with
+  | Some true  -> TC.return @@ Ast.Expression.TopLevelValue (identifier, typ)
+  | Some false -> TC.return @@ Ast.Expression.Variable (identifier, typ)
+  | None       -> begin
+      let message =
+        Printf.sprintf
+          "%s is both a top-level value and a local variable of this function (shadowing)"
+          (Ast.Identifier.to_string identifier)
+      in
+      TC.not_yet_implemented ~message [%here] location
+    end
+
+
 let statement_of_lvar
     (identifier : Ast.Identifier.t     )
     (lvar       : S.typ S.Ast_util.lvar)
@@ -75,7 +100,9 @@ let statement_of_lvar
   | Local (_mutability, typ) -> begin
       let* typ' = Type.translate_type typ
       in
-      TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable (identifier, typ'))
+      let* expression = expression_of_local_identifier identifier typ' location
+      in
+      TC.return @@ Ast.Statement.Expression expression
     end
   | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
   | Enum _       -> TC.not_yet_implemented [%here] location
@@ -262,7 +289,10 @@ let rec expression_of_aval
         let* typ' =
           Type.translate_type typ
         in
-        TC.return (Ast.Expression.Variable (id', typ'), typ', [])
+        let* expression =
+          expression_of_local_identifier id' typ' location
+        in
+        TC.return (expression, typ', [])
       end
     | Register typ -> begin
         let* typ' = Type.translate_type typ
@@ -541,8 +571,34 @@ let with_destructured_record
       in
       match t with
       | Typ_id record_type_identifier -> begin
+          (* The record's type can be an alias of the record type (e.g., type regtype = Capability) *)
           let* record_type_identifier =
-            Identifier.translate_identifier [%here] record_type_identifier
+            let* translated_record_type_identifier =
+              Identifier.translate_identifier [%here] record_type_identifier
+            and* translated_type =
+              Type.translate_type (S.Typ_aux (t, _loc))
+            in
+            match Ast.Type.strip_aliases translated_type with
+            | Record record_type_identifier -> TC.return record_type_identifier
+            | Int _
+            | Bool
+            | String
+            | Bit
+            | List _
+            | Unit
+            | Enum _
+            | Bitvector _
+            | Tuple _
+            | Sum (_, _)
+            | Variant _
+            | Application (_, _)
+            | Alias (_, _)
+            | Range (_, _)
+            | Function _
+            | TypeVariable _
+            | Nat
+            | Vector (_, _)
+            | Implicit _                    -> TC.return translated_record_type_identifier
           in
           let* record_type_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
@@ -1272,6 +1328,9 @@ type sail_function_parts =
     parameter_bindings : Sail.type_annotation Libsail.Ast.pat;
     body               : Libsail.Ast.typ Libsail.Anf.aexp;
     return_type        : Libsail.Ast.typ;
+
+    (* Identifiers bound in the parameters and body (see TC.refers_to_top_level_value) *)
+    locally_bound_identifiers : Ast.Identifier.Set.t;
   }
 
 
@@ -1380,6 +1439,33 @@ let drop_run_time_assert_messages (expression : Sail.type_annotation S.exp) : Sa
 (*
    Helper function that extracts all relevant data from Sail's AST.
 *)
+(*
+   Identifiers bound in an expression: in patterns (let, match, ...), as loop variables, and by var.
+*)
+let locally_bound_sail_identifiers (expression : Sail.type_annotation S.exp) : Libsail.Ast_compare.IdSet.t =
+  let open Libsail.Rewriter
+  in
+  let module IdSet = Libsail.Ast_compare.IdSet
+  in
+  let pat_alg =
+    {
+      (pure_pat_alg IdSet.empty IdSet.union) with
+      p_id = IdSet.singleton;
+      p_as = (fun (ids, id) -> IdSet.add id ids)
+    }
+  in
+  let exp_alg =
+    {
+      (pure_exp_alg IdSet.empty IdSet.union) with
+      pat_alg;
+      e_for  = (fun (id, from, until, step, _order, body) -> IdSet.add id (IdSet.union (IdSet.union from until) (IdSet.union step body)));
+      le_id  = IdSet.singleton;
+      le_typ = (fun (_typ, id) -> IdSet.singleton id);
+    }
+  in
+  fold_exp exp_alg expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -1407,11 +1493,20 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
        let body        = S.anf body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
+       let* locally_bound_identifiers =
+         let sail_identifiers =
+           Libsail.Ast_compare.IdSet.union
+             (Libsail.Ast_util.pat_ids parameter_bindings)
+             (locally_bound_sail_identifiers raw_body)
+         in
+         TC.map ~f:(Identifier.translate_identifier [%here]) (Libsail.Ast_compare.IdSet.elements sail_identifiers)
+       in
        TC.return @@ {
          identifier;
          parameter_bindings;
          body;
-         return_type
+         return_type;
+         locally_bound_identifiers = Ast.Identifier.Set.of_list locally_bound_identifiers;
        }
      end
 
@@ -1725,7 +1820,7 @@ let translate_function_definition
         let* function_name = Identifier.translate_identifier [%here] parts.identifier
         and* parameters    = translate_parameter_bindings parts.parameter_bindings
         and* return_type   = translate_return_type parts.return_type
-        and* function_body = translate_body parts.body parts.return_type
+        and* function_body = TC.with_locally_bound_identifiers parts.locally_bound_identifiers (translate_body parts.body parts.return_type)
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt

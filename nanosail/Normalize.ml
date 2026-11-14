@@ -100,6 +100,8 @@ let rec normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t 
       return @@ Ast.Expression.Variable (identifier, typ)
     end
 
+  | TopLevelValue (_, _) -> return expression
+
   | Value _ -> return expression
 
   | List elements -> begin
