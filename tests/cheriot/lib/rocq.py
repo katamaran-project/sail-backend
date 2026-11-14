@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 import subprocess
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
@@ -49,6 +49,8 @@ class CoqError:
     kind: str = ''           # Definition, Inductive, ...
     before: int = 0          # definitions of the file that come before it
     total: int = 0           # definitions in the file
+    accepted: list[str] = field(default_factory=list)      # the names of the definitions before it
+    definitions: list[str] = field(default_factory=list)   # the names of all definitions in the file
 
 
 @dataclass
@@ -129,7 +131,10 @@ def locate(text: str, line: int, message: str) -> CoqError:
               for number, source in enumerate(lines, start=1)
               if (match := COQ_DEFINITION.match(source))]
     containing = [start for start in starts if start[0] <= line]
-    error = CoqError(line=line, message=message, before=max(0, len(containing) - 1), total=len(starts))
+    names = [FUN_PREFIX.sub('', name) for _, _, name in starts]
+    before = max(0, len(containing) - 1)
+    error = CoqError(line=line, message=message, before=before, total=len(starts),
+                     accepted=names[:before], definitions=names)
     if containing:
         _, error.kind, name = containing[-1]
         error.definition = FUN_PREFIX.sub('', name)

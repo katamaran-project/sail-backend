@@ -80,18 +80,44 @@ class CleanTests(unittest.TestCase):
         self.assertEqual(ranking, [('y', 2), ('x', 1)])
 
 
-class RocqPositionTests(unittest.TestCase):
-    def compilation(self, file, ok, before=0):
-        return {'file': file, 'ok': ok, 'error': None if ok else {'line': 9, 'before': before}}
+def compilation(file, ok, accepted=(), definitions=()):
+    return {'file': file, 'ok': ok,
+            'error': None if ok else {'line': 9, 'before': len(accepted), 'accepted': list(accepted),
+                                      'definitions': list(definitions)}}
 
-    def test_positions_compare_by_files_then_definitions(self):
-        base_fails_early = progress.rocq_position([self.compilation('base.v', False, 24)])
-        base_fails_later = progress.rocq_position([self.compilation('base.v', False, 300)])
-        machine_fails = progress.rocq_position([self.compilation('base.v', True), self.compilation('machine.v', False, 5)])
-        both = progress.rocq_position([self.compilation('base.v', True), self.compilation('machine.v', True)])
-        self.assertEqual(base_fails_early, [0, 24])
-        self.assertTrue(base_fails_early < base_fails_later < machine_fails < both)
+
+class RocqPositionTests(unittest.TestCase):
+    def position(self, *compilations):
+        return progress.rocq_position(list(compilations))
+
+    def test_position(self):
+        self.assertEqual(self.position(compilation('base.v', False, ['a'], ['a', 'b', 'c'])),
+                         {'compiled': 0, 'file': 'base.v', 'accepted': ['a'], 'definitions': ['a', 'b', 'c']})
+        self.assertEqual(self.position(compilation('base.v', True), compilation('machine.v', True)),
+                         {'compiled': 2, 'file': None, 'accepted': [], 'definitions': []})
         self.assertIsNone(progress.rocq_position(None))
+
+    def test_more_files_compiled_is_better(self):
+        old = self.position(compilation('base.v', False, ['a'] * 300, ['a']))
+        new = self.position(compilation('base.v', True), compilation('machine.v', False))
+        self.assertEqual(progress.compare_rocq(old, new), 'better')
+        self.assertEqual(progress.compare_rocq(new, old), 'worse')
+
+    def test_accepting_more_is_better(self):
+        old = self.position(compilation('base.v', False, ['a'], ['a', 'b', 'c']))
+        new = self.position(compilation('base.v', False, ['a', 'b'], ['a', 'b', 'c']))
+        self.assertEqual(progress.compare_rocq(old, new), 'better')
+        self.assertEqual(progress.compare_rocq(new, old), 'worse')
+
+    def test_ignoring_definitions_before_the_error_is_not_worse(self):
+        # the configuration now ignores a and b, which Rocq accepted before; c still fails
+        old = self.position(compilation('base.v', False, ['a', 'b'], ['a', 'b', 'c']))
+        new = self.position(compilation('base.v', False, [], ['c']))
+        self.assertIsNone(progress.compare_rocq(old, new))
+
+    def test_same_place(self):
+        old = self.position(compilation('base.v', False, ['a'], ['a', 'b']))
+        self.assertIsNone(progress.compare_rocq(old, old))
 
 
 class CompareTests(unittest.TestCase):
@@ -119,16 +145,26 @@ class CompareTests(unittest.TestCase):
         self.assertEqual(comparison.improvements, ['execute_B: now clean'])
 
     def test_rocq(self):
-        failing = {'plain': [{'file': 'base.v', 'ok': False, 'error': {'line': 1, 'before': 24}}],
-                   'probe': [{'file': 'base.v', 'ok': False, 'error': {'line': 1, 'before': 24}}]}
+        failing = {'plain': [compilation('base.v', False, ['a'], ['a', 'b', 'c'])],
+                   'probe': [compilation('base.v', False, ['a'], ['a', 'b', 'c'])]}
         further = copy.deepcopy(failing)
-        further['probe'][0]['error']['before'] = 100
+        further['probe'] = [compilation('base.v', False, ['a', 'b'], ['a', 'b', 'c'])]
         comparison = progress.compare(make_snapshot(compilations=failing), make_snapshot(compilations=further))
-        self.assertEqual(comparison.improvements, ['Rocq probe: gets further ([0, 24] -> [0, 100])'])
+        self.assertEqual(comparison.improvements,
+                         ['Rocq probe: gets further (0 -> 0 files compiled; 1 -> 2 definitions accepted in base.v)'])
         comparison = progress.compare(make_snapshot(compilations=further), make_snapshot(compilations=failing))
         self.assertEqual(comparison.result, 'REGRESSION')
+        self.assertIn('no longer accepted: b', comparison.regressions[0])
         comparison = progress.compare(make_snapshot(compilations=failing), make_snapshot())
         self.assertEqual(comparison.notes, ['Rocq did not run, so it was not compared'])
+
+    def test_rocq_in_an_old_baseline_is_not_compared(self):
+        failing = {'plain': [compilation('base.v', False, ['a'], ['a'])], 'probe': [compilation('base.v', False, ['a'], ['a'])]}
+        old = make_snapshot(compilations=failing)
+        old['rocq'] = {'plain': [0, 39], 'probe': [0, 39]}
+        comparison = progress.compare(old, make_snapshot(compilations=failing))
+        self.assertEqual(comparison.result, 'UNCHANGED')
+        self.assertEqual(len(comparison.notes), 2)
 
     def test_scope_changes_are_notes_not_regressions(self):
         before = make_snapshot({'f': 'ok', 'gone': 'ok'})
