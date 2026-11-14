@@ -1,4 +1,8 @@
-val foo : forall 'a 'n. vector('a, 'n) -> vector('a, 'n)
+default Order dec
+
+$include <prelude.sail>
+
+val foo : forall 'n ('a : Type). vector('n, 'a) -> vector('n, 'a)
 function foo(xs) = {
   xs
 }
