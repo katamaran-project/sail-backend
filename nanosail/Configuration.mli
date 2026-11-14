@@ -11,6 +11,12 @@ type sum_union = {
   left_constructor : Ast.Identifier.t;
   right_constructor : Ast.Identifier.t;
 }
+module FunctionExclusion :
+  sig
+    type t = NoOp | Failure | Unconstrained
+    val equal : t -> t -> bool
+    val slang_function_name : t -> string
+  end
 module Implementation :
   sig
     val configuration_interpreter_state : Slang.State.t ref
@@ -73,6 +79,9 @@ module Implementation :
           (string -> bool) ConfigLib.Setting.t
         val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
         val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
+        val excluded_functions :
+          FunctionExclusion.t Base.Map.M(Base.String).t ConfigLib.Setting.t
+        val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
         val template_block_left_delimiter : string ConfigLib.Setting.t
         val template_block_right_delimiter : string ConfigLib.Setting.t
         val template_translations :
@@ -111,6 +120,9 @@ val ignore_top_level_type_constraint_predicate :
   (string -> bool) ConfigLib.Setting.t
 val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
 val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
+val excluded_functions :
+  FunctionExclusion.t Base.Map.M(Base.String).t ConfigLib.Setting.t
+val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
 val template_block_left_delimiter : string ConfigLib.Setting.t
 val template_block_right_delimiter : string ConfigLib.Setting.t
 val template_translations : template_translation list ConfigLib.Setting.t
@@ -124,3 +136,5 @@ val set : 'a ConfigLib.Setting.t -> 'a -> unit
 val should_ignore_function_definition : string -> bool
 val should_ignore_top_level_type_constraint : string -> bool
 val should_ignore_value_definition : string -> bool
+val function_exclusion : string -> FunctionExclusion.t option
+val is_excluded_register : string -> bool

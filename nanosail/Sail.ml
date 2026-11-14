@@ -103,6 +103,15 @@ let identifier_of_top_level_type_constraint (top_level_type_constraint : 'a val_
   | Id_aux (Or_bool, _)       -> "or_bool"
 
 
+(*
+   Determines the name of a register
+*)
+let identifier_of_register_definition (register_definition : 'a dec_spec) : string =
+  let DEC_aux (DEC_reg (_type, identifier, _initial_value), _annotation) = register_definition
+  in
+  string_of_id identifier
+
+
 let identifier_of_type_definition (TD_aux (definition, (_location, _))) =
   match definition with
   | TD_abbrev (id, _, _)     -> string_of_id id

@@ -3,7 +3,9 @@ The numbers of one run (metrics.json), and the report that run.py prints.
 
 With a scope (lib/scope.py), every count is restricted to it: items count when
 their definition is in scope (or belongs to no definition, like coqc errors),
-and the totals of functions and instructions are those in scope.
+and the totals of functions and instructions are those in scope. Policy-excluded
+definitions are outside the scope: they are not failures, and the report counts
+them on their own, per policy.
 """
 
 from __future__ import annotations
@@ -75,6 +77,7 @@ def compute(items: list[Item], machine_v: str, graph: CallGraph, calls: list[dan
             'functions': len(functions),
             'excluded_functions': len(scope.excluded_functions),
             'excluded_values': len(scope.excluded_values),
+            'policy_excluded': scope.policy_counts(),
         },
     }
 
@@ -106,6 +109,10 @@ def format_metrics(metrics: Metrics, previous: Optional[dict[str, Any]] = None,
         scope = metrics['scope']
         lines.append(f'scope: the CHERIoT core, {scope["instructions"]} instructions and {scope["functions"]} functions '
                      f'({scope["excluded_functions"]} functions and {scope["excluded_values"]} values excluded)')
+        policy = scope.get('policy_excluded') or {}
+        if any(policy.values()):
+            counts = ', '.join(f'{name} {count}' for name, count in policy.items() if count)
+            lines.append(f'policy exclusions (removed with their uses, not failures): {sum(policy.values())}: {counts}')
     else:
         lines.append('scope: the whole model')
     totals = {'instructions clean': instructions['total'], 'instructions generated': instructions['total'],

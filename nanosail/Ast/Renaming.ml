@@ -392,6 +392,7 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
 
   | ReadRegister _ -> return statement
   | Fail _         -> return statement
+  | Unconstrained _ -> return statement
 
   | Located (location, statement) -> begin
       let* new_statement = rename_in_statement statement

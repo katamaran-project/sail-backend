@@ -343,6 +343,7 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
     end
 
   | Fail _ -> return statement
+  | Unconstrained _ -> return statement
 
 
 let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t Monad.t =

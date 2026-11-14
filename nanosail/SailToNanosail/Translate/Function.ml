@@ -91,6 +91,25 @@ let expression_of_local_identifier
     end
 
 
+(*
+   Translates a read of the register with the given identifier and (Sail) type.
+   A register that the configuration excludes (exclude-registers) is not in Reg:
+   reading it yields an unconstrained value of its type instead.
+*)
+let statement_of_register_read
+    (identifier : Ast.Identifier.t)
+    (typ        : S.typ           ) : Ast.Statement.t TC.t
+  =
+  if
+    Configuration.is_excluded_register (Ast.Identifier.to_string identifier)
+  then
+    let* typ' = Type.translate_type typ
+    in
+    TC.return @@ Ast.Statement.Unconstrained typ'
+  else
+    TC.return @@ Ast.Statement.ReadRegister identifier
+
+
 let statement_of_lvar
     (identifier : Ast.Identifier.t     )
     (lvar       : S.typ S.Ast_util.lvar)
@@ -104,7 +123,7 @@ let statement_of_lvar
       in
       TC.return @@ Ast.Statement.Expression expression
     end
-  | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
+  | Register typ -> statement_of_register_read identifier typ
   | Enum _       -> TC.not_yet_implemented [%here] location
   | Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -302,12 +321,14 @@ let rec expression_of_aval
           in
           TC.generate_unique_identifier ~prefix ()
         in
+        let* statement = statement_of_register_read id' typ
+        in
         let named_statements : named_statement list =
           [
             {
               identifier = unique_id;
               typ        = typ';
-              statement  = Ast.Statement.ReadRegister id';
+              statement;
             }
           ]
         in
@@ -1009,6 +1030,43 @@ let rec statement_of_aexp
         end
     in
 
+    (*
+       A call to a function that the configuration excludes (exclude-functions-as-no-op and the like):
+       the arguments are computed, and the call is replaced as the configuration says.
+    *)
+    let statement_of_excluded_function_call (exclusion : Configuration.FunctionExclusion.t) : Ast.Statement.t TC.t =
+      let receiver_name = Libsail.Ast_util.string_of_id receiver_identifier
+      in
+      let* result_type = translate_return_type typ
+      in
+      match exclusion with
+      | NoOp -> begin
+          match Ast.Type.strip_aliases result_type with
+          | Unit -> TC.return @@ wrap @@ Ast.Statement.Expression (Value Unit)
+          | Int _ | Bool | String | Bit | List _ | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Record _ | Variant _
+          | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> begin
+              let message =
+                Printf.sprintf
+                  "%s is excluded by %s, but this call to it has type %s instead of unit"
+                  receiver_name
+                  (Configuration.FunctionExclusion.slang_function_name exclusion)
+                  (Ast.Type.to_string result_type)
+              in
+              TC.fail [%here] message
+            end
+        end
+      | Failure -> begin
+          let message =
+            Printf.sprintf "%s is excluded by the configuration" receiver_name
+          in
+          TC.return @@ wrap @@ Ast.Statement.Fail (result_type, message)
+        end
+      | Unconstrained -> TC.return @@ wrap @@ Ast.Statement.Unconstrained result_type
+    in
+
+    match Configuration.function_exclusion (Libsail.Ast_util.string_of_id receiver_identifier) with
+    | Some exclusion -> statement_of_excluded_function_call exclusion
+    | None ->
     match Ast.Identifier.to_string receiver_identifier' with
     | "sail_cons" -> statement_of_binary_operation Cons
     | "add_atom"  -> statement_of_binary_operation Plus
@@ -1180,7 +1238,25 @@ let rec statement_of_aexp
         in
         let* is_register = TC.is_register id_in_lhs
         in
-        if is_register
+        if
+          Configuration.is_excluded_register (Ast.Identifier.to_string id_in_lhs)
+        then begin
+          (*
+             The register is excluded by the configuration (exclude-registers):
+             the written value is computed, but not written anywhere.
+
+               r1 = expr
+
+             becomes
+
+               expr;
+               ()
+          *)
+          let* translated_rhs = statement_of_aexp None rhs
+          in
+          TC.return @@ Ast.Statement.Seq (translated_rhs, Expression (Value Unit))
+        end
+        else if is_register
         then begin
           (*
                r1 = expr
@@ -1977,6 +2053,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | WriteRegister _       -> statement
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
+    | Unconstrained _       -> statement
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement

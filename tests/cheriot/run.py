@@ -22,7 +22,8 @@ The run has these stages; a stage that fails ends the run.
                 blamed on the plugin
     scope       unless --no-scope: compute the CHERIoT core from scope.toml and the
                 call graph of the rewritten model (lib/scope.py), and write the
-                configuration that ignores everything else (scope-ignores.lisp).
+                configuration that ignores everything else, and removes the policy
+                exclusions together with their uses (scope-ignores.lisp).
                 The call graph needs Sail's AST dump after the rewrites, which is
                 cached (see DUMP_CACHE below); without it, a Sail run that only
                 makes the dump takes about 20 s.
@@ -379,7 +380,8 @@ def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_v
         stage.summary = str(error)
         return stage, None, None
     graph = callgraph.CallGraph.from_dump(dump)
-    result = scope.compute(graph, scope_file, instruction_sources)
+    result = scope.compute(graph, scope_file, instruction_sources,
+                           scope.declarations(dump.read_text(errors='replace')))
     (sandbox / SCOPE_INCLUDE).write_text(scope.configuration(result))
     (sandbox / 'scope.json').write_text(json.dumps({
         'instructions': result.instructions,
@@ -387,6 +389,7 @@ def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_v
         'values': sorted(result.nodes & graph.values),
         'excluded_functions': sorted(result.excluded_functions),
         'excluded_values': sorted(result.excluded_values),
+        'policy_excluded': dict(sorted(result.policy.items())),
         'warnings': result.warnings,
     }, indent=1) + '\n')
     stage.ok = True
@@ -487,7 +490,7 @@ def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str
         blockers = progress.instruction_blockers(graph, in_scope, statuses, calls)
         result['instructions']['clean'] = sum(1 for found in blockers.values() if not found)
         result['blockers'] = progress.blocker_ranking(blockers)
-        snapshot = progress.snapshot(statuses, holes, blockers, rocq_results, identity)
+        snapshot = progress.snapshot(statuses, holes, blockers, rocq_results, identity, in_scope.policy)
         snapshot['headline'] = metrics.headline(result)
         (sandbox / 'progress.json').write_text(json.dumps({**snapshot, 'blockers': blockers}, indent=1) + '\n')
     stage.ok = not problems

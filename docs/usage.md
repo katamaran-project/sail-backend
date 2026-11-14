@@ -238,6 +238,34 @@ These names are ignored whether the predicates are set before or after, and each
 The CHERIoT loop (`tests/cheriot/run.py`) uses them to ignore everything outside its scope.
 See `tests/coq-tests/ignore-functions-by-name`.
 
+### Excluding definitions together with their uses
+
+Ignoring a function only drops its definition: its callers still call it, so they refer to a function that `machine.v` does not define.
+*Excluding* a definition drops it and also rewrites every use of it. The configuration says what a use becomes:
+
+```lisp
+(exclude-functions-as-no-op '("print_reg" "trace_write"))   ; a call becomes the unit value
+(exclude-functions-as-failure '("translate32"))             ; a call becomes stm_fail
+(exclude-functions-as-unconstrained '("pmp_allows"))        ; a call becomes an unconstrained value
+(exclude-registers '("pmpaddr0" "pmpcfg_n"))                 ; left out of Reg
+```
+
+- **No-op**: each call becomes the unit value `stm_exp (exp_val ty.unit tt)`. Only for functions that return `unit`, such as printing and tracing.
+  A call to such a function that has another type stops the translation with an error.
+- **Failure**: each call becomes `stm_fail τ "f is excluded by the configuration"`, for code that must be unreachable.
+  Whether a failure is harmless depends on Katamaran's `fail_rule_pre`: when it is false, a contract must show that the failure cannot happen.
+- **Unconstrained**: each call becomes an unconstrained value of the call's type τ, `stm_foreign (unconstrained τ) env.nil`.
+  The generated program declares one foreign function family, `unconstrained (σ : Ty) : FunX ctx.nil σ`, whose `ForeignCall` semantics allows every value of σ, never fails, and leaves registers and memory unchanged.
+  A proof about a caller must therefore hold for every value the call could return: the value is universally quantified, as undefined values are.
+  The result does not depend on the arguments, and two calls can return different values. The arguments are still computed.
+  (`unconstrained` has an implicit argument, a value of σ, which Rocq finds by type class search. It only shows that σ has a value, which `ForeignProgress` needs; it plays no part in the semantics.)
+- **Registers**: an excluded register is left out of `Reg`. Each read of it becomes an unconstrained value of its type, as above, and each write a no-op (the written value is still computed).
+
+An excluded function's definition and its `val` specification are not translated, as with `ignore-functions`.
+The names are Sail's names. Each call adds to the names of earlier calls; excluding the same function in two different ways is an error.
+The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` (`docs/cheriot-loop.md` §4.2).
+See the `tests/coq-tests/exclude-*` tests.
+
 ### `$include`
 
 ```lisp

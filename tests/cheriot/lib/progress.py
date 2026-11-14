@@ -125,10 +125,12 @@ def compare_rocq(old: dict[str, Any], new: dict[str, Any]) -> Optional[str]:
 
 
 def snapshot(statuses: dict[str, str], holes: dict[str, int], blockers: dict[str, list[str]],
-             compilations: Optional[dict[str, Any]], identity: dict[str, Any]) -> Snapshot:
+             compilations: Optional[dict[str, Any]], identity: dict[str, Any],
+             policy: Optional[dict[str, str]] = None) -> Snapshot:
     return {
         **identity,
         'definitions': statuses,
+        'policy_excluded': dict(sorted((policy or {}).items())),
         'holes': holes,
         'clean_instructions': sorted(f for f, found in blockers.items() if not found),
         'instructions': sorted(blockers),
@@ -169,10 +171,23 @@ def compare(baseline: Snapshot, current: Snapshot) -> Comparison:
             elif new_holes < old_holes:
                 comparison.improvements.append(f'{name}: {old_holes} -> {new_holes} NYI holes')
     entered, left = sorted(after.keys() - before.keys()), sorted(before.keys() - after.keys())
+    policy_before, policy_after = baseline.get('policy_excluded', {}), current.get('policy_excluded', {})
+    newly_excluded = sorted(policy_after.keys() - policy_before.keys())
+    no_longer_excluded = sorted(policy_before.keys() - policy_after.keys())
+    if newly_excluded:
+        comparison.notes.append(f'{len(newly_excluded)} definitions newly policy-excluded: '
+                                + ', '.join(f'{name} ({policy_after[name]})' for name in newly_excluded[:10]))
+    if no_longer_excluded:
+        comparison.notes.append(f'{len(no_longer_excluded)} definitions no longer policy-excluded: {", ".join(no_longer_excluded[:10])}')
     if entered:
         comparison.notes.append(f'{len(entered)} definitions entered the scope: {", ".join(entered[:10])}')
-    if left:
-        comparison.notes.append(f'{len(left)} definitions left the scope: {", ".join(left[:10])}')
+    left_by_policy = [name for name in left if name in policy_after]
+    left_otherwise = [name for name in left if name not in policy_after]
+    if left_by_policy:
+        comparison.notes.append(f'{len(left_by_policy)} definitions left the scope because they are policy-excluded: '
+                                f'{", ".join(left_by_policy[:10])}')
+    if left_otherwise:
+        comparison.notes.append(f'{len(left_otherwise)} definitions left the scope: {", ".join(left_otherwise[:10])}')
     clean_before, clean_after = set(baseline['clean_instructions']), set(current['clean_instructions'])
     common = set(baseline['instructions']) & set(current['instructions'])
     comparison.regressions += [f'{f}: no longer clean' for f in sorted((clean_before - clean_after) & common)]

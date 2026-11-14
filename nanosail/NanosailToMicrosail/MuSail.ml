@@ -304,6 +304,16 @@ module Statement = struct
     Coq.pp_application (PP.string "stm_fail") [ PP.(surround parens) typ; message ]
 
 
+  (* A call to the foreign function that produces an unconstrained value of the given type *)
+  let pp_unconstrained (typ : PP.t) : PP.t =
+    Coq.pp_application
+      (PP.string "stm_foreign")
+      [
+        PP.(surround parens) @@ Coq.pp_application (PP.string "unconstrained") [ PP.(surround parens) typ ];
+        PP.string "env.nil"
+      ]
+
+
   let pp_assert
         ~(condition : PP.t)
         ~(message   : PP.t) : PP.t

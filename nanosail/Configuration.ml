@@ -30,6 +30,35 @@ type sum_union =
   }
 
 
+(*
+   What the uses of a function that the configuration excludes become.
+   See the Slang functions exclude-functions-as-no-op, exclude-functions-as-failure
+   and exclude-functions-as-unconstrained below.
+*)
+module FunctionExclusion = struct
+  type t =
+    | NoOp            (* a call becomes the unit value; only for functions returning unit *)
+    | Failure         (* a call becomes stm_fail: the call must be unreachable *)
+    | Unconstrained   (* a call becomes an unconstrained value of the call's type *)
+
+  let equal (x : t) (y : t) : bool =
+    match x, y with
+    | NoOp         , NoOp          -> true
+    | Failure      , Failure       -> true
+    | Unconstrained, Unconstrained -> true
+    | NoOp         , (Failure | Unconstrained)
+    | Failure      , (NoOp | Unconstrained)
+    | Unconstrained, (NoOp | Failure)          -> false
+
+  (* The name of the Slang function that selects this exclusion *)
+  let slang_function_name (exclusion : t) : string =
+    match exclusion with
+    | NoOp          -> "exclude-functions-as-no-op"
+    | Failure       -> "exclude-functions-as-failure"
+    | Unconstrained -> "exclude-functions-as-unconstrained"
+end
+
+
 module Implementation = struct
   include ConfigLib.BuildContext.Make(struct end)
 
@@ -279,6 +308,13 @@ module Implementation = struct
     let ignored_function_names                     = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
     let ignored_value_names                        = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
 
+    (*
+       Definitions removed together with their uses;
+       see the Slang functions exclude-functions-as-no-op, ..., and exclude-registers below.
+    *)
+    let excluded_functions                         = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : FunctionExclusion.t Base.Map.M(Base.String).t)
+    let excluded_registers                         = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
@@ -408,6 +444,73 @@ module Implementation = struct
     in
     export_name_adder "ignore-functions" Exported.ignored_function_names;
     export_name_adder "ignore-values"    Exported.ignored_value_names
+
+
+  (*
+     Slang functions that exclude definitions together with their uses.
+     Ignoring a function (ignore-functions) only drops its definition, so that its callers
+     call a function that no longer exists. Excluding it also rewrites every call to it:
+
+       (exclude-functions-as-no-op '("f" "g"))
+         Each call becomes the unit value. Only for functions that return unit,
+         such as printing and tracing; a call to one that returns something else is an error.
+
+       (exclude-functions-as-failure '("f"))
+         Each call becomes a failure (muSail's stm_fail), for code that must be unreachable.
+
+       (exclude-functions-as-unconstrained '("f"))
+         Each call becomes an unconstrained value of the call's type: a call to the foreign
+         function (unconstrained σ) of the generated program, whose semantics allows every
+         value of σ, and leaves registers and memory unchanged. A proof about a caller must then
+         hold for every value the call could return: the value is universally quantified.
+         The arguments are still computed, but the result does not depend on them.
+
+       (exclude-registers '("r"))
+         Leaves the register r out of Reg. Each read of r becomes an unconstrained value of its
+         type (as above), each write to r a no-op (the written value is still computed).
+
+     An excluded function's definition and its val specification are left out, as with
+     ignore-functions. A function excluded in two different ways is an error.
+     Each call adds to the names of earlier calls.
+     The names are Sail's names, as in ignore-functions.
+  *)
+  let () =
+    let export_function_excluder (exclusion : FunctionExclusion.t) : unit =
+      export_strict_function (FunctionExclusion.slang_function_name exclusion) @@ fun evaluated_arguments -> begin
+        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+        in
+        let add
+            (excluded : FunctionExclusion.t Base.Map.M(Base.String).t)
+            (name     : string                                     ) : FunctionExclusion.t Base.Map.M(Base.String).t
+          =
+          match Base.Map.find excluded name with
+          | None                    -> Base.Map.set excluded ~key:name ~data:exclusion
+          | Some earlier_exclusion  -> begin
+              if FunctionExclusion.equal earlier_exclusion exclusion
+              then excluded
+              else begin
+                let message =
+                  Printf.sprintf
+                    "Error: %s is excluded twice, by %s and by %s"
+                    name
+                    (FunctionExclusion.slang_function_name earlier_exclusion)
+                    (FunctionExclusion.slang_function_name exclusion)
+                in
+                failwith message
+              end
+            end
+        in
+        ConfigLib.Setting.update Exported.excluded_functions ~f:(fun excluded -> List.fold names ~init:excluded ~f:add)
+      end
+    in
+    export_function_excluder NoOp;
+    export_function_excluder Failure;
+    export_function_excluder Unconstrained;
+    export_strict_function "exclude-registers" @@ fun evaluated_arguments -> begin
+      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+      in
+      ConfigLib.Setting.update Exported.excluded_registers ~f:(fun excluded -> Base.Set.union excluded (Base.Set.of_list (module Base.String) names))
+    end
 
 
   (*
@@ -547,10 +650,29 @@ let set                = ConfigLib.Setting.set
    selects it, or it is one of the names given to ignore-functions or ignore-values.
 *)
 let should_ignore_function_definition (identifier : string) : bool =
-  get ignore_function_definition_predicate identifier || Base.Set.mem (get ignored_function_names) identifier
+  get ignore_function_definition_predicate identifier
+  || Base.Set.mem (get ignored_function_names) identifier
+  || Base.Map.mem (get excluded_functions) identifier
 
 let should_ignore_top_level_type_constraint (identifier : string) : bool =
-  get ignore_top_level_type_constraint_predicate identifier || Base.Set.mem (get ignored_function_names) identifier
+  get ignore_top_level_type_constraint_predicate identifier
+  || Base.Set.mem (get ignored_function_names) identifier
+  || Base.Map.mem (get excluded_functions) identifier
 
 let should_ignore_value_definition (identifier : string) : bool =
   get ignore_value_definition_predicate identifier || Base.Set.mem (get ignored_value_names) identifier
+
+
+(*
+   How the uses of the function with the given (Sail) name are translated,
+   if the configuration excludes it; see exclude-functions-as-no-op and the like.
+*)
+let function_exclusion (identifier : string) : FunctionExclusion.t option =
+  Base.Map.find (get excluded_functions) identifier
+
+
+(*
+   Whether the configuration excludes the register with the given (Sail) name; see exclude-registers.
+*)
+let is_excluded_register (identifier : string) : bool =
+  Base.Set.mem (get excluded_registers) identifier
