@@ -15,7 +15,7 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `b2604dd0` plus monomorphic copies of unions with type parameters (P02); cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `045edc96` plus tuple abbreviations as Rocq product types and `_value` names for values that share a name with a type; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -26,8 +26,8 @@ An instruction is *clean* when everything it reaches translates without holes an
 | `NYI` holes | 23 |
 | hard failures | 0 |
 | calls to missing functions | 1495: extern 1283, untranslated 110, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:1604`, in `Definition ext_control_addr_error := CapEx * capreg_idx`: `CapEx` has type `Set` but `nat` was expected (`*` is read in `nat_scope`) |
-| Rocq, probe (`NYI` as an axiom) | the same; 222 of 553 definitions before it |
+| Rocq, plain | `base.v:1734`, in `Record TLB_Entry`: `The reference kid__asidlen was not found` (a struct with `Int` parameters, Sv32 only) |
+| Rocq, probe (`NYI` as an axiom) | the same; 258 of 553 definitions before it |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -56,7 +56,10 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | P06 | `CSpecialRW`, `LoadCapImm` | assignment to a mutable local variable (`var`) |
 | P07 | `CJALR` | register reference |
 
-**Rocq:** `base.v` now stops at `Definition ext_control_addr_error := CapEx * capreg_idx`, a type abbreviation of a tuple, where Rocq reads `*` as multiplication of `nat`s.
+**Rocq:** `base.v` now stops at `Record TLB_Entry`, the Sv32 TLB entry, a struct with `Int` parameters (virtual memory, out of scope).
+Type abbreviations of tuples are now `(CapEx * capreg_idx)%type` (Rocq read `*` as multiplication of `nat`s).
+CHERIoT's constants defined both as a type and as a value (`type cap_addr_width : Int = xlen`, `let cap_addr_width = sizeof(cap_addr_width)`; 10 names) no longer clash:
+the type keeps its name, which Rocq types use (`bv (cap_addr_width + 1)`), and the value's definition is `cap_addr_width_value`, which µSail code uses (`exp_val ty.int cap_addr_width_value`).
 Unions with type parameters (P02) are now translated to one monomorphic union for each closed type argument that the translated code uses (15 copies):
 `AccessType`, `Ext_FetchAddr_Check`, `Ext_ControlAddr_Check`, `Ext_DataAddr_Check` and `PTW_Result` are used at one type and keep Sail's names;
 `MemoryOpResult` (8 copies, e.g. `MemoryOpResult_bool`, `MemoryOpResult_bits_32`) and `TR_Result` (2) get the type argument as suffix of the union and constructor names (`MemValue_bool`).
@@ -70,7 +73,6 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 
 **All piles in scope** (before P02), by definitions affected: P13 size-polymorphic functions 55, P02 31, P15 casts 24, P09 mappings 16, P07 9, P01 6, P11 4, P14 6, P05 5, P06 5, P10 4, P03 3; and 1 not in a pile (`match` on `bool`).
 
-**Known problem, not yet visible in Rocq:** CHERIoT defines constants twice, as a type and as a value (`type cap_addr_width : Int = xlen` and `let cap_addr_width = sizeof(cap_addr_width)`); both become a Rocq `Definition` with the same name in `base.v` (10 names, 9 of them before P08). Rocq will reject the second one once it gets past the P02 types.
 
 ## History
 
@@ -87,6 +89,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `2a85f662`+ | core | 52 / 61, 1 clean | 571 / 647 | 77 | 34 | 0 | `AccessType` (69 of 529) | P11: integer types with an `if` erased to `int` (`CGetLen`, `CGetTop`); `range` is `Z` in Rocq, so the `CapAddrInt`/`CapLen` stopgap is gone |
 | 2026-11-14 | `f70c64eb`+ | core | 52 / 61, 1 clean | 571 / 647 | 77 | 30 | 0 | `AccessType` (69 of 529) | P01: `truncate(X @ zeros(E), w)` with run-time `E` rewritten to a shift; run-time shift amounts; native `truncate`; `getCapBoundsBits` has no holes |
 | 2026-11-14 | `b2604dd0`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `ext_control_addr_error` (222 of 553) | P02: a monomorphic copy of each union with type parameters per closed type argument (15 copies); `StoreCapImm` generated; 7 size-polymorphic memory reads (P13) now untranslated instead of ill-typed |
+| 2026-11-14 | `045edc96`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 553) | tuple abbreviations are `(A * B)%type`; a value that shares its name with a type is `<name>_value` in Rocq (10 CHERIoT constants) |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

@@ -44,11 +44,35 @@ let rec pp_value (value : Ast.Value.t) : PP.t GC.t =
     end
 
 
+(*
+   Name of the Rocq definition of a top-level value (a Sail let).
+
+   Sail has separate namespaces for types and values, Rocq has one.
+   CHERIoT defines constants twice, as a type and as a value of the same name:
+
+     type cap_addr_width : Int = xlen
+     let cap_addr_width = sizeof(cap_addr_width)
+
+   The type keeps its name, because types refer to it (bv (cap_addr_width + 1)),
+   and the value's definition gets the suffix _value (cap_addr_width_value).
+   Values that share no name with a type keep their name.
+*)
+let rocq_name_of_top_level_value (identifier : Ast.Identifier.t) : Ast.Identifier.t GC.t =
+  let* type_definition =
+    GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ type_definition @@ of_anything_named identifier)
+  in
+  match type_definition with
+  | Some _ -> GC.return @@ Ast.Identifier.add_suffix "_value" identifier
+  | None   -> GC.return identifier
+
+
 let pp_value_definition (value_definition : Ast.Definition.Value.t) : PP.t GC.t =
   GC.block begin
       let { identifier; value } : Ast.Definition.Value.t = value_definition
       in
       let definition =
+        let* identifier = rocq_name_of_top_level_value identifier
+        in
         let identifier = PP.annotate [%here] @@ Identifier.pp identifier
         in
         let* body = pp_value value

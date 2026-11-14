@@ -124,10 +124,11 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
       (typ        : Ast.Type.t      ) : PP.t GC.t
     =
     let* pp_value_type = Type.pp_type typ
+    and* rocq_name     = ValueDefinitions.rocq_name_of_top_level_value identifier
     in
     GC.return begin
       PP.annotate [%here] begin
-        MuSail.Expression.pp_value ~typ:pp_value_type ~value:(Identifier.pp identifier)
+        MuSail.Expression.pp_value ~typ:pp_value_type ~value:(Identifier.pp rocq_name)
       end
     end
 
