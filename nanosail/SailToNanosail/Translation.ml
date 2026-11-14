@@ -60,6 +60,112 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_pragma (identifier, _)        -> should_ignore_pragma identifier
 
 
+(*
+   Runs the translation of a definition and stores its result.
+   A NotYetImplemented or Failure error makes it an untranslated definition.
+*)
+let translate_with_recovery
+    (sail_definition : Sail.sail_definition      )
+    (translation     : Ast.Definition.t TC.t     ) : (Sail.sail_definition * Ast.Definition.t) TC.t
+  =
+  let S.DEF_aux (_, annotation) = sail_definition
+  in
+  let translation =
+    let* result : Ast.Definition.t = translation
+    in
+    let* () = TC.store_definition result
+    in
+    (* print the definition's nanosail ast if the configuration says
+      so. *)
+    let () =
+      if Configuration.(get dump_nanosail_ast)
+        then Stdio.printf "Nanosail AST of a Sail definition:\n%s\n" (FExpr.to_string (Ast.Definition.to_fexpr result))
+        else ()
+    in
+    TC.return (sail_definition, result)
+  in
+  TC.recover translation begin fun error ->
+    match error with
+    | NotYetImplemented (ocaml_location, sail_location, message) -> begin
+        let untranslated_definition = Ast.Definition.UntranslatedDefinition
+            {
+              filename      = ocaml_location.pos_fname;
+              line_number   = ocaml_location.pos_lnum ;
+              sail_location                           ;
+              message                                 ;
+            }
+        in
+        TC.return (sail_definition, untranslated_definition)
+      end
+    | Failure (ocaml_location, message) -> begin
+        let location_string =
+          Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
+        and pretty_printed_sail_code =
+          PP.string @@ StringOf.Sail.definition sail_definition
+        in
+        let* () =
+          let message = lazy begin
+            let open PP
+            in
+            vertical [
+              format "Assertion error at %s" location_string;
+              horizontal [ string "Message: "; string message ];
+              horizontal [ string "Sail code: "; pretty_printed_sail_code ];
+            ]
+          end
+          in
+          TC.log [%here] Logging.error message
+        in
+        let untranslated_definition = Ast.Definition.UntranslatedDefinition
+            {
+              filename      = ocaml_location.pos_fname;
+              line_number   = ocaml_location.pos_lnum ;
+              sail_location = annotation.loc          ;
+              message       = Some message            ;
+            }
+        in
+        TC.return (sail_definition, untranslated_definition)
+      end
+  end
+
+
+(*
+   Is the definition that of a union with type parameters that is translated to monomorphic copies?
+*)
+let is_specialised_union (sail_definition : Sail.sail_definition) : bool TC.t =
+  let S.DEF_aux (unwrapped_sail_definition, _annotation) = sail_definition
+  in
+  let* union_instances = TC.union_instances
+  in
+  match unwrapped_sail_definition with
+  | DEF_type (TD_aux (type_definition, _)) -> begin
+      match type_definition with
+      | TD_variant (identifier, _, _, _) -> TC.return @@ UnionInstances.is_specialised union_instances (Ast.Identifier.mk @@ Libsail.Ast_util.string_of_id identifier)
+      | TD_abbrev (_, _, _)              -> TC.return false
+      | TD_record (_, _, _, _)           -> TC.return false
+      | TD_enum (_, _, _)                -> TC.return false
+      | TD_bitfield (_, _, _)            -> TC.return false
+      | TD_abstract (_, _, _)            -> TC.return false
+    end
+  | DEF_fundef _               -> TC.return false
+  | DEF_mapdef _               -> TC.return false
+  | DEF_impl _                 -> TC.return false
+  | DEF_let (_, _)             -> TC.return false
+  | DEF_val _                  -> TC.return false
+  | DEF_outcome (_, _)         -> TC.return false
+  | DEF_instantiation (_, _)   -> TC.return false
+  | DEF_fixity (_, _, _)       -> TC.return false
+  | DEF_overload (_, _)        -> TC.return false
+  | DEF_default _              -> TC.return false
+  | DEF_scattered _            -> TC.return false
+  | DEF_measure (_, _, _)      -> TC.return false
+  | DEF_loop_measures (_, _)   -> TC.return false
+  | DEF_register _             -> TC.return false
+  | DEF_internal_mutrec _      -> TC.return false
+  | DEF_constraint _           -> TC.return false
+  | DEF_pragma (_, _)          -> TC.return false
+
+
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let pp_sail_definition : PP.t =
     PP.string @@ StringOf.Sail.definition sail_definition
@@ -75,6 +181,8 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
   TC.translation_block [%here] label begin
     let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
     in
+    let* specialised_union = is_specialised_union sail_definition
+    in
     if
       should_ignore_definition sail_definition
     then
@@ -89,85 +197,86 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
         TC.log [%here] Logging.info message
       in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
+    else if
+      specialised_union
+    then
+      (* The union is translated to its monomorphic copies, which are emitted separately (see UnionInstances) *)
+      TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
-      let translation =
-        let* result : Ast.Definition.t =
-          match unwrapped_sail_definition with
-          | DEF_type type_definition                 -> Translate.TypeDefinition.translate_type_definition annotation type_definition
-          | DEF_let (pattern, expression)            -> Translate.ValueDefinition.translate_value_definition annotation pattern expression
-          | DEF_val value_specification              -> Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
-          | DEF_register specification               -> Translate.Register.translate_register annotation specification
-          | DEF_fundef function_definition           -> Translate.Function.translate_function_definition sail_definition annotation function_definition
-          | DEF_pragma (pragma, _argument)           -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] annotation.loc
-          | DEF_fixity (_, _, _)                     -> TC.return Ast.Definition.IgnoredDefinition
-          | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_overload (_, _)                      -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_default _                            -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_scattered _                          -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_measure (_, _, _)                    -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_loop_measures (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
-          | DEF_constraint _                         -> TC.not_yet_implemented [%here] annotation.loc
-        in
-        let* () = TC.store_definition result
-        in
-        (* print the definition's nanosail ast if the configuration says
-          so. *)
-        let () =
-          if Configuration.(get dump_nanosail_ast)
-            then Stdio.printf "Nanosail AST of a Sail definition:\n%s\n" (FExpr.to_string (Ast.Definition.to_fexpr result))
-            else ()
-        in
-        TC.return (sail_definition, result)
-      in
-      TC.recover translation begin fun error ->
-        match error with
-        | NotYetImplemented (ocaml_location, sail_location, message) -> begin
-            let untranslated_definition = Ast.Definition.UntranslatedDefinition
-                {
-                  filename      = ocaml_location.pos_fname;
-                  line_number   = ocaml_location.pos_lnum ;
-                  sail_location                           ;
-                  message                                 ;
-                }
-            in
-            TC.return (sail_definition, untranslated_definition)
-          end
-        | Failure (ocaml_location, message) -> begin
-            let location_string =
-              Printf.sprintf "%s line %d" ocaml_location.pos_fname ocaml_location.pos_lnum
-            and pretty_printed_sail_code =
-              PP.string @@ StringOf.Sail.definition sail_definition
-            in
-            let* () =
-              let message = lazy begin
-                let open PP
-                in
-                vertical [
-                  format "Assertion error at %s" location_string;
-                  horizontal [ string "Message: "; string message ];
-                  horizontal [ string "Sail code: "; pretty_printed_sail_code ];
-                ]
-              end
-              in
-              TC.log [%here] Logging.error message
-            in
-            let untranslated_definition = Ast.Definition.UntranslatedDefinition
-                {
-                  filename      = ocaml_location.pos_fname;
-                  line_number   = ocaml_location.pos_lnum ;
-                  sail_location = annotation.loc          ;
-                  message       = Some message            ;
-                }
-            in
-            TC.return (sail_definition, untranslated_definition)
-          end
+      translate_with_recovery sail_definition begin
+        match unwrapped_sail_definition with
+        | DEF_type type_definition                 -> Translate.TypeDefinition.translate_type_definition annotation type_definition
+        | DEF_let (pattern, expression)            -> Translate.ValueDefinition.translate_value_definition annotation pattern expression
+        | DEF_val value_specification              -> Translate.TopLevelTypeConstraint.translate_top_level_type_constraint annotation value_specification
+        | DEF_register specification               -> Translate.Register.translate_register annotation specification
+        | DEF_fundef function_definition           -> Translate.Function.translate_function_definition sail_definition annotation function_definition
+        | DEF_pragma (pragma, _argument)           -> TC.not_yet_implemented ~message:("pragma " ^ pragma) [%here] annotation.loc
+        | DEF_fixity (_, _, _)                     -> TC.return Ast.Definition.IgnoredDefinition
+        | DEF_outcome (_, _)                       -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_impl _                               -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_mapdef _                             -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_instantiation (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_overload (_, _)                      -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_default _                            -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_scattered _                          -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_measure (_, _, _)                    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_loop_measures (_, _)                 -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_internal_mutrec _                    -> TC.not_yet_implemented [%here] annotation.loc
+        | DEF_constraint _                         -> TC.not_yet_implemented [%here] annotation.loc
       end
     end
   end
+
+
+(*
+   Translates a monomorphic copy of a union with type parameters (see UnionInstances).
+   It is paired with the Sail definition of the union.
+*)
+let translate_union_instance (instance : UnionInstances.Instance.t) : (Sail.sail_definition * Ast.Definition.t) list TC.t =
+  let* union_instances = TC.union_instances
+  in
+  match UnionInstances.union_definition union_instances instance with
+  | None -> TC.return []
+  | Some sail_definition -> begin
+      let label =
+        PP.vertical [
+          PP.string "Processing definition";
+          PP.indent @@ PP.string @@ "copy of union " ^ UnionInstances.Instance.to_string instance
+        ]
+      in
+      TC.translation_block [%here] label begin
+        let* result =
+          translate_with_recovery sail_definition begin
+            let constructors =
+              let make_constructor ((S.Tu_aux (Tu_ty_id (_, sail_identifier), annotation)), field_type, identifier) =
+                let S.Id_aux (_, location) = sail_identifier
+                in
+                S.Tu_aux (Tu_ty_id (field_type, S.Id_aux (S.Id (Ast.Identifier.to_string identifier), location)), annotation)
+              in
+              List.map ~f:make_constructor instance.constructors
+            in
+            let* variant = Translate.Variant.translate_regular_variant instance.identifier (Ast.TypeQuantifier.TypeQuantifier []) constructors
+            in
+            TC.return @@ Ast.Definition.TypeDefinition variant
+          end
+        in
+        TC.return [ result ]
+      end
+    end
+
+
+(*
+   Translates a definition, followed by the monomorphic copies of unions that are emitted after it.
+*)
+let translate_indexed_definition ((index, sail_definition) : int * Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) list TC.t =
+  let* translated = translate_definition sail_definition
+  in
+  let* union_instances = TC.union_instances
+  in
+  let* copies = TC.map ~f:translate_union_instance (UnionInstances.instances_after union_instances index)
+  in
+  TC.return @@ translated :: List.concat copies
+
 
 (*
    Evaluates all top-level lets with Sail's interpreter, which is what Sail's constant folding uses.
@@ -272,6 +381,24 @@ let translate
     in
     let* () = TC.set_evaluated_top_level_values (evaluate_top_level_lets ast env)
     in
+    let* () =
+      let is_sum (identifier : Ast.Identifier.t) : bool =
+        Option.is_some (Configuration.sum_union_for identifier)
+      in
+      TC.set_union_instances (UnionInstances.collect ast.defs env should_ignore_definition is_sum)
+    in
+    let* () =
+      let* union_instances = TC.union_instances
+      in
+      let message = lazy begin
+        PP.vertical [
+          PP.string "Monomorphic copies of unions with type parameters";
+          PP.indent @@ PP.vertical @@ List.map ~f:(fun instance -> PP.string @@ UnionInstances.Instance.to_string instance) (UnionInstances.instances union_instances)
+        ]
+      end
+      in
+      TC.log [%here] Logging.info message
+    in
     (* the translation block just adds "entering" and "exiting" lines in
        the log. *)
     TC.translation_block
@@ -280,7 +407,7 @@ let translate
       (* pair up each sail definition in the list with its nanosail
          definition.  thread the list of these computations monadically
          into one translation context. *)
-      (TC.map ~f:translate_definition ast.defs)
+      (TC.lift ~f:List.concat @@ TC.map ~f:translate_indexed_definition (List.mapi ast.defs ~f:(fun index definition -> (index, definition))))
   in
   (* run the context we built. it's a monadic Result with
      - a list of sail definition - nanosail definition pairs

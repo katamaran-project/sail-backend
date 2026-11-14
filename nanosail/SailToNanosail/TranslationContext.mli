@@ -34,6 +34,8 @@ val lookup_definition              : (Ast.Definition.t, 'a) Ast.Definition.Selec
 val lookup_definition_opt          : (Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t
 val set_evaluated_top_level_values   : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t -> unit t
 val lookup_evaluated_top_level_value : Libsail.Ast.id -> (Libsail.Ast.value, string) Result.t option t
+val set_union_instances              : UnionInstances.t -> unit t
+val union_instances                  : UnionInstances.t t
 val with_locally_bound_identifiers   : Ast.Identifier.Set.t -> 'a t -> 'a t
 val refers_to_top_level_value        : Ast.Identifier.t -> bool option t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
