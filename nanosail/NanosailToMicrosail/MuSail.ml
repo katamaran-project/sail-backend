@@ -267,14 +267,16 @@ module Expression = struct
 
 
   (*
-    exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
+    exp_val (ty.bvec 32) (@Bitvector.bv.ones 32)
+
+    Katamaran's bv.ones n has all n bits set; bv.one is the number 1.
   *)
   let pp_ones_bitvector_using_function (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       let typ =
         Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
       and value =
-        Coq.pp_explicit_application (PP.string "Bitvector.bv.one") [ PP.integer number_of_bits ]
+        Coq.pp_explicit_application (PP.string "Bitvector.bv.ones") [ PP.integer number_of_bits ]
       in
       pp_value ~typ ~value
     end
