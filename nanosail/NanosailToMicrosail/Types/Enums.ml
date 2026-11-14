@@ -52,22 +52,6 @@ let generate_tags (enum_definitions : (Sail.sail_definition * Ast.Definition.Typ
   end
 
 
-let eqdec_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =
-  [ enum_definition.identifier ]
-
-
-let extra_eqdec_identifiers () =
-  [ enums_inductive_type_identifier ]
-
-
-let no_confusion_identifiers_for (enum_definition : Ast.Definition.Type.Enum.t) : Ast.Identifier.t list =
-  [ enum_definition.identifier ]
-
-
-let extra_no_confusion_identifiers () =
-  [ enums_inductive_type_identifier ]
-
-
 let generate_enum_finiteness (enum_definition  : Ast.Definition.Type.Enum.t) =
   let identifier = Identifier.pp @@ enum_definition.identifier
   and type_name  = Identifier.pp @@ enum_definition.identifier
