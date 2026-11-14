@@ -6,9 +6,20 @@ module GC = GenerationContext
 
 
 module rec Expression : sig
-  val pp : Ast.Numeric.Expression.t -> PP.t GC.t
+  val pp          : Ast.Numeric.Expression.t -> PP.t GC.t
+  val pp_argument : Ast.Numeric.Expression.t -> PP.t GC.t
 end = struct
-  let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.t GC.t =
+  (*
+     Precedence levels: 0 for + and -, 1 for *, / and mod, 2 for negation, 3 for 2^.
+     An expression printed at level n is parenthesised if its operator has a lower level.
+  *)
+  let top_level      : int = 0
+  let argument_level : int = 4
+
+  let pp_at_level
+      (initial_level      : int                      )
+      (numeric_expression : Ast.Numeric.Expression.t ) : PP.t GC.t
+    =
     let rec pp level (numexp : Ast.Numeric.Expression.t) : PP.t =
       let parens_if lvl doc =
         if level <= lvl
@@ -16,7 +27,11 @@ end = struct
         else PP.(surround parens) doc
       in
       match numexp with
-      | Constant z -> PP.string (Z.to_string z)
+      | Constant z -> begin
+          if Z.lt z Z.zero
+          then parens_if 2 @@ PP.string (Z.to_string z)
+          else PP.string (Z.to_string z)
+        end
       | BinaryOperation (op, x, y) -> begin
           match op with
           | Add    -> parens_if 0 @@ PP.binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
@@ -68,7 +83,17 @@ end = struct
       else
         GC.return numeric_expression
     in
-    GC.return @@ PP.annotate [%here] @@ pp 0 numeric_expression
+    GC.return @@ PP.annotate [%here] @@ pp initial_level numeric_expression
+
+  let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.t GC.t =
+    pp_at_level top_level numeric_expression
+
+  (*
+     Prints the expression as the argument of a Rocq application,
+     e.g., the width in bv (8 * 8): parenthesised unless it is atomic.
+  *)
+  let pp_argument (numeric_expression : Ast.Numeric.Expression.t) : PP.t GC.t =
+    pp_at_level argument_level numeric_expression
 end
 
 and Constraint : sig

@@ -182,7 +182,7 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
 and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   let coq_type_of_bitvector_type n =
     let* n' =
-      GC.pp_annotate [%here] @@ Numeric.Expression.pp n
+      GC.pp_annotate [%here] @@ Numeric.Expression.pp_argument n
     in
     GC.return begin
       PP.annotate [%here] begin
