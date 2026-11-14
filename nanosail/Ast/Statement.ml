@@ -1224,6 +1224,18 @@ let substitute_numeric_expression_identifier
      statement; does_not_use_x
 *)
 let simplify_unused_let_binder (statement : t) : t =
+  (*
+     A call keeps its let even when the binder is unused: the let's type is what fixes
+     the implicit width arguments of a size-polymorphic callee (zero_extend's result width).
+  *)
+  let rec is_call (statement : t) : bool =
+    match statement with
+    | Call (_, _)                                   -> true
+    | Located (_, statement)                        -> is_call statement
+    | Cast (statement, _)                           -> is_call statement
+    | Match _ | Expression _ | Let _ | DestructureRecord _ | Seq (_, _) | ReadRegister _
+    | WriteRegister _ | AssignVariable _ | Fail (_, _) | Unconstrained _ -> false
+  in
   let rewriter =
     object(self)
       inherit identity_rewriter
@@ -1234,7 +1246,7 @@ let simplify_unused_let_binder (statement : t) : t =
         and body_statement         = self#visit body_statement
         in
         if
-          Identifier.Set.mem (free_variables body_statement) binder
+          Identifier.Set.mem (free_variables body_statement) binder || is_call binding_statement
         then
           Let {
             binder;

@@ -18,7 +18,7 @@ Proof. reflexivity. Qed.
 (* The write to pmpaddr0 computes the written value, and writes nothing *)
 Goal fun_set_addr =
   stm_seq
-    (stm_let "жreg_mstatus_2" (ty.bvec 32) (stm_read_register mstatus)
-       (stm_exp (exp_binop bop.bvadd (exp_var "v") (exp_var "жreg_mstatus_2"))))
+    (stm_let "жreg_mstatus_3" (ty.bvec 32) (stm_read_register mstatus)
+       (stm_exp (exp_binop bop.bvadd (exp_var "v") (exp_var "жreg_mstatus_3"))))
     (stm_exp (exp_val ty.unit tt)).
 Proof. reflexivity. Qed.

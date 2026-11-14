@@ -1369,12 +1369,20 @@ let rec statement_of_aexp
 
              becomes
 
-               expr;
-               ()
+               let x : τ = expr in ()
+
+             The let's type fixes the implicit widths of a size-polymorphic call in expr.
           *)
-          let* translated_rhs = statement_of_aexp None rhs
+          let* rhs_identifier = TC.generate_unique_identifier ()
+          and* translated_rhs = statement_of_aexp None rhs
+          and* rhs_type       = Type.translate_type lhs_type
           in
-          TC.return @@ Ast.Statement.Seq (translated_rhs, Expression (Value Unit))
+          TC.return @@ Ast.Statement.Let {
+            binder                 = rhs_identifier;
+            binding_statement_type = rhs_type;
+            binding_statement      = translated_rhs;
+            body_statement         = Expression (Value Unit);
+          }
         end
         else if is_register
         then begin
