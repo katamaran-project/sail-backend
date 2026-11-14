@@ -8,7 +8,14 @@ Two compilations are useful while the translation is incomplete:
     probe   copies of base.v and machine.v in which NYI is an axiom
             (Axiom NYI : forall {A : Type}, list nat -> A), so that every hole
             type-checks. Its first error is the first *real* problem beyond the
-            holes; that is the progress signal until base.v compiles.
+            holes; that is the progress signal until base.v compiles. The
+            templates' marker for untranslated definitions
+            (Theorem UNTRANSLATED_DEFINITIONS : False. Qed., which always fails)
+            and everything after it are blanked out in the copies: untranslated
+            definitions are holes too, and the probe goes on to machine.v. (After
+            the marker, the template has a comment with the Sail source of the
+            untranslated definitions, which Rocq's lexer need not accept: it reads
+            string literals in comments, and Sail's quotes need not be balanced.)
 
 The first error of a compilation is mapped to the generated definition that
 contains it, and to how many of the file's definitions come before it.
@@ -65,6 +72,9 @@ IMPORT_START = re.compile(r'^\s*(From\s+\S+\s+)?(Require|Import|Export)\b')
 FUN_PREFIX = re.compile(r'^fun_')
 TIMING = re.compile(rb'^Chars (\d+) - (\d+) \[.*\] ([\d.]+) secs')
 NYI_TOKEN = re.compile(r'\bNYI\b')
+UNTRANSLATED_MARKER = 'Theorem UNTRANSLATED_DEFINITIONS : False. Qed.'
+COMMAND_NAME = re.compile(r'^\s*(?:#\[[^\]]*\]\s*)?(?:Program\s+)?(?:Derive\s+[\w ]+?\s+for\s+|'
+                          r'(?:Instance|Theorem|Lemma|Definition|Fixpoint|Inductive|Record)\s+)([^\s:(.]+)')
 
 
 @dataclass
@@ -154,6 +164,10 @@ def probe_source(text: str) -> tuple[str, int, int]:
     Returns the copy, the 1-based line where the prelude starts and the number of lines inserted.
     """
     lines = text.split('\n')
+    marker = next((index for index, line in enumerate(lines) if line.strip() == UNTRANSLATED_MARKER), None)
+    if marker is not None:
+        lines = lines[:marker] + ['(* tests/cheriot: the marker for untranslated definitions and what follows it are left out *)'] + \
+                [''] * (len(lines) - marker - 1)
     at = import_end(lines)
     return '\n'.join(lines[:at] + PROBE_PRELUDE + lines[at:]), at + 1, len(PROBE_PRELUDE)
 
@@ -165,9 +179,12 @@ def original_line(line: int, inserted_at: int, inserted: int) -> int:
     return max(inserted_at, line - inserted)
 
 
-def has_nyi(text: str) -> bool:
-    """Whether a generated file mentions NYI (if not, its probe copy compiles as the file does)."""
-    return NYI_TOKEN.search(text) is not None
+def needs_probe(text: str) -> bool:
+    """
+    Whether the probe copy of a generated file can compile differently from the file: when it
+    mentions NYI or has the marker for untranslated definitions.
+    """
+    return NYI_TOKEN.search(text) is not None or UNTRANSLATED_MARKER in text
 
 
 # --------------------------------------------------------------------------
@@ -200,6 +217,12 @@ def containing_definition(starts: list[tuple[int, str, str]], line: int) -> str:
     """The name of the definition that contains `line`, or ''."""
     containing = [name for number, _, name in starts if number <= line]
     return containing[-1] if containing else ''
+
+
+def command_definition(starts: list[tuple[int, str, str]], line: int, command: str) -> str:
+    """What a command defines or derives (Derive EqDec for T: T), or else the definition that contains it."""
+    match = COMMAND_NAME.match(command)
+    return FUN_PREFIX.sub('', match.group(1)) if match else containing_definition(starts, line)
 
 
 def locate(text: str, line: int, message: str) -> CoqError:
@@ -433,7 +456,7 @@ def compile_file(coqc: str, directory: Path, name: str, stall: float = DEFAULT_S
     def timing(seconds: float, offset: int) -> Timing:
         line, command = command_at(source, offset)
         line = to_original(line)
-        return Timing(round(seconds, 2), line, command, containing_definition(starts, line))
+        return Timing(round(seconds, 2), line, command, command_definition(starts, line, command))
 
     log.write_text(output + (f'\ncoqc was stopped: one command ran longer than {stall:.0f} s\n' if watched.stuck else ''))
     compilation = Compilation(name, watched.exit, watched.seconds,
@@ -442,7 +465,7 @@ def compile_file(coqc: str, directory: Path, name: str, stall: float = DEFAULT_S
         offset, seconds = watched.stuck
         line, command = command_at(source, offset)
         line = to_original(line)
-        compilation.stuck = Stuck(line, command, round(seconds, 1), stall, containing_definition(starts, line))
+        compilation.stuck = Stuck(line, command, round(seconds, 1), stall, command_definition(starts, line, command))
         compilation.error = CoqError(line=line, message=f'stuck: {command} ran longer than {stall:.0f} s',
                                      definition=compilation.stuck.definition)
         return compilation, key
@@ -474,7 +497,7 @@ def compile_both(coqc: str, directory: Path, probe_directory: Path, stall: float
         copy, inserted_at, inserted = probe_source(original)
         (probe_directory / name).write_text(copy)
         alive = {kind: all(c.ok for c in results[kind]) for kind in results}
-        reuse = probe_follows_plain and alive['plain'] and not has_nyi(original)
+        reuse = probe_follows_plain and alive['plain'] and not needs_probe(original)
         jobs: dict[str, Callable[[], tuple[Compilation, str]]] = {}
         if alive['plain']:
             jobs['plain'] = lambda: compile_file(coqc, directory, name, stall, cache=cache,

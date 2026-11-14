@@ -45,6 +45,24 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertEqual(at, 8)
         self.assertTrue(copy.split('\n')[-2].startswith('Definition x'))
 
+    def test_the_untranslated_definitions_marker_and_what_follows_are_left_out(self):
+        text = ('From Katamaran Require Import Base.\n\nDefinition a := 1.\n\nTheorem UNTRANSLATED_DEFINITIONS : False. Qed.\n'
+                '\n(*\n  val f = "unbalanced\n*)\n')
+        copy, _, _ = rocq.probe_source(text)
+        self.assertNotIn('UNTRANSLATED_DEFINITIONS', copy)
+        self.assertNotIn('unbalanced', copy)
+        self.assertIn('Definition a := 1.', copy)
+        self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + len(rocq.PROBE_PRELUDE))
+        self.assertTrue(rocq.needs_probe(text))
+        self.assertFalse(rocq.needs_probe('Definition a := 1.\n'))
+
+    def test_command_definition(self):
+        starts = rocq.definition_starts('Definition a := 1.\nDerive EqDec for T.\n')
+        self.assertEqual(rocq.command_definition(starts, 2, 'Derive EqDec for T.'), 'T')
+        self.assertEqual(rocq.command_definition(starts, 2, '#[export,program] Instance T_finite : Finite T :='), 'T_finite')
+        self.assertEqual(rocq.command_definition(starts, 2, 'Program Instance 𝑹𝑬𝑮_finite : Finite (sigT Reg) :='), '𝑹𝑬𝑮_finite')
+        self.assertEqual(rocq.command_definition(starts, 2, 'Proof.'), 'a')
+
     def test_original_line(self):
         # prelude of 5 lines inserted at line 3: probe lines 3..7 are the prelude, 8 is the old line 3
         self.assertEqual(rocq.original_line(2, 3, 5), 2)

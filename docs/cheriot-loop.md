@@ -69,6 +69,7 @@ The sandbox keeps only the last rewrite dump (all of them take 75 MB; `--keep-du
 
    *Implemented (step 3)* in `lib/rocq.py`. The probe copies are in `probe/`; the prelude
    (`From Stdlib Require Import Lists.List. Import ListNotations.` and the axiom) goes right after the file's imports,
+   the template's marker `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.` and what follows it (a comment with the Sail source of the untranslated definitions, which Rocq's lexer need not accept) are left out (untranslated definitions are holes too),
    and probe line numbers are mapped back to the original file. Each first error names the generated definition that contains it,
    and how many of the file's definitions come before it. An error in the generated Rocq is a measurement, not a failed stage;
    only a coqc that cannot run is.
