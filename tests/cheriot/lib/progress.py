@@ -26,12 +26,12 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from .callgraph import CallGraph
-from .dangling import DanglingCall
+from .dangling import DEFINED, DanglingCall
 from .items import Item
 from .scope import Scope
 
 RANK = {'missing': 0, 'holes': 1, 'ok': 2}
-GENERATED_FUNCTION = re.compile(r'Definition fun_([A-Za-z0-9_#]+) : Stm')
+GENERATED_FUNCTION = DEFINED   # see dangling.DEFINED
 
 Snapshot = dict[str, Any]
 

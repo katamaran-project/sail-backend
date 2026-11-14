@@ -15,29 +15,36 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `57d1c72b` plus P16 (externs as µSail operations and foreign functions); cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `8e591b21` plus size and type parameters as implicit arguments of `Fun` (P13, first part); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **3 of 61** (`FENCEI`, `FENCE`, `FENCE_TSO`) |
+| instructions clean | **20 of 61**: `ADDIW`, `CGetAddr`, `CGetBase`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CSEQX`, `CSub`, `CTestSubset`, `FENCE`, `FENCEI`, `FENCE_TSO`, `ITYPE`, `RTYPE`, `RTYPEW`, `SHIFTIOP`, `SHIFTIWOP`, `UTYPE` |
 | instructions generated | 53 of 61 |
-| functions generated | 480 of 534 |
+| functions generated | 483 of 534 |
 | untranslated definitions | 71 |
-| `NYI` holes | 21 |
+| `NYI` holes | 26 (5 make previously ill-typed widths explicit: a width that depends on a value, or that divides a size variable; P13) |
 | hard failures | 0 |
-| calls to missing functions | 143: outside the scope 86 (from `execute`), untranslated 31, skipped by configuration 14, extern 10 (`plain_vector_access`, `plain_vector_update`: vector types), unknown 2 |
+| calls to missing functions | 128: outside the scope 86 (from `execute`), untranslated 31, extern 10 (`plain_vector_access`, `plain_vector_update`: vector types), skipped by configuration 1 |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 30, removed with their uses: 9 no-op, 2 failure, 18 unconstrained, 1 register (`tests/cheriot/scope.toml`) |
 | Rocq, plain | `base.v:12088`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1041 of 1091 definitions before it |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; `machine.v:49`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13); 1 of its 506 definitions before it. With `Fun` emptied by hand, `FunX` and the `ForeignKit` (semantics, `ForeignCall`, `ForeignProgress`) compile |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 384 of its 510 definitions; it stops at `machine.v:14299`, `htif_store`, on the memory path (P13: a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom (`docs/cheriot-loop.md`) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Blockers
 
-**What keeps instructions from being clean.** Each of these blocks 58 of the 61 instructions, because the code they share reaches it:
-a call to the Sail builtin `size_itself_int` in the size-polymorphic `to_bits` (P13), and calls to `zeros_implicit`,
-which the configuration skips (P14; it could be translated like `sail_zeros`). Next come `ones`/`sail_ones` (29) and the polymorphic `MemoryOpResult_add_meta`/`drop_meta` and `accessToFault` (23).
+**What keeps instructions from being clean.** The memory path (P13): each of `MemoryOpResult_add_meta`/`drop_meta`, `accessToFault`, `checked_mem_read`, `mem_read`, `clint_load`, `htif_load`, ... blocks 23 instructions.
+Functions that are polymorphic in a width or a type are no longer a blocker by themselves: each is one `Fun` constructor with the widths (and types) as implicit arguments,
+`| sign_extend {kid__n kid__m : nat} : Fun [...] (ty.bvec (kid__m))`, and one definition `fun_sign_extend {kid__n kid__m : nat}` for all widths, as Katamaran's RiscvPmp does for `read_ram (bytes : nat)`;
+Rocq infers the widths at each call. This is not monomorphisation: one contract covers all widths. Sail's constraints on the widths are not translated, so inside such a function
+an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`uop.zext` would need a proof that only the constraints give),
+a width that depends on a value (`align_down`'s `bits('n)` for `n : itself('n)`) or divides a size variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`) is a hole,
+and the memory-write chain (`htif_store`, `mmio_write`, ... over `bits('p8_times_n)`) does not type-check yet (that is the rest of P13).
+`size_itself_int` (the identity on integers that Sail inserts for implicit sizes) blocked 58 instructions and is now translated like `make_the_value`;
+`zeros_implicit`, `ones`, `sail_zeros` and `sail_ones` are no longer skipped by the configuration.
+A `bit` is `ty.bvec 1` (Sail 0.20's library defines `type bit = bitvector(1)`; the translator still made it `ty.bool`, which clashed with its own one-bit literals).
 Externs no longer block anything (P16): a call to an extern becomes a µSail operation where one corresponds (`shiftl`/`shiftr`, `shift_bits_*`, `sub_vec(_int)`, `eq_anything`,
 `bitvector_access`, `get_slice_int`, `truncateLSB`, when the widths are known), and otherwise a foreign call (`stm_foreign`) to a `FunX` constructor with the extern's signature
 (widths as implicit `nat` arguments). Their semantics never fails and leaves the registers unchanged; the result is given for the arithmetic externs of Sail's library
@@ -113,6 +120,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `15c31cfc`+ | core | 53 / 61, 1 clean | 565 / 647 | 105 | 23 | 0 | `machine.v:54` `Fun` (all of `base.v`) | Sv32 `TLB_Entry`/`TLB32_Entry` ignored (5 TLB functions untranslated); plain stops at the PMP registers' `NYI` in `Reg`; the loop's Rocq stage takes 9 s uncached (1:36 in all), 0.1 s cached |
 | 2026-11-14 | `25dfadb9`+ | core | 53 / 61, 1 clean | 480 / 534 | 71 | 23 | 0 | `machine.v:49` `Fun` (all of `base.v`) | policy exclusions (definitions removed with their uses): printing, tracing and Sv32 (30 definitions); missing calls 1494 -> 373; 113 definitions leave the scope; translation 65 s -> 23 s |
 | 2026-11-14 | `57d1c72b`+ | core | 53 / 61, 3 clean | 480 / 534 | 71 | 21 | 0 | `machine.v:49` `Fun` (all of `base.v`) | P16: externs become µSail operations or foreign functions (`FunX`, `stm_foreign`, `ForeignCall`); missing calls 373 -> 143 (externs 240 -> 10); `FENCE`, `FENCE_TSO` clean |
+| 2026-11-14 | `8e591b21`+ | core | 53 / 61, 20 clean | 483 / 534 | 71 | 26 | 0 | `machine.v:14299` `htif_store` (384 of 510) | widths and types as implicit arguments of `Fun` (P13, first part); `size_itself_int`; `zeros_implicit`/`ones` translated; `bit` is `ty.bvec 1`; widths that need Sail's constraints are holes (+5); the probe axiomatises bodies with holes or missing calls |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

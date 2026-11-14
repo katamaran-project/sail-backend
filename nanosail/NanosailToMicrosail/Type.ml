@@ -99,7 +99,11 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
 
   and pp_bitvector (nexpr : Ast.Numeric.Expression.t) : PP.t GC.t =
     let* pp_nexpr =
-      GC.pp_annotate [%here] @@ Numeric.Expression.pp nexpr
+      (*
+         Simplified, so that Rocq sees the width Sail means: bits(8 * 'n / 8) must be ty.bvec n,
+         since (8 * n) / 8 is not convertible to n for a variable n.
+      *)
+      GC.pp_annotate [%here] @@ Numeric.Expression.pp @@ Ast.Numeric.Expression.simplify nexpr
     in
     GC.return begin
       PP.annotate [%here] begin
@@ -154,7 +158,7 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   | Bool                             -> GC.pp_annotate [%here] @@ ty "bool"
   | Int _                            -> GC.pp_annotate [%here] @@ ty "int"
   | String                           -> GC.pp_annotate [%here] @@ ty "string"
-  | Bit                              -> GC.pp_annotate [%here] @@ ty "bool"
+  | Bit                              -> GC.pp_annotate [%here] @@ ty "bvec 1"   (* Sail's library: type bit = bitvector(1) *)
   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
   | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
   | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
@@ -256,7 +260,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Application (t, ts) -> GC.pp_annotate [%here] @@ coq_type_of_application t ts
   | Tuple ts            -> GC.pp_annotate [%here] @@ coq_type_of_tuple ts
   | Sum (l, r)          -> GC.pp_annotate [%here] @@ coq_type_of_sum l r
-  | Bit                 -> GC.not_yet_implemented [%here]
+  | Bit                 -> GC.return @@ PP.annotate [%here] @@ PP.string "(bv 1)"  (* type bit = bitvector(1) *)
   | Range (_, _)        -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"  (* ranges are erased to ty.int, whose values are Z *)
   | Function _          -> GC.not_yet_implemented [%here]
   | TypeVariable _      -> GC.not_yet_implemented [%here]

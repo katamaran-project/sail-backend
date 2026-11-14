@@ -36,9 +36,21 @@ end = struct
           match op with
           | Add    -> parens_if 0 @@ PP.binary_operation Coq.Operator.addition       [pp 0 x; pp 0 y]
           | Sub    -> parens_if 0 @@ PP.binary_operation Coq.Operator.subtraction    [pp 0 x; pp 1 y]
-          | Mul    -> parens_if 1 @@ PP.binary_operation Coq.Operator.multiplication [pp 1 x; pp 1 y]
-          | Div    -> parens_if 1 @@ PP.binary_operation Coq.Operator.division       [pp 1 x; pp 1 y]
-          | Mod    -> parens_if 1 @@ PP.binary_operation Coq.Operator.modulo         [pp 1 x; pp 1 y]
+          (*
+             A right operand at the same level is parenthesised: 8 * (n / 8) is not (8 * n) / 8.
+             Only a product to the right of a product needs none (multiplication is associative).
+          *)
+          | Mul    -> begin
+              let right_level =
+                match y with
+                | BinaryOperation (Mul, _, _)                   -> 1
+                | BinaryOperation ((Add | Sub | Div | Mod), _, _) -> 2
+                | Constant _ | Neg _ | PowerOf2 _ | Id _ | Var _ -> 2
+              in
+              parens_if 1 @@ PP.binary_operation Coq.Operator.multiplication [pp 1 x; pp right_level y]
+            end
+          | Div    -> parens_if 1 @@ PP.binary_operation Coq.Operator.division       [pp 1 x; pp 2 y]
+          | Mod    -> parens_if 1 @@ PP.binary_operation Coq.Operator.modulo         [pp 1 x; pp 2 y]
         end
       | Neg x      -> parens_if 2 @@ PP.(horizontal [ minus; pp 3 x])
       | PowerOf2 x -> parens_if 3 @@ PP.(horizontal [ PP.string "2^"; pp 4 x]) (* todo this notation probably needs fixing *)
@@ -83,7 +95,50 @@ end = struct
       else
         GC.return numeric_expression
     in
-    GC.return @@ PP.annotate [%here] @@ pp initial_level numeric_expression
+    (*
+       Inside a function definition, a type-level variable (kid__n) that the function's signature does not
+       bind cannot be printed: Rocq would not know it. This happens when a width depends on the value of a
+       parameter (val f : forall 'n. (int('n), ...) with bits('n) in the body), which muSail types cannot
+       express (P13), and for Sail's existential variables. Such a width is a hole.
+    *)
+    let* bound = GC.get_bound_type_level_identifiers
+    in
+    let unbound_type_level_identifiers =
+      match bound with
+      | None       -> []
+      | Some bound -> begin
+          List.filter (TypeLevelParameters.numeric_identifiers numeric_expression) ~f:(fun identifier ->
+              String.is_prefix (Ast.Identifier.to_string identifier) ~prefix:"kid__"
+              && not (Ast.Identifier.Set.mem bound identifier)
+            )
+        end
+    in
+    (*
+       Inside a function definition, a division or modulus of a size variable, as in Sail's bits(8 * ('p / 8))
+       for a 'p that its constraints make a multiple of 8, is a hole too: Rocq would need those constraints to
+       identify such a width with 'p, and they are not translated (P13).
+    *)
+    let rec divides_a_variable (numeric_expression : Ast.Numeric.Expression.t) : bool =
+      match numeric_expression with
+      | Constant _                                        -> false
+      | Id _                                              -> false
+      | Var _                                             -> false
+      | Neg operand                                       -> divides_a_variable operand
+      | PowerOf2 operand                                  -> divides_a_variable operand
+      | BinaryOperation ((Div | Mod), left, right)        -> not (List.is_empty (TypeLevelParameters.numeric_identifiers left @ TypeLevelParameters.numeric_identifiers right))
+      | BinaryOperation ((Add | Sub | Mul), left, right)  -> divides_a_variable left || divides_a_variable right
+    in
+    match unbound_type_level_identifiers with
+    | [] when Option.is_some bound && divides_a_variable numeric_expression -> begin
+        GC.not_yet_implemented ~message:"the width divides a size variable, which needs Sail's constraints (P13)" [%here]
+      end
+    | [] -> GC.return @@ PP.annotate [%here] @@ pp initial_level numeric_expression
+    | unbound :: _ -> begin
+        let message =
+          Printf.sprintf "the width depends on %s, which the function's signature does not bind (a value-dependent or existential size)" (Ast.Identifier.to_string unbound)
+        in
+        GC.not_yet_implemented ~message [%here]
+      end
 
   let pp (numeric_expression : Ast.Numeric.Expression.t) : PP.t GC.t =
     pp_at_level top_level numeric_expression

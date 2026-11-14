@@ -56,6 +56,42 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertTrue(rocq.needs_probe(text))
         self.assertFalse(rocq.needs_probe('Definition a := 1.\n'))
 
+    def test_holes_are_one_argument_with_a_list_of_numbers(self):
+        # NYI[1] as an argument would be two arguments, and [1] may be read as a bitvector literal
+        text = 'From Katamaran Require Import Base.\n\nDefinition a := f NYI[1] NYI[23] (g NYI[4]).\n'
+        copy, _, _ = rocq.probe_source(text)
+        self.assertIn('Definition a := f (NYI (cons 1%nat nil)) (NYI (cons 23%nat nil)) (g (NYI (cons 4%nat nil))).', copy)
+        self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + len(rocq.PROBE_PRELUDE))
+
+    def test_function_bodies_with_holes_become_the_axiom(self):
+        text = '\n'.join([
+            'From Katamaran Require Import Base.',
+            '',
+            '    Definition fun_holes {kid__m : nat} : Stm [',
+            '                                "bv"  ∷  ty.bvec (kid__m)',
+            '                              ] (ty.bvec (kid__m)) :=',
+            '      stm_let "x" (ty.bvec (NYI[0]))',
+            '              (stm_exp (exp_var "bv")).',
+            '',
+            '    Definition fun_clean : Stm [] (ty.int) :=',
+            '      stm_exp (exp_int 1).',
+            '',
+            '    Definition fun_calls_missing : Stm [] (ty.int) :=',
+            '      stm_call missing env.nil.',
+            '',
+            '    Definition fun_calls_clean : Stm [] (ty.int) :=',
+            '      stm_call clean env.nil.',
+            '',
+        ])
+        copy, at, inserted = rocq.probe_source(text)
+        lines = copy.split('\n')[at - 1 + inserted:]
+        self.assertEqual(lines[3], '      NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)')
+        self.assertEqual(lines[4], '')
+        self.assertEqual(lines[7], '      stm_exp (exp_int 1).')
+        self.assertEqual(lines[10], '      NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)')
+        self.assertEqual(lines[13], '      stm_call clean env.nil.')
+        self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
+
     def test_command_definition(self):
         starts = rocq.definition_starts('Definition a := 1.\nDerive EqDec for T.\n')
         self.assertEqual(rocq.command_definition(starts, 2, 'Derive EqDec for T.'), 'T')

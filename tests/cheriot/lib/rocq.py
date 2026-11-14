@@ -52,6 +52,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from .dangling import CALL, DEFINED
 from .extract import COQ_DEFINITION
 
 FILES = ['base.v', 'machine.v']        # machine.v does Require Export base
@@ -72,6 +73,9 @@ IMPORT_START = re.compile(r'^\s*(From\s+\S+\s+)?(Require|Import|Export)\b')
 FUN_PREFIX = re.compile(r'^fun_')
 TIMING = re.compile(rb'^Chars (\d+) - (\d+) \[.*\] ([\d.]+) secs')
 NYI_TOKEN = re.compile(r'\bNYI\b')
+# A hole as the translator prints it, NYI[3]; in the probe, (NYI (cons 3%nat nil)) is one argument, and
+# its list is not read as a bitvector literal (Katamaran's notations read [1] as a bit string)
+NYI_HOLE = re.compile(r'\bNYI\[(\d+)\]')
 UNTRANSLATED_MARKER = 'Theorem UNTRANSLATED_DEFINITIONS : False. Qed.'
 COMMAND_NAME = re.compile(r'^\s*(?:#\[[^\]]*\]\s*)?(?:Program\s+)?(?:Derive\s+[\w ]+?\s+for\s+|'
                           r'(?:Instance|Theorem|Lemma|Definition|Fixpoint|Inductive|Record)\s+)([^\s:(.]+)')
@@ -158,9 +162,48 @@ def import_end(lines: list[str]) -> int:
     return index
 
 
+FUN_DEFINITION_START = re.compile(r'^\s*Definition fun_[A-Za-z0-9_#]+\b')
+
+
+def axiomatise_function_bodies_with_holes(lines: list[str]) -> list[str]:
+    """
+    The lines with the body of each function definition (Definition fun_f ... : Stm ... :=) that
+    contains a hole, or a call to a function that the file does not define, replaced by the NYI axiom,
+    keeping the number of lines.
+    A hole in a type (a width the translator could not express, ty.bvec NYI[0]) leaves constraints
+    that no axiom solves, such as a side condition IsTrue (NYI + 1 <=? n): with NYI as an axiom, the probe
+    would still stop at the first such function, and a call to a missing function stops it the same way.
+    Holes and missing calls are counted elsewhere; the probe shows whether everything else type-checks. The body is assumed to end at the first line that ends
+    with a period and is followed by a blank line, as the generator prints it.
+    """
+    defined = set(DEFINED.findall('\n'.join(lines)))
+    result = list(lines)
+    index = 0
+    while index < len(result):
+        if not FUN_DEFINITION_START.match(result[index]):
+            index += 1
+            continue
+        header_end = index
+        while header_end < len(result) and not result[header_end].rstrip().endswith(':='):
+            header_end += 1
+        body_end = header_end + 1
+        while body_end < len(result) and not (result[body_end].rstrip().endswith('.')
+                                             and (body_end + 1 == len(result) or not result[body_end + 1].strip())):
+            body_end += 1
+        body = result[header_end + 1:body_end + 1]
+        if body and any(NYI_HOLE.search(line) or any(callee not in defined for callee in CALL.findall(line)) for line in body):
+            indentation = body[0][:len(body[0]) - len(body[0].lstrip())]
+            result[header_end + 1:body_end + 1] = \
+                [indentation + 'NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)'] + [''] * (len(body) - 1)
+        index = body_end + 1
+    return result
+
+
 def probe_source(text: str) -> tuple[str, int, int]:
     """
-    The probe copy of a generated .v file: PROBE_PRELUDE inserted after its imports.
+    The probe copy of a generated .v file: PROBE_PRELUDE inserted after its imports, the body of each
+    function definition with a hole replaced by the axiom (see axiomatise_function_bodies_with_holes),
+    and each remaining hole NYI[n] written (NYI (cons n%nat nil)).
     Returns the copy, the 1-based line where the prelude starts and the number of lines inserted.
     """
     lines = text.split('\n')
@@ -168,6 +211,8 @@ def probe_source(text: str) -> tuple[str, int, int]:
     if marker is not None:
         lines = lines[:marker] + ['(* tests/cheriot: the marker for untranslated definitions and what follows it are left out *)'] + \
                 [''] * (len(lines) - marker - 1)
+    lines = axiomatise_function_bodies_with_holes(lines)
+    lines = [NYI_HOLE.sub(r'(NYI (cons \1%nat nil))', line) for line in lines]
     at = import_end(lines)
     return '\n'.join(lines[:at] + PROBE_PRELUDE + lines[at:]), at + 1, len(PROBE_PRELUDE)
 

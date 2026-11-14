@@ -84,6 +84,16 @@ class DanglingCallsTests(unittest.TestCase):
         calls = dangling.dangling_calls((RUN / 'machine.v').read_text(), dump, fixture_items(), 'run')
         self.assertEqual({d.callee: d.cls for d in calls}['undefined_bool'], 'extern')
 
+    def test_definitions_with_implicit_size_parameters_are_defined(self):
+        machine_v = '\n'.join([
+            'Definition fun_plain : Stm [] ty.unit := stm_call sized env.nil.',
+            'Definition fun_sized {kid__n : nat}',
+            '                     {kid__m : nat} : Stm [] ty.unit := stm_call plain env.nil.',
+        ])
+        self.assertEqual(dangling.dangling_calls(machine_v, '', [], 'run'), [])
+        self.assertEqual(set(dangling.DEFINED.findall(machine_v)), {'plain', 'sized'})
+        self.assertEqual(dangling.callers_of(machine_v), {'plain': {'sized'}, 'sized': {'plain'}})
+
     def test_items_of_other_runs_are_ignored(self):
         calls = dangling.dangling_calls((RUN / 'machine.v').read_text(), DUMP.read_text(), fixture_items(), 'other')
         self.assertEqual({d.callee: d.cls for d in calls}['bool_to_bits'], 'unknown')

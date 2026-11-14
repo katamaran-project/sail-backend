@@ -155,54 +155,9 @@ let rec is_supported_type (typ : Ast.Type.t) : bool =
   | Function _                 -> false
 
 
-(* The identifiers a numeric expression mentions (Id and Var alike: both are printed as identifiers) *)
-let rec numeric_identifiers (numeric_expression : Ast.Numeric.Expression.t) : Ast.Identifier.t list =
-  match numeric_expression with
-  | Constant _                       -> []
-  | BinaryOperation (_, left, right) -> List.append (numeric_identifiers left) (numeric_identifiers right)
-  | Neg operand                      -> numeric_identifiers operand
-  | PowerOf2 operand                 -> numeric_identifiers operand
-  | Id identifier                    -> [ identifier ]
-  | Var identifier                   -> [ identifier ]
-
-
-(*
-   The type-level identifiers a muSail type mentions, which become implicit arguments of the
-   FunX constructor: the identifiers in bitvector widths (nat) and type variables (Ty).
-   Integer types do not mention their identifiers: muSail's ty.int has no index.
-*)
-let rec type_level_identifiers (typ : Ast.Type.t) : (Ast.Identifier.t * Ast.Kind.t) list =
-  match typ with
-  | Unit                       -> []
-  | Bool                       -> []
-  | Int _                      -> []
-  | String                     -> []
-  | Bit                        -> []
-  | Nat                        -> []
-  | Range (_, _)               -> []
-  | Enum _                     -> []
-  | Record _                   -> []
-  | Variant _                  -> []
-  | Alias (_, _)               -> []
-  | Bitvector width            -> List.map ~f:(fun id -> (id, Ast.Kind.Int)) @@ numeric_identifiers width
-  | TypeVariable identifier    -> [ (identifier, Ast.Kind.Type) ]
-  | List element_type          -> type_level_identifiers element_type
-  | Tuple element_types        -> List.concat_map ~f:type_level_identifiers element_types
-  | Sum (left, right)          -> List.append (type_level_identifiers left) (type_level_identifiers right)
-  | Application (_, _)         -> []
-  | Vector (_, _)              -> []
-  | Implicit _                 -> []
-  | Function _                 -> []
-
-
-(* The implicit arguments of the foreign function's FunX constructor, in order of appearance *)
+(* The implicit arguments of the foreign function's FunX constructor (see TypeLevelParameters) *)
 let implicit_parameters (foreign_function : t) : (Ast.Identifier.t * Ast.Kind.t) list =
-  let all =
-    List.concat_map ~f:type_level_identifiers (List.append foreign_function.parameter_types [ foreign_function.result_type ])
-  in
-  all
-  |> List.fold ~init:[] ~f:(fun seen (id, kind) -> if List.exists seen ~f:(fun (id', _) -> Ast.Identifier.equal id id') then seen else (id, kind) :: seen)
-  |> List.rev
+  TypeLevelParameters.of_types (List.append foreign_function.parameter_types [ foreign_function.result_type ])
 
 
 (*
@@ -220,7 +175,7 @@ let all_externs (program : Ast.Program.t) : t list =
           Base.Set.mem with_body sail_name
           || not (List.for_all ~f:is_supported_type (result_type :: parameter_types))
           (* the result type needs a value that Rocq can construct (see pp_foreign_progress_case) *)
-          || List.exists (type_level_identifiers result_type) ~f:(fun (_, kind) -> match kind with Type -> true | Int | Bool -> false)
+          || List.exists (TypeLevelParameters.of_type result_type) ~f:(fun (_, kind) -> match kind with Type -> true | Int | Bool -> false)
         then None
         else Some { identifier; sail_name; pure = extern.pure; bindings = extern.bindings; parameter_types; result_type }
       end
@@ -265,15 +220,16 @@ let default_semantics (foreign_function : t) : Semantics.t =
   (* get_slice_int(len, n, start): bits start + len - 1 down to start of n *)
   | "get_slice_int"        -> given "bv.of_Z (Z.shiftr arg2 arg3)"
   (* truncate(v, n), truncateLSB(v, n): the n least, respectively most, significant bits of v *)
+  | "zeros"                -> given "bv.zero"
   | "sail_truncate"        -> given "bv.of_Z (bv.unsigned arg1)"
   | "sail_truncateLSB"     -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) (Z.of_nat (bv_width arg1) - arg2))"
   | "zero_extend"          -> given "bv.of_Z (bv.unsigned arg1)"
   | "sign_extend"          -> given "bv.of_Z (bv.signed arg1)"
   | "vector_access"        -> begin
-      match foreign_function.parameter_types, Ast.Type.strip_aliases foreign_function.result_type with
-      | Bitvector _ :: _, Bit -> given "Z.testbit (bv.unsigned arg1) arg2"
-      | Bitvector _ :: _, Bitvector _ -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) arg2)"
-      | _, _ -> Semantics.Unconstrained
+      (* the result is a bit, i.e., a bitvector(1) *)
+      match foreign_function.parameter_types with
+      | Bitvector _ :: _ -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) arg2)"
+      | _                -> Semantics.Unconstrained
     end
   | _ -> Semantics.Unconstrained
 
@@ -301,16 +257,6 @@ let semantics_name (foreign_function : t) : PP.t =
   PP.string @@ "semantics_" ^ Ast.Identifier.to_string foreign_function.identifier
 
 
-let pp_implicit_parameter ((identifier, kind) : Ast.Identifier.t * Ast.Kind.t) : PP.t =
-  let pp_kind =
-    match kind with
-    | Int  -> PP.string "nat"
-    | Type -> PP.string "Ty"
-    | Bool -> PP.string "bool"
-  in
-  PP.(surround braces @@ separate_horizontally ~separator:space [ Identifier.pp identifier; colon; pp_kind ])
-
-
 (*
    The FunX constructor of the foreign function, e.g.
 
@@ -326,7 +272,7 @@ let pp_constructor (foreign_function : t) : (PP.t * PP.t * PP.t) GC.t =
     Coq.pp_list @@ List.mapi pp_parameter_types ~f:(fun index pp_type -> MuSail.pp_bind (PP.string @@ parameter_name index) pp_type)
   in
   let pp_implicit_parameters =
-    PP.separate_horizontally ~separator:PP.space @@ List.map ~f:pp_implicit_parameter @@ implicit_parameters foreign_function
+    TypeLevelParameters.pp_binders @@ implicit_parameters foreign_function
   in
   let pp_type =
     PP.separate_horizontally ~separator:PP.space [ PP.string "FunX"; pp_parameters; PP.(surround parens) pp_result_type ]
@@ -348,15 +294,7 @@ let pp_semantics_definition (foreign_function : t) (term : string) : PP.t GC.t =
     Coq.pp_application (PP.string "Val") [ PP.(surround parens) pp_type ]
   in
   let implicit_parameters =
-    List.map (implicit_parameters foreign_function) ~f:(fun (identifier, kind) ->
-        let pp_kind =
-          match kind with
-          | Int  -> PP.string "nat"
-          | Type -> PP.string "Ty"
-          | Bool -> PP.string "bool"
-        in
-        (Identifier.pp identifier, Some pp_kind)
-      )
+    TypeLevelParameters.as_definition_parameters @@ implicit_parameters foreign_function
   and parameters =
     List.mapi pp_parameter_types ~f:(fun index pp_type -> (PP.string @@ parameter_name index, Some (val_of pp_type)))
   in
