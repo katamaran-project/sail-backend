@@ -6,14 +6,14 @@ Usage:
     tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--update-baseline] [--no-scope] [--no-coq]
                          [--coq-timeout S] [--keep-dumps] [--output-dir DIR]
 
-or `gmake cheriot CHERIOT_SAIL_DIR=... CHERIOT_CASE_STUDY=...`. See docs/cheriot-loop.md.
+or `gmake cheriot CHERIOT_SAIL_DIR=...`. See docs/cheriot-loop.md.
 
 Inputs:
     --cheriot-sail DIR   a cheriot-sail checkout, with its sail-riscv submodule
                          (default: $CHERIOT_SAIL_DIR)
     --case-study DIR     the case study: configuration.lisp, *.template.v and
-                         printvar.mak, as in katamaran's case_study/Cheriot
-                         (default: $CHERIOT_CASE_STUDY)
+                         printvar.mak (default: $CHERIOT_CASE_STUDY, or else
+                         case-studies/cheriot in this checkout)
 
 The run has these stages; a stage that fails ends the run.
 
@@ -92,6 +92,7 @@ SAIL_LOCAL = CHECKOUT / 'bin' / 'sail-local'
 PLUGIN = CHECKOUT / '_build' / 'default' / 'sail_plugin' / 'sail_plugin_katamaran.cmxs'
 DEFAULT_OUTPUT_DIR = HERE / 'output'
 PINS = HERE / 'inputs.toml'
+DEFAULT_CASE_STUDY = CHECKOUT / 'case-studies' / 'cheriot'
 SAIL_VERSION = '0.20.3'
 COQC = 'coqc'
 DEFAULT_COQ_TIMEOUT = 1800
@@ -576,8 +577,8 @@ def update_latest(output_dir: Path, identifier: str) -> None:
 # main
 # --------------------------------------------------------------------------
 
-def directory_argument(value: Optional[str], variable: str, flag: str) -> Path:
-    value = value or os.environ.get(variable)
+def directory_argument(value: Optional[str], variable: str, flag: str, default: Optional[Path] = None) -> Path:
+    value = value or os.environ.get(variable) or (str(default) if default else None)
     if not value:
         raise InputError(f'pass {flag} DIR or set {variable}')
     path = Path(value).expanduser().resolve()
@@ -589,7 +590,7 @@ def directory_argument(value: Optional[str], variable: str, flag: str) -> Path:
 def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--cheriot-sail', help='cheriot-sail checkout (default: $CHERIOT_SAIL_DIR)')
-    parser.add_argument('--case-study', help='case study directory (default: $CHERIOT_CASE_STUDY)')
+    parser.add_argument('--case-study', help='case study directory (default: $CHERIOT_CASE_STUDY, or else case-studies/cheriot)')
     parser.add_argument('--update-baseline', action='store_true',
                         help='accept this run as the baseline (tests/cheriot/baseline.json), even if it is worse')
     parser.add_argument('--no-scope', action='store_true', help='translate and measure the whole model')
@@ -605,7 +606,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     arguments = parse_arguments(argv)
     try:
         cheriot_sail = directory_argument(arguments.cheriot_sail, 'CHERIOT_SAIL_DIR', '--cheriot-sail')
-        case_study = directory_argument(arguments.case_study, 'CHERIOT_CASE_STUDY', '--case-study')
+        case_study = directory_argument(arguments.case_study, 'CHERIOT_CASE_STUDY', '--case-study', DEFAULT_CASE_STUDY)
     except InputError as error:
         print(f'run.py: {error}', file=sys.stderr)
         return 2

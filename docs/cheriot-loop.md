@@ -36,7 +36,7 @@ The budget for one outer iteration is therefore **about one minute**. Restrictin
 ## 3. One command
 
 ```sh
-gmake cheriot CHERIOT_SAIL_DIR=PATH CHERIOT_CASE_STUDY=PATH    # from the sail-backend checkout or worktree
+gmake cheriot CHERIOT_SAIL_DIR=PATH    # from the sail-backend checkout or worktree
 # or directly:
 tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-scope] [--no-coq] [--coq-timeout S]
                      [--keep-dumps] [--output-dir DIR]
@@ -195,7 +195,7 @@ and the ratchet stage lists the definitions that got better or worse since the b
 | plugin | this checkout, `dune build`, via `bin/sail-local` | commit + dirty flag |
 | Sail | `sail` on `PATH` (must be 0.20.3) | version; a different version is an error |
 | CHERIoT model | a cheriot-sail checkout: `--cheriot-sail`, else `$CHERIOT_SAIL_DIR`, else the path in the workspace `CLAUDE.md` | commit, submodule commit; a commit other than the pinned one (`tests/cheriot/inputs.toml`) is a warning |
-| case study (configuration, templates, Makefile) | katamaran's `case_study/Cheriot` (`--case-study`), or `case-studies/cheriot` here, depending on the open question in §9 | commit |
+| case study (configuration, templates) | `case-studies/cheriot` here (§9, question 1); `--case-study` or `$CHERIOT_CASE_STUDY` selects another | commit |
 | scope | `tests/cheriot/scope.toml` | hash |
 | Katamaran library | installed in the switch | revision from `INSTALLED-FROM.txt`; compared with `flake.lock`'s pin |
 
@@ -234,5 +234,6 @@ Then the gap work starts, one pile at a time, beginning with the S items on the 
 
 1. **Where does the CHERIoT case study live?** The runner can take the configuration and templates from katamaran's `case_study/Cheriot` (as today) or from `case-studies/cheriot` in this repository.
    The second keeps the whole loop in one repository and makes generated scope files easy to include. The first keeps one copy next to the future proofs.
+   *Answered* (14 Nov 2026): here. The configuration, templates and `printvar.mak` moved to `case-studies/cheriot/`, which the loop uses by default.
 2. **Pinning cheriot-sail:** a recorded commit with a warning (proposed), or a git submodule (exact, but submodules duplicate per worktree; see `HACKING.md`)?
 3. **CI:** the outer loop needs cheriot-sail and Katamaran. Should it run only locally at first (proposed), or also in GitHub CI?

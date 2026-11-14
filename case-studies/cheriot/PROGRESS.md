@@ -5,7 +5,7 @@ The core is the scope in [`tests/cheriot/scope.toml`](../../tests/cheriot/scope.
 The numbers come from the loop ([`docs/cheriot-loop.md`](../../docs/cheriot-loop.md)):
 
 ```sh
-gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot
+gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail>
 ```
 
 **Updating this file.** When a commit changes the loop's numbers, update *Now* and *Blockers*, and add a row to *History*, in the same commit

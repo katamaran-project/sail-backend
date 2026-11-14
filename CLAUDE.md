@@ -19,6 +19,7 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
     Always use GNU make 4 or later (`gmake` on macOS): the `make` 3.81 that ships with macOS cannot parse the Cheriot Makefile.
   The Cheriot Makefile passes `SAIL` on to cheriot-sail's Makefile. Its `CHERIOT_SAIL_DIR` variable selects which cheriot-sail checkout is used; it has no default and must always be passed.
   Its `OUT_DIR` variable sets where the output goes (the default is the case study directory). Give each parallel run its own `OUT_DIR`, and always pass it as an absolute path (see the warning in that Makefile).
+  That Makefile still uses katamaran's own copy of the configuration; the maintained configuration and templates are now in `case-studies/cheriot/` (moved on 14 Nov 2026), and the loop below uses those.
 - The project currently targets Sail 0.20.3 on OCaml 5.2.1, with Rocq 9.2 and Katamaran main. The CI workflow (`.github/workflows/build.yaml`) and `flake.nix` pin the same OCaml and Sail versions; keep them in sync.
 - The plugin statically embeds its dependencies (`embed_in_plugin_libraries` in `sail_plugin/dune`), because Sail does not load them itself.
   The order of that list matters. If you add a library dependency to `nanosail`, add it there as well.
@@ -53,7 +54,7 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
 - **CHERIoT analysis library** (`tests/cheriot/lib`, standard-library Python): analyses a translation of the CHERIoT model, for the progress loop of `docs/cheriot-loop.md`.
   Run its unit tests with `make cheriot-lib-tests`; they use the small fixture run in `tests/cheriot/tests/fixtures`.
   `tests/cheriot/inventory.py RUN-DIR` runs the whole analysis on a run directory.
-- **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot` (`tests/cheriot/run.py`) translates the CHERIoT core (the scope in `tests/cheriot/scope.toml`, computed from the call graph) with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc; `--no-scope` translates the whole model.
+- **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail>` (`tests/cheriot/run.py`; the configuration is `case-studies/cheriot/configuration.lisp`, and `CHERIOT_CASE_STUDY` selects another case study directory) translates the CHERIoT core (the scope in `tests/cheriot/scope.toml`, computed from the call graph) with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc; `--no-scope` translates the whole model.
   A run fails if any definition, clean instruction or Rocq position got worse than in `tests/cheriot/baseline.json`; `CHERIOT_ARGS=--update-baseline` accepts the current state, in the commit that makes the progress.
   Each run appends a line to `tests/cheriot/history.csv` (tracked).
   Output goes to `tests/cheriot/output/<timestamp>-<commit>[-dirty]/` (about 160 MB per run, mostly the log; `latest` points to the newest).
@@ -67,7 +68,7 @@ There are three dune projects, layered as follows:
 - `sail_plugin/`: a thin layer that registers the `--katamaran` options with libsail, selects which Sail rewrites run (`Rewrites.ml`), and calls into `nanosail`.
 
 Other top-level directories (not dune projects):
-- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. The CHERIoT case study lives in katamaran's `case_study/Cheriot`; `case-studies/cheriot/PROGRESS.md` tracks its translation (update it in any commit that changes the `gmake cheriot` numbers).
+- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. `case-studies/cheriot/` holds the CHERIoT configuration and templates (moved from katamaran's `case_study/Cheriot`) and `PROGRESS.md`, which tracks the translation (update it in any commit that changes the `gmake cheriot` numbers).
 - `archived_experiments/`: old experiments kept for reference (`rewrites/`, `monomorphization-tests/`); not run by the build or the tests, and not maintained.
 - `cheriot-inventory/`: the CHERIoT failure inventory and the project status and history documents.
 

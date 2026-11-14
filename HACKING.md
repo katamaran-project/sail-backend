@@ -61,6 +61,8 @@ gmake -C <katamaran>/case_study/Cheriot test \
 ```
 
 `make test` translates only `prelude.sail`.
+That Makefile still uses katamaran's own copy of the configuration. The maintained configuration and templates moved to
+`case-studies/cheriot/` in this repository on 14 Nov 2026; `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail>` (the CHERIoT loop, `docs/cheriot-loop.md`) uses them.
 `make sail` translates the full model.
 
 

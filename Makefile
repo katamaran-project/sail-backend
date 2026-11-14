@@ -33,8 +33,8 @@ cheriot-lib-tests:
 
 
 # The CHERIoT progress loop (docs/cheriot-loop.md). Needs a cheriot-sail
-# checkout and the case study directory, e.g.
-#   gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail CHERIOT_CASE_STUDY=/path/to/katamaran/case_study/Cheriot
+# checkout; the case study is case-studies/cheriot (CHERIOT_CASE_STUDY overrides it), e.g.
+#   gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
 # CHERIOT_ARGS passes extra options to tests/cheriot/run.py, e.g. CHERIOT_ARGS=--keep-dumps.
 .PHONY: cheriot
 cheriot: build
