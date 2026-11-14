@@ -50,6 +50,14 @@ class CallGraphTests(unittest.TestCase):
         self.assertEqual(self.graph.reachable(['execute'], lambda source, target: target == 'execute_FOO'),
                          {'execute', 'execute_ADDI', 'bool_to_bits'})
 
+    def test_setter_call_with_register_reference_is_a_call_to_the_update_function(self):
+        graph = callgraph.CallGraph.from_dump_text(
+            'register mstatus : bitvector(32)\n\n'
+            'function _update_Mstatus_MIE (v, x) = update_subrange_bits(v, 3, 3, x)\n\n'
+            'function _set_Mstatus_MIE (r_ref, v) = {\n  let r = *r_ref;\n  (*r_ref) = _update_Mstatus_MIE(r, v)\n}\n\n'
+            'function execute_CJALR () = $[setter] _set_Mstatus_MIE(ref mstatus, 0b0)\n')
+        self.assertEqual(graph.reachable(['execute_CJALR']), {'execute_CJALR', '_update_Mstatus_MIE', 'mstatus'})
+
     def test_mark_reachable(self):
         items = [dict(name=name) for name in ('helper', 'bool_to_bits', 'unused', 'regidx', 'truncate')]
         callgraph.mark_reachable(items, self.graph)

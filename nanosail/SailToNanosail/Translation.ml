@@ -169,6 +169,53 @@ let is_specialised_union (sail_definition : Sail.sail_definition) : bool TC.t =
   | DEF_pragma (_, _)          -> TC.return false
 
 
+(*
+   Is the definition that of a function (or its val) with a register-reference parameter (register('a))?
+   muSail has no register references. Sail generates such functions for bitfields (the setters _set_<B>_<F>(ref r, v)),
+   and its library declares __deref; calls to the setters are inlined (Function.statement_of_register_setter_call),
+   so their definitions are not needed.
+*)
+let has_register_reference_parameter (sail_definition : Sail.sail_definition) : bool =
+  let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
+  in
+  let has_reference_parameter (typ : Libsail.Ast.typ) : bool =
+    let Libsail.Ast.Typ_aux (unwrapped_typ, _) = typ
+    in
+    match unwrapped_typ with
+    | Typ_fn (parameter_types, _) -> List.exists parameter_types ~f:Libsail.Ast_util.is_ref_typ
+    | Typ_internal_unknown        -> false
+    | Typ_id _                    -> false
+    | Typ_var _                   -> false
+    | Typ_bidir (_, _)            -> false
+    | Typ_tuple _                 -> false
+    | Typ_app (_, _)              -> false
+    | Typ_exist (_, _, _)         -> false
+  in
+  match unwrapped_sail_definition with
+  | DEF_val (VS_aux (VS_val_spec (TypSchm_aux (TypSchm_ts (_, typ), _), _, _), _)) -> has_reference_parameter typ
+  | DEF_fundef function_definition -> begin
+      match Libsail.Type_check.Env.get_val_spec (Libsail.Ast_util.id_of_fundef function_definition) annotation.env with
+      | (_, typ)                    -> has_reference_parameter typ
+      | exception _                 -> false
+    end
+  | DEF_type _                 -> false
+  | DEF_mapdef _               -> false
+  | DEF_impl _                 -> false
+  | DEF_let (_, _)             -> false
+  | DEF_outcome (_, _)         -> false
+  | DEF_instantiation (_, _)   -> false
+  | DEF_fixity (_, _, _)       -> false
+  | DEF_overload (_, _)        -> false
+  | DEF_default _              -> false
+  | DEF_scattered _            -> false
+  | DEF_measure (_, _, _)      -> false
+  | DEF_loop_measures (_, _)   -> false
+  | DEF_register _             -> false
+  | DEF_internal_mutrec _      -> false
+  | DEF_constraint _           -> false
+  | DEF_pragma (_, _)          -> false
+
+
 let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) TC.t =
   let pp_sail_definition : PP.t =
     PP.string @@ StringOf.Sail.definition sail_definition
@@ -193,6 +240,20 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
         let message = lazy begin
           PP.vertical [
             PP.string "Skipping this definition";
+            pp_sail_definition
+          ]
+        end
+        in
+        TC.log [%here] Logging.info message
+      in
+      TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
+    else if
+      has_register_reference_parameter sail_definition
+    then
+      let* () =
+        let message = lazy begin
+          PP.vertical [
+            PP.string "Skipping this definition: it has a register-reference parameter (calls to bitfield setters are inlined)";
             pp_sail_definition
           ]
         end

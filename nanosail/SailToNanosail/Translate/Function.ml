@@ -732,6 +732,86 @@ let rec statement_of_aexp
           ...
         }
    *)
+  (*
+     A call to a bitfield setter with a register reference, as Sail generates for
+
+       mstatus->MIE() = v
+
+     namely
+
+       _set_Mstatus_MIE(ref mstatus, v)
+
+     where Sail defines the setter as
+
+       function _set_Mstatus_MIE (r_ref, v) = { let r = __deref(r_ref); ( *r_ref) = _update_Mstatus_MIE(r, v) }
+
+     muSail has no register references, but the register is known at the call, so the call is inlined:
+
+       let r  = read_register mstatus in
+       let r' = _update_Mstatus_MIE(r, v) in
+       write_register mstatus r';
+       ()
+
+     Other functions that take a register reference are not supported.
+  *)
+  let statement_of_register_setter_call
+      (setter_identifier   : S.id        )
+      (register_identifier : S.id        )
+      (register_type       : S.typ       )
+      (value               : S.typ S.aval) : Ast.Statement.t TC.t
+    =
+    let setter_name = Libsail.Ast_util.string_of_id setter_identifier
+    in
+    match String.chop_prefix setter_name ~prefix:"_set_" with
+    | None -> TC.not_yet_implemented ~message:("register reference passed to " ^ setter_name) [%here] location
+    | Some field_path -> begin
+        let update_identifier = Ast.Identifier.mk ("_update_" ^ field_path)
+        in
+        let* update_definition =
+          TC.lookup_definition_opt (Ast.Definition.Select.function_definition_named update_identifier)
+        in
+        match update_definition with
+        | None -> TC.not_yet_implemented ~message:("register reference passed to " ^ setter_name ^ ", whose update function is not translated") [%here] location
+        | Some _ -> begin
+            let* register_identifier' = Identifier.translate_identifier [%here] register_identifier
+            and* register_type'       = Type.translate_type register_type
+            and* value_expression, _value_type, value_named_statements = expression_of_aval location value
+            in
+            let* read_identifier    = TC.generate_unique_identifier ()
+            and* updated_identifier = TC.generate_unique_identifier ()
+            in
+            let* read_statement = statement_of_register_read register_identifier' register_type
+            in
+            let write_statement : Ast.Statement.t =
+              if
+                Configuration.is_excluded_register (Ast.Identifier.to_string register_identifier')
+              then
+                (* The register is excluded by the configuration (exclude-registers): the value is not written anywhere *)
+                Expression (Value Unit)
+              else
+                Seq (
+                  WriteRegister { register_identifier = register_identifier'; written_value = updated_identifier },
+                  Expression (Value Unit)
+                )
+            in
+            let statement : Ast.Statement.t =
+              Let {
+                binder                 = read_identifier;
+                binding_statement_type = register_type';
+                binding_statement      = read_statement;
+                body_statement         = Let {
+                    binder                 = updated_identifier;
+                    binding_statement_type = register_type';
+                    binding_statement      = Call (update_identifier, [ Variable (read_identifier, register_type'); value_expression ]);
+                    body_statement         = write_statement;
+                  }
+              }
+            in
+            TC.return @@ wrap_in_named_statements_context value_named_statements statement
+          end
+      end
+  in
+
   let statement_of_match
       (matched     : S.typ S.aval                                     )
       (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
@@ -1453,6 +1533,7 @@ let rec statement_of_aexp
   let* translated_statement =
     match unwrapped_expression with
     | AE_val value                                                  -> statement_of_value value
+    | AE_app (id, [ AV_ref (register_identifier, Register register_type); value ], _typ) -> statement_of_register_setter_call (Sail.id_of_function_id id) register_identifier register_type value
     | AE_app (id, avals, typ)                                       -> statement_of_application (Sail.id_of_function_id id) avals typ
     | AE_let (mutability, name, typ1, expression, body, typ2)       -> statement_of_let mutability (Sail.id_of_name name) typ1 expression body typ2
     | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ

@@ -75,6 +75,21 @@ class CleanTests(unittest.TestCase):
         blockers = progress.instruction_blockers(GRAPH, SCOPE, self.statuses, CALLS[:1])
         self.assertEqual(blockers['execute_ADDI'], [])
 
+    def test_cone_skips_policy_excluded_definitions(self):
+        # execute_A reaches broken only through translate, which is policy-excluded: the
+        # translation removes the call, so broken does not keep execute_A from being clean
+        graph = callgraph.CallGraph.from_dump_text(
+            'function clause execute A(x) = execute_A(x)\n\n'
+            'function execute_A x = translate(x)\n\n'
+            'function translate x = broken(x)\n\n'
+            'function broken x = x\n')
+        scope_a = scope.compute(graph, scope.ScopeFile(['i.sail'], ['execute'], {'execute': 'execute_'}),
+                                {'i.sail': 'union clause ast = A : unit\n'})
+        statuses = {'execute': 'ok', 'execute_A': 'ok', 'broken': 'missing'}
+        self.assertEqual(progress.instruction_blockers(graph, scope_a, statuses, [])['execute_A'], ['broken (missing)'])
+        scope_a.policy = {'translate': 'failure'}
+        self.assertEqual(progress.instruction_blockers(graph, scope_a, statuses, [])['execute_A'], [])
+
     def test_ranking(self):
         ranking = progress.blocker_ranking({'a': ['x', 'y'], 'b': ['y'], 'c': []})
         self.assertEqual(ranking, [('y', 2), ('x', 1)])

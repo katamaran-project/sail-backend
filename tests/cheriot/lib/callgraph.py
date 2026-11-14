@@ -65,9 +65,18 @@ def last_dump(directory: Path) -> Path:
     return max(dumps)[1]
 
 
+# A call to a bitfield setter with a register reference, _set_B_F(ref r, v). The translator inlines
+# it as a read of r, a call to _update_B_F and a write of r, and skips the setter, whose register('a)
+# parameter muSail cannot express; so the call counts as a call to _update_B_F (r occurs anyway).
+SETTER_CALL = re.compile(r'\b_set_([A-Za-z0-9_#]+)\s*\(\s*ref\b')
+
+
 def identifiers(text: str) -> list[str]:
-    """The identifiers in a piece of Sail, operators named as the translator names them."""
-    return [canonical(i) for i in IDENTIFIER.findall(text)]
+    """
+    The identifiers in a piece of Sail, operators named as the translator names them, and calls
+    to bitfield setters with a register reference replaced by calls to the update function.
+    """
+    return [canonical(i) for i in IDENTIFIER.findall(SETTER_CALL.sub(r'_update_\1(', text))]
 
 
 class CallGraph:

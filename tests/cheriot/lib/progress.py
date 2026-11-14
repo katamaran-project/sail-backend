@@ -60,6 +60,10 @@ def instruction_blockers(graph: CallGraph, scope: Scope, statuses: dict[str, str
     the definitions in its call cone that are not ok ("name (status)"), and the missing
     functions that the cone calls ("name (class of the missing call)"). Clean instructions
     have no blockers.
+
+    The cone does not follow edges into policy-excluded definitions, as the scope does not
+    (scope.compute): the translation removes those calls, so what only an excluded definition
+    reaches (the memory path behind translate32, say) is not part of the instruction.
     """
     missing_called_by: dict[str, set[str]] = {}
     for call in calls:
@@ -67,7 +71,7 @@ def instruction_blockers(graph: CallGraph, scope: Scope, statuses: dict[str, str
             missing_called_by.setdefault(caller, set()).add(f'{call.callee} ({call.cls})')
     result = {}
     for function in sorted(scope.dispatched):
-        cone = graph.reachable([function]) & set(statuses)
+        cone = graph.reachable([function], lambda source, target: target in scope.policy) & set(statuses)
         blockers = {f'{name} ({statuses[name]})' for name in cone if statuses[name] != 'ok'}
         for name in cone:
             blockers |= missing_called_by.get(name, set())

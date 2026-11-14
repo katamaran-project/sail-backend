@@ -60,7 +60,11 @@
  (lambda (identifier)
    (or
     (string-ends-with? "_of_num" identifier)
-    (string-starts-with? "num_of_" identifier)
+    ;; Sail's generated conversions from enums to numbers, which nothing in scope needs;
+    ;; num_of_ExceptionType and num_of_ext_exc_type are written by the model itself and
+    ;; called by exceptionType_to_bits (trap handling), so they are translated.
+    (and (string-starts-with? "num_of_" identifier)
+         (not (contains? '("num_of_ExceptionType" "num_of_ext_exc_type") identifier)))
     (string-starts-with? "undefined_" identifier)
     (string-starts-with? "regval_of_" identifier)
     (string-ends-with? "_of_regval" identifier)
