@@ -11,7 +11,7 @@ instruction-files = [
   "sail-riscv/model/riscv_insts_zicsr.sail",  # Zicsr: control and status registers
   "src/cheri_insts.sail",                     # CHERIoT capability instructions
   # Out of scope for now: compressed instructions (riscv_insts_cext.sail and
-  # src/cheri_insts_cext.sail), bit manipulation (Zb*), vector, virtual memory, PMP.
+  # src/cheri_insts_cext.sail), bit manipulation (Zb*), vector, virtual memory; PMP is absent (below).
 ]
 
 # Entry points that are always in scope: the fetch-decode-execute step, the
@@ -48,6 +48,8 @@ no-op = [
   # change nothing.
   "flush_TLB",
   "init_vmem",
+  # PMP absent (sys_pmp_count = 0): init_pmp only resets pmpcfg_n, which is excluded.
+  "init_pmp",
 ]
 
 failure = [
@@ -58,6 +60,14 @@ failure = [
   # a proof must assume it (or Katamaran's fail_rule_pre makes the failure vacuous).
   "translate32",
   "translationException",
+  # PMP absent (sys_pmp_count = 0): pmp_mem_read/write skip pmpCheck when the count
+  # is 0, and is_CSR_defined refuses the PMP CSRs (0x3A0-0x3EF) unless
+  # sys_pmp_count() > idx, so readCSR/writeCSR never reach the PMP register accessors.
+  "pmpCheck",
+  "pmpReadCfgReg",
+  "pmpWriteCfgReg",
+  "pmpReadAddrReg",
+  "pmpWriteAddrReg",
 ]
 
 unconstrained = [
@@ -86,4 +96,12 @@ unconstrained = [
 registers = [
   # The Sv32 TLB (its type, TLB32_Entry, is ignored by the configuration).
   "tlb32",
+  # The PMP register arrays: no PMP entries (see sys_pmp_count below).
+  "pmpcfg_n",
+  "pmpaddr_n",
 ]
+
+[policy-excluded.value]
+# PMP absent: a CHERIoT without PMP entries, a configuration the model allows
+# (init_pmp asserts 0, 16 or 64). Remove the PMP lines above to turn PMP back on.
+sys_pmp_count = "0"
