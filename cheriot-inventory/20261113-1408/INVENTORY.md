@@ -34,6 +34,7 @@ Nothing in the translator was changed. All numbers come from the scripts in this
   Printing, mappings (P09) and the in-scope `_set_*` setters (P07) were *not* ignored: in-scope code calls them, so ignoring them would only turn them into missing calls; they wait for the policy exclusion of `docs/cheriot-loop.md` §4.2.
 - **P08 is fixed** (option 1, 14 Nov 2026): Sail's interpreter (the one Sail's constant folding uses) evaluates every top-level `let` before translation; the value becomes a Rocq `Definition` of its `Val` type (records with Rocq record syntax, enums as constructors) and each use becomes `exp_val ty name`, so contracts and proofs can mention and compute with `null_cap`, `root_cap_mem`, .... All 19 in the core translate. Test: `toplevel-let-computed`.
   A local variable that shadows a top-level value makes the function untranslated (NYI), rather than guessing which one is meant. Not fixed: CHERIoT's `type X : Int = ...` / `let X = sizeof(X)` pairs give two Rocq definitions with the same name.
+- **P04 is fixed** (14 Nov 2026): elements of type `bits(1)` are accepted; a literal whose bits are not all known becomes a chain of `bop.bvapp`, with runs of known bits merged into one literal. Test: `vectors-literal-bit-elements`. `encdec_backwards` then stops at a `match` on a `bool` (`Match.ml:3068`), not at P04.
 - Found along the way, not fixed: `sail_shiftleft(v, 2)` generates the shift amount as `[bv 2]` of width 1, which Rocq rejects. sail-riscv's own `<<` uses `shift_bits_left`/`shiftl`, so CHERIoT may not be affected.
 - PMP support was estimated (13 Nov 2026) at 3–5 weeks of PMP-specific work (register arrays P10, loops P05, run-time-offset slices, platform parameters), on top of P02 and P13, which the memory path needs anyway; its checks only matter once the memory path translates. Deferred, as decided. Note that in-scope Zicsr calls the PMP CSR helpers and the initialisation calls `init_pmp`, so leaving PMP out needs the "remove a definition and stub its calls" configuration feature.
 
@@ -363,6 +364,8 @@ function getCapPerms(cap) : Capability -> CapPermsBits = [
 - Callers: `bool_to_bits` 17 calls, `getCapPerms` 5 calls.
 
 *Fix.* Accept `Bitvector[1]` elements and translate the literal as a concatenation (`bop.bvapp`), or as a `bv` literal when all elements are constants. **S.** *Tests.* None; trivial to add (`[bool_to_bit(x), bool_to_bit(y)]`).
+
+*Status.* Fixed as proposed (see the status update at the top); test `vectors-literal-bit-elements`.
 
 ### P01. Integer arguments that must be known at compile time — M
 
