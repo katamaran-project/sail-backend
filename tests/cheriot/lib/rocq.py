@@ -162,6 +162,7 @@ def import_end(lines: list[str]) -> int:
     return index
 
 
+BINDFREE_PROOF = re.compile(r'^(\s*)Proof\. destruct f; now vm_compute\. Qed\.\s*$')
 FUN_DEFINITION_START = re.compile(r'^\s*Definition fun_[A-Za-z0-9_#]+\b')
 
 
@@ -173,7 +174,8 @@ def axiomatise_function_bodies_with_holes(lines: list[str]) -> list[str]:
     A hole in a type (a width the translator could not express, ty.bvec NYI[0]) leaves constraints
     that no axiom solves, such as a side condition IsTrue (NYI + 1 <=? n): with NYI as an axiom, the probe
     would still stop at the first such function, and a call to a missing function stops it the same way.
-    Holes and missing calls are counted elsewhere; the probe shows whether everything else type-checks. The body is assumed to end at the first line that ends
+    Holes and missing calls are counted elsewhere; the probe shows whether everything else type-checks.
+    The proof of fundef_bindfree, which computes on every body and is stuck on the axiom, is then admitted. The body is assumed to end at the first line that ends
     with a period and is followed by a blank line, as the generator prints it.
     """
     defined = set(DEFINED.findall('\n'.join(lines)))
@@ -196,6 +198,9 @@ def axiomatise_function_bodies_with_holes(lines: list[str]) -> list[str]:
             result[header_end + 1:body_end + 1] = \
                 [indentation + 'NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)'] + [''] * (len(body) - 1)
         index = body_end + 1
+    if result != lines:
+        # fundef_bindfree computes stm_bindfree of every body, which is stuck on the axiom
+        result = [BINDFREE_PROOF.sub(r'\1Admitted. (* tests/cheriot: some bodies are the NYI axiom *)', line) for line in result]
     return result
 
 

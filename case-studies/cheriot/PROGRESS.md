@@ -42,6 +42,11 @@ Rocq infers the widths at each call. This is not monomorphisation: one contract 
 an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`uop.zext` would need a proof that only the constraints give),
 a width that depends on a value (`align_down`'s `bits('n)` for `n : itself('n)`) or divides a size variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`) is a hole,
 and the memory-write chain (`htif_store`, `mmio_write`, ... over `bits('p8_times_n)`) does not type-check yet (that is the rest of P13).
+**Measured by hand (14 Nov 2026, after `aa37bf59`):** in the probe copy, with the bodies of the 13 functions over `bits('p8_times_n)` (`write_ram`, `read_ram`,
+`ext_check_phys_mem_write`, `clint_store`, `htif_store`, `uart_store`, `mmio_write`, `rvfi_write`, `checked_mem_write`, `pmp_mem_write`, `mem_write_value_priv_meta`,
+`mem_write_value_meta`, `mem_write_value`) also replaced by the axiom, **all of `machine.v` compiles** (52 s): every other definition, `Fun`, `FunX`, `FunDef`,
+the `ForeignKit`, `fundef_bindfree` (every real body computes `stm_bindfree` in under 0.04 s) and the program mixin. So the P13 memory-write chain is the last
+obstacle in `machine.v` beyond the holes and missing calls that the loop counts. Tuples of three or more elements are now `exp_tuple` (they were nested pairs typed `ty.tuple`).
 `size_itself_int` (the identity on integers that Sail inserts for implicit sizes) blocked 58 instructions and is now translated like `make_the_value`;
 `zeros_implicit`, `ones`, `sail_zeros` and `sail_ones` are no longer skipped by the configuration.
 A `bit` is `ty.bvec 1` (Sail 0.20's library defines `type bit = bitvector(1)`; the translator still made it `ty.bool`, which clashed with its own one-bit literals).

@@ -82,6 +82,10 @@ class ProbeSourceTests(unittest.TestCase):
             '    Definition fun_calls_clean : Stm [] (ty.int) :=',
             '      stm_call clean env.nil.',
             '',
+            '  Lemma fundef_bindfree (Δ : PCtx) (τ : Ty) (f : Fun Δ τ) :',
+            '    stm_bindfree (FunDef f).',
+            '  Proof. destruct f; now vm_compute. Qed.',
+            '',
         ])
         copy, at, inserted = rocq.probe_source(text)
         lines = copy.split('\n')[at - 1 + inserted:]
@@ -90,6 +94,7 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertEqual(lines[7], '      stm_exp (exp_int 1).')
         self.assertEqual(lines[10], '      NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)')
         self.assertEqual(lines[13], '      stm_call clean env.nil.')
+        self.assertEqual(lines[17], '  Admitted. (* tests/cheriot: some bodies are the NYI axiom *)')
         self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
 
     def test_command_definition(self):
