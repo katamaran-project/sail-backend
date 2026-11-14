@@ -257,7 +257,7 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
   | Tuple ts            -> GC.pp_annotate [%here] @@ coq_type_of_tuple ts
   | Sum (l, r)          -> GC.pp_annotate [%here] @@ coq_type_of_sum l r
   | Bit                 -> GC.not_yet_implemented [%here]
-  | Range (_, _)        -> GC.not_yet_implemented [%here]
+  | Range (_, _)        -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"  (* ranges are erased to ty.int, whose values are Z *)
   | Function _          -> GC.not_yet_implemented [%here]
   | TypeVariable _      -> GC.not_yet_implemented [%here]
   | Nat                 -> GC.return @@ PP.annotate [%here] @@ PP.string "Z"

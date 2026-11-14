@@ -35,6 +35,7 @@ Nothing in the translator was changed. All numbers come from the scripts in this
 - **P08 is fixed** (option 1, 14 Nov 2026): Sail's interpreter (the one Sail's constant folding uses) evaluates every top-level `let` before translation; the value becomes a Rocq `Definition` of its `Val` type (records with Rocq record syntax, enums as constructors) and each use becomes `exp_val ty name`, so contracts and proofs can mention and compute with `null_cap`, `root_cap_mem`, .... All 19 in the core translate. Test: `toplevel-let-computed`.
   A local variable that shadows a top-level value makes the function untranslated (NYI), rather than guessing which one is meant. Not fixed: CHERIoT's `type X : Int = ...` / `let X = sizeof(X)` pairs give two Rocq definitions with the same name.
 - **P04 is fixed** (14 Nov 2026): elements of type `bits(1)` are accepted; a literal whose bits are not all known becomes a chain of `bop.bvapp`, with runs of known bits merged into one literal. Test: `vectors-literal-bit-elements`. `encdec_backwards` then stops at a `match` on a `bool` (`Match.ml:3068`), not at P04.
+- **P11 is fixed except for the parametric structs** (14 Nov 2026): `atom`/`range`/`itself` types whose numeric expression contains an `if` are erased to `int`, and `range` is `Z` in Rocq-level types, so `CapAddrInt`/`CapLen` are no longer ignored. Test: `numeric-if-and-range`. Left: `TLB_Entry('asidlen, 'valen, 'palen, 'ptelen)` (Sv32 only).
 - Found along the way, not fixed: `sail_shiftleft(v, 2)` generates the shift amount as `[bv 2]` of width 1, which Rocq rejects. sail-riscv's own `<<` uses `shift_bits_left`/`shiftl`, so CHERIoT may not be affected.
 - PMP support was estimated (13 Nov 2026) at 3–5 weeks of PMP-specific work (register arrays P10, loops P05, run-time-offset slices, platform parameters), on top of P02 and P13, which the memory path needs anyway; its checks only matter once the memory path translates. Deferred, as decided. Note that in-scope Zicsr calls the PMP CSR helpers and the initialisation calls `init_pmp`, so leaving PMP out needs the "remove a definition and stub its calls" configuration feature.
 
@@ -463,6 +464,8 @@ pmpcfg_n[n*4 + 3].bits @ pmpcfg_n[n*4 + 2].bits @ ...
 - `if` inside a numeric expression (`Recursive.ml:376`, `Nexp_if`): `X(rd) = to_bits(32, if len > cap_max_addr then cap_max_addr else len)` in `execute_CGetLen`/`CGetTop`. Erase it to `int`. **S.**
 - `range(…)` as a type in some positions (`Type.ml:260`: `CapAddrInt`, `CapLen`; `Match.ml:3075`: `regidx_to_regno`). Erase to `int`, as is already done elsewhere. **S.**
 - Structs with `Int` parameters: `struct TLB_Entry('asidlen: Int, 'valen: Int, …)` (`Function.ml:591` `Typ_app`, `:363` "Unexpected type"). Affects `match_TLB_Entry`, `flush_TLB_Entry`, `make_TLB_Entry` and `translate32`. Instantiate at the single use, or ignore Sv32/TLB if CHERIoT has no virtual memory (to check). **S.**
+
+*Status.* The first two are fixed (see the status update at the top; test `numeric-if-and-range`). `TLB_Entry` is open: its helper functions are polymorphic in the struct's parameters, so instantiating the struct also needs those functions specialised (P13) or the Sv32 code excluded as dead code.
 
 ### P09. Mappings over strings and bitvectors — S (drop)
 

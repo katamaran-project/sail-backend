@@ -3,7 +3,7 @@
  "clean_instructions": [
   "execute_FENCEI"
  ],
- "commit": "13f3d183+dirty",
+ "commit": "2a85f662+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -307,10 +307,10 @@
   "execute_CGetAddr": "ok",
   "execute_CGetBase": "ok",
   "execute_CGetHigh": "ok",
-  "execute_CGetLen": "missing",
+  "execute_CGetLen": "ok",
   "execute_CGetPerm": "ok",
   "execute_CGetTag": "ok",
-  "execute_CGetTop": "missing",
+  "execute_CGetTop": "ok",
   "execute_CGetType": "ok",
   "execute_CIncAddr": "ok",
   "execute_CIncAddrImmediate": "ok",
@@ -703,12 +703,12 @@
  },
  "headline": {
   "NYI holes": 34,
-  "functions generated": 569,
+  "functions generated": 571,
   "hard failures": 0,
   "instructions clean": 1,
-  "instructions generated": 50,
-  "missing calls": 1502,
-  "untranslated definitions": 79
+  "instructions generated": 52,
+  "missing calls": 1500,
+  "untranslated definitions": 77
  },
  "holes": {
   "align_down": 2,
@@ -824,7 +824,9 @@
     "EncCapability",
     "cap_perms_width",
     "CapAddrBits",
+    "CapAddrInt",
     "CapLenBits",
+    "CapLen",
     "CapPermsBits",
     "cap_max_E",
     "Capability",
@@ -894,7 +896,9 @@
     "EncCapability",
     "cap_perms_width",
     "CapAddrBits",
+    "CapAddrInt",
     "CapLenBits",
+    "CapLen",
     "CapPermsBits",
     "cap_max_E",
     "Capability",
@@ -1237,7 +1241,9 @@
     "\"'ty.screg'\"",
     "\"'ty.CapBits'\"",
     "\"'ty.CapAddrBits'\"",
+    "\"'ty.CapAddrInt'\"",
     "\"'ty.CapLenBits'\"",
+    "\"'ty.CapLen'\"",
     "\"'ty.CapPermsBits'\"",
     "\"'ty.mem_meta'\"",
     "\"'ty.tagaddrbits'\"",
@@ -1424,7 +1430,9 @@
     "EncCapability",
     "cap_perms_width",
     "CapAddrBits",
+    "CapAddrInt",
     "CapLenBits",
+    "CapLen",
     "CapPermsBits",
     "cap_max_E",
     "Capability",
@@ -1494,7 +1502,9 @@
     "EncCapability",
     "cap_perms_width",
     "CapAddrBits",
+    "CapAddrInt",
     "CapLenBits",
+    "CapLen",
     "CapPermsBits",
     "cap_max_E",
     "Capability",
@@ -1837,7 +1847,9 @@
     "\"'ty.screg'\"",
     "\"'ty.CapBits'\"",
     "\"'ty.CapAddrBits'\"",
+    "\"'ty.CapAddrInt'\"",
     "\"'ty.CapLenBits'\"",
+    "\"'ty.CapLen'\"",
     "\"'ty.CapPermsBits'\"",
     "\"'ty.mem_meta'\"",
     "\"'ty.tagaddrbits'\"",
@@ -1987,6 +1999,6 @@
    "file": "base.v"
   }
  },
- "run": "20261114T023436-13f3d183-dirty",
+ "run": "20261114T024123-2a85f662-dirty",
  "scope": "93755be135d2"
 }

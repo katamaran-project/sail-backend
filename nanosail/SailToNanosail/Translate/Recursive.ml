@@ -13,6 +13,34 @@ module TC = TranslationContext
 open Monads.Notations.Star(TC)
 
 
+(*
+   Checks whether a numeric expression contains an if (Nexp_if), which nanosail's numeric expressions cannot represent.
+*)
+let rec numeric_expression_contains_conditional (numeric_expression : S.nexp) : bool =
+  let S.Nexp_aux (unwrapped_numeric_expression, _location) = numeric_expression
+  in
+  match unwrapped_numeric_expression with
+  | Nexp_if (_, _, _)           -> true
+  | Nexp_constant _             -> false
+  | Nexp_var _                  -> false
+  | Nexp_id _                   -> false
+  | Nexp_times (x, y)           -> numeric_expression_contains_conditional x || numeric_expression_contains_conditional y
+  | Nexp_sum (x, y)             -> numeric_expression_contains_conditional x || numeric_expression_contains_conditional y
+  | Nexp_minus (x, y)           -> numeric_expression_contains_conditional x || numeric_expression_contains_conditional y
+  | Nexp_neg x                  -> numeric_expression_contains_conditional x
+  | Nexp_exp x                  -> numeric_expression_contains_conditional x
+  | Nexp_app (_, arguments)     -> List.exists ~f:numeric_expression_contains_conditional arguments
+
+
+let type_argument_contains_conditional (type_argument : S.typ_arg) : bool =
+  let S.A_aux (unwrapped_type_argument, _location) = type_argument
+  in
+  match unwrapped_type_argument with
+  | A_nexp numeric_expression -> numeric_expression_contains_conditional numeric_expression
+  | A_typ _                   -> false
+  | A_bool _                  -> false
+
+
 module rec Type : sig
   val translate_type          : S.typ -> Ast.Type.t TC.t
   val translate_type_argument : S.typ_arg -> Ast.TypeArgument.t TC.t
@@ -78,8 +106,21 @@ end = struct
           (identifier     : S.id          )
           (type_arguments : S.typ_arg list) : Ast.Type.t TC.t
         =
+        let* identifier' = Identifier.translate_identifier [%here] identifier
+        in
+        (*
+           Integer types (atom, range, itself) whose numeric expressions contain an if,
+           such as int(if 'len > 4294967295 then 4294967295 else 'len), are erased to int:
+           muSail integers carry no bounds, and the numeric expression cannot be translated.
+        *)
+        if
+          List.mem ["atom"; "range"; "itself"] (Ast.Identifier.to_string identifier') ~equal:String.equal
+          &&
+          List.exists type_arguments ~f:type_argument_contains_conditional
+        then
+          TC.return @@ Ast.Type.Int None
+        else
         let* type_arguments' = TC.map ~f:translate_type_argument type_arguments
-        and* identifier'     = Identifier.translate_identifier [%here] identifier
         in
         match Ast.Identifier.to_string identifier' with
         | "list"      -> nanotype_of_list type_arguments'
