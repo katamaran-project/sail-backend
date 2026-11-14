@@ -401,7 +401,11 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
 
 
    In other words, the parameter types differ.
-   We currently support only cases where the second parameter is a integer literal in the Sail code.
+
+   If the shift amount is known at compile time, it becomes a bitvector literal.
+   Otherwise, it is converted at run time with uop.get_slice_int (bv.of_Z, i.e., modulo 2^n) into a bitvector
+   as wide as the shifted one, so that amounts below 2^width, all those that do not shift out every bit, are exact.
+   This needs the width of the shifted bitvector.
 *)
 let translate_shift
     ~(sail_name   : string               )
@@ -440,7 +444,35 @@ let translate_shift
       in
       match shift_argument_value with
       | Some bit_count -> pp_shift bitvector_argument bit_count
-      | None           -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None           -> begin
+          match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type bitvector_argument with
+          | Bitvector width -> begin
+              let* pp_bitvector_argument =
+                GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression bitvector_argument
+              and* pp_width =
+                Numeric.Expression.pp_argument width
+              and* pp_shift_argument =
+                Expressions.pp_expression shift_argument
+              in
+              let pp_converted_shift_argument =
+                PP.(surround parens) begin
+                  Coq.pp_application
+                    (PP.string "exp_unop")
+                    [
+                      PP.(surround parens) @@ PP.horizontal [ PP.string "uop.get_slice_int (n := "; pp_width; PP.string ")" ];
+                      PP.(surround parens) pp_shift_argument;
+                    ]
+                end
+              in
+              GC.pp_annotate [%here] begin
+                translate_binary_operator_using_function_notation
+                  (Ast.Identifier.mk sail_name)
+                  musail_name
+                  [ pp_bitvector_argument; pp_converted_shift_argument ]
+              end
+            end
+          | _ -> GC.not_yet_implemented ~message:(Printf.sprintf "%s with a shift amount not known at compile time needs the width of the shifted bitvector" sail_name) [%here]
+        end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
@@ -533,6 +565,53 @@ let translate_zero_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
   and musail_name = "zext"
   in
   translate_extend ~sail_name ~musail_name ~arguments
+
+
+(*
+   Sail
+
+     val truncate : forall 'm 'n, 'm >= 0 & 'm <= 'n. (bits('n), int('m)) -> bits('m)
+
+   becomes muSail's uop.truncate m, which keeps the m least significant bits.
+   The new width must be known at compile time.
+*)
+let translate_truncate (arguments : Ast.Expression.t list) : PP.t GC.t =
+  let sail_name = "truncate"
+  in
+  match arguments with
+  | [ bitvector_argument; width_argument ] -> begin
+      let* width = extract_compile_time_integer width_argument
+      in
+      match width with
+      | Some width -> begin
+          let* pp_bitvector_argument =
+            GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression bitvector_argument
+          in
+          GC.pp_annotate [%here] begin
+            GC.return begin
+              MuSail.Statement.pp_expression begin
+                Coq.pp_application
+                  (PP.string "exp_unop")
+                  [
+                    PP.string @@ Printf.sprintf "(uop.truncate %s)" (Z.to_string width);
+                    pp_bitvector_argument
+                  ]
+              end
+            end
+          end
+        end
+      | None -> begin
+          (* Keep the call, as before *)
+          let* pp_arguments = GC.map ~f:Expressions.pp_expression arguments
+          in
+          GC.return begin
+            pp_function_call_using_configured_syntax
+              (PP.string sail_name)
+              pp_arguments
+          end
+        end
+    end
+  | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 let translate_sign_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
@@ -792,6 +871,7 @@ let translate
     | "sail_shiftleft"       -> translate_shift_left arguments
     | "sail_shiftright"      -> translate_shift_right arguments
     | "sail_zero_extend"     -> translate_zero_extend arguments
+    | "truncate"             -> translate_truncate arguments
     | "sail_sign_extend"     -> translate_sign_extend arguments
     | "sail_assert"          -> translate_assertion arguments
     | "bitvector_concat"     -> translate_bitvector_concatenation arguments
