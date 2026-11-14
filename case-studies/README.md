@@ -1,7 +1,8 @@
 # Case studies
 
 Sail models that are translated with the plugin as a whole, as opposed to the small end-to-end tests in `tests/coq-tests`.
-The CHERIoT case study is not here: it lives in the katamaran repository (`case_study/Cheriot`), see `HACKING.md`.
+The CHERIoT case study (its configuration and templates) lives in the katamaran repository (`case_study/Cheriot`), see `HACKING.md`;
+its translation is measured by the loop in `tests/cheriot` (`docs/cheriot-loop.md`), and `cheriot/PROGRESS.md` here tracks the results.
 
 | directory | model | how to run | status (13 Nov 2026) |
 |---|---|---|---|

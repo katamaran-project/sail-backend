@@ -65,7 +65,7 @@ There are three dune projects, layered as follows:
 - `sail_plugin/`: a thin layer that registers the `--katamaran` options with libsail, selects which Sail rewrites run (`Rewrites.ml`), and calls into `nanosail`.
 
 Other top-level directories (not dune projects):
-- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. The CHERIoT case study lives in katamaran's `case_study/Cheriot`.
+- `case-studies/`: whole Sail models translated with the plugin (`msp430/`, `minimal-caps/`); see `case-studies/README.md`. The CHERIoT case study lives in katamaran's `case_study/Cheriot`; `case-studies/cheriot/PROGRESS.md` tracks its translation (update it in any commit that changes the `gmake cheriot` numbers).
 - `archived_experiments/`: old experiments kept for reference (`rewrites/`, `monomorphization-tests/`); not run by the build or the tests, and not maintained.
 - `cheriot-inventory/`: the CHERIoT failure inventory and the project status and history documents.
 

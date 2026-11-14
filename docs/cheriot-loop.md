@@ -172,6 +172,7 @@ result: PROGRESS (no regressions)
 - Every run appends one line to `tests/cheriot/history.csv`, which is tracked in git, like the e2e test history.
 - `tests/cheriot/baseline.json`, also tracked, stores the **per-definition status** at the last accepted state.
 - A run **fails (exit 1)** if any in-scope definition got worse than in the baseline (translated → untranslated, clean → not clean, new hard failure, Rocq first error earlier), even if the totals improved.
+- Until this exists, `case-studies/cheriot/PROGRESS.md` is the progress log: current numbers, blockers and a row per commit that changes them, kept by hand.
 - `--update-baseline` accepts the current state. It is part of the commit that makes the progress, so `git log tests/cheriot/baseline.json` is the progress log.
 
 ## 6. Inputs and reproducibility
