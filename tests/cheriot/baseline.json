@@ -57,8 +57,8 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "28524b93+dirty",
- "date": "2026-11-14",
+ "commit": "c90a4863+dirty",
+ "date": "2026-11-15",
  "definitions": {
   "CGP_IDX": "ok",
   "CapExCode": "ok",
@@ -268,7 +268,7 @@
   "cur_Architecture": "ok",
   "default_meta": "ok",
   "default_write_acc": "ok",
-  "dispatchInterrupt": "missing",
+  "dispatchInterrupt": "ok",
   "effectivePrivilege": "ok",
   "effective_fence_set": "ok",
   "encCapToBits": "ok",
@@ -567,14 +567,14 @@
   "size_bits_backwards": "ok",
   "size_bits_backwards_matches": "ok",
   "sp": "ok",
-  "step": "missing",
+  "step": "ok",
   "tag_addr_to_addr": "holes",
   "tick_pc": "ok",
   "to_bits": "ok",
   "to_phys_addr": "ok",
   "translateAddr": "ok",
   "translateAddr_priv": "ok",
-  "translationMode": "missing",
+  "translationMode": "ok",
   "trapVectorMode_of_bits": "ok",
   "trap_handler": "ok",
   "try_execute": "missing",
@@ -607,12 +607,12 @@
  },
  "headline": {
   "NYI holes": 12,
-  "functions generated": 477,
+  "functions generated": 480,
   "hard failures": 0,
   "instructions clean": 55,
   "instructions generated": 61,
-  "missing calls": 102,
-  "untranslated definitions": 39
+  "missing calls": 103,
+  "untranslated definitions": 36
  },
  "holes": {
   "align_down": 3,
@@ -3249,6 +3249,7 @@
     "findPendingInterrupt",
     "processPending",
     "getPendingSet",
+    "dispatchInterrupt",
     "tval",
     "rvfi_trap",
     "trap_handler",
@@ -3620,6 +3621,7 @@
     "findPendingInterrupt",
     "processPending",
     "getPendingSet",
+    "dispatchInterrupt",
     "tval",
     "rvfi_trap",
     "trap_handler",
@@ -3682,6 +3684,7 @@
     "curPTB32",
     "to_phys_addr",
     "legalize_satp",
+    "translationMode",
     "translateAddr_priv",
     "translateAddr",
     "encdec_uop_backwards",
@@ -3771,6 +3774,7 @@
     "ext_decode",
     "isRVC",
     "fetch",
+    "step",
     "init_model",
     "FunDef",
     "bv_width",
@@ -3797,6 +3801,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261114T235355-28524b93-dirty",
- "scope": "02a306dc07a5"
+ "run": "20261115T003933-c90a4863-dirty",
+ "scope": "4ac8834d57bc"
 }

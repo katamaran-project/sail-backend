@@ -22,12 +22,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Patterns
 
-- **Option patterns**: a constructor or tuple pattern inside `Some` (option is µSail's `ty.sum`):
-  ```sail
-  match architecture(get_mstatus_SXL(mstatus)) { Some(RV32) => ..., _ => internal_error(...) }   // translationMode
-  match dispatchInterrupt(cur_privilege) { Some(intr, priv) => ..., None() => ... }            // step
-  ```
-  - Blocks: `translationMode` (`LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`); `step` and `dispatchInterrupt` (`Some(ip, p)`), so interrupt handling.
 - **Tuple pattern at a tuple type abbreviation**: `let (capEx, regnum) = err` with `err : ext_data_addr_error`.
   Blocks `ext_handle_data_check_error` (`LOAD`, `STORE`).
 - **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
@@ -55,7 +49,7 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Later
 
-- **Exceptions**: `try` in `try_execute` (untranslated). Not needed for now.
+- **Exceptions**: `try` in `try_execute` (untranslated; called by `step`). Not needed for now.
 - **Minimal faithful PMP**: 16 entries instead of `sys_pmp_count = 0`.
   - Register arrays (`pmpcfg_n`, `pmpaddr_n`) as one register per entry: a constant index is that register, a run-time index a `match`.
   - Loops with constant bounds (`foreach`) unrolled or as a recursive helper; `pmpCheck`'s `return` inside a `foreach`.
