@@ -128,6 +128,13 @@ def format_metrics(metrics: Metrics, previous: Optional[dict[str, Any]] = None,
     if metrics.get('rocq'):
         for kind in ('plain', 'probe'):
             lines.append(f'rocq {kind:6} {rocq.describe(metrics["rocq"][kind])}')
+        for kind in ('plain', 'probe'):
+            found = rocq.slowest(metrics['rocq'][kind])
+            if found:
+                lines.append(f'slowest Rocq commands ({kind}):')
+                lines.extend(f'  {t["seconds"]:7.1f} s  {t["file"]}:{t["line"]}'
+                             f'{" (" + t["definition"] + ")" if t["definition"] else ""}  {t["command"][:60]}'
+                             for t in found)
     if metrics.get('blockers'):
         lines.append('top blockers (instructions each keeps from being clean):')
         lines.extend(f'  {count:3}  {blocker}' for blocker, count in metrics['blockers'][:8])

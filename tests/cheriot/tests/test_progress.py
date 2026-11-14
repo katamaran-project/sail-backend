@@ -158,6 +158,21 @@ class CompareTests(unittest.TestCase):
         comparison = progress.compare(make_snapshot(compilations=failing), make_snapshot())
         self.assertEqual(comparison.notes, ['Rocq did not run, so it was not compared'])
 
+    def test_a_stuck_compilation_is_not_compared(self):
+        failing = {'plain': [compilation('base.v', False, ['a', 'b'], ['a', 'b', 'c'])],
+                   'probe': [compilation('base.v', False, ['a', 'b'], ['a', 'b', 'c'])]}
+        stuck = copy.deepcopy(failing)
+        stuck['probe'] = [{**compilation('base.v', False, ['a'], ['a', 'b', 'c']),
+                           'stuck': {'line': 7, 'command': 'Derive EqDec for b.', 'seconds': 45.2, 'limit': 45,
+                                     'definition': 'b'}}]
+        comparison = progress.compare(make_snapshot(compilations=failing), make_snapshot(compilations=stuck))
+        self.assertEqual((comparison.result, comparison.regressions), ('STUCK', []))
+        self.assertEqual(comparison.stuck, ['Rocq probe now: coqc stopped at base.v:7 in b after 45 s on one command '
+                                            '(limit 45 s): Derive EqDec for b.; not compared'])
+        comparison = progress.compare(make_snapshot(compilations=stuck), make_snapshot(compilations=failing))
+        self.assertEqual(comparison.result, 'STUCK')
+        self.assertIn('Rocq probe in the baseline', comparison.stuck[0])
+
     def test_rocq_in_an_old_baseline_is_not_compared(self):
         failing = {'plain': [compilation('base.v', False, ['a'], ['a'])], 'probe': [compilation('base.v', False, ['a'], ['a'])]}
         old = make_snapshot(compilations=failing)

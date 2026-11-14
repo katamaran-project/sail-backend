@@ -38,7 +38,7 @@ The budget for one outer iteration is therefore **about one minute**. Restrictin
 ```sh
 gmake cheriot CHERIOT_SAIL_DIR=PATH    # from the sail-backend checkout or worktree
 # or directly:
-tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-scope] [--no-coq] [--coq-timeout S]
+tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-scope] [--no-coq] [--coq-stall S] [--no-coq-cache]
                      [--keep-dumps] [--output-dir DIR]
                      [--update-baseline]
 # planned: [--iterate-hard-failures] [--compare RUN]
@@ -71,7 +71,19 @@ The sandbox keeps only the last rewrite dump (all of them take 75 MB; `--keep-du
    (`From Stdlib Require Import Lists.List. Import ListNotations.` and the axiom) goes right after the file's imports,
    and probe line numbers are mapped back to the original file. Each first error names the generated definition that contains it,
    and how many of the file's definitions come before it. An error in the generated Rocq is a measurement, not a failed stage;
-   only a coqc that cannot run is. Each coqc call has a timeout (`--coq-timeout`, default 1800 s).
+   only a coqc that cannot run is.
+
+   *Watchdog, cache and timings (14 Nov 2026).* coqc runs with `-time` under a watchdog (`rocq.watch`): `-time` reports each command as soon
+   as it finishes, so the running command is the one after the last reported one. A command that runs longer than `--coq-stall` seconds
+   (default 45) stops coqc, and the compilation is **STUCK** on that command (line, definition, how long). That is not an error of the
+   generated Rocq but a command too slow to wait for, so the ratchet does not compare a stuck compilation (the run's outcome is `STUCK`),
+   and `--update-baseline` keeps the baseline's position for it. `tests/cheriot/coq-watch.py FILE.v` runs the same watchdog by hand, with
+   a status line every 30 s.
+   A file without `NYI` compiles the same way in its probe copy, so it is compiled once and the probe reuses the plain result and `.vo`
+   (`reused`); plain and probe compilations of the same file run in parallel. Verdicts and compiled `.vo` files are cached in
+   `~/.cache/sail-backend/cheriot-rocq` (`$SAIL_BACKEND_CHERIOT_ROCQ_CACHE`), keyed by the file, the files it loads and the Rocq installation's
+   fingerprint (as in `run-tests.py`); `--no-coq-cache` turns it off. The ten slowest commands of each compilation are in `metrics.json`
+   (`rocq.<kind>[].slowest`), and the report lists the five slowest of each kind.
 7. **Metrics, history and report** (§5).
 
 All output goes to a sandbox, as in `run-tests.py`: `tests/cheriot/output/<timestamp>-<commit>[-dirty]/`, with a `latest` link. The sandbox holds the generated `.v` files, the log, `items.csv`, `metrics.json` and the coqc logs. Nothing in the source tree changes except the history file.
