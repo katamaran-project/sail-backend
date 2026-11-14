@@ -79,14 +79,18 @@ let pp_program_module
     (* bind `contents` monadically to a PP.t value in the GC.t monad *)
     let* contents =
       (* bind all these kits monadically to PP.t values in the GC.t monad *)
+      (*
+         The function definitions come first: their calls to externs determine
+         which foreign functions FunDeclKit (FunX) and ForeignKit contain.
+      *)
+      let* function_definition_kit =
+        GC.pp_annotate [%here] begin
+            FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
+          end
+      in
       let* function_declaration_kit =
         GC.pp_annotate [%here] begin
             FunDeclKit.generate @@ Ast.Definition.Select.drop_sail_definitions function_definitions;
-          end
-
-      and* function_definition_kit =
-        GC.pp_annotate [%here] begin
-            FunDefKit.pp_function_definition_kit function_definitions top_level_type_constraint_definitions
           end
 
       and* foreign_kit =
