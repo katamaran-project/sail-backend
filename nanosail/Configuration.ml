@@ -272,6 +272,13 @@ module Implementation = struct
     let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
     let ignore_top_level_type_constraint_predicate = string_predicate "ignore-top-level-type-constraint-predicate" (Fn.const false)
 
+    (*
+       Names of definitions to ignore in addition to those the predicates above select;
+       see the Slang functions ignore-functions and ignore-values below.
+    *)
+    let ignored_function_names                     = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+    let ignored_value_names                        = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
@@ -372,6 +379,35 @@ module Implementation = struct
       (ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate) predicate
     in
     export_string_predicate_setter exported_function_name setter
+
+
+  (*
+     Slang functions that ignore definitions by name:
+
+       (ignore-functions '("f" "g"))   ignores the function definitions f and g, and their top-level type constraints
+       (ignore-values '("x"))          ignores the top-level let definition x
+
+     The names are ignored in addition to those the ignore predicates select
+     (ignore-function-definition-and-top-level-type-constraints-predicate and
+     ignore-value-definition-predicate), whether the predicate is set before or after.
+     Each call adds to the names of earlier calls.
+
+     The CHERIoT loop (tests/cheriot/run.py) appends such calls to the case study's
+     configuration, for the definitions outside the scope it translates.
+  *)
+  let () =
+    let export_name_adder
+        (export_as : string                        )
+        (setting   : Base.Set.M(Base.String).t ConfigLib.Setting.t) : unit
+      =
+      export_strict_function export_as @@ fun evaluated_arguments -> begin
+        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+        in
+        ConfigLib.Setting.update setting ~f:(fun ignored -> Base.Set.union ignored (Base.Set.of_list (module Base.String) names))
+      end
+    in
+    export_name_adder "ignore-functions" Exported.ignored_function_names;
+    export_name_adder "ignore-values"    Exported.ignored_value_names
 
 
   (*
@@ -504,3 +540,17 @@ let sum_union_for (union_identifier : Ast.Identifier.t) : sum_union option =
 let load_configuration = Implementation.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
+
+
+(*
+   Whether to ignore the definition with the given name: its ignore predicate
+   selects it, or it is one of the names given to ignore-functions or ignore-values.
+*)
+let should_ignore_function_definition (identifier : string) : bool =
+  get ignore_function_definition_predicate identifier || Base.Set.mem (get ignored_function_names) identifier
+
+let should_ignore_top_level_type_constraint (identifier : string) : bool =
+  get ignore_top_level_type_constraint_predicate identifier || Base.Set.mem (get ignored_function_names) identifier
+
+let should_ignore_value_definition (identifier : string) : bool =
+  get ignore_value_definition_predicate identifier || Base.Set.mem (get ignored_value_names) identifier

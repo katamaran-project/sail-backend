@@ -19,6 +19,7 @@ let tests =
     RenamingTests.test_suite;
     BlockTests.test_suite;
     MakeSequenceTests.test_suite;
+    IgnoreByNameTests.test_suite;
   ]
 
 
