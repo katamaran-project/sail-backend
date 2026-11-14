@@ -5,7 +5,7 @@ SAIL_LOCAL := $(CURDIR)/bin/sail-local
 
 
 .PHONY: all
-all: build test template-tests end-to-end-tests
+all: build test cheriot-lib-tests template-tests end-to-end-tests
 
 
 .PHONY: full
@@ -25,6 +25,20 @@ install: build
 .PHONY: test
 test:
 	dune test
+
+
+.PHONY: cheriot-lib-tests
+cheriot-lib-tests:
+	python3 -m unittest discover -s tests/cheriot/tests -t tests/cheriot
+
+
+# The CHERIoT progress loop (docs/cheriot-loop.md). Needs a cheriot-sail
+# checkout and the case study directory, e.g.
+#   gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail CHERIOT_CASE_STUDY=/path/to/katamaran/case_study/Cheriot
+# CHERIOT_ARGS passes extra options to tests/cheriot/run.py, e.g. CHERIOT_ARGS=--keep-dumps.
+.PHONY: cheriot
+cheriot: build
+	tests/cheriot/run.py $(CHERIOT_ARGS)
 
 
 .PHONY: template-tests tt

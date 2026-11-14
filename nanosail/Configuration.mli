@@ -71,6 +71,8 @@ module Implementation :
           (string -> bool) ConfigLib.Setting.t
         val ignore_top_level_type_constraint_predicate :
           (string -> bool) ConfigLib.Setting.t
+        val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
+        val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
         val template_block_left_delimiter : string ConfigLib.Setting.t
         val template_block_right_delimiter : string ConfigLib.Setting.t
         val template_translations :
@@ -107,6 +109,8 @@ val ignore_function_definition_predicate :
   (string -> bool) ConfigLib.Setting.t
 val ignore_top_level_type_constraint_predicate :
   (string -> bool) ConfigLib.Setting.t
+val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
+val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
 val template_block_left_delimiter : string ConfigLib.Setting.t
 val template_block_right_delimiter : string ConfigLib.Setting.t
 val template_translations : template_translation list ConfigLib.Setting.t
@@ -117,3 +121,6 @@ val sum_union_for : Ast.Identifier.t -> sum_union option
 val load_configuration : string -> unit
 val get : 'a ConfigLib.Setting.t -> 'a
 val set : 'a ConfigLib.Setting.t -> 'a -> unit
+val should_ignore_function_definition : string -> bool
+val should_ignore_top_level_type_constraint : string -> bool
+val should_ignore_value_definition : string -> bool

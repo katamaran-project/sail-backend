@@ -212,6 +212,32 @@ Nested patterns inside the constructors (e.g., `Some(Foo(x))`) are not supported
 Functions that are polymorphic in types, such as `is_some : forall ('a : Type). option('a) -> bool`, are not supported by Microsail.
 See the `tests/coq-tests/sum-unions-*` tests.
 
+### Ignoring definitions
+
+Ignored definitions are not translated; the log reports each one as skipped.
+Predicates select them by name:
+
+```lisp
+(ignore-function-definition-and-top-level-type-constraints-predicate
+ (lambda (identifier) (string-starts-with? "undefined_" identifier)))
+(ignore-value-definition-predicate (lambda (identifier) (= identifier "initial_regstate")))
+(ignore-type-definition-predicate (lambda (identifier) (= identifier "regstate")))
+(ignore-pragmas (lambda (identifier) (= identifier "file_start")))
+(ignore-all-overloads)
+```
+
+A later call of the same predicate function replaces the earlier predicate.
+To ignore definitions by name in addition to what the predicates select, use
+
+```lisp
+(ignore-functions '("foo" "bar"))   ; function definitions and their top-level type constraints
+(ignore-values '("baz"))            ; top-level let definitions
+```
+
+These names are ignored whether the predicates are set before or after, and each call adds to the names of earlier calls.
+The CHERIoT loop (`tests/cheriot/run.py`) uses them to ignore everything outside its scope.
+See `tests/coq-tests/ignore-functions-by-name`.
+
 ### `$include`
 
 ```lisp

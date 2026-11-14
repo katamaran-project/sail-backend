@@ -21,16 +21,16 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
     Configuration.(get ignore_pragma_predicate) identifier
 
   and should_ignore_function_definition (function_definition : 'a fundef) =
-    Configuration.(get ignore_function_definition_predicate) (Sail.identifier_of_function_definition function_definition)
+    Configuration.should_ignore_function_definition (Sail.identifier_of_function_definition function_definition)
 
   and should_ignore_type_definition (type_definition : 'a type_def) : bool =
     Configuration.(get ignore_type_definition_predicate) (Sail.identifier_of_type_definition type_definition)
 
   and should_ignore_value_definition (pattern : Libsail.Type_check.tannot pat) : bool =
-    Configuration.(get ignore_value_definition_predicate) (Sail.identifier_of_value_definition pattern)
+    Configuration.should_ignore_value_definition (Sail.identifier_of_value_definition pattern)
 
   and should_ignore_top_level_type_constraint (top_level_type_constraint : Sail.type_annotation val_spec) =
-    Configuration.(get ignore_top_level_type_constraint_predicate) (Sail.identifier_of_top_level_type_constraint top_level_type_constraint)
+    Configuration.should_ignore_top_level_type_constraint (Sail.identifier_of_top_level_type_constraint top_level_type_constraint)
 
   and should_ignore_default_definition (_default_spec : default_spec) : bool =
     Configuration.(get ignore_default_order)
