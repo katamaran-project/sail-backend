@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-5 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`, `CSR`.
+4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (the memory path).
 
 ## Memory path
 
@@ -32,10 +32,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
   Blocks `ext_handle_data_check_error` (`LOAD`, `STORE`).
 - **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
   Blocks decoding; not counted in clean instructions, as decoders are not in their call cones.
-
-## Widths not known at compile time
-
-- **Run-time widths and slice indices**: `writeCSR` (3 holes; blocks `CSR`).
 
 ## Rocq output
 
