@@ -24,6 +24,10 @@ exclude-functions-as-unconstrained, exclude-functions-as-value and exclude-regis
 unconstrained value or a given Sail expression, a read of an excluded register an
 unconstrained value, and a write to it a no-op.
 
+A name that ends in * is a pattern (a prefix), as "undefined_*" for Sail's undefined
+values; it excludes the definitions it matches that in-scope code reaches, which the
+scope then lists by name. Patterns are for functions only.
+
 Functions and top-level values outside the scope are ignored with the
 configuration functions ignore-functions and ignore-values. Types are not
 excluded: a type that only out-of-scope code uses is still translated, which is
@@ -100,10 +104,22 @@ def policy_exclusions(table: dict[str, Any]) -> dict[str, str]:
     result: dict[str, str] = {}
     for policy in POLICIES:
         for name in table.get(policy, []):
+            if is_pattern(name) and policy == 'registers':
+                raise ValueError(f'[policy-excluded] pattern {name} under registers; patterns are for functions only')
             if result.get(name, policy) != policy:
                 raise ValueError(f'[policy-excluded] lists {name} under both {result[name]} and {policy}')
             result[name] = policy
     return result
+
+
+def is_pattern(name: str) -> bool:
+    """Whether a name of the [policy-excluded] table is a pattern: a prefix followed by *."""
+    return name.endswith('*')
+
+
+def matching_pattern(name: str, patterns: dict[str, str]) -> str | None:
+    """The pattern of `patterns` that matches `name`, if any."""
+    return next((pattern for pattern in patterns if name.startswith(pattern[:-1])), None)
 
 
 def instruction_constructors(source: str) -> list[str]:
@@ -152,10 +168,15 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
     definition that a new version of the model renamed).
     """
     warnings = []
-    policy = scope_file.policy
+    patterns = {name: p for name, p in scope_file.policy.items() if is_pattern(name)}
+    policy = {name: p for name, p in scope_file.policy.items() if not is_pattern(name)}
     unknown = sorted(name for name in policy if name not in graph.nodes and name not in declared)
     if unknown:
         warnings.append(f'policy-excluded definitions that the model does not define: {", ".join(unknown)}')
+    unmatched = sorted(pattern for pattern in patterns
+                       if not any(name.startswith(pattern[:-1]) for name in graph.nodes | set(declared)))
+    if unmatched:
+        warnings.append(f'policy-excluded patterns that match no definition of the model: {", ".join(unmatched)}')
     wrong_kind = sorted(name for name, p in policy.items()
                         if name in graph.nodes and (p == 'registers') != (name in graph.registers))
     if wrong_kind:
@@ -184,18 +205,25 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
         warnings.append(f'roots that are not definitions of the model: {", ".join(missing_roots)}')
 
     def skip_edge(source: str, target: str) -> bool:
-        if target in policy:
+        if target in policy or matching_pattern(target, patterns) is not None:
             return True
         prefix = scope_file.dispatchers.get(source)
         return prefix is not None and target.startswith(prefix) and target not in dispatched
 
-    roots = [root for root in [*scope_file.roots, *sorted(graph.registers), *sorted(dispatched)] if root not in policy]
+    roots = [root for root in [*scope_file.roots, *sorted(graph.registers), *sorted(dispatched)]
+             if root not in policy and matching_pattern(root, patterns) is None]
     nodes = graph.reachable(roots, skip_edge)
-    return Scope(instructions=instructions, nodes=nodes, mentioned=graph.mentioned(nodes),
+    # the definitions that a pattern matches and that in-scope code mentions (externs included) are excluded by name
+    mentioned = graph.mentioned(nodes)
+    for name in sorted(mentioned):
+        pattern = matching_pattern(name, patterns)
+        if pattern is not None and name not in policy and (name in graph.nodes or name in declared):
+            policy[name] = patterns[pattern]
+    return Scope(instructions=instructions, nodes=nodes, mentioned=mentioned,
                  excluded_functions=graph.functions - nodes - set(policy),
                  excluded_values=graph.values - nodes - set(policy),
                  dispatched=dispatched, dispatchers=dict(scope_file.dispatchers), warnings=warnings,
-                 policy=dict(policy), values=dict(scope_file.values))
+                 policy=policy, values=dict(scope_file.values))
 
 
 def declarations(dump: str) -> set[str]:

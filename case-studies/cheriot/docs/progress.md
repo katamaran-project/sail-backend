@@ -9,7 +9,7 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `137304dd` plus widths of concatenations behind type abbreviations; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `26e0b943` plus `undefined_*` excluded as unconstrained; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -21,7 +21,7 @@ Measured on `137304dd` plus widths of concatenations behind type abbreviations; 
 | hard failures | 0 |
 | calls to missing functions | 102: outside the scope 86 (from `execute`), untranslated 16 |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
-| policy exclusions | 39, removed with their uses: 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
+| policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
 | Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2340`: 29 of its 504 definitions, then the first `NYI` hole (`align_down`) |
 | Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 368 of its 504 definitions; it stops at `machine.v:15059`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
 
@@ -69,6 +69,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-14 | `28524b93`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | PMP absent (policy exclusions); discarded calls keep their type; plain Rocq up to the untranslated-definitions marker in `base.v` |
 | 2026-11-15 | `c90a4863`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | listing of untranslated definitions escaped, marked by a comment: plain Rocq compiles all of `base.v`, stops at the first hole in `machine.v` |
 | 2026-11-15 | `137304dd`+ | core | 61 / 61, 56 clean | 477 / 500 | 39 | 7 | 0 | `machine.v:15059` `htif_store` (368 of 504) | widths of `@` behind type abbreviations (`tagaddrbits`) resolved: `tag_addr_to_addr`, `ext_data_get_addr`, `execute_CSetHigh` without holes, `writeCSR` 5 -> 3; `CSetHigh` clean |
+| 2026-11-15 | `26e0b943`+ | core | 61 / 61, 56 clean | 477 / 500 | 39 | 7 | 0 | `machine.v:15059` `htif_store` (368 of 504) | `undefined_*` policy-excluded as unconstrained by a pattern in `scope.toml`; no in-scope code reaches one yet, so the numbers are unchanged |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

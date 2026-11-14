@@ -54,7 +54,7 @@ execute = "execute_"          # from execute, follow only the calls to execute_<
 [policy-excluded]
 no-op = ["print_reg", ...]
 failure = ["translate32", ...]
-unconstrained = ["bits_str", ...]
+unconstrained = ["bits_str", ..., "undefined_*"]   # a pattern: what in-scope code reaches
 registers = ["tlb32", ...]
 
 [policy-excluded.value]
@@ -70,8 +70,9 @@ sys_pmp_count = "0"
 
 - Each `[policy-excluded]` entry is removed together with its uses (`exclude-functions-as-*`, `exclude-registers`; [usage](../../../docs/usage.md)). Why each is sound: [design](design.md#policy-exclusions).
 - The scope does not follow edges into them; excluded registers are not roots.
+- A name ending in `*` is a prefix pattern (`"undefined_*"`), for functions only: the definitions it matches that in-scope code mentions are excluded by name.
 - Counted on their own line of the report, not as failures; recorded in the baseline.
-- Warnings: a name the model does not define, a register under a function key (or the reverse), an excluded root.
+- Warnings: a name the model does not define, a pattern that matches nothing, a register under a function key (or the reverse), an excluded root.
 
 ## Rocq
 

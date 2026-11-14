@@ -39,7 +39,8 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   stm_foreign (unconstrained ty.bool) env.nil
   ```
 - The same mechanism serves unconstrained externs and excluded definitions (below).
-- Not done yet for `undefined_*` itself: the configuration skips those functions; see [roadmap](roadmap.md).
+- `undefined_*` is policy-excluded as `unconstrained` by a pattern (`"undefined_*"` in `scope.toml`): each one in-scope code reaches is excluded by name, so each call is `stm_foreign (unconstrained τ)`.
+  No in-scope code reaches one yet. Test `undefined-as-unconstrained`.
 
 ## No monomorphisation
 
@@ -96,5 +97,5 @@ stm_fail (ty.sum (ty.union Uexceptiontype) ty.unit) "pmpCheck is excluded by the
 
 - Overloads and pragmas are ignored: Sail's type checker has resolved them.
 - Types no in-scope code uses are ignored: Sail's concurrency interface (`Access_kind`, ...), `regfp.sail`, the TLB entries.
-- Generated helpers are skipped: `*_of_num`, `num_of_*` (except the model's own `num_of_ExceptionType`, `num_of_ext_exc_type`), `regval_of_*`, `undefined_*`.
+- Generated helpers are skipped: `*_of_num`, `num_of_*` (except the model's own `num_of_ExceptionType`, `num_of_ext_exc_type`), `regval_of_*`, `undefined_*` (those that in-scope code calls are excluded as unconstrained, above).
 - `option` and `result` translate to µSail's `ty.sum` (`translate-union-as-sum`).

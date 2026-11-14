@@ -37,11 +37,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 - **Run-time widths and slice indices**: `writeCSR` (3 holes; blocks `CSR`).
 
-## Undefined values and externs
-
-- **`undefined_*` as unconstrained values.** The configuration skips the `undefined_*` functions; they should become `stm_foreign (unconstrained τ)` ([design](design.md#undefined-values-are-unconstrained)).
-  No in-scope code calls them today, so nothing is blocked yet; needed as soon as one is reached.
-
 ## Rocq output
 
 - **Calls to out-of-scope instructions.** `execute` still calls the 86 `execute_<C>` outside the scope, which `machine.v` does not define.
