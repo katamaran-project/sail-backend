@@ -535,6 +535,42 @@ module Statement = struct
 
 
   (*
+     env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3
+  *)
+  let pp_call_arguments (arguments : PP.t list) : PP.t =
+    let add_snoc tail argument =
+      Coq.pp_hanging_application
+        (PP.string "env.snoc")
+        [
+          PP.(surround parens) tail;
+          PP.string "(_::_)";
+          Coq.pp_scope ~scope:(PP.string "exp") argument
+        ]
+    in
+    List.fold_left
+      arguments
+      ~init:(PP.string "env.nil")
+      ~f:add_snoc
+
+
+  (*
+     stm_foreign <function_name> (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2)
+  *)
+  let pp_foreign_call
+      (function_name : PP.t     )
+      (arguments     : PP.t list) : PP.t
+    =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "stm_foreign")
+        [
+          function_name;
+          PP.(surround parens) @@ pp_call_arguments arguments
+        ]
+    end
+
+
+  (*
      stm_call <function_name> (env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3)
   *)
   let pp_call

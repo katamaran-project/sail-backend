@@ -271,6 +271,66 @@ The names are Sail's names. Each call adds to the names of earlier calls; exclud
 The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` (`docs/cheriot-loop.md` §4.2).
 See the `tests/coq-tests/exclude-*` tests. `exclude-functions-as-value` takes pairs of the function's name and the expression.
 
+### Externs: muSail operations and foreign functions
+
+A Sail *extern* is a `val` specification with an extern binding and no Sail body, such as
+`val emod_int = pure {ocaml: "modulus", …, _: "emod_int"} : (int, int) -> int`.
+A call to an extern becomes one of two things:
+
+- **A muSail operation**, when the extern corresponds to one and the call's arguments allow it.
+  The translator recognises an extern by its *binding key*: its binding for all targets (`_`), or else its binding for C (`c`), or else its Sail name.
+  So sail-riscv's `val shiftl = pure {_: "shiftl"}` is recognised as Sail's `sail_shiftleft`.
+
+  | binding key | becomes | condition |
+  |---|---|---|
+  | `shiftl`, `shiftr` | `bop.shiftl`, `bop.shiftr` (the amount converted as for `sail_shiftleft`) | amount or width known at compile time |
+  | `shift_bits_left`, `shift_bits_right` | `bop.shiftl`, `bop.shiftr` | |
+  | `sub_vec` | `bop.bvsub` | |
+  | `sub_vec_int` | `bop.bvsub` (the integer converted as for `add_bits_int`) | |
+  | `eq_anything` | `bop.relop bop.eq` | |
+  | `vector_access` on bits | `uop.vector_subrange i 1` | index and width known at compile time |
+  | `get_slice_int` | `uop.get_slice_int (n := w)` | width known, start 0 |
+  | `sail_truncateLSB` | `uop.vector_subrange (n - m) m` | both widths known |
+
+  Sail-named builtins that were already translated as operations (`sail_zero_extend`, `truncate`, `sail_shiftleft`, …) become foreign calls
+  where they used to stay a call to an undefined function or become a hole (for example a width that is not known at compile time).
+- **A foreign function** otherwise: a constructor of `FunX` with the extern's signature, and each call a `stm_foreign`:
+
+  ```coq
+  | popcount {kid__n : nat} : FunX [ "arg1" ∷ ty.bvec (kid__n) ] (ty.int)
+  ...
+  stm_foreign popcount (env.snoc env.nil (_::_) (exp_var "w"))
+  ```
+
+  The parameters are named `arg1`, `arg2`, …; a `unit` parameter stays, as for functions.
+  The type-level integers of bitvector widths (and type variables) become implicit arguments, which Rocq infers at the call.
+  Only the externs that some call is translated into a foreign call to get a constructor.
+  An extern whose signature muSail cannot express (vectors, type applications, a result of a type variable's type) keeps the old translation, a `stm_call` to a function that `machine.v` does not define.
+
+The semantics of a foreign function (`ForeignCall`, in `machine.v`) never fails and never changes the registers.
+A `pure` extern leaves the memory unchanged; a `monadic` one may change it in any way.
+Its result is either given by a Rocq term, or else *unconstrained*: any value of the result type, so that a proof about a caller must hold for every value the call could return (the value is universally quantified, as undefined values are).
+Two calls to an unconstrained foreign function can return different values, even without arguments: a platform setting such as `plat_ram_base` is not a fixed constant unless the configuration gives it a term.
+
+```lisp
+(foreign-function-semantics '(("gcd_int" "Z.gcd arg1 arg2")
+                              ("plat_ram_base" "bv.of_Z 0x80000000")))
+(foreign-functions-unconstrained '("pow2"))
+```
+
+- `foreign-function-semantics` gives the result as a Rocq term, the body of
+  `Definition semantics_<name> {kid__n : nat} (arg1 : Val σ1) … : Val τ := <term>.`
+  The term refers to the arguments as `arg1`, `arg2`, …, to the type-level integers as `kid__n` (for `'n`), and can use `bv_width x`, the width of the bitvector `x`.
+- `foreign-functions-unconstrained` makes the result unconstrained, also when the translator has a default term.
+
+Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
+`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
+and, for the calls that do not become operations, `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
+All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
+No foreign function reads the memory, so its contents cannot be observed; a term that reads it would need the writes to have a semantics too.
+The names are Sail's names; giving a function two different semantics is an error.
+See the tests `tests/coq-tests/externs-foreign-functions` and `externs-operations`.
+
 ### `$include`
 
 ```lisp

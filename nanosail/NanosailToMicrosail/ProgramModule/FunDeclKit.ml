@@ -75,20 +75,35 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
 
 
 (*
-   The foreign functions. For now, there is only one family:
+   The foreign functions:
 
      unconstrained σ
 
-   which produces an unconstrained value of type σ. The uses of definitions that the configuration
+   produces an unconstrained value of type σ. The uses of definitions that the configuration
    excludes become calls to it (Configuration.FunctionExclusion.Unconstrained, Configuration.is_excluded_register).
-   Its semantics is in ForeignKit. Its implicit argument, a value of σ, only shows that σ has a value
+   Its implicit argument, a value of σ, only shows that σ has a value
    (ForeignProgress needs one); see pp_unconstrained_inhabitant.
+
+   Then one constructor for each extern that a call was translated into a foreign call to
+   (see ForeignFunctions), with the extern's signature; for example
+
+     | popcount {kid__n : nat} : FunX [ "arg1" ∷ ty.bvec (kid__n) ] (ty.int)
+
+   Their semantics is in ForeignKit.
 *)
-let pp_foreign_function_inductive_type () : PP.t =
-  PP.vertical @@ List.map ~f:PP.string [
-    "Inductive FunX : PCtx -> Ty -> Set :=";
-    "| unconstrained (σ : Ty) {inhabitant : Unconstrained σ} : FunX ctx.nil σ.";
-  ]
+let pp_foreign_function_inductive_type () : PP.t GC.t =
+  let* foreign_functions = ForeignFunctions.used ()
+  in
+  GC.pp_inductive_type (PP.string "FunX") (PP.string "PCtx -> Ty -> Set") @@ fun add_constructor -> begin
+    let* () =
+      add_constructor ~typ:(PP.string "FunX ctx.nil σ") ~parameters:(PP.string "(σ : Ty) {inhabitant : Unconstrained σ}") (PP.string "unconstrained")
+    in
+    GC.iter foreign_functions ~f:(fun (foreign_function : ForeignFunctions.t) ->
+        let* name, parameters, typ = ForeignFunctions.pp_constructor foreign_function
+        in
+        add_constructor ~parameters ~typ name
+      )
+  end
 
 
 (*
@@ -112,6 +127,8 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
   GC.generation_block [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
     in
+    let* pp_foreign_function_inductive_type = pp_foreign_function_inductive_type ()
+    in
     let pp_definitions : PP.t =
       PP.vertical @@ List.map ~f:PP.string [
         "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
@@ -122,7 +139,7 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
     let contents =
       PP.vertical [
         pp_fun_inductive_type;
-        pp_foreign_function_inductive_type ();
+        pp_foreign_function_inductive_type;
         pp_definitions
       ]
     in

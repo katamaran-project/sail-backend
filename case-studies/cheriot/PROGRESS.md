@@ -15,29 +15,34 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `25dfadb9` plus the policy exclusions of `scope.toml` (printing, tracing and Sv32); cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `57d1c72b` plus P16 (externs as µSail operations and foreign functions); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **1 of 61** (`FENCEI`) |
+| instructions clean | **3 of 61** (`FENCEI`, `FENCE`, `FENCE_TSO`) |
 | instructions generated | 53 of 61 |
 | functions generated | 480 of 534 |
 | untranslated definitions | 71 |
-| `NYI` holes | 23 |
+| `NYI` holes | 21 |
 | hard failures | 0 |
-| calls to missing functions | 373: extern 240, outside the scope 86 (from `execute`), untranslated 31, skipped by configuration 14, unknown 2 |
+| calls to missing functions | 143: outside the scope 86 (from `execute`), untranslated 31, skipped by configuration 14, extern 10 (`plain_vector_access`, `plain_vector_update`: vector types), unknown 2 |
+| foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 30, removed with their uses: 9 no-op, 2 failure, 18 unconstrained, 1 register (`tests/cheriot/scope.toml`) |
 | Rocq, plain | `base.v:12088`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1041 of 1091 definitions before it |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; `machine.v:49`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13); 1 of its 493 definitions before it |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; `machine.v:49`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13); 1 of its 506 definitions before it. With `Fun` emptied by hand, `FunX` and the `ForeignKit` (semantics, `ForeignCall`, `ForeignProgress`) compile |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Blockers
 
 **What keeps instructions from being clean.** Each of these blocks 58 of the 61 instructions, because the code they share reaches it:
-arithmetic externs (`emod_int`, `get_slice_int`, `shiftr`; P16, externs as foreign functions),
 a call to the Sail builtin `size_itself_int` in the size-polymorphic `to_bits` (P13), and calls to `zeros_implicit`,
-which the configuration skips (P14; it could be translated like `sail_zeros`).
+which the configuration skips (P14; it could be translated like `sail_zeros`). Next come `ones`/`sail_ones` (29) and the polymorphic `MemoryOpResult_add_meta`/`drop_meta` and `accessToFault` (23).
+Externs no longer block anything (P16): a call to an extern becomes a µSail operation where one corresponds (`shiftl`/`shiftr`, `shift_bits_*`, `sub_vec(_int)`, `eq_anything`,
+`bitvector_access`, `get_slice_int`, `truncateLSB`, when the widths are known), and otherwise a foreign call (`stm_foreign`) to a `FunX` constructor with the extern's signature
+(widths as implicit `nat` arguments). Their semantics never fails and leaves the registers unchanged; the result is given for the arithmetic externs of Sail's library
+(Euclidean and truncating division, `pow2`, `min_int`, `count_*_zeros`, ...) and unconstrained otherwise (platform settings, memory and tag accesses; `docs/usage.md`).
+`sign_extend` and `zero_extend` lost their holes: `sail_sign_extend`/`sail_zero_extend` with a width not known at compile time are foreign calls now.
 `getCapBoundsBits` no longer has holes: `truncate(X @ zeros(E), w)` with a run-time `E` is rewritten to `sail_shiftleft(truncate(X, w), E)`
 before translation (so no bitvector has a run-time width), shifts by a run-time amount are supported, and Sail's `truncate` is µSail's `uop.truncate`.
 All computed top-level values (`cap_len_width`, `null_cap`, `zero_reg`, the root capabilities, ...; P08) now translate:
@@ -107,6 +112,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `de4e6e60`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 1109) | linear `EqDec` instances for enums, unions and registers instead of `Derive EqDec`/`NoConfusion` (`coqc base.v` 591 s -> 13 s once Rocq gets past `TLB_Entry`) |
 | 2026-11-14 | `15c31cfc`+ | core | 53 / 61, 1 clean | 565 / 647 | 105 | 23 | 0 | `machine.v:54` `Fun` (all of `base.v`) | Sv32 `TLB_Entry`/`TLB32_Entry` ignored (5 TLB functions untranslated); plain stops at the PMP registers' `NYI` in `Reg`; the loop's Rocq stage takes 9 s uncached (1:36 in all), 0.1 s cached |
 | 2026-11-14 | `25dfadb9`+ | core | 53 / 61, 1 clean | 480 / 534 | 71 | 23 | 0 | `machine.v:49` `Fun` (all of `base.v`) | policy exclusions (definitions removed with their uses): printing, tracing and Sv32 (30 definitions); missing calls 1494 -> 373; 113 definitions leave the scope; translation 65 s -> 23 s |
+| 2026-11-14 | `57d1c72b`+ | core | 53 / 61, 3 clean | 480 / 534 | 71 | 21 | 0 | `machine.v:49` `Fun` (all of `base.v`) | P16: externs become µSail operations or foreign functions (`FunX`, `stm_foreign`, `ForeignCall`); missing calls 373 -> 143 (externs 240 -> 10); `FENCE`, `FENCE_TSO` clean |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

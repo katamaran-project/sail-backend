@@ -63,6 +63,24 @@ module FunctionExclusion = struct
 end
 
 
+(*
+   The semantics of a foreign function, i.e., of a Sail extern that is not translated into a muSail operation.
+   See the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
+*)
+module ForeignFunctionSemantics = struct
+  type t =
+    | Given of string (* a Rocq term computing the result from the arguments arg1, arg2, ... *)
+    | Unconstrained   (* the result is any value of the result type *)
+
+  let equal (x : t) (y : t) : bool =
+    match x, y with
+    | Given x      , Given y       -> String.equal x y
+    | Unconstrained, Unconstrained -> true
+    | Given _      , Unconstrained
+    | Unconstrained, Given _       -> false
+end
+
+
 module Implementation = struct
   include ConfigLib.BuildContext.Make(struct end)
 
@@ -319,6 +337,12 @@ module Implementation = struct
     let excluded_functions                         = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : FunctionExclusion.t Base.Map.M(Base.String).t)
     let excluded_registers                         = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
 
+    (*
+       Semantics of foreign functions given by the configuration, by Sail name;
+       see the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
+    *)
+    let foreign_function_semantics                 = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
+
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
@@ -538,6 +562,58 @@ module Implementation = struct
 
 
   (*
+     Slang functions that set the semantics of foreign functions.
+
+     A Sail extern (a val specification with an extern binding, such as
+     val f = pure {c: "f", _: "f"} : bits(32) -> int, and no Sail body) is translated in one of two ways:
+     a call to an extern that corresponds to a muSail operation (shifts, slices, bitvector subtraction,
+     equality, ...) becomes that operation; any other extern becomes a foreign function: a constructor
+     of FunX with the extern's signature, and each call to it a stm_foreign.
+     The semantics of a foreign function (ForeignCall) never fails and never changes the registers.
+     A pure extern leaves the memory unchanged; a monadic one may change it in any way.
+     Its result is given by a Rocq term, or else unconstrained: any value of the result type,
+     so that a proof about a caller must hold for every value the call could return.
+     Externs of Sail's library with a well-known meaning (integer division and modulus, pow2,
+     min_int, count_leading_zeros, ...) have a default term; the others are unconstrained.
+     See ForeignFunctions in NanosailToMicrosail for the defaults and the translation.
+
+       (foreign-function-semantics '(("f" "Z.gcd arg1 arg2") ("g" "bv.of_Z arg1")))
+         The result of f is the Rocq term Z.gcd arg1 arg2, where arg1, arg2, ... are the arguments,
+         as values (Val σ). The term is the body of a definition whose result type is the
+         extern's (Val τ); its type-level integers (widths) are implicit arguments named kid__n for 'n.
+         bv_width x is the width of the bitvector x.
+
+       (foreign-functions-unconstrained '("f"))
+         The result of f is unconstrained, also if the translator knows a term for it.
+
+     The names are Sail's names. Giving a function two different semantics is an error.
+  *)
+  let () =
+    let add_semantics (pairs : (string * ForeignFunctionSemantics.t) list) : unit =
+      let add
+          (semantics           : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
+          ((name, semantics')  : string * ForeignFunctionSemantics.t                 ) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t
+        =
+        match Base.Map.find semantics name with
+        | None                                                                     -> Base.Map.set semantics ~key:name ~data:semantics'
+        | Some earlier when ForeignFunctionSemantics.equal earlier semantics'      -> semantics
+        | Some _                                                                   -> failwith @@ Printf.sprintf "Error: foreign function %s is given two different semantics" name
+      in
+      ConfigLib.Setting.update Exported.foreign_function_semantics ~f:(fun semantics -> List.fold pairs ~init:semantics ~f:add)
+    in
+    export_strict_function "foreign-function-semantics" begin fun evaluated_arguments ->
+      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
+      in
+      add_semantics @@ List.map pairs ~f:(fun (name, term) -> (name, ForeignFunctionSemantics.Given term))
+    end;
+    export_strict_function "foreign-functions-unconstrained" begin fun evaluated_arguments ->
+      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+      in
+      add_semantics @@ List.map names ~f:(fun name -> (name, ForeignFunctionSemantics.Unconstrained))
+    end
+
+
+  (*
      Slang function to translate a union to muSail's ty.sum instead of to a ty.union of its own.
      Multiple calls are allowed, one per union.
 
@@ -700,3 +776,11 @@ let function_exclusion (identifier : string) : FunctionExclusion.t option =
 *)
 let is_excluded_register (identifier : string) : bool =
   Base.Set.mem (get excluded_registers) identifier
+
+
+(*
+   The semantics the configuration gives to the foreign function with the given (Sail) name, if any;
+   see foreign-function-semantics and foreign-functions-unconstrained.
+*)
+let foreign_function_semantics_for (identifier : string) : ForeignFunctionSemantics.t option =
+  Base.Map.find (get foreign_function_semantics) identifier

@@ -1,9 +1,11 @@
 {
  "cheriot-sail": "518813e",
  "clean_instructions": [
-  "execute_FENCEI"
+  "execute_FENCE",
+  "execute_FENCEI",
+  "execute_FENCE_TSO"
  ],
- "commit": "25dfadb9+dirty",
+ "commit": "57d1c72b+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -543,7 +545,7 @@
   "set_utvec": "ok",
   "set_xret_target": "ok",
   "shift_right_arith32": "ok",
-  "sign_extend": "holes",
+  "sign_extend": "ok",
   "size_bits_backwards": "ok",
   "size_bits_backwards_matches": "ok",
   "sp": "ok",
@@ -580,18 +582,18 @@
   "write_seed_csr": "ok",
   "xlen_max_signed": "ok",
   "xlen_min_signed": "ok",
-  "zero_extend": "holes",
+  "zero_extend": "ok",
   "zero_reg": "ok",
   "zeros_implicit": "missing",
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 23,
+  "NYI holes": 21,
   "functions generated": 480,
   "hard failures": 0,
-  "instructions clean": 1,
+  "instructions clean": 3,
   "instructions generated": 53,
-  "missing calls": 373,
+  "missing calls": 143,
   "untranslated definitions": 71
  },
  "holes": {
@@ -600,10 +602,8 @@
   "pmpReadAddrReg": 2,
   "pmpReadCfgReg": 4,
   "pmpWriteAddrReg": 5,
-  "sign_extend": 1,
   "tag_addr_to_addr": 1,
-  "writeCSR": 4,
-  "zero_extend": 1
+  "writeCSR": 4
  },
  "instructions": [
   "execute_ADDIW",
@@ -3334,6 +3334,19 @@
     "fetch",
     "init_model",
     "FunDef",
+    "bv_width",
+    "semantics_emod_int",
+    "semantics_pow2",
+    "semantics_min_int",
+    "semantics_count_leading_zeros",
+    "semantics_count_trailing_zeros",
+    "semantics_sail_sign_extend",
+    "semantics_sail_zero_extend",
+    "semantics_truncateLSB",
+    "semantics_bitvector_access",
+    "semantics_get_slice_int",
+    "semantics_quot_round_zero",
+    "semantics_rem_round_zero",
     "ForeignCall",
     "ForeignProgress",
     "fundef_bindfree",
@@ -3344,6 +3357,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261114T151326-25dfadb9-dirty",
+ "run": "20261114T155527-57d1c72b-dirty",
  "scope": "a130c4ba22f6"
 }
