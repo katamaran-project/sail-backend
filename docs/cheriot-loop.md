@@ -144,8 +144,23 @@ Removing those is the policy exclusion of §4.2.
 
 ### 4.2 Policy exclusions
 
-Some code *is* reachable from the core but is not wanted: tracing and printing (`print_reg` under `get_config_print_reg()`), and string formatting for those. Excluding these needs the one translator feature that `PROJECT-STATUS.md` §1a already calls for: **remove a definition and turn its calls into a no-op** (`unit`) or into an unconstrained value. That is its own piece of work, driven by an e2e test.
-Until it exists, the runner should report policy-excluded definitions and their calls as a separate category, so that they do not hide real gaps. *Not implemented yet.*
+Some code *is* reachable from the core but is not wanted: tracing and printing (`print_reg` under `get_config_print_reg()`), string formatting for those, and virtual memory (Sv32), which CHERIoT does not have.
+These are removed by the translator feature that `PROJECT-STATUS.md` §1a calls for: **remove a definition together with its uses** (`docs/usage.md`, "Excluding definitions together with their uses";
+e2e tests `tests/coq-tests/exclude-*`). Per definition, the configuration says what a use becomes: for a function, the unit value (no-op), a failure (`stm_fail`) or an unconstrained value
+(a call to the foreign function `unconstrained σ`, which may return any value of σ); a register is left out of `Reg`, a read of it is an unconstrained value and a write a no-op.
+
+*Implemented* (14 Nov 2026). The `[policy-excluded]` table of `scope.toml` lists them under `no-op`, `failure`, `unconstrained` and `registers`, each with the reason:
+
+- the scope does not follow edges into them, so what only they reach leaves the scope too; excluded registers are not roots;
+- `scope-ignores.lisp` gets the matching `exclude-functions-as-...` and `exclude-registers` calls;
+- the report counts them on their own line, per policy, and not as failures (they are outside the scope); `metrics.json` has `scope.policy_excluded`;
+- a call to a policy-excluded function that is still in `machine.v` is an analysis problem;
+- `baseline.json` records them; the ratchet notes newly and no longer excluded definitions, and definitions that left the scope because of an exclusion. These are notes, not regressions;
+- a name that the model does not define, a register under a function key (or the reverse), and an excluded root are warnings of the scope stage.
+
+Excluded now: printing and tracing (print externs as no-ops; the strings they print and the `get_config_print_*` flags as unconstrained values) and Sv32
+(`translate32` and `translationException` as failures, `flush_TLB` and `init_vmem` as no-ops, the register `tlb32`). PMP is not excluded: what `pmpCheck` and the
+PMP registers become decides what proofs about the core may assume, so it is the user's decision.
 
 ## 5. What is measured, and the ratchet
 

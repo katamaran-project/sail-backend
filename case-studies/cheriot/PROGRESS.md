@@ -15,26 +15,26 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `15c31cfc` plus the Sv32 TLB types ignored by configuration; cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `25dfadb9` plus the policy exclusions of `scope.toml` (printing, tracing and Sv32); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **1 of 61** (`FENCEI`) |
 | instructions generated | 53 of 61 |
-| functions generated | 565 of 647 |
-| untranslated definitions | 105 |
+| functions generated | 480 of 534 |
+| untranslated definitions | 71 |
 | `NYI` holes | 23 |
 | hard failures | 0 |
-| calls to missing functions | 1494: extern 1283, untranslated 109, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:12184`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1053 of 1106 definitions before it; 5 s |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles (7 s); `machine.v:54`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13), before any of its 576 definitions |
+| calls to missing functions | 373: extern 240, outside the scope 86 (from `execute`), untranslated 31, skipped by configuration 14, unknown 2 |
+| policy exclusions | 30, removed with their uses: 9 no-op, 2 failure, 18 unconstrained, 1 register (`tests/cheriot/scope.toml`) |
+| Rocq, plain | `base.v:12088`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1041 of 1091 definitions before it |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; `machine.v:49`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13); 1 of its 493 definitions before it |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Blockers
 
 **What keeps instructions from being clean.** Each of these blocks 58 of the 61 instructions, because the code they share reaches it:
-externs of the tracing and printing code (`print_reg`, `bits_str`, `concat_str`; the policy exclusion of `docs/cheriot-loop.md` §4.2 would remove them),
 arithmetic externs (`emod_int`, `get_slice_int`, `shiftr`; P16, externs as foreign functions),
 a call to the Sail builtin `size_itself_int` in the size-polymorphic `to_bits` (P13), and calls to `zeros_implicit`,
 which the configuration skips (P14; it could be translated like `sail_zeros`).
@@ -46,6 +46,12 @@ Vector literals of single bits (`[bool_to_bit(x), ...]`, P04) now translate as a
 The main decoder `encdec_backwards` now stops at a `match` on a `bool` (`Match.ml:3068`, from `bool_not_bits(s)` in the `DIV` encoding), and `writeCSR` has 4 holes (P01: widths and slice indices not known at compile time).
 Integer types whose numeric expression contains an `if` (`CGetLen`, `CGetTop`: `to_bits(xlen, if len > cap_max_addr then cap_max_addr else len)`, P11) are erased to `int`.
 The Sv32 TLB code (`make_TLB_Entry`, `match_TLB_Entry`, `flush_TLB_Entry`, `translate32`) is out of scope: virtual memory is not part of the CHERIoT target (`cheriot-inventory/PROJECT-STATUS.md` §1a). In-scope code still reaches it, so it is dead code for the configuration exclusion (`docs/cheriot-loop.md` §4.2), not a blocker; it will not be implemented.
+Printing and tracing no longer block anything: they are policy exclusions (`docs/cheriot-loop.md` §4.2), removed together with their uses.
+The print externs (`print_reg`, `print_platform`, ...) are no-ops; the strings they print (`concat_str`, `bits_str`, `RegStr`, `print_insn`, ...)
+and the flags that switch them on (`get_config_print_*`) are unconstrained values. That took 1121 missing calls and 34 untranslated definitions (the assembly mappings among them) out of the core.
+The Sv32 code is excluded too: `translate32` and `translationException` fail (CHERIoT never writes `satp`, so they are dead as long as its reset value selects no translation; see the comment in `scope.toml`),
+`flush_TLB` (SFENCE.VMA) and `init_vmem` are no-ops, and the register `tlb32` is left out of `Reg`.
+PMP is not excluded yet: what `pmpCheck` and the PMP registers become is a decision about what proofs may assume (P10).
 The run's report ranks all blockers; `progress.json` lists them per instruction.
 
 **Instructions not generated (8)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
@@ -100,6 +106,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `045edc96`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 553) | tuple abbreviations are `(A * B)%type`; a value that shares its name with a type is `<name>_value` in Rocq (10 CHERIoT constants) |
 | 2026-11-14 | `de4e6e60`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 1109) | linear `EqDec` instances for enums, unions and registers instead of `Derive EqDec`/`NoConfusion` (`coqc base.v` 591 s -> 13 s once Rocq gets past `TLB_Entry`) |
 | 2026-11-14 | `15c31cfc`+ | core | 53 / 61, 1 clean | 565 / 647 | 105 | 23 | 0 | `machine.v:54` `Fun` (all of `base.v`) | Sv32 `TLB_Entry`/`TLB32_Entry` ignored (5 TLB functions untranslated); plain stops at the PMP registers' `NYI` in `Reg`; the loop's Rocq stage takes 9 s uncached (1:36 in all), 0.1 s cached |
+| 2026-11-14 | `25dfadb9`+ | core | 53 / 61, 1 clean | 480 / 534 | 71 | 23 | 0 | `machine.v:49` `Fun` (all of `base.v`) | policy exclusions (definitions removed with their uses): printing, tracing and Sv32 (30 definitions); missing calls 1494 -> 373; 113 definitions leave the scope; translation 65 s -> 23 s |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

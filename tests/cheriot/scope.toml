@@ -23,3 +23,67 @@ roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 # remain in machine.v, as calls to missing functions.
 [dispatchers]
 execute = "execute_"
+
+# Policy exclusions (docs/cheriot-loop.md §4.2): definitions that in-scope code reaches
+# but that the CHERIoT core does not want. Each is removed together with its uses
+# (docs/usage.md, "Excluding definitions together with their uses"), and the scope does
+# not follow edges into it, so what only it reaches leaves the scope as well.
+#   no-op          a call becomes the unit value (functions that return unit)
+#   failure        a call becomes stm_fail: the call must be unreachable
+#   unconstrained  a call becomes an unconstrained value of its type
+#   registers      left out of Reg; a read is an unconstrained value, a write a no-op
+[policy-excluded]
+
+no-op = [
+  # Printing and tracing (PROJECT-STATUS.md §1a: excluded by configuration).
+  "print",
+  "print_bits",
+  "print_instr",
+  "print_mem",
+  "print_platform",
+  "print_reg",
+  "print_string",
+  # Sv32: the TLB is a cache of page-table entries, and CHERIoT has no virtual
+  # memory, so flushing it (SFENCE.VMA, reachable in M-mode) and initialising it
+  # change nothing.
+  "flush_TLB",
+  "init_vmem",
+]
+
+failure = [
+  # Sv32 address translation: translateAddr_priv calls these only when the effective
+  # privilege is not Machine and satp's mode bit is 1. CHERIoT has no S-mode, so satp
+  # is never written (CSR 0x180 needs haveSupMode(), and misa.S stays 0); the calls are
+  # dead as long as satp's reset value has mode 0. Sail leaves that value undefined, so
+  # a proof must assume it (or Katamaran's fail_rule_pre makes the failure vacuous).
+  "translate32",
+  "translationException",
+]
+
+unconstrained = [
+  # The strings that printing and tracing print, and the flags that turn them on.
+  # Their values do not matter once the printing is a no-op.
+  "bits_str",
+  "concat_str",
+  "dec_str",
+  "hex_str",
+  "RegStr",
+  "accessType_to_str",
+  "csr_name",
+  "exceptionType_to_str",
+  "print_insn",
+  "privLevel_to_str",
+  "size_mnemonic_forwards",
+  "string_of_capex",
+  "string_of_capreg_idx",
+  "get_config_print_exception",
+  "get_config_print_instr",
+  "get_config_print_mem",
+  "get_config_print_platform",
+  "get_config_print_reg",
+]
+
+registers = [
+  # The Sv32 TLB (its type, TLB32_Entry, is ignored by the configuration).
+  "tlb32",
+]
