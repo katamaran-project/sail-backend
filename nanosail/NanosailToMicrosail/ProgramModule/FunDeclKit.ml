@@ -8,8 +8,17 @@ module GC = struct
 end
 
 
+(* The type-level parameters of a function's signature (see TypeLevelParameters) *)
+let type_level_parameters (function_definition : Ast.Definition.Function.t) : (Ast.Identifier.t * Ast.Kind.t) list =
+  TypeLevelParameters.of_types begin
+    List.append
+      (List.map ~f:snd function_definition.function_type.parameters)
+      [ function_definition.function_type.return_type ]
+  end
+
+
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
-  let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t) GC.t =
+  let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t * PP.t) GC.t =
     let name =
       Identifier.pp function_definition.function_name
     in
@@ -45,8 +54,13 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
         )
       end
     in
+    (* widths and type variables of the signature become implicit arguments (see TypeLevelParameters) *)
+    let pp_parameters =
+      TypeLevelParameters.pp_binders @@ type_level_parameters function_definition
+    in
     GC.return (
       PP.annotate [%here] name,
+      PP.annotate [%here] pp_parameters,
       PP.annotate [%here] function_type
     )
   in
@@ -61,14 +75,14 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
           then
             (* function is polymorhic and has monomorphs; add all monomorphs associated with it *)
             GC.iter function_definition.monomorphs ~f:(fun (monomorph_definition : Ast.Definition.Function.t) ->
-                let* name, function_type = pp_function_declaration monomorph_definition
+                let* name, parameters, function_type = pp_function_declaration monomorph_definition
                 in
-                add_constructor ~typ:function_type name
+                add_constructor ~parameters ~typ:function_type name
               )
           else
-            let* name, function_type = pp_function_declaration function_definition
+            let* name, parameters, function_type = pp_function_declaration function_definition
             in
-            add_constructor ~typ:function_type name
+            add_constructor ~parameters ~typ:function_type name
         )
     end
   end

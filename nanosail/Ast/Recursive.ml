@@ -127,12 +127,12 @@ module NumericExpression = struct
     | Neg n -> begin
         match simplify n with
         | Constant n -> Constant (Z.neg n)
-        | simplified_expression -> simplified_expression
+        | simplified_expression -> Neg simplified_expression
       end
     | PowerOf2 n -> begin
         match simplify n with
         | Constant n -> Constant (Z.shift_left Z.one (Z.to_int n))
-        | simplified_expression -> simplified_expression
+        | simplified_expression -> PowerOf2 simplified_expression
       end
     | BinaryOperation (operator, left_operand, right_operand) -> begin
         match simplify left_operand, simplify right_operand with
@@ -147,6 +147,13 @@ module NumericExpression = struct
             in
             Constant result
           end
+        (* (c * e) / c is e, for c <> 0 (Sail's 8 * 'n bytes as bits, divided back by 8) *)
+        | BinaryOperation (Mul, Constant factor, operand), Constant divisor
+          when (match operator with Div -> true | Add | Sub | Mul | Mod -> false)
+            && Z.equal factor divisor && not (Z.equal divisor Z.zero) -> operand
+        | BinaryOperation (Mul, operand, Constant factor), Constant divisor
+          when (match operator with Div -> true | Add | Sub | Mul | Mod -> false)
+            && Z.equal factor divisor && not (Z.equal divisor Z.zero) -> operand
         | simplified_left_operand, simplified_right_operand -> BinaryOperation (operator, simplified_left_operand, simplified_right_operand)
       end
 

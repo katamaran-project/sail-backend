@@ -55,11 +55,8 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             end
           end
         | Bit b -> begin
-            GC.return begin
-                if b
-                then MuSail.Expression.pp_true ()
-                else MuSail.Expression.pp_false ()
-              end
+            (* Sail's bit is bitvector(1) *)
+            GC.return @@ MuSail.Expression.pp_value ~typ:(PP.string "ty.bvec 1") ~value:(MuSail.Value.pp_bit b)
           end
         | Bitvector _ -> GC.not_yet_implemented [%here]
         | Record _

@@ -20,7 +20,7 @@ from .callgraph import CallGraph
 from .items import Item
 
 FAILURE_STAGES = ('untranslated', 'nyi', 'hard-failure', 'error')
-GENERATED_FUNCTION = re.compile(r'Definition fun_([A-Za-z0-9_#]+) : Stm')
+GENERATED_FUNCTION = dangling.DEFINED
 INSTRUCTION_PREFIX = 'execute_'
 
 Metrics = dict[str, Any]

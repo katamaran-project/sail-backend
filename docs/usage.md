@@ -325,11 +325,32 @@ Two calls to an unconstrained foreign function can return different values, even
 
 Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
 `emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
-and, for the calls that do not become operations, `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
+and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
 All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
 No foreign function reads the memory, so its contents cannot be observed; a term that reads it would need the writes to have a semantics too.
 The names are Sail's names; giving a function two different semantics is an error.
 See the tests `tests/coq-tests/externs-foreign-functions` and `externs-operations`.
+
+### Functions polymorphic in a width or a type
+
+A Sail function that is polymorphic in the width of a bitvector, or in a type, becomes one `Fun` constructor with the widths and types as implicit arguments,
+in order of appearance in its signature, and one definition for all of them:
+
+```coq
+| extend_to {kid__n : nat} {kid__m : nat} : Fun [ "m" ∷ ty.int; "v" ∷ ty.bvec (kid__n) ] (ty.bvec (kid__m))
+Definition fun_extend_to {kid__n : nat} {kid__m : nat} : Stm [ ... ] (ty.bvec (kid__m)) := ...
+```
+
+This is what Katamaran's RiscvPmp case study does by hand (`read_ram (bytes : nat)`); a contract can be proved once for all widths.
+Rocq infers the arguments at each call. A width that only appears in an integer type (`int('n)`) needs none: `ty.int` has no index.
+Sail's constraints on the widths are not translated, so inside such a function:
+
+- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …), since µSail's `uop.zext` would need a proof that the widths are ordered;
+- a width that depends on the *value* of a parameter (`val f : forall 'n. (itself('n), …)` with `bits('n)` in its body) or that divides a size variable (`bits(8 * ('n / 8))`) is a hole (`NYI`), with a message that says so;
+- a call to a function whose result type alone mentions a type variable (`internal_error : … -> 'a`), whose value is discarded, gets the type `unit`.
+
+Explicit monomorphisation (`monomorphize`) is unaffected.
+See the test `tests/coq-tests/size-parameters-implicit`.
 
 ### `$include`
 

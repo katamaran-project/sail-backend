@@ -32,11 +32,12 @@ let rec extract_compile_time_integer_from_statement (statement : Ast.Statement.t
   | Cast (inner, _typ)    -> extract_compile_time_integer_from_statement inner
   | Expression expression -> FunctionCalls.extract_compile_time_integer expression
   (*
-     make_the_value is introduced by Sail's atoms_to_singletons rewrite;
-     as far as the value is concerned, it is the identity.
+     make_the_value is introduced by Sail's atoms_to_singletons rewrite, size_itself_int is its inverse;
+     as far as the value is concerned, both are the identity.
   *)
   | Call (function_identifier, [ argument ])
-    when Ast.Identifier.equal function_identifier (Ast.Identifier.mk "make_the_value") -> begin
+    when Ast.Identifier.equal function_identifier (Ast.Identifier.mk "make_the_value")
+      || Ast.Identifier.equal function_identifier (Ast.Identifier.mk "size_itself_int") -> begin
       FunctionCalls.extract_compile_time_integer argument
     end
   (*
@@ -574,12 +575,45 @@ and pp_sequence
   =
   let* pp_left  = parenthesize @@ pp_statement left
   and* pp_right = parenthesize @@ pp_statement right
+  and* discarded_type_is_ambiguous = calls_function_with_ambiguous_result_type left
   in
   GC.return begin
       PP.annotate [%here] begin
-          MuSail.Statement.pp_sequence pp_left pp_right
+          if
+            discarded_type_is_ambiguous
+          then
+            (* the value is discarded and nothing determines its type: any type will do *)
+            MuSail.Statement.pp_sequence ~left_type:(Some (PP.string "ty.unit")) pp_left pp_right
+          else
+            MuSail.Statement.pp_sequence pp_left pp_right
         end
     end
+
+
+(*
+   Whether the statement is a call to a function whose result type mentions a type variable that
+   its parameter types do not (such as internal_error : forall ('a : Type). (string, int, string) -> 'a).
+   Rocq cannot infer the type of such a call when its value is discarded (see TypeLevelParameters).
+*)
+and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bool GC.t =
+  match statement with
+  | Located (_, inner) -> calls_function_with_ambiguous_result_type inner
+  | Call (function_identifier, _) -> begin
+      let* function_definition = GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
+      in
+      match function_definition with
+      | None                     -> GC.return false
+      | Some function_definition -> begin
+          let in_parameters = TypeLevelParameters.of_types @@ List.map ~f:snd function_definition.function_type.parameters
+          and in_result     = TypeLevelParameters.of_type function_definition.function_type.return_type
+          in
+          GC.return @@ List.exists in_result ~f:(fun (identifier, _) ->
+              not (List.exists in_parameters ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier'))
+            )
+        end
+    end
+  | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _
+  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ -> GC.return false
 
 
 and pp_read_register (register_identifier : Ast.Identifier.t) : PP.t GC.t =

@@ -66,12 +66,11 @@
     (string-ends-with? "_of_regval" identifier)
     (= "reverse_bits_in_byte" identifier)
     (= "log2" identifier)
-    (= "zeros_implicit" identifier)
-    (= "ones" identifier)
+    ;; zeros_implicit, ones, sail_zeros and sail_ones are translated: their width is an
+    ;; implicit argument of their Fun constructor, and sail_zeros with a width not known at
+    ;; compile time is a foreign call (bv.zero).
     (contains? '(
                  "sep"
-                 "sail_zeros"
-                 "sail_ones"
                  "slice_mask"
                  ;; Extern of lib/regfp.sail over the ignored type
                  ;; cache_op_kind (see below); nothing calls it.

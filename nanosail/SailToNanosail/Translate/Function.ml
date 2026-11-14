@@ -262,9 +262,17 @@ let rec expression_of_aval
         let translation_expressions = List.map ~f:(fun (x, _, _) -> x) translation_triples
         and translation_types       = List.map ~f:(fun (_, x, _) -> x) translation_triples
         and translation_statements  = List.map ~f:(fun (_, _, x) -> x) translation_triples
-        and make_pair x y           = Ast.Expression.BinaryOperation (Pair, x, y)
         in
-        let resulting_expression    = List.reduce ~f:make_pair translation_expressions
+        (*
+           A pair is muSail's bop.pair (ty.prod); a longer tuple is exp_tuple (ty.tuple), as its type says.
+           (Longer tuples used to be nested pairs, of type ty.prod (ty.prod ...), which did not match ty.tuple.)
+        *)
+        let resulting_expression : Ast.Expression.t option =
+          match translation_expressions with
+          | []       -> None
+          | [ x ]    -> Some x
+          | [ x; y ] -> Some (Ast.Expression.BinaryOperation (Pair, x, y))
+          | elements -> Some (Ast.Expression.Tuple elements)
         in
         let* expression_type =
           match translation_types with
@@ -272,7 +280,9 @@ let rec expression_of_aval
           | [_]      -> TC.fail [%here] "should not occur"
           | _        -> TC.return @@ Ast.Type.Tuple translation_types
         in
-        TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
+        match resulting_expression with
+        | Some resulting_expression -> TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
+        | None                      -> TC.fail [%here] "should not occur"
       end
 
   and expression_of_literal
@@ -911,7 +921,7 @@ let rec statement_of_aexp
                    ()        : unit
                    x         : x
                    (x, y)    : Pair(x, y)
-                   (x, y, z) : Pair(Pair(x, y), z)
+                   (x, y, z) : Tuple [x; y; z]
 
                  flatten_fields extracts the different arguments from these potentially nested pairs.
                  We probably do not deal correctly with the case that one of the fields is an actual pair.
@@ -921,6 +931,7 @@ let rec statement_of_aexp
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
                 | Value Unit                   -> []
+                | Tuple elements               -> elements
                 | BinaryOperation (Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
                 | _                            -> [expression]
               in
