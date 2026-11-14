@@ -45,7 +45,7 @@ they are evaluated at translation time and become Rocq definitions (`Definition 
 Vector literals of single bits (`[bool_to_bit(x), ...]`, P04) now translate as a `bop.bvapp` chain: `FENCE`, `FENCE_TSO`, `getCapPerms`, `bool_to_bits`, `readCSR` and the compressed decoders are generated.
 The main decoder `encdec_backwards` now stops at a `match` on a `bool` (`Match.ml:3068`, from `bool_not_bits(s)` in the `DIV` encoding), and `writeCSR` has 4 holes (P01: widths and slice indices not known at compile time).
 Integer types whose numeric expression contains an `if` (`CGetLen`, `CGetTop`: `to_bits(xlen, if len > cap_max_addr then cap_max_addr else len)`, P11) are erased to `int`.
-What is left of P11 is the Sv32 TLB code, which is out of scope (virtual memory; see `cheriot-inventory/PROJECT-STATUS.md` §1a) (`make_TLB_Entry`, `match_TLB_Entry`, `flush_TLB_Entry`, `translate32`): the struct `TLB_Entry` has integer parameters, and these functions are polymorphic in them.
+The Sv32 TLB code (`make_TLB_Entry`, `match_TLB_Entry`, `flush_TLB_Entry`, `translate32`) is out of scope: virtual memory is not part of the CHERIoT target (`cheriot-inventory/PROJECT-STATUS.md` §1a). In-scope code still reaches it, so it is dead code for the configuration exclusion (`docs/cheriot-loop.md` §4.2), not a blocker; it will not be implemented.
 The run's report ranks all blockers; `progress.json` lists them per instruction.
 
 **Instructions not generated (9)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
