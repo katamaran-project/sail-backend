@@ -26,6 +26,7 @@
 | **Exceptions** (`throw`/`try`) | Not a concern for now. |
 | **Printing, tracing and other dead code** | **Excluded**, ideally purely **by configuration**. This covers assembly printing, trace output, string handling, and anything else that CHERIoT's core does not need. |
 | **Build tool** | Always use **GNU make (`gmake`)**; the BSD/old make that ships with macOS is not supported. |
+| **Virtual memory** (Sv32 address translation, page tables, TLB; confirmed 14 November 2026) | **Out of scope for now.** Do not implement anything for it: not the parameterised struct `TLB_Entry` (the rest of pile P11), not `translate32`, `make_TLB_Entry`, `match_TLB_Entry`, `flush_TLB_Entry` or the page-table walk, and do not ask for decisions about it. Where in-scope code still reaches it (`translateAddr` on the memory path), it is dead code for the CHERIoT core: it should be removed by the configuration exclusion described below, once that exists, not translated. Until then, its failures are expected and are not blockers to work on. |
 
 These decisions shrink the work considerably:
 - loops (only used by bit manipulation and PMP), register arrays (PMP) and parameterised structs (TLB) move out of the critical path;
