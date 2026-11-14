@@ -13,7 +13,7 @@ When Sail loads the plugin, it does not automatically also load the dependencies
 It is therefore necessary to statically link nanosail's dependencies.
 See the `dune` file for the plugin project (`embed_in_plugin_libraries`).
 
-![Project structure](./projects.png)
+![Project structure](diagrams/projects.png)
 
 ## Translation Overview
 
@@ -23,6 +23,16 @@ The translation takes place in two phases:
 * Nanosail is translated into muSail: user-provided templates describe which translation belongs where in which file.
 
 This top level logic resides in the `sail_plugin` project.
+
+Where things are:
+
+* `sail_plugin/`: registers the `--katamaran` options with libsail; `Rewrites.ml` selects the Sail rewrites that run before translation.
+* `nanosail/SailToNanosail/Translate/`: one translator per Sail construct. The largest is `Function.ml`, which turns Sail expressions into muSail statements and carries the expected type along.
+* `nanosail/Ast/`: the nanosail IR. Expressions and statements are separate, as in muSail; numeric expressions and constraints are kept.
+* `nanosail/NanosailToMicrosail/`: pretty-prints the IR as Rocq.
+* `nanosail/Configuration.ml`: the configuration options. `nanosail/Slang/`: the configuration language ([Slang](slang.md)).
+* `nanosail/Templates/`: evaluates the `(*< ... >*)` blocks in templates; `Prelude.ml` defines the Slang functions they call (`base-translation`, `program-translation`, ...).
+* `nanosail/ExtBase/`: extensions to Jane Street `Base`, which the code uses instead of the OCaml standard library.
 
 ## `Ast` Module
 
@@ -35,7 +45,7 @@ When Sail and muSail disagree in their representations, nanosail tends to side w
 * Similarly to Sail, a nanosail program (see `Ast.Program.t`) consists of a series of definitions.
   See `Ast.Definition` for which types of definitions exist.
 
-![Ast Module](./ast-module.png)
+![Ast Module](diagrams/ast-module.png)
 
 ## Sail to Nanosail
 
@@ -57,7 +67,7 @@ It provides the following functionality:
     When a `NotYetImplemented` is signaled, the current definition being translated is given up on:
     a `Ast.Definition.UntranslatedDefinition` gets registered and the translation process moves on to the next definition.
 
-![SailToNanosail Module](./sail-to-nanosail-module.png)
+![SailToNanosail Module](diagrams/sail-to-nanosail-module.png)
 
 ## Nanosail to muSail
 
@@ -73,7 +83,7 @@ Similarly to the first translation phase, we defined a monad, named `GenerationC
   * Generated code can be grouped in blocks. A block can be annotated with comments and annotations.
     See section below.
 
-![NanosailToMicrosail Module](./nanosail-to-microsail-module.png)
+![NanosailToMicrosail Module](diagrams/nanosail-to-microsail-module.png)
 
 ### Blocks
 

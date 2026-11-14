@@ -1,5 +1,8 @@
 # Monomorphization
 
+- Optional feature: one copy of a polymorphic function per requested width.
+- The CHERIoT case study does not use it: size-polymorphic functions are translated once, with implicit `nat` widths ([usage](usage.md#functions-polymorphic-in-a-width-or-a-type)).
+
 ## Working Example
 
 Consider the following polymorphic Sail function:
@@ -202,8 +205,8 @@ itself will be skipped and only the "monomorphs" will be translated.
 
 ## Examples
 
-See the `tests/coq-tests/monomorphize-*` tests.
-(At the time of writing they all fail; see `docs/handover.md`.)
+There are no tests for this feature any more.
+The `tests/coq-tests/monomorphize-*` tests failed since the move to Sail 0.20.3 (the requests name size variables `'n`, while the translator now names them `kid__n`) and were removed; they are in the git history.
 
 ## Missing Features
 
@@ -224,8 +227,8 @@ val foo : forall 'n 'm 'n_plus_m, ('n > 0 & 'm > 0 & 'n_plus_m == 'n + 'm). (bit
 In other words, an extra type level variable `'n_plus_m` was introduced and a new constraint relates it to `'n` and `'m`.
 
 The transformation from 2 to 3+constraint takes place in the `toplevel_nexps` Sail rewrite.
-(To see the effects of each rewrite, run the test with `tests/coq-tests/run-tests.py --test monomorphize-constraint`
-and look at `rewrite-NN-toplevel_nexps.sail` in `tests/coq-tests/test-output/latest/monomorphize-constraint/`.)
+(To see the effects of each rewrite, run an e2e test with such a function through `tests/coq-tests/run-tests.py --test <name>`
+and look at `rewrite-NN-toplevel_nexps.sail` in `tests/coq-tests/test-output/latest/<name>/`.)
 A simple possible solution would be to disable this rewrite, but it could also complicate other things.
 See the [Sail note on rewrites](./sail-notes.md) for information about disabling rewrites.
 
