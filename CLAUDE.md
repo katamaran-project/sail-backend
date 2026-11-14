@@ -54,6 +54,8 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
   Run its unit tests with `make cheriot-lib-tests`; they use the small fixture run in `tests/cheriot/tests/fixtures`.
   `tests/cheriot/inventory.py RUN-DIR` runs the whole analysis on a run directory.
 - **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot` (`tests/cheriot/run.py`) translates the CHERIoT core (the scope in `tests/cheriot/scope.toml`, computed from the call graph) with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc; `--no-scope` translates the whole model.
+  A run fails if any definition, clean instruction or Rocq position got worse than in `tests/cheriot/baseline.json`; `CHERIOT_ARGS=--update-baseline` accepts the current state, in the commit that makes the progress.
+  Each run appends a line to `tests/cheriot/history.csv` (tracked).
   Output goes to `tests/cheriot/output/<timestamp>-<commit>[-dirty]/` (about 160 MB per run, mostly the log; `latest` points to the newest).
 
 ## Architecture

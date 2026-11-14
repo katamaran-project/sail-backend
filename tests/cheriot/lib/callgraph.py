@@ -29,11 +29,30 @@ EXECUTE_ROOTS = ['execute', 'ext_decode', 'ext_decode_compressed', 'encdec_backw
 
 # Comments (/* ... */, including /*! doc comments */, and // lines) and attributes ($[complete]) before a definition.
 ATTRIBUTES = r'\s*(?:/\*(?s:.*?)\*/\s*|//[^\n]*\s*)*(?:\$\[[^\]]*\]\s*)*'
-FUNCTION_HEAD = re.compile(ATTRIBUTES + r'function\s+(?:clause\s+)?([A-Za-z0-9_#]+)')
+FUNCTION_HEAD = re.compile(ATTRIBUTES + r'function\s+(?:clause\s+)?(operator\s+[^\s(]+|[A-Za-z0-9_#]+)')
 VALUE_HEAD = re.compile(ATTRIBUTES + r'let\s+\(?([A-Za-z0-9_#]+)')
 REGISTER_HEAD = re.compile(ATTRIBUTES + r'register\s+([A-Za-z0-9_#]+)')
 HEADS = [(FUNCTION_HEAD, 'function'), (VALUE_HEAD, 'value'), (REGISTER_HEAD, 'register')]
-IDENTIFIER = re.compile(r'[A-Za-z_][A-Za-z0-9_#]*')
+IDENTIFIER = re.compile(r'operator\s+[^\s(]+|[A-Za-z_][A-Za-z0-9_#]*')
+
+# How the translator names an operator such as `operator <_s` (Sail.mangle_sail_operator_name, applied to
+# Sail's internal form of the operator, in which each character of a part is set between bars: |<|_|s|).
+OPERATOR_CHARACTERS = {'!': 'excl', '%': 'pct', '&': 'amp', '*': 'star', '+': 'plus', '-': 'min', '.': 'dot',
+                       '/': 'slash', ':': 'colon', '<': 'lt', '>': 'gt', '=': 'eq', '@': 'at', '^': 'caret',
+                       '|': 'bar', '#': 'hash'}
+
+
+def operator_name(operator: str) -> str:
+    """The translator's name for a Sail operator: operator_barltbar_barsbar for <_s."""
+    internal = '_'.join('|' + '|'.join(part) + '|' for part in operator.split('_'))
+    return 'operator_' + ''.join(OPERATOR_CHARACTERS.get(character, character) for character in internal)
+
+
+def canonical(identifier: str) -> str:
+    """An identifier as the translator names it: operators are mangled, other names stay."""
+    if identifier.startswith('operator') and identifier[len('operator'):len('operator') + 1].isspace():
+        return operator_name(identifier.split(None, 1)[1])
+    return identifier
 DUMP_NAME = re.compile(r'_rewrite_(\d+)_[^/]*\.sail$')
 
 
@@ -44,6 +63,11 @@ def last_dump(directory: Path) -> Path:
     if not dumps:
         raise FileNotFoundError(f'no *_rewrite_N_*.sail dump in {directory}')
     return max(dumps)[1]
+
+
+def identifiers(text: str) -> list[str]:
+    """The identifiers in a piece of Sail, operators named as the translator names them."""
+    return [canonical(i) for i in IDENTIFIER.findall(text)]
 
 
 class CallGraph:
@@ -58,7 +82,7 @@ class CallGraph:
         self.functions = {name for name, kind in kinds.items() if kind == 'function'}
         self.values = {name for name, kind in kinds.items() if kind == 'value'}
         self.registers = {name for name, kind in kinds.items() if kind == 'register'}
-        self.edges = {name: {i for chunk in chunks for i in IDENTIFIER.findall(chunk)
+        self.edges = {name: {i for chunk in chunks for i in identifiers(chunk)
                              if i in self.nodes and i != name}
                       for name, chunks in bodies.items()}
 
@@ -74,8 +98,9 @@ class CallGraph:
             for head, kind in HEADS:
                 match = head.match(chunk)
                 if match:
-                    bodies.setdefault(match.group(1), []).append(chunk)
-                    kinds.setdefault(match.group(1), kind)
+                    name = canonical(match.group(1))
+                    bodies.setdefault(name, []).append(chunk)
+                    kinds.setdefault(name, kind)
                     break
         return cls(bodies, kinds)
 
@@ -100,7 +125,7 @@ class CallGraph:
 
     def mentioned(self, functions: Iterable[str]) -> set[str]:
         """Every identifier in the bodies of the functions."""
-        return {i for f in functions for chunk in self.bodies[f] for i in IDENTIFIER.findall(chunk)}
+        return {i for f in functions for chunk in self.bodies[f] for i in identifiers(chunk)}
 
 
 def mark_reachable(items: list[Item], graph: CallGraph,

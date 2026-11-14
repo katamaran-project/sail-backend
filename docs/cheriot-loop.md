@@ -1,6 +1,6 @@
 # Design: the CHERIoT progress loop
 
-*Status: proposal, 13 Nov 2026; steps 1–4 of §8 implemented on 14 Nov 2026. Branch `e2e-loop`.*
+*Status: proposal, 13 Nov 2026; steps 1–5 of §8 implemented on 14 Nov 2026. Branch `e2e-loop`.*
 
 ## 1. Goal
 
@@ -40,7 +40,8 @@ gmake cheriot CHERIOT_SAIL_DIR=PATH CHERIOT_CASE_STUDY=PATH    # from the sail-b
 # or directly:
 tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-scope] [--no-coq] [--coq-timeout S]
                      [--keep-dumps] [--output-dir DIR]
-# planned: [--iterate-hard-failures] [--update-baseline] [--compare RUN]
+                     [--update-baseline]
+# planned: [--iterate-hard-failures] [--compare RUN]
 ```
 
 It always uses the plugin built in *this* checkout (`bin/sail-local`), as `run-tests.py` does.
@@ -149,6 +150,13 @@ Until it exists, the runner should report policy-excluded definitions and their 
 | `rocq.base`, `rocq.machine` | `ok`, or the first error (file, line, definition) |
 | `rocq.probe` | with `NYI` axiomatised: the first real error, and the fraction of definitions accepted before it |
 
+*Implemented (steps 2–5)*, in `metrics.json` with somewhat different names (`lib/metrics.py`).
+The clean instructions come from `lib/progress.py`, which gives each in-scope function and value a status:
+`ok` (translated, no holes), `holes` (translated, with `NYI` holes) or `missing` (not translated, whatever the reason).
+An instruction is clean when every definition in its call cone is `ok` and none calls a missing function, externs included (extern calls cannot compile until P16).
+For each other instruction, `progress.json` in the run directory lists its *blockers*: the definitions in its cone that are not `ok`, and the missing functions it calls.
+The report ranks blockers by how many instructions each blocks, which shows where a fix pays off most.
+
 ### 5.2 Report
 
 (The numbers in the example below are made up, to show the format.)
@@ -167,12 +175,17 @@ rocq.probe          base.v:598 (Access_kind: polymorphic union)   unchanged
 result: PROGRESS (no regressions)
 ```
 
+*Implemented (step 5):* the report has these columns (the previous run is the last line of `history.csv` with the same scope),
+and the ratchet stage lists the definitions that got better or worse since the baseline.
+
 ### 5.3 History and ratchet
 
 - Every run appends one line to `tests/cheriot/history.csv`, which is tracked in git, like the e2e test history.
 - `tests/cheriot/baseline.json`, also tracked, stores the **per-definition status** at the last accepted state.
 - A run **fails (exit 1)** if any in-scope definition got worse than in the baseline (translated → untranslated, clean → not clean, new hard failure, Rocq first error earlier), even if the totals improved.
-- Until this exists, `case-studies/cheriot/PROGRESS.md` is the progress log: current numbers, blockers and a row per commit that changes them, kept by hand.
+- *Implemented (step 5)* as the `ratchet` stage (`lib/progress.py`), for runs with a scope. Worse means: a definition's status went down (`ok` > `holes` > `missing`), a definition with holes got more of them,
+  a clean instruction is no longer clean, or the plain or probe Rocq compilation stops earlier. Definitions that enter or leave the scope, and a changed `scope.toml` or cheriot-sail commit, are reported as notes.
+- `case-studies/cheriot/PROGRESS.md` is the readable summary of the numbers, kept by hand: current numbers, blockers and a row per commit that changes them.
 - `--update-baseline` accepts the current state. It is part of the commit that makes the progress, so `git log tests/cheriot/baseline.json` is the progress log.
 
 ## 6. Inputs and reproducibility
@@ -211,8 +224,9 @@ Each step is small, has its own tests, and leaves the loop usable.
    - the cheriot-sail commit is pinned in `tests/cheriot/inputs.toml`, and a different commit gives a warning (the proposed answer to §9, question 2).
 3. **Done** (14 Nov 2026). Rocq stages: plain and probe compile, with the first error mapped to its definition (`lib/rocq.py`).
 4. **Done** (14 Nov 2026). Scope: `scope.toml`, cached call graph, generated `scope-ignores.lisp`, and the in-scope filter on all metrics. Check that no in-scope call goes missing because of the exclusion (§4.1; the dispatcher's calls are the expected exception).
-5. `instructions.clean` (call-cone check), history CSV, baseline and ratchet, and the report with per-definition changes.
-6. `run-tests.py`: expected failures (`XFAIL`/`XPASS`), plus `gmake loop`.
+5. **Done** (14 Nov 2026). `instructions.clean` (call-cone check), history CSV, baseline and ratchet, and the report with per-definition changes (`lib/progress.py`).
+   Along the way, the call graph learnt to name Sail operators (`operator <_s`) as the translator does (`operator_barltbar_barsbar`); before, all of them were one node.
+6. *Skipped* (14 Nov 2026): `run-tests.py`: expected failures (`XFAIL`/`XPASS`), plus `gmake loop`. Not needed while the loop uses no workarounds.
 
 Then the gap work starts, one pile at a time, beginning with the S items on the critical path. (P00, planned as the first, was fixed in #65.)
 

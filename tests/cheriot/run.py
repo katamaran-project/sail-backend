@@ -3,8 +3,8 @@
 The outer loop: translate the CHERIoT model with this checkout's plugin, and measure the result.
 
 Usage:
-    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--no-scope] [--no-coq] [--coq-timeout S]
-                         [--keep-dumps] [--output-dir DIR]
+    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--update-baseline] [--no-scope] [--no-coq]
+                         [--coq-timeout S] [--keep-dumps] [--output-dir DIR]
 
 or `gmake cheriot CHERIOT_SAIL_DIR=... CHERIOT_CASE_STUDY=...`. See docs/cheriot-loop.md.
 
@@ -37,7 +37,16 @@ The run has these stages; a stage that fails ends the run.
                 restricted to the scope. It fails if machine.v calls an excluded
                 definition other than from a dispatcher (the scope is then wrong),
                 or if the translation's dump differs from the one the scope was
-                computed from.
+                computed from. With a scope, it also finds the status of each
+                definition and the clean instructions (lib/progress.py).
+    ratchet     with a scope: compare with tests/cheriot/baseline.json, and fail if
+                anything got worse than there (a definition, a clean instruction,
+                how far Rocq gets), even if the totals improved. --update-baseline
+                accepts the current state as the new baseline, in the commit that
+                makes the progress.
+
+Every run that gets through the analysis appends a line to tests/cheriot/history.csv
+(tracked in git, like the end-to-end tests' history).
 
 Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
 with <output-dir>/latest pointing to it (default output dir: tests/cheriot/output):
@@ -76,7 +85,7 @@ HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
 
-from lib import callgraph, dangling, extract, metrics, piles, rocq, scope     # noqa: E402
+from lib import callgraph, dangling, extract, metrics, piles, progress, rocq, scope     # noqa: E402
 from lib.items import write_items                                  # noqa: E402
 
 SAIL_LOCAL = CHECKOUT / 'bin' / 'sail-local'
@@ -95,6 +104,11 @@ DUMP_CACHE = Path(
     or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'cheriot-dumps'
 )
 SCOPE_INCLUDE = 'scope-ignores.lisp'
+BASELINE = HERE / 'baseline.json'
+HISTORY = HERE / 'history.csv'
+HISTORY_FIELDS = ['timestamp', 'commit', 'dirty', 'scope', 'instructions total', 'instructions clean',
+                  'instructions generated', 'functions total', 'functions generated', 'untranslated definitions',
+                  'NYI holes', 'hard failures', 'missing calls', 'rocq plain', 'rocq probe', 'result', 'run']
 
 # A configuration that ignores every definition, so that a Sail run only makes the rewrite dumps.
 DUMP_ONLY_CONFIGURATION = """\
@@ -414,12 +428,13 @@ def compile_rocq(sandbox: Path, timeout: float) -> tuple[Stage, dict[str, Any]]:
 
 
 def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str, Any]],
-            in_scope: Optional[scope.Scope], scope_dump: Optional[Path]) -> tuple[Stage, Optional[metrics.Metrics]]:
+            in_scope: Optional[scope.Scope], scope_dump: Optional[Path],
+            identity: dict[str, Any]) -> tuple[Stage, Optional[metrics.Metrics], Optional[progress.Snapshot]]:
     stage = Stage('analyse')
     start = time.monotonic()
     if dump is None:
         stage.summary = 'no Sail rewrite dump in dump/'
-        return stage, None
+        return stage, None, None
     problems = []
     if scope_dump is not None and scope_dump.read_bytes() != dump.read_bytes():
         problems.append(f'the scope was computed from a different dump ({scope_dump}) than this translation\'s; '
@@ -440,18 +455,95 @@ def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str
         writer.writerows(d.as_row() for d in calls)
     (sandbox / 'piles.txt').write_text(piles.format_pile_table(*piles.pile_table(items)) + '\n')
     result = metrics.compute(items, machine_v, graph, calls, rocq_results, in_scope)
+    snapshot = None
+    if in_scope is not None:
+        statuses, holes = progress.definition_statuses(graph, in_scope, machine_v, items)
+        blockers = progress.instruction_blockers(graph, in_scope, statuses, calls)
+        result['instructions']['clean'] = sum(1 for found in blockers.values() if not found)
+        result['blockers'] = progress.blocker_ranking(blockers)
+        snapshot = progress.snapshot(statuses, holes, blockers, rocq_results, identity)
+        snapshot['headline'] = metrics.headline(result)
+        (sandbox / 'progress.json').write_text(json.dumps({**snapshot, 'blockers': blockers}, indent=1) + '\n')
     stage.ok = not problems
     stage.seconds = time.monotonic() - start
     stage.summary = f'{len(items)} items' + (f'; {len(problems)} problem(s) with the scope' if problems else '')
     stage.details = problems
-    return stage, result
+    return stage, result, snapshot
+
+
+def ratchet(snapshot: progress.Snapshot, update: bool) -> tuple[Stage, Optional[progress.Comparison], Optional[dict[str, Any]]]:
+    """Compare with the baseline; with update, make this run the baseline. Returns the baseline that was compared with."""
+    stage = Stage('ratchet')
+    start = time.monotonic()
+    baseline = json.loads(BASELINE.read_text()) if BASELINE.exists() else None
+    comparison = progress.compare(baseline, snapshot) if baseline else None
+    if comparison is None:
+        stage.ok = True
+        stage.summary = 'no baseline yet' + ('; this run is now the baseline' if update else '; --update-baseline makes this run the baseline')
+    else:
+        stage.ok = update or not comparison.regressions
+        stage.summary = (f'{comparison.result} since the baseline ({baseline["commit"]}, {baseline["date"]}): '
+                         f'{len(comparison.improvements)} better, {len(comparison.regressions)} worse')
+        if update:
+            stage.summary += '; this run is now the baseline'
+        stage.details = ([f'WORSE  {r}' for r in comparison.regressions] +
+                         [f'better {i}' for i in comparison.improvements[:20]] +
+                         ([f'better ... and {len(comparison.improvements) - 20} more'] if len(comparison.improvements) > 20 else []) +
+                         [f'note   {n}' for n in comparison.notes])
+    if update:
+        BASELINE.write_text(json.dumps(snapshot, indent=1, sort_keys=True) + '\n')
+    stage.seconds = time.monotonic() - start
+    return stage, comparison, baseline
+
+
+def previous_history_row(scope_name: str) -> Optional[dict[str, str]]:
+    """The last line of history.csv for the same scope, if any."""
+    if not HISTORY.exists():
+        return None
+    with open(HISTORY, newline='') as handle:
+        rows = [row for row in csv.DictReader(handle) if row['scope'] == scope_name]
+    return rows[-1] if rows else None
+
+
+def append_history(result: metrics.Metrics, inputs: dict[str, Any], scope_name: str, outcome: str, identifier: str) -> None:
+    row = {
+        'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+        'commit': inputs['sail-backend']['commit'],
+        'dirty': inputs['sail-backend']['dirty'],
+        'scope': scope_name,
+        'instructions total': result['instructions']['total'],
+        'functions total': result['functions']['total'],
+        **{key: ('' if value is None else value) for key, value in metrics.headline(result).items()},
+        'rocq plain': rocq_summary(result, 'plain'),
+        'rocq probe': rocq_summary(result, 'probe'),
+        'result': outcome,
+        'run': identifier,
+    }
+    exists = HISTORY.exists()
+    with open(HISTORY, 'a', newline='') as handle:
+        writer = csv.DictWriter(handle, fieldnames=HISTORY_FIELDS)
+        if not exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+
+def rocq_summary(result: metrics.Metrics, kind: str) -> str:
+    """Where a compilation stops, as file:line, or ok; empty if Rocq did not run."""
+    compilations = (result.get('rocq') or {}).get(kind)
+    if not compilations:
+        return ''
+    failed = next((c for c in compilations if not c['ok']), None)
+    if failed is None:
+        return 'ok'
+    return f'{failed["file"]}:{failed["error"]["line"] if failed["error"] else "?"}' 
 
 
 # --------------------------------------------------------------------------
 # report
 # --------------------------------------------------------------------------
 
-def report(inputs: dict[str, Any], stages: list[Stage], result: Optional[metrics.Metrics], sandbox: Path) -> str:
+def report(inputs: dict[str, Any], stages: list[Stage], result: Optional[metrics.Metrics], sandbox: Path,
+           previous: Optional[dict[str, Any]] = None, baseline: Optional[dict[str, Any]] = None) -> str:
     lines = []
     if inputs:
         lines.append(f'CHERIoT @ {describe(inputs["sail-backend"])}   '
@@ -464,7 +556,7 @@ def report(inputs: dict[str, Any], stages: list[Stage], result: Optional[metrics
         lines.extend(f'         | {detail}' for detail in stage.details)
     if result is not None:
         lines.append('')
-        lines.extend(metrics.format_metrics(result))
+        lines.extend(metrics.format_metrics(result, previous, baseline))
     lines.append('')
     lines.append(f'output: {sandbox}')
     return '\n'.join(lines)
@@ -498,6 +590,8 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--cheriot-sail', help='cheriot-sail checkout (default: $CHERIOT_SAIL_DIR)')
     parser.add_argument('--case-study', help='case study directory (default: $CHERIOT_CASE_STUDY)')
+    parser.add_argument('--update-baseline', action='store_true',
+                        help='accept this run as the baseline (tests/cheriot/baseline.json), even if it is worse')
     parser.add_argument('--no-scope', action='store_true', help='translate and measure the whole model')
     parser.add_argument('--no-coq', action='store_true', help='skip the Rocq stage')
     parser.add_argument('--coq-timeout', type=float, default=DEFAULT_COQ_TIMEOUT,
@@ -530,7 +624,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     (sandbox / 'sources.txt').write_text(''.join(f'{s}\n' for s in sources))
 
     stages = [stage, typecheck(sources, sandbox)]
-    result = None
+    result = snapshot = None
     in_scope, scope_dump = None, None
     if stages[-1].ok and not arguments.no_scope:
         stage, in_scope, scope_dump = compute_scope(sources, cheriot_sail, sandbox, inputs['sail'], DUMP_CACHE)
@@ -543,14 +637,29 @@ def main(argv: Optional[list[str]] = None) -> int:
             if not arguments.no_coq:
                 stage, rocq_results = compile_rocq(sandbox, arguments.coq_timeout)
                 stages.append(stage)
-            stage, result = analyse(sandbox, dump, rocq_results, in_scope, scope_dump)
+            identity = {'commit': describe(inputs['sail-backend']), 'date': datetime.date.today().isoformat(),
+                        'run': identifier, 'cheriot-sail': inputs['cheriot-sail']['commit'],
+                        'scope': hashlib.sha256(SCOPE_FILE.read_bytes()).hexdigest()[:12]}
+            stage, result, snapshot = analyse(sandbox, dump, rocq_results, in_scope, scope_dump, identity)
             stages.append(stage)
 
+    baseline = previous = None
+    if result is not None:
+        scope_name = 'whole model' if arguments.no_scope else 'core'
+        previous = previous_history_row(scope_name)
+        outcome = ''
+        if snapshot is not None:
+            stage, comparison, baseline_snapshot = ratchet(snapshot, arguments.update_baseline)
+            stages.append(stage)
+            baseline = (baseline_snapshot or {}).get('headline')
+            outcome = comparison.result if comparison else 'NO BASELINE'
+            if arguments.update_baseline:
+                outcome += ' (baseline updated)'
+        append_history(result, inputs, scope_name, outcome, identifier)
+        (sandbox / 'metrics.json').write_text(json.dumps(result, indent=2) + '\n')
     (sandbox / 'run.json').write_text(json.dumps(
         {'identifier': identifier, 'inputs': inputs, 'stages': [asdict(s) for s in stages]}, indent=2) + '\n')
-    if result is not None:
-        (sandbox / 'metrics.json').write_text(json.dumps(result, indent=2) + '\n')
-    print(report(inputs, stages, result, sandbox))
+    print(report(inputs, stages, result, sandbox, previous, baseline))
     return 0 if all(s.ok for s in stages) else 1
 
 

@@ -79,14 +79,28 @@ def compute(items: list[Item], machine_v: str, graph: CallGraph, calls: list[dan
     }
 
 
-def format_metrics(metrics: Metrics) -> list[str]:
-    """The headline numbers, one per line."""
-    instructions, functions, nyi = metrics['instructions'], metrics['functions'], metrics['nyi']
+def headline(metrics: Metrics) -> dict[str, Optional[int]]:
+    """The numbers that the report compares over time, and that history.csv and baseline.json keep."""
     calls = metrics['calls_missing']
-    total_calls = sum(c['calls'] for c in calls.values())
-    total_callees = sum(c['callees'] for c in calls.values())
-    by_class = ', '.join(f'{cls} {c["calls"]}' for cls, c in sorted(calls.items(), key=lambda kv: -kv[1]['calls']))
-    hard = metrics['hard_failures']
+    return {
+        'instructions clean': metrics['instructions'].get('clean'),
+        'instructions generated': metrics['instructions']['generated'],
+        'functions generated': metrics['functions']['generated'],
+        'untranslated definitions': metrics['definitions'].get('untranslated', 0),
+        'NYI holes': metrics['nyi']['holes'],
+        'hard failures': len(metrics['hard_failures']),
+        'missing calls': sum(c['calls'] for c in calls.values()),
+    }
+
+
+def format_metrics(metrics: Metrics, previous: Optional[dict[str, Any]] = None,
+                   baseline: Optional[dict[str, Any]] = None) -> list[str]:
+    """
+    The report's numbers: the scope, the headline numbers (with those of the previous run and of
+    the baseline, when given), the missing calls by class, how far Rocq gets, and the top blockers.
+    """
+    instructions, functions = metrics['instructions'], metrics['functions']
+    calls = metrics['calls_missing']
     lines = []
     if metrics.get('scope'):
         scope = metrics['scope']
@@ -94,17 +108,27 @@ def format_metrics(metrics: Metrics) -> list[str]:
                      f'({scope["excluded_functions"]} functions and {scope["excluded_values"]} values excluded)')
     else:
         lines.append('scope: the whole model')
-    lines += [
-        f'instructions generated   {instructions["generated"]:5} of {instructions["total"]}',
-        f'functions generated      {functions["generated"]:5} of {functions["total"]}',
-        f'untranslated definitions {metrics["definitions"].get("untranslated", 0):5}',
-        f'NYI holes                {nyi["holes"]:5} in {nyi["definitions"]} definitions',
-        f'hard failures            {len(hard):5}' + (f'  ({", ".join(hard)})' if hard else ''),
-        f'failing, reachable       {metrics["failing_reachable_definitions"]:5} definitions',
-        f'missing calls            {total_calls:5} calls to {total_callees} functions ({by_class})',
-    ]
+    totals = {'instructions clean': instructions['total'], 'instructions generated': instructions['total'],
+              'functions generated': functions['total']}
+
+    def cell(row: Optional[dict[str, Any]], key: str) -> str:
+        value = None if row is None else row.get(key)
+        return '-' if value is None or value == '' else str(value)
+
+    lines.append(f'{"":26}{"now":>12}{"previous":>10}{"baseline":>10}')
+    for key, value in headline(metrics).items():
+        if value is None:
+            continue
+        now = f'{value} of {totals[key]}' if key in totals else str(value)
+        lines.append(f'{key:26}{now:>12}{cell(previous, key):>10}{cell(baseline, key):>10}')
+    if metrics['hard_failures']:
+        lines.append(f'hard failures: {", ".join(metrics["hard_failures"])}')
+    by_class = ', '.join(f'{cls} {c["calls"]}' for cls, c in sorted(calls.items(), key=lambda kv: -kv[1]['calls']))
+    lines.append(f'missing calls by class: {by_class}')
     if metrics.get('rocq'):
         for kind in ('plain', 'probe'):
-            lines.append(f'rocq {kind:19} {rocq.describe(metrics["rocq"][kind])}')
+            lines.append(f'rocq {kind:6} {rocq.describe(metrics["rocq"][kind])}')
+    if metrics.get('blockers'):
+        lines.append('top blockers (instructions each keeps from being clean):')
+        lines.extend(f'  {count:3}  {blocker}' for blocker, count in metrics['blockers'][:8])
     return lines
-

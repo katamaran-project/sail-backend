@@ -48,11 +48,30 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(self.metrics['unassigned_failures'], 2)
 
     def test_format(self):
-        text = '\n'.join(metrics.format_metrics(self.metrics))
-        self.assertIn('scope: the whole model', text)
-        self.assertIn('instructions generated       0 of 2', text)
-        self.assertIn('hard failures                1  (getCapBoundsBits)', text)
-        self.assertIn('missing calls                5 calls to 4 functions', text)
+        lines = metrics.format_metrics(self.metrics)
+        self.assertEqual(lines[0], 'scope: the whole model')
+        self.assertEqual(lines[1].split(), ['now', 'previous', 'baseline'])
+        self.assertEqual(lines[2].split(), ['instructions', 'generated', '0', 'of', '2', '-', '-'])
+        text = '\n'.join(lines)
+        self.assertIn('hard failures: getCapBoundsBits', text)
+        self.assertIn('missing calls by class: untranslated 2, extern 1, skipped by configuration 1, unknown 1', text)
+        # without a scope there is no clean-instruction count, so no row for it
+        self.assertNotIn('instructions clean', text)
+
+    def test_format_with_previous_baseline_and_blockers(self):
+        result = {**self.metrics, 'instructions': {**self.metrics['instructions'], 'clean': 1},
+                  'blockers': [('zeros_implicit (missing)', 58), ('null_cap (missing)', 51)]}
+        previous = {'instructions clean': '0', 'NYI holes': '5'}
+        baseline = {'instructions clean': 0, 'NYI holes': 7}
+        lines = metrics.format_metrics(result, previous, baseline)
+        self.assertEqual(lines[2].split(), ['instructions', 'clean', '1', 'of', '2', '0', '0'])
+        self.assertIn(['NYI', 'holes', '3', '5', '7'], [line.split() for line in lines])
+        self.assertEqual(lines[-2:], ['   58  zeros_implicit (missing)', '   51  null_cap (missing)'])
+
+    def test_headline(self):
+        self.assertEqual(metrics.headline(self.metrics),
+                         {'instructions clean': None, 'instructions generated': 0, 'functions generated': 0,
+                          'untranslated definitions': 3, 'NYI holes': 3, 'hard failures': 1, 'missing calls': 5})
 
     def test_rocq_lines(self):
         error = {'line': 593, 'message': 'The reference NYI was not found', 'definition': 'Access_kind',
@@ -61,11 +80,10 @@ class MetricsTests(unittest.TestCase):
                         'probe': [{'file': 'base.v', 'ok': True, 'exit': 0, 'seconds': 1.0, 'error': None},
                                   {'file': 'machine.v', 'ok': True, 'exit': 0, 'seconds': 9.0, 'error': None}]}
         lines = metrics.format_metrics({**self.metrics, 'rocq': compilations})
-        self.assertEqual(lines[-2], 'rocq plain               base.v:593 in Inductive Access_kind '
+        self.assertEqual(lines[-2], 'rocq plain  base.v:593 in Inductive Access_kind '
                                     '(24 of 555 definitions before it): The reference NYI was not found')
-        self.assertEqual(lines[-1], 'rocq probe               base.v, machine.v compile')
+        self.assertEqual(lines[-1], 'rocq probe  base.v, machine.v compile')
         self.assertFalse(any(l.startswith('rocq') for l in metrics.format_metrics(self.metrics)))
-
 
 class ClassifyTranslationTests(unittest.TestCase):
     def test_success(self):
