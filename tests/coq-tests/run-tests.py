@@ -67,6 +67,7 @@ SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
 # on an 8-CPU, 16 GB machine, 20 jobs took 94 s for 80 tests and 8 jobs 54 s.
 DEFAULT_JOBS = os.cpu_count() or 4
 DEFAULT_OUTPUT_DIR = HERE / 'test-output'
+DEFAULT_KEEP_RUNS = 5
 DEFAULT_COQ_CACHE_DIR = Path(
     os.environ.get('SAIL_BACKEND_COQ_CACHE')
     or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'coq-cache'
@@ -507,6 +508,25 @@ def update_latest_symlink(output_directory, run_identifier):
         print(f'note: could not update {latest}: {error}', file=sys.stderr)
 
 
+RUN_DIRECTORY = re.compile(r'^\d{8}T\d{6}-')
+
+
+def prune_runs(output_dir: Path, keep: int) -> list[Path]:
+    """
+    Delete all but the `keep` newest run directories in `output_dir` (0 keeps all),
+    never the one `latest` points to. Returns the deleted directories.
+    """
+    if keep <= 0:
+        return []
+    latest = output_dir / 'latest'
+    current = latest.resolve().name if latest.is_symlink() else None
+    runs = sorted(p for p in output_dir.iterdir() if p.is_dir() and not p.is_symlink() and RUN_DIRECTORY.match(p.name))
+    old = [p for p in runs[:-keep] if p.name != current]
+    for path in old:
+        shutil.rmtree(path, ignore_errors=True)
+    return old
+
+
 def append_history(output_directory, commit, dirty, results, run_identifier):
     """Append to the historical record, keeping its existing schema."""
     path = output_directory / 'test-history.csv'
@@ -578,6 +598,8 @@ def parse_arguments(argv):
                         help=f'tests to run in parallel (default: {DEFAULT_JOBS})')
     output.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR, metavar='DIR',
                         help='where to archive runs (default: %(default)s)')
+    output.add_argument('--keep-runs', type=int, default=DEFAULT_KEEP_RUNS, metavar='N',
+                        help=f'keep the N newest runs in the output dir, delete older ones; 0 keeps all (default: {DEFAULT_KEEP_RUNS})')
     output.add_argument('--keep-vo', action='store_true',
                         help='keep the Coq build products (~8 MB per test)')
 
@@ -684,6 +706,7 @@ def main(argv=None):
     write_summary(run_directory, results)
     append_history(arguments.output_dir.resolve(), commit, dirty, results, identifier)
     update_latest_symlink(arguments.output_dir.resolve(), identifier)
+    prune_runs(arguments.output_dir.resolve(), arguments.keep_runs)
 
     (run_directory / 'run.json').write_text(json.dumps({
         'run': identifier,

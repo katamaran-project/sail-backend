@@ -160,6 +160,7 @@ tests/coq-tests/test-output/<timestamp>-<commit>[-dirty]/
 
 where `-dirty` indicates that there were uncommitted changes at the time of the run.
 `test-output/latest` is a symbolic link to the most recent run.
+Only the 5 newest runs are kept; `--keep-runs N` changes that (0 keeps all).
 
 A run directory contains
 

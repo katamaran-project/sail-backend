@@ -165,3 +165,25 @@ class SailSourcesTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PruneRunsTests(unittest.TestCase):
+    def test_keeps_newest_runs_latest_and_other_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            names = [f'2026111{d}T120000-abc' for d in range(5)]
+            for name in names:
+                (out / name).mkdir()
+            (out / 'history.csv').write_text('')
+            (out / 'latest').symlink_to(names[0])
+            deleted = run.prune_runs(out, 2)
+            self.assertEqual(sorted(p.name for p in deleted), names[1:3])
+            self.assertEqual(sorted(p.name for p in out.iterdir()),
+                             sorted([names[0], *names[3:], 'history.csv', 'latest']))
+
+    def test_zero_keeps_all(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            (out / '20261110T120000-abc').mkdir()
+            self.assertEqual(run.prune_runs(out, 0), [])
+            self.assertTrue((out / '20261110T120000-abc').is_dir())

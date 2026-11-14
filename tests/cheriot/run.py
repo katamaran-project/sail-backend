@@ -104,6 +104,7 @@ from lib.items import write_items                                  # noqa: E402
 SAIL_LOCAL = CHECKOUT / 'bin' / 'sail-local'
 PLUGIN = CHECKOUT / '_build' / 'default' / 'sail_plugin' / 'sail_plugin_katamaran.cmxs'
 DEFAULT_OUTPUT_DIR = HERE / 'output'
+DEFAULT_KEEP_RUNS = 5
 PINS = HERE / 'inputs.toml'
 DEFAULT_CASE_STUDY = CHECKOUT / 'case-studies' / 'cheriot'
 SAIL_VERSION = '0.20.3'
@@ -608,6 +609,25 @@ def update_latest(output_dir: Path, identifier: str) -> None:
         print(f'note: could not update {latest}: {error}', file=sys.stderr)
 
 
+RUN_DIRECTORY = re.compile(r'^\d{8}T\d{6}-')
+
+
+def prune_runs(output_dir: Path, keep: int) -> list[Path]:
+    """
+    Delete all but the `keep` newest run directories in `output_dir` (0 keeps all),
+    never the one `latest` points to. Returns the deleted directories.
+    """
+    if keep <= 0:
+        return []
+    latest = output_dir / 'latest'
+    current = latest.resolve().name if latest.is_symlink() else None
+    runs = sorted(p for p in output_dir.iterdir() if p.is_dir() and not p.is_symlink() and RUN_DIRECTORY.match(p.name))
+    old = [p for p in runs[:-keep] if p.name != current]
+    for path in old:
+        shutil.rmtree(path, ignore_errors=True)
+    return old
+
+
 # --------------------------------------------------------------------------
 # main
 # --------------------------------------------------------------------------
@@ -635,6 +655,8 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser.add_argument('--no-coq-cache', action='store_true', help='compile without the Rocq cache (ROCQ_CACHE)')
     parser.add_argument('--keep-dumps', action='store_true', help='keep the Sail AST dump of every rewrite')
     parser.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument('--keep-runs', type=int, default=DEFAULT_KEEP_RUNS, metavar='N',
+                        help=f'keep the N newest runs in the output dir, delete older ones; 0 keeps all (default: {DEFAULT_KEEP_RUNS})')
     return parser.parse_args(argv)
 
 
@@ -658,6 +680,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     sandbox = output_dir / identifier
     sandbox.mkdir(parents=True)
     update_latest(output_dir, identifier)
+    prune_runs(output_dir, arguments.keep_runs)
     (sandbox / 'sources.txt').write_text(''.join(f'{s}\n' for s in sources))
 
     stages = [stage, typecheck(sources, sandbox)]
