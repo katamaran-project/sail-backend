@@ -16,35 +16,13 @@ $ make test
 * When running the tests, the verbosity level is set to quiet, thereby suppressing all logging.
   It is, however, possible to override this by setting the verbosity level explicitly using `VERBOSE`.
 
-## CHERIoT Analysis Library
+## CHERIoT Loop
 
-`tests/cheriot/lib` analyses one translation of the CHERIoT model.
-It is the basis of the progress loop described in `docs/cheriot-loop.md`, and uses only Python's standard library.
-
-* `extract.py` collects the *items* (untranslated definitions, `NYI` holes, warnings, hard failures, coqc errors)
-  from the generated `.v` files, the log and the coqc logs.
-* `callgraph.py` builds a call graph from a Sail AST dump after the rewrites and marks which items are reachable.
-* `dangling.py` classifies the calls in `machine.v` to functions it does not define.
-* `piles.py` sorts the items into the piles of the CHERIoT inventory.
-
-`tests/cheriot/inventory.py RUN-DIR` runs all of them on a directory in which the plugin translated the model,
-and writes `items.csv`, `dangling-calls.csv` and `piles.txt`.
-Reachability needs a dump: run Sail with `--ddump-rewrite-ast RUN-DIR/dump/rw`, or pass `--dump FILE`.
-
-Item constructs are read from the nanosail source at the line numbers the log gives,
-so the analysis must use the source of the plugin that made the run (`--source-root`, by default this checkout).
-
-`tests/cheriot/run.py` (or `gmake cheriot`) is the loop itself: it translates the model with this checkout's plugin,
-runs the analysis and prints a report. See `docs/cheriot-loop.md` §3 for its inputs, stages and output.
+`tests/cheriot` translates the CHERIoT core with this checkout's plugin, compiles it with `coqc` and reports progress; see [the loop's manual](../case-studies/cheriot/docs/loop.md).
 
 ```bash
 $ gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
-```
-
-To run the unit tests of the library and of `run.py`'s helpers, which use the small fixture run in `tests/cheriot/tests/fixtures`:
-
-```bash
-$ make cheriot-lib-tests
+$ make cheriot-lib-tests        # unit tests of tests/cheriot/lib and run.py, on a small fixture run
 ```
 
 ## End to End Tests

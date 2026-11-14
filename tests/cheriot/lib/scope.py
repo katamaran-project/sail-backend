@@ -1,5 +1,5 @@
 """
-The scope: which part of the model the loop translates and measures (docs/cheriot-loop.md §4).
+The scope: which part of the model the loop translates and measures (case-studies/cheriot/docs/loop.md).
 
 tests/cheriot/scope.toml says which instructions are in scope (by the source file
 that declares their constructors) and which other entry points always are. The
@@ -14,7 +14,7 @@ than listed by hand:
                 dispatcher, only the calls for in-scope instructions are followed;
                 otherwise every instruction would be in scope.
 
-Policy exclusions (the scope file's [policy-excluded] table; docs/cheriot-loop.md §4.2)
+Policy exclusions (the scope file's [policy-excluded] table; case-studies/cheriot/docs/loop.md)
 are definitions that in-scope code reaches but that are not wanted, such as printing,
 tracing and virtual memory. The scope does not follow edges into them, so what only
 they reach leaves the scope too. They are removed together with their uses, with the

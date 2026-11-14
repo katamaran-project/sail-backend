@@ -32,7 +32,7 @@ cheriot-lib-tests:
 	python3 -m unittest discover -s tests/cheriot/tests -t tests/cheriot
 
 
-# The CHERIoT progress loop (docs/cheriot-loop.md). Needs a cheriot-sail
+# The CHERIoT progress loop (case-studies/cheriot/docs/loop.md). Needs a cheriot-sail
 # checkout; the case study is case-studies/cheriot (CHERIOT_CASE_STUDY overrides it), e.g.
 #   gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
 # CHERIOT_ARGS passes extra options to tests/cheriot/run.py, e.g. CHERIOT_ARGS=--keep-dumps.

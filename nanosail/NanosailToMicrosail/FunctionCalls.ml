@@ -648,7 +648,7 @@ let translate_extend
           (*
              The width of the extended bitvector is not a constant (a size parameter, kid__n):
              muSail's uop.zext/sext would need a proof that it is at most the new width, which only Sail's
-             constraints give (P13). A foreign call to the extern has the same value and needs none.
+             constraints give. A foreign call to the extern has the same value and needs none.
           *)
           let* foreign_call = try_foreign_call function_identifier arguments
           in

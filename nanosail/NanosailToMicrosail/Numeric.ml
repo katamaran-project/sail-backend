@@ -99,7 +99,7 @@ end = struct
        Inside a function definition, a type-level variable (kid__n) that the function's signature does not
        bind cannot be printed: Rocq would not know it. This happens when a width depends on the value of a
        parameter (val f : forall 'n. (int('n), ...) with bits('n) in the body), which muSail types cannot
-       express (P13), and for Sail's existential variables. Such a width is a hole.
+       express, and for Sail's existential variables. Such a width is a hole.
     *)
     let* bound = GC.get_bound_type_level_identifiers
     in
@@ -116,7 +116,7 @@ end = struct
     (*
        Inside a function definition, a division or modulus of a size variable, as in Sail's bits(8 * ('p / 8))
        for a 'p that its constraints make a multiple of 8, is a hole too: Rocq would need those constraints to
-       identify such a width with 'p, and they are not translated (P13).
+       identify such a width with 'p, and they are not translated.
     *)
     let rec divides_a_variable (numeric_expression : Ast.Numeric.Expression.t) : bool =
       match numeric_expression with
@@ -130,7 +130,7 @@ end = struct
     in
     match unbound_type_level_identifiers with
     | [] when Option.is_some bound && divides_a_variable numeric_expression -> begin
-        GC.not_yet_implemented ~message:"the width divides a size variable, which needs Sail's constraints (P13)" [%here]
+        GC.not_yet_implemented ~message:"the width divides a size variable, which needs Sail's constraints" [%here]
       end
     | [] -> GC.return @@ PP.annotate [%here] @@ pp initial_level numeric_expression
     | unbound :: _ -> begin

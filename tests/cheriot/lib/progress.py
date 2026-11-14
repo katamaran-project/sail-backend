@@ -1,5 +1,5 @@
 """
-Per-definition progress, clean instructions, and the ratchet (docs/cheriot-loop.md §5).
+Per-definition progress, clean instructions, and the ratchet (case-studies/cheriot/docs/loop.md).
 
 Each in-scope function and top-level value has a status:
 

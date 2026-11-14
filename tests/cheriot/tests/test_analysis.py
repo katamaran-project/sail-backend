@@ -115,26 +115,26 @@ class PileTests(unittest.TestCase):
 
     def pile(self, **fields):
         [record] = [r for r in self.items if all(r[k] == v for k, v in fields.items())]
-        return record['pile'][:3]
+        return record['pile'].split(':')[0]
 
     def test_rules(self):
-        self.assertEqual(self.pile(stage='untranslated', name='bool_to_bits'), 'P04')   # by message
-        self.assertEqual(self.pile(stage='untranslated', name='count_down'), 'P05')     # by construct
-        self.assertEqual(self.pile(stage='untranslated', name='file_start'), 'P12')
-        self.assertEqual(self.pile(stage='nyi', name='sail_mask'), 'P01')
-        self.assertEqual(self.pile(stage='skipped'), 'P14')
-        self.assertEqual(self.pile(stage='warning', name='sail_mask'), 'P15')
+        self.assertEqual(self.pile(stage='untranslated', name='bool_to_bits'), 'bit-vector-literals')   # by message
+        self.assertEqual(self.pile(stage='untranslated', name='count_down'), 'control-flow')     # by construct
+        self.assertEqual(self.pile(stage='untranslated', name='file_start'), 'overloads-pragmas')
+        self.assertEqual(self.pile(stage='nyi', name='sail_mask'), 'runtime-widths')
+        self.assertEqual(self.pile(stage='skipped'), 'skipped')
+        self.assertEqual(self.pile(stage='warning', name='sail_mask'), 'casts')
         self.assertEqual(self.pile(stage='nyi', message='first hole'), '')
 
     def test_first_matching_rule_wins(self):
-        # a hard failure is P01, whatever its message
+        # a hard failure is runtime-widths, whatever its message
         self.assertEqual(piles.pile_of(dict(stage='hard-failure', message='Ignored cast', construct='')), piles.RULES[0][0])
 
     def test_table(self):
         table, unassigned = piles.pile_table(self.items)
-        p04 = table[piles.RULES[3][0]]
-        self.assertEqual((p04.items, p04.definitions, p04.reachable), (2, {'bool_to_bits'}, {'bool_to_bits'}))
-        self.assertEqual(dict(p04.stages), {'untranslated': 1, 'error': 1})
+        literals = table[piles.RULES[3][0]]
+        self.assertEqual((literals.items, literals.definitions, literals.reachable), (2, {'bool_to_bits'}, {'bool_to_bits'}))
+        self.assertEqual(dict(literals.stages), {'untranslated': 1, 'error': 1})
         # the two NYIs in two_holes match no rule; coqc errors are not counted
         self.assertEqual(unassigned, {('nyi', 'statement', 'first hole'): 1, ('nyi', 'statement', 'second hole'): 1})
         text = piles.format_pile_table(table, unassigned)

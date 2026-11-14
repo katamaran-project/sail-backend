@@ -171,7 +171,7 @@ This can be achieved using
 ```
 
 This causes `foo` to be monomorphized three times into `foo_8_8`, `foo_4_1` and `foo_1_2`.
-See `tests/coq-tests/monomorphize-two-ints`.
+This feature is optional and has no tests at the moment; see [monomorphization](monomorphization.md).
 
 For now, only type-level variables of kind `Int` can be specified.
 
@@ -268,7 +268,7 @@ Ignoring a function only drops its definition: its callers still call it, so the
 
 An excluded function's definition and its `val` specification are not translated, as with `ignore-functions`.
 The names are Sail's names. Each call adds to the names of earlier calls; excluding the same function in two different ways is an error.
-The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` (`docs/cheriot-loop.md` §4.2).
+The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` ([loop](../case-studies/cheriot/docs/loop.md#policy-exclusions)).
 See the `tests/coq-tests/exclude-*` tests. `exclude-functions-as-value` takes pairs of the function's name and the expression.
 
 ### Externs: muSail operations and foreign functions

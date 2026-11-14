@@ -43,8 +43,8 @@ class MetricsTests(unittest.TestCase):
 
     def test_missing_calls_and_piles(self):
         self.assertEqual(self.metrics['calls_missing']['untranslated'], {'callees': 1, 'calls': 2})
-        p04 = next(v for k, v in self.metrics['piles'].items() if k.startswith('P04'))
-        self.assertEqual(p04, {'items': 2, 'definitions': 1, 'reachable': 1})
+        literals = next(v for k, v in self.metrics['piles'].items() if k.startswith('bit-vector-literals'))
+        self.assertEqual(literals, {'items': 2, 'definitions': 1, 'reachable': 1})
         self.assertEqual(self.metrics['unassigned_failures'], 2)
 
     def test_format(self):
@@ -187,3 +187,9 @@ class PruneRunsTests(unittest.TestCase):
             (out / '20261110T120000-abc').mkdir()
             self.assertEqual(run.prune_runs(out, 0), [])
             self.assertTrue((out / '20261110T120000-abc').is_dir())
+
+
+class HistoryTests(unittest.TestCase):
+    def test_history_is_tracked_next_to_the_case_study_docs(self):
+        self.assertEqual(run.HISTORY, run.CHECKOUT / 'case-studies' / 'cheriot' / 'docs' / 'history.csv')
+        self.assertTrue(run.HISTORY.is_file())

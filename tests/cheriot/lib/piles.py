@@ -1,6 +1,6 @@
 """
-Sort items into piles: root causes or missing features, as in the CHERIoT inventory
-(cheriot-inventory/20261113-1408/INVENTORY.md, which describes each pile).
+Sort items into piles: classes of root causes or missing features, named by a slug.
+case-studies/cheriot/docs/roadmap.md describes the open ones.
 
 The rules are ordered; the first match wins. They key on the item's construct
 (the nanosail match arm that raised it, see extract.NanosailSource) and on its message.
@@ -17,40 +17,40 @@ SIZE_POLYMORPHIC_WARNING = 'Encountered polymorphic function'
 
 RULES = [
     # (pile id, predicate on row)
-    ('P01 compile-time-known integer arguments',
+    ('runtime-widths: integer arguments not known at compile time',
      lambda r: r['stage'] == 'hard-failure'
      or 'known at compile time' in r['message']
      or 'expected constant in bitvector type' in r['message']
      or 'failed to determine bitvector size' in r['message']),
-    ('P02 polymorphic unions (type parameters)',
+    ('type-parameters: unions with type parameters',
      lambda r: r['construct'] in ('Kind.ml: Type', 'Type.ml: TypeVariable')
      or ('expected pattern AP_' in r['message'] and ('Type:Application' in r['message'] or 'Alias["TODO"]' in r['message']))),
-    ('P03 nested patterns inside sum constructors',
+    ('nested-patterns: patterns inside sum constructors',
      lambda r: 'only binder patterns supported in sum constructors' in r['message']),
-    ('P04 vector literal with bits(1) elements',
+    ('bit-vector-literals: vector literals with bits(1) elements',
      lambda r: 'Elements of bit vector should all be bits' in r['message']),
-    ('P05 loops, try, early return',
+    ('control-flow: loops, try, early return',
      lambda r: r['construct'] in ('Function.ml: AE_for', 'Function.ml: AE_loop', 'Function.ml: AE_try', 'Function.ml: AE_return')),
-    ('P06 mutable local variables (var)',
+    ('mutable-locals: mutable local variables (var)',
      lambda r: 'assignment to local variable (nonregister)' in r['message']),
-    ('P07 register references (register(T), ref, r->F() = v)',
+    ('register-references: register(T), ref, r->F() = v',
      lambda r: 'unknown type register' in r['message'] or r['construct'] == 'Function.ml: AV_ref'),
-    ('P08 top-level let with a computed value',
+    ('computed-values: top-level let with a computed value',
      lambda r: r['construct'].startswith('ValueDefinition.ml')),
-    ('P09 mappings to/from strings and bitvectors (assembly, printing)',
+    ('mappings: to/from strings and bitvectors (assembly, printing)',
      lambda r: r['construct'] in ('Match.ml: String', 'Match.ml: Bitvector')),
-    ('P10 vectors of non-bits (register arrays)',
+    ('register-arrays: vectors of non-bits',
      lambda r: r['construct'] == 'Type.ml: Vector'),
-    ('P11 numeric types: ranges, if in nexp, parametric structs',
+    ('numeric-types: ranges, if in nexp, parametric structs',
      lambda r: r['construct'] in ('Recursive.ml: Nexp_if', 'Type.ml: Range', 'Match.ml: Range', 'Function.ml: Typ_app')
      or r['message'] == 'Unexpected type'),
-    ('P12 non-translated definition kinds: overload, pragma',
+    ('overloads-pragmas: definition kinds that need no translation',
      lambda r: r['construct'] in ('Translation.ml: DEF_overload', 'Translation.ml: DEF_pragma')),
-    ('P13 size-polymorphic functions (int(n), bits(n) in signatures)',
+    ('size-polymorphism: int(n), bits(n) in signatures',
      lambda r: r['stage'] == 'warning' and SIZE_POLYMORPHIC_WARNING in r['message']),
-    ('P14 skipped by configuration (hidden gaps)',
+    ('skipped: skipped by configuration (hidden gaps)',
      lambda r: r['stage'] == 'skipped'),
-    ('P15 casts ignored', lambda r: r['message'] == 'Ignored cast'),
+    ('casts: casts ignored', lambda r: r['message'] == 'Ignored cast'),
 ]
 
 
@@ -106,10 +106,10 @@ def pile_table(items: list[Item]) -> tuple[dict[str, Pile], dict[tuple[str, str,
 
 
 def format_pile_table(piles: dict[str, Pile], unassigned: dict[tuple[str, str, str], int]) -> str:
-    lines = [f"{'pile':66} {'items':>6} {'defs':>5} {'reach':>5}  stages"]
+    lines = [f"{'pile':70} {'items':>6} {'defs':>5} {'reach':>5}  stages"]
     for name in sorted(piles):
         pile = piles[name]
-        lines.append(f'{name:66} {pile.items:6} {len(pile.definitions):5} {len(pile.reachable):5}  {dict(pile.stages)}')
+        lines.append(f'{name:70} {pile.items:6} {len(pile.definitions):5} {len(pile.reachable):5}  {dict(pile.stages)}')
     if unassigned:
         lines.append('')
         lines.append('not assigned to a pile:')

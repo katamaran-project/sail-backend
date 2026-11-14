@@ -6,7 +6,7 @@ Usage:
     tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--update-baseline] [--no-scope] [--no-coq]
                          [--coq-stall S] [--no-coq-cache] [--keep-dumps] [--output-dir DIR]
 
-or `gmake cheriot CHERIOT_SAIL_DIR=...`. See docs/cheriot-loop.md.
+or `gmake cheriot CHERIOT_SAIL_DIR=...`. See case-studies/cheriot/docs/loop.md.
 
 Inputs:
     --cheriot-sail DIR   a cheriot-sail checkout, with its sail-riscv submodule
@@ -53,7 +53,7 @@ The run has these stages; a stage that fails ends the run.
                 accepts the current state as the new baseline, in the commit that
                 makes the progress.
 
-Every run that gets through the analysis appends a line to tests/cheriot/history.csv
+Every run that gets through the analysis appends a line to case-studies/cheriot/docs/history.csv
 (tracked in git, like the end-to-end tests' history).
 
 Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
@@ -123,7 +123,7 @@ ROCQ_CACHE = Path(
 )
 SCOPE_INCLUDE = 'scope-ignores.lisp'
 BASELINE = HERE / 'baseline.json'
-HISTORY = HERE / 'history.csv'
+HISTORY = CHECKOUT / 'case-studies' / 'cheriot' / 'docs' / 'history.csv'
 HISTORY_FIELDS = ['timestamp', 'commit', 'dirty', 'scope', 'instructions total', 'instructions clean',
                   'instructions generated', 'functions total', 'functions generated', 'untranslated definitions',
                   'NYI holes', 'hard failures', 'missing calls', 'rocq plain', 'rocq probe', 'result', 'run']

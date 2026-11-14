@@ -1,5 +1,5 @@
 """
-Analysis of one translation of the CHERIoT model (see docs/cheriot-loop.md).
+Analysis of one translation of the CHERIoT model (see case-studies/cheriot/docs/loop.md).
 
 The modules read the files of a run directory, in which `sail --katamaran`
 translated the model: base.v, machine.v, the log, the Sail AST dumps and the
@@ -9,8 +9,7 @@ coqc logs.  They use only the standard library.
     extract     items from the generated .v files, the log and the coqc logs
     callgraph   the call graph of the rewritten Sail AST, and reachability
     dangling    calls in machine.v to functions that it does not define
-    piles       sorting items into piles (root causes, as in the inventory)
+    piles       sorting items into piles, by cause
 
-The modules started as the scripts of the CHERIoT inventory of 13 Nov 2026
-(cheriot-inventory/20261113-1408/INVENTORY.md).
+The modules started as the scripts of a first inventory of the CHERIoT translation.
 """

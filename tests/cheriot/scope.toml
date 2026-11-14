@@ -1,5 +1,5 @@
 # The part of the CHERIoT model that the loop translates and measures:
-# the CHERIoT core (docs/cheriot-loop.md §4, decided 13 Nov 2026).
+# the CHERIoT core (case-studies/cheriot/docs/design.md, loop.md).
 # run.py computes the scope from this file and the model's call graph
 # (tests/cheriot/lib/scope.py); everything else is ignored.
 
@@ -24,7 +24,7 @@ roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 [dispatchers]
 execute = "execute_"
 
-# Policy exclusions (docs/cheriot-loop.md §4.2): definitions that in-scope code reaches
+# Policy exclusions (case-studies/cheriot/docs/design.md): definitions that in-scope code reaches
 # but that the CHERIoT core does not want. Each is removed together with its uses
 # (docs/usage.md, "Excluding definitions together with their uses"), and the scope does
 # not follow edges into it, so what only it reaches leaves the scope as well.
@@ -35,7 +35,7 @@ execute = "execute_"
 [policy-excluded]
 
 no-op = [
-  # Printing and tracing (PROJECT-STATUS.md §1a: excluded by configuration).
+  # Printing and tracing.
   "print",
   "print_bits",
   "print_instr",
