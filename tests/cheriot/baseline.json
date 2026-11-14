@@ -22,7 +22,7 @@
   "execute_SHIFTIWOP",
   "execute_UTYPE"
  ],
- "commit": "f40fe15e+dirty",
+ "commit": "0328aa69+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -316,7 +316,7 @@
   "execute_FENCE_TSO": "ok",
   "execute_ITYPE": "ok",
   "execute_LOAD": "ok",
-  "execute_LoadCapImm": "missing",
+  "execute_LoadCapImm": "ok",
   "execute_MRET": "ok",
   "execute_MUL": "ok",
   "execute_MULW": "ok",
@@ -343,7 +343,7 @@
   "ext_check_xret_priv": "ok",
   "ext_control_check_addr": "ok",
   "ext_control_check_pc": "ok",
-  "ext_data_get_addr": "missing",
+  "ext_data_get_addr": "holes",
   "ext_decode": "ok",
   "ext_decode_compressed": "ok",
   "ext_exc_type_to_bits": "ok",
@@ -605,17 +605,18 @@
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 28,
-  "functions generated": 492,
+  "NYI holes": 29,
+  "functions generated": 494,
   "hard failures": 0,
   "instructions clean": 20,
-  "instructions generated": 59,
-  "missing calls": 127,
-  "untranslated definitions": 62
+  "instructions generated": 60,
+  "missing calls": 125,
+  "untranslated definitions": 60
  },
  "holes": {
   "align_down": 3,
   "execute_CSetHigh": 1,
+  "ext_data_get_addr": 1,
   "pmpReadAddrReg": 4,
   "pmpReadCfgReg": 4,
   "pmpWriteAddrReg": 5,
@@ -3229,6 +3230,7 @@
     "ext_control_check_addr",
     "ext_control_check_pc",
     "ext_handle_control_check_error",
+    "ext_data_get_addr",
     "ext_check_phys_mem_read",
     "ext_check_phys_mem_write",
     "ext_check_xret_priv",
@@ -3619,6 +3621,7 @@
     "ext_control_check_addr",
     "ext_control_check_pc",
     "ext_handle_control_check_error",
+    "ext_data_get_addr",
     "ext_check_phys_mem_read",
     "ext_check_phys_mem_write",
     "ext_check_xret_priv",
@@ -3699,6 +3702,7 @@
     "execute_MULW",
     "execute_MUL",
     "execute_MRET",
+    "execute_LoadCapImm",
     "execute_LOAD",
     "execute_ITYPE",
     "execute_FENCE_TSO",
@@ -3775,6 +3779,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261114T173928-f40fe15e-dirty",
+ "run": "20261114T174620-0328aa69-dirty",
  "scope": "a130c4ba22f6"
 }
