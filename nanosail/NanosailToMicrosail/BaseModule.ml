@@ -847,11 +847,13 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
        | capability =>
          fun c=>
            env.nil
-             ► ("cap_permission" ∷ ty.perm ↦ cap_permission c)
-             ► ("cap_begin"      ∷ ty.addr ↦ cap_begin c)
-             ► ("cap_end"        ∷ ty.addr ↦ cap_end c)
-             ► ("cap_cursor"     ∷ ty.addr ↦ cap_cursor c)
+             ► ("cap_permission" ∷ ty.perm ↦ capability_cap_permission c)
+             ► ("cap_begin"      ∷ ty.addr ↦ capability_cap_begin c)
+             ► ("cap_end"        ∷ ty.addr ↦ capability_cap_end c)
+             ► ("cap_cursor"     ∷ ty.addr ↦ capability_cap_cursor c)
        end%env.
+
+   The projections are prefixed with the record name (see Identifier.record_field_projection_name).
 
 *)
 let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : PP.t GC.t =
@@ -901,7 +903,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
                       PP.string "∷";
                       pp_field_type;
                       PP.string "↦";
-                      Identifier.pp field_identifier;
+                      Identifier.pp @@ Identifier.record_field_projection_name record_definition.identifier field_identifier;
                       Identifier.pp lambda_parameter
                     ]
                   ]

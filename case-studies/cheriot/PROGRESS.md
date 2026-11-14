@@ -15,7 +15,7 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `53075be3` plus the configuration clean-up; cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `1643ae27` plus the record projection prefix; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -26,8 +26,8 @@ An instruction is *clean* when everything it reaches translates without holes an
 | `NYI` holes | 30, in 12 definitions |
 | hard failures | 0 |
 | calls to missing functions | 1381: extern 1141, untranslated 138, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:604`, in `Record Capability`: `reserved already exists` |
-| Rocq, probe (`NYI` as an axiom) | the same; 39 of 506 definitions before it |
+| Rocq, plain | `base.v:738`, in `Inductive AccessType`: `The reference NYI was not found` (its type parameter is translated as a hole) |
+| Rocq, probe (`NYI` as an axiom) | `base.v:739`, the same definition; 67 of 506 definitions before it |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all 694 definitions in scope.
 
@@ -49,9 +49,9 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | P11 | `CGetLen`, `CGetTop` | `if` inside a numeric type |
 | P07 | `CJALR` | register reference |
 
-**Rocq:** `base.v` stops at `Record Capability`, because its fields `reserved`, `B`, `T` and `address` are also fields of `EncCapability` (and `global` of `TLB_Entry`), and Rocq record projections are global names.
-This needs a translator change (for example, prefix clashing projections with the record name). It is not in the inventory, which predates coqc measurements.
-The next stops after it are known from `base.v`: the unions with type parameters (`AccessType`, `MemoryOpResult`, `Ext_*_Check`, `PTW_Result`, `TR_Result`; P02), which in-scope code uses.
+**Rocq:** `base.v` stops at `Inductive AccessType`, the first of the unions with type parameters that in-scope code uses (`AccessType`, `MemoryOpResult`, `Ext_*_Check`, `PTW_Result`, `TR_Result`; P02).
+Their type parameters are translated as `NYI` holes; this needs a design decision (how Katamaran's closed type universe represents a type-parametric union).
+All records now compile: Rocq record projections are now named `<record>_<field>` (for example `Capability_address`), because Rocq projections are global and Sail structs may share field names.
 The concurrency-interface types (`Access_kind`, `Mem_*_request`, ...), the unused `regfp.sail` types and the range abbreviations `CapAddrInt` and `CapLen` (P11) are now ignored by configuration; see `configuration.lisp`.
 
 **All piles in scope**, by definitions affected: P13 size-polymorphic functions 54, P02 31, P08 computed top-level `let`s 19, P15 casts 18, P04 17, P09 mappings 16, P07 9, P01 6, P11 6, P14 6, P05 5, P06 4, P10 4, P03 3.
@@ -65,6 +65,7 @@ The concurrency-interface types (`Access_kind`, `Mem_*_request`, ...), the unuse
 | 2026-11-14 | `b8d43e8f` | core | 48 / 61 | 549 / 643 | 150 | 30 | 0 | `Access_kind` | first run restricted to the core |
 | 2026-11-14 | `c71962a4`+ | core | 48 / 61, 1 clean | 554 / 647 | 149 | 30 | 0 | `Access_kind` | step 5: clean instructions, first baseline; operators are now named correctly in the call graph, which adds 4 functions to the scope |
 | 2026-11-14 | `53075be3`+ | core | 48 / 61, 1 clean | 554 / 647 | 113 | 30 | 0 | `Capability` (39 of 506) | configuration clean-up: overloads and pragmas (P12), concurrency-interface and `regfp` types, `CapAddrInt`/`CapLen` ignored; `bv` widths parenthesised |
+| 2026-11-14 | `1643ae27`+ | core | 48 / 61, 1 clean | 554 / 647 | 113 | 30 | 0 | `AccessType` (67 of 506) | Rocq record projections prefixed with the record name, so structs may share field names; all records compile |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
