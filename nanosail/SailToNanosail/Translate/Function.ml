@@ -410,8 +410,13 @@ let rec expression_of_aval
       TC.return (values', types', named_statements')
     in
     let* expression' =
+      (* In Sail, bit is bitvector(1), so elements can also have the type bitvector(1) *)
       let is_bit (t : Ast.Type.t) : bool =
+        let t = Ast.Type.simplify @@ Ast.Type.strip_aliases t
+        in
         Ast.Type.equal t Ast.Type.Bit
+        ||
+        Ast.Type.equal t (Ast.Type.Bitvector (Ast.Numeric.Expression.Constant Z.one))
       in
       if
         List.for_all ~f:is_bit value_types'
