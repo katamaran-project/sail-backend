@@ -2855,6 +2855,46 @@ let translate_list_match
   | _ -> TC.not_yet_implemented [%here] location
 
 
+(* Replaces the first of the cases selected by is_merged by merged_case and drops the others *)
+let replace_merged_cases
+    (cases        : (Pattern.t * Ast.Statement.t) list )
+    ~(is_merged   : Pattern.t * Ast.Statement.t -> bool)
+    ~(merged_case : Pattern.t * Ast.Statement.t        ) : (Pattern.t * Ast.Statement.t) list
+  =
+  let rec replace (cases : (Pattern.t * Ast.Statement.t) list) (replaced : bool) : (Pattern.t * Ast.Statement.t) list =
+    match cases with
+    | []           -> []
+    | case :: rest -> begin
+        if
+          is_merged case
+        then
+          if
+            replaced
+          then
+            replace rest true
+          else
+            merged_case :: replace rest true
+        else
+          case :: replace rest replaced
+      end
+  in
+  replace cases false
+
+
+(* Is the pattern nested, i.e., something else than a binder or unit? *)
+let is_nested_pattern (pattern : Pattern.t) : bool =
+  match pattern with
+  | Binder _           -> false
+  | Unit               -> false
+  | ListCons (_, _)    -> true
+  | ListNil            -> true
+  | Tuple _            -> true
+  | EnumCase _         -> true
+  | VariantCase (_, _) -> true
+  | SumCase (_, _)     -> true
+  | BoolCase _         -> true
+
+
 (*
    Patterns nested inside the fields of a constructor, e.g.,
 
@@ -2894,18 +2934,7 @@ let merge_nested_constructor_patterns
   let variant_type : Ast.Type.t =
     Ast.Type.Variant variant_identifier
   in
-  (* Is the pattern nested, i.e., something else than a binder or unit? *)
-  let is_nested (pattern : Pattern.t) : bool =
-    match pattern with
-    | Binder _           -> false
-    | Unit               -> false
-    | ListCons (_, _)    -> true
-    | ListNil            -> true
-    | Tuple _            -> true
-    | EnumCase _         -> true
-    | VariantCase (_, _) -> true
-    | SumCase (_, _)     -> true
-    | BoolCase _         -> true
+  let is_nested = is_nested_pattern
   in
   (* The subpatterns of the fields of constructor C, given the pattern in C(pattern), if that pattern is a list of subpatterns *)
   let field_subpatterns
@@ -3063,25 +3092,7 @@ let merge_nested_constructor_patterns
       in
       (VariantCase (constructor_identifier, field_pattern), inner_match)
     in
-    (* Replace the first case for C by the merged case, drop the other cases for C *)
-    let rec replace (cases : (Pattern.t * Ast.Statement.t) list) (replaced : bool) : (Pattern.t * Ast.Statement.t) list =
-      match cases with
-      | []            -> []
-      | case :: rest  -> begin
-          if
-            is_case_for_constructor case
-          then
-            if
-              replaced
-            then
-              replace rest true
-            else
-              merged_case :: replace rest true
-          else
-            case :: replace rest replaced
-        end
-    in
-    TC.return @@ replace cases false
+    TC.return @@ replace_merged_cases cases ~is_merged:is_case_for_constructor ~merged_case
   in
   TC.fold_left
     (List.filter variant_definition.constructors ~f:has_nested_case)
@@ -3113,28 +3124,6 @@ let translate_variant_match
   let* result = build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
   in
   TC.return result
-
-
-let translate_sum_match
-    (location           : S.l                               )
-    (matched_identifier : Ast.Identifier.t                  )
-    (left_type          : Ast.Type.t                        )
-    (right_type         : Ast.Type.t                        )
-    (cases              : (Pattern.t * Ast.Statement.t) list)
-    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
-  =
-  let* empty_pattern_tree =
-    build_empty_pattern_tree
-      location
-      [ Ast.Type.Sum (left_type, right_type) ]
-  in
-  let* pattern_tree =
-    TC.fold_left
-      cases
-      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
-      ~init:empty_pattern_tree
-  in
-  build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
 
 
 (*
@@ -3339,26 +3328,23 @@ let translate_enum_match
   build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
 
 
-let translate
-    (location           : S.l                                                 )
-    (matched_identifier : Ast.Identifier.t                                    )
-    (matched_type       : Ast.Type.t                                          )
-    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list)
-    (output_type        : Ast.Type.t                                          ) : Ast.Statement.t TC.t
+(*
+   Translates a match on matched_identifier, whose cases have been translated to our own patterns.
+*)
+let rec translate_cases
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (matched_type       : Ast.Type.t                        )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
-  let* translated_cases =
-    let f (pattern, condition, clause) =
-      translate_case location matched_type pattern condition clause
-    in
-    TC.map ~f cases
-  in
   match matched_type with
-  | List element_type            -> translate_list_match location matched_identifier element_type translated_cases
-  | Unit                         -> translate_unit_match location matched_identifier translated_cases output_type
-  | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases output_type
-  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier translated_cases output_type
-  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types translated_cases output_type
-  | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type translated_cases output_type
+  | List element_type            -> translate_list_match location matched_identifier element_type cases
+  | Unit                         -> translate_unit_match location matched_identifier cases output_type
+  | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier cases output_type
+  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier cases output_type
+  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types cases output_type
+  | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location
   | Bool                         -> TC.not_yet_implemented [%here] location
   | String                       -> TC.not_yet_implemented [%here] location
@@ -3373,3 +3359,220 @@ let translate
   | Nat                          -> TC.not_yet_implemented [%here] location
   | Vector _                     -> TC.not_yet_implemented [%here] location
   | Implicit _                   -> TC.not_yet_implemented [%here] location
+
+
+and translate_sum_match
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (left_type          : Ast.Type.t                        )
+    (right_type         : Ast.Type.t                        )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
+  =
+  let* cases =
+    merge_nested_sum_patterns location matched_identifier left_type right_type cases output_type
+  in
+  let* empty_pattern_tree =
+    build_empty_pattern_tree
+      location
+      [ Ast.Type.Sum (left_type, right_type) ]
+  in
+  let* pattern_tree =
+    TC.fold_left
+      cases
+      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
+      ~init:empty_pattern_tree
+  in
+  build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
+
+
+(*
+   Patterns nested inside a constructor of a union translated to a sum, e.g., with option as a sum,
+
+     match v {
+       Some(A32)    => b1,
+       Some(a, n)   => b2,      // a tuple
+       Some(x)      => b3,
+       w            => b4
+     }
+
+   As with merge_nested_constructor_patterns, the pattern tree of a sum match only supports a binder for the value of a side.
+   All cases for such a side are merged into one case that binds the value to a fresh variable
+   and matches it, using the cases for that side and the catch-all cases, in their order:
+
+     match v {
+       Some(y) => match y { ... A32 => b1, ..., x => b3, _ => let w = v in b4 },
+       w       => b4
+     }
+
+   The match on the value is translated by its type, so it can contain further nested patterns.
+   A binder for a tuple value becomes a tuple of wildcards and a let, as a tuple match needs tuple patterns.
+   Sides whose cases only bind their value are left alone.
+*)
+and merge_nested_sum_patterns
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (left_type          : Ast.Type.t                        )
+    (right_type         : Ast.Type.t                        )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : (Pattern.t * Ast.Statement.t) list TC.t
+  =
+  let sum_type : Ast.Type.t =
+    Ast.Type.Sum (left_type, right_type)
+  in
+  let is_case_for_side
+      (side         : Ast.SumSide.t              )
+      ((pattern, _) : Pattern.t * Ast.Statement.t) : bool
+    =
+    match pattern with
+    | SumCase (case_side, _) -> Ast.SumSide.equal case_side side
+    | Binder _               -> false
+    | Unit                   -> false
+    | ListCons (_, _)        -> false
+    | ListNil                -> false
+    | Tuple _                -> false
+    | EnumCase _             -> false
+    | VariantCase (_, _)     -> false
+    | BoolCase _             -> false
+  in
+  let has_nested_case (side : Ast.SumSide.t) : bool =
+    List.exists cases ~f:(fun ((pattern, _) as case : Pattern.t * Ast.Statement.t) ->
+        match pattern with
+        | SumCase (_, value_pattern) -> is_case_for_side side case && is_nested_pattern value_pattern
+        | Binder _                   -> false
+        | Unit                       -> false
+        | ListCons (_, _)            -> false
+        | ListNil                    -> false
+        | Tuple _                    -> false
+        | EnumCase _                 -> false
+        | VariantCase (_, _)         -> false
+        | BoolCase _                 -> false
+      )
+  in
+  let merge_side
+      (cases : (Pattern.t * Ast.Statement.t) list)
+      (side  : Ast.SumSide.t                      ) : (Pattern.t * Ast.Statement.t) list TC.t
+    =
+    let value_type : Ast.Type.t =
+      match side with
+      | Left  -> left_type
+      | Right -> right_type
+    in
+    let* value_identifier : Ast.Identifier.t =
+      TC.generate_unique_identifier ()
+    in
+    (* A pattern that matches every value of the side, in the form the match on its type expects *)
+    let catch_all_pattern : Pattern.t TC.t =
+      let wildcard : Pattern.t TC.t =
+        let* binder = Binder.generate_wildcard in TC.return @@ Pattern.Binder binder
+      in
+      match value_type with
+      | Tuple element_types -> let* wildcards = TC.repeat (List.length element_types) ~f:wildcard in TC.return @@ Pattern.Tuple wildcards
+      | List _              -> wildcard
+      | Unit                -> wildcard
+      | Enum _              -> wildcard
+      | Variant _           -> wildcard
+      | Sum (_, _)          -> wildcard
+      | Int _               -> wildcard
+      | Bool                -> wildcard
+      | String              -> wildcard
+      | Bit                 -> wildcard
+      | Bitvector _         -> wildcard
+      | Record _            -> wildcard
+      | Application (_, _)  -> wildcard
+      | Alias (_, _)        -> wildcard
+      | Range (_, _)        -> wildcard
+      | Function _          -> wildcard
+      | TypeVariable _      -> wildcard
+      | Nat                 -> wildcard
+      | Vector _            -> wildcard
+      | Implicit _          -> wildcard
+    in
+    (* A case that binds the whole value of the given type: a catch-all case with a let for the binder *)
+    let catch_all_case
+        (binder : Binder.t        )
+        (typ    : Ast.Type.t      )
+        (value  : Ast.Identifier.t)
+        (body   : Ast.Statement.t ) : (Pattern.t * Ast.Statement.t) TC.t
+      =
+      let* pattern = catch_all_pattern
+      in
+      let body : Ast.Statement.t =
+        if
+          binder.wildcard
+        then
+          body
+        else
+          Let {
+            binder                 = binder.identifier;
+            binding_statement_type = typ;
+            binding_statement      = Expression (Variable (value, typ));
+            body_statement         = body;
+          }
+      in
+      TC.return (pattern, body)
+    in
+    (* The cases of the match on the value *)
+    let* inner_cases : (Pattern.t * Ast.Statement.t) list =
+      let inner_case ((pattern, body) as case : Pattern.t * Ast.Statement.t) : (Pattern.t * Ast.Statement.t) option TC.t =
+        let incompatible (ocaml_location : Lexing.position) =
+          TC.fail ocaml_location "pattern is incompatible with type of value being matched"
+        in
+        match pattern with
+        | SumCase (_, value_pattern) -> begin
+            if
+              not (is_case_for_side side case)
+            then
+              TC.return None
+            else begin
+              match value_pattern with
+              | Binder binder -> let* case = catch_all_case binder value_type value_identifier body in TC.return @@ Some case
+              | Unit               -> TC.return @@ Some (value_pattern, body)
+              | ListCons (_, _)    -> TC.return @@ Some (value_pattern, body)
+              | ListNil            -> TC.return @@ Some (value_pattern, body)
+              | Tuple _            -> TC.return @@ Some (value_pattern, body)
+              | EnumCase _         -> TC.return @@ Some (value_pattern, body)
+              | VariantCase (_, _) -> TC.return @@ Some (value_pattern, body)
+              | SumCase (_, _)     -> TC.return @@ Some (value_pattern, body)
+              | BoolCase _         -> TC.return @@ Some (value_pattern, body)
+            end
+          end
+        | Binder binder      -> let* case = catch_all_case binder sum_type matched_identifier body in TC.return @@ Some case
+        | Unit               -> incompatible [%here]
+        | ListCons (_, _)    -> incompatible [%here]
+        | ListNil            -> incompatible [%here]
+        | Tuple _            -> incompatible [%here]
+        | EnumCase _         -> incompatible [%here]
+        | VariantCase (_, _) -> incompatible [%here]
+        | BoolCase _         -> incompatible [%here]
+      in
+      TC.filter_map cases ~f:inner_case
+    in
+    let* inner_match : Ast.Statement.t =
+      translate_cases location value_identifier value_type inner_cases output_type
+    in
+    let merged_case : Pattern.t * Ast.Statement.t =
+      (SumCase (side, Binder { identifier = value_identifier; wildcard = false }), inner_match)
+    in
+    TC.return @@ replace_merged_cases cases ~is_merged:(is_case_for_side side) ~merged_case
+  in
+  TC.fold_left
+    (List.filter [ Ast.SumSide.Left; Ast.SumSide.Right ] ~f:has_nested_case)
+    ~init:cases
+    ~f:merge_side
+
+
+let translate
+    (location           : S.l                                                 )
+    (matched_identifier : Ast.Identifier.t                                    )
+    (matched_type       : Ast.Type.t                                          )
+    (cases              : (S.typ S.apat * S.typ S.aexp * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                                          ) : Ast.Statement.t TC.t
+  =
+  let* translated_cases =
+    let f (pattern, condition, clause) =
+      translate_case location matched_type pattern condition clause
+    in
+    TC.map ~f cases
+  in
+  translate_cases location matched_identifier matched_type translated_cases output_type
