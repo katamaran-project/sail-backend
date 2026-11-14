@@ -15,21 +15,21 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `8e591b21` plus size and type parameters as implicit arguments of `Fun` (P13, first part); cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `9b45dd1c` plus P03 (a pattern `C(e)` binding all fields of a constructor with several fields); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **20 of 61**: `ADDIW`, `CGetAddr`, `CGetBase`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CSEQX`, `CSub`, `CTestSubset`, `FENCE`, `FENCEI`, `FENCE_TSO`, `ITYPE`, `RTYPE`, `RTYPEW`, `SHIFTIOP`, `SHIFTIWOP`, `UTYPE` |
-| instructions generated | 53 of 61 |
-| functions generated | 483 of 534 |
-| untranslated definitions | 71 |
+| instructions generated | 58 of 61 |
+| functions generated | 490 of 534 |
+| untranslated definitions | 64 |
 | `NYI` holes | 26 (5 make previously ill-typed widths explicit: a width that depends on a value, or that divides a size variable; P13) |
 | hard failures | 0 |
-| calls to missing functions | 128: outside the scope 86 (from `execute`), untranslated 31, extern 10 (`plain_vector_access`, `plain_vector_update`: vector types), skipped by configuration 1 |
+| calls to missing functions | 132: outside the scope 86 (from `execute`), untranslated 35, extern 10 (`plain_vector_access`, `plain_vector_update`: vector types), skipped by configuration 1 |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 30, removed with their uses: 9 no-op, 2 failure, 18 unconstrained, 1 register (`tests/cheriot/scope.toml`) |
 | Rocq, plain | `base.v:12088`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1041 of 1091 definitions before it |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 384 of its 510 definitions; it stops at `machine.v:14299`, `htif_store`, on the memory path (P13: a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom (`docs/cheriot-loop.md`) |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 386 of its 517 definitions; it stops at `machine.v:14402`, `htif_store`, on the memory path (P13: a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom (`docs/cheriot-loop.md`) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -70,12 +70,15 @@ The Sv32 code is excluded too: `translate32` and `translationException` fail (CH
 `flush_TLB` (SFENCE.VMA) and `init_vmem` are no-ops, and the register `tlb32` is left out of `Reg`.
 PMP is not excluded yet: what `pmpCheck` and the PMP registers become is a decision about what proofs may assume (P10).
 The run's report ranks all blockers; `progress.json` lists them per instruction.
+A pattern `C(e)` that binds all fields of a constructor with several fields to one variable (P03: `Ext_ControlAddr_Error(e)` at the tuple type `ext_control_addr_error`) now translates:
+the fields are bound to fresh variables and `e` to the tuple rebuilt from them (`MkAlt (pat_pair "x" "y") (stm_let "e" (ty.prod ..) (exp_binop bop.pair ..) ..)`).
+`BTYPE`, `RISCV_JAL`, `RISCV_JALR`, `LOAD`, `STORE`, `accessToFault` and `pmpCheckRWX` are generated; the instructions wait for the memory path (P13) to be clean.
+Patterns nested inside an `option` (`Some(intr, priv)` in `step` and `dispatchInterrupt`, `Some(RV32)` in `translationMode`) are still untranslated; no instruction depends on them.
 
-**Instructions not generated (8)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
+**Instructions not generated (3)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
 
 | pile | instructions | cause |
 |---|---|---|
-| P03 | `BTYPE`, `RISCV_JAL`, `RISCV_JALR`, `LOAD`, `STORE` | a pattern that binds all fields of a constructor with several fields to one variable (`Ext_ControlAddr_Error(e)`, `TR_Failure(e)`, `MemException(e)`; `Match.ml`, "unsupported binder at this location"); before P02 these stopped at the union with type parameters |
 | P06 | `CSpecialRW`, `LoadCapImm` | assignment to a mutable local variable (`var`) |
 | P07 | `CJALR` | register reference |
 
@@ -126,6 +129,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `25dfadb9`+ | core | 53 / 61, 1 clean | 480 / 534 | 71 | 23 | 0 | `machine.v:49` `Fun` (all of `base.v`) | policy exclusions (definitions removed with their uses): printing, tracing and Sv32 (30 definitions); missing calls 1494 -> 373; 113 definitions leave the scope; translation 65 s -> 23 s |
 | 2026-11-14 | `57d1c72b`+ | core | 53 / 61, 3 clean | 480 / 534 | 71 | 21 | 0 | `machine.v:49` `Fun` (all of `base.v`) | P16: externs become µSail operations or foreign functions (`FunX`, `stm_foreign`, `ForeignCall`); missing calls 373 -> 143 (externs 240 -> 10); `FENCE`, `FENCE_TSO` clean |
 | 2026-11-14 | `8e591b21`+ | core | 53 / 61, 20 clean | 483 / 534 | 71 | 26 | 0 | `machine.v:14299` `htif_store` (384 of 510) | widths and types as implicit arguments of `Fun` (P13, first part); `size_itself_int`; `zeros_implicit`/`ones` translated; `bit` is `ty.bvec 1`; widths that need Sail's constraints are holes (+5); the probe axiomatises bodies with holes or missing calls |
+| 2026-11-14 | `9b45dd1c`+ | core | 58 / 61, 20 clean | 490 / 534 | 64 | 26 | 0 | `machine.v:14402` `htif_store` (386 of 517) | P03: `C(e)` binds `e` to the tuple of the fields of a constructor with several fields; `BTYPE`, `RISCV_JAL`, `RISCV_JALR`, `LOAD`, `STORE` generated (not clean: memory path) |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

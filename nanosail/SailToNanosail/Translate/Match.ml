@@ -889,7 +889,11 @@ module PatternTree = struct
   and variant_binders =
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t
-    | NAryConstructor    of Binder.t list    (* one binder per field *)
+    | NAryConstructor    of { field_binders : Binder.t list; tuple_binder : Binder.t }
+        (*
+           One binder per field, and a binder for the tuple of all fields:
+           C(e) binds e to the tuple (the field binders then get fresh names, and e is the tuple rebuilt from them).
+        *)
 
   (*
      One side of a sum. Each side holds exactly one value:
@@ -980,10 +984,15 @@ module PatternTree = struct
                   end
                 | UnaryConstructor _, _ -> false
 
-                | NAryConstructor field_binders_1, NAryConstructor field_binders_2 -> begin
+                | NAryConstructor { field_binders = field_binders_1; tuple_binder = tuple_binder_1 },
+                  NAryConstructor { field_binders = field_binders_2; tuple_binder = tuple_binder_2 } -> begin
                     List.equal Binder.equal
                       field_binders_1
                       field_binders_2
+                    &&
+                    Binder.equal
+                      tuple_binder_1
+                      tuple_binder_2
                     &&
                     equal
                       subtree_1
@@ -1133,13 +1142,14 @@ module PatternTree = struct
                       in
                       FExpr.mk_application ~positional "UnaryConstructor"
                     end
-                  | NAryConstructor field_binders -> begin
-                      let positional =
+                  | NAryConstructor { field_binders; tuple_binder } -> begin
+                      let keyword =
                         [
-                          FExpr.mk_list @@ List.map ~f:Binder.to_fexpr field_binders
+                          ("field_binders", FExpr.mk_list @@ List.map ~f:Binder.to_fexpr field_binders);
+                          ("tuple_binder",  Binder.to_fexpr tuple_binder);
                         ]
                       in
-                      FExpr.mk_application ~positional "NAryConstructor"
+                      FExpr.mk_application ~keyword "NAryConstructor"
                     end
                 in
                 FExpr.mk_list [ Binder.to_fexpr binder; fexpr_of_data; to_fexpr subtree ]
@@ -1357,8 +1367,9 @@ let build_variant_node
             in
             let* binder        = Binder.generate_wildcard
             and* field_binders = TC.repeat field_count ~f:Binder.generate_wildcard
+            and* tuple_binder  = Binder.generate_wildcard
             in
-            TC.return (binder, PatternTree.NAryConstructor field_binders, subtree)
+            TC.return (binder, PatternTree.NAryConstructor { field_binders; tuple_binder }, subtree)
           end
       in
       TC.return begin
@@ -1914,56 +1925,57 @@ let rec adorn_pattern_tree
                 in
                 TC.return @@ PatternTree.UnaryConstructor new_field_binder
               end
-            | NAryConstructor old_field_binders -> begin
-                let* variant_definition =
-                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-                in
-                let _constructor : Ast.Identifier.t * Ast.Type.t list =
-                  List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                in
-                let* pattern_field_binders : Binder.t list =
-                  match field_pattern with
-                  | Tuple subpatterns  -> begin
-                      (* We expect all subpatterns to be binders *)
-                      let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
-                        match pattern with
-                        | Binder binder -> TC.return binder
-                        | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
-                      in
+            | NAryConstructor { field_binders = old_field_binders; tuple_binder = old_tuple_binder } -> begin
+                match field_pattern with
+                | Tuple subpatterns  -> begin
+                    (* We expect all subpatterns to be binders *)
+                    let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
+                      match pattern with
+                      | Binder binder -> TC.return binder
+                      | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                    in
+                    let* pattern_field_binders : Binder.t list =
                       TC.map subpatterns ~f:extract_identifier_from_binder
-                    end
-                  | Binder _ -> begin
-                      (*
-                         Example context
+                    in
+                    let* unified_field_binders : Binder.t list =
+                      TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
+                    in
+                    TC.return @@ PatternTree.NAryConstructor { field_binders = unified_field_binders; tuple_binder = old_tuple_binder }
+                  end
+                | Binder pattern_binder -> begin
+                    (*
+                       Example context
 
-                           enum A = { A1 : (int, int) }
+                         union A = { A1 : (int, int) }
 
-                           match A_value {
-                             A(ns) => ...
-                           }
+                         match A_value {
+                           A1(ns) => ...
+                         }
 
-                         In other words, all fields are bound to a single binder, i.e., ns should be bound to a (int, int) pair.
-                         The current implementation does not support this.
-                         A possible rewrite would be
+                       All fields are bound to a single binder: ns is bound to the (int, int) pair.
+                       The fields keep their binders (fresh ones, unless another pattern named them),
+                       and ns is bound to the tuple rebuilt from them, as in
 
-                           match A_value {
-                             A(x, y) => let ns = (x, y) in ...
-                           }
-                      *)
-                      TC.not_yet_implemented ~message:"unsupported binder at this location" [%here] location
-                    end
-                  | ListCons (_, _)    -> invalid_pattern [%here]
-                  | ListNil            -> invalid_pattern [%here]
-                  | EnumCase _         -> invalid_pattern [%here]
-                  | VariantCase (_, _) -> invalid_pattern [%here]
-                  | SumCase (_, _)     -> invalid_pattern [%here]
-                  | Unit               -> invalid_pattern [%here]
-                  | BoolCase _         -> invalid_pattern [%here]
-                in
-                let* unified_field_binders =
-                  TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
-                in
-                TC.return @@ PatternTree.NAryConstructor unified_field_binders
+                         match A_value {
+                           A1(x, y) => let ns = (x, y) in ...
+                         }
+
+                       The match always names every field (wildcards get generated names), so the rebuilt tuple can refer to
+                       the field binders even if they are wildcards; they are left as they are, so that a later pattern C(x, y)
+                       can still name them.
+                    *)
+                    let* new_tuple_binder : Binder.t =
+                      Binder.unify old_tuple_binder pattern_binder
+                    in
+                    TC.return @@ PatternTree.NAryConstructor { field_binders = old_field_binders; tuple_binder = new_tuple_binder }
+                  end
+                | ListCons (_, _)    -> invalid_pattern [%here]
+                | ListNil            -> invalid_pattern [%here]
+                | EnumCase _         -> invalid_pattern [%here]
+                | VariantCase (_, _) -> invalid_pattern [%here]
+                | SumCase (_, _)     -> invalid_pattern [%here]
+                | Unit               -> invalid_pattern [%here]
+                | BoolCase _         -> invalid_pattern [%here]
               end
           in
           let data =
@@ -2302,11 +2314,51 @@ let rec build_leveled_match_statements
                 | UnaryConstructor field_binder -> begin
                     TC.return (constructor_identifier, ([field_binder.identifier], substatement))
                   end
-                | NAryConstructor field_binders -> begin
+                | NAryConstructor { field_binders; tuple_binder } -> begin
                     let field_binder_identifiers : Ast.Identifier.t list =
                       List.map ~f:(fun (binder : Binder.t) -> binder.identifier) field_binders
                     in
-                    TC.return (constructor_identifier, (field_binder_identifiers, substatement))
+                    let* statement : Ast.Statement.t =
+                      if
+                        tuple_binder.wildcard
+                      then
+                        TC.return substatement
+                      else begin
+                        (*
+                           C(e) => body becomes C(x1, ..., xn) => let e := (x1, ..., xn) in body.
+                           As in Function.expression_of_tuple, a pair is bop.pair and a longer tuple is exp_tuple.
+                        *)
+                        let* field_types : Ast.Type.t list =
+                          let* variant_definition =
+                            TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+                          in
+                          match List.find variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier) with
+                          | Some (_, field_types) -> TC.return field_types
+                          | None                  -> TC.fail [%here] "constructor not found in its variant"
+                        in
+                        let* field_expressions : Ast.Expression.t list =
+                          match List.zip field_binder_identifiers field_types with
+                          | Ok pairs -> TC.return @@ List.map pairs ~f:(fun (identifier, typ) -> Ast.Expression.Variable (identifier, typ))
+                          | Unequal_lengths -> TC.fail [%here] "number of field binders differs from number of fields"
+                        in
+                        let* tuple_expression : Ast.Expression.t =
+                          match field_expressions with
+                          | []       -> TC.fail [%here] "n-ary constructor without fields"
+                          | [ _ ]    -> TC.fail [%here] "n-ary constructor with one field"
+                          | [ x; y ] -> TC.return @@ Ast.Expression.BinaryOperation (Pair, x, y)
+                          | elements -> TC.return @@ Ast.Expression.Tuple elements
+                        in
+                        TC.return begin
+                          Ast.Statement.Let {
+                            binder                 = tuple_binder.identifier;
+                            binding_statement_type = Ast.Type.Tuple field_types;
+                            binding_statement      = Expression tuple_expression;
+                            body_statement         = substatement;
+                          }
+                        end
+                      end
+                    in
+                    TC.return (constructor_identifier, (field_binder_identifiers, statement))
                   end
               in
               TC.map table_pairs ~f:(Fn.uncurry build_statement_pair)

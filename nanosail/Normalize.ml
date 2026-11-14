@@ -413,11 +413,13 @@ let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTre
                   in
                   return @@ PatternTree.UnaryConstructor field_binder
                 end
-              | NAryConstructor field_binders -> begin
+              | NAryConstructor { field_binders; tuple_binder } -> begin
                   let* field_binders =
                     map ~f:normalize_binder field_binders
+                  and* tuple_binder =
+                    normalize_binder tuple_binder
                   in
-                  return @@ PatternTree.NAryConstructor field_binders
+                  return @@ PatternTree.NAryConstructor { field_binders; tuple_binder }
                 end
             in
             return (constructor_identifier, (binder, field_binders, subtree))
