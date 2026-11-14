@@ -58,7 +58,7 @@ Nothing in the translator was changed. All numbers come from the scripts in this
 
 The environment setup turned up some side findings, none of which were changed:
 - **macOS `make` (GNU Make 3.81) cannot run the case-study Makefile.** Line 49 uses `#` as a sed delimiter inside `$(shell …)`, and make 3.81 treats it as a comment ("unterminated call to function `shell'"). Homebrew `gmake` 4.4.1 works. All runs here use `gmake`.
-- **The six `sum-unions-*` e2e tests can never pass as committed.** Commit `998b14e5` added them without their `base/machine.template.{v,html}` files (sail exits with `machine.template.html: No such file or directory`).
+- **The six `sum-unions-*` e2e tests can never pass as committed.** Commit `998b14e5` added them without their `base/machine.template.{v,html}` files (sail exits with `machine.template.html: No such file or directory`). *Fixed on 14 Nov 2026: the templates are added and all six pass.*
 - **NYI numbering mismatch.** In the generated code, `NYI[k]` uses a global counter (`GC.fresh_index`), but the comment above the definition numbers the annotations per frame (`[0]`, `[1]`, …). The numbers in code and comment therefore do not correspond. `extract.py` pairs them by order instead.
 - **Installing Rocq into a switch downgrades dune**, which recompiles libsail. A plugin built before that (and a test run during it) breaks. The first translation-only e2e run here was invalid for that reason; it was discarded and its line removed from `test-history.csv`.
 - `_opam/` (stale 2023 local switch) is still present and untouched. All commands ran with `OPAMSWITCH=sail-backend`.
@@ -535,7 +535,7 @@ At each step, rerun `hard-failure-loop.sh` and `extract.py` (see below) to measu
 4. **Exceptions.** Is translating `throw` to `stm_fail` and dropping `try` acceptable for the properties you plan to prove?
 5. **Printing and strings.** OK to drop all trace and printing code (the `get_config_print_*` branches) rather than model strings?
 6. ~~**Rewrite pipeline.** May `remove_blocks` and the final `recheck_defs` be dropped from `Rewrites.ml`, or does something else depend on them? This needs a full e2e run to decide.~~ Answered: `remove_blocks` was dropped; the full e2e run is unchanged. The final `recheck_defs` stays.
-7. **Housekeeping found along the way.** Fix the `sum-unions-*` templates, the NYI numbering, and the Makefile's `#` (GNU make ≥ 3.82 requirement)? Each is a few lines.
+7. **Housekeeping found along the way.** Fix ~~the `sum-unions-*` templates~~ (done 14 Nov 2026), the NYI numbering, and the Makefile's `#` (GNU make ≥ 3.82 requirement)? Each is a few lines.
 8. **Environment.** The new `sail-backend` switch has no Katamaran install, because Katamaran `main`'s full dune build fails in `theories/Staging`. Should Katamaran be installed properly (for example via its `rocq920` package or the Makefile, which skips `Staging`)?
 
 ## Files in this directory
