@@ -15,19 +15,19 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `f70c64eb` plus truncation of zero padding of run-time length (P01, `getCapBoundsBits`); cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `b2604dd0` plus monomorphic copies of unions with type parameters (P02); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **1 of 61** (`FENCEI`) |
-| instructions generated | 52 of 61 |
-| functions generated | 571 of 647 |
-| untranslated definitions | 77 |
-| `NYI` holes | 30, in 12 definitions |
+| instructions generated | 53 of 61 |
+| functions generated | 570 of 647 |
+| untranslated definitions | 94 |
+| `NYI` holes | 23 |
 | hard failures | 0 |
-| calls to missing functions | 1492: extern 1283, untranslated 107, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:744`, in `Inductive AccessType`: `The reference NYI was not found` (its type parameter is translated as a hole) |
-| Rocq, probe (`NYI` as an axiom) | `base.v:745`, the same definition; 69 of 529 definitions before it |
+| calls to missing functions | 1495: extern 1283, untranslated 110, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
+| Rocq, plain | `base.v:1604`, in `Definition ext_control_addr_error := CapEx * capreg_idx`: `CapEx` has type `Set` but `nat` was expected (`*` is read in `nat_scope`) |
+| Rocq, probe (`NYI` as an axiom) | the same; 222 of 553 definitions before it |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -48,21 +48,27 @@ Integer types whose numeric expression contains an `if` (`CGetLen`, `CGetTop`: `
 The Sv32 TLB code (`make_TLB_Entry`, `match_TLB_Entry`, `flush_TLB_Entry`, `translate32`) is out of scope: virtual memory is not part of the CHERIoT target (`cheriot-inventory/PROJECT-STATUS.md` §1a). In-scope code still reaches it, so it is dead code for the configuration exclusion (`docs/cheriot-loop.md` §4.2), not a blocker; it will not be implemented.
 The run's report ranks all blockers; `progress.json` lists them per instruction.
 
-**Instructions not generated (9)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
+**Instructions not generated (8)**, by pile ([inventory](../../cheriot-inventory/20261113-1408/INVENTORY.md)):
 
 | pile | instructions | cause |
 |---|---|---|
-| P02 | `BTYPE`, `RISCV_JAL`, `RISCV_JALR`, `LOAD`, `STORE`, `StoreCapImm` | matching on a union with type parameters (`Ext_ControlAddr_Error`, `MemValue`, `TR_Failure`) |
+| P03 | `BTYPE`, `RISCV_JAL`, `RISCV_JALR`, `LOAD`, `STORE` | a pattern that binds all fields of a constructor with several fields to one variable (`Ext_ControlAddr_Error(e)`, `TR_Failure(e)`, `MemException(e)`; `Match.ml`, "unsupported binder at this location"); before P02 these stopped at the union with type parameters |
 | P06 | `CSpecialRW`, `LoadCapImm` | assignment to a mutable local variable (`var`) |
 | P07 | `CJALR` | register reference |
 
-**Rocq:** `base.v` stops at `Inductive AccessType`, the first of the unions with type parameters that in-scope code uses (`AccessType`, `MemoryOpResult`, `Ext_*_Check`, `PTW_Result`, `TR_Result`; P02).
-Their type parameters are translated as `NYI` holes; this needs a design decision (how Katamaran's closed type universe represents a type-parametric union).
+**Rocq:** `base.v` now stops at `Definition ext_control_addr_error := CapEx * capreg_idx`, a type abbreviation of a tuple, where Rocq reads `*` as multiplication of `nat`s.
+Unions with type parameters (P02) are now translated to one monomorphic union for each closed type argument that the translated code uses (15 copies):
+`AccessType`, `Ext_FetchAddr_Check`, `Ext_ControlAddr_Check`, `Ext_DataAddr_Check` and `PTW_Result` are used at one type and keep Sail's names;
+`MemoryOpResult` (8 copies, e.g. `MemoryOpResult_bool`, `MemoryOpResult_bits_32`) and `TR_Result` (2) get the type argument as suffix of the union and constructor names (`MemValue_bool`).
+A copy is emitted after the definitions of its type arguments (`AccessType(ext_access_type)` after `ext_access_type`); functions are not copied.
+What uses such a union at a type with type variables stays untranslated: the polymorphic helpers `MemoryOpResult_add_meta`/`drop_meta` and the size-polymorphic memory reads
+(`mem_read`, `mem_read_priv`, `mem_read_meta`, `phys_mem_read`, `pmp_mem_read`, ..., at `MemoryOpResult(bits(8 * 'n))`; P13). These 7 functions used to count as generated, but their µSail was ill-typed
+(`ty.union Umemoryopresult (ty.bvec (8 * kid__p8_times_n / 8))`), so the run that introduced P02 counts them as worse and was accepted as the baseline.
 All records now compile: Rocq record projections are now named `<record>_<field>` (for example `Capability_address`), because Rocq projections are global and Sail structs may share field names.
 The concurrency-interface types (`Access_kind`, `Mem_*_request`, ...) and the unused `regfp.sail` types are ignored by configuration; see `configuration.lisp`.
 The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range` types are now `Z` in Rocq (P11).
 
-**All piles in scope**, by definitions affected: P13 size-polymorphic functions 55, P02 31, P15 casts 24, P09 mappings 16, P07 9, P01 6, P11 4, P14 6, P05 5, P06 5, P10 4, P03 3; and 1 not in a pile (`match` on `bool`).
+**All piles in scope** (before P02), by definitions affected: P13 size-polymorphic functions 55, P02 31, P15 casts 24, P09 mappings 16, P07 9, P01 6, P11 4, P14 6, P05 5, P06 5, P10 4, P03 3; and 1 not in a pile (`match` on `bool`).
 
 **Known problem, not yet visible in Rocq:** CHERIoT defines constants twice, as a type and as a value (`type cap_addr_width : Int = xlen` and `let cap_addr_width = sizeof(cap_addr_width)`); both become a Rocq `Definition` with the same name in `base.v` (10 names, 9 of them before P08). Rocq will reject the second one once it gets past the P02 types.
 
@@ -80,6 +86,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `13f3d183`+ | core | 50 / 61, 1 clean | 569 / 647 | 79 | 34 | 0 | `AccessType` (67 of 525) | P04: vector literals of `bits(1)` elements become `bop.bvapp` chains; `FENCE`, `FENCE_TSO` and 13 other definitions translate (some reveal P01 holes and new extern calls) |
 | 2026-11-14 | `2a85f662`+ | core | 52 / 61, 1 clean | 571 / 647 | 77 | 34 | 0 | `AccessType` (69 of 529) | P11: integer types with an `if` erased to `int` (`CGetLen`, `CGetTop`); `range` is `Z` in Rocq, so the `CapAddrInt`/`CapLen` stopgap is gone |
 | 2026-11-14 | `f70c64eb`+ | core | 52 / 61, 1 clean | 571 / 647 | 77 | 30 | 0 | `AccessType` (69 of 529) | P01: `truncate(X @ zeros(E), w)` with run-time `E` rewritten to a shift; run-time shift amounts; native `truncate`; `getCapBoundsBits` has no holes |
+| 2026-11-14 | `b2604dd0`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `ext_control_addr_error` (222 of 553) | P02: a monomorphic copy of each union with type parameters per closed type argument (15 copies); `StoreCapImm` generated; 7 size-polymorphic memory reads (P13) now untranslated instead of ill-typed |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

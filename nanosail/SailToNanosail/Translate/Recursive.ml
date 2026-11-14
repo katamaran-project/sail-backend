@@ -133,6 +133,13 @@ end = struct
         | "itself"    -> nanotype_of_itself type_arguments'
         | "implicit"  -> nanotype_of_implicit type_arguments'
         | _           -> begin
+            (* A union with type parameters is translated to a monomorphic copy per type argument (see UnionInstances) *)
+            let* union_instances = TC.union_instances
+            in
+            match UnionInstances.lookup union_instances identifier type_arguments with
+            | Instance instance -> TC.return @@ Ast.Type.Variant instance.identifier
+            | NoInstance reason -> TC.not_yet_implemented ~message:reason [%here] location
+            | NotSpecialised    -> begin
             let* sum_definition : Ast.Definition.Type.Sum.t option =
               TC.lookup_definition_opt Ast.Definition.Select.(type_definition @@ of_sum_named identifier')
             in
@@ -142,6 +149,7 @@ end = struct
                 let* constructor = nanotype_of_identifier identifier
                 in
                 TC.return @@ Ast.Type.Application (constructor, type_arguments')
+              end
               end
           end
 

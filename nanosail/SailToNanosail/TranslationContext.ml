@@ -70,6 +70,12 @@ module Context = struct
          A local binding can shadow a top-level value.
       *)
       locally_bound_identifiers : Ast.Identifier.Set.t;
+
+      (*
+         The unions with type parameters that are translated to one monomorphic copy per type argument,
+         and these copies; computed before translation starts (see UnionInstances).
+      *)
+      union_instances : UnionInstances.t;
     }
 
   let empty : t =
@@ -80,6 +86,7 @@ module Context = struct
       evaluated_top_level_values = Libsail.Ast_compare.Bindings.empty;
       top_level_values           = Ast.Identifier.Set.empty;
       locally_bound_identifiers  = Ast.Identifier.Set.empty;
+      union_instances            = UnionInstances.empty;
     }
 
   (*
@@ -115,6 +122,17 @@ module Context = struct
         (evaluated_top_level_values : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t) : t
       =
       { context with evaluated_top_level_values }
+    in
+    (get, set)
+
+  let union_instances =
+    let get (context : t) : UnionInstances.t =
+      context.union_instances
+    and set
+        (context         : t               )
+        (union_instances : UnionInstances.t) : t
+      =
+      { context with union_instances }
     in
     (get, set)
 
@@ -302,6 +320,17 @@ let store_definition (definition : Ast.Definition.t) : unit t =
 *)
 let set_evaluated_top_level_values (values : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t) : unit t =
   Monad.put Context.evaluated_top_level_values values
+
+
+(*
+   Stores the unions with type parameters and their monomorphic copies (see UnionInstances).
+*)
+let set_union_instances (union_instances : UnionInstances.t) : unit t =
+  Monad.put Context.union_instances union_instances
+
+
+let union_instances : UnionInstances.t t =
+  Monad.get Context.union_instances
 
 
 (*

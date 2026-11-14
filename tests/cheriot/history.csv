@@ -24,3 +24,6 @@ timestamp,commit,dirty,scope,instructions total,instructions clean,instructions 
 2026-11-14T02:42:39,2a85f662,True,core,61,1,52,647,571,77,34,0,1500,base.v:744,base.v:745,PROGRESS (baseline updated),20261114T024123-2a85f662-dirty
 2026-11-14T10:54:09,232b3ddc,True,core,61,1,52,647,571,77,30,0,1492,base.v:744,base.v:745,PROGRESS,20261114T105249-232b3ddc-dirty
 2026-11-14T10:55:52,f70c64eb,True,core,61,1,52,647,571,77,30,0,1492,base.v:744,base.v:745,PROGRESS (baseline updated),20261114T105434-f70c64eb-dirty
+2026-11-14T11:01:28,b2604dd0,False,core,61,1,52,647,571,77,30,0,1492,base.v:744,base.v:745,UNCHANGED,20261114T110006-b2604dd0
+2026-11-14T11:11:09,b2604dd0,True,core,61,1,53,647,570,94,23,0,1495,base.v:1604,base.v:1604,REGRESSION,20261114T110944-b2604dd0-dirty
+2026-11-14T11:14:18,b2604dd0,True,core,61,1,53,647,570,94,23,0,1495,base.v:1604,base.v:1604,REGRESSION (baseline updated),20261114T111256-b2604dd0-dirty

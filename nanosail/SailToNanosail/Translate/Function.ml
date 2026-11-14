@@ -841,11 +841,43 @@ let rec statement_of_aexp
         The code below checks if a function call is actually a variant constructor,
         and translates it to a specialized expression.
       *)
-      let* variant_definition =
-        TC.lookup_variant_by_constructor receiver_identifier'
+      let* variant_construction : (Ast.Identifier.t * Ast.Identifier.t) option =
+        let* union_instances = TC.union_instances
+        in
+        if
+          UnionInstances.is_constructor_of_specialised_union union_instances receiver_identifier'
+        then begin
+          (*
+             A constructor of a union with type parameters: the type of the constructed value
+             determines which monomorphic copy of the union is constructed (see UnionInstances).
+          *)
+          let* constructed_type = Type.translate_type typ
+          in
+          match Ast.Type.strip_aliases constructed_type with
+          | Variant instance_identifier -> begin
+              let constructor_identifier = UnionInstances.constructor_in union_instances instance_identifier receiver_identifier'
+              in
+              TC.return @@ Some (instance_identifier, constructor_identifier)
+            end
+          | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Record _
+          | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> begin
+              let message =
+                Printf.sprintf "expected constructor %s to produce a value of a union, got %s instead"
+                  (Ast.Identifier.to_string receiver_identifier')
+                  (Ast.Type.to_string constructed_type)
+              in
+              TC.fail [%here] message
+            end
+        end
+        else begin
+          let* variant_definition =
+            TC.lookup_variant_by_constructor receiver_identifier'
+          in
+          TC.return @@ Option.map variant_definition ~f:(fun (variant_definition : Ast.Definition.Type.Variant.t) -> (variant_definition.identifier, receiver_identifier'))
+        end
       in
-      match variant_definition with
-      | Some variant_definition -> begin
+      match variant_construction with
+      | Some (variant_identifier, constructor_identifier) -> begin
           (*
              We identified receiver_identifier as a constructor for a variant.
              Function call needs to be translated to variant value construction.
@@ -876,8 +908,8 @@ let rec statement_of_aexp
               in
               let variant : Ast.Expression.t =
                 Variant {
-                  type_identifier        = variant_definition.identifier;
-                  constructor_identifier = receiver_identifier';
+                  type_identifier        = variant_identifier;
+                  constructor_identifier = constructor_identifier;
                   fields                 = fields;
                 }
               in

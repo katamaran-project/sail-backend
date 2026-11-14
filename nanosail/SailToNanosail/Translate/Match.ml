@@ -2506,6 +2506,12 @@ let rec translate_pattern
           let* head_identifier =
             Identifier.translate_identifier [%here] @@ Sail.id_of_constructor_id head_sail_identifier
           in
+          (* In a monomorphic copy of a union with type parameters, the constructor can have another name (see UnionInstances) *)
+          let* head_identifier =
+            let* union_instances = TC.union_instances
+            in
+            TC.return @@ UnionInstances.constructor_in union_instances variant_identifier head_identifier
+          in
           let* variant_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
           in
