@@ -889,7 +889,11 @@ module PatternTree = struct
   and variant_binders =
     | NullaryConstructor of Binder.t         (* binder necessary for unit value *)
     | UnaryConstructor   of Binder.t
-    | NAryConstructor    of Binder.t list    (* one binder per field *)
+    | NAryConstructor    of { field_binders : Binder.t list; tuple_binder : Binder.t }
+        (*
+           One binder per field, and a binder for the tuple of all fields:
+           C(e) binds e to the tuple (the field binders then get fresh names, and e is the tuple rebuilt from them).
+        *)
 
   (*
      One side of a sum. Each side holds exactly one value:
@@ -980,10 +984,15 @@ module PatternTree = struct
                   end
                 | UnaryConstructor _, _ -> false
 
-                | NAryConstructor field_binders_1, NAryConstructor field_binders_2 -> begin
+                | NAryConstructor { field_binders = field_binders_1; tuple_binder = tuple_binder_1 },
+                  NAryConstructor { field_binders = field_binders_2; tuple_binder = tuple_binder_2 } -> begin
                     List.equal Binder.equal
                       field_binders_1
                       field_binders_2
+                    &&
+                    Binder.equal
+                      tuple_binder_1
+                      tuple_binder_2
                     &&
                     equal
                       subtree_1
@@ -1133,13 +1142,14 @@ module PatternTree = struct
                       in
                       FExpr.mk_application ~positional "UnaryConstructor"
                     end
-                  | NAryConstructor field_binders -> begin
-                      let positional =
+                  | NAryConstructor { field_binders; tuple_binder } -> begin
+                      let keyword =
                         [
-                          FExpr.mk_list @@ List.map ~f:Binder.to_fexpr field_binders
+                          ("field_binders", FExpr.mk_list @@ List.map ~f:Binder.to_fexpr field_binders);
+                          ("tuple_binder",  Binder.to_fexpr tuple_binder);
                         ]
                       in
-                      FExpr.mk_application ~positional "NAryConstructor"
+                      FExpr.mk_application ~keyword "NAryConstructor"
                     end
                 in
                 FExpr.mk_list [ Binder.to_fexpr binder; fexpr_of_data; to_fexpr subtree ]
@@ -1357,8 +1367,9 @@ let build_variant_node
             in
             let* binder        = Binder.generate_wildcard
             and* field_binders = TC.repeat field_count ~f:Binder.generate_wildcard
+            and* tuple_binder  = Binder.generate_wildcard
             in
-            TC.return (binder, PatternTree.NAryConstructor field_binders, subtree)
+            TC.return (binder, PatternTree.NAryConstructor { field_binders; tuple_binder }, subtree)
           end
       in
       TC.return begin
@@ -1914,56 +1925,57 @@ let rec adorn_pattern_tree
                 in
                 TC.return @@ PatternTree.UnaryConstructor new_field_binder
               end
-            | NAryConstructor old_field_binders -> begin
-                let* variant_definition =
-                  TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
-                in
-                let _constructor : Ast.Identifier.t * Ast.Type.t list =
-                  List.find_exn variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier)
-                in
-                let* pattern_field_binders : Binder.t list =
-                  match field_pattern with
-                  | Tuple subpatterns  -> begin
-                      (* We expect all subpatterns to be binders *)
-                      let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
-                        match pattern with
-                        | Binder binder -> TC.return binder
-                        | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
-                      in
+            | NAryConstructor { field_binders = old_field_binders; tuple_binder = old_tuple_binder } -> begin
+                match field_pattern with
+                | Tuple subpatterns  -> begin
+                    (* We expect all subpatterns to be binders *)
+                    let extract_identifier_from_binder (pattern : Pattern.t) : Binder.t TC.t =
+                      match pattern with
+                      | Binder binder -> TC.return binder
+                      | _             -> TC.not_yet_implemented ~message:"only binder patterns supported; no nesting of patterns allowed for now" [%here] location
+                    in
+                    let* pattern_field_binders : Binder.t list =
                       TC.map subpatterns ~f:extract_identifier_from_binder
-                    end
-                  | Binder _ -> begin
-                      (*
-                         Example context
+                    in
+                    let* unified_field_binders : Binder.t list =
+                      TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
+                    in
+                    TC.return @@ PatternTree.NAryConstructor { field_binders = unified_field_binders; tuple_binder = old_tuple_binder }
+                  end
+                | Binder pattern_binder -> begin
+                    (*
+                       Example context
 
-                           enum A = { A1 : (int, int) }
+                         union A = { A1 : (int, int) }
 
-                           match A_value {
-                             A(ns) => ...
-                           }
+                         match A_value {
+                           A1(ns) => ...
+                         }
 
-                         In other words, all fields are bound to a single binder, i.e., ns should be bound to a (int, int) pair.
-                         The current implementation does not support this.
-                         A possible rewrite would be
+                       All fields are bound to a single binder: ns is bound to the (int, int) pair.
+                       The fields keep their binders (fresh ones, unless another pattern named them),
+                       and ns is bound to the tuple rebuilt from them, as in
 
-                           match A_value {
-                             A(x, y) => let ns = (x, y) in ...
-                           }
-                      *)
-                      TC.not_yet_implemented ~message:"unsupported binder at this location" [%here] location
-                    end
-                  | ListCons (_, _)    -> invalid_pattern [%here]
-                  | ListNil            -> invalid_pattern [%here]
-                  | EnumCase _         -> invalid_pattern [%here]
-                  | VariantCase (_, _) -> invalid_pattern [%here]
-                  | SumCase (_, _)     -> invalid_pattern [%here]
-                  | Unit               -> invalid_pattern [%here]
-                  | BoolCase _         -> invalid_pattern [%here]
-                in
-                let* unified_field_binders =
-                  TC.map ~f:(Fn.uncurry Binder.unify) (List.zip_exn old_field_binders pattern_field_binders)
-                in
-                TC.return @@ PatternTree.NAryConstructor unified_field_binders
+                         match A_value {
+                           A1(x, y) => let ns = (x, y) in ...
+                         }
+
+                       The match always names every field (wildcards get generated names), so the rebuilt tuple can refer to
+                       the field binders even if they are wildcards; they are left as they are, so that a later pattern C(x, y)
+                       can still name them.
+                    *)
+                    let* new_tuple_binder : Binder.t =
+                      Binder.unify old_tuple_binder pattern_binder
+                    in
+                    TC.return @@ PatternTree.NAryConstructor { field_binders = old_field_binders; tuple_binder = new_tuple_binder }
+                  end
+                | ListCons (_, _)    -> invalid_pattern [%here]
+                | ListNil            -> invalid_pattern [%here]
+                | EnumCase _         -> invalid_pattern [%here]
+                | VariantCase (_, _) -> invalid_pattern [%here]
+                | SumCase (_, _)     -> invalid_pattern [%here]
+                | Unit               -> invalid_pattern [%here]
+                | BoolCase _         -> invalid_pattern [%here]
               end
           in
           let data =
@@ -2302,11 +2314,51 @@ let rec build_leveled_match_statements
                 | UnaryConstructor field_binder -> begin
                     TC.return (constructor_identifier, ([field_binder.identifier], substatement))
                   end
-                | NAryConstructor field_binders -> begin
+                | NAryConstructor { field_binders; tuple_binder } -> begin
                     let field_binder_identifiers : Ast.Identifier.t list =
                       List.map ~f:(fun (binder : Binder.t) -> binder.identifier) field_binders
                     in
-                    TC.return (constructor_identifier, (field_binder_identifiers, substatement))
+                    let* statement : Ast.Statement.t =
+                      if
+                        tuple_binder.wildcard
+                      then
+                        TC.return substatement
+                      else begin
+                        (*
+                           C(e) => body becomes C(x1, ..., xn) => let e := (x1, ..., xn) in body.
+                           As in Function.expression_of_tuple, a pair is bop.pair and a longer tuple is exp_tuple.
+                        *)
+                        let* field_types : Ast.Type.t list =
+                          let* variant_definition =
+                            TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+                          in
+                          match List.find variant_definition.constructors ~f:(fun (id, _) -> Ast.Identifier.equal id constructor_identifier) with
+                          | Some (_, field_types) -> TC.return field_types
+                          | None                  -> TC.fail [%here] "constructor not found in its variant"
+                        in
+                        let* field_expressions : Ast.Expression.t list =
+                          match List.zip field_binder_identifiers field_types with
+                          | Ok pairs -> TC.return @@ List.map pairs ~f:(fun (identifier, typ) -> Ast.Expression.Variable (identifier, typ))
+                          | Unequal_lengths -> TC.fail [%here] "number of field binders differs from number of fields"
+                        in
+                        let* tuple_expression : Ast.Expression.t =
+                          match field_expressions with
+                          | []       -> TC.fail [%here] "n-ary constructor without fields"
+                          | [ _ ]    -> TC.fail [%here] "n-ary constructor with one field"
+                          | [ x; y ] -> TC.return @@ Ast.Expression.BinaryOperation (Pair, x, y)
+                          | elements -> TC.return @@ Ast.Expression.Tuple elements
+                        in
+                        TC.return begin
+                          Ast.Statement.Let {
+                            binder                 = tuple_binder.identifier;
+                            binding_statement_type = Ast.Type.Tuple field_types;
+                            binding_statement      = Expression tuple_expression;
+                            body_statement         = substatement;
+                          }
+                        end
+                      end
+                    in
+                    TC.return (constructor_identifier, (field_binder_identifiers, statement))
                   end
               in
               TC.map table_pairs ~f:(Fn.uncurry build_statement_pair)
@@ -2803,6 +2855,240 @@ let translate_list_match
   | _ -> TC.not_yet_implemented [%here] location
 
 
+(*
+   Patterns nested inside the fields of a constructor, e.g.,
+
+     match v {
+       C(E(_), _) => b1,
+       C(e, _)    => b2,
+       D(x)       => b3,
+       w          => b4
+     }
+
+   The pattern tree of a variant match only supports binders for the fields.
+   All cases for such a constructor C are therefore merged into one case that binds the fields to fresh variables
+   and matches them as a tuple, using the cases for C and the catch-all cases, in their order:
+
+     match v {
+       C(f1, f2) => match (f1, f2) {
+                      (E(_), _) => b1,
+                      (e, _)    => b2,
+                      (_, _)    => let w = v in b4
+                    },
+       D(x)      => b3,
+       w         => b4
+     }
+
+   The merged case takes the place of the first case for C. Constructors whose cases only bind their fields are left alone.
+*)
+let merge_nested_constructor_patterns
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (variant_identifier : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : (Pattern.t * Ast.Statement.t) list TC.t
+  =
+  let* variant_definition =
+    TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+  in
+  let variant_type : Ast.Type.t =
+    Ast.Type.Variant variant_identifier
+  in
+  (* Is the pattern nested, i.e., something else than a binder or unit? *)
+  let is_nested (pattern : Pattern.t) : bool =
+    match pattern with
+    | Binder _           -> false
+    | Unit               -> false
+    | ListCons (_, _)    -> true
+    | ListNil            -> true
+    | Tuple _            -> true
+    | EnumCase _         -> true
+    | VariantCase (_, _) -> true
+    | SumCase (_, _)     -> true
+    | BoolCase _         -> true
+  in
+  (* The subpatterns of the fields of constructor C, given the pattern in C(pattern), if that pattern is a list of subpatterns *)
+  let field_subpatterns
+      (field_count : int      )
+      (pattern     : Pattern.t) : Pattern.t list option
+    =
+    match field_count, pattern with
+    | 0, _                -> None
+    | 1, _                -> Some [ pattern ]
+    | _, Tuple subpatterns -> Some subpatterns
+    | _, _                -> None
+  in
+  let has_nested_case
+      ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list) : bool
+    =
+    List.exists cases ~f:(fun ((pattern, _) : Pattern.t * Ast.Statement.t) ->
+        match pattern with
+        | VariantCase (case_constructor, field_pattern) when Ast.Identifier.equal case_constructor constructor_identifier -> begin
+            match field_subpatterns (List.length field_types) field_pattern with
+            | Some subpatterns -> List.exists subpatterns ~f:is_nested
+            | None             -> false
+          end
+        | VariantCase (_, _) -> false
+        | Binder _           -> false
+        | Unit               -> false
+        | ListCons (_, _)    -> false
+        | ListNil            -> false
+        | Tuple _            -> false
+        | EnumCase _         -> false
+        | SumCase (_, _)     -> false
+        | BoolCase _         -> false
+      )
+  in
+  let merge_constructor
+      (cases                                 : (Pattern.t * Ast.Statement.t) list)
+      ((constructor_identifier, field_types) : Ast.Identifier.t * Ast.Type.t list ) : (Pattern.t * Ast.Statement.t) list TC.t
+    =
+    let field_count = List.length field_types
+    in
+    let* field_identifiers : Ast.Identifier.t list =
+      TC.repeat field_count ~f:(TC.generate_unique_identifier ())
+    in
+    let wildcards () : Pattern.t list TC.t =
+      TC.repeat field_count ~f:(let* binder = Binder.generate_wildcard in TC.return @@ Pattern.Binder binder)
+    in
+    let tuple_of_fields : Ast.Expression.t option =
+      match List.map (List.zip_exn field_identifiers field_types) ~f:(fun (identifier, typ) -> Ast.Expression.Variable (identifier, typ)) with
+      | []       -> None
+      | [ x ]    -> Some x
+      | [ x; y ] -> Some (Ast.Expression.BinaryOperation (Pair, x, y))
+      | elements -> Some (Ast.Expression.Tuple elements)
+    in
+    let field_type : Ast.Type.t =
+      match field_types with
+      | [ typ ] -> typ
+      | _       -> Ast.Type.Tuple field_types
+    in
+    let is_case_for_constructor ((pattern, _) : Pattern.t * Ast.Statement.t) : bool =
+      match pattern with
+      | VariantCase (case_constructor, _) -> Ast.Identifier.equal case_constructor constructor_identifier
+      | Binder _           -> false
+      | Unit               -> false
+      | ListCons (_, _)    -> false
+      | ListNil            -> false
+      | Tuple _            -> false
+      | EnumCase _         -> false
+      | SumCase (_, _)     -> false
+      | BoolCase _         -> false
+    in
+    (* The cases of the match on the fields *)
+    let* inner_cases : (Pattern.t list * Ast.Statement.t) list =
+      let inner_case ((pattern, body) : Pattern.t * Ast.Statement.t) : (Pattern.t list * Ast.Statement.t) option TC.t =
+        match pattern with
+        | VariantCase (case_constructor, field_pattern) -> begin
+            if
+              not (Ast.Identifier.equal case_constructor constructor_identifier)
+            then
+              TC.return None
+            else begin
+              match field_subpatterns field_count field_pattern, field_pattern with
+              | Some subpatterns, _ -> TC.return @@ Some (subpatterns, body)
+              | None, Binder binder -> begin
+                  (* C(e) binds e to the tuple of all fields *)
+                  let* subpatterns = wildcards ()
+                  in
+                  match binder.wildcard, tuple_of_fields with
+                  | true , _                     -> TC.return @@ Some (subpatterns, body)
+                  | false, Some tuple_of_fields -> begin
+                      let body : Ast.Statement.t =
+                        Let {
+                          binder                 = binder.identifier;
+                          binding_statement_type = field_type;
+                          binding_statement      = Expression tuple_of_fields;
+                          body_statement         = body;
+                        }
+                      in
+                      TC.return @@ Some (subpatterns, body)
+                    end
+                  | false, None -> TC.fail [%here] "constructor without fields"
+                end
+              | None, _ -> TC.fail [%here] "pattern is incompatible with the fields of the constructor"
+            end
+          end
+        | Binder binder -> begin
+            (* A catch-all case also covers C *)
+            let* subpatterns = wildcards ()
+            in
+            let body : Ast.Statement.t =
+              if
+                binder.wildcard
+              then
+                body
+              else
+                Let {
+                  binder                 = binder.identifier;
+                  binding_statement_type = variant_type;
+                  binding_statement      = Expression (Variable (matched_identifier, variant_type));
+                  body_statement         = body;
+                }
+            in
+            TC.return @@ Some (subpatterns, body)
+          end
+        | Unit               -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | ListCons (_, _)    -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | ListNil            -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | Tuple _            -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | EnumCase _         -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | SumCase (_, _)     -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+        | BoolCase _         -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+      in
+      let* inner_cases = TC.map cases ~f:inner_case
+      in
+      TC.return @@ List.filter_opt inner_cases
+    in
+    let* inner_match : Ast.Statement.t =
+      let* empty_pattern_tree =
+        build_empty_pattern_tree location field_types
+      in
+      let* pattern_tree =
+        TC.fold_left
+          inner_cases
+          ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
+          ~init:empty_pattern_tree
+      in
+      build_leveled_match_statements field_identifiers pattern_tree output_type
+    in
+    let merged_case : Pattern.t * Ast.Statement.t =
+      let field_binders : Pattern.t list =
+        List.map field_identifiers ~f:(fun identifier -> Pattern.Binder { identifier; wildcard = false })
+      in
+      let field_pattern : Pattern.t =
+        match field_binders with
+        | [ binder ] -> binder
+        | binders    -> Tuple binders
+      in
+      (VariantCase (constructor_identifier, field_pattern), inner_match)
+    in
+    (* Replace the first case for C by the merged case, drop the other cases for C *)
+    let rec replace (cases : (Pattern.t * Ast.Statement.t) list) (replaced : bool) : (Pattern.t * Ast.Statement.t) list =
+      match cases with
+      | []            -> []
+      | case :: rest  -> begin
+          if
+            is_case_for_constructor case
+          then
+            if
+              replaced
+            then
+              replace rest true
+            else
+              merged_case :: replace rest true
+          else
+            case :: replace rest replaced
+        end
+    in
+    TC.return @@ replace cases false
+  in
+  TC.fold_left
+    (List.filter variant_definition.constructors ~f:has_nested_case)
+    ~init:cases
+    ~f:merge_constructor
+
+
 let translate_variant_match
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
@@ -2810,6 +3096,9 @@ let translate_variant_match
     (cases              : (Pattern.t * Ast.Statement.t) list)
     (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
+  let* cases =
+    merge_nested_constructor_patterns location matched_identifier variant_identifier cases output_type
+  in
   let* empty_pattern_tree =
     build_empty_pattern_tree
       location

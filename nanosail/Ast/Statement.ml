@@ -33,6 +33,12 @@ type t =
   | ReadRegister      of Identifier.t
   | WriteRegister     of { register_identifier : Identifier.t ;
                            written_value       : Identifier.t }
+  (*
+    Assignment to a mutable local variable (Sail's var), muSail's stm_assign.
+    Like stm_assign, its value is the assigned value.
+  *)
+  | AssignVariable    of { variable_identifier : Identifier.t ;
+                           assigned_value      : t            }
   | Cast              of t * Type.t
   | Fail              of Type.t * string
   (*
@@ -451,6 +457,20 @@ let rec equal
       | _ -> false
     end
 
+  | AssignVariable data_1 -> begin
+      match statement_2 with
+      | AssignVariable data_2 -> begin
+          Identifier.equal
+            data_1.variable_identifier
+            data_2.variable_identifier
+          &&
+          equal
+            data_1.assigned_value
+            data_2.assigned_value
+        end
+      | _ -> false
+    end
+
   (* Unreachable: Located is stripped above. Handled correctly for safety. *)
   | Located (_, inner_statement_1) -> equal inner_statement_1 statement_2
 
@@ -665,6 +685,18 @@ let rec to_fexpr (statement : t) : FExpr.t =
     in
     FExpr.mk_application ~keyword "Stm:WriteRegister"
 
+  and assign_variable_to_fexpr
+      (variable_identifier : Identifier.t)
+      (assigned_value      : t           ) : FExpr.t
+    =
+    let keyword =
+      [
+        ("variable", Identifier.to_fexpr variable_identifier);
+        ("value", to_fexpr assigned_value)
+      ]
+    in
+    FExpr.mk_application ~keyword "Stm:AssignVariable"
+
   and cast_to_fexpr
       (expression : t     )
       (typ        : Type.t) : FExpr.t
@@ -730,6 +762,10 @@ let rec to_fexpr (statement : t) : FExpr.t =
       register_identifier;
       written_value
     }                            -> write_register_to_fexpr register_identifier written_value
+  | AssignVariable {
+      variable_identifier;
+      assigned_value
+    }                            -> assign_variable_to_fexpr variable_identifier assigned_value
   | Located (location, statement) -> located_to_fexpr location statement
 
 
@@ -863,10 +899,37 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Seq (left, right)                                    -> Identifier.Set.union (free_variables left) (free_variables right)
   | ReadRegister identifier                              -> Identifier.Set.singleton identifier
   | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)
+  | AssignVariable { variable_identifier; assigned_value } -> Identifier.Set.add (free_variables assigned_value) variable_identifier
   | Cast (statement, _)                                  -> free_variables statement
   | Fail _                                               -> Identifier.Set.empty
   | Unconstrained _                                      -> Identifier.Set.empty
   | Located (_, statement)                               -> free_variables statement
+
+
+(*
+  Collects the variables that a statement assigns to (AssignVariable), by name.
+*)
+let rec assigned_variables (statement : t) : Identifier.Set.t =
+  match statement with
+  | Match (MatchList { matched = _; element_type = _; when_cons = (_, _, when_cons); when_nil }) -> Identifier.Set.union (assigned_variables when_cons) (assigned_variables when_nil)
+  | Match (MatchProduct { matched = _; type_fst = _; type_snd = _; id_fst = _; id_snd = _; body }) -> assigned_variables body
+  | Match (MatchSum { matched = _; left_type = _; right_type = _; when_left = (_, when_left); when_right = (_, when_right) }) -> Identifier.Set.union (assigned_variables when_left) (assigned_variables when_right)
+  | Match (MatchTuple { matched = _; binders = _; body }) -> assigned_variables body
+  | Match (MatchBool { condition = _; when_true; when_false }) -> Identifier.Set.union (assigned_variables when_true) (assigned_variables when_false)
+  | Match (MatchEnum { matched = _; matched_type = _; cases }) -> Identifier.Set.unions @@ List.map ~f:assigned_variables @@ Identifier.Map.data cases
+  | Match (MatchVariant { matched = _; matched_type = _; cases }) -> Identifier.Set.unions @@ List.map ~f:(fun (_, clause) -> assigned_variables clause) @@ Identifier.Map.data cases
+  | Expression _                                                       -> Identifier.Set.empty
+  | Call (_, _)                                                        -> Identifier.Set.empty
+  | Let { binder = _; binding_statement_type = _; binding_statement; body_statement } -> Identifier.Set.union (assigned_variables binding_statement) (assigned_variables body_statement)
+  | DestructureRecord { record_type_identifier = _; field_identifiers = _; binders = _; destructured_record; body } -> Identifier.Set.union (assigned_variables destructured_record) (assigned_variables body)
+  | Seq (left, right)                                                  -> Identifier.Set.union (assigned_variables left) (assigned_variables right)
+  | ReadRegister _                                                     -> Identifier.Set.empty
+  | WriteRegister _                                                    -> Identifier.Set.empty
+  | AssignVariable { variable_identifier; assigned_value }             -> Identifier.Set.add (assigned_variables assigned_value) variable_identifier
+  | Cast (statement, _)                                                -> assigned_variables statement
+  | Fail _                                                             -> Identifier.Set.empty
+  | Unconstrained _                                                    -> Identifier.Set.empty
+  | Located (_, statement)                                             -> assigned_variables statement
 
 
 class virtual ['a] visitor =
@@ -892,6 +955,7 @@ class virtual ['a] visitor =
     method virtual visit_read_register      : register : Identifier.t -> 'a
     method virtual visit_seq                : left : t -> right : t -> 'a
     method virtual visit_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
+    method virtual visit_assign_variable    : variable_identifier : Identifier.t -> assigned_value : t -> 'a
   end
 
 
@@ -915,6 +979,7 @@ class identity_rewriter =
       | Seq (left, right)                                                                                   -> self#visit_seq ~left ~right
       | ReadRegister register                                                                               -> self#visit_read_register ~register
       | WriteRegister { register_identifier; written_value }                                                -> self#visit_write_register ~register_identifier ~written_value
+      | AssignVariable { variable_identifier; assigned_value }                                              -> self#visit_assign_variable ~variable_identifier ~assigned_value
       | Cast (statement, cast_to)                                                                           -> self#visit_cast ~statement ~cast_to
       | Fail (typ, message)                                                                                 -> self#visit_fail ~typ ~message
       | Unconstrained typ                                                                                   -> self#visit_unconstrained ~typ
@@ -1093,6 +1158,15 @@ class identity_rewriter =
         written_value
       }
 
+    method visit_assign_variable
+        ~(variable_identifier : Identifier.t)
+        ~(assigned_value      : t           ) : t
+      =
+      AssignVariable {
+        variable_identifier;
+        assigned_value = self#visit assigned_value
+      }
+
     method visit_cast
         ~(statement : t     )
         ~(cast_to   : Type.t) : t
@@ -1244,6 +1318,17 @@ let simplify_seq_unit (statement : t) : t =
      y
 *)
 let simplify_aliases (statement : t) : t =
+  (*
+     An alias of a mutable variable, or a mutable variable bound to another variable, must stay:
+     in
+
+       let x = y in (x := 5; f(x, y))        and        let x = y in (y := 5; f(x, y))
+
+     x and y have different values after the assignment.
+  *)
+  let assigned : Identifier.Set.t =
+    assigned_variables statement
+  in
   let update_substitution substitution x y id =
     if Identifier.equal x id
     then y
@@ -1261,7 +1346,7 @@ let simplify_aliases (statement : t) : t =
 
       method! visit_let ~binder ~binding_statement_type ~binding_statement ~body_statement =
         match super#visit binding_statement with
-        | Expression (Variable (identifier, _typ)) -> begin
+        | Expression (Variable (identifier, _typ)) when not (Identifier.Set.mem assigned binder || Identifier.Set.mem assigned identifier) -> begin
             let updated_substitution (id : Identifier.t) : Identifier.t =
               if Identifier.equal id binder
               then identifier

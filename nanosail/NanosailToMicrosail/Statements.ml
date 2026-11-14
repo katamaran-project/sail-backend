@@ -533,7 +533,14 @@ and pp_let
   *)
   let* pp_binding_statement      = pp_statement binding_statement
   and* pp_binding_statement_type = Type.pp_type binding_statement_type
-  and* compile_time_value        = extract_compile_time_integer_from_statement binding_statement
+  and* compile_time_value        =
+    (* A mutable variable (one the body assigns to) has no fixed value *)
+    if
+      Ast.Identifier.Set.mem (Ast.Statement.assigned_variables body_statement) binder
+    then
+      GC.return None
+    else
+      extract_compile_time_integer_from_statement binding_statement
   in
   (*
      The body, on the other hand, does see the binder. Binding it to None when its
@@ -612,7 +619,7 @@ and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bo
             )
         end
     end
-  | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _
+  | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
   | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ -> GC.return false
 
 
@@ -636,6 +643,26 @@ and pp_write_register_statement
           MuSail.Statement.pp_write_register
             ~register_identifier:pp_register_identifier
             ~value_identifier:pp_written_value
+        end
+  end
+
+
+(*
+   Assignment to a mutable local variable:
+
+     stm_assign "x" (s)
+*)
+and pp_assign_variable
+      ~(variable_identifier : Ast.Identifier.t)
+      ~(assigned_value      : Ast.Statement.t ) : PP.t GC.t
+  =
+  let* pp_assigned_value = pp_statement assigned_value
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.pp_assign
+            ~variable_identifier:(Identifier.pp variable_identifier)
+            ~assigned_value:pp_assigned_value
         end
   end
 
@@ -731,6 +758,10 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                       written_value }           -> pp_write_register_statement
                                                      ~register_identifier
                                                      ~written_value
+    | AssignVariable { variable_identifier;
+                       assigned_value }         -> pp_assign_variable
+                                                     ~variable_identifier
+                                                     ~assigned_value
     | DestructureRecord
         { record_type_identifier;
           field_identifiers;

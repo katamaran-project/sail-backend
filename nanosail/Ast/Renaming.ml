@@ -382,6 +382,18 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
       end
     end
 
+  | AssignVariable { variable_identifier; assigned_value } -> begin
+      let* variable_identifier = rename variable_identifier
+      and* assigned_value      = rename_in_statement assigned_value
+      in
+      return begin
+        Statement.AssignVariable {
+          variable_identifier;
+          assigned_value;
+        }
+      end
+    end
+
   | Cast (statement, typ) -> begin
       let* statement = rename_in_statement statement
       in
