@@ -15,19 +15,19 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `045edc96` plus tuple abbreviations as Rocq product types and `_value` names for values that share a name with a type; cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `15c31cfc` plus the Sv32 TLB types ignored by configuration; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **1 of 61** (`FENCEI`) |
 | instructions generated | 53 of 61 |
-| functions generated | 570 of 647 |
-| untranslated definitions | 94 |
+| functions generated | 565 of 647 |
+| untranslated definitions | 105 |
 | `NYI` holes | 23 |
 | hard failures | 0 |
-| calls to missing functions | 1495: extern 1283, untranslated 110, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:1734`, in `Record TLB_Entry`: `The reference kid__asidlen was not found` (a struct with `Int` parameters, Sv32 only) |
-| Rocq, probe (`NYI` as an axiom) | the same; 258 of 1109 definitions before it (the linear `EqDec` instances added definitions after it) |
+| calls to missing functions | 1494: extern 1283, untranslated 109, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
+| Rocq, plain | `base.v:12184`, in `Inductive Reg`: the `NYI` in the types of the PMP register arrays `pmpcfg_n`, `pmpaddr_n` (P10); 1053 of 1106 definitions before it; 5 s |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles (7 s); `machine.v:54`, in `Inductive Fun`: `The reference kid__n was not found` (a size-polymorphic function signature, P13), before any of its 576 definitions |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -56,7 +56,10 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | P06 | `CSpecialRW`, `LoadCapImm` | assignment to a mutable local variable (`var`) |
 | P07 | `CJALR` | register reference |
 
-**Rocq:** `base.v` now stops at `Record TLB_Entry`, the Sv32 TLB entry, a struct with `Int` parameters (virtual memory, out of scope).
+**Rocq:** the Sv32 types `TLB_Entry` (a struct with `Int` parameters, where `base.v` used to stop) and `TLB32_Entry` are ignored by configuration (virtual memory is out of scope),
+so `lookup_TLB32`, `add_to_TLB32`, `write_TLB32`, `flush_TLB32` and `init_vmem_sv32` are now untranslated (dead code, accepted as the baseline).
+The plain `base.v` now stops only at the `NYI` types of the PMP register arrays (P10, deferred: the configuration feature that removes a definition with its uses is planned for them);
+the probe compiles all of `base.v` (the probe leaves out the template's marker for untranslated definitions) and stops at the start of `machine.v`, at `Inductive Fun`, whose signatures still mention size variables (P13).
 `EqDec` instances are no longer derived with Equations for enums, unions and registers, but built linearly (`nanosail/NanosailToMicrosail/EqDec.ml`):
 enums by numbering their values, unions through their constructor tag and the tuple of the fields, `sigT Reg` by numbering the registers.
 `NoConfusion` is only derived for records (their `Derive EqDec` needs it). Measured on `base.v` with the TLB types ignored, `coqc base.v` went from 591 s
@@ -96,6 +99,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `b2604dd0`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `ext_control_addr_error` (222 of 553) | P02: a monomorphic copy of each union with type parameters per closed type argument (15 copies); `StoreCapImm` generated; 7 size-polymorphic memory reads (P13) now untranslated instead of ill-typed |
 | 2026-11-14 | `045edc96`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 553) | tuple abbreviations are `(A * B)%type`; a value that shares its name with a type is `<name>_value` in Rocq (10 CHERIoT constants) |
 | 2026-11-14 | `de4e6e60`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 1109) | linear `EqDec` instances for enums, unions and registers instead of `Derive EqDec`/`NoConfusion` (`coqc base.v` 591 s -> 13 s once Rocq gets past `TLB_Entry`) |
+| 2026-11-14 | `15c31cfc`+ | core | 53 / 61, 1 clean | 565 / 647 | 105 | 23 | 0 | `machine.v:54` `Fun` (all of `base.v`) | Sv32 `TLB_Entry`/`TLB32_Entry` ignored (5 TLB functions untranslated); plain stops at the PMP registers' `NYI` in `Reg`; the loop's Rocq stage takes 9 s uncached (1:36 in all), 0.1 s cached |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
