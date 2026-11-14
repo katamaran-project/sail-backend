@@ -1,6 +1,6 @@
 # Design: the CHERIoT progress loop
 
-*Status: proposal, 13 Nov 2026; steps 1–3 of §8 implemented on 14 Nov 2026. Branch `e2e-loop`.*
+*Status: proposal, 13 Nov 2026; steps 1–4 of §8 implemented on 14 Nov 2026. Branch `e2e-loop`.*
 
 ## 1. Goal
 
@@ -38,7 +38,7 @@ The budget for one outer iteration is therefore **about one minute**. Restrictin
 ```sh
 gmake cheriot CHERIOT_SAIL_DIR=PATH CHERIOT_CASE_STUDY=PATH    # from the sail-backend checkout or worktree
 # or directly:
-tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-coq] [--coq-timeout S]
+tests/cheriot/run.py [--cheriot-sail PATH] [--case-study PATH] [--no-scope] [--no-coq] [--coq-timeout S]
                      [--keep-dumps] [--output-dir DIR]
 # planned: [--iterate-hard-failures] [--update-baseline] [--compare RUN]
 ```
@@ -96,20 +96,42 @@ roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]   # al
 policy-excluded = ["print_*", "*_forwards" , "assembly_*", "BitStr", "..."]
 ```
 
+(This was the proposal. The file as implemented is `tests/cheriot/scope.toml`: it has `instruction-files`, `roots` and `dispatchers` (§4.1), but no `policy-excluded` yet.)
+
 ### 4.1 From the scope file to a configuration
 
-1. Build the call graph from the Sail AST after the last rewrite. Sail writes it with `--ddump-rewrite-ast`; `lib/callgraph.py` builds the graph from it.
-   Since the rewrite pipeline runs anyway, the dump costs one extra file write. It is **cached**, keyed by the commits of cheriot-sail and sail-backend's `Rewrites.ml`.
-2. **In scope** = everything reachable from `roots` plus `execute_<C>` for each in-scope constructor `C`, through calls *and* through mentions of types.
-3. Everything else is **out of scope**. The runner writes it to a generated `scope-ignores.lisp`, which the case study's `configuration.lisp` includes with `$include`. The translator then skips it.
+*As implemented (step 4, `lib/scope.py`, `tests/cheriot/scope.toml`); this replaces the first version of this section, two of whose claims were wrong.*
 
-Because out-of-scope definitions are, by construction, called only from out-of-scope code, excluding them **never leaves calls to missing functions in scope**. This is the configuration-driven exclusion that `PROJECT-STATUS.md` asks for, without a new translator feature for the bulk of it.
-Expected effect: the Zb\*, V, Sv32/TLB and PMP instruction paths and the assembly printer disappear from the output and from the numbers.
+1. **Call graph.** It is built from Sail's AST dump after the last rewrite (`--ddump-rewrite-ast`, `lib/callgraph.py`).
+   Its nodes are the functions, the top-level values (`let`) and the registers; there is an edge when a definition mentions another node.
+   The scope is needed *before* the translation, so the dump comes from a cache, keyed by the Sail version, `sail_plugin/Rewrites.ml` and the contents of the model's sources
+   (`~/.cache/sail-backend/cheriot-dumps`). On a miss, a Sail run with a configuration that ignores every definition makes it in about 22 s.
+   The translation writes the same dump again, and the analysis checks that the two are identical; if not, the cache key misses an input.
+2. **In scope** = everything reachable from the scope file's `roots`, from every register, and from `execute_<C>` for each in-scope constructor `C`.
+   - Registers are roots because the translator cannot ignore them, so whatever their definitions use is needed.
+   - **Dispatchers.** `execute` is one `match` that calls `execute_<C>` for every constructor, and `step` calls `execute`, so plain reachability puts every instruction in scope.
+     The scope file therefore names `execute` as a dispatcher: from it, only the calls for in-scope instructions are followed.
+3. **Excluded** = the functions and values outside the scope. The runner writes them to `scope-ignores.lisp` in the run directory and appends `$include scope-ignores.lisp` to the run's copy of the case study's configuration.
+   This needed a small configuration feature, `ignore-functions` and `ignore-values`: the existing `ignore-…-predicate` functions *replace* the predicate,
+   so a generated predicate would have discarded the case study's own. The names given to the new functions are ignored in addition to what the predicates select (see `docs/usage.md`, and the e2e test `ignore-functions-by-name`).
+   Types are not excluded: a type that only excluded code uses is still translated, which is harmless, while excluding one that in-scope code needs would break the translation.
+4. **Check.** The first version of this section claimed that excluding out-of-scope definitions never leaves in-scope calls to missing functions.
+   That is false for the dispatcher: `execute` still calls the `execute_<C>` of the 86 out-of-scope instructions, and those calls remain in `machine.v` as calls to missing functions (class *outside the scope*).
+   Removing them needs the translator feature of §4.2 (turn calls into a failure or no-op). Any *other* call into excluded code means that the scope is wrong, and fails the analysis stage.
+   On its first run this check found a real bug: functions with a doc comment (`/*! ... */`) before them were not nodes of the call graph, so `capToBits` was neither in scope nor excluded, and the `encCapToBits` it calls was excluded.
+   (The inventory's `reachability.py` had the same gap: it missed 9 of the model's 1959 functions.)
+
+All metrics are restricted to the scope: an item counts when its definition is in scope, or when it belongs to no definition (like a coqc error); the totals of functions and instructions are those in scope.
+`--no-scope` translates and measures the whole model, as before.
+
+What stays in scope, measured on 14 Nov 2026: 61 instructions and about 640 of 1959 functions.
+The PMP and TLB code stays, because the memory path and the CSR instructions reach it, and so do the Zb\* mnemonic helpers, which the tracing and printing code reaches.
+Removing those is the policy exclusion of §4.2.
 
 ### 4.2 Policy exclusions
 
 Some code *is* reachable from the core but is not wanted: tracing and printing (`print_reg` under `get_config_print_reg()`), and string formatting for those. Excluding these needs the one translator feature that `PROJECT-STATUS.md` §1a already calls for: **remove a definition and turn its calls into a no-op** (`unit`) or into an unconstrained value. That is its own piece of work, driven by an e2e test.
-Until it exists, the runner reports policy-excluded definitions and their calls as a separate category, so that they do not hide real gaps.
+Until it exists, the runner should report policy-excluded definitions and their calls as a separate category, so that they do not hide real gaps. *Not implemented yet.*
 
 ## 5. What is measured, and the ratchet
 
@@ -187,7 +209,7 @@ Each step is small, has its own tests, and leaves the loop usable.
    - `gmake cheriot`;
    - the cheriot-sail commit is pinned in `tests/cheriot/inputs.toml`, and a different commit gives a warning (the proposed answer to §9, question 2).
 3. **Done** (14 Nov 2026). Rocq stages: plain and probe compile, with the first error mapped to its definition (`lib/rocq.py`).
-4. Scope: `scope.toml`, cached call graph, generated `scope-ignores.lisp`, and the in-scope filter on all metrics. Check that no in-scope call goes missing because of the exclusion.
+4. **Done** (14 Nov 2026). Scope: `scope.toml`, cached call graph, generated `scope-ignores.lisp`, and the in-scope filter on all metrics. Check that no in-scope call goes missing because of the exclusion (§4.1; the dispatcher's calls are the expected exception).
 5. `instructions.clean` (call-cone check), history CSV, baseline and ratchet, and the report with per-definition changes.
 6. `run-tests.py`: expected failures (`XFAIL`/`XPASS`), plus `gmake loop`.
 

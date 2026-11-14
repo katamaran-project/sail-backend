@@ -53,7 +53,7 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
 - **CHERIoT analysis library** (`tests/cheriot/lib`, standard-library Python): analyses a translation of the CHERIoT model, for the progress loop of `docs/cheriot-loop.md`.
   Run its unit tests with `make cheriot-lib-tests`; they use the small fixture run in `tests/cheriot/tests/fixtures`.
   `tests/cheriot/inventory.py RUN-DIR` runs the whole analysis on a run directory.
-- **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot` (`tests/cheriot/run.py`) translates the full model with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc.
+- **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail> CHERIOT_CASE_STUDY=<katamaran>/case_study/Cheriot` (`tests/cheriot/run.py`) translates the CHERIoT core (the scope in `tests/cheriot/scope.toml`, computed from the call graph) with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc; `--no-scope` translates the whole model.
   Output goes to `tests/cheriot/output/<timestamp>-<commit>[-dirty]/` (about 160 MB per run, mostly the log; `latest` points to the newest).
 
 ## Architecture

@@ -1,0 +1,25 @@
+# The part of the CHERIoT model that the loop translates and measures:
+# the CHERIoT core (docs/cheriot-loop.md §4, decided 13 Nov 2026).
+# run.py computes the scope from this file and the model's call graph
+# (tests/cheriot/lib/scope.py); everything else is ignored.
+
+# Instructions in scope, given by the source files (relative to the cheriot-sail
+# checkout) that declare their constructors (union clause ast = C).
+instruction-files = [
+  "sail-riscv/model/riscv_insts_base.sail",   # RV32I/E base integer
+  "sail-riscv/model/riscv_insts_mext.sail",   # M: multiplication and division
+  "sail-riscv/model/riscv_insts_zicsr.sail",  # Zicsr: control and status registers
+  "src/cheri_insts.sail",                     # CHERIoT capability instructions
+  # Out of scope for now: compressed instructions (riscv_insts_cext.sail and
+  # src/cheri_insts_cext.sail), bit manipulation (Zb*), vector, virtual memory, PMP.
+]
+
+# Entry points that are always in scope: the fetch-decode-execute step, the
+# decoders and the initialisation. Every register is in scope as well.
+roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
+
+# Functions that call one function per instruction. From these, only the calls
+# for in-scope instructions are followed. The calls for the other instructions
+# remain in machine.v, as calls to missing functions.
+[dispatchers]
+execute = "execute_"

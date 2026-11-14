@@ -3,7 +3,8 @@
 The outer loop: translate the CHERIoT model with this checkout's plugin, and measure the result.
 
 Usage:
-    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--no-coq] [--coq-timeout S] [--keep-dumps] [--output-dir DIR]
+    tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--no-scope] [--no-coq] [--coq-timeout S]
+                         [--keep-dumps] [--output-dir DIR]
 
 or `gmake cheriot CHERIOT_SAIL_DIR=... CHERIOT_CASE_STUDY=...`. See docs/cheriot-loop.md.
 
@@ -19,20 +20,35 @@ The run has these stages; a stage that fails ends the run.
     inputs      check the inputs and record their versions (commits, Sail, Katamaran)
     typecheck   plain Sail typechecks the model, so that a failure there is not
                 blamed on the plugin
-    translate   the plugin translates the model, with VERBOSE=4: lower levels leave
+    scope       unless --no-scope: compute the CHERIoT core from scope.toml and the
+                call graph of the rewritten model (lib/scope.py), and write the
+                configuration that ignores everything else (scope-ignores.lisp).
+                The call graph needs Sail's AST dump after the rewrites, which is
+                cached (see DUMP_CACHE below); without it, a Sail run that only
+                makes the dump takes about 20 s.
+    translate   the plugin translates the model (with the scope's ignores), with VERBOSE=4: lower levels leave
                 out the skipped definitions and the definition each warning and
                 error belongs to, and save only about 10% of the time
     rocq        unless --no-coq: coqc base.v and machine.v, as the end-to-end tests
                 do, and probe copies in which NYI is an axiom, whose first error is
                 the first problem beyond the NYI holes (lib/rocq.py). An error in
                 the generated Rocq is a measurement, not a failed stage.
-    analyse     items, reachability, missing calls and piles (tests/cheriot/lib)
+    analyse     items, reachability, missing calls and piles (tests/cheriot/lib),
+                restricted to the scope. It fails if machine.v calls an excluded
+                definition other than from a dispatcher (the scope is then wrong),
+                or if the translation's dump differs from the one the scope was
+                computed from.
 
 Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
 with <output-dir>/latest pointing to it (default output dir: tests/cheriot/output):
 sources.txt, the logs, base.v and machine.v, dump/ (only the last Sail rewrite
 dump, unless --keep-dumps), coqc-*.log, probe/, items.csv, dangling-calls.csv, piles.txt,
-run.json (inputs and stages) and metrics.json.
+run.json (inputs and stages), metrics.json, and scope-ignores.lisp and scope.json.
+
+DUMP_CACHE: the rewrite dumps for the scope are cached in $SAIL_BACKEND_CHERIOT_CACHE,
+or else $XDG_CACHE_HOME/sail-backend/cheriot-dumps (~/.cache/...), keyed by the
+Sail version, sail_plugin/Rewrites.ml and the model's sources. The cache can be
+deleted at any time.
 
 Exit status: 0 when every stage succeeded, 1 when a stage failed (the report
 says which and why), 2 for invalid arguments or inputs.
@@ -43,6 +59,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -59,7 +76,7 @@ HERE = Path(__file__).resolve().parent
 CHECKOUT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
 
-from lib import callgraph, dangling, extract, metrics, piles, rocq     # noqa: E402
+from lib import callgraph, dangling, extract, metrics, piles, rocq, scope     # noqa: E402
 from lib.items import write_items                                  # noqa: E402
 
 SAIL_LOCAL = CHECKOUT / 'bin' / 'sail-local'
@@ -71,6 +88,22 @@ COQC = 'coqc'
 DEFAULT_COQ_TIMEOUT = 1800
 VERBOSE = '4'
 CASE_STUDY_FILES = ['configuration.lisp', 'printvar.mak']
+SCOPE_FILE = HERE / 'scope.toml'
+REWRITES = CHECKOUT / 'sail_plugin' / 'Rewrites.ml'
+DUMP_CACHE = Path(
+    os.environ.get('SAIL_BACKEND_CHERIOT_CACHE')
+    or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'cheriot-dumps'
+)
+SCOPE_INCLUDE = 'scope-ignores.lisp'
+
+# A configuration that ignores every definition, so that a Sail run only makes the rewrite dumps.
+DUMP_ONLY_CONFIGURATION = """\
+(ignore-function-definition-and-top-level-type-constraints-predicate (lambda (identifier) #t))
+(ignore-value-definition-predicate (lambda (identifier) #t))
+(ignore-type-definition-predicate (lambda (identifier) #t))
+(ignore-all-overloads)
+(ignore-pragmas (lambda (identifier) #t))
+"""
 
 INTERNAL_ERROR = re.compile(r'^Internal error', re.M)
 UNCAUGHT_EXCEPTION = re.compile(r'^Fatal error: exception (.*)$', re.M)
@@ -261,10 +294,86 @@ def classify_translation(code: int, log_text: str, outputs_exist: bool) -> tuple
     return True, ''
 
 
-def translate(sources: list[Path], case_study: Path, sandbox: Path) -> Stage:
+def dump_key(sources: list[Path], sail_version: str) -> str:
+    """The cache key of the rewrite dump: what the dump depends on."""
+    digest = hashlib.sha256()
+    digest.update(sail_version.encode())
+    digest.update(REWRITES.read_bytes())
+    for source in sources:
+        digest.update(str(source).encode() + b'\0' + source.read_bytes() + b'\0')
+    return digest.hexdigest()[:20]
+
+
+def rewrite_dump(sources: list[Path], sandbox: Path, sail_version: str, cache: Path) -> tuple[Path, str]:
+    """The model's AST dump after the last rewrite, from the cache or from a dump-only Sail run; and how it was got."""
+    cached = cache / f'{dump_key(sources, sail_version)}.sail'
+    if cached.exists():
+        return cached, f'dump from the cache ({cached.name})'
+    directory = sandbox / 'scope-dump'
+    (directory / 'dump').mkdir(parents=True)
+    (directory / 'configuration.lisp').write_text(DUMP_ONLY_CONFIGURATION)
+    start = time.monotonic()
+    command = [str(SAIL_LOCAL), '--ddump-rewrite-ast', 'dump/rw',
+               '--katamaran', '--katamaran-config', 'configuration.lisp', *map(str, sources)]
+    code = run_command(command, directory, directory / 'log.txt', {'VERBOSE': '0'})
+    last = last_dump(directory / 'dump', keep_all=False)
+    if code != 0 or last is None:
+        raise ScopeError(f'the dump-only Sail run failed (exit {code}); see {directory / "log.txt"}')
+    cache.mkdir(parents=True, exist_ok=True)
+    temporary = cached.with_suffix(f'.{os.getpid()}.tmp')
+    shutil.copy2(last, temporary)
+    temporary.replace(cached)
+    shutil.rmtree(directory)
+    return cached, f'dump made in {time.monotonic() - start:.0f} s and cached'
+
+
+class ScopeError(Exception):
+    """The scope cannot be computed."""
+
+
+def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_version: str,
+                  cache: Path) -> tuple[Stage, Optional[scope.Scope], Optional[Path]]:
+    stage = Stage('scope')
+    start = time.monotonic()
+    try:
+        dump, how = rewrite_dump(sources, sandbox, sail_version, cache)
+        scope_file = scope.ScopeFile.load(SCOPE_FILE)
+        instruction_sources = {}
+        for name in scope_file.instruction_files:
+            path = cheriot_sail / name
+            if path not in sources:
+                raise ScopeError(f'{SCOPE_FILE.name} names {name}, which is not one of the model\'s sources')
+            instruction_sources[name] = path.read_text(errors='replace')
+    except ScopeError as error:
+        stage.seconds = time.monotonic() - start
+        stage.summary = str(error)
+        return stage, None, None
+    graph = callgraph.CallGraph.from_dump(dump)
+    result = scope.compute(graph, scope_file, instruction_sources)
+    (sandbox / SCOPE_INCLUDE).write_text(scope.configuration(result))
+    (sandbox / 'scope.json').write_text(json.dumps({
+        'instructions': result.instructions,
+        'functions': sorted(result.nodes & graph.functions),
+        'values': sorted(result.nodes & graph.values),
+        'excluded_functions': sorted(result.excluded_functions),
+        'excluded_values': sorted(result.excluded_values),
+        'warnings': result.warnings,
+    }, indent=1) + '\n')
+    stage.ok = True
+    stage.seconds = time.monotonic() - start
+    stage.summary = (f'{len(result.instructions)} instructions; {len(result.nodes & graph.functions)} of '
+                     f'{len(graph.functions)} functions in scope; {how}')
+    stage.details = result.warnings
+    return stage, result, dump
+
+
+def translate(sources: list[Path], case_study: Path, sandbox: Path, with_scope: bool) -> Stage:
     stage = Stage('translate')
     for template in [case_study / 'configuration.lisp', *sorted(case_study.glob('*.template.v'))]:
         shutil.copy2(template, sandbox / template.name)
+    if with_scope:
+        with open(sandbox / 'configuration.lisp', 'a') as handle:
+            handle.write(f'\n;; Added by tests/cheriot/run.py: ignore what is outside the scope.\n$include {SCOPE_INCLUDE}\n')
     (sandbox / 'dump').mkdir()
     command = [str(SAIL_LOCAL), '--ddump-rewrite-ast', 'dump/rw',
                '--katamaran', '--katamaran-config', 'configuration.lisp', *map(str, sources)]
@@ -304,28 +413,37 @@ def compile_rocq(sandbox: Path, timeout: float) -> tuple[Stage, dict[str, Any]]:
     return stage, results
 
 
-def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str, Any]]) -> tuple[Stage, Optional[metrics.Metrics]]:
+def analyse(sandbox: Path, dump: Optional[Path], rocq_results: Optional[dict[str, Any]],
+            in_scope: Optional[scope.Scope], scope_dump: Optional[Path]) -> tuple[Stage, Optional[metrics.Metrics]]:
     stage = Stage('analyse')
     start = time.monotonic()
     if dump is None:
         stage.summary = 'no Sail rewrite dump in dump/'
         return stage, None
+    problems = []
+    if scope_dump is not None and scope_dump.read_bytes() != dump.read_bytes():
+        problems.append(f'the scope was computed from a different dump ({scope_dump}) than this translation\'s; '
+                        f'the dump cache key misses an input, so delete the cache and run again')
     items = extract.run_items(sandbox, extract.NanosailSource(CHECKOUT))
     graph = callgraph.CallGraph.from_dump(dump)
     callgraph.mark_reachable(items, graph)
     piles.assign_piles(items)
     machine_v = (sandbox / 'machine.v').read_text(errors='replace')
-    calls = dangling.dangling_calls(machine_v, dump.read_text(errors='replace'), items, sandbox.name)
+    calls = dangling.dangling_calls(machine_v, dump.read_text(errors='replace'), items, sandbox.name,
+                                    in_scope.excluded if in_scope else frozenset())
+    if in_scope is not None:
+        problems += scope.unexpected_calls(calls, in_scope)
     write_items(sandbox / 'items.csv', items)
     with open(sandbox / 'dangling-calls.csv', 'w', newline='') as handle:
         writer = csv.DictWriter(handle, fieldnames=dangling.DanglingCall.FIELDS)
         writer.writeheader()
         writer.writerows(d.as_row() for d in calls)
     (sandbox / 'piles.txt').write_text(piles.format_pile_table(*piles.pile_table(items)) + '\n')
-    result = metrics.compute(items, machine_v, graph, calls, rocq_results)
-    stage.ok = True
+    result = metrics.compute(items, machine_v, graph, calls, rocq_results, in_scope)
+    stage.ok = not problems
     stage.seconds = time.monotonic() - start
-    stage.summary = f'{len(items)} items'
+    stage.summary = f'{len(items)} items' + (f'; {len(problems)} problem(s) with the scope' if problems else '')
+    stage.details = problems
     return stage, result
 
 
@@ -380,6 +498,7 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--cheriot-sail', help='cheriot-sail checkout (default: $CHERIOT_SAIL_DIR)')
     parser.add_argument('--case-study', help='case study directory (default: $CHERIOT_CASE_STUDY)')
+    parser.add_argument('--no-scope', action='store_true', help='translate and measure the whole model')
     parser.add_argument('--no-coq', action='store_true', help='skip the Rocq stage')
     parser.add_argument('--coq-timeout', type=float, default=DEFAULT_COQ_TIMEOUT,
                         help=f'seconds per coqc call (default: {DEFAULT_COQ_TIMEOUT})')
@@ -412,15 +531,19 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     stages = [stage, typecheck(sources, sandbox)]
     result = None
+    in_scope, scope_dump = None, None
+    if stages[-1].ok and not arguments.no_scope:
+        stage, in_scope, scope_dump = compute_scope(sources, cheriot_sail, sandbox, inputs['sail'], DUMP_CACHE)
+        stages.append(stage)
     if stages[-1].ok:
-        stages.append(translate(sources, case_study, sandbox))
+        stages.append(translate(sources, case_study, sandbox, in_scope is not None))
         dump = last_dump(sandbox / 'dump', arguments.keep_dumps)
         if stages[-1].ok:
             rocq_results = None
             if not arguments.no_coq:
                 stage, rocq_results = compile_rocq(sandbox, arguments.coq_timeout)
                 stages.append(stage)
-            stage, result = analyse(sandbox, dump, rocq_results)
+            stage, result = analyse(sandbox, dump, rocq_results, in_scope, scope_dump)
             stages.append(stage)
 
     (sandbox / 'run.json').write_text(json.dumps(

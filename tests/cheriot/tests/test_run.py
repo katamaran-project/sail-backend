@@ -32,9 +32,10 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(m['hard_failures'], ['getCapBoundsBits'])
 
     def test_functions_and_instructions(self):
-        # machine.v generates neq_bits, sail_mask and two_holes; the model's only instruction is execute_ADDI
-        self.assertEqual(self.metrics['functions'], {'in_model': 7, 'generated': 3})
-        self.assertEqual(self.metrics['instructions'], {'in_model': 1, 'generated': 0})
+        # machine.v generates neq_bits, sail_mask and two_holes, which are not functions of the fixture model;
+        # its instructions are ADDI and FOO
+        self.assertEqual(self.metrics['functions'], {'total': 13, 'generated': 0})
+        self.assertEqual(self.metrics['instructions'], {'total': 2, 'generated': 0})
 
     def test_failing_reachable_counts_definitions_not_items(self):
         # bool_to_bits is both untranslated and an error, and reachable from execute
@@ -48,7 +49,8 @@ class MetricsTests(unittest.TestCase):
 
     def test_format(self):
         text = '\n'.join(metrics.format_metrics(self.metrics))
-        self.assertIn('instructions generated       0 of 1', text)
+        self.assertIn('scope: the whole model', text)
+        self.assertIn('instructions generated       0 of 2', text)
         self.assertIn('hard failures                1  (getCapBoundsBits)', text)
         self.assertIn('missing calls                5 calls to 4 functions', text)
 

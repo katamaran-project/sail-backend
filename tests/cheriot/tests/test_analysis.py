@@ -28,13 +28,27 @@ class CallGraphTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, self.assertRaises(FileNotFoundError):
             callgraph.last_dump(Path(directory))
 
-    def test_functions_include_clauses_and_exclude_vals_and_types(self):
+    def test_nodes_are_functions_values_and_registers(self):
+        # function clauses count as their function; vals (externs) and types are not nodes
         self.assertEqual(self.graph.functions,
-                         {'step', 'fetch', 'helper', 'bool_to_bits', 'execute_ADDI', 'execute', 'unused'})
+                         {'step', 'fetch', 'helper', 'bool_to_bits', 'execute_ADDI', 'execute', 'unused',
+                          'execute_FOO', 'vector_helper', 'vlen_init',
+                          'documented', 'undocumented_callee', 'after_split_comment'})
+        self.assertEqual(self.graph.values, {'vlen_default', 'xlen_value'})
+        self.assertEqual(self.graph.registers, {'vlenb'})
+
+    def test_definitions_after_comments(self):
+        self.assertTrue({'documented', 'after_split_comment'} <= self.graph.functions)
+        self.assertEqual(self.graph.reachable(['documented']), {'documented', 'undocumented_callee'})
 
     def test_reachable(self):
-        self.assertEqual(self.graph.reachable(['step']), {'step', 'fetch', 'helper'})
-        self.assertEqual(self.graph.reachable(['execute', 'not_a_function']), {'execute', 'execute_ADDI', 'bool_to_bits'})
+        self.assertEqual(self.graph.reachable(['step']), {'step', 'fetch', 'helper', 'xlen_value'})
+        self.assertEqual(self.graph.reachable(['execute', 'not_a_function']),
+                         {'execute', 'execute_ADDI', 'bool_to_bits', 'execute_FOO', 'vector_helper', 'vlen_default'})
+
+    def test_reachable_without_skipped_edges(self):
+        self.assertEqual(self.graph.reachable(['execute'], lambda source, target: target == 'execute_FOO'),
+                         {'execute', 'execute_ADDI', 'bool_to_bits'})
 
     def test_mark_reachable(self):
         items = [dict(name=name) for name in ('helper', 'bool_to_bits', 'unused', 'regidx', 'truncate')]
@@ -53,7 +67,17 @@ class DanglingCallsTests(unittest.TestCase):
                           ('mystery', 1, 'unknown'),
                           ('bool_to_bits', 2, 'untranslated')])
         self.assertEqual(calls[0].binding, 'coq: "truncate", _: "truncate"')
+        self.assertEqual({d.callee: d.callers for d in calls},
+                         {'truncate': ['sail_mask'], 'undefined_bool': ['two_holes'], 'mystery': ['two_holes'],
+                          'bool_to_bits': ['two_holes']})
         self.assertEqual(dangling.summary(calls)['untranslated'], (1, 2))
+
+    def test_excluded_callees(self):
+        calls = dangling.dangling_calls((RUN / 'machine.v').read_text(), DUMP.read_text(), fixture_items(), 'run',
+                                        {'bool_to_bits', 'truncate'})
+        # an extern stays an extern; a function outside the scope gets its own class
+        self.assertEqual({d.callee: d.cls for d in calls}['bool_to_bits'], 'outside the scope')
+        self.assertEqual({d.callee: d.cls for d in calls}['truncate'], 'extern')
 
     def test_an_extern_is_an_extern_even_when_the_configuration_skips_it(self):
         dump = DUMP.read_text() + '\nval undefined_bool = monadic {_: "undefined_bool"}: unit -> bool\n'

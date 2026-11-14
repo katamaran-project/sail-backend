@@ -8,7 +8,7 @@ function step step_no : int = {
 }
 
 function fetch() = {
-  let r : regidx = 0b00000 in ()
+  let r : regidx = 0b00000 in xlen_value
 }
 
 function helper n = n
@@ -23,3 +23,30 @@ function execute_ADDI imm = {
 function clause execute ADDI(imm) = execute_ADDI(imm)
 
 function unused() = ()
+
+function clause execute FOO(x) = execute_FOO(x)
+
+function execute_FOO x = vector_helper(x)
+
+function vector_helper x = x + vlen_default
+
+let vlen_default = 4
+
+let xlen_value = 32
+
+register vlenb : bits(8) = vlen_init()
+
+function vlen_init() = 0x08
+
+/*! Converts a capability to bits; a doc comment before a definition. */
+$[complete]
+function documented() = undocumented_callee()
+
+function undocumented_callee() = ()
+
+/*!
+A doc comment with a blank line in it.
+
+The definition after it starts in the same chunk as the end of the comment.
+*/
+function after_split_comment() = ()
