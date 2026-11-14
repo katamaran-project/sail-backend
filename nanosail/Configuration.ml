@@ -40,15 +40,18 @@ module FunctionExclusion = struct
     | NoOp            (* a call becomes the unit value; only for functions returning unit *)
     | Failure         (* a call becomes stm_fail: the call must be unreachable *)
     | Unconstrained   (* a call becomes an unconstrained value of the call's type *)
+    | Value of string (* a call becomes this Sail expression, type-checked at the call's type *)
 
   let equal (x : t) (y : t) : bool =
     match x, y with
     | NoOp         , NoOp          -> true
     | Failure      , Failure       -> true
     | Unconstrained, Unconstrained -> true
-    | NoOp         , (Failure | Unconstrained)
-    | Failure      , (NoOp | Unconstrained)
-    | Unconstrained, (NoOp | Failure)          -> false
+    | Value x      , Value y       -> String.equal x y
+    | NoOp         , (Failure | Unconstrained | Value _)
+    | Failure      , (NoOp | Unconstrained | Value _)
+    | Unconstrained, (NoOp | Failure | Value _)
+    | Value _      , (NoOp | Failure | Unconstrained) -> false
 
   (* The name of the Slang function that selects this exclusion *)
   let slang_function_name (exclusion : t) : string =
@@ -56,6 +59,7 @@ module FunctionExclusion = struct
     | NoOp          -> "exclude-functions-as-no-op"
     | Failure       -> "exclude-functions-as-failure"
     | Unconstrained -> "exclude-functions-as-unconstrained"
+    | Value _       -> "exclude-functions-as-value"
 end
 
 
@@ -465,6 +469,13 @@ module Implementation = struct
          hold for every value the call could return: the value is universally quantified.
          The arguments are still computed, but the result does not depend on them.
 
+       (exclude-functions-as-value '(("f" "None()") ("g" "0")))
+         Each call to f becomes the Sail expression None(), each call to g the expression 0.
+         The expression is type-checked at the type of the call, in the environment of the call,
+         and then translated as if it were written there. Arguments with an effect are still
+         computed (let excluded_call_arguments = <arguments> in <expression>); the others are dropped.
+         For a function whose result is known, such as a platform setting.
+
        (exclude-registers '("r"))
          Leaves the register r out of Reg. Each read of r becomes an unconstrained value of its
          type (as above), each write to r a no-op (the written value is still computed).
@@ -475,37 +486,50 @@ module Implementation = struct
      The names are Sail's names, as in ignore-functions.
   *)
   let () =
+    let add_exclusions (exclusions : (string * FunctionExclusion.t) list) : unit =
+      let add
+          (excluded            : FunctionExclusion.t Base.Map.M(Base.String).t)
+          ((name, exclusion)   : string * FunctionExclusion.t                 ) : FunctionExclusion.t Base.Map.M(Base.String).t
+        =
+        match Base.Map.find excluded name with
+        | None                   -> Base.Map.set excluded ~key:name ~data:exclusion
+        | Some earlier_exclusion -> begin
+            if FunctionExclusion.equal earlier_exclusion exclusion
+            then excluded
+            else begin
+              let describe (exclusion : FunctionExclusion.t) : string =
+                match exclusion with
+                | Value value                     -> Printf.sprintf "%s (with %s)" (FunctionExclusion.slang_function_name exclusion) value
+                | NoOp | Failure | Unconstrained  -> FunctionExclusion.slang_function_name exclusion
+              in
+              let message =
+                Printf.sprintf
+                  "Error: %s is excluded twice, by %s and by %s"
+                  name
+                  (describe earlier_exclusion)
+                  (describe exclusion)
+              in
+              failwith message
+            end
+          end
+      in
+      ConfigLib.Setting.update Exported.excluded_functions ~f:(fun excluded -> List.fold exclusions ~init:excluded ~f:add)
+    in
     let export_function_excluder (exclusion : FunctionExclusion.t) : unit =
       export_strict_function (FunctionExclusion.slang_function_name exclusion) @@ fun evaluated_arguments -> begin
         let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
         in
-        let add
-            (excluded : FunctionExclusion.t Base.Map.M(Base.String).t)
-            (name     : string                                     ) : FunctionExclusion.t Base.Map.M(Base.String).t
-          =
-          match Base.Map.find excluded name with
-          | None                    -> Base.Map.set excluded ~key:name ~data:exclusion
-          | Some earlier_exclusion  -> begin
-              if FunctionExclusion.equal earlier_exclusion exclusion
-              then excluded
-              else begin
-                let message =
-                  Printf.sprintf
-                    "Error: %s is excluded twice, by %s and by %s"
-                    name
-                    (FunctionExclusion.slang_function_name earlier_exclusion)
-                    (FunctionExclusion.slang_function_name exclusion)
-                in
-                failwith message
-              end
-            end
-        in
-        ConfigLib.Setting.update Exported.excluded_functions ~f:(fun excluded -> List.fold names ~init:excluded ~f:add)
+        add_exclusions @@ List.map names ~f:(fun name -> (name, exclusion))
       end
     in
     export_function_excluder NoOp;
     export_function_excluder Failure;
     export_function_excluder Unconstrained;
+    export_strict_function (FunctionExclusion.slang_function_name (Value "")) begin fun evaluated_arguments ->
+      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
+      in
+      add_exclusions @@ List.map pairs ~f:(fun (name, value) -> (name, FunctionExclusion.Value value))
+    end;
     export_strict_function "exclude-registers" @@ fun evaluated_arguments -> begin
       let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
       in

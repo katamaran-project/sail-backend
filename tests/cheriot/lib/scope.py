@@ -19,9 +19,10 @@ are definitions that in-scope code reaches but that are not wanted, such as prin
 tracing and virtual memory. The scope does not follow edges into them, so what only
 they reach leaves the scope too. They are removed together with their uses, with the
 configuration functions exclude-functions-as-no-op, exclude-functions-as-failure,
-exclude-functions-as-unconstrained and exclude-registers (docs/usage.md): a call to an
-excluded function becomes the unit value, a failure or an unconstrained value, a read
-of an excluded register an unconstrained value, and a write to it a no-op.
+exclude-functions-as-unconstrained, exclude-functions-as-value and exclude-registers
+(docs/usage.md): a call to an excluded function becomes the unit value, a failure, an
+unconstrained value or a given Sail expression, a read of an excluded register an
+unconstrained value, and a write to it a no-op.
 
 Functions and top-level values outside the scope are ignored with the
 configuration functions ignore-functions and ignore-values. Types are not
@@ -39,6 +40,7 @@ import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from .callgraph import CallGraph
 from .dangling import DanglingCall
@@ -52,6 +54,7 @@ POLICIES = {
     'no-op': 'exclude-functions-as-no-op',
     'failure': 'exclude-functions-as-failure',
     'unconstrained': 'exclude-functions-as-unconstrained',
+    'value': 'exclude-functions-as-value',          # a table: function -> Sail expression
     'registers': 'exclude-registers',
 }
 
@@ -63,6 +66,7 @@ class ScopeFile:
     roots: list[str]
     dispatchers: dict[str, str]             # dispatcher -> prefix of the function per instruction
     policy: dict[str, str] = field(default_factory=dict)    # policy-excluded definition -> key of POLICIES
+    values: dict[str, str] = field(default_factory=dict)    # under the key value: function -> Sail expression
 
     @classmethod
     def load(cls, path: Path) -> 'ScopeFile':
@@ -71,20 +75,28 @@ class ScopeFile:
     @classmethod
     def from_text(cls, text: str) -> 'ScopeFile':
         data = tomllib.loads(text)
+        table = data.get('policy-excluded', {})
         return cls(instruction_files=list(data['instruction-files']),
                    roots=list(data['roots']),
                    dispatchers=dict(data.get('dispatchers', {})),
-                   policy=policy_exclusions(data.get('policy-excluded', {})))
+                   policy=policy_exclusions(table),
+                   values=dict(table.get('value', {})))
 
 
-def policy_exclusions(table: dict[str, list[str]]) -> dict[str, str]:
+def policy_exclusions(table: dict[str, Any]) -> dict[str, str]:
     """
     The scope file's [policy-excluded] table as a map from each definition to its policy.
-    Unknown keys, and a definition under two keys, are errors (ValueError).
+    Each key holds a list of names, except value, which holds a table from names to Sail
+    expressions. Unknown keys, a definition under two keys, a value that is not a string,
+    and an expression with a double quote (Slang strings have no escapes) are errors (ValueError).
     """
     unknown = sorted(set(table) - set(POLICIES))
     if unknown:
         raise ValueError(f'[policy-excluded] has unknown keys {", ".join(unknown)}; the keys are {", ".join(POLICIES)}')
+    for name, expression in table.get('value', {}).items():
+        if not isinstance(expression, str) or '"' in expression:
+            raise ValueError(f'[policy-excluded] value for {name} must be a Sail expression without double quotes, '
+                             f'got {expression!r}')
     result: dict[str, str] = {}
     for policy in POLICIES:
         for name in table.get(policy, []):
@@ -110,6 +122,7 @@ class Scope:
     dispatchers: dict[str, str] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     policy: dict[str, str] = field(default_factory=dict)    # policy-excluded definition -> key of POLICIES
+    values: dict[str, str] = field(default_factory=dict)    # under the key value: function -> Sail expression
 
     def includes(self, name: str) -> bool:
         """
@@ -182,7 +195,7 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
                  excluded_functions=graph.functions - nodes - set(policy),
                  excluded_values=graph.values - nodes - set(policy),
                  dispatched=dispatched, dispatchers=dict(scope_file.dispatchers), warnings=warnings,
-                 policy=dict(policy))
+                 policy=dict(policy), values=dict(scope_file.values))
 
 
 def declarations(dump: str) -> set[str]:
@@ -205,7 +218,12 @@ def configuration(scope: Scope) -> str:
         text += ';; The policy exclusions ([policy-excluded]): removed together with their uses.\n'
         for policy, function in POLICIES.items():
             selected = {name for name, p in scope.policy.items() if p == policy}
-            if selected:
+            if not selected:
+                continue
+            if policy == 'value':
+                pairs = '\n'.join(f'   ("{name}" "{scope.values[name]}")' for name in sorted(selected))
+                text += f'({function}\n  \'(\n{pairs}\n  ))\n'
+            else:
                 text += f'({function}\n  \'(\n{names(selected)}\n  ))\n'
     return text
 

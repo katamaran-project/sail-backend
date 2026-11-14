@@ -13,7 +13,7 @@ type sum_union = {
 }
 module FunctionExclusion :
   sig
-    type t = NoOp | Failure | Unconstrained
+    type t = NoOp | Failure | Unconstrained | Value of string
     val equal : t -> t -> bool
     val slang_function_name : t -> string
   end

@@ -120,7 +120,7 @@ class ScopedMetricsTests(unittest.TestCase):
         self.assertEqual(result['definitions']['untranslated'], 1)
         self.assertEqual(result['items']['coqc-error'], 1)      # items without a definition stay
         self.assertEqual(result['scope'], {'instructions': 1, 'functions': 6, 'excluded_functions': 7, 'excluded_values': 1,
-                                           'policy_excluded': {'no-op': 0, 'failure': 0, 'unconstrained': 0, 'registers': 0}})
+                                           'policy_excluded': {'no-op': 0, 'failure': 0, 'unconstrained': 0, 'value': 0, 'registers': 0}})
         self.assertTrue(metrics.format_metrics(result)[0].startswith('scope: the CHERIoT core, 1 instructions and 6 functions'))
 
 
@@ -162,6 +162,19 @@ class PolicyExclusionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unknown keys noop'):
             scope.ScopeFile.from_text(POLICY_SCOPE_FILE + 'noop = ["x"]\n')
 
+    def test_value(self):
+        text = POLICY_SCOPE_FILE + 'value = { fetch = "0x00", unused = "None()" }\n'
+        self.assertEqual(scope.ScopeFile.from_text(text).values, {'fetch': '0x00', 'unused': 'None()'})
+        result = policy_scope(text)
+        self.assertNotIn('fetch', result.nodes)
+        self.assertEqual(result.policy_counts()['value'], 2)
+        self.assertIn("(exclude-functions-as-value\n  '(\n   (\"fetch\" \"0x00\")\n   (\"unused\" \"None()\")\n  ))\n",
+                      scope.configuration(result))
+
+    def test_a_value_with_a_double_quote(self):
+        with self.assertRaisesRegex(ValueError, 'value for fetch must be a Sail expression without double quotes'):
+            scope.ScopeFile.from_text(POLICY_SCOPE_FILE + 'value = { fetch = \'"x"\' }\n')
+
     def test_two_policies_for_one_definition(self):
         with self.assertRaisesRegex(ValueError, 'helper under both no-op and failure'):
             scope.ScopeFile.from_text(POLICY_SCOPE_FILE + 'failure = ["helper"]\n')
@@ -175,7 +188,7 @@ class PolicyExclusionTests(unittest.TestCase):
         # they get their own configuration functions, not ignore-functions
         self.assertNotIn('helper', self.scope.excluded_functions)
         self.assertEqual(self.scope.policy, {'helper': 'no-op', 'truncate': 'unconstrained', 'vlenb': 'registers'})
-        self.assertEqual(self.scope.policy_counts(), {'no-op': 1, 'failure': 0, 'unconstrained': 1, 'registers': 1})
+        self.assertEqual(self.scope.policy_counts(), {'no-op': 1, 'failure': 0, 'unconstrained': 1, 'value': 0, 'registers': 1})
 
     def test_excluded_definitions_are_not_in_scope(self):
         self.assertFalse(self.scope.includes('helper'))     # step mentions it

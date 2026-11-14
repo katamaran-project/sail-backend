@@ -247,6 +247,7 @@ Ignoring a function only drops its definition: its callers still call it, so the
 (exclude-functions-as-no-op '("print_reg" "trace_write"))   ; a call becomes the unit value
 (exclude-functions-as-failure '("translate32"))             ; a call becomes stm_fail
 (exclude-functions-as-unconstrained '("pmp_allows"))        ; a call becomes an unconstrained value
+(exclude-functions-as-value '(("pmp_check" "None()")))      ; a call becomes the given Sail expression
 (exclude-registers '("pmpaddr0" "pmpcfg_n"))                 ; left out of Reg
 ```
 
@@ -259,12 +260,16 @@ Ignoring a function only drops its definition: its callers still call it, so the
   A proof about a caller must therefore hold for every value the call could return: the value is universally quantified, as undefined values are.
   The result does not depend on the arguments, and two calls can return different values. The arguments are still computed.
   (`unconstrained` has an implicit argument, a value of σ, which Rocq finds by type class search. It only shows that σ has a value, which `ForeignProgress` needs; it plays no part in the semantics.)
+- **Value**: each call becomes the given Sail expression, parsed, then type-checked at the type of the call in the call's environment, and translated as if it were written there.
+  Arguments with an effect are still computed (`let excluded_call_arguments = <arguments> in <expression>`); the others are dropped.
+  For a function whose result is known or chosen, such as a platform setting (`sys_pmp_count` is `0`) or a check that is assumed to pass (`pmpCheck` is `None()`).
+  An expression that does not parse or type-check stops the translation with an error. The expression cannot contain a double quote (Slang strings have no escapes).
 - **Registers**: an excluded register is left out of `Reg`. Each read of it becomes an unconstrained value of its type, as above, and each write a no-op (the written value is still computed).
 
 An excluded function's definition and its `val` specification are not translated, as with `ignore-functions`.
 The names are Sail's names. Each call adds to the names of earlier calls; excluding the same function in two different ways is an error.
 The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` (`docs/cheriot-loop.md` §4.2).
-See the `tests/coq-tests/exclude-*` tests.
+See the `tests/coq-tests/exclude-*` tests. `exclude-functions-as-value` takes pairs of the function's name and the expression.
 
 ### `$include`
 

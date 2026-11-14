@@ -1062,6 +1062,18 @@ let rec statement_of_aexp
           TC.return @@ wrap @@ Ast.Statement.Fail (result_type, message)
         end
       | Unconstrained -> TC.return @@ wrap @@ Ast.Statement.Unconstrained result_type
+      | Value value -> begin
+          (* replace_calls_by_values replaces these calls before the ANF conversion; this one could not be replaced *)
+          let message =
+            Printf.sprintf
+              "%s is excluded by %s, but its replacement %s does not parse, or does not type-check at the type of this call, %s"
+              receiver_name
+              (Configuration.FunctionExclusion.slang_function_name exclusion)
+              value
+              (Ast.Type.to_string result_type)
+          in
+          TC.fail [%here] message
+        end
     in
 
     match Configuration.function_exclusion (Libsail.Ast_util.string_of_id receiver_identifier) with
@@ -1735,6 +1747,66 @@ let rewrite_truncated_zero_padding (expression : Sail.type_annotation S.exp) : S
   Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
 
 
+(*
+   Replaces each call to a function that the configuration excludes with a value
+   (exclude-functions-as-value) with that value: a Sail expression, parsed and then
+   type-checked at the type of the call, in the call's environment.
+
+     f(x, read_reg())        with  (exclude-functions-as-value '(("f" "None()")))
+
+   becomes
+
+     let excluded_call_arguments = read_reg() in None()
+
+   Arguments with an effect are still computed; the others are dropped.
+   A replacement that does not parse or type-check leaves the call as it is;
+   its translation then fails with an error (see statement_of_application).
+*)
+let replace_calls_by_values (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux     )
+      (annotation           : Sail.type_annotation S.annot       ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match unwrapped_expression with
+    | S.E_app (identifier, arguments) -> begin
+        match Configuration.function_exclusion (Libsail.Ast_util.string_of_id identifier) with
+        | Some (Value value) -> begin
+            try
+              let value_expression =
+                Libsail.Initial_check.exp_of_string Libsail.Initial_check.initial_ctx value
+              in
+              let replacement =
+                let effectful_arguments =
+                  List.filter arguments ~f:(fun argument -> Libsail.Ast_util.effectful (Libsail.Type_check.effect_of argument))
+                in
+                let untyped = TypeCheck.strip_exp
+                (* not a wildcard: the translation does not support let _ = ... (Match.ml) *)
+                and unused_binder = Libsail.Ast_util.mk_pat (S.P_id (Libsail.Ast_util.mk_id "excluded_call_arguments"))
+                in
+                match effectful_arguments with
+                | []         -> value_expression
+                | [ single ] -> Libsail.Ast_util.mk_exp (S.E_let (unused_binder, untyped single, value_expression))
+                | several    -> begin
+                    let tuple = Libsail.Ast_util.mk_exp (S.E_tuple (List.map ~f:untyped several))
+                    in
+                    Libsail.Ast_util.mk_exp (S.E_let (unused_binder, tuple, value_expression))
+                  end
+              in
+              TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+        | Some (NoOp | Failure | Unconstrained) -> original
+        | None                                  -> original
+      end
+    | _ -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -1759,7 +1831,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_truncated_zero_padding body_without_messages
+       let body        = S.anf @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        let* locally_bound_identifiers =
