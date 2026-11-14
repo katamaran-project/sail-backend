@@ -57,6 +57,9 @@ Longer documentation is in `docs/` (`code-overview.md`, `usage.md`, `tests.md`, 
 - **CHERIoT loop**: `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail>` (`tests/cheriot/run.py`; the configuration is `case-studies/cheriot/configuration.lisp`, and `CHERIOT_CASE_STUDY` selects another case study directory) translates the CHERIoT core (the scope in `tests/cheriot/scope.toml`, computed from the call graph) with this checkout's plugin, compiles the result with coqc (plain, and with `NYI` as an axiom), and reports metrics, in about 1.5 minutes. `CHERIOT_ARGS=--no-coq` skips coqc; `--no-scope` translates the whole model.
   A run fails if any definition, clean instruction or Rocq position got worse than in `tests/cheriot/baseline.json`; `CHERIOT_ARGS=--update-baseline` accepts the current state, in the commit that makes the progress.
   Each run appends a line to `tests/cheriot/history.csv` (tracked).
+  coqc runs under a watchdog that stops it when one command runs longer than `--coq-stall` seconds (default 45, kept tight on purpose: a stall points to a real problem, such as a quadratic derivation); the report names the stuck command.
+  To compile a generated file by hand the same way, use `tests/cheriot/coq-watch.py --stall 45 FILE.v`, which reports the running command and its line as it goes.
+  Rocq verdicts and `base.vo` are cached, keyed by the file contents and the Rocq installation.
   What is in and out of the CHERIoT scope is the user's decision, recorded in `cheriot-inventory/PROJECT-STATUS.md` §1a; read it before picking work.
   For example, virtual memory (Sv32, page tables, TLB) is out of scope: do not work on it or ask about it.
   Output goes to `tests/cheriot/output/<timestamp>-<commit>[-dirty]/` (about 160 MB per run, mostly the log; `latest` points to the newest).
