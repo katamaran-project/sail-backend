@@ -20,9 +20,14 @@
   "execute_CJAL",
   "execute_CJALR",
   "execute_CMove",
+  "execute_CRAM",
+  "execute_CRRL",
   "execute_CSEQX",
   "execute_CSeal",
   "execute_CSetAddr",
+  "execute_CSetBounds",
+  "execute_CSetBoundsExact",
+  "execute_CSetBoundsImmediate",
   "execute_CSetBoundsRoundDown",
   "execute_CSpecialRW",
   "execute_CSub",
@@ -52,7 +57,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "da9963ca+dirty",
+ "commit": "50a76d89+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -575,7 +580,7 @@
   "sail_ones": "ok",
   "sealCap": "ok",
   "setCapAddr": "ok",
-  "setCapBounds": "holes",
+  "setCapBounds": "ok",
   "setCapBoundsRoundDown": "ok",
   "setCapPerms": "ok",
   "set_mstatus_SXL": "ok",
@@ -630,10 +635,10 @@
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 29,
+  "NYI holes": 25,
   "functions generated": 502,
   "hard failures": 0,
-  "instructions clean": 50,
+  "instructions clean": 55,
   "instructions generated": 61,
   "missing calls": 116,
   "untranslated definitions": 43
@@ -642,11 +647,10 @@
   "align_down": 3,
   "execute_CSetHigh": 1,
   "ext_data_get_addr": 1,
-  "pmpReadAddrReg": 4,
+  "pmpReadAddrReg": 2,
   "pmpReadCfgReg": 4,
   "pmpWriteAddrReg": 5,
   "read_ram": 1,
-  "setCapBounds": 2,
   "tag_addr_to_addr": 1,
   "writeCSR": 5
  },
@@ -3817,6 +3821,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261114T232211-da9963ca-dirty",
+ "run": "20261114T233931-50a76d89-dirty",
  "scope": "a130c4ba22f6"
 }
