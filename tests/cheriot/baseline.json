@@ -59,7 +59,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "b372ec63+dirty",
+ "commit": "e53999e9+dirty",
  "date": "2026-11-15",
  "definitions": {
   "CGP_IDX": "ok",
@@ -371,7 +371,7 @@
   "ext_fetch_check_pc": "ok",
   "ext_fetch_hook": "ok",
   "ext_handle_control_check_error": "ok",
-  "ext_handle_data_check_error": "missing",
+  "ext_handle_data_check_error": "ok",
   "ext_handle_fetch_check_error": "ok",
   "ext_init": "ok",
   "ext_init_regs": "ok",
@@ -609,12 +609,12 @@
  },
  "headline": {
   "NYI holes": 4,
-  "functions generated": 477,
+  "functions generated": 478,
   "hard failures": 0,
   "instructions clean": 57,
   "instructions generated": 61,
-  "missing calls": 102,
-  "untranslated definitions": 39
+  "missing calls": 100,
+  "untranslated definitions": 38
  },
  "holes": {
   "align_down": 3,
@@ -1107,6 +1107,7 @@
     "ext_control_check_pc",
     "ext_handle_control_check_error",
     "ext_data_get_addr",
+    "ext_handle_data_check_error",
     "ext_check_phys_mem_read",
     "ext_check_phys_mem_write",
     "ext_check_xret_priv",
@@ -1616,6 +1617,7 @@
     "ext_control_check_pc",
     "ext_handle_control_check_error",
     "ext_data_get_addr",
+    "ext_handle_data_check_error",
     "ext_check_phys_mem_read",
     "ext_check_phys_mem_write",
     "ext_check_xret_priv",
@@ -1987,6 +1989,7 @@
     "ext_control_check_pc",
     "ext_handle_control_check_error",
     "ext_data_get_addr",
+    "ext_handle_data_check_error",
     "ext_check_phys_mem_read",
     "ext_check_phys_mem_write",
     "ext_check_xret_priv",
@@ -2147,6 +2150,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261115T005054-b372ec63-dirty",
+ "run": "20261115T005442-e53999e9-dirty",
  "scope": "607441a76cdf"
 }

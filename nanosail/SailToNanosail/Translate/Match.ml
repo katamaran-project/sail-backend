@@ -2638,7 +2638,7 @@ let rec translate_pattern
   | Bitvector _        -> translate_pattern_for_atomic_type ()
   | Record _           -> translate_pattern_for_atomic_type ()
   | Application (_, _) -> translate_pattern_for_atomic_type ()
-  | Alias (_, _)       -> translate_pattern_for_atomic_type ()
+  | Alias (_, aliased) -> translate_pattern aliased sail_pattern  (* type ext_data_addr_error = (CapEx, capreg_idx) *)
   | Range (_, _)       -> translate_pattern_for_atomic_type ()
   | Function _         -> translate_pattern_for_atomic_type ()
   | TypeVariable _     -> translate_pattern_for_atomic_type ()
@@ -3352,7 +3352,8 @@ let translate
     in
     TC.map ~f cases
   in
-  match matched_type with
+  (* a match on a value of an abbreviated type is a match on the type it abbreviates (type ext_data_addr_error = (CapEx, capreg_idx)) *)
+  match Ast.Type.strip_aliases matched_type with
   | List element_type            -> translate_list_match location matched_identifier element_type translated_cases
   | Unit                         -> translate_unit_match location matched_identifier translated_cases output_type
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier translated_cases output_type
@@ -3366,7 +3367,7 @@ let translate
   | Bitvector _                  -> TC.not_yet_implemented [%here] location
   | Record _                     -> TC.not_yet_implemented [%here] location
   | Application (_, _)           -> TC.not_yet_implemented [%here] location
-  | Alias (_, _)                 -> TC.not_yet_implemented [%here] location
+  | Alias (_, _)                 -> TC.fail [%here] "aliases are stripped above"
   | Range (_, _)                 -> TC.not_yet_implemented [%here] location
   | Function _                   -> TC.not_yet_implemented [%here] location
   | TypeVariable _               -> TC.not_yet_implemented [%here] location

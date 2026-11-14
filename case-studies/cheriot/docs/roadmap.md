@@ -28,8 +28,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
   match dispatchInterrupt(cur_privilege) { Some(intr, priv) => ..., None() => ... }            // step
   ```
   - Blocks: `translationMode` (`LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`); `step` and `dispatchInterrupt` (`Some(ip, p)`), so interrupt handling.
-- **Tuple pattern at a tuple type abbreviation**: `let (capEx, regnum) = err` with `err : ext_data_addr_error`.
-  Blocks `ext_handle_data_check_error` (`LOAD`, `STORE`).
 - **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
   Blocks decoding; not counted in clean instructions, as decoders are not in their call cones.
 
