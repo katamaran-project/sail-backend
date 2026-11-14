@@ -29,6 +29,7 @@
   "execute_CSetBoundsExact",
   "execute_CSetBoundsImmediate",
   "execute_CSetBoundsRoundDown",
+  "execute_CSetHigh",
   "execute_CSpecialRW",
   "execute_CSub",
   "execute_CTestSubset",
@@ -57,7 +58,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "c90a4863+dirty",
+ "commit": "137304dd+dirty",
  "date": "2026-11-15",
  "definitions": {
   "CGP_IDX": "ok",
@@ -320,7 +321,7 @@
   "execute_CSetBoundsExact": "ok",
   "execute_CSetBoundsImmediate": "ok",
   "execute_CSetBoundsRoundDown": "ok",
-  "execute_CSetHigh": "holes",
+  "execute_CSetHigh": "ok",
   "execute_CSpecialRW": "ok",
   "execute_CSub": "ok",
   "execute_CTestSubset": "ok",
@@ -361,7 +362,7 @@
   "ext_check_xret_priv": "ok",
   "ext_control_check_addr": "ok",
   "ext_control_check_pc": "ok",
-  "ext_data_get_addr": "holes",
+  "ext_data_get_addr": "ok",
   "ext_decode": "ok",
   "ext_decode_compressed": "ok",
   "ext_exc_type_to_bits": "ok",
@@ -568,7 +569,7 @@
   "size_bits_backwards_matches": "ok",
   "sp": "ok",
   "step": "missing",
-  "tag_addr_to_addr": "holes",
+  "tag_addr_to_addr": "ok",
   "tick_pc": "ok",
   "to_bits": "ok",
   "to_phys_addr": "ok",
@@ -606,21 +607,18 @@
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 12,
+  "NYI holes": 7,
   "functions generated": 477,
   "hard failures": 0,
-  "instructions clean": 55,
+  "instructions clean": 56,
   "instructions generated": 61,
   "missing calls": 102,
   "untranslated definitions": 39
  },
  "holes": {
   "align_down": 3,
-  "execute_CSetHigh": 1,
-  "ext_data_get_addr": 1,
   "read_ram": 1,
-  "tag_addr_to_addr": 1,
-  "writeCSR": 5
+  "writeCSR": 3
  },
  "instructions": [
   "execute_ADDIW",
@@ -2149,6 +2147,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261115T003825-c90a4863-dirty",
+ "run": "20261115T004236-137304dd-dirty",
  "scope": "4ac8834d57bc"
 }

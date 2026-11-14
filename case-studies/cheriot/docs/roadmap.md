@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-6 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`, `CSR`, `CSetHigh`.
+5 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`, `CSR`.
 
 ## Memory path
 
@@ -35,8 +35,7 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Widths not known at compile time
 
-- **Widths from type-level constants**: `tag_addr_to_addr(tag_addr) = tag_addr @ zeros(log2_cap_size)` with `type log2_cap_size : Int = 3`. Hole. Blocks `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`.
-- **Run-time widths and slice indices**: `writeCSR` (blocks `CSR`), `execute_CSetHigh`, `ext_data_get_addr` (`LOAD`, `STORE`).
+- **Run-time widths and slice indices**: `writeCSR` (3 holes; blocks `CSR`).
 
 ## Undefined values and externs
 

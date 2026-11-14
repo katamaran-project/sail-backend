@@ -5,6 +5,19 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Concatenation widths behind type abbreviations were holes
+- Found: the loop's top blocker, `tag_addr_to_addr` (4 instructions); also `ext_data_get_addr`, `execute_CSetHigh`, `writeCSR`.
+- Cause: `@` read each operand's width from its type as is; `tagaddrbits` is `bits(xlen - log2_cap_size)`, `bits(32 - 3)` after Sail's rewrites, not a constant: `NYI` ("expected constant in bitvector type").
+- Fix: aliases stripped and the width simplified; a width that stays symbolic is printed as in types. Test `bitvectors-concat-width-from-type-constant`.
+```sail
+type tagaddrbits = bits(xlen - log2_cap_size)
+function tag_addr_to_addr(tag_addr : tagaddrbits) -> bits(xlen) = tag_addr @ zeros(log2_cap_size)
+```
+```coq
+(* before *) exp_binop (@bop.bvapp _ 3 NYI[0]) (exp_var "ga#0") (exp_var "tag_addr")
+(* after  *) exp_binop (@bop.bvapp _ 3 29) (exp_var "ga#0") (exp_var "tag_addr")
+```
+
 ### Comment listing untranslated definitions is not valid Rocq
 - Found: the loop's plain Rocq stopped in `base.v` at the template's `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.` (fails by design); behind it, the comment with the Sail source of untranslated definitions.
 - Cause: Rocq lexes string literals and nested comments inside comments; an odd number of `"` or a `*)` in the Sail source ends or breaks the comment ("Unterminated comment").
