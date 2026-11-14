@@ -95,8 +95,11 @@ def rocq_position(compilations: Optional[list[dict[str, Any]]]) -> Optional[dict
     compiled = sum(1 for c in compilations if c['ok'])
     failed = next((c for c in compilations if not c['ok']), None)
     error = failed['error'] if failed and failed['error'] else {}
-    return {'compiled': compiled, 'file': failed['file'] if failed else None,
-            'accepted': error.get('accepted', []), 'definitions': error.get('definitions', [])}
+    position = {'compiled': compiled, 'file': failed['file'] if failed else None,
+                'accepted': error.get('accepted', []), 'definitions': error.get('definitions', [])}
+    if failed and failed.get('stuck'):
+        position['stuck'] = failed['stuck']
+    return position
 
 
 def compare_rocq(old: dict[str, Any], new: dict[str, Any]) -> Optional[str]:
@@ -105,7 +108,11 @@ def compare_rocq(old: dict[str, Any], new: dict[str, Any]) -> Optional[str]:
     More files compiled is better. In the same failing file, it is worse if a definition that
     Rocq accepted before still exists but is no longer accepted, and better if Rocq now accepts
     a definition it did not accept before (and nothing is worse).
+    'stuck' if either compilation was stopped by the watchdog (rocq.watch): where it stopped
+    says nothing about how far Rocq would get.
     """
+    if new.get('stuck') or old.get('stuck'):
+        return 'stuck'
     if new['compiled'] != old['compiled']:
         return 'better' if new['compiled'] > old['compiled'] else 'worse'
     if new['file'] is None or new['file'] != old['file']:
@@ -134,11 +141,14 @@ class Comparison:
     regressions: list[str] = field(default_factory=list)
     improvements: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    stuck: list[str] = field(default_factory=list)      # Rocq compilations that were not compared
 
     @property
     def result(self) -> str:
         if self.regressions:
             return 'REGRESSION'
+        if self.stuck:
+            return 'STUCK'
         return 'PROGRESS' if self.improvements else 'UNCHANGED'
 
 
@@ -176,7 +186,15 @@ def compare(baseline: Snapshot, current: Snapshot) -> Comparison:
             verdict = compare_rocq(old, new)
             where = (f'{old["compiled"]} -> {new["compiled"]} files compiled; '
                      f'{len(old["accepted"])} -> {len(new["accepted"])} definitions accepted in {new["file"] or "-"}')
-            if verdict == 'worse':
+            if verdict == 'stuck':
+                for which, position in (('now', new), ('in the baseline', old)):
+                    if position.get('stuck'):
+                        stuck = position['stuck']
+                        comparison.stuck.append(
+                            f'Rocq {kind} {which}: coqc stopped at {position["file"]}:{stuck["line"]}'
+                            f'{" in " + stuck["definition"] if stuck.get("definition") else ""} after {stuck["seconds"]:.0f} s '
+                            f'on one command (limit {stuck["limit"]:.0f} s): {stuck["command"][:60]}; not compared')
+            elif verdict == 'worse':
                 lost = [n for n in old['accepted'] if n in set(new['definitions']) and n not in set(new['accepted'])]
                 comparison.regressions.append(f'Rocq {kind}: stops earlier ({where}; no longer accepted: {", ".join(lost[:5])})')
             elif verdict == 'better':

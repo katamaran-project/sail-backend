@@ -47,6 +47,12 @@
                 "trans_kind"
                 "cache_op_kind"
                 "instruction_kind"
+                ;; Sv32 TLB entries: virtual memory is out of scope
+                ;; (cheriot-inventory/PROJECT-STATUS.md, section 1a).
+                ;; TLB_Entry is a struct with Int parameters, which
+                ;; Rocq rejects; the TLB functions become untranslated.
+                "TLB_Entry"
+                "TLB32_Entry"
                 )
               identifier)))
 

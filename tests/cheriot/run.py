@@ -4,7 +4,7 @@ The outer loop: translate the CHERIoT model with this checkout's plugin, and mea
 
 Usage:
     tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--update-baseline] [--no-scope] [--no-coq]
-                         [--coq-timeout S] [--keep-dumps] [--output-dir DIR]
+                         [--coq-stall S] [--no-coq-cache] [--keep-dumps] [--output-dir DIR]
 
 or `gmake cheriot CHERIOT_SAIL_DIR=...`. See docs/cheriot-loop.md.
 
@@ -33,6 +33,13 @@ The run has these stages; a stage that fails ends the run.
                 do, and probe copies in which NYI is an axiom, whose first error is
                 the first problem beyond the NYI holes (lib/rocq.py). An error in
                 the generated Rocq is a measurement, not a failed stage.
+                coqc runs under a watchdog: a command that runs longer than
+                --coq-stall seconds (default 45) stops it, and the compilation is
+                reported as STUCK on that command, which the ratchet does not count
+                as Rocq getting less far. A file without NYI is compiled once (its
+                probe is the plain compilation); plain and probe run in parallel;
+                verdicts and base.vo are cached (ROCQ_CACHE below; --no-coq-cache).
+                The report and metrics.json list the slowest commands.
     analyse     items, reachability, missing calls and piles (tests/cheriot/lib),
                 restricted to the scope. It fails if machine.v calls an excluded
                 definition other than from a dispatcher (the scope is then wrong),
@@ -53,6 +60,11 @@ with <output-dir>/latest pointing to it (default output dir: tests/cheriot/outpu
 sources.txt, the logs, base.v and machine.v, dump/ (only the last Sail rewrite
 dump, unless --keep-dumps), coqc-*.log, probe/, items.csv, dangling-calls.csv, piles.txt,
 run.json (inputs and stages), metrics.json, and scope-ignores.lisp and scope.json.
+
+ROCQ_CACHE: coqc verdicts and compiled .vo files, in $SAIL_BACKEND_CHERIOT_ROCQ_CACHE, or
+else $XDG_CACHE_HOME/sail-backend/cheriot-rocq, keyed by the compiled file, the files it
+loads and a fingerprint of the Rocq installation (coqc's version and every installed .vo).
+Only the newest entries are kept; the cache can be deleted at any time.
 
 DUMP_CACHE: the rewrite dumps for the scope are cached in $SAIL_BACKEND_CHERIOT_CACHE,
 or else $XDG_CACHE_HOME/sail-backend/cheriot-dumps (~/.cache/...), keyed by the
@@ -95,7 +107,6 @@ PINS = HERE / 'inputs.toml'
 DEFAULT_CASE_STUDY = CHECKOUT / 'case-studies' / 'cheriot'
 SAIL_VERSION = '0.20.3'
 COQC = 'coqc'
-DEFAULT_COQ_TIMEOUT = 1800
 VERBOSE = '4'
 CASE_STUDY_FILES = ['configuration.lisp', 'printvar.mak']
 SCOPE_FILE = HERE / 'scope.toml'
@@ -103,6 +114,10 @@ REWRITES = CHECKOUT / 'sail_plugin' / 'Rewrites.ml'
 DUMP_CACHE = Path(
     os.environ.get('SAIL_BACKEND_CHERIOT_CACHE')
     or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'cheriot-dumps'
+)
+ROCQ_CACHE = Path(
+    os.environ.get('SAIL_BACKEND_CHERIOT_ROCQ_CACHE')
+    or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'cheriot-rocq'
 )
 SCOPE_INCLUDE = 'scope-ignores.lisp'
 BASELINE = HERE / 'baseline.json'
@@ -415,16 +430,26 @@ def last_dump(dump_directory: Path, keep_all: bool) -> Optional[Path]:
     return last
 
 
-def compile_rocq(sandbox: Path, timeout: float) -> tuple[Stage, dict[str, Any]]:
+def compile_rocq(sandbox: Path, stall: float, use_cache: bool) -> tuple[Stage, dict[str, Any]]:
     stage = Stage('rocq')
     start = time.monotonic()
-    plain = rocq.compile_all(COQC, sandbox, timeout)
-    probe = rocq.probe_all(COQC, sandbox, sandbox / 'probe', timeout)
+    fingerprint = rocq.coq_fingerprint(COQC) if use_cache else None
+    cache = rocq.Cache(ROCQ_CACHE, fingerprint) if fingerprint else None
+    compilations = rocq.compile_both(COQC, sandbox, sandbox / 'probe', stall, cache)
     stage.seconds = time.monotonic() - start
     stage.ok = True
-    results = {'plain': [c.as_json() for c in plain], 'probe': [c.as_json() for c in probe]}
-    stage.summary = 'plain: ' + ('compiles' if all(c.ok for c in plain) else 'stops (see below)') + \
-                    '; probe: ' + ('compiles' if all(c.ok for c in probe) else 'stops (see below)')
+    results = {kind: [c.as_json() for c in compilations[kind]] for kind in ('plain', 'probe')}
+
+    def summary(kind: str) -> str:
+        found = results[kind]
+        verdict = ('compiles' if all(c['ok'] for c in found) else
+                   'STUCK (see below)' if rocq.is_stuck(found) else 'stops (see below)')
+        notes = [note for note, present in (('cached', any(c['cached'] for c in found)),
+                                            ('same as plain', bool(found) and all(c['reused'] for c in found)))
+                 if present]
+        return f'{kind}: {verdict}' + (f' ({", ".join(notes)})' if notes else '')
+
+    stage.summary = '; '.join(summary(kind) for kind in ('plain', 'probe'))
     return stage, results
 
 
@@ -488,11 +513,17 @@ def ratchet(snapshot: progress.Snapshot, update: bool) -> tuple[Stage, Optional[
         if update:
             stage.summary += '; this run is now the baseline'
         stage.details = ([f'WORSE  {r}' for r in comparison.regressions] +
+                         [f'STUCK  {s}' for s in comparison.stuck] +
                          [f'better {i}' for i in comparison.improvements[:20]] +
                          ([f'better ... and {len(comparison.improvements) - 20} more'] if len(comparison.improvements) > 20 else []) +
                          [f'note   {n}' for n in comparison.notes])
     if update:
-        BASELINE.write_text(json.dumps(snapshot, indent=1, sort_keys=True) + '\n')
+        accepted = snapshot
+        if baseline and baseline.get('rocq') and snapshot.get('rocq'):
+            # a stuck compilation is no position: keep the baseline's
+            accepted = {**snapshot, 'rocq': {kind: baseline['rocq'][kind] if (snapshot['rocq'][kind] or {}).get('stuck')
+                                             else snapshot['rocq'][kind] for kind in ('plain', 'probe')}}
+        BASELINE.write_text(json.dumps(accepted, indent=1, sort_keys=True) + '\n')
     stage.seconds = time.monotonic() - start
     return stage, comparison, baseline
 
@@ -536,7 +567,8 @@ def rocq_summary(result: metrics.Metrics, kind: str) -> str:
     failed = next((c for c in compilations if not c['ok']), None)
     if failed is None:
         return 'ok'
-    return f'{failed["file"]}:{failed["error"]["line"] if failed["error"] else "?"}' 
+    where = f'{failed["file"]}:{failed["error"]["line"] if failed["error"] else "?"}'
+    return f'stuck {where}' if failed.get('stuck') else where
 
 
 # --------------------------------------------------------------------------
@@ -595,8 +627,9 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
                         help='accept this run as the baseline (tests/cheriot/baseline.json), even if it is worse')
     parser.add_argument('--no-scope', action='store_true', help='translate and measure the whole model')
     parser.add_argument('--no-coq', action='store_true', help='skip the Rocq stage')
-    parser.add_argument('--coq-timeout', type=float, default=DEFAULT_COQ_TIMEOUT,
-                        help=f'seconds per coqc call (default: {DEFAULT_COQ_TIMEOUT})')
+    parser.add_argument('--coq-stall', type=float, default=rocq.DEFAULT_STALL,
+                        help=f'seconds one Rocq command may run before coqc is stopped (default: {rocq.DEFAULT_STALL:.0f})')
+    parser.add_argument('--no-coq-cache', action='store_true', help='compile without the Rocq cache (ROCQ_CACHE)')
     parser.add_argument('--keep-dumps', action='store_true', help='keep the Sail AST dump of every rewrite')
     parser.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR)
     return parser.parse_args(argv)
@@ -636,7 +669,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         if stages[-1].ok:
             rocq_results = None
             if not arguments.no_coq:
-                stage, rocq_results = compile_rocq(sandbox, arguments.coq_timeout)
+                stage, rocq_results = compile_rocq(sandbox, arguments.coq_stall, not arguments.no_coq_cache)
                 stages.append(stage)
             identity = {'commit': describe(inputs['sail-backend']), 'date': datetime.date.today().isoformat(),
                         'run': identifier, 'cheriot-sail': inputs['cheriot-sail']['commit'],
