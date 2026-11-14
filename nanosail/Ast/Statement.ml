@@ -36,6 +36,12 @@ type t =
   | Cast              of t * Type.t
   | Fail              of Type.t * string
   (*
+    An unconstrained value of the given type: every value of the type is possible.
+    Used for the uses of definitions that the configuration excludes
+    (Configuration.FunctionExclusion.Unconstrained, Configuration.is_excluded_register).
+  *)
+  | Unconstrained     of Type.t
+  (*
     Embellish a statement with its Sail code location.
     Used in error message production.
   *)
@@ -439,6 +445,12 @@ let rec equal
       | _ -> false
     end
 
+  | Unconstrained type_1 -> begin
+      match statement_2 with
+      | Unconstrained type_2 -> Type.equal type_1 type_2
+      | _ -> false
+    end
+
   (* Unreachable: Located is stripped above. Handled correctly for safety. *)
   | Located (_, inner_statement_1) -> equal inner_statement_1 statement_2
 
@@ -674,6 +686,14 @@ let rec to_fexpr (statement : t) : FExpr.t =
     in
     FExpr.mk_application ~keyword "Stm:Fail"
 
+  and unconstrained_to_fexpr (typ : Type.t) : FExpr.t =
+    let keyword =
+      [
+        ("type", Type.to_fexpr typ);
+      ]
+    in
+    FExpr.mk_application ~keyword "Stm:Unconstrained"
+
   and located_to_fexpr (location : Libsail.Parse_ast.l) (statement : t) : FExpr.t =
     let keyword =
       [
@@ -692,6 +712,7 @@ let rec to_fexpr (statement : t) : FExpr.t =
   | ReadRegister id              -> read_register_to_fexpr id
   | Cast (expression, typ)       -> cast_to_fexpr expression typ
   | Fail (typ, message)          -> fail_to_fexpr typ message
+  | Unconstrained typ            -> unconstrained_to_fexpr typ
   | Let {
       binder;
       binding_statement_type;
@@ -844,6 +865,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | WriteRegister { register_identifier; written_value } -> Identifier.Set.of_list [ register_identifier; written_value ] (* todo check inclusion of register_identifier *)
   | Cast (statement, _)                                  -> free_variables statement
   | Fail _                                               -> Identifier.Set.empty
+  | Unconstrained _                                      -> Identifier.Set.empty
   | Located (_, statement)                               -> free_variables statement
 
 
@@ -857,6 +879,7 @@ class virtual ['a] visitor =
     method virtual visit_destructure_record : record_type_identifier : Identifier.t -> field_identifiers : Identifier.t list -> binders : Identifier.t list -> destructured_record : t -> body : t -> 'a
     method virtual visit_expression         : expression : Expression.t -> 'a
     method virtual visit_fail               : typ : Type.t -> message : string -> 'a
+    method virtual visit_unconstrained      : typ : Type.t -> 'a
     method virtual visit_let                : binder : Identifier.t -> binding_statement_type : Type.t -> binding_statement : t -> body_statement : t -> 'a
     method virtual visit_match              : pattern : match_pattern -> 'a
     method virtual visit_match_bool         : condition : Identifier.t -> when_true : t -> when_false : t -> 'a
@@ -894,6 +917,7 @@ class identity_rewriter =
       | WriteRegister { register_identifier; written_value }                                                -> self#visit_write_register ~register_identifier ~written_value
       | Cast (statement, cast_to)                                                                           -> self#visit_cast ~statement ~cast_to
       | Fail (typ, message)                                                                                 -> self#visit_fail ~typ ~message
+      | Unconstrained typ                                                                                   -> self#visit_unconstrained ~typ
       | Located (location, statement)                                                                       -> Located (location, self#visit statement)
 
     method visit_match ~(pattern : match_pattern) : t =
@@ -1080,6 +1104,9 @@ class identity_rewriter =
         ~(message : string) : t
       =
       Fail (self#foreign_visit_type typ, message)
+
+    method visit_unconstrained ~(typ : Type.t) : t =
+      Unconstrained (self#foreign_visit_type typ)
 
     (*
        The method visit_expression operates on Statement values.

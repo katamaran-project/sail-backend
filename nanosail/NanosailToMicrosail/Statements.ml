@@ -664,6 +664,18 @@ and pp_fail
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
+(*
+   An unconstrained value of type σ is a call to the foreign function (unconstrained σ),
+   which the generated program declares (see ProgramModule.FunDeclKit and ForeignKit):
+
+     stm_foreign (unconstrained (ty.bvec 32)) env.nil
+*)
+and pp_unconstrained (typ : Ast.Type.t) : PP.t GC.t =
+  let* pp_typ = Type.pp_type typ
+  in
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_unconstrained pp_typ
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
   GC.pp_annotate [%here] begin
     match statement with
@@ -698,5 +710,6 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                                                      ~body
     | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
     | Fail (typ, message)                       -> pp_fail typ message
+    | Unconstrained typ                         -> pp_unconstrained typ
     | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
   end

@@ -38,6 +38,9 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   and should_ignore_overload (_identifier : string) : bool =
     Configuration.(get ignore_overloads)
 
+  and should_ignore_register_definition (register_definition : Sail.type_annotation dec_spec) : bool =
+    Configuration.is_excluded_register (Sail.identifier_of_register_definition register_definition)
+
   in
   match definition with
   | DEF_type type_definition          -> should_ignore_type_definition type_definition
@@ -54,7 +57,7 @@ let should_ignore_definition (definition : Sail.sail_definition) : bool =
   | DEF_scattered _                   -> false
   | DEF_measure (_, _, _)             -> false
   | DEF_loop_measures (_, _)          -> false
-  | DEF_register _                    -> false
+  | DEF_register register_definition  -> should_ignore_register_definition register_definition
   | DEF_internal_mutrec _             -> false
   | DEF_constraint _                  -> false
   | DEF_pragma (identifier, _)        -> should_ignore_pragma identifier

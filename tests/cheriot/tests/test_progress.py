@@ -189,6 +189,29 @@ class CompareTests(unittest.TestCase):
         self.assertEqual(comparison.notes, ['1 definitions entered the scope: new', '1 definitions left the scope: gone',
                                             "scope differs from the baseline's (x -> y)"])
 
+    def test_policy_exclusions_are_notes_not_regressions(self):
+        # print_helper (missing in the baseline) is now excluded as a no-op: it leaves the scope,
+        # which is a note, and it is not a regression
+        before = make_snapshot({'f': 'ok', 'print_helper': 'missing', 'gone': 'ok'})
+        after = progress.snapshot({'f': 'ok'}, {}, {'execute_A': []}, None,
+                                  {'commit': 'c', 'date': 'd', 'cheriot-sail': 's', 'scope': 'y'},
+                                  {'print_helper': 'no-op'})
+        comparison = progress.compare(before, after)
+        self.assertEqual(comparison.result, 'UNCHANGED')
+        self.assertEqual(comparison.notes, ['1 definitions newly policy-excluded: print_helper (no-op)',
+                                            '1 definitions left the scope because they are policy-excluded: print_helper',
+                                            '1 definitions left the scope: gone',
+                                            "scope differs from the baseline's (x -> y)"])
+
+    def test_a_definition_no_longer_excluded_is_a_note(self):
+        before = progress.snapshot({'f': 'ok'}, {}, {'execute_A': []}, None,
+                                   {'commit': 'c', 'date': 'd', 'cheriot-sail': 's', 'scope': 'x'}, {'g': 'failure'})
+        comparison = progress.compare(before, make_snapshot({'f': 'ok', 'g': 'missing'}))
+        self.assertEqual(comparison.result, 'UNCHANGED')
+        self.assertEqual(comparison.notes, ['1 definitions no longer policy-excluded: g',
+                                            '1 definitions entered the scope: g'])
+
+
 
 if __name__ == '__main__':
     unittest.main()
