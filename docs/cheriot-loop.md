@@ -184,7 +184,9 @@ and the ratchet stage lists the definitions that got better or worse since the b
 - `tests/cheriot/baseline.json`, also tracked, stores the **per-definition status** at the last accepted state.
 - A run **fails (exit 1)** if any in-scope definition got worse than in the baseline (translated → untranslated, clean → not clean, new hard failure, Rocq first error earlier), even if the totals improved.
 - *Implemented (step 5)* as the `ratchet` stage (`lib/progress.py`), for runs with a scope. Worse means: a definition's status went down (`ok` > `holes` > `missing`), a definition with holes got more of them,
-  a clean instruction is no longer clean, or the plain or probe Rocq compilation stops earlier. Definitions that enter or leave the scope, and a changed `scope.toml` or cheriot-sail commit, are reported as notes.
+  a clean instruction is no longer clean, or the plain or probe Rocq compilation stops earlier.
+  "Earlier" compares names, not counts: fewer files compiled, or a definition that Rocq accepted in the baseline still exists but is no longer accepted.
+  (Comparing the number of definitions before the error made a pure clean-up, which ignores definitions before it, look like a regression.) Definitions that enter or leave the scope, and a changed `scope.toml` or cheriot-sail commit, are reported as notes.
 - `case-studies/cheriot/PROGRESS.md` is the readable summary of the numbers, kept by hand: current numbers, blockers and a row per commit that changes them.
 - `--update-baseline` accepts the current state. It is part of the commit that makes the progress, so `git log tests/cheriot/baseline.json` is the progress log.
 

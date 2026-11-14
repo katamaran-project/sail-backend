@@ -81,16 +81,40 @@ def blocker_ranking(blockers: dict[str, list[str]]) -> list[tuple[str, int]]:
     return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
 
-def rocq_position(compilations: Optional[list[dict[str, Any]]]) -> Optional[list[int]]:
+def rocq_position(compilations: Optional[list[dict[str, Any]]]) -> Optional[dict[str, Any]]:
     """
-    How far a compilation got, as a comparable [files compiled, definitions before the first error];
-    [2, 0] when both files compile. None when Rocq did not run.
+    How far a compilation got: the number of files that compiled, and in the file that failed,
+    the names of the definitions Rocq accepted before the first error and of all its definitions.
+    None when Rocq did not run.
+
+    Names, not counts, are compared (see compare_rocq): ignoring definitions before the error
+    lowers the count without the compilation getting any less far.
     """
     if compilations is None:
         return None
     compiled = sum(1 for c in compilations if c['ok'])
     failed = next((c for c in compilations if not c['ok']), None)
-    return [compiled, failed['error']['before'] if failed and failed['error'] else 0]
+    error = failed['error'] if failed and failed['error'] else {}
+    return {'compiled': compiled, 'file': failed['file'] if failed else None,
+            'accepted': error.get('accepted', []), 'definitions': error.get('definitions', [])}
+
+
+def compare_rocq(old: dict[str, Any], new: dict[str, Any]) -> Optional[str]:
+    """
+    'better' or 'worse' if the compilation got further or less far, None if neither.
+    More files compiled is better. In the same failing file, it is worse if a definition that
+    Rocq accepted before still exists but is no longer accepted, and better if Rocq now accepts
+    a definition it did not accept before (and nothing is worse).
+    """
+    if new['compiled'] != old['compiled']:
+        return 'better' if new['compiled'] > old['compiled'] else 'worse'
+    if new['file'] is None or new['file'] != old['file']:
+        return None
+    still_defined = set(new['definitions'])
+    accepted_now = set(new['accepted'])
+    if any(name in still_defined and name not in accepted_now for name in old['accepted']):
+        return 'worse'
+    return 'better' if accepted_now - set(old['accepted']) else None
 
 
 def snapshot(statuses: dict[str, str], holes: dict[str, int], blockers: dict[str, list[str]],
@@ -146,10 +170,17 @@ def compare(baseline: Snapshot, current: Snapshot) -> Comparison:
     if baseline.get('rocq') and current.get('rocq'):
         for kind in ('plain', 'probe'):
             old, new = baseline['rocq'][kind], current['rocq'][kind]
-            if old and new and new < old:
-                comparison.regressions.append(f'Rocq {kind}: stops earlier ({old} -> {new}: files compiled, definitions before the error)')
-            elif old and new and new > old:
-                comparison.improvements.append(f'Rocq {kind}: gets further ({old} -> {new})')
+            if not isinstance(old, dict) or not isinstance(new, dict):
+                comparison.notes.append(f'Rocq {kind}: the baseline records it in an older form, so it was not compared')
+                continue
+            verdict = compare_rocq(old, new)
+            where = (f'{old["compiled"]} -> {new["compiled"]} files compiled; '
+                     f'{len(old["accepted"])} -> {len(new["accepted"])} definitions accepted in {new["file"] or "-"}')
+            if verdict == 'worse':
+                lost = [n for n in old['accepted'] if n in set(new['definitions']) and n not in set(new['accepted'])]
+                comparison.regressions.append(f'Rocq {kind}: stops earlier ({where}; no longer accepted: {", ".join(lost[:5])})')
+            elif verdict == 'better':
+                comparison.improvements.append(f'Rocq {kind}: gets further ({where})')
     elif baseline.get('rocq') and not current.get('rocq'):
         comparison.notes.append('Rocq did not run, so it was not compared')
     for key in ('cheriot-sail', 'scope'):
