@@ -11,6 +11,14 @@ type t =
   | Prod      of t * t         (* todo replace this by tuple *)
   | Bit       of bool
   | Bitvector of bool list
+  (*
+     A record value. The fields are listed in the order of the record's definition.
+     Values of this kind are produced only by evaluating top-level lets (see ValueDefinition.ml).
+  *)
+  | Record    of { type_identifier        : Identifier.t;
+                   fields                 : (Identifier.t * t) list }
+  | Enum      of { type_identifier        : Identifier.t;
+                   constructor_identifier : Identifier.t }
 
 
 let mk_bool (value : bool) =
@@ -32,6 +40,8 @@ let rec type_of_value (value : t) : Type.t =
   | Prod (v1, v2) -> Tuple [type_of_value v1; type_of_value v2]
   | Bit _         -> Bit
   | Bitvector bs  -> Bitvector (Numeric.Expression.Constant (Z.of_int @@ List.length bs))
+  | Record { type_identifier; fields = _ }                 -> Record type_identifier
+  | Enum { type_identifier; constructor_identifier = _ }   -> Enum type_identifier
 
 
 let rec to_fexpr (value : t) : FExpr.t =
@@ -47,6 +57,18 @@ let rec to_fexpr (value : t) : FExpr.t =
          List.map ~f:(fun b -> FExpr.mk_int @@ if b then 1 else 0) bs
        in
        FExpr.mk_application ~positional "Bitvector"
+     end
+   | Record { type_identifier; fields } -> begin
+       let keyword =
+         [
+           ("type"  , Identifier.to_fexpr type_identifier);
+           ("fields", FExpr.mk_list @@ List.map fields ~f:(fun (field, value) -> FExpr.mk_list [Identifier.to_fexpr field; to_fexpr value]));
+         ]
+       in
+       FExpr.mk_application ~keyword "Record"
+     end
+   | Enum { type_identifier; constructor_identifier } -> begin
+       FExpr.mk_application ~positional:[Identifier.to_fexpr type_identifier; Identifier.to_fexpr constructor_identifier] "Enum"
      end
 
 
@@ -69,3 +91,20 @@ let rec equal
    | Bit _               , _                    -> false
    | Bitvector bs1       , Bitvector bs2        -> List.equal Bool.equal bs1 bs2
    | Bitvector _         , _                    -> false
+   | Record { type_identifier = type_identifier_1; fields = fields_1 },
+     Record { type_identifier = type_identifier_2; fields = fields_2 } -> begin
+       let equal_field (field_1, value_1) (field_2, value_2) =
+         Identifier.equal field_1 field_2 && equal value_1 value_2
+       in
+       Identifier.equal type_identifier_1 type_identifier_2
+       &&
+       List.equal equal_field fields_1 fields_2
+     end
+   | Record _            , _                    -> false
+   | Enum { type_identifier = type_identifier_1; constructor_identifier = constructor_identifier_1 },
+     Enum { type_identifier = type_identifier_2; constructor_identifier = constructor_identifier_2 } -> begin
+       Identifier.equal type_identifier_1 type_identifier_2
+       &&
+       Identifier.equal constructor_identifier_1 constructor_identifier_2
+     end
+   | Enum _              , _                    -> false

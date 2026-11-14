@@ -84,6 +84,9 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t 
       return @@ Expression.Variable (identifier, typ)
     end
 
+  (* Top-level values are global: they are never renamed *)
+  | TopLevelValue (_, _) -> return expression
+
   | List elements -> begin
       let* elements =
         map ~f:rename_in_expression elements

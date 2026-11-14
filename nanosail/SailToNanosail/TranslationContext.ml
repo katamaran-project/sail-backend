@@ -52,6 +52,24 @@ module Context = struct
          The actual order of the lists of parameter types is left unspecified.
       *)
       polymorphic_argtypes : Ast.Type.t list list Ast.Identifier.Map.t;
+
+      (*
+         Values of the top-level lets, as computed by Sail's interpreter before translation starts,
+         or why the interpreter could not compute them.
+      *)
+      evaluated_top_level_values : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t;
+
+      (*
+         Identifiers of the top-level values (lets) that were translated successfully.
+         References to them are translated as references to their Rocq definition.
+      *)
+      top_level_values : Ast.Identifier.Set.t;
+
+      (*
+         Identifiers bound locally (parameters, let, match, loop variables) in the function being translated.
+         A local binding can shadow a top-level value.
+      *)
+      locally_bound_identifiers : Ast.Identifier.Set.t;
     }
 
   let empty : t =
@@ -59,6 +77,9 @@ module Context = struct
       definitions          = [];
       next_id_index        = 0;
       polymorphic_argtypes = Ast.Identifier.Map.empty;
+      evaluated_top_level_values = Libsail.Ast_compare.Bindings.empty;
+      top_level_values           = Ast.Identifier.Set.empty;
+      locally_bound_identifiers  = Ast.Identifier.Set.empty;
     }
 
   (*
@@ -83,6 +104,39 @@ module Context = struct
         (next_id_index : int) : t
       =
       { context with next_id_index }
+    in
+    (get, set)
+
+  let evaluated_top_level_values =
+    let get (context : t) : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t =
+      context.evaluated_top_level_values
+    and set
+        (context                    : t                                              )
+        (evaluated_top_level_values : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t) : t
+      =
+      { context with evaluated_top_level_values }
+    in
+    (get, set)
+
+  let top_level_values =
+    let get (context : t) : Ast.Identifier.Set.t =
+      context.top_level_values
+    and set
+        (context          : t                   )
+        (top_level_values : Ast.Identifier.Set.t) : t
+      =
+      { context with top_level_values }
+    in
+    (get, set)
+
+  let locally_bound_identifiers =
+    let get (context : t) : Ast.Identifier.Set.t =
+      context.locally_bound_identifiers
+    and set
+        (context                   : t                   )
+        (locally_bound_identifiers : Ast.Identifier.Set.t) : t
+      =
+      { context with locally_bound_identifiers }
     in
     (get, set)
 
@@ -226,7 +280,76 @@ let store_definition (definition : Ast.Definition.t) : unit t =
   in
   let new_definitions = definition :: old_definitions
   in
+  let* () =
+    match definition with
+    | ValueDefinition { identifier; value = _ } -> begin
+        let* top_level_values = Monad.get Context.top_level_values
+        in
+        Monad.put Context.top_level_values (Ast.Identifier.Set.add top_level_values identifier)
+      end
+    | TopLevelTypeConstraintDefinition _ -> return ()
+    | FunctionDefinition _               -> return ()
+    | TypeDefinition _                   -> return ()
+    | RegisterDefinition _               -> return ()
+    | UntranslatedDefinition _           -> return ()
+    | IgnoredDefinition                  -> return ()
+  in
   Monad.put Context.definitions new_definitions
+
+
+(*
+   Stores the values of the top-level lets computed by Sail's interpreter.
+*)
+let set_evaluated_top_level_values (values : (Libsail.Ast.value, string) Result.t Libsail.Ast_compare.Bindings.t) : unit t =
+  Monad.put Context.evaluated_top_level_values values
+
+
+(*
+   Looks up the value of a top-level let computed by Sail's interpreter.
+*)
+let lookup_evaluated_top_level_value (identifier : Libsail.Ast.id) : (Libsail.Ast.value, string) Result.t option t =
+  let* values = Monad.get Context.evaluated_top_level_values
+  in
+  return @@ Libsail.Ast_compare.Bindings.find_opt identifier values
+
+
+(*
+   Runs the given action with the given identifiers marked as locally bound
+   (the parameters and local variables of the function being translated).
+*)
+let with_locally_bound_identifiers
+    (identifiers : Ast.Identifier.Set.t)
+    (action      : 'a t                ) : 'a t
+  =
+  let* previous = Monad.get Context.locally_bound_identifiers
+  in
+  let* () = Monad.put Context.locally_bound_identifiers identifiers
+  in
+  let* result = action
+  in
+  let* () = Monad.put Context.locally_bound_identifiers previous
+  in
+  return result
+
+
+(*
+   Checks whether a reference to the given identifier refers to a translated top-level value.
+
+   Returns
+   - Some true if it does;
+   - Some false if it refers to a local variable;
+   - None if it is ambiguous: the identifier is both a top-level value and bound locally
+     somewhere in the function being translated, so it may refer to either.
+*)
+let refers_to_top_level_value (identifier : Ast.Identifier.t) : bool option t =
+  let* top_level_values          = Monad.get Context.top_level_values
+  and* locally_bound_identifiers = Monad.get Context.locally_bound_identifiers
+  in
+  match Ast.Identifier.Set.mem top_level_values identifier, Ast.Identifier.Set.mem locally_bound_identifiers identifier with
+  | true , false -> return @@ Some true
+  | true , true  -> return None
+  | false, true  -> return @@ Some false
+  | false, false -> return @@ Some false
 
 
 (*
