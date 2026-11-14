@@ -3,7 +3,7 @@
  "clean_instructions": [
   "execute_FENCEI"
  ],
- "commit": "2a85f662+dirty",
+ "commit": "f70c64eb+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -399,7 +399,7 @@
   "flush_TLB_Entry": "missing",
   "getCapBaseBits": "ok",
   "getCapBounds": "ok",
-  "getCapBoundsBits": "holes",
+  "getCapBoundsBits": "ok",
   "getCapLength": "ok",
   "getCapPerms": "ok",
   "getCapTop": "ok",
@@ -702,18 +702,17 @@
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 34,
+  "NYI holes": 30,
   "functions generated": 571,
   "hard failures": 0,
   "instructions clean": 1,
   "instructions generated": 52,
-  "missing calls": 1500,
+  "missing calls": 1492,
   "untranslated definitions": 77
  },
  "holes": {
   "align_down": 2,
   "execute_CSetHigh": 1,
-  "getCapBoundsBits": 4,
   "pmpReadAddrReg": 2,
   "pmpReadCfgReg": 4,
   "pmpWriteAddrReg": 5,
@@ -1999,6 +1998,6 @@
    "file": "base.v"
   }
  },
- "run": "20261114T024123-2a85f662-dirty",
+ "run": "20261114T105434-f70c64eb-dirty",
  "scope": "93755be135d2"
 }

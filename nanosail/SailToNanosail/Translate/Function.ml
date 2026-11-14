@@ -1471,6 +1471,162 @@ let locally_bound_sail_identifiers (expression : Sail.type_annotation S.exp) : L
   fold_exp exp_alg expression
 
 
+(*
+   Truncation of a bitvector padded with zeros of run-time length.
+
+     truncate(X @ zeros(n), w)
+
+   has an intermediate bitvector of width |X| + n, which is only known at run time when n is,
+   and muSail bitvector types need widths known in Rocq. CHERIoT's getCapBoundsBits does this:
+
+     truncate((a_top + c_b) @ c.B @ zeros(E), cap_addr_width)     with E = unsigned(c.E)
+
+   The low w bits of X * 2^n are those of resize(X, w) * 2^n, so this is rewritten to
+
+     sail_shiftleft(resize(X, w), n)
+
+   where resize is truncate if w <= |X| and sail_zero_extend otherwise.
+   It requires |X| and w to be known; the concatenation may be nested either way.
+   The rewritten expression is type checked again in the environment of the original; if that fails,
+   the original is kept.
+*)
+let rewrite_truncated_zero_padding (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let application_of (expression : Sail.type_annotation S.exp) : (string * Sail.type_annotation S.exp list) option =
+    let S.E_aux (unwrapped_expression, _) = expression
+    in
+    match unwrapped_expression with
+    | E_app (identifier, arguments) -> Some (Libsail.Ast_util.string_of_id identifier, arguments)
+    | E_lit _                  -> None
+    | E_vector _               -> None
+    | E_block _                -> None
+    | E_id _                   -> None
+    | E_typ (_, _)             -> None
+    | E_tuple _                -> None
+    | E_if (_, _, _)           -> None
+    | E_loop (_, _, _, _)      -> None
+    | E_for (_, _, _, _, _, _) -> None
+    | E_vector_append (_, _)   -> None
+    | E_list _                 -> None
+    | E_cons (_, _)            -> None
+    | E_struct (_, _)          -> None
+    | E_struct_update (_, _)   -> None
+    | E_field (_, _)           -> None
+    | E_match (_, _)           -> None
+    | E_let (_, _, _)          -> None
+    | E_assign (_, _)          -> None
+    | E_sizeof _               -> None
+    | E_return _               -> None
+    | E_exit _                 -> None
+    | E_config _               -> None
+    | E_ref _                  -> None
+    | E_throw _                -> None
+    | E_try (_, _)             -> None
+    | E_assert (_, _)          -> None
+    | E_var (_, _, _)          -> None
+    | E_undef                  -> None
+    | E_internal_plet (_, _, _)-> None
+    | E_internal_return _      -> None
+    | E_internal_value _       -> None
+    | E_internal_assume (_, _) -> None
+    | E_constraint _           -> None
+  in
+  let constant_of_numeric_expression (numeric_expression : S.nexp) : Z.t option =
+    let S.Nexp_aux (unwrapped_numeric_expression, _) = Libsail.Ast_util.nexp_simp numeric_expression
+    in
+    match unwrapped_numeric_expression with
+    | Nexp_constant constant -> Some constant
+    | Nexp_id _              -> None
+    | Nexp_var _             -> None
+    | Nexp_app (_, _)        -> None
+    | Nexp_if (_, _, _)      -> None
+    | Nexp_times (_, _)      -> None
+    | Nexp_sum (_, _)        -> None
+    | Nexp_minus (_, _)      -> None
+    | Nexp_exp _             -> None
+    | Nexp_neg _             -> None
+  in
+  let bitvector_width (expression : Sail.type_annotation S.exp) : Z.t option =
+    Option.bind
+      (TypeCheck.destruct_bitvector (TypeCheck.env_of expression) (TypeCheck.typ_of expression))
+      ~f:constant_of_numeric_expression
+  and integer_value (expression : Sail.type_annotation S.exp) : Z.t option =
+    Option.bind
+      (TypeCheck.destruct_atom_nexp (TypeCheck.env_of expression) (TypeCheck.typ_of expression))
+      ~f:constant_of_numeric_expression
+  in
+  (* The operands of a (nested) concatenation, most significant first *)
+  let rec concatenated (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp list =
+    match application_of expression with
+    | Some ("bitvector_concat", [ left; right ]) -> concatenated left @ concatenated right
+    | Some _                                     -> [ expression ]
+    | None                                       -> [ expression ]
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    let rewritten : Sail.type_annotation S.exp option =
+      let open Monads.OptionNotation
+      in
+      let=? concatenation, target_width_expression =
+        match application_of original with
+        | Some ("truncate", [ concatenation; target_width_expression ]) -> Some (concatenation, target_width_expression)
+        | Some _ -> None
+        | None   -> None
+      in
+      let=? prefix, padding_length =
+        match List.rev (concatenated concatenation) with
+        | last :: (_ :: _ as reversed_prefix) -> begin
+            match application_of last with
+            | Some (("sail_zeros" | "zeros_implicit"), [ padding_length ]) -> begin
+                match integer_value padding_length with
+                | None   -> Some (List.rev reversed_prefix, padding_length)  (* only when the length is not known *)
+                | Some _ -> None
+              end
+            | Some _ -> None
+            | None   -> None
+          end
+        | [ _ ] -> None
+        | []    -> None
+      in
+      let=? prefix_width =
+        Option.map ~f:(List.fold ~init:Z.zero ~f:Z.add) @@ Option.all @@ List.map ~f:bitvector_width prefix
+      in
+      let=? target_width = integer_value target_width_expression
+      in
+      let untyped (expression : Sail.type_annotation S.exp) : Libsail.Ast_util.uannot S.exp =
+        TypeCheck.strip_exp expression
+      and call (name : string) (arguments : Libsail.Ast_util.uannot S.exp list) : Libsail.Ast_util.uannot S.exp =
+        Libsail.Ast_util.mk_exp (S.E_app (Libsail.Ast_util.mk_id name, arguments))
+      in
+      let=? untyped_prefix =
+        let rec concatenate (elements : Libsail.Ast_util.uannot S.exp list) : Libsail.Ast_util.uannot S.exp option =
+          match elements with
+          | []                  -> None
+          | [ element ]         -> Some element
+          | element :: rest     -> Option.map (concatenate rest) ~f:(fun rest -> call "bitvector_concat" [ element; rest ])
+        in
+        concatenate (List.map ~f:untyped prefix)
+      in
+      let resized =
+        let resize = if Z.leq target_width prefix_width then "truncate" else "sail_zero_extend"
+        in
+        call resize [ untyped_prefix; untyped target_width_expression ]
+      in
+      let replacement = call "sail_shiftleft" [ resized; untyped padding_length ]
+      in
+      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
+      with _ -> None
+    in
+    Option.value rewritten ~default:original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -1495,7 +1651,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf body_without_messages
+       let body        = S.anf @@ rewrite_truncated_zero_padding body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        let* locally_bound_identifiers =
