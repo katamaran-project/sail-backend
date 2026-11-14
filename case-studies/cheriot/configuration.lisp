@@ -47,11 +47,6 @@
                 "trans_kind"
                 "cache_op_kind"
                 "instruction_kind"
-                ;; Abbreviations of range types (P11: Range is NYI in Type.ml).
-                ;; Sail's type checker expands them, so no translated
-                ;; definition refers to them. Remove these once P11 is done.
-                "CapAddrInt"
-                "CapLen"
                 )
               identifier)))
 
