@@ -747,9 +747,18 @@ let pp_include_module (name : PP.t) : PP.t =
 (*
    type_1 * type_2 * ... * type_n
 *)
+(*
+   (t1 * t2 * ...)%type
+
+   The scope is needed: outside a type position (e.g., in Definition x := t1 * t2), Rocq reads * as multiplication of nats.
+   The parentheses keep nested tuples apart: (t1 * (t2 * t3)%type)%type is not (t1 * t2 * t3)%type.
+*)
 let pp_tuple_type (ts : PP.t list) : PP.t =
   PP.annotate [%here] begin
-    PP.separate_horizontally ~separator:(PP.string " * ") ts
+    PP.horizontal [
+      PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string " * ") ts;
+      PP.string "%type"
+    ]
   end
 
 
