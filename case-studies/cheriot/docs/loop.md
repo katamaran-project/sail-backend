@@ -79,7 +79,7 @@ sys_pmp_count = "0"
 - **Probe**: copies in `probe/` where holes are an axiom, so the first error shows the first problem beyond the holes:
   - `Axiom NYI : forall {A}, list nat -> A.` after the imports; each `NYI[n]` becomes `(NYI (cons n%nat nil))`;
   - the body of a function with a hole or a call to a missing function is replaced by the axiom;
-  - the proof of `fundef_bindfree` is admitted; the untranslated-definitions marker and comment are left out;
+  - the proof of `fundef_bindfree` is admitted; a `Theorem UNTRANSLATED_DEFINITIONS : False` marker and what follows it are left out (the CHERIoT template uses a comment instead);
   - line numbers are mapped back to the original file.
 - A file without `NYI` compiles once; plain and probe run in parallel.
 - **Watchdog**: `coqc -time`; a command running longer than `--coq-stall` seconds stops it, and the compilation is `STUCK` on that command.

@@ -8,14 +8,13 @@ Two compilations are useful while the translation is incomplete:
     probe   copies of base.v and machine.v in which NYI is an axiom
             (Axiom NYI : forall {A : Type}, list nat -> A), so that every hole
             type-checks. Its first error is the first *real* problem beyond the
-            holes; that is the progress signal until base.v compiles. The
-            templates' marker for untranslated definitions
-            (Theorem UNTRANSLATED_DEFINITIONS : False. Qed., which always fails)
-            and everything after it are blanked out in the copies: untranslated
-            definitions are holes too, and the probe goes on to machine.v. (After
-            the marker, the template has a comment with the Sail source of the
-            untranslated definitions, which Rocq's lexer need not accept: it reads
-            string literals in comments, and Sail's quotes need not be balanced.)
+            holes; that is the progress signal until base.v compiles. A template
+            marker Theorem UNTRANSLATED_DEFINITIONS : False. Qed. (which always
+            fails; the e2e tests' templates use it) and everything after it are
+            blanked out in the copies: untranslated definitions are holes too.
+            The CHERIoT template marks them with a comment instead, and the
+            translator escapes the listing of their Sail source, so plain
+            compilation gets through base.v.
 
 The first error of a compilation is mapped to the generated definition that
 contains it, and to how many of the file's definitions come before it.

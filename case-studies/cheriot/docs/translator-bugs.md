@@ -5,6 +5,18 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Comment listing untranslated definitions is not valid Rocq
+- Found: the loop's plain Rocq stopped in `base.v` at the template's `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.` (fails by design); behind it, the comment with the Sail source of untranslated definitions.
+- Cause: Rocq lexes string literals and nested comments inside comments; an odd number of `"` or a `*)` in the Sail source ends or breaks the comment ("Unterminated comment").
+- Fix: `(untranslated-definitions)` escapes each listing (`( *`, `* )`; all `"` become `'` when their number is odd); the CHERIoT template marks the listing with a comment instead of the theorem. Test `untranslated-listing-comment`.
+```sail
+function guarded() = try { print_endline("an odd \" quote, a *) and a (*"); 1 } catch { Oops() => 0 }
+```
+```coq
+(* before *) print_endline("an odd \" quote, a *) and a (*");    (* inside the listing comment *)
+(* after  *) print_endline('an odd \' quote, a * ) and a ( *');
+```
+
 ### `ones(n)` printed as the number 1
 - Found: while working on `zero_extend(ones(n))`; Rocq accepted the output, so no test caught it.
 - Cause: with `literal-zeros-and-ones` off (the default), `sail_ones(n)` with a known `n` was printed with Katamaran's `bv.one`, which is the number 1.
@@ -186,10 +198,6 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 ```coq
 [1] : Not yet implemented; see nanosail/NanosailToMicrosail/FunctionCalls.ml line 908 (%s's indices should be known at compile time)
 ```
-
-### Comment listing untranslated definitions is not valid Rocq
-- The templates put the Sail source of untranslated definitions in a comment; Rocq lexes strings inside comments, and Sail's unbalanced quotes give "Unterminated comment".
-- Harmless in plain compilation (the `UNTRANSLATED_DEFINITIONS` marker fails first); the probe drops the comment (`73d51ac7`).
 
 ### Function names clash with Katamaran's
 - A Sail function named like a Katamaran definition clashes in `machine.v`; e2e `model-008`.

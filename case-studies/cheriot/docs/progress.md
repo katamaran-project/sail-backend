@@ -9,7 +9,7 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `28524b93` plus PMP absent and typed discarded calls; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `c90a4863` plus the escaped listing of untranslated definitions; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -22,7 +22,7 @@ Measured on `28524b93` plus PMP absent and typed discarded calls; cheriot-sail `
 | calls to missing functions | 102: outside the scope 86 (from `execute`), untranslated 16 |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 39, removed with their uses: 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | `base.v:12852`: 1090 of 1091 definitions; only the comment block that lists untranslated definitions fails |
+| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2340`: 29 of its 504 definitions, then the first `NYI` hole (`align_down`) |
 | Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 368 of its 504 definitions; it stops at `machine.v:15061`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
@@ -33,7 +33,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 - `CSR` and `CSetHigh` have holes: bitvector widths or slice indices not known at compile time.
 - Option patterns with a nested pattern (`Some(RV32)`, `Some(intr, priv)`) are untranslated: `translationMode`, `step`, `dispatchInterrupt`.
 - The main decoder `encdec_backwards` is untranslated (a `match` on a `bool`).
-- Plain Rocq stops at the untranslated-definitions marker in `base.v`; `machine.v` still calls the 86 out-of-scope `execute_<C>`.
+- Plain Rocq stops at the first `NYI` hole in `machine.v`, which also still calls the 86 out-of-scope `execute_<C>`.
 - PMP is absent (`sys_pmp_count = 0`) and virtual memory is excluded; see [design](design.md#scope).
 - Details and what each blocks: [roadmap](roadmap.md).
 
@@ -66,7 +66,8 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-14 | `da9963ca`+ | core | 61 / 61, 35 clean | 499 / 529 | 46 | 29 | 0 | `machine.v:15088` `htif_store` (391 of 526) | `num_of_ExceptionType`, `num_of_ext_exc_type` translated (the configuration skipped all `num_of_*`); the clean check skips calls into policy-excluded definitions, as the scope does: 15 more instructions clean |
 | 2026-11-14 | `da9963ca`+ | core | 61 / 61, 50 clean | 502 / 529 | 43 | 29 | 0 | `machine.v:15942` `htif_store` (393 of 529) | Sail's `early_return` rewrite enabled; a `return` it cannot remove is refused; `capToEncCap`, `encCapabilityToCapability`, `mem_read_cap_revoked` generated: 15 more instructions clean |
 | 2026-11-14 | `50a76d89`+ | core | 61 / 61, 55 clean | 502 / 529 | 43 | 25 | 0 | `machine.v:15933` `htif_store` (393 of 529) | `zero_extend(ones(n))` with run-time `n` rewritten to a shifted mask; `setCapBounds` without holes |
-| 2026-11-14 | `28524b93`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | PMP absent (policy exclusions); discarded calls keep their type; plain Rocq through `base.v` |
+| 2026-11-14 | `28524b93`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | PMP absent (policy exclusions); discarded calls keep their type; plain Rocq up to the untranslated-definitions marker in `base.v` |
+| 2026-11-15 | `c90a4863`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | listing of untranslated definitions escaped, marked by a comment: plain Rocq compiles all of `base.v`, stops at the first hole in `machine.v` |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

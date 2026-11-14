@@ -45,10 +45,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Rocq output
 
-- **The untranslated-definitions comment in `base.v` is invalid.** The template emits `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.`, then a comment with the Sail source of each untranslated definition.
-  - Plain `coqc base.v` stops there by design, and Rocq's lexer need not accept Sail source in a comment.
-  - Needs: a form that compiles (escaped listing; untranslated definitions as `Parameter`s), with the "is the translation complete?" check done elsewhere.
-  - Blocks: plain Rocq of `base.v` and everything after it (the probe leaves the block out).
 - **Calls to out-of-scope instructions.** `execute` still calls the 86 `execute_<C>` outside the scope, which `machine.v` does not define.
   Needs: those calls as failures (the dispatcher's out-of-scope arms excluded as `failure`). Blocks plain Rocq of `machine.v`.
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
