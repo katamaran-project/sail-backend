@@ -689,6 +689,14 @@ let with_destructured_record
 
 
 (*
+   Whether a called function is the builtin early_return, to which Sail's early_return rewrite
+   turns the returns that it cannot remove (see statement_of_application).
+*)
+let is_early_return (function_identifier : S.id) : bool =
+  String.equal (Libsail.Ast_util.string_of_id function_identifier) "early_return"
+
+
+(*
    Translate Sail expression to statements.
 
    The expression_type parameter is the type of the expression, if it is known.
@@ -1167,6 +1175,15 @@ let rec statement_of_aexp
         end
     in
 
+    (*
+       Sail's early_return rewrite (see sail_plugin/Rewrites.ml) removes the returns after which
+       nothing else runs, and turns each remaining return into a call to the builtin early_return,
+       which it declares as an extern. Translating that call as a call (a foreign call, as for any
+       extern) would let the rest of the function run after the return, so it is not supported.
+    *)
+    if is_early_return receiver_identifier
+    then TC.not_yet_implemented ~message:"early return that Sail's early_return rewrite could not remove" [%here] location
+    else
     match Configuration.function_exclusion (Libsail.Ast_util.string_of_id receiver_identifier) with
     | Some exclusion -> statement_of_excluded_function_call exclusion
     | None ->
