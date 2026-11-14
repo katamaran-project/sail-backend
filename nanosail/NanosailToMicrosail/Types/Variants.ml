@@ -132,37 +132,6 @@ let generate_constructor_match
   GC.return @@ Coq.pp_match (Identifier.pp matched_identifier) cases
 
 
-(*
-
-   Given a variant definition, returns which EqDecs are required.
-
- *)
-let eqdec_identifiers_for (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
-  let inductive_type_identifier =
-    variant_definition.identifier
-  and constructors_inductive_type_identifier =
-    Identifier.reified_variant_constructors_collection_name variant_definition.identifier
-  in
-  [ inductive_type_identifier; constructors_inductive_type_identifier ]
-
-
-let extra_eqdec_identifiers () : Ast.Identifier.t list =
-  [ variants_inductive_type_identifier ]
-
-
-let no_confusion_identifiers_for (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
-  let inductive_type_identifier =
-    variant_definition.identifier
-  and constructors_inductive_type_identifier =
-    Identifier.reified_variant_constructors_collection_name variant_definition.identifier
-  in
-  [ inductive_type_identifier; constructors_inductive_type_identifier ]
-
-
-let extra_no_confusion_identifiers () =
-  [ variants_inductive_type_identifier ]
-
-
 let generate_constructor_finiteness (variant_definition : Ast.Definition.Type.Variant.t) : PP.t =
   let identifier = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
   and type_name  = Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier

@@ -27,7 +27,7 @@ An instruction is *clean* when everything it reaches translates without holes an
 | hard failures | 0 |
 | calls to missing functions | 1495: extern 1283, untranslated 110, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
 | Rocq, plain | `base.v:1734`, in `Record TLB_Entry`: `The reference kid__asidlen was not found` (a struct with `Int` parameters, Sv32 only) |
-| Rocq, probe (`NYI` as an axiom) | the same; 258 of 553 definitions before it |
+| Rocq, probe (`NYI` as an axiom) | the same; 258 of 1109 definitions before it (the linear `EqDec` instances added definitions after it) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -57,6 +57,11 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | P07 | `CJALR` | register reference |
 
 **Rocq:** `base.v` now stops at `Record TLB_Entry`, the Sv32 TLB entry, a struct with `Int` parameters (virtual memory, out of scope).
+`EqDec` instances are no longer derived with Equations for enums, unions and registers, but built linearly (`nanosail/NanosailToMicrosail/EqDec.ml`):
+enums by numbering their values, unions through their constructor tag and the tuple of the fields, `sigT Reg` by numbering the registers.
+`NoConfusion` is only derived for records (their `Derive EqDec` needs it). Measured on `base.v` with the TLB types ignored, `coqc base.v` went from 591 s
+(`Derive EqDec` for `astConstructor` 210 s, `ast` 149 s, `RegName` 98 s, `Enums` 55 s; `NoConfusion` for `ast` 31 s) to 13 s, and the probe, which never finished the
+`depelim` proof of the old `𝑹𝑬𝑮_eq_dec` (a match whose wildcard expands into about 14,000 obligations for 120 registers), to 17 s.
 Type abbreviations of tuples are now `(CapEx * capreg_idx)%type` (Rocq read `*` as multiplication of `nat`s).
 CHERIoT's constants defined both as a type and as a value (`type cap_addr_width : Int = xlen`, `let cap_addr_width = sizeof(cap_addr_width)`; 10 names) no longer clash:
 the type keeps its name, which Rocq types use (`bv (cap_addr_width + 1)`), and the value's definition is `cap_addr_width_value`, which µSail code uses (`exp_val ty.int cap_addr_width_value`).
@@ -90,6 +95,7 @@ The range abbreviations `CapAddrInt` and `CapLen` are no longer ignored: `range`
 | 2026-11-14 | `f70c64eb`+ | core | 52 / 61, 1 clean | 571 / 647 | 77 | 30 | 0 | `AccessType` (69 of 529) | P01: `truncate(X @ zeros(E), w)` with run-time `E` rewritten to a shift; run-time shift amounts; native `truncate`; `getCapBoundsBits` has no holes |
 | 2026-11-14 | `b2604dd0`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `ext_control_addr_error` (222 of 553) | P02: a monomorphic copy of each union with type parameters per closed type argument (15 copies); `StoreCapImm` generated; 7 size-polymorphic memory reads (P13) now untranslated instead of ill-typed |
 | 2026-11-14 | `045edc96`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 553) | tuple abbreviations are `(A * B)%type`; a value that shares its name with a type is `<name>_value` in Rocq (10 CHERIoT constants) |
+| 2026-11-14 | `de4e6e60`+ | core | 53 / 61, 1 clean | 570 / 647 | 94 | 23 | 0 | `TLB_Entry` (258 of 1109) | linear `EqDec` instances for enums, unions and registers instead of `Derive EqDec`/`NoConfusion` (`coqc base.v` 591 s -> 13 s once Rocq gets past `TLB_Entry`) |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
